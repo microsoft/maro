@@ -1,11 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from maro.vector_env.vector_env import VectorEnv
+from maro.vector_env import VectorEnv
 
 
 if __name__ == "__main__":
-    with VectorEnv(2, scenario="cim", topology="toy.5p_ssddd_l0.0", durations=100) as env:
+    with VectorEnv(batch_num=2, scenario="cim", topology="toy.5p_ssddd_l0.0", durations=100) as env:
         for ep in range(1):
             print("current episode:", ep)
 
