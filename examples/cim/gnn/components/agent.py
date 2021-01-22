@@ -6,21 +6,33 @@ from maro.rl import AbsAgent
 from maro.utils import DummyLogger
 
 from .numpy_store import Shuffler
+from .utils import gnn_union
 
 
-class TrainableAgent(AbsAgent):
-    def __init__(self, name, algorithm, experience_pool, logger=DummyLogger()):
+class GNNAgent(AbsAgent):
+    def __init__(
+        self, 
+        name, 
+        algorithm, 
+        experience_pool, 
+        num_batches, 
+        batch_size,
+        logger=DummyLogger()
+    ):
+        super().__init__(name, algorithm, experience_pool=experience_pool)
+        self._num_batches = num_batches
+        self._batch_size = batch_size
         self._logger = logger
-        super().__init__(name, algorithm, experience_pool)
-
-    def train(self, training_config):
+    
+    def train(self):
         loss_dict = defaultdict(list)
-        for j in range(training_config.shuffle_time):
-            shuffler = Shuffler(self._experience_pool, batch_size=training_config.batch_size)
+        for j in range(self._num_batches):
+            shuffler = Shuffler(self._experience_pool, batch_size=self._batch_size)
             while shuffler.has_next():
                 batch = shuffler.next()
                 actor_loss, critic_loss, entropy_loss, tot_loss = self._algorithm.train(
-                    batch, self._name[0], self._name[1])
+                    batch["s"], batch["a"], batch["R"], batch["s_"], self._name[0], self._name[1]
+                )
                 loss_dict["actor"].append(actor_loss)
                 loss_dict["critic"].append(critic_loss)
                 loss_dict["entropy"].append(entropy_loss)

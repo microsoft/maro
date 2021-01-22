@@ -5,30 +5,43 @@ env:
     scenario: "cim"
     topology: "global_trade.22p_l0.8"
     # topology: "toy.4p_ssdd_l0.0"
-training:
-  enable: True
-  parallel_cnt: 1
-  device: "cpu"
-  batch_size: 16
-  shuffle_time: 1
-  rollout_cnt: 500
-  train_freq: 1
-  model_save_freq: 1
-  gamma: 0.99
-  learning_rate: 0.00005
-  td_steps: 100
-  entropy_loss_enable: True
-model:
-  path: "./"
-  tick_buffer: 20
-  hidden_size: 32
-  graph_output_dim: 32
-  action_dim: 21
-  feature:
-    # temporal or random, if temporal, the edges in the graph are listed in the order of event time, else in a
-    # random order.
-    attention_order: temporal
-    onehot_identity: False
+agents:
+  training:
+    enable: True
+    parallel_cnt: 1
+    device: "cpu"
+    train_freq: 1
+    model_save_freq: 1
+    num_batches: 1
+    batch_size: 16
+  algorithm:
+    reward_discount: 0.99
+    td_steps: 100
+    actor_loss_coefficient: 0.1
+    entropy_factor: 0.1
+  model:
+    path: "./" 
+    scale: 4
+    sequence_buffer_size: 20
+    hidden_size: 32
+    port_edge_feature_dim: 1 
+    vessel_edge_feature_dim: 2
+    port_pre_dim: 16
+    vessel_pre_dim: 8
+    policy_hidden_dims: 
+      - 16
+    value_hidden_dims:
+      - 16
+    graph_output_dim: 32
+    action_dim: 21
+    learning_rate: 0.00005
+    feature:
+      # temporal or random, if temporal, the edges in the graph are listed in the order of event time, else in a
+      # random order.
+      attention_order: temporal
+      onehot_identity: False
+main_loop:
+  max_episode: 500
 log:
   path: "./"
   exp:

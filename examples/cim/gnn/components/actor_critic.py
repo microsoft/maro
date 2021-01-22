@@ -1,40 +1,56 @@
 import os
 
+import numpy as np
 import torch
 from torch import nn
 from torch.distributions import Categorical
 from torch.nn.utils import clip_grad
 
-from maro.rl import AbsAlgorithm
-
-from .utils import gnn_union
+from maro.rl import AbsAlgorithm, AbsLearningModel
 
 
-class ActorCritic(AbsAlgorithm):
+class GNNBasedActorCriticConfig:
+    """Configuration for the GNN-based Actor Critic algorithm.
+    
+    Args:
+        p2p_adj (numpy.array): Adjencency matrix for static nodes.
+        td_steps (int): The value "n" in the n-step TD algorithm.
+        gamma (float): The time decay.
+        actor_loss_coefficient (float): Coefficient for actor loss in total loss.
+        entropy_factor (float): The weight of the policy"s entropy to boost exploration.
+    """
+    __slots__ = [
+        "p2p_adj", "td_steps", "reward_discount", "value_discount", "actor_loss_coefficient", "entropy_factor"
+    ]
+
+    def __init__(
+        self,
+        p2p_adj: np.ndarray,
+        td_steps: int = 100, 
+        reward_discount: float = 0.97,
+        actor_loss_coefficient: float = 0.1,
+        entropy_factor: float = 0.1
+    ):
+        self.p2p_adj = p2p_adj
+        self.td_steps = td_steps
+        self.reward_discount = reward_discount
+        self.value_discount = reward_discount ** 100
+        self.actor_loss_coefficient = actor_loss_coefficient
+        self.entropy_factor = entropy_factor
+
+
+class GNNBasedActorCritic(AbsAlgorithm):
     """Actor-Critic algorithm in CIM problem.
 
     The vanilla ac algorithm.
 
     Args:
-        model (nn.Module): A actor-critic module outputing both the policy network and the value network.
-        device (torch.device): A PyTorch device instance where the module is computed on.
-        p2p_adj (numpy.array): The static port-to-port adjencency matrix.
-        td_steps (int): The value "n" in the n-step TD algorithm.
-        gamma (float): The time decay.
-        learning_rate (float): The learning rate for the module.
-        entropy_factor (float): The weight of the policy"s entropy to boost exploration.
+        model (AbsLearningModel): A actor-critic module outputing both the policy network and the value network.
+        config (GNNBasedActorCriticConfig): Configuration for the GNN-based actor critic algorithm.
     """
 
-    def __init__(
-            self, model: nn.Module, device: torch.device, p2p_adj=None, td_steps=100, gamma=0.97, learning_rate=0.0003,
-            entropy_factor=0.1):
-        self._gamma = gamma
-        self._td_steps = td_steps
-        self._value_discount = gamma**100
-        self._entropy_factor = entropy_factor
-        self._device = device
-        self._tot_batchs = 0
-        self._p2p_adj = p2p_adj
+    def __init__(self, model: AbsLearningModel, config: GNNBasedActorCriticConfig):
+        self._batch_count = 0
         super().__init__(
             model_dict={"a&c": model}, optimizer_opt={"a&c": (torch.optim.Adam, {"lr": learning_rate})},
             loss_func_dict={}, hyper_params=None)
@@ -70,13 +86,12 @@ class ActorCritic(AbsAlgorithm):
         Returns:
             model_action (numpy.int64): The action returned from the module.
         """
-        with torch.no_grad():
-            prob, _ = self._model_dict["a&c"](state, a=True, p_idx=p_idx, v_idx=v_idx)
-            distribution = Categorical(prob)
-            model_action = distribution.sample().cpu().numpy()
-            return model_action
+        prob, _ = self._model(state, p_idx=p_idx, v_idx=v_idx, actor_enabled=True, is_training=False)
+        distribution = Categorical(prob)
+        model_action = distribution.sample().cpu().numpy()
+        return model_action
 
-    def train(self, batch, p_idx, v_idx):
+    def train(self, states, actions, returns, next_states, p_idx, v_idx):
         """Model training.
 
         Args:
@@ -95,62 +110,30 @@ class ActorCritic(AbsAlgorithm):
             c_loss (float): critic loss.
             e_loss (float): entropy loss.
             tot_norm (float): the L2 norm of the gradient.
-
         """
-        self._tot_batchs += 1
-        item_a_loss, item_c_loss, item_e_loss = 0, 0, 0
-        obs_batch = batch["s"]
-        action_batch = batch["a"]
-        return_batch = batch["R"]
-        next_obs_batch = batch["s_"]
-
-        obs_batch = gnn_union(
-            obs_batch["p"], obs_batch["po"], obs_batch["pedge"], obs_batch["v"], obs_batch["vo"], obs_batch["vedge"],
-            self._p2p_adj, obs_batch["ppedge"], obs_batch["mask"], self._device)
-        action_batch = torch.from_numpy(action_batch).long().to(self._device)
-        return_batch = torch.from_numpy(return_batch).float().to(self._device)
-        next_obs_batch = gnn_union(
-            next_obs_batch["p"], next_obs_batch["po"], next_obs_batch["pedge"], next_obs_batch["v"],
-            next_obs_batch["vo"], next_obs_batch["vedge"], self._p2p_adj, next_obs_batch["ppedge"],
-            next_obs_batch["mask"], self._device)
-
-        # Train actor network.
-        self._optimizer["a&c"].zero_grad()
-
+        self._batch_count += 1
+        states, actions, returns, next_states = self._preprocess(states, actions, returns, next_states)
         # Every port has a value.
         # values.shape: (batch, p_cnt)
-        probs, values = self._model_dict["a&c"](obs_batch, a=True, p_idx=p_idx, v_idx=v_idx, c=True)
+        probs, values = self._model(states, p_idx=p_idx, v_idx=v_idx, actor_enabled=True, critic_enabled=True)
         distribution = Categorical(probs)
-        log_prob = distribution.log_prob(action_batch)
+        log_prob = distribution.log_prob(actions)
         entropy_loss = distribution.entropy()
 
-        _, values_ = self._model_dict["a&c"](next_obs_batch, c=True)
-        advantage = return_batch + self._value_discount * values_.detach() - values
+        _, values_ = self._model(next_states, critic_enabled=True)
+        advantage = returns + self._value_discount * values_.detach() - values
 
         if self._entropy_factor != 0:
             # actor_loss = actor_loss* torch.log(entropy_loss + np.e)
             advantage[:, p_idx] += self._entropy_factor * entropy_loss.detach()
 
         actor_loss = - (log_prob * torch.sum(advantage, axis=-1).detach()).mean()
-
-        item_a_loss = actor_loss.item()
-        item_e_loss = entropy_loss.mean().item()
-
-        # Train critic network.
         critic_loss = torch.sum(advantage.pow(2), axis=1).mean()
-        item_c_loss = critic_loss.item()
         # torch.nn.utils.clip_grad_norm_(self._critic_model.parameters(),0.5)
-        tot_loss = 0.1 * actor_loss + critic_loss
-        tot_loss.backward()
-        tot_norm = clip_grad.clip_grad_norm_(self._model_dict["a&c"].parameters(), 1)
-        self._optimizer["a&c"].step()
-        return item_a_loss, item_c_loss, item_e_loss, float(tot_norm)
-
-    def set_weights(self, weights):
-        self._model_dict["a&c"].load_state_dict(weights)
-
-    def get_weights(self):
-        return self._model_dict["a&c"].state_dict()
+        tot_loss = self._config.actor_loss_coefficient * actor_loss + critic_loss
+        self._model.learn(tot_loss)
+        tot_norm = clip_grad.clip_grad_norm_(self._model.parameters(), 1)
+        return actor_loss.item(), critic_loss.item(), entropy_loss.mean().item(), float(tot_norm)
 
     def _get_save_idx(self, fp_str):
         return int(fp_str.split(".")[0].split("_")[0])
@@ -159,12 +142,12 @@ class ActorCritic(AbsAlgorithm):
         if not os.path.exists(pth):
             os.makedirs(pth)
         pth = os.path.join(pth, f"{id}_ac.pkl")
-        torch.save(self._model_dict["a&c"].state_dict(), pth)
+        torch.save(self._model.state_dict(), pth)
 
     def _set_gnn_weights(self, weights):
         for key in weights:
-            if key in self._model_dict["a&c"].state_dict().keys():
-                self._model_dict["a&c"].state_dict()[key].copy_(weights[key])
+            if key in self._model.state_dict().keys():
+                self._model.state_dict()[key].copy_(weights[key])
 
     def load_model(self, folder_pth, idx=-1):
         if idx == -1:
@@ -178,3 +161,90 @@ class ActorCritic(AbsAlgorithm):
         with open(pth, "rb") as fp:
             weights = torch.load(fp, map_location=self._device)
         self._set_gnn_weights(weights)
+
+    def _from_numpy(self, *np_arr):
+        return [torch.from_numpy(v).to(self._device) for v in np_arr]
+
+    def _union(self, p, po, pedge, v, vo, vedge, ppedge, seq_mask):
+        """Union multiple graphs in CIM.
+
+        Args:
+            v: Numpy array of shape (seq_len, batch, v_cnt, v_dim).
+            vo: Numpy array of shape (batch, v_cnt, p_cnt).
+            vedge: Numpy array of shape (batch, v_cnt, p_cnt, e_dim).
+        Returns:
+            result (dict): The dictionary that describes the graph.
+        """
+        seq_len, batch, v_cnt, v_dim = v.shape
+        _, _, p_cnt, p_dim = p.shape
+
+        p, po, pedge, v, vo, vedge, p2p, ppedge, seq_mask = self._from_numpy(
+            p, po, pedge, v, vo, vedge, self._config.p2p_adj, ppedge, seq_mask)
+
+        batch_range = torch.arange(batch, dtype=torch.long).to(self._device)
+        # vadj.shape: (batch*v_cnt, p_cnt*)
+        vadj, vedge = self.flatten_embedding(vo, batch_range, vedge)
+        # vmask.shape: (batch*v_cnt, p_cnt*)
+        vmask = vadj == 0
+        # vadj.shape: (p_cnt*, batch*v_cnt)
+        vadj = vadj.transpose(0, 1)
+        # vedge.shape: (p_cnt*, batch*v_cnt, e_dim)
+        vedge = vedge.transpose(0, 1)
+
+        padj, pedge = self.flatten_embedding(po, batch_range, pedge)
+        pmask = padj == 0
+        padj = padj.transpose(0, 1)
+        pedge = pedge.transpose(0, 1)
+
+        p2p_adj = p2p.repeat(batch, 1, 1)
+        # p2p_adj.shape: (batch*p_cnt, p_cnt*)
+        p2p_adj, ppedge = self.flatten_embedding(p2p_adj, batch_range, ppedge)
+        # p2p_mask.shape: (batch*p_cnt, p_cnt*)
+        p2p_mask = p2p_adj == 0
+        # p2p_adj.shape: (p_cnt*, batch*p_cnt)
+        p2p_adj = p2p_adj.transpose(0, 1)
+        ppedge = ppedge.transpose(0, 1)
+
+        return {
+            "v": v,
+            "p": p,
+            "pe": {"edge": pedge, "adj": padj, "mask": pmask},
+            "ve": {"edge": vedge, "adj": vadj, "mask": vmask},
+            "ppe": {"edge": ppedge, "adj": p2p_adj, "mask": p2p_mask},
+            "mask": seq_mask,
+        }
+
+    def _preprocess(self, states, actions, returns, next_states):
+        states = self._union(
+            states["p"], states["po"], states["pedge"], states["v"], states["vo"], states["vedge"],
+            states["ppedge"], states["mask"]
+        )
+        actions = torch.from_numpy(actions).long().to(self._device)
+        returns = torch.from_numpy(returns).float().to(self._device)
+        next_states = self._union(
+            next_states["p"], next_states["po"], next_states["pedge"],
+            next_states["v"], next_states["vo"], next_states["vedge"],
+            next_states["ppedge"], next_states["mask"]
+        )
+        return states, actions, returns, next_states
+
+    @staticmethod
+    def flatten_embedding(embedding, batch_range, edge=None):
+        if len(embedding.shape) == 3:
+            batch, x_cnt, y_cnt = embedding.shape
+            addon = (batch_range * y_cnt).view(batch, 1, 1)
+        else:
+            seq_len, batch, x_cnt, y_cnt = embedding.shape
+            addon = (batch_range * y_cnt).view(seq_len, batch, 1, 1)
+
+        embedding_mask = embedding == 0
+        embedding += addon
+        embedding[embedding_mask] = 0
+        ret = embedding.reshape(-1, embedding.shape[-1])
+        col_mask = ret.sum(dim=0) != 0
+        ret = ret[:, col_mask]
+        if edge is None:
+            return ret
+        else:
+            edge = edge.reshape(-1, *edge.shape[2:])[:, col_mask, :]
+            return ret, edge

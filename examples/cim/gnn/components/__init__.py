@@ -1,5 +1,5 @@
 from .actor import ParallelActor
-from .agent_manager import SimpleAgentManger
+from .agent_manager import GNNAgentManger
 from .learner import GNNLearner
 from .state_shaper import GNNStateShaper
 from .utils import decision_cnt_analysis, load_config, return_scaler, save_code, save_config
