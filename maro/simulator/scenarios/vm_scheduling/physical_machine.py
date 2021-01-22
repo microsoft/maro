@@ -29,7 +29,9 @@ class PhysicalMachine(NodeBase):
 
     region_id = NodeAttribute("i2")
     zone_id = NodeAttribute("i2")
+    data_center_id = NodeAttribute("i2")
     cluster_id = NodeAttribute("i2")
+    rack_id = NodeAttribute("i")
 
     def __init__(self):
         """Internal use for reset."""
@@ -92,6 +94,12 @@ class PhysicalMachine(NodeBase):
 
         self.cpu_utilization = 0.0
         self.energy_consumption = 0.0
+
+        self.region_id = 0
+        self.zone_id = 0
+        self.data_center_id = 0
+        self.cluster_id = 0
+        self.rack_id = 0
 
     @property
     def live_vms(self) -> Set[int]:

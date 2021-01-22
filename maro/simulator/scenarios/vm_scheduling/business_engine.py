@@ -74,7 +74,9 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         # Data center structure for quick accessing.
         self._init_regions()
         self._init_zones()
+        self._init_data_centers()
         self._init_clusters()
+        self._init_racks()
         self._init_pms()
         self._dfs_update_id()
 
@@ -120,13 +122,17 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._max_cpu_oversubscription_rate: float = self._config.MAX_CPU_OVERSUBSCRIPTION_RATE
         self._max_memory_oversubscription_rate: float = self._config.MAX_MEM_OVERSUBSCRIPTION_RATE
         self._max_utilization_rate: float = self._config.MAX_UTILIZATION_RATE
-        # Load PM related configs.
-        self._region_amount = sum(len(item) for item in self._find_item(key="Region", dictionary=self._config))
-        self._zone_amount = sum(len(item) for item in self._find_item(key="Zone", dictionary=self._config))
-        self._cluster_amount = sum(len(item) for item in self._find_item(key="Cluster", dictionary=self._config))
-        self._pm_amount: int = sum(amount for amount in self._find_item(key="amount", dictionary=self._config))
 
-        self._kill_all_vms_if_overload = self._config.KILL_ALL_VMS_IF_OVERLOAD
+        # Load PM related configs.
+        self._region_amount: int = sum(len(item) for item in self._find_item(key="region", dictionary=self._config.architecture))
+        self._zone_amount: int = sum(len(item) for item in self._find_item(key="zone", dictionary=self._config.architecture))
+        self._data_center_amount: int = sum(len(item) for item in self._find_item(key="data_center", dictionary=self._config.architecture))
+
+        self._cluster_amount: int = len(self._config.components.cluster)
+        self._rack_amount: int = len(self._config.components.rack)
+        self._pm_amount: int = sum(amount for amount in self._find_item(key="pm_amount", dictionary=self._config.architecture))
+
+        self._kill_all_vms_if_overload: bool = self._config.KILL_ALL_VMS_IF_OVERLOAD
 
     def _init_metrics(self):
         # Env metrics.
@@ -173,7 +179,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._regions = self._frame.regions
         region_id = 0
         zone_id = count(start=0)
-        for region_list in self._find_item("region", self._config):
+        for region_list in self._find_item("region", self._config.architecture):
             for region_dict in region_list:
                 region = self._regions[region_id]
                 region.set_init_state(
@@ -188,7 +194,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._zones = self._frame.zones
         zone_id = 0
         data_center_id = count(start=0)
-        for zone_list in self._find_item("zone", self._config):
+        for zone_list in self._find_item("zone", self._config.architecture):
             for zone_dict in zone_list:
                 zone = self._zones[zone_id]
                 zone.set_init_state(
@@ -203,11 +209,11 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._data_centers = self._frame.data_centers
         data_center_id = 0
         cluster_id = count(start=0)
-        for data_center_list in self._find_item("data_center", self._config):
+        for data_center_list in self._find_item("data_center", self._config.architecture):
             for data_center_dict in data_center_list:
                 data_center = self._data_centers[data_center_id]
                 data_center.set_init_state(
-                    id=zone_id
+                    id=data_center_id
                 )
                 data_center.name = data_center_dict["name"]
                 data_center.cluster_list = [next(cluster_id) for _ in range(len(data_center_dict["cluster"]))]
@@ -217,16 +223,30 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         """Initialize the clusters based on the config setting. The cluster id starts from 0."""
         self._clusters = self._frame.clusters
         cluster_id = 0
+        rack_id = count(start=0)
+        cluster_list = self._config.components.cluster
+        for cluster_dict in cluster_list:
+            cluster = self._clusters[cluster_id]
+            cluster.set_init_state(
+                id=cluster_id
+            )
+            cluster.cluster_type = cluster_dict["type"]
+            cluster.rack_list = [next(rack_id) for _ in range(len(cluster_dict["rack"]))]
+            cluster_id += 1
+
+    def _init_racks(self):
+        self._racks = self._frame.racks
+        rack_id = 0
         pm_id = count(start=0)
-        for cluster_list in self._find_item("Cluster", self._config):
-            for cluster_dict in cluster_list:
-                cluster = self._clusters[cluster_id]
-                cluster.set_init_state(
-                    id=cluster_id
-                )
-                cluster.name = cluster_dict["name"]
-                cluster.pm_list = [next(pm_id) for _ in range(sum(pm["amount"] for pm in cluster_dict["PM"]))]
-                cluster_id += 1
+        rack_list = self._config.components.rack
+        for rack_dict in rack_list:
+            rack = self._racks[rack_id]
+            rack.set_init_state(
+                id=rack_id
+            )
+            rack.type = rack_dict["type"]
+            rack.total_pm_num = sum(pm["amount"] for pm in rack_dict["pm"])
+            rack.pm_list = [next(pm_id) for _ in range(rack.total_pm_num)]
 
     def _init_pms(self):
         """Initialize the physical machines based on the config setting. The PM id starts from 0."""
@@ -234,37 +254,53 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._machines = self._frame.pms
         # PM type dictionary.
         self._pm_type_dict: dict = {}
+        for pm_type, pm_dict in enumerate(self._config.components.pm):
+            self._pm_type_dict[pm_type] = pm_dict
+
         pm_id = 0
-        for item in self._find_item("PM", self._config):
-            for lower_level in item:
-                self._pm_type_dict[lower_level["PM_type"]] = lower_level
-                pm_amount = lower_level["amount"]
+        for rack_dict in self._config.components.rack:
+            for pm in rack_dict["pm"]:
+                pm_amount = pm["amount"]
+                pm_type = pm["pm_type"]
                 while pm_amount > 0:
                     pm = self._machines[pm_id]
                     pm.set_init_state(
                         id=pm_id,
-                        cpu_cores_capacity=lower_level["CPU"],
-                        memory_capacity=lower_level["memory"],
-                        pm_type=lower_level["PM_type"],
+                        cpu_cores_capacity=self._pm_type_dict[pm_type]["cpu"],
+                        memory_capacity=self._pm_type_dict[pm_type]["memory"],
+                        pm_type=pm_type,
                         oversubscribable=PmState.EMPTY
                     )
                     pm_amount -= 1
                     pm_id += 1
 
     def _dfs_update_id(self):
-        for region in self._regions:
+        for region_id, region in enumerate(self._regions):
             for zone_id in region.zone_list:
                 zone = self._zones[zone_id]
-                zone.region_id = region.id
-                for cluster_id in zone.cluster_list:
-                    cluster = self._clusters[cluster_id]
-                    cluster.region_id = region.id
-                    cluster.zone_id = zone_id
-                    for pm_id in cluster.pm_list:
-                        pm = self._machines[pm_id]
-                        pm.region_id = region.id
-                        pm.zone_id = zone_id
-                        pm.cluster_id = cluster_id
+                zone.region_id = region_id
+                for data_center_id in zone.data_center_list:
+                    data_center = self._data_centers[data_center_id]
+                    data_center.region_id = region_id
+                    data_center.zone_id = zone_id
+                    for cluster_id in data_center.cluster_list:
+                        cluster = self._clusters[cluster_id]
+                        cluster.region_id = region_id
+                        cluster.zone_id = zone_id
+                        cluster.data_center_id = data_center_id
+                        for rack_id in cluster.rack_list:
+                            rack = self._racks[rack_id]
+                            rack.region_id = region_id
+                            rack.zone_id =zone_id
+                            rack.data_center_id = data_center_id
+                            rack.cluster_id = cluster_id
+                            for pm_id in rack.pm_list:
+                                pm = self._machines[pm_id]
+                                pm.region_id = region_id
+                                pm.zone_id = zone_id
+                                pm.data_center_id = data_center_id
+                                pm.cluster_id = cluster_id
+                                pm.rack_id = rack_id
 
     def reset(self):
         """Reset internal states for episode."""
@@ -298,7 +334,9 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             snapshots_num=self.calc_max_snapshots(),
             region_amount=self._region_amount,
             zone_amount=self._zone_amount,
+            data_center_amount=self._data_center_amount,
             cluster_amount=self._cluster_amount,
+            rack_amount=self._rack_amount,
             pm_amount=self._pm_amount
         )
         self._snapshots = self._frame.snapshots
