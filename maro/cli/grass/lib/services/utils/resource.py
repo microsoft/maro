@@ -3,6 +3,9 @@
 
 
 class BasicResource:
+    """An abstraction class for computing resources.
+    """
+
     def __init__(self, cpu: float, memory: float, gpu: float):
         self.cpu = cpu
         self.memory = memory

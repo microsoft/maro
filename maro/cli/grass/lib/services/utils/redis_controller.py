@@ -9,6 +9,9 @@ from redis.lock import Lock
 
 
 class RedisController:
+    """Controller class for Redis.
+    """
+
     def __init__(self, host: str, port: int):
         self._redis = redis.Redis(host=host, port=port, encoding="utf-8", decode_responses=True)
 

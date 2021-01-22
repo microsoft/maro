@@ -70,6 +70,11 @@ class MasterAgent:
 
 
 class JobTrackingAgent(multiprocessing.Process):
+    """Job tracking agent.
+
+    Update job_details from container_details.
+    """
+
     def __init__(self, local_cluster_details: dict, local_master_details: dict, check_interval: int = 5):
         super().__init__()
         self._cluster_name = local_cluster_details["name"]
@@ -143,6 +148,11 @@ class JobTrackingAgent(multiprocessing.Process):
 
 
 class ContainerTrackingAgent(multiprocessing.Process):
+    """Container tracking agent.
+
+    Get container_details from node_details.
+    """
+
     def __init__(self, local_cluster_details: dict, local_master_details: dict, check_interval: int = 5):
         super().__init__()
         self._cluster_name = local_cluster_details["name"]
@@ -186,6 +196,11 @@ class ContainerTrackingAgent(multiprocessing.Process):
 
 
 class ContainerRuntimeAgent(multiprocessing.Process):
+    """Container runtime agent.
+
+    Auto-restart the container if it matchs the constraint of fault recovery.
+    """
+
     def __init__(self, local_cluster_details: dict, local_master_details: dict, check_interval: int = 5):
         super().__init__()
         self._cluster_name = local_cluster_details["name"]
@@ -508,6 +523,11 @@ class ContainerRuntimeAgent(multiprocessing.Process):
 
 
 class PendingJobAgent(multiprocessing.Process):
+    """Pending Job Agent.
+
+    Iterate job tickets and start job (start all containers at the same time) if there are enough free resources.
+    """
+
     def __init__(self, local_cluster_details: dict, local_master_details: dict, check_interval: int = 5):
         super().__init__()
         self._cluster_name = local_cluster_details["name"]
@@ -667,6 +687,11 @@ class PendingJobAgent(multiprocessing.Process):
 
 
 class KilledJobAgent(multiprocessing.Process):
+    """Killed Job Agent.
+
+    Iterate job tickets and stop job and remove running containers (if any).
+    """
+
     def __init__(self, local_cluster_details: dict, local_master_details: dict, check_interval: int = 5):
         super().__init__()
         self._cluster_name = local_cluster_details["name"]
@@ -755,6 +780,9 @@ class KilledJobAgent(multiprocessing.Process):
 
 
 class ResourceController:
+    """Controller class for computing resources in MARO Nodes.
+    """
+
     @staticmethod
     def get_allocation_plan(allocation_details: dict, required_resources: list, free_resources: list) -> dict:
         """Get container allocation mapping.
@@ -1038,6 +1066,9 @@ class ResourceController:
 
 
 class ContainerController:
+    """Controller class for container.
+    """
+
     @staticmethod
     def build_container_name(job_id: str, component_id: str, component_index: int) -> str:
         """Build the container name with job-related params.
@@ -1056,6 +1087,9 @@ class ContainerController:
 
 
 class JobController:
+    """Controller class for MARO Job.
+    """
+
     @staticmethod
     def get_component_id_to_component_type(job_details: dict) -> dict:
         """Get component_id_to_component_type mapping from job_details

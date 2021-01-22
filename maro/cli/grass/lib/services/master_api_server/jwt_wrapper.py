@@ -20,6 +20,15 @@ logger = logging.getLogger(name=__name__)
 
 
 def check_jwt_validity(func):
+    """Check JWT validity and do data decryption before getting into the actual logistic.
+
+    Args:
+        func:
+
+    Returns:
+        None.
+    """
+
     @functools.wraps(func)
     def with_checker(*args, **kwargs):
         # Get jwt_token and its payload

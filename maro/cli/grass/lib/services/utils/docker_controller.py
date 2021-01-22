@@ -8,6 +8,9 @@ from .subprocess import Subprocess
 
 
 class DockerController:
+    """Controller class for docker.
+    """
+
     @staticmethod
     def remove_container(container_name: str) -> None:
         command = f"sudo docker rm -f {container_name}"

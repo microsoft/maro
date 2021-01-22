@@ -14,6 +14,9 @@ logger = logging.getLogger(__name__)
 
 
 class ConnectionTester:
+    """Tester class for connection.
+    """
+
     @staticmethod
     def test_ssh_default_port_connection(node_username: str, node_hostname: str, node_ssh_port: int, cluster_name: str):
         command = (

@@ -6,6 +6,8 @@ import requests
 
 
 class NodeApiClientV1:
+    """Client class for Node API Server.
+    """
 
     @staticmethod
     def create_container(node_hostname: str, node_api_server_port: int, create_config: dict) -> dict:
