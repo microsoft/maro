@@ -24,12 +24,25 @@ logger = CliLogger(name=__name__)
 
 
 class GrassOnPremisesExecutor(GrassExecutor):
+    """Executor for grass/on-premises mode.
+
+    See https://maro.readthedocs.io/en/latest/key_components/orchestration.html for reference.
+    """
 
     def __init__(self, cluster_name: str):
         super().__init__(cluster_details=DetailsReader.load_cluster_details(cluster_name=cluster_name))
 
     @staticmethod
     def create(create_deployment: dict):
+        """Create MARO Cluster with create_deployment.
+
+        Args:
+            create_deployment (dict): create_deployment of grass/on-premises.
+                See lib/deployments/internal for reference.
+
+        Returns:
+            None.
+        """
         logger.info("Creating cluster")
 
         # Get standardized cluster_details
@@ -64,6 +77,17 @@ class GrassOnPremisesExecutor(GrassExecutor):
 
     @staticmethod
     def _standardize_cluster_details(create_deployment: dict) -> dict:
+        """Standardize cluster_details from create_deployment.
+
+        We use create_deployment to build cluster_details (they share the same keys structure).
+
+        Args:
+            create_deployment (dict): create_deployment of grass/on-premises.
+                See lib/deployments/internal for reference.
+
+        Returns:
+            dict: standardized cluster_details.
+        """
         samba_password = "".join(secrets.choice(string.ascii_letters + string.digits) for _ in range(20))
         optional_key_to_value = {
             "root['master']['redis']": {"port": GlobalParams.DEFAULT_REDIS_PORT},
@@ -96,6 +120,13 @@ class GrassOnPremisesExecutor(GrassExecutor):
     # maro grass delete
 
     def delete(self):
+        """Delete the MARO Cluster.
+
+        Leave all nodes in the MARO Cluster, then delete MARO Master.
+
+        Returns:
+            None.
+        """
         logger.info(f"Deleting cluster '{self.cluster_name}'")
 
         nodes_details = self.master_api_client.list_nodes()
@@ -120,10 +151,28 @@ class GrassOnPremisesExecutor(GrassExecutor):
 
     @staticmethod
     def join_cluster(join_cluster_deployment: dict):
+        """Entry method for join_cluster.
+
+        Args:
+            join_cluster_deployment (dict): join_cluster_deployment of grass/on-premises.
+                See lib/deployments/internal for reference.
+
+        Returns:
+            None.
+        """
         GrassOnPremisesExecutor._join_cluster(join_cluster_deployment=join_cluster_deployment)
 
     @staticmethod
     def _join_cluster(join_cluster_deployment: dict):
+        """Join a vm to the MARO Cluster with join_cluster_deployment.
+
+        Args:
+            join_cluster_deployment (dict): join_cluster_deployment of grass/on-premises.
+                See lib/deployments/internal for reference.
+
+        Returns:
+            None.
+        """
         logger.info("Joining the cluster")
 
         # Get standardized join_cluster_deployment
@@ -164,6 +213,15 @@ class GrassOnPremisesExecutor(GrassExecutor):
 
     @staticmethod
     def _standardize_join_cluster_deployment(join_cluster_deployment: dict) -> dict:
+        """Standardize join_cluster_deployment.
+
+        Args:
+            join_cluster_deployment (dict): join_cluster_deployment of grass/on-premises.
+                See lib/deployments/internal for reference.
+
+        Returns:
+            dict: standardized join_cluster_deployment.
+        """
         optional_key_to_value = {
             "root['master']['redis']": {"port": GlobalParams.DEFAULT_REDIS_PORT},
             "root['master']['redis']['port']": GlobalParams.DEFAULT_REDIS_PORT,
@@ -206,6 +264,15 @@ class GrassOnPremisesExecutor(GrassExecutor):
 
     @staticmethod
     def leave(leave_cluster_deployment: dict) -> None:
+        """Join a vm from the MARO Cluster with leave_cluster_deployment.
+
+        Args:
+            leave_cluster_deployment (dict): leave_cluster_deployment of grass/on-premises.
+                See lib/deployments/internal for reference.
+
+        Returns:
+            None.
+        """
         logger.info("Node is leaving")
 
         if not leave_cluster_deployment:

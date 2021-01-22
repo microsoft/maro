@@ -29,6 +29,11 @@ logger = CliLogger(name=__name__)
 
 
 class GrassExecutor:
+    """Shared methods of Grass Mode.
+
+    Including image, job, schedule, and other shared operations.
+    """
+
     def __init__(self, cluster_details: dict):
         self.cluster_details = cluster_details
 
