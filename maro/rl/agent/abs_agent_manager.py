@@ -7,7 +7,7 @@ from enum import Enum
 from maro.rl.shaping.action_shaper import ActionShaper
 from maro.rl.shaping.experience_shaper import ExperienceShaper
 from maro.rl.shaping.state_shaper import StateShaper
-from maro.utils.exception.rl_toolkit_exception import WrongAgentManagerModeError
+from maro.utils.exception.rl_toolkit_exception import AgentManagerModeError
 
 
 class AgentManagerMode(Enum):
@@ -28,12 +28,12 @@ class AbsAgentManager(ABC):
         mode (AgentManagerMode): An ``AgentManagerNode`` enum member that indicates the role of the agent manager
             in the current process.
         agent_dict (dict): A dictionary of agents to be wrapper by the agent manager.
-        experience_shaper (ExperienceShaper, optional): It is responsible for processing data in the replay buffer at
-            the end of an episode.
         state_shaper (StateShaper, optional): It is responsible for converting the environment observation to model
             input.
         action_shaper (ActionShaper, optional): It is responsible for converting an agent's model output to environment
             executable action. Cannot be None under Inference and TrainInference modes.
+        experience_shaper (ExperienceShaper, optional): It is responsible for processing data in the replay buffer at
+            the end of an episode.
     """
     def __init__(
         self,
@@ -53,6 +53,11 @@ class AbsAgentManager(ABC):
 
     def __getitem__(self, agent_id):
         return self.agent_dict[agent_id]
+
+    @property
+    def name(self):
+        """Agent manager's name."""
+        return self._name
 
     @abstractmethod
     def choose_action(self, *args, **kwargs):
@@ -78,19 +83,24 @@ class AbsAgentManager(ABC):
         return NotImplemented
 
     @abstractmethod
-    def train(self, *args, **kwargs):
+    def train(self, experience_by_agent: dict):
         """Train the agents."""
         return NotImplemented
 
-    @property
-    def name(self):
-        """Agent manager's name."""
-        return self._name
+    def set_exploration_params(self, params):
+        # Per-agent exploration parameters
+        if isinstance(params, dict) and params.keys() <= self.agent_dict.keys():
+            for agent_id, params in params.items():
+                self.agent_dict[agent_id].set_exploration_params(**params)
+        # Shared exploration parameters for all agents
+        else:
+            for agent in self.agent_dict.values():
+                agent.set_exploration_params(**params)
 
     def _assert_train_mode(self):
         if self._mode != AgentManagerMode.TRAIN and self._mode != AgentManagerMode.TRAIN_INFERENCE:
-            raise WrongAgentManagerModeError(msg=f"this method is unavailable under mode {self._mode}")
+            raise AgentManagerModeError(msg=f"this method is unavailable under mode {self._mode}")
 
     def _assert_inference_mode(self):
         if self._mode != AgentManagerMode.INFERENCE and self._mode != AgentManagerMode.TRAIN_INFERENCE:
-            raise WrongAgentManagerModeError(msg=f"this method is unavailable under mode {self._mode}")
+            raise AgentManagerModeError(msg=f"this method is unavailable under mode {self._mode}")

@@ -98,11 +98,6 @@ class CimBusinessEngine(AbsBusinessEngine):
         """SnapshotList: Snapshot list of current frame."""
         return self._snapshots
 
-    @property
-    def name_mapping_file_path(self) -> str:
-        """name mapping file path: Return a file path which contains mapping in specified scenario."""
-        return os.path.join(self._config_path, "config.yml")
-
     def step(self, tick: int):
         """Called at each tick to generate orders and arrival events.
 
@@ -120,8 +115,7 @@ class CimBusinessEngine(AbsBusinessEngine):
 
         for order in self._data_cntr.get_orders(tick, total_empty_number):
             # Use cascade event to support insert sub events.
-            order_evt = self._event_buffer.gen_cascade_event(
-                tick, Events.ORDER, order)
+            order_evt = self._event_buffer.gen_cascade_event(tick, Events.ORDER, order)
 
             self._event_buffer.insert_event(order_evt)
             self._port_orders_exporter.add(order)
@@ -160,8 +154,7 @@ class CimBusinessEngine(AbsBusinessEngine):
                         tick, port_idx, vessel_idx, self.snapshots, self.action_scope, self.early_discharge
                     )
 
-                    decision_event: CascadeEvent = self._event_buffer.gen_decision_event(
-                        tick, decision_payload)
+                    decision_event: CascadeEvent = self._event_buffer.gen_decision_event(tick, decision_payload)
 
                     decision_evt_list.append(decision_event)
 
@@ -353,8 +346,7 @@ class CimBusinessEngine(AbsBusinessEngine):
         for vessel_idx, stops in enumerate(self._data_cntr.vessel_stops[:]):
             for stop in stops:
                 payload = VesselStatePayload(stop.port_idx, vessel_idx)
-                dep_evt = self._event_buffer.gen_atom_event(
-                    stop.leave_tick, Events.VESSEL_DEPARTURE, payload)
+                dep_evt = self._event_buffer.gen_atom_event(stop.leave_tick, Events.VESSEL_DEPARTURE, payload)
 
                 self._event_buffer.insert_event(dep_evt)
 
@@ -521,10 +513,8 @@ class CimBusinessEngine(AbsBusinessEngine):
                 acceptable_number -= loaded_qty
 
                 # Generate a discharge event, as we know when the vessel will arrive at destination.
-                payload = VesselDischargePayload(
-                    vessel_idx, port_idx, next_port_idx, loaded_qty)
-                dsch_event = self._event_buffer.gen_cascade_event(
-                    arrive_tick, Events.DISCHARGE_FULL, payload)
+                payload = VesselDischargePayload(vessel_idx, port_idx, next_port_idx, loaded_qty)
+                dsch_event = self._event_buffer.gen_cascade_event(arrive_tick, Events.DISCHARGE_FULL, payload)
 
                 self._event_buffer.insert_event(dsch_event)
 

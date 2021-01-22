@@ -87,15 +87,6 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         """dict: Current configuration."""
         return self._conf
 
-    @property
-    def name_mapping_file_path(self) -> str:
-        """name mapping file path: Return a file path which contains mapping in specified scenario."""
-        citi_bike_process = CitiBikeProcess(is_temp=True)
-        if self._topology.startswith("toy"):
-            return citi_bike_process.topologies[self._topology]._data_pipeline["trip"]._station_meta_file
-        else:
-            return citi_bike_process.topologies[self._topology]._data_pipeline["trip"]._station_info
-
     def step(self, tick: int):
         """Push business engine to next step.
 
@@ -273,7 +264,7 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         # After frame initializing, it will help us create the station instances, let's create a reference.
         # The attribute is added by frame that as same defined in frame definition.
 
-        # NOTE: Tthis is the build in station list that index start from 0,
+        # NOTE: This is the build in station list that index start from 0,
         # we need to create a mapping for it, as our trip data only contains id.
         self._stations = self._frame.stations
 

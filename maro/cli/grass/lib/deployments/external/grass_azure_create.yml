@@ -1,5 +1,5 @@
 mode: grass/azure
-name: MyClusterName # str: name of the Maro Clutser
+name: MyClusterName # str: name of the MARO Cluster
 
 cloud: # cloud infra config
   subscription: MySubscriptionName # str: azure subscription name / id
@@ -16,3 +16,7 @@ master: # MARO Master config
     port: 6379 # [Optional] str: port of the redis server, default as 6379
   samba: # [Optional]
     password: "" # [Optional] str: password of the samba server, default as random string
+
+connection: # [Optional] connection config
+  ssh: # [Optional]
+    port: 22  # [Optional] int: port of the ssh server, default as 22
