@@ -87,6 +87,7 @@ class DQN(AbsAlgorithm):
         if is_single:
             return greedy_action if np.random.random() > self._config.epsilon else np.random.choice(self._num_actions)
 
+        # batch inference
         return np.array([
             act if np.random.random() > self._config.epsilon else np.random.choice(self._num_actions)
             for act in greedy_action
