@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from maro.rl.agent.simple_agent_manager import SimpleAgentManager
+from maro.rl.agent_manager.simple_agent_manager import SimpleAgentManager
 from maro.simulator import Env
 
 from .abs_actor import AbsActor

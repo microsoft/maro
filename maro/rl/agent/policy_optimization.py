@@ -7,9 +7,10 @@ from typing import Callable, List, Union
 import numpy as np
 import torch
 
-from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
-from maro.rl.models.learning_model import LearningModel
+from maro.rl.models.learning_model import AbsLearningModel
 from maro.rl.utils.trajectory_utils import get_lambda_returns, get_truncated_cumulative_reward
+
+from .abs_agent import AbsAgent
 
 ActionInfo = namedtuple("ActionInfo", ["action", "log_probability"])
 
@@ -22,7 +23,7 @@ class PolicyOptimizationConfig:
         self.reward_discount = reward_discount
 
 
-class PolicyOptimization(AbsAlgorithm):
+class PolicyOptimization(AbsAgent):
     """Policy optimization algorithm family.
 
     The algorithm family includes policy gradient (e.g. REINFORCE), actor-critic, PPO, etc.
@@ -125,11 +126,11 @@ class ActorCritic(PolicyOptimization):
     https://towardsdatascience.com/understanding-actor-critic-methods-931b97b6df3f
 
     Args:
-        model (LearningModel): Multi-task model that computes action distributions and state values.
+        model (AbsLearningModel): Multi-task model that computes action distributions and state values.
             It may or may not have a shared bottom stack.
         config: Configuration for the AC algorithm.
     """
-    def __init__(self, model: LearningModel, config: ActorCriticConfig):
+    def __init__(self, model: AbsLearningModel, config: ActorCriticConfig):
         self.validate_task_names(model.task_names, {"actor", "critic"})
         super().__init__(model, config)
 

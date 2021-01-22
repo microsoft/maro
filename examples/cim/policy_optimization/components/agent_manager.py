@@ -6,15 +6,10 @@ import torch.nn as nn
 from torch.optim import Adam, RMSprop
 
 from maro.rl import (
-    AbsAgent, ActorCritic, ActorCriticConfig, FullyConnectedBlock, LearningModel, NNStack,
-    OptimizerOptions, PolicyGradient, PolicyOptimizationConfig, SimpleAgentManager
+    AbsAgent, ActorCritic, ActorCriticConfig, FullyConnectedBlock, NNStack, OptimizerOptions,
+    PolicyGradient, PolicyOptimizationConfig, SimpleAgentManager, SimpleMultiHeadedModel
 )
 from maro.utils import set_seeds
-
-
-class POAgent(AbsAgent):
-    def train(self, states: np.ndarray, actions: np.ndarray, log_action_prob: np.ndarray, rewards: np.ndarray):
-        self._algorithm.train(states, actions, log_action_prob, rewards)
 
 
 def create_po_agents(agent_id_list, config):
@@ -47,24 +42,24 @@ def create_po_agents(agent_id_list, config):
 
             hyper_params = config.actor_critic_hyper_parameters
             hyper_params.update({"reward_discount": config.reward_discount})
-            learning_model = LearningModel(
+            learning_model = SimpleMultiHeadedModel(
                 actor_net, critic_net, 
                 optimizer_options={
                     "actor": OptimizerOptions(cls=Adam, params=config.actor_optimizer),
                     "critic": OptimizerOptions(cls=RMSprop, params=config.critic_optimizer)
                 } 
             )
-            algorithm = ActorCritic(
-                learning_model, ActorCriticConfig(critic_loss_func=nn.SmoothL1Loss(), **hyper_params)
+            agent_dict[agent_id] = ActorCritic(
+                agent_id, learning_model, ActorCriticConfig(critic_loss_func=nn.SmoothL1Loss(), **hyper_params)
             )
         else:
-            learning_model = LearningModel(
+            learning_model = SimpleMultiHeadedModel(
                 actor_net, 
                 optimizer_options=OptimizerOptions(cls=Adam, params=config.actor_optimizer)  
             )
-            algorithm = PolicyGradient(learning_model, PolicyOptimizationConfig(config.reward_discount))
-
-        agent_dict[agent_id] = POAgent(name=agent_id, algorithm=algorithm)
+            agent_dict[agent_id] = PolicyGradient(
+                agent_id, learning_model, PolicyOptimizationConfig(config.reward_discount)
+            )
 
     return agent_dict
 
