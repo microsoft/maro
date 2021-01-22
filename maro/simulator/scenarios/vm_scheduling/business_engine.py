@@ -124,13 +124,21 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._max_utilization_rate: float = self._config.MAX_UTILIZATION_RATE
 
         # Load PM related configs.
-        self._region_amount: int = sum(len(item) for item in self._find_item(key="region", dictionary=self._config.architecture))
-        self._zone_amount: int = sum(len(item) for item in self._find_item(key="zone", dictionary=self._config.architecture))
-        self._data_center_amount: int = sum(len(item) for item in self._find_item(key="data_center", dictionary=self._config.architecture))
+        self._region_amount: int = sum(
+            len(item) for item in self._find_item(key="region", dictionary=self._config.architecture)
+        )
+        self._zone_amount: int = sum(
+            len(item) for item in self._find_item(key="zone", dictionary=self._config.architecture)
+        )
+        self._data_center_amount: int = sum(
+            len(item) for item in self._find_item(key="data_center", dictionary=self._config.architecture)
+        )
 
         self._cluster_amount: int = len(self._config.components.cluster)
         self._rack_amount: int = len(self._config.components.rack)
-        self._pm_amount: int = sum(amount for amount in self._find_item(key="pm_amount", dictionary=self._config.architecture))
+        self._pm_amount: int = sum(
+            amount for amount in self._find_item(key="pm_amount", dictionary=self._config.architecture)
+        )
 
         self._kill_all_vms_if_overload: bool = self._config.KILL_ALL_VMS_IF_OVERLOAD
 
@@ -291,7 +299,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                         for rack_id in cluster.rack_list:
                             rack = self._racks[rack_id]
                             rack.region_id = region_id
-                            rack.zone_id =zone_id
+                            rack.zone_id = zone_id
                             rack.data_center_id = data_center_id
                             rack.cluster_id = cluster_id
                             for pm_id in rack.pm_list:

@@ -11,7 +11,6 @@ class Rack(NodeBase):
     """Rack node definition in frame."""
     id = NodeAttribute("i")
 
-
     region_id = NodeAttribute("i2")
     zone_id = NodeAttribute("i2")
     data_center_id = NodeAttribute("i2")
