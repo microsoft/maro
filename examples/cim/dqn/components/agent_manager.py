@@ -5,13 +5,8 @@ import torch.nn as nn
 from torch.optim import RMSprop
 
 from maro.rl import (
-<<<<<<< HEAD
-    ColumnBasedStore, DQN, DQNConfig, FullyConnectedBlock, LearningModel, NNStack, OptimizerOptions,
-    AgentManager
-=======
     ColumnBasedStore, DQN, DQNConfig, FullyConnectedBlock, NNStack, OptimizerOptions, SimpleAgentManager,
     SimpleMultiHeadedModel
->>>>>>> v0.2_merge_algorithm_into_agent
 )
 from maro.utils import set_seeds
 
@@ -19,7 +14,7 @@ from maro.utils import set_seeds
 def create_dqn_agents(agent_id_list, config):
     num_actions = config.algorithm.num_actions
     set_seeds(config.seed)
-    agents = {}
+    agent_dict = {}
     for agent_id in agent_id_list:
         q_net = NNStack(
             "q_value",
@@ -35,25 +30,15 @@ def create_dqn_agents(agent_id_list, config):
             q_net, 
             optimizer_options=OptimizerOptions(cls=RMSprop, params=config.algorithm.optimizer)
         )
-<<<<<<< HEAD
-        algorithm = DQN(
-            learning_model,
-            DQNConfig(**config.algorithm.hyper_params, loss_cls=nn.SmoothL1Loss)
-        )
-        agents[agent_id] = DQNAgent(
-            agent_id, algorithm, ColumnBasedStore(**config.experience_pool),
-            **config.training_loop_parameters
-=======
         agent_dict[agent_id] = DQN(
             agent_id, learning_model, DQNConfig(**config.algorithm.hyper_params, loss_cls=nn.SmoothL1Loss),
             experience_pool=ColumnBasedStore(**config.experience_pool)
->>>>>>> v0.2_merge_algorithm_into_agent
         )
 
-    return agents
+    return agent_dict
 
 
-class DQNAgentManager(AgentManager):
+class DQNAgentManager(SimpleAgentManager):
     def train(self, experiences_by_agent, performance=None):
         self._assert_train_mode()
 
