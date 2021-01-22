@@ -3,14 +3,13 @@
 
 from abc import abstractmethod
 from collections import namedtuple
-from itertools import chain
 from typing import Dict, Union
 
 import torch
 import torch.nn as nn
 
 from maro.utils import clone
-from maro.utils.exception.rl_toolkit_exception import NNStackDimensionError, MissingOptimizer
+from maro.utils.exception.rl_toolkit_exception import MissingOptimizer, NNStackDimensionError
 
 from .abs_block import AbsBlock
 
@@ -61,15 +60,15 @@ class AbsLearningModel(nn.Module):
 
     Args:
         stacks (NNStack): NNStack instances.
-        optimizer_options (Union[OptimizerOptions, Dict[str, OptimizerOptions]]): Optimizer options for 
+        optimizer_options (Union[OptimizerOptions, Dict[str, OptimizerOptions]]): Optimizer options for
             the internal stacks. If none, no optimizer will be created for the model and the model will not
             be trainable. If it is a single OptimizerOptions instance, an optimizer will be created to jointly
             optimize all parameters of the model. If it is a dictionary, for each `(key, value)` pair, an optimizer
             specified by `value` will be created for the internal stack named `key`. Defaults to None.
     """
     def __init__(
-        self, 
-        *stacks: NNStack, 
+        self,
+        *stacks: NNStack,
         optimizer_options: Union[OptimizerOptions, Dict[str, OptimizerOptions]] = None
     ):
         super().__init__()
@@ -97,7 +96,7 @@ class AbsLearningModel(nn.Module):
 
     def __setstate__(self, dic: dict):
         self.__dict__ = dic
-    
+
     @property
     def is_trainable(self) -> bool:
         return self._is_trainable
@@ -105,7 +104,7 @@ class AbsLearningModel(nn.Module):
     @abstractmethod
     def forward(self, *args, **kwargs):
         raise NotImplementedError
-    
+
     def learn(self, loss):
         """Use the loss to back-propagate gradients and apply them to the underlying parameters."""
         if not self._is_trainable:
@@ -148,16 +147,16 @@ class SimpleMultiHeadedModel(AbsLearningModel):
     Args:
         task_stacks (NNStack): NNStack instances, each of which performs a designated task.
         shared_stack (NNStack): Network module that forms that shared part of the model. Defaults to None.
-        optimizer_options (Union[OptimizerOptions, Dict[str, OptimizerOptions]]): Optimizer options for 
+        optimizer_options (Union[OptimizerOptions, Dict[str, OptimizerOptions]]): Optimizer options for
             the internal stacks. If none, no optimizer will be created for the model and the model will not
             be trainable. If it is a single OptimizerOptions instance, an optimizer will be created to jointly
             optimize all parameters of the model. If it is a dictionary, for each `(key, value)` pair, an optimizer
             specified by `value` will be created for the internal stack named `key`. Defaults to None.
     """
     def __init__(
-        self, 
-        *task_stacks: NNStack, 
-        shared_stack: NNStack = None, 
+        self,
+        *task_stacks: NNStack,
+        shared_stack: NNStack = None,
         optimizer_options: Union[OptimizerOptions, Dict[str, OptimizerOptions]] = None
     ):
         self.validate_dims(*task_stacks, shared_stack=shared_stack)
@@ -170,7 +169,7 @@ class SimpleMultiHeadedModel(AbsLearningModel):
             self._output_dim = task_stacks[0].output_dim
         else:
             self._output_dim = {task_stack.name: task_stack.output_dim for task_stack in task_stacks}
-    
+
     @property
     def task_names(self) -> [str]:
         return self._task_names
@@ -200,7 +199,7 @@ class SimpleMultiHeadedModel(AbsLearningModel):
         if isinstance(task_name, list):
             return {name: self._component[name](inputs) for name in task_name}
         else:
-            return self._component[task_name](inputs) 
+            return self._component[task_name](inputs)
 
     def forward(self, inputs, task_name: str = None, is_training: bool = True):
         """Feedforward computations for the given head(s).

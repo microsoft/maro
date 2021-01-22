@@ -33,7 +33,7 @@ class DQNConfig:
         target_update_frequency (int): Number of training rounds between target model updates.
     """
     __slots__ = [
-        "reward_discount", "min_experiences_to_train", "num_batches", "batch_size", "target_update_frequency", 
+        "reward_discount", "min_experiences_to_train", "num_batches", "batch_size", "target_update_frequency",
         "epsilon", "tau", "is_double", "advantage_mode", "per_sample_td_error_enabled", "loss_func"
     ]
 

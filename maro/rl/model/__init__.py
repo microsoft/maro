@@ -6,7 +6,7 @@ from .fc_block import FullyConnectedBlock
 from .learning_model import AbsLearningModel, NNStack, OptimizerOptions, SimpleMultiHeadedModel
 
 __all__ = [
-    "AbsBlock", 
-    "FullyConnectedBlock", 
+    "AbsBlock",
+    "FullyConnectedBlock",
     "AbsLearningModel", "NNStack", "OptimizerOptions", "SimpleMultiHeadedModel"
 ]

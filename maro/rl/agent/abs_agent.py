@@ -38,7 +38,7 @@ class AbsAgent(ABC):
     @property
     def model(self):
         return self._model
-    
+
     @property
     def experience_pool(self):
         """Underlying experience pool where the agent stores experiences."""
