@@ -806,7 +806,7 @@ class GrassAzureExecutor(GrassExecutor):
         logger.info_green(f"Node '{node_name}' is stopped")
 
     def _get_node_size_to_spec(self) -> dict:
-        """Get node_size to spec mapping.
+        """Get node_size to spec mapping of Azure VM.
 
         Returns:
             dict: node_size to spec mapping.

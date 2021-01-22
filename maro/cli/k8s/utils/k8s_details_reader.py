@@ -8,6 +8,11 @@ from kubernetes import client
 
 
 class K8sDetailsReader:
+    """Reader class for details in k8s mode.
+
+    The details will be saved in the config_map of the k8s cluster.
+    """
+
     @staticmethod
     def load_job_details(job_name: str) -> dict:
         k8s_client = client.CoreV1Api()

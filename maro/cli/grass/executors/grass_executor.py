@@ -292,7 +292,7 @@ class GrassExecutor:
         self._start_job(start_job_deployment=start_job_deployment)
 
     def _start_job(self, start_job_deployment: dict) -> None:
-        """Start a MARO Job with sending job_details to the MARO Cluster.
+        """Start a MARO Job by sending job_details to the MARO Cluster.
 
         Args:
             start_job_deployment (dict): raw start_job_deployment.
@@ -504,7 +504,7 @@ class GrassExecutor:
 
     @staticmethod
     def template(export_path: str) -> None:
-        """Export deployment template of grass/azure mode.
+        """Export deployment template of grass mode.
 
         Args:
             export_path (str): location to export the templates.

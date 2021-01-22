@@ -36,6 +36,11 @@ class K8sExecutor(abc.ABC):
 
     @staticmethod
     def _init_redis():
+        """Create the redis service in the k8s cluster.
+
+        Returns:
+            None.
+        """
         with open(f"{K8sPaths.ABS_MARO_K8S_LIB}/configs/redis/redis.yml", "r") as fr:
             redis_deployment = yaml.safe_load(fr)
         client.AppsV1Api().create_namespaced_deployment(body=redis_deployment, namespace="default")
@@ -59,7 +64,15 @@ class K8sExecutor(abc.ABC):
 
     # maro k8s job
 
-    def start_job(self, deployment_path: str):
+    def start_job(self, deployment_path: str) -> None:
+        """Start a MARO Job with start_job_deployment.
+
+        Args:
+            deployment_path (str): path of the start_job_deployment.
+
+        Returns:
+            None.
+        """
         # Load start_job_deployment.
         with open(deployment_path, "r") as fr:
             start_job_deployment = yaml.safe_load(fr)
@@ -67,7 +80,15 @@ class K8sExecutor(abc.ABC):
         # Start job
         self._start_job(start_job_deployment=start_job_deployment)
 
-    def _start_job(self, start_job_deployment: dict):
+    def _start_job(self, start_job_deployment: dict) -> None:
+        """Start a MARO Job by converting the start_job_deployment to k8s job object and then execute it.
+
+        Args:
+            start_job_deployment (dict): raw start_job_deployment.
+
+        Returns:
+            None.
+        """
         # Standardize start job deployment.
         job_details = K8sExecutor._standardize_job_details(start_job_deployment=start_job_deployment)
 
@@ -79,7 +100,16 @@ class K8sExecutor(abc.ABC):
         client.BatchV1Api().create_namespaced_job(body=k8s_job, namespace="default")
 
     @staticmethod
-    def _standardize_job_details(start_job_deployment: dict):
+    def _standardize_job_details(start_job_deployment: dict) -> dict:
+        """Standardize job_details with start_job_deployment.
+
+        Args:
+            start_job_deployment (dict): start_job_deployment of k8s/aks.
+                See lib/deployments/internal for reference.
+
+        Returns:
+            dict: standardized job_details.
+        """
         # Validate k8s_aks_start_job
         with open(f"{K8sPaths.ABS_MARO_K8S_LIB}/deployments/internal/k8s_aks_start_job.yml") as fr:
             start_job_template = yaml.safe_load(fr)
@@ -108,6 +138,14 @@ class K8sExecutor(abc.ABC):
         return start_job_deployment
 
     def _create_k8s_job(self, job_details: dict) -> dict:
+        """Create k8s job object with job_details.
+
+        Args:
+            job_details (dict): details of the MARO Job.
+
+        Returns:
+            dict: k8s job object.
+        """
         # Load details
         job_name = job_details["name"]
         job_id = job_details["id"]
@@ -142,7 +180,18 @@ class K8sExecutor(abc.ABC):
         k8s_container_config_template: dict,
         component_type: str,
         component_index: int
-    ):
+    ) -> dict:
+        """Create the container config in the k8s job object.
+
+        Args:
+            job_details (dict): details of the MARO Job.
+            k8s_container_config_template (dict): template of the k8s_container_config.
+            component_type (str): type of the component.
+            component_index (int): index of the component.
+
+        Returns:
+            dict: the container config.
+        """
         # Copy config.
         k8s_container_config = copy.deepcopy(k8s_container_config_template)
 
@@ -205,23 +254,54 @@ class K8sExecutor(abc.ABC):
         return k8s_container_config
 
     @staticmethod
-    def stop_job(job_name: str):
+    def stop_job(job_name: str) -> None:
+        """Activate stop job operation.
+
+        Args:
+            job_name (str): name of the MARO Job.
+
+        Returns:
+            None.
+        """
         K8sExecutor._stop_job(job_name=job_name)
 
     @staticmethod
     def _stop_job(job_name: str):
+        """Stop MARO Job by stop k8s job object.
+
+        Args:
+            job_name (str): name of the MARO Job.
+
+        Returns:
+            None.
+        """
         job_details = K8sDetailsReader.load_job_details(job_name=job_name)
         client.BatchV1Api().delete_namespaced_job(name=job_details["id"], namespace="default")
 
     @staticmethod
     def _export_log(pod_id: str, container_name: str, export_dir: str):
+        """Export k8s job logs to the specific folder.
+
+        Args:
+            pod_id (str): id of the k8s pod.
+            container_name (str): name of the container.
+            export_dir (str): path of the exported folder.
+
+        Returns:
+            None.
+        """
         os.makedirs(name=os.path.expanduser(export_dir + f"/{pod_id}"), exist_ok=True)
         with open(os.path.expanduser(export_dir + f"/{pod_id}/{container_name}.log"), "w") as fw:
             return_str = client.CoreV1Api().read_namespaced_pod_log(name=pod_id, namespace="default")
             fw.write(return_str)
 
     @staticmethod
-    def list_job():
+    def list_job() -> None:
+        """Print job_details of the cluster.
+
+        Returns:
+            None.
+        """
         # Get jobs details
         job_list = client.BatchV1Api().list_namespaced_job(namespace="default").to_dict()["items"]
 
@@ -235,7 +315,16 @@ class K8sExecutor(abc.ABC):
             )
         )
 
-    def get_job_logs(self, job_name: str, export_dir: str = "./"):
+    def get_job_logs(self, job_name: str, export_dir: str = "./") -> None:
+        """Export MARO Job logs to the specific folder.
+
+        Args:
+            job_name (str): name of the MARO Job.
+            export_dir (str): path of the exported folder.
+
+        Returns:
+            None.
+        """
         # Load details
         job_details = K8sDetailsReader.load_job_details(job_name=job_name)
 
@@ -257,7 +346,15 @@ class K8sExecutor(abc.ABC):
 
     # maro k8s schedule
 
-    def start_schedule(self, deployment_path: str):
+    def start_schedule(self, deployment_path: str) -> None:
+        """Start a MARO Schedule with start_schedule_deployment.
+
+        Args:
+            deployment_path (str): path of the start_schedule_deployment.
+
+        Returns:
+            None.
+        """
         # Load start_schedule_deployment
         with open(deployment_path, "r") as fr:
             start_schedule_deployment = yaml.safe_load(fr)
@@ -278,7 +375,15 @@ class K8sExecutor(abc.ABC):
             )
             self._start_job(start_job_deployment=job_details)
 
-    def stop_schedule(self, schedule_name: str):
+    def stop_schedule(self, schedule_name: str) -> None:
+        """Stop a MARO Schedule.
+
+        Args:
+            schedule_name (str): name of the MARO Schedule.
+
+        Returns:
+            None.
+        """
         schedule_details = K8sDetailsReader.load_schedule_details(schedule_name=schedule_name)
         job_names = schedule_details["job_names"]
 
@@ -292,7 +397,16 @@ class K8sExecutor(abc.ABC):
                 self._stop_job(job_name=job_name)
 
     @staticmethod
-    def _standardize_schedule_details(start_schedule_deployment: dict):
+    def _standardize_schedule_details(start_schedule_deployment: dict) -> dict:
+        """Standardize schedule_details with start_schedule_deployment.
+
+        Args:
+            start_schedule_deployment (dict): start_schedule_deployment of k8s/aks.
+                See lib/deployments/internal for reference.
+
+        Returns:
+            dict: standardized job_details.
+        """
         # Validate k8s_aks_start_schedule
         with open(f"{K8sPaths.ABS_MARO_K8S_LIB}/deployments/internal/k8s_aks_start_schedule.yml") as fr:
             start_job_template = yaml.safe_load(fr)
@@ -320,6 +434,15 @@ class K8sExecutor(abc.ABC):
 
     @staticmethod
     def _build_job_details_for_schedule(schedule_details: dict, job_name: str) -> dict:
+        """Build job_details from MARO Schedule.
+
+        Args:
+            schedule_details (dict): details of the MARO Schedule.
+            job_name (str): name of the MARO Job.
+
+        Returns:
+            None.
+        """
         # Convert schedule_details to job_details
         job_details = copy.deepcopy(schedule_details)
         job_details["name"] = job_name
@@ -335,6 +458,11 @@ class K8sExecutor(abc.ABC):
 
     @staticmethod
     def status():
+        """Print details of specific MARO Resources (redis only at this time).
+
+        Returns:
+            None.
+        """
         # Get resources
         pod_list = client.CoreV1Api().list_pod_for_all_namespaces(watch=False).to_dict()["items"]
 
@@ -357,6 +485,14 @@ class K8sExecutor(abc.ABC):
 
     @staticmethod
     def _get_redis_private_ip_address(pod_list: list) -> str:
+        """Get private_ip_address of the redis.
+
+        Args:
+            pod_list (list):
+
+        Returns:
+            str: private_ip_address.
+        """
         for pod in pod_list:
             if "app" in pod["metadata"]["labels"] and pod["metadata"]["labels"]["app"] == "maro-redis":
                 return pod["status"]["pod_ip"]
@@ -365,7 +501,15 @@ class K8sExecutor(abc.ABC):
     # maro k8s template
 
     @staticmethod
-    def template(export_path: str):
+    def template(export_path: str) -> None:
+        """Export deployment template of k8s mode.
+
+        Args:
+            export_path (str): location to export the templates.
+
+        Returns:
+            None.
+        """
         command = f"cp {K8sPaths.ABS_MARO_K8S_LIB}/deployments/external/* {export_path}"
         _ = Subprocess.run(command=command)
 
