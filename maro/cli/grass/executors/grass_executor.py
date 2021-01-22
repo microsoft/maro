@@ -15,6 +15,7 @@ from maro.cli.grass.utils.file_synchronizer import FileSynchronizer
 from maro.cli.grass.utils.master_api_client import MasterApiClientV1
 from maro.cli.grass.utils.params import GrassPaths, UserRole
 from maro.cli.utils.deployment_validator import DeploymentValidator
+from maro.cli.utils.details_reader import DetailsReader
 from maro.cli.utils.details_writer import DetailsWriter
 from maro.cli.utils.name_creator import NameCreator
 from maro.cli.utils.params import GlobalPaths
@@ -36,7 +37,7 @@ class GrassExecutor:
         self.cluster_id = self.cluster_details["id"]
 
         # User configs
-        self.user_details = self._get_default_user_details()
+        self.user_details = DetailsReader.load_default_user_details(cluster_name=self.cluster_name)
 
         # Master configs
         self.master_username = self.cluster_details["master"]["username"]
@@ -58,7 +59,15 @@ class GrassExecutor:
     # maro grass create
 
     @staticmethod
-    def _init_master(cluster_details: dict):
+    def _init_master(cluster_details: dict) -> None:
+        """Init MARO Master VM.
+
+        Args:
+            cluster_details (dict): details of the MARO Cluster.
+
+        Returns:
+            None.
+        """
         logger.info("Initializing Master VM")
 
         # Make sure master is able to connect
@@ -100,7 +109,15 @@ class GrassExecutor:
         logger.info_green("Master VM is initialized")
 
     @staticmethod
-    def _create_user(cluster_details: dict):
+    def _create_user(cluster_details: dict) -> None:
+        """Create the admin MARO User for the MARO Cluster, and assign the user as the default user of current machine.
+
+        Args:
+            cluster_details (dict): details of the MARO Cluster.
+
+        Returns:
+            None.
+        """
         # Remote create user
         user_details = GrassExecutor.remote_create_user(
             master_username=cluster_details["master"]["username"],
@@ -133,7 +150,12 @@ class GrassExecutor:
 
     # maro grass node
 
-    def list_node(self):
+    def list_node(self) -> None:
+        """Print node details to command line.
+
+        Returns:
+            None.
+        """
         # Get nodes details
         nodes_details = self.master_api_client.list_nodes()
 
@@ -147,7 +169,18 @@ class GrassExecutor:
 
     # maro grass image
 
-    def push_image(self, image_name: str, image_path: str, remote_context_path: str, remote_image_name: str):
+    def push_image(self, image_name: str, image_path: str, remote_context_path: str, remote_image_name: str) -> None:
+        """Push docker image from local to the MARO Cluster.
+
+        Args:
+            image_name (str): name of the image.
+            image_path (str): path of the image file.
+            remote_context_path (str): path of the remote context (for remote build).
+            remote_image_name (str): name of the image (for remote build).
+
+        Returns:
+            None.
+        """
         # Push image TODO: design a new paradigm for remote build
         if image_name or image_path:
             if image_name:
@@ -168,6 +201,7 @@ class GrassExecutor:
                     target_dir=f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/image_files",
                     new_name=new_file_name
                 )
+            # Use md5_checksum to skip existed image file.
             remote_image_file_details = self.master_api_client.get_image_file(image_file_name=new_file_name)
             local_md5_checksum = self._get_md5_checksum(path=abs_image_path)
             if (
@@ -195,7 +229,16 @@ class GrassExecutor:
 
     # maro grass data
 
-    def push_data(self, local_path: str, remote_path: str):
+    def push_data(self, local_path: str, remote_path: str) -> None:
+        """Push data from local to remote MARO Cluster.
+
+        Args:
+            local_path (str): path of the local file.
+            remote_path (str): path of the remote folder.
+
+        Returns:
+            None.
+        """
         if not remote_path.startswith("/"):
             raise FileOperationError(f"Invalid remote path: {remote_path}\nShould be started with '/'")
         FileSynchronizer.copy_files_to_node(
@@ -206,7 +249,16 @@ class GrassExecutor:
             node_ssh_port=self.master_ssh_port
         )
 
-    def pull_data(self, local_path: str, remote_path: str):
+    def pull_data(self, local_path: str, remote_path: str) -> None:
+        """Pull data from remote MARO Cluster to local.
+
+        Args:
+            local_path (str): path of the local folder.
+            remote_path (str): path of the remote file.
+
+        Returns:
+            None.
+        """
         if not remote_path.startswith("/"):
             raise FileOperationError(f"Invalid remote path: {remote_path}\nShould be started with '/'")
         FileSynchronizer.copy_files_from_node(
@@ -219,14 +271,30 @@ class GrassExecutor:
 
     # maro grass job
 
-    def start_job(self, deployment_path: str):
+    def start_job(self, deployment_path: str) -> None:
+        """Start a MARO Job with start_job_deployment.
+
+        Args:
+            deployment_path (str): path of the start_job_deployment.
+
+        Returns:
+            None.
+        """
         # Load start_job_deployment
         with open(deployment_path, "r") as fr:
             start_job_deployment = yaml.safe_load(fr)
 
         self._start_job(start_job_deployment=start_job_deployment)
 
-    def _start_job(self, start_job_deployment: dict):
+    def _start_job(self, start_job_deployment: dict) -> None:
+        """Start a MARO Job with sending job_details to the MARO Cluster.
+
+        Args:
+            start_job_deployment (dict): raw start_job_deployment.
+
+        Returns:
+            None.
+        """
         # Standardize start_job_deployment
         job_details = self._standardize_job_details(start_job_deployment=start_job_deployment)
 
@@ -235,11 +303,24 @@ class GrassExecutor:
         self.master_api_client.create_job(job_details=job_details)
         logger.info_green(f"Job ticket '{job_details['name']}' is sent")
 
-    def stop_job(self, job_name: str):
+    def stop_job(self, job_name: str) -> None:
+        """Stop a MARO Job.
+
+        Args:
+            job_name (str): name of the MARO Job.
+
+        Returns:
+            None.
+        """
         # Delete job
         self.master_api_client.delete_job(job_name=job_name)
 
-    def list_job(self):
+    def list_job(self) -> None:
+        """Print job details to command line.
+
+        Returns:
+            None.
+        """
         # Get jobs details
         jobs_details = self.master_api_client.list_jobs()
 
@@ -251,7 +332,16 @@ class GrassExecutor:
             )
         )
 
-    def get_job_logs(self, job_name: str, export_dir: str = "./"):
+    def get_job_logs(self, job_name: str, export_dir: str = "./") -> None:
+        """Pull logs of a job from remote MARO Cluster to local.
+
+        Args:
+            job_name (str): name of the job.
+            export_dir (path): path of the local exported folder.
+
+        Returns:
+            None.
+        """
         # Load details
         job_details = self.master_api_client.get_job(job_name=job_name)
 
@@ -269,6 +359,15 @@ class GrassExecutor:
 
     @staticmethod
     def _standardize_job_details(start_job_deployment: dict) -> dict:
+        """Standardize job_details.
+
+        Args:
+            start_job_deployment (dict): start_job_deployment of grass/azure.
+                See lib/deployments/internal for reference.
+
+        Returns:
+            dict: standardized job_details.
+        """
         # Validate grass_azure_start_job
         optional_key_to_value = {
             "root['tags']": {}
@@ -302,7 +401,15 @@ class GrassExecutor:
 
     # maro grass schedule
 
-    def start_schedule(self, deployment_path: str):
+    def start_schedule(self, deployment_path: str) -> None:
+        """Start a MARO Schedule with start_schedule_deployment.
+
+        Args:
+            deployment_path (str): path of the start_schedule_deployment.
+
+        Returns:
+            None.
+        """
         # Load start_schedule_deployment
         with open(deployment_path, "r") as fr:
             start_schedule_deployment = yaml.safe_load(fr)
@@ -315,12 +422,29 @@ class GrassExecutor:
 
         logger.info_green("Multiple job tickets are sent")
 
-    def stop_schedule(self, schedule_name: str):
+    def stop_schedule(self, schedule_name: str) -> None:
+        """Stop a MARO Schedule.
+
+        Args:
+            schedule_name (str): name of the schedule.
+
+        Returns:
+            None.
+        """
         # Stop schedule, TODO: add delete job
         self.master_api_client.stop_schedule(schedule_name=schedule_name)
 
     @staticmethod
-    def _standardize_schedule_details(start_schedule_deployment: dict):
+    def _standardize_schedule_details(start_schedule_deployment: dict) -> dict:
+        """Standardize schedule_details.
+
+        Args:
+            start_schedule_deployment (dict): start_schedule_deployment of grass/azure.
+                See lib/deployments/internal for reference.
+
+        Returns:
+            dict: standardized schedule_details.
+        """
         # Validate grass_azure_start_job
         with open(f"{GrassPaths.ABS_MARO_GRASS_LIB}/deployments/internal/grass_azure_start_schedule.yml") as fr:
             start_job_template = yaml.safe_load(fr)
@@ -345,7 +469,15 @@ class GrassExecutor:
 
     # maro grass status
 
-    def status(self, resource_name: str):
+    def status(self, resource_name: str) -> None:
+        """Print details of specific resources (master/nodes/containers).
+
+        Args:
+            resource_name (str): name of the resource.
+
+        Returns:
+            None.
+        """
         if resource_name == "master":
             return_status = self.master_api_client.get_master()
         elif resource_name == "nodes":
@@ -366,7 +498,15 @@ class GrassExecutor:
     # maro grass template
 
     @staticmethod
-    def template(export_path: str):
+    def template(export_path: str) -> None:
+        """Export deployment template of grass/azure mode.
+
+        Args:
+            export_path (str): location to export the templates.
+
+        Returns:
+            None.
+        """
         # Get templates
         command = f"cp {GrassPaths.MARO_GRASS_LIB}/deployments/external/* {export_path}"
         _ = Subprocess.run(command=command)
@@ -374,7 +514,19 @@ class GrassExecutor:
     # Remote Scripts
 
     @staticmethod
-    def remote_init_build_node_image_vm(node_username: str, node_hostname: str, node_ssh_port: int):
+    def remote_init_build_node_image_vm(node_username: str, node_hostname: str, node_ssh_port: int) -> None:
+        """Remote init Build Node Image VM.
+
+        Exec /lib/scripts/build_node_image_vm/init_build_node_image_vm.py remotely.
+
+        Args:
+            node_username (str): username of the vm.
+            node_hostname (str): hostname of the vm.
+            node_ssh_port (int): ssh port of the vm.
+
+        Returns:
+            None.
+        """
         command = (
             f"ssh -o StrictHostKeyChecking=no -p {node_ssh_port} {node_username}@{node_hostname} "
             "'python3 ~/init_build_node_image_vm.py'"
@@ -382,7 +534,20 @@ class GrassExecutor:
         Subprocess.interactive_run(command=command)
 
     @staticmethod
-    def remote_init_master(master_username: str, master_hostname: str, master_ssh_port: int, cluster_name: str):
+    def remote_init_master(master_username: str, master_hostname: str, master_ssh_port: int, cluster_name: str) -> None:
+        """Remote init MARO Master.
+
+        Exec /lib/scripts/master/init_master.py remotely.
+
+        Args:
+            master_username (str): username of the MARO Master VM.
+            master_hostname (str): hostname of the MARO Master VM.
+            master_ssh_port (int): ssh port of the MARO Master VM.
+            cluster_name (str): name of the MARO Cluster.
+
+        Returns:
+            None.
+        """
         command = (
             f"ssh -o StrictHostKeyChecking=no -p {master_ssh_port} {master_username}@{master_hostname} "
             f"'cd {GlobalPaths.MARO_SHARED}/lib/grass; python3 -m scripts.master.init_master {cluster_name}'"
@@ -390,7 +555,19 @@ class GrassExecutor:
         Subprocess.interactive_run(command=command)
 
     @staticmethod
-    def remote_delete_master(master_username: str, master_hostname: str, master_ssh_port: int):
+    def remote_delete_master(master_username: str, master_hostname: str, master_ssh_port: int) -> None:
+        """Remote delete MARO Master.
+
+        Exec /lib/scripts/master/delete_master.py remotely.
+
+        Args:
+            master_username (str): username of the MARO Master VM.
+            master_hostname (str): hostname of the MARO Master VM.
+            master_ssh_port (int): ssh port of the MARO Master VM.
+
+        Returns:
+            None.
+        """
         command = (
             f"ssh -o StrictHostKeyChecking=no -p {master_ssh_port} {master_username}@{master_hostname} "
             f"'python3 {GlobalPaths.MARO_LOCAL}/scripts/delete_master.py'"
@@ -402,6 +579,20 @@ class GrassExecutor:
         master_username: str, master_hostname: str, master_ssh_port: int,
         user_id: str, user_role: str
     ) -> dict:
+        """Remote create MARO User.
+
+        Exec /lib/scripts/master/create_user.py remotely.
+
+        Args:
+            master_username (str): username of the MARO Master VM.
+            master_hostname (str): hostname of the MARO Master VM.
+            master_ssh_port (int): ssh port of the MARO Master VM.
+            user_id (str): id of the MARO User.
+            user_role (str): role of the MARO User, currently we only have 'admin' at this time.
+
+        Returns:
+            dict: details of the created MARO User.
+        """
         command = (
             f"ssh -o StrictHostKeyChecking=no -p {master_ssh_port} {master_username}@{master_hostname} "
             f"'cd {GlobalPaths.MARO_SHARED}/lib/grass; python3 -m scripts.master.create_user "
@@ -414,16 +605,17 @@ class GrassExecutor:
     def remote_join_cluster(
         node_username: str, node_hostname: str, node_ssh_port: int,
         master_private_ip_address: str, master_api_server_port: int, deployment_path: str
-    ):
-        """ Remote join cluster.
+    ) -> None:
+        """Remote join cluster.
 
-        Install required runtime env first, then execute join_cluster.py.
+        Install required runtime env first,
+        then download the /lib/scripts/node/join_cluster.py from master_api_server, and execute remotely.
 
         Args:
-            node_username (str): username of the node.
-            node_hostname (str): hostname of the node.
-            node_ssh_port (str): ssh port of the node.
-            master_private_ip_address (str): private ip address of the master,
+            node_username (str): username of the MARO Node VM.
+            node_hostname (str): hostname of the MARO Node VM.
+            node_ssh_port (str): ssh port of the MARO Node VM.
+            master_private_ip_address (str): private ip address of the MARO Master VM,
                 (master and nodes must in the same virtual network).
             master_api_server_port (int): port of the master_api_server.
             deployment_path (str): path of the join_cluster_deployment.
@@ -443,15 +635,40 @@ class GrassExecutor:
         Subprocess.interactive_run(command=command)
 
     @staticmethod
-    def local_join_cluster(master_hostname: str, master_api_server_port: int, deployment_path: str):
+    def local_join_cluster(master_hostname: str, master_private_ip_address: int, deployment_path: str) -> None:
+        """Local join cluster.
+
+        Download the /lib/scripts/node/join_cluster.py from master_api_server, and execute it locally.
+
+        Args:
+            master_hostname (str): hostname of the MARO Master VM.
+            master_private_ip_address (str): private ip address of the MARO Master VM,
+                (master and nodes must in the same virtual network).
+            deployment_path (str): path of the join_cluster_deployment.
+
+        Returns:
+            None.
+        """
         command = (
-            f"'curl -s GET http://{master_hostname}:{master_api_server_port}/v1/joinClusterScript | "
+            f"'curl -s GET http://{master_hostname}:{master_private_ip_address}/v1/joinClusterScript | "
             f"python3 - {deployment_path}'"
         )
         Subprocess.interactive_run(command=command)
 
     @staticmethod
-    def remote_leave_cluster(node_username: str, node_hostname: str, node_ssh_port: int):
+    def remote_leave_cluster(node_username: str, node_hostname: str, node_ssh_port: int) -> None:
+        """Remote leave cluster.
+
+        Exec /lib/scripts/node/activate_leave_cluster.py
+
+        Args:
+            node_username (str): username of the MARO Node VM.
+            node_hostname (str): hostname of the MARO Node VM.
+            node_ssh_port (str): ssh port of the MARO Node VM.
+
+        Returns:
+            None.
+        """
         command = (
             f"ssh -o StrictHostKeyChecking=no -p {node_ssh_port} {node_username}@{node_hostname} "
             f"'python3 ~/.maro-local/scripts/activate_leave_cluster.py'"
@@ -459,12 +676,32 @@ class GrassExecutor:
         Subprocess.interactive_run(command=command)
 
     @staticmethod
-    def local_leave_cluster():
+    def local_leave_cluster() -> None:
+        """Local leave cluster.
+
+        Exec /lib/scripts/node/activate_leave_cluster.py
+
+        Returns:
+            None.
+        """
         command = "python3 ~/.maro-local/scripts/activate_leave_cluster.py"
         Subprocess.interactive_run(command=command)
 
     @staticmethod
-    def test_ssh_default_port_connection(node_username: str, node_hostname: str, node_ssh_port: int):
+    def test_ssh_default_port_connection(node_username: str, node_hostname: str, node_ssh_port: int) -> None:
+        """Test ssh connection.
+
+        Args:
+            node_username (str): username of the MARO Node VM.
+            node_hostname (str): hostname of the MARO Node VM.
+            node_ssh_port (str): ssh port of the MARO Node VM.
+
+        Raises:
+            CliError / TimeoutExpired: if the connection is failed.
+
+        Returns:
+            None.
+        """
         command = (
             f"ssh -o StrictHostKeyChecking=no -p {node_ssh_port} {node_username}@{node_hostname} "
             "echo 'Connection established'"
@@ -472,7 +709,20 @@ class GrassExecutor:
         _ = Subprocess.run(command=command, timeout=5)
 
     @staticmethod
-    def retry_connection(node_username: str, node_hostname: str, node_ssh_port: int) -> bool:
+    def retry_connection(node_username: str, node_hostname: str, node_ssh_port: int) -> None:
+        """Retry SSH connection until it is connectable.
+
+        Args:
+            node_username (str): username of the MARO Node VM.
+            node_hostname (str): hostname of the MARO Node VM.
+            node_ssh_port (str): ssh port of the MARO Node VM.
+
+        Raises:
+            ClusterInternalError: if the connection is failed.
+
+        Returns:
+            None.
+        """
         remain_retries = 20
         while remain_retries > 0:
             try:
@@ -481,7 +731,7 @@ class GrassExecutor:
                     node_username=node_username,
                     node_hostname=node_hostname
                 )
-                return True
+                return
             except (CliError, TimeoutExpired):
                 remain_retries -= 1
                 logger.debug(
@@ -509,14 +759,3 @@ class GrassExecutor:
             for chunk in iter(lambda: f.read(block_size * md5.block_size), b""):
                 md5.update(chunk)
         return md5.hexdigest()
-
-    def _get_default_user_details(self) -> dict:
-        with open(file=f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/users/default_user", mode="r") as fr:
-            user_id = fr.read()
-
-        with open(
-            file=f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/users/{user_id}/user_details",
-            mode="r"
-        ) as fr:
-            user_details = yaml.safe_load(stream=fr)
-            return user_details

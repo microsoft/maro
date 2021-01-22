@@ -108,7 +108,7 @@ class K8sAksExecutor(K8sExecutor):
 
         # Check and create resource group
         resource_group_info = AzureController.get_resource_group(resource_group=resource_group)
-        if resource_group_info is not None:
+        if resource_group_info:
             logger.warning_yellow(f"Azure resource group '{resource_group}' already exists")
         else:
             AzureController.create_resource_group(
@@ -196,7 +196,7 @@ class K8sAksExecutor(K8sExecutor):
 
         # Delete resources
         if deletable_ids:
-            AzureController.delete_resources(resources=deletable_ids)
+            AzureController.delete_resources(resource_ids=deletable_ids)
 
         # Delete cluster folder
         shutil.rmtree(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}")
