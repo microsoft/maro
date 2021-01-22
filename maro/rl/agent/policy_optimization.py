@@ -126,13 +126,14 @@ class ActorCritic(PolicyOptimization):
     https://towardsdatascience.com/understanding-actor-critic-methods-931b97b6df3f
 
     Args:
+        name (str): Agent's name.
         model (AbsLearningModel): Multi-task model that computes action distributions and state values.
             It may or may not have a shared bottom stack.
         config: Configuration for the AC algorithm.
     """
-    def __init__(self, model: AbsLearningModel, config: ActorCriticConfig):
+    def __init__(self, name: str, model: AbsLearningModel, config: ActorCriticConfig):
         self.validate_task_names(model.task_names, {"actor", "critic"})
-        super().__init__(model, config)
+        super().__init__(name, model, config)
 
     def _get_values_and_bootstrapped_returns(self, state_sequence, reward_sequence):
         state_values = self._model(state_sequence, task_name="critic").detach().squeeze()

@@ -162,7 +162,7 @@ class SimpleMultiHeadedModel(AbsLearningModel):
     ):
         self.validate_dims(*task_stacks, shared_stack=shared_stack)
         self._task_names = [stack.name for stack in task_stacks]
-        stacks = task_stacks + (shared_stack,)
+        stacks = task_stacks + (shared_stack,) if shared_stack else task_stacks
         super().__init__(*stacks, optimizer_options=optimizer_options)
         self._shared_stack = shared_stack
         self._input_dim = self._shared_stack.input_dim if self._shared_stack else task_stacks[0].input_dim

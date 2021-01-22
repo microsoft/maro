@@ -4,7 +4,7 @@
 import os
 from abc import abstractmethod
 
-from maro.rl.algorithms.policy_optimization import ActionInfo
+from maro.rl.agent.policy_optimization import ActionInfo
 from maro.rl.shaping.action_shaper import ActionShaper
 from maro.rl.shaping.experience_shaper import ExperienceShaper
 from maro.rl.shaping.state_shaper import StateShaper
