@@ -164,7 +164,10 @@ class RedisController:
         return_str = self._redis.hgetall(
             "name_to_job_status"
         )
-        return json.loads(return_str)
+        for job_name, job_status in return_str.items():
+            return_str[job_name] = json.loads(job_status)
+        
+        return return_str
 
     def set_job_status(self, job_name: str, job_state: str) -> None:
         self._redis.hset(

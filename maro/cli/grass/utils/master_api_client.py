@@ -126,16 +126,16 @@ class MasterApiClientV1:
     # Visible related.
     def get_static_resource_info(self):
         return self._encrypted_requests.get(
-            url=f"{self.master_api_server_url_prefix}/visible/static"
+            url=f"{self._master_api_server_url_prefix}/visible/static"
         )
 
     def get_dynamic_resource_info(self, previous_length: int):
         return self._encrypted_requests.get(
-            url=f"{self.master_api_server_url_prefix}/visible/dynamic/{previous_length}"
+            url=f"{self._master_api_server_url_prefix}/visible/dynamic/{previous_length}"
         )
 
     def get_job_status(self):
-        return self._encrypted_requests.get(url=f"{self.master_api_server_url_prefix}/job/status")
+        return self._encrypted_requests.get(url=f"{self._master_api_server_url_prefix}/jobs/status")
 
     def get_job_queue(self):
-        return self._encrypted_requests.get(url=f"{self.master_api_server_url_prefix}/job/queue")
+        return self._encrypted_requests.get(url=f"{self._master_api_server_url_prefix}/jobs/queue")

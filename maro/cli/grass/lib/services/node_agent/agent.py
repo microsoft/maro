@@ -63,10 +63,12 @@ class NodeAgent:
         # Start agents.
         self.node_tracking_agent.start()
         self.load_image_agent.start()
+        self.resource_tracking_agent.start()
 
         # Wait joins.
         self.node_tracking_agent.join()
         self.load_image_agent.join()
+        self.resource_tracking_agent.join()
 
     def gracefully_exit(self, signum, frame) -> None:
         """ Gracefully exit when SIGTERM.
@@ -411,7 +413,7 @@ class ResourceTrackingAgent(multiprocessing.Process):
         local_master_details: dict,
         local_node_details: dict,
         check_interval: int = 60
-    )
+    ):
         super().__init__()
         self._local_cluster_details = local_cluster_details
         self._local_master_details = local_master_details
