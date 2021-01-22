@@ -2,7 +2,13 @@
 # Licensed under the MIT license.
 
 
-""" This script is a standalone script, which cannot use the ./utils tools.
+"""Activate "leave cluster" operation.
+
+[WARNING] This script is a standalone script, which cannot use the ./utils tools.
+
+The script will do the following jobs in this VM:
+- Delete node at master-api-server (the actual delete action will be executed at master-api-server, see
+    lib/services/master_api_server/blueprints/nodes.py for reference.
 """
 
 import os

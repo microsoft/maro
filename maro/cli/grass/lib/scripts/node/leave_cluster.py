@@ -2,7 +2,13 @@
 # Licensed under the MIT license.
 
 
-""" This script is a standalone script, which cannot use the ./utils tools.
+"""Leave the current VM off the MARO Cluster.
+
+[WARNING] This script is a standalone script, which cannot use the ./utils tools.
+
+The script will do the following jobs in this VM:
+- Unmount samba server.
+- Stop MARO Node services: maro-node-agent, maro-node-api-server.
 """
 
 import logging

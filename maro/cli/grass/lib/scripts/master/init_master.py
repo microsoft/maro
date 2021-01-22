@@ -2,6 +2,16 @@
 # Licensed under the MIT license.
 
 
+"""Init MARO Master VM,
+
+The script will do the following jobs in this VM:
+- Install docker,
+- Start maro-redis and maro-fluentd,
+- Start samba server,
+- Install python3 and related packages.
+- Start MARO Master services: maro-master-agent and maro-master-api-server.
+"""
+
 import argparse
 import os
 import pathlib

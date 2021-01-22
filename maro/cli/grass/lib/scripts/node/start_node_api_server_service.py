@@ -2,6 +2,9 @@
 # Licensed under the MIT license.
 
 
+"""Start the maro-node-api-server service.
+"""
+
 import os
 import pathlib
 import pwd

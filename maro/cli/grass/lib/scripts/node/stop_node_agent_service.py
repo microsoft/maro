@@ -2,6 +2,9 @@
 # Licensed under the MIT license.
 
 
+"""Stop the maro-node-agent service.
+"""
+
 from ..utils.subprocess import Subprocess
 
 STOP_SERVICE_COMMAND = "systemctl --user stop maro-node-agent.service"
