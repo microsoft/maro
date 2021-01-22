@@ -8,6 +8,8 @@ elif [[ "$OSTYPE" == "darwin"* ]]; then
     cd "$(cd "$(dirname "$0")"; pwd -P)/.."
 fi
 
+python code_gen.py
+
 bash ./scripts/compile_cython.sh
 
 python setup.py sdist

@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from maro.rl.agent.simple_agent_manager import AgentManager
+from maro.rl.agent_manager.simple_agent_manager import AgentManager
 from maro.rl.scheduling.scheduler import Scheduler
 from maro.simulator import Env
 from maro.utils import InternalLogger, Logger
