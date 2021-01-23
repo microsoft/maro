@@ -41,10 +41,10 @@ maro.rl.algorithms.torch.dqn
 Models
 ================================================================================
 
-maro.rl.models.torch.learning\_model
+maro.rl.model.torch.learning\_model
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.models.torch.learning_model
+.. automodule:: maro.rl.model.torch.learning_model
    :members:
    :undoc-members:
    :show-inheritance:

@@ -14,7 +14,7 @@ from maro.rl.exploration import (
     AbsExplorer, EpsilonGreedyExplorer, GaussianNoiseExplorer, NoiseExplorer, UniformNoiseExplorer
 )
 from maro.rl.learner import AbsLearner, SimpleLearner
-from maro.rl.models import (
+from maro.rl.model import (
     AbsBlock, AbsLearningModel, FullyConnectedBlock, NNStack, OptimizerOptions, SimpleMultiHeadedModel
 )
 from maro.rl.scheduling import LinearParameterScheduler, Scheduler, TwoPhaseLinearParameterScheduler
