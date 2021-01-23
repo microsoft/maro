@@ -11,11 +11,11 @@ env:
     shortage_factor: 1.0
     time_decay_factor: 0.97
 main_loop:
-  max_episode: 500
+  max_episode: 100
   exploration:
     parameter_names:
       - "epsilon"
-    split_ep: 250
+    split_ep: 50
     start_values: 0.4
     mid_values: 0.32
     end_values: 0.0
