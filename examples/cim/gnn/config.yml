@@ -5,17 +5,17 @@ env:
     scenario: "cim"
     topology: "global_trade.22p_l0.8"
     # topology: "toy.4p_ssdd_l0.0"
-agents:
+agent:
   training:
     enable: True
     parallel_cnt: 1
     device: "cpu"
     train_freq: 1
     model_save_freq: 1
-    num_batches: 1
-    batch_size: 16
   algorithm:
     reward_discount: 0.99
+    num_batches: 1
+    batch_size: 16
     td_steps: 100
     actor_loss_coefficient: 0.1
     entropy_factor: 0.1

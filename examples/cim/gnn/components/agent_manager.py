@@ -110,16 +110,14 @@ def create_gnn_agents(config):
         optimizer_options=OptimizerOptions(cls=Adam, params={"lr": config.model.learning_rate})
     )
 
-    algorithm = GNNBasedActorCritic(model, config=GNNBasedActorCriticConfig(**config.algorithm))
-    num_batches, batch_size = config.training.num_batches, config.training.batch_size
-    agent_dict = {}
+    agent = GNNBasedActorCritic(model, config=GNNBasedActorCriticConfig(**config.algorithm))
     for agent_id in config.training.exp_per_ep:
         experience_pool = get_experience_pool(config, agent_id)
         agent_dict[agent_id] = GNNAgent(
             agent_id, algorithm, experience_pool, num_batches, batch_size, logger=training_logger
         )
 
-    return agent_dict
+    return agent
 
 
 class GNNAgentManger(AbsAgentManager):
