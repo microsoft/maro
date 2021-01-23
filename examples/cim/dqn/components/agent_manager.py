@@ -39,7 +39,7 @@ def create_dqn_agents(agent_id_list, config):
 
 
 class DQNAgentManager(SimpleAgentManager):
-    def train(self, experiences_by_agent, performance=None):
+    def train(self, experiences_by_agent):
         self._assert_train_mode()
 
         # store experiences for each agent

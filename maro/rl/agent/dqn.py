@@ -152,12 +152,12 @@ class DQN(AbsAgent):
 
     def store_experiences(self, experiences):
         """Store new experiences in the experience pool."""
-        if self._experience_pool:
+        if self._experience_pool is not None:
             self._experience_pool.put(experiences)
 
     def dump_experience_pool(self, dir_path: str):
         """Dump the experience pool to disk."""
-        if self._experience_pool:
+        if self._experience_pool is not None:
             os.makedirs(dir_path, exist_ok=True)
             with open(os.path.join(dir_path, self._name), "wb") as fp:
                 pickle.dump(self._experience_pool, fp)
