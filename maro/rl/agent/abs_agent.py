@@ -23,7 +23,7 @@ class AbsAgent(ABC):
         name (str): Agent's name.
         model (AbsLearningModel): Task model or container of task models required by the algorithm.
         config: Settings for the algorithm.
-        experience_pool (AbsStore): It is used to store experiences processed by the experience shaper, which will be
+        experience_pool: It is used to store experiences processed by the experience shaper, which will be
             used by some value-based algorithms, such as DQN. Defaults to None.
     """
     def __init__(self, name: str, model: AbsLearningModel, config, experience_pool=None):

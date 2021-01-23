@@ -44,4 +44,4 @@ agents:
       per_sample_td_error_enabled: true
   experience_pool:
     capacity: -1
-  seed: 32   # for reproducibility
+  seed: 64  # for reproducibility
