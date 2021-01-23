@@ -2,13 +2,11 @@
 # Licensed under the MIT license.
 
 import os
-import pickle
 from abc import ABC, abstractmethod
 
 import torch
 
-from maro.rl.models.learning_model import AbsLearningModel
-from maro.rl.storage.abs_store import AbsStore
+from maro.rl.model.learning_model import AbsLearningModel
 from maro.utils.exception.rl_toolkit_exception import UnrecognizedTask
 
 
@@ -28,7 +26,7 @@ class AbsAgent(ABC):
         experience_pool (AbsStore): It is used to store experiences processed by the experience shaper, which will be
             used by some value-based algorithms, such as DQN. Defaults to None.
     """
-    def __init__(self, name: str, model: AbsLearningModel, config, experience_pool: AbsStore = None):
+    def __init__(self, name: str, model: AbsLearningModel, config, experience_pool=None):
         self._name = name
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self._model = model.to(self._device)
@@ -68,18 +66,6 @@ class AbsAgent(ABC):
         these samples.
         """
         return NotImplementedError
-
-    def store_experiences(self, experiences):
-        """Store new experiences in the experience pool."""
-        if self._experience_pool:
-            self._experience_pool.put(experiences)
-
-    def dump_experience_pool(self, dir_path: str):
-        """Dump the experience pool to disk."""
-        if self._experience_pool:
-            os.makedirs(dir_path, exist_ok=True)
-            with open(os.path.join(dir_path, self._name), "wb") as fp:
-                pickle.dump(self._experience_pool, fp)
 
     def load_model(self, model):
         """Load models from memory."""

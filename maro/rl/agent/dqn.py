@@ -1,12 +1,14 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import os
+import pickle
 from typing import Union
 
 import numpy as np
 import torch
 
-from maro.rl.models import AbsLearningModel
+from maro.rl.model import AbsLearningModel
 from maro.rl.storage import ColumnBasedStore
 
 from .abs_agent import AbsAgent
@@ -75,14 +77,13 @@ class DQN(AbsAgent):
     """
     def __init__(self, name: str, model: AbsLearningModel, config: DQNConfig, experience_pool: ColumnBasedStore):
         self.validate_task_names(model.task_names, {"state_value", "advantage"})
-        super().__init__(name, model, config)
+        super().__init__(name, model, config, experience_pool=experience_pool)
         if isinstance(self._model.output_dim, int):
             self._num_actions = self._model.output_dim
         else:
             self._num_actions = self._model.output_dim["advantage"]
         self._training_counter = 0
         self._target_model = model.copy() if model.is_trainable else None
-        self._experience_pool = experience_pool
 
     def choose_action(self, state: np.ndarray) -> Union[int, np.ndarray]:
         state = torch.from_numpy(state).to(self._device)
@@ -148,6 +149,18 @@ class DQN(AbsAgent):
 
     def set_exploration_params(self, epsilon):
         self._config.epsilon = epsilon
+
+    def store_experiences(self, experiences):
+        """Store new experiences in the experience pool."""
+        if self._experience_pool:
+            self._experience_pool.put(experiences)
+
+    def dump_experience_pool(self, dir_path: str):
+        """Dump the experience pool to disk."""
+        if self._experience_pool:
+            os.makedirs(dir_path, exist_ok=True)
+            with open(os.path.join(dir_path, self._name), "wb") as fp:
+                pickle.dump(self._experience_pool, fp)
 
     def _train_on_batch(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray, next_states: np.ndarray):
         states = torch.from_numpy(states).to(self._device)
