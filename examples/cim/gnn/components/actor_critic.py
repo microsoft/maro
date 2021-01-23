@@ -1,4 +1,5 @@
 import os
+from collections import defaultdict
 
 import numpy as np
 import torch
@@ -6,7 +7,10 @@ from torch import nn
 from torch.distributions import Categorical
 from torch.nn.utils import clip_grad
 
-from maro.rl import AbsAlgorithm, AbsLearningModel
+from maro.rl import AbsAgent, AbsLearningModel
+from maro.utils import DummyLogger
+
+from examples.cim.gnn.components.numpy_store import Shuffler
 
 
 class GNNBasedActorCriticConfig:
@@ -14,24 +18,31 @@ class GNNBasedActorCriticConfig:
     
     Args:
         p2p_adj (numpy.array): Adjencency matrix for static nodes.
+        num_batches (int): number of batches to train the DQN model on per call to ``train``.
+        batch_size (int): mini-batch size.
         td_steps (int): The value "n" in the n-step TD algorithm.
         gamma (float): The time decay.
         actor_loss_coefficient (float): Coefficient for actor loss in total loss.
         entropy_factor (float): The weight of the policy"s entropy to boost exploration.
     """
     __slots__ = [
-        "p2p_adj", "td_steps", "reward_discount", "value_discount", "actor_loss_coefficient", "entropy_factor"
+        "p2p_adj", "num_batches", "batch_size", "td_steps", "reward_discount", "value_discount", 
+        "actor_loss_coefficient", "entropy_factor"
     ]
 
     def __init__(
         self,
         p2p_adj: np.ndarray,
+        num_batches: int,
+        batch_size: int,
         td_steps: int = 100, 
         reward_discount: float = 0.97,
         actor_loss_coefficient: float = 0.1,
         entropy_factor: float = 0.1
     ):
         self.p2p_adj = p2p_adj
+        self.num_batches = num_batches
+        self.batch_size = batch_size
         self.td_steps = td_steps
         self.reward_discount = reward_discount
         self.value_discount = reward_discount ** 100
@@ -39,7 +50,7 @@ class GNNBasedActorCriticConfig:
         self.entropy_factor = entropy_factor
 
 
-class GNNBasedActorCritic(AbsAlgorithm):
+class GNNBasedActorCritic(AbsAgent):
     """Actor-Critic algorithm in CIM problem.
 
     The vanilla ac algorithm.
@@ -49,13 +60,14 @@ class GNNBasedActorCritic(AbsAlgorithm):
         config (GNNBasedActorCriticConfig): Configuration for the GNN-based actor critic algorithm.
     """
 
-    def __init__(self, model: AbsLearningModel, config: GNNBasedActorCriticConfig):
+    def __init__(
+        self, name, model: AbsLearningModel, config: GNNBasedActorCriticConfig, experience_pool, logger=DummyLogger()
+    ):
+        super().__init__(name, model, config, experience_pool=experience_pool)
         self._batch_count = 0
-        super().__init__(
-            model_dict={"a&c": model}, optimizer_opt={"a&c": (torch.optim.Adam, {"lr": learning_rate})},
-            loss_func_dict={}, hyper_params=None)
+        self._logger = logger
 
-    def choose_action(self, state: dict, p_idx: int, v_idx: int):
+    def choose_action(self, state: dict):
         """Get action from the AC model.
 
         Args:
@@ -80,18 +92,41 @@ class GNNBasedActorCritic(AbsAlgorithm):
                     },
                     "mask": seq_mask,
                 }
-            p_idx (int): The identity of the port doing the action.
-            v_idx (int): The identity of the vessel doing the action.
 
         Returns:
             model_action (numpy.int64): The action returned from the module.
         """
-        prob, _ = self._model(state, p_idx=p_idx, v_idx=v_idx, actor_enabled=True, is_training=False)
+        prob, _ = self._model(state, p_idx=self._name[0], v_idx=self._name[1], actor_enabled=True, is_training=False)
         distribution = Categorical(prob)
         model_action = distribution.sample().cpu().numpy()
         return model_action
 
-    def train(self, states, actions, returns, next_states, p_idx, v_idx):
+    def train(self):
+        loss_dict = defaultdict(list)
+        for _ in range(self._config.num_batches):
+            shuffler = Shuffler(self._experience_pool, batch_size=self._config.batch_size)
+            while shuffler.has_next():
+                batch = shuffler.next()
+                actor_loss, critic_loss, entropy_loss, tot_loss = self._train_on_batch(
+                    batch["s"], batch["a"], batch["R"], batch["s_"], self._name[0], self._name[1]
+                )
+                loss_dict["actor"].append(actor_loss)
+                loss_dict["critic"].append(critic_loss)
+                loss_dict["entropy"].append(entropy_loss)
+                loss_dict["tot"].append(tot_loss)
+
+        a_loss = np.mean(loss_dict["actor"])
+        c_loss = np.mean(loss_dict["critic"])
+        e_loss = np.mean(loss_dict["entropy"])
+        tot_loss = np.mean(loss_dict["tot"])
+        self._logger.debug(
+            f"code: {str(self._name)} \t actor: {float(a_loss)} \t critic: {float(c_loss)} \t entropy: {float(e_loss)} \
+            \t tot: {float(tot_loss)}")
+
+        self._experience_pool.clear()
+        return loss_dict
+    
+    def _train_on_batch(self, states, actions, returns, next_states, p_idx, v_idx):
         """Model training.
 
         Args:
@@ -162,10 +197,7 @@ class GNNBasedActorCritic(AbsAlgorithm):
             weights = torch.load(fp, map_location=self._device)
         self._set_gnn_weights(weights)
 
-    def _from_numpy(self, *np_arr):
-        return [torch.from_numpy(v).to(self._device) for v in np_arr]
-
-    def _union(self, p, po, pedge, v, vo, vedge, ppedge, seq_mask):
+    def union(self, p, po, pedge, v, vo, vedge, ppedge, seq_mask):
         """Union multiple graphs in CIM.
 
         Args:
@@ -213,6 +245,9 @@ class GNNBasedActorCritic(AbsAlgorithm):
             "ppe": {"edge": ppedge, "adj": p2p_adj, "mask": p2p_mask},
             "mask": seq_mask,
         }
+
+    def _from_numpy(self, *np_arr):
+        return [torch.from_numpy(v).to(self._device) for v in np_arr]
 
     def _preprocess(self, states, actions, returns, next_states):
         states = self._union(

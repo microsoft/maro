@@ -44,10 +44,10 @@ def get_experience_pool(config, agent_id):
         ("a",): (tuple(), np.int64, True),
     }
 
-    return NumpyStore(value_dict, config.exp_per_ep[agent_id])
+    return {agent_id: NumpyStore(value_dict, size) for agent_id, size in config.training.exp_per_ep.items()}
 
 
-def create_gnn_agents(config):
+def create_gnn_agent(config):
     training_logger.info(config.training.device)
     scale = config.model.scale
     p_dim, pedge_dim = config.model.port_feature_dim, config.model.port_edge_feature_dim
@@ -110,39 +110,7 @@ def create_gnn_agents(config):
         optimizer_options=OptimizerOptions(cls=Adam, params={"lr": config.model.learning_rate})
     )
 
-    agent = GNNBasedActorCritic(model, config=GNNBasedActorCriticConfig(**config.algorithm))
-    for agent_id in config.training.exp_per_ep:
-        experience_pool = get_experience_pool(config, agent_id)
-        agent_dict[agent_id] = GNNAgent(
-            agent_id, algorithm, experience_pool, num_batches, batch_size, logger=training_logger
-        )
-
-    return agent
-
-
-class GNNAgentManger(AbsAgentManager):
-    def choose_action(self, agent_id, state):
-        return self._agents[agent_id].choose_action(state)
-
-    def train(self):
-        for agent in self._agents.values():
-            agent.train()
-
-    def store_experiences(self, experiences):
-        for code, exp_list in experiences.items():
-            self._agents[code].store_experiences(exp_list)
-
-    def load_models(self, model):
-        for agent in self.agents.values():
-            agent.load_model(model)
-
-    def dump_models(self) -> dict:
-        return self.agents[list(self.agents.keys())[0]].dump_model()
-
-    def load_models_from_files(self, dir_path):
-        for agent in self.agents.values():
-            agent.load_model_from_file(dir_path)
-
-    def dump_models_to_files(self, dir_path: str):
-        os.makedirs(dir_path, exist_ok=True)
-        self.agents[list(self.agents.keys())[0]].dump_model_to_file(dir_path)
+    return GNNBasedActorCritic(
+        "gnn-a2c", model, GNNBasedActorCriticConfig(**config.algorithm), get_experience_pool(config),
+        logger=training_logger
+    )
