@@ -161,7 +161,7 @@ class DQN(AbsAgent):
             os.makedirs(dir_path, exist_ok=True)
             with open(os.path.join(dir_path, self._name), "wb") as fp:
                 pickle.dump(self._experience_pool, fp)
-    
+
     def _train_on_batch(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray, next_states: np.ndarray):
         states = torch.from_numpy(states).to(self._device)
         actions = torch.from_numpy(actions).to(self._device)
