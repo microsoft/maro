@@ -283,6 +283,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                     pm_id += 1
 
     def _dfs_update_id(self):
+        """Update parent node's id."""
         for region_id, region in enumerate(self._regions):
             for zone_id in region.zone_list:
                 zone = self._zones[zone_id]
