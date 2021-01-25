@@ -8,6 +8,14 @@ the backend language for improving the execution reference. What's more,
 the backend store is a pluggable design, user can choose different backend
 implementation based on their real performance requirement and device limitation.
 
+Currenty there are two data model backend implementation: static and dynamic.
+Static implementation used Numpy as its data store, do not support dynamic
+attribute length, the advance of this version is that its memory size is same as its
+declaration.
+Dynamic implementation is hand-craft c++.
+It supports dynamic attribute (list) which will take more memory than the static implementation
+but is faster for querying snapshot states and accessing attributes.
+
 Key Concepts
 ------------
 
@@ -28,6 +36,12 @@ As shown in the figure above, there are some key concepts in the data model:
   The ``slot`` number can indicate the attribute values (e.g. the three different
   container types in CIM scenario) or the detailed categories (e.g. the ten specific
   products in the `Use Case <#use-case>`_ below). By default, the ``slot`` value is one.
+  As for the dynamic backend implementation, an attribute can be marked as is_list or is_const to identify
+  it is a list attribute or a const attribute respectively.
+  A list attribute's default slot number is 0, and can be increased as demand, max number is 2^32.
+  A const attribute is designed for the value that will not change after initialization,
+  e.g. the capacity of a port/station. The value is shared between frames and will not be copied
+  when taking a snapshot.
 * **Frame** is the collection of all nodes in the environment. The historical frames
   present the aggregated state of the environment during a specific period, while
   the current frame hosts the latest state of the environment at the current time point.
@@ -41,6 +55,7 @@ Use Case
 
   .. code-block:: python
 
+    from maro.backends.backend import AttributeType
     from maro.backends.frame import node, NodeAttribute, NodeBase, FrameNode, FrameBase
 
     TOTAL_PRODUCT_CATEGORIES = 10
@@ -51,8 +66,8 @@ Use Case
 
     @node("warehouse")
     class Warehouse(NodeBase):
-        inventories = NodeAttribute("i", TOTAL_PRODUCT_CATEGORIES)
-        shortages = NodeAttribute("i", TOTAL_PRODUCT_CATEGORIES)
+        inventories = NodeAttribute(AttributeType.Int, TOTAL_PRODUCT_CATEGORIES)
+        shortages = NodeAttribute(AttributeType.Int, TOTAL_PRODUCT_CATEGORIES)
 
         def __init__(self):
             self._init_inventories = [100 * (i + 1) for i in range(TOTAL_PRODUCT_CATEGORIES)]
@@ -65,9 +80,9 @@ Use Case
 
     @node("store")
     class Store(NodeBase):
-        inventories = NodeAttribute("i", TOTAL_PRODUCT_CATEGORIES)
-        shortages = NodeAttribute("i", TOTAL_PRODUCT_CATEGORIES)
-        sales = NodeAttribute("i", TOTAL_PRODUCT_CATEGORIES)
+        inventories = NodeAttribute(AttributeType.Int, TOTAL_PRODUCT_CATEGORIES)
+        shortages = NodeAttribute(AttributeType.Int, TOTAL_PRODUCT_CATEGORIES)
+        sales = NodeAttribute(AttributeType.Int, TOTAL_PRODUCT_CATEGORIES)
 
         def __init__(self):
             self._init_inventories = [10 * (i + 1) for i in range(TOTAL_PRODUCT_CATEGORIES)]
@@ -86,7 +101,8 @@ Use Case
 
         def __init__(self):
             # If your actual frame number was more than the total snapshot number, the old snapshots would be rolling replaced.
-            super().__init__(enable_snapshot=True, total_snapshot=TOTAL_SNAPSHOT)
+            # You can select a backend implementation that will fit your requirement.
+            super().__init__(enable_snapshot=True, total_snapshot=TOTAL_SNAPSHOT, backend_name="static/dynamic")
 
 * The operations on the retail frame.
 
@@ -139,19 +155,34 @@ All supported data types for the attribute of the node:
    * - Attribute Data Type
      - C Type
      - Range
-   * - i2
-     - int16_t
+   * - Attribute.Byte
+     - char
+     - -128 .. 127
+   * - Attribute.UByte
+     - unsigned char
+     - 0 .. 255
+   * - Attribute.Short (i2)
+     - short
      - -32,768 .. 32,767
-   * - i, i4
+   * - Attribute.UShort
+     - unsigned short
+     - 0 .. 65,535
+   * - Attribute.Int (i4)
      - int32_t
      - -2,147,483,648 .. 2,147,483,647
-   * - i8
+   * - Attribute.UInt (i4)
+     - uint32_t
+     - 0 .. 4,294,967,295
+   * - Attribute.Long (i8)
      - int64_t
      - -9,223,372,036,854,775,808 .. 9,223,372,036,854,775,807
-   * - f
+   * - Attribute.ULong (i8)
+     - uint64_t
+     - 0 .. 18,446,744,073,709,551,615
+   * - Attribute.Float (f)
      - float
      - -3.4E38 .. 3.4E38
-   * - d
+   * - Attribute.Double (d)
      - double
      - -1.7E308 .. 1.7E308
 
@@ -216,3 +247,15 @@ For better data access, we also provide some advanced features, including:
 
     # Query attribute by frame index list.
     states = test_nodes_snapshots[[0, 1, 2]: 0: "int_attribute"]
+
+    # The querying states is different between static and dynamic implementation
+    # Static implementation will return a 1-dim numpy array, as the shape is known according to the parameters.
+    # Dynamic implementation will return a 4-dim numpy array, that shape is (ticks, node_indices, attributes, slots).
+    # Usually we can just flatten the state from dynamic implementation, then it will be same as static implementation,
+    # except for list attributes.
+    # List attribute only support one tick, one node index and one attribute name to query, cannot mix with normal attributes
+    states = test_nodes_snapshots[0: 0: "list_attribute"]
+
+    # Also with dynamic implementation, we can get the const attributes which is shared between snapshot list, even without
+    # any snapshot (need to provided one tick for padding).
+    states = test_nodes_snapshots[0: [0, 1]: ["const_attribute", "const_attribute_2"]]

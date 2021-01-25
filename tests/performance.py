@@ -1,98 +1,120 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-
+import os
 from time import time
 
-from maro.simulator import Env
-from maro.simulator.scenarios.cim.frame_builder import gen_cim_frame
+from termgraph import termgraph as tg
 
-"""
-In this file we will test performance for frame, snapshotlist, and cim scenario, with following config
+from maro.backends.frame import (FrameBase, FrameNode, NodeAttribute, NodeBase,
+                                 node)
 
-1. ports: 100
-2. vessels: 100
-3. max_tick: 10000
-
-"""
-
-PORTS_NUMBER = 100
-VESSELS_NUMBER = 100
+NODE1_NUMBER = 100
+NODE2_NUMBER = 100
 MAX_TICK = 10000
-STOP_NUMBER = (6, 6)
 
-READ_WRITE_NUMBER = 1000000
-STATES_QURING_TIME = 100000
 
-def test_frame_only():
+READ_WRITE_NUMBER = 10000000
+STATES_QURING_TIME = 10000
+TAKE_SNAPSHOT_TIME = 10000
+
+AVG_TIME = 4
+
+
+@node("node1")
+class TestNode1(NodeBase):
+    a = NodeAttribute("i")
+    b = NodeAttribute("i")
+    c = NodeAttribute("i")
+    d = NodeAttribute("i")
+    e = NodeAttribute("i", 16)
+
+
+@node("node2")
+class TestNode2(NodeBase):
+    b = NodeAttribute("i", 20)
+
+
+class TestFrame(FrameBase):
+    node1 = FrameNode(TestNode1, NODE1_NUMBER)
+    node2 = FrameNode(TestNode2, NODE2_NUMBER)
+
+    def __init__(self, backend_name):
+        super().__init__(enable_snapshot=True,
+                         total_snapshot=TAKE_SNAPSHOT_TIME, backend_name=backend_name)
+
+
+def build_frame(backend_name: str):
+    return TestFrame(backend_name)
+
+
+def attribute_access(frame, times: int):
+    """Return time cost (in seconds) for attribute acceesing test"""
     start_time = time()
 
-    frm = gen_cim_frame(PORTS_NUMBER, VESSELS_NUMBER, STOP_NUMBER, MAX_TICK)
+    n1 = frame.node1[0]
 
-    static_node = frm.ports[0]
+    for _ in range(times):
+        a = n1.a
+        n1.a = 12
 
-    # read & write one attribute N times with simplified interface
-    for _ in range(READ_WRITE_NUMBER):
-        static_node.a2 = 10
-        a = static_node.a2
-
-    end_time = time()
-
-    print(f"node read & write {READ_WRITE_NUMBER} times: {end_time - start_time}")
+    return time() - start_time
 
 
-def test_snapshot_list_only():
-    frm = gen_cim_frame(PORTS_NUMBER, VESSELS_NUMBER, STOP_NUMBER, MAX_TICK)
-
-    start_time = time()
-
-    # 1. take snapshot
-    for i in range(MAX_TICK):
-        frm.take_snapshot(i)
-
-    end_time = time()
-
-    print(f"take {MAX_TICK} snapshot: {end_time - start_time}")
-
-
-def test_states_quering():
-    frm = gen_cim_frame(PORTS_NUMBER, VESSELS_NUMBER, STOP_NUMBER, MAX_TICK)
-    frm.take_snapshot(0)
-
-    start_time = time()
-
-    static_ss = frm.snapshots["ports"]
-
-    for i in range(STATES_QURING_TIME):
-        states = static_ss[::"empty"]
-
-    end_time = time()
-
-    print(f"Single state quering {STATES_QURING_TIME} times: {end_time - start_time}")
-
-
-def test_cim():
-    eps = 4
-
-    env = Env("cim", "toy.5p_ssddd_l0.0", durations=MAX_TICK)
+def take_snapshot(frame, times: int):
+    """Return times cost (in seconds) for take_snapshot operation"""
 
     start_time = time()
 
-    for _ in range(eps):
-        _, _, is_done = env.step(None)
+    for i in range(times):
+        frame.take_snapshot(i)
 
-        while not is_done:
-            _, _, is_done = env.step(None)
+    return time() - start_time
 
-        env.reset()
 
-    end_time = time()
+def snapshot_query(frame, times: int):
+    """Return time cost (in seconds) for snapshot querying"""
 
-    print(f"cim 5p toplogy with {MAX_TICK} total time cost: {(end_time - start_time)/eps}")
+    start_time = time()
+
+    for i in range(times):
+        states = frame.snapshots["node1"][i::"a"]
+
+    return time() - start_time
 
 
 if __name__ == "__main__":
-    test_frame_only()
-    test_snapshot_list_only()
-    test_states_quering()
-    test_cim()
+    chart_colors = [91, 94]
+
+    chart_args = {'filename': '-', 'title': "Performance comparison between cpp and np backends", 'width': 40,
+                  'format': '{:<5.2f}', 'suffix': '', 'no_labels': False,
+                  'color': None, 'vertical': False, 'stacked': False,
+                  'different_scale': False, 'calendar': False,
+                  'start_dt': None, 'custom_tick': '', 'delim': '',
+                  'verbose': False, 'version': False,
+                  'histogram': False, 'no_values': False}
+
+    chart_labels = [f'attribute accessing ({READ_WRITE_NUMBER})',
+                    f'take snapshot ({STATES_QURING_TIME})', f'states querying ({STATES_QURING_TIME})']
+
+    chart_data = [[0.0, 0.0], [0.0, 0.0], [0.0, 0.0]]
+
+    i = 0
+    j = 0
+
+    for backend_name in ["static", "dynamic"]:
+        frame = build_frame(backend_name)
+
+        j = 0
+
+        for func, args in [(attribute_access, READ_WRITE_NUMBER), (take_snapshot, TAKE_SNAPSHOT_TIME), (snapshot_query, STATES_QURING_TIME)]:
+            t = func(frame, args)
+
+            chart_data[j][i] = t
+
+            j += 1
+
+        i += 1
+
+    tg.print_categories(['static', 'dynamic'], chart_colors)
+    tg.chart(chart_colors, chart_data, chart_args, chart_labels)
