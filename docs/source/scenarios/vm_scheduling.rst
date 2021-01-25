@@ -8,7 +8,7 @@ The VM Scheduling scenario aims to find a better solution of the VM scheduling p
 in cloud data centers.
 Now, consider a specific time, the number of VM
 requests and arrival pattern is fixed. Given a cluster of limited physical
-machines(PM) with limited physical resources, different VM allocation strategeies result in
+machines(PM) with limited physical resources, different VM allocation strategies result in
 different amount of
 successful completion and different operating cost of the data center. For cloud providers, a
 good VM allocation strategy can maximize the resource utilization and thus can increase the profit by
@@ -43,7 +43,8 @@ is not too small, the sampled VM requests can follow a similar distribution to t
 original ones.
 
 Given a fixed time interval, a VM request will arise according to the real VM workload data.
-The request contains the VM information of the required resources, including the required CPU cores,
+The request contains the VM information, such as the subscription id, the deployment id, and the
+VM category, VM's required resources, including the required CPU cores and
 the required memory, and the remaining buffer time.
 
 * Whenever receive a VM request, the MARO simulator will first calculate the
@@ -52,10 +53,18 @@ the required memory, and the remaining buffer time.
 * Then, the simulator delivers all valid PMs and the required resources of the awaiting VM
   to the VM scheduler (agent) for a decision.
 
+We have two categories of VM. One is interactive, and the other one is
+delay-insensitive.
+
+* Interactive: The interactive VMs usually require low response time, so we set this kind of VMs can
+  only be allocated to the non-oversubscribable PM server.
+* Delay-insensitive: The delay-insensitive VMs usually serve for batch-tasks or development workload. This kind of VMs can
+  be allocated to the over-subscribable PM server.
+
 VM Allocation
 ^^^^^^^^^^^^^^
 
-Based on the valid PM list, the histortical information recorded by the simulator, and the detailed
+Based on the valid PM list, the historical information recorded by the simulator, and the detailed
 required resources of the VM, the VM scheduler (decision agent) will make the decision according to its
 allocation strategy.
 
@@ -71,14 +80,19 @@ See the detailed attributes of `Action <#id1>`_.
 Oversubscription
 ~~~~~~~~~~~~~~~~~~~~
 To maximize each PM's utilization, cloud providers will oversubscribe the physical resource.
-The oversubscription rate can be set in the config.yml. In our scenario, there are two resources
-could be oversubscribed, CPU and memory.
+Considering the various service level, the physical machines are then divided into the over-subscribable ones and non-oversubscribable ones.
+For the over-subscription, there are several parameters can be set in the config.yml.
+In our scenario, there are two resources could be oversubscribed, CPU and memory, so we have two maximum oversubscription rate can be set.
 
-* ``MAX_CPU_OVERSUBSCRIPTION_RATE``: The oversubscription rate of CPU.
-* ``MAX_MEM_OVERSUBSCRIPTION_RATE``: The oversubscription rate of memory.
+* ``MAX_CPU_OVERSUBSCRIPTION_RATE``: The oversubscription rate of CPU. For example, the default setting
+  is 1.15, that means each PM can be allocated at most 1.15 times of its resource capacity.
+* ``MAX_MEM_OVERSUBSCRIPTION_RATE``: The oversubscription rate of memory. Similar to the CPU rate.
 
-For example, the default setting of ``MAX_CPU_OVERSUBSCRIPTION_RATE`` is 1.15, that means each
-PM can be allocated at most 1.15 times of its resource capacity.
+To protect the PM from the overloading, we need to consider the CPU utilization. The ``MAX_UTILIZATION_RATE``
+is used as the security mechanism, that can be set in the config.yml.
+
+* ``MAX_UTILIZATION_RATE``: The default setting is 1, which means that when filtering the valid PMs,
+  the maximum allowed physical CPU utilization is 100%.
 
 Runtime Simulation
 ^^^^^^^^^^^^^^^^^^^
@@ -94,7 +108,7 @@ each PM based on the live VMs in it.
 Real-time Energy Consumption
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-One of the most important characteristics that cloud providers concern is the enery consumption of the
+One of the most important characteristics that cloud providers concern is the energy consumption of the
 data center. The different VM allocation can result in different energy consumption of the PM cluster,
 we also simulate the energy usage based on the CPU utilization.
 
@@ -113,11 +127,8 @@ simulate the energy based on the CPU utilization.
 Overload
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Since the VM's CPU utilization varies along the time, when enabling the oversubscription, it might
-happen that the sum of VM's CPU usage execeeds the capacity of the physical resource. This situation called
-overload. The threshold of overloading, or we can say the maximum utilization rate can be set in config.yml.
-
-* ``MAX_UTILIZATION_RATE``: The default setting is 1, which means that when the PM's CPU utilization
-  exceeds 100%, it would be considered as overloading.
+happen that the sum of VM's CPU usage exceed the capacity of the physical resource. This situation called
+overload.
 
 Overloading may lead to VM's performance degradation or service level agreements (SLAs) violations
 in real production (We will support these features in the future).
@@ -158,6 +169,7 @@ After pre-processed, the data contains
 * Renumbered VM ID
 * VM cores and memory(GB) requirements
 * Real VM creation and deletion time (converted to the tick, 1 tick means 5 minutes in real time)
+
 As for the utilization readings part, we sort the renumbered VM ID and CPU utilization pairs by the timestamp (tick).
 
 To provide system workloads from light to heavy, two kinds of simple topologies are designed and
@@ -318,7 +330,7 @@ Before starting interaction with the environment, we need to know the definition
 detailed information for the decision making.
 
 DecisionPayload
-~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
 
 Once the environment need the agent's response to promote the simulation, it will throw an ``PendingDecision``
 event with the ``DecisionPayload``. In the scenario of VM Scheduling, the information of ``DecisionPayload`` is
@@ -327,13 +339,13 @@ listed as below:
 * **valid_pms** (List[int]): The list of the PM ID that is considered as valid (Its CPU and memory resource is enough for the incoming VM request).
 * **vm_id** (int): The VM ID of the incoming VM request (VM request that is waiting for the allocation).
 * **vm_cpu_cores_requirement** (int): The CPU cores that is requested by the incoming VM request.
-* **vm_memory_requirement** (int): The memory resource that is reqeusted by the incoming VM request.
+* **vm_memory_requirement** (int): The memory resource that is requested by the incoming VM request.
 * **remaining_buffer_time** (int): The remaining buffer time for the VM allocation. The VM request will be treated as failed when the remaining_buffer_time is spent. The initial buffer time budget can be set in the config.yml.
 
 Action
 ~~~~~~~
 
-Once get a ``PendingDecision`` event from the envirionment, the agent should respond with an Action. Valid
+Once get a ``PendingDecision`` event from the environment, the agent should respond with an Action. Valid
 ``Action`` includes:
 
 * **None**. It means do nothing but ignore this VM request.
@@ -352,6 +364,7 @@ Once get a ``PendingDecision`` event from the envirionment, the agent should res
     The ``DecisionPayload`` of the new requirement event only differs in the remaining buffer time from the
     old ones.
   * If the time is exhausted, the simulator will note it as a failed allocation.
+
   The ``PostponeAction`` includes:
 
   * vm_id (int): The ID of the VM that is waiting for the allocation.
