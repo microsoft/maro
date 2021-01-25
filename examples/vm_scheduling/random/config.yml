@@ -1,0 +1,7 @@
+env:
+  scenario: vm_scheduling
+  topology: azure.2019.10k
+  start_tick: 0
+  durations: 8638
+  resolution: 1
+  seed: 666

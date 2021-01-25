@@ -34,7 +34,7 @@ class PositionalEncoder(nn.Module):
 
     def forward(self, x):
         # Make embeddings relatively larger.
-        addon = self.pe[: x.shape[0], :, : x.shape[2]].to(x.get_device())
+        addon = self.pe[: x.shape[0], :, : x.shape[2]].to(x.device)
         return x + addon
 
 
@@ -110,7 +110,7 @@ class SimpleGATLayer(nn.Module):
         src_neighbor_cnt = adj.shape[0]
 
         src_embedding = src.reshape(-1, src_dim)
-        src_embedding = torch.cat((self.zero_padding_template.to(src_embedding.get_device()), src_embedding))
+        src_embedding = torch.cat((self.zero_padding_template.to(src_embedding.device), src_embedding))
 
         flat_adj = adj.reshape(-1)
         src_embedding = src_embedding[flat_adj].reshape(src_neighbor_cnt, -1, src_dim)

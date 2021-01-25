@@ -641,3 +641,70 @@ random mode, we hope this could help you learn how to use the environment interf
 
 Jump to `this notebook <https://github.com/microsoft/maro/tree/master/notebooks/container_inventory_management/interact_with_environment.ipynb>`_
 for a quick experience.
+
+Visualization
+-------------
+
+The resource holders in this scenario is the port and vessel.
+In order to facilitate users to select specific data and 
+observe the overall or partial data trend, the
+visualization tool provides data selection options in two dimensions:
+Inter-epoch view & Intra-epoch view.
+
+Inter-epoch view
+^^^^^^^^^^^^^^^^
+
+To change "Start Epoch" and "End Epoch", user could specify the selected
+data range. To change "Epoch Sampling Ratio", user could change the
+sampling rate of selected data.
+
+.. image:: ../images/visualization/dashboard/cim_inter_epoch.gif
+   :alt: cim_inter_epoch
+
+Intra-epoch view
+^^^^^^^^^^^^^^^^
+
+This part shows the data under a selected epoch. By scrolling the
+slider, users can select different epochs. Furthermore, this part of
+data is divided into two dimensions: by snapshot and by port according
+to time and space. In terms of data display, according to the different
+types of attributes, it is divided into two levels: accumulated data
+(accumulated attributes. e.g. acc\_fulfillment) and detail data.
+
+If user choose to view information by ports, attributes of the selected
+port would be displayed.
+
+.. image:: ../images/visualization/dashboard/cim_intra_epoch_by_ports.gif
+   :alt: cim_intra_epoch_by_ports
+
+If user choose to view data by snapshots, attributes of selected
+snapshot would be displayed. The charts and data involved in this part
+are relatively rich, and we will introduce them by level.
+
+Accumulated Data
+~~~~~~~~~~~~~~~~
+
+This part includes the transfer volume heat map, bar chart of port
+accumulated attributes and top-k ports of different attributes.
+
+As shown in the following example, the x-axis and y-axis of transfer
+volume heat map refers to terminal port index and start port index
+respectively. The rect refers to the volume of cargoes transfer from
+start port to terminal port. By changing the snapshot index, user could
+view the dynamic changes in the volume of cargo delivered by the port
+over time in the current epoch.
+
+The bar chart of Port Accumulated Attributes displays the global change of
+ports.
+
+.. image:: ../images/visualization/dashboard/cim_intra_epoch_by_snapshot_acc_data.gif
+   :alt: cim_intra_epoch_by_snapshot_acc_data
+
+Detail Data
+~~~~~~~~~~~
+
+Since the cargoes is transported through vessels, information of vessels
+could be viewed by snapshot. Same as ports, user could change the sampling rate of vessels.
+
+.. image:: ../images/visualization/dashboard/cim_intra_epoch_by_snapshot_detail_data.gif
+   :alt: cim_intra_epoch_by_snapshot_detail_data
