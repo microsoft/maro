@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 """
-This file is used to load config and convert it into a dotted dictionary.
+This file is used to load the configuration and convert it into a dotted dictionary.
 """
 
 import io
