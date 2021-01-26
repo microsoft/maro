@@ -120,6 +120,20 @@ of user-defined functions for message auto-handling, cluster provision, and job 
     .\scripts\install_maro.bat
     ```
 
+- *Notes: If your package is not found, remember to set your PYTHONPATH*
+
+  - Mac OS / Linux
+
+  ```sh
+  export PYTHONPATH=PATH-TO-MARO
+  ```
+
+  - Windows
+
+  ```powershell
+  $Env:PYTHONPATH=PATH-TO-MARO
+  ```
+
 ## Quick Example
 
 ```python
