@@ -3,9 +3,8 @@
 
 from maro.rl.actor import AbsActor, SimpleActor
 from maro.rl.agent import (
-    DQN, AbsAgent, ActionInfo, ActorCritic, ActorCriticConfig, DQNConfig, PolicyGradient, PolicyOptimization,
-    PolicyOptimizationConfig
-)
+    DDPG, DQN, AbsAgent, ActionInfo, ActorCritic, ActorCriticConfig, DDPGConfig, DQNConfig, PolicyGradient,
+    PolicyOptimization, PolicyOptimizationConfig
 from maro.rl.agent_manager import AbsAgentManager, AgentManagerMode, SimpleAgentManager
 from maro.rl.dist_topologies import (
     ActorProxy, ActorWorker, concat_experiences_by_agent, merge_experiences_with_trajectory_boundaries
@@ -23,9 +22,9 @@ from maro.rl.storage import AbsStore, OverwriteType, SimpleStore
 
 __all__ = [
     "AbsActor", "SimpleActor",
-    "AbsAgent", "AbsAgentManager", "AgentManagerMode", "SimpleAgentManager",
-    "ActionInfo", "ActorCritic", "ActorCriticConfig", "DQN", "DQNConfig", "PolicyGradient", "PolicyOptimization",
-    "PolicyOptimizationConfig",
+    "AbsAgent", "ActionInfo", "ActorCritic", "ActorCriticConfig", "DDPG", "DDPGConfig", "DQN", "DQNConfig", 
+    "PolicyGradient", "PolicyOptimization", "PolicyOptimizationConfig",
+    "AbsAgentManager", "AgentManagerMode", "SimpleAgentManager",
     "ActorProxy", "ActorWorker", "concat_experiences_by_agent", "merge_experiences_with_trajectory_boundaries",
     "AbsExplorer", "EpsilonGreedyExplorer", "GaussianNoiseExplorer", "NoiseExplorer", "UniformNoiseExplorer",
     "AbsLearner", "SimpleLearner",
