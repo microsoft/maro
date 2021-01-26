@@ -242,19 +242,16 @@ class GNNBasedACModel(AbsLearningModel):
         self.sequence_buffer_size = sequence_buffer_size
         self.gnn_output_size = gnn_output_size
 
-    def forward(self, state, p_idx=None, v_idx=None, actor_enabled=False, critic_enabled=False, is_training=True):
+    def forward(self, state, actor_enabled=False, critic_enabled=False, is_training=True):
         self.train(mode=is_training)
         if is_training:
-            return self._forward(
-                state, p_idx=p_idx, v_idx=v_idx, actor_enabled=actor_enabled, critic_enabled=critic_enabled
-            )
+            return self._forward(state, actor_enabled=actor_enabled, critic_enabled=critic_enabled)
 
         with torch.no_grad():
-            return self._forward(
-                state, p_idx=p_idx, v_idx=v_idx, actor_enabled=actor_enabled, critic_enabled=critic_enabled
-            )
+            return self._forward(state, actor_enabled=actor_enabled, critic_enabled=critic_enabled)
 
-    def _forward(self, state, p_idx=None, v_idx=None, actor_enabled=False, critic_enabled=False):
+    def _forward(self, state, actor_enabled=False, critic_enabled=False):
+        p_idx, v_idx = state.get("p_idx", None), state.get("v_idx", None)
         assert((actor_enabled and p_idx is not None and v_idx is not None) or critic_enabled)
         feature_p, feature_v = state["p"], state["v"]
 

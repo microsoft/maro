@@ -1,4 +1,5 @@
 from maro.rl import ActionShaper
+from maro.simulator.scenarios.cim.common import Action
 
 
 class DiscreteActionShaper(ActionShaper):
@@ -32,6 +33,5 @@ class DiscreteActionShaper(ActionShaper):
         else:
             # Load resource to dynamic node.
             env_action = round(int(model_action) * 1.0 / self._zero_action * action_scope.discharge)
-        env_action = int(env_action)
-
-        return env_action
+        
+        return Action(decision_event.vessel_idx, decision_event.port_idx, int(env_action))

@@ -96,7 +96,7 @@ class GNNBasedActorCritic(AbsAgent):
         Returns:
             model_action (numpy.int64): The action returned from the module.
         """
-        prob, _ = self._model(state, p_idx=self._name[0], v_idx=self._name[1], actor_enabled=True, is_training=False)
+        prob, _ = self._model(state, actor_enabled=True, is_training=False)
         distribution = Categorical(prob)
         model_action = distribution.sample().cpu().numpy()
         return model_action
@@ -207,6 +207,12 @@ class GNNBasedActorCritic(AbsAgent):
         Returns:
             result (dict): The dictionary that describes the graph.
         """
+        if len(p.shape) == 3:
+            p, po, pedge = np.expand_dims(p, 1), np.expand_dims(po, 0), np.expand_dims(pedge, 0)
+            v, vo, vedge = np.expand_dims(v, 1), np.expand_dims(vo, 0), np.expand_dims(vedge, 0)
+            ppedge = np.expand_dims(ppedge, 0)
+            seq_mask = np.expand_dims(seq_mask, 0)
+
         seq_len, batch, v_cnt, v_dim = v.shape
         _, _, p_cnt, p_dim = p.shape
 

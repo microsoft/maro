@@ -11,13 +11,12 @@ import torch
 
 from maro.rl import AbsActor
 from maro.simulator import Env
-from maro.simulator.scenarios.cim.common import Action
 
 from .action_shaper import DiscreteActionShaper
 from .experience_shaper import ExperienceShaper
 from .shared_structure import SharedStructure
 from .state_shaper import GNNStateShaper
-from .utils import fix_seed, gnn_union
+from .utils import fix_seed
 
 
 def organize_exp_list(experience_collections: dict, idx_mapping: dict):
@@ -73,7 +72,7 @@ def organize_exp_list(experience_collections: dict, idx_mapping: dict):
 
 
 def organize_obs(obs, idx, exp_len):
-    """Helper function to transform the observation from multiple processes to a unified dictionary."""
+    """Helper function to organize observations from multiple processes into a unified dictionary."""
     tick_buffer, _, para_cnt, v_cnt, v_dim = obs["v"].shape
     _, _, _, p_cnt, p_dim = obs["p"].shape
     batch = exp_len * para_cnt
@@ -100,6 +99,46 @@ def organize_obs(obs, idx, exp_len):
     return {"v": v, "p": p, "vo": vo, "po": po, "pedge": pedge, "vedge": vedge, "ppedge": ppedge, "mask": mask}
 
 
+def put_experiences_in_shared_memory(experiences, exp_output, exp_idx_mapping):
+    tmpi = 0
+    for (agent_idx, vessel_idx), idx_base in exp_idx_mapping.items():
+        exp_list = self._experience_dict[(agent_idx, vessel_idx)]
+        exp_len = len(exp_list)
+        # Here, we assume that exp_idx_mapping order is not changed.
+        self._shared_storage["len"][self._idx, tmpi] = exp_len
+        self._shared_storage["s"]["v"][:, idx_base:idx_base + exp_len, self._idx] = \
+            np.stack([e["s"]["v"] for e in exp_list], axis=1)
+        self._shared_storage["s"]["p"][:, idx_base:idx_base + exp_len, self._idx] = \
+            np.stack([e["s"]["p"] for e in exp_list], axis=1)
+        self._shared_storage["s"]["vo"][idx_base:idx_base + exp_len, self._idx] = \
+            np.stack([e["s"]["vo"] for e in exp_list], axis=0)
+        self._shared_storage["s"]["po"][idx_base:idx_base + exp_len, self._idx] = \
+            np.stack([e["s"]["po"] for e in exp_list], axis=0)
+        self._shared_storage["s"]["vedge"][idx_base:idx_base + exp_len, self._idx] = \
+            np.stack([e["s"]["vedge"] for e in exp_list], axis=0)
+        self._shared_storage["s"]["pedge"][idx_base:idx_base + exp_len, self._idx] = \
+            np.stack([e["s"]["pedge"] for e in exp_list], axis=0)
+
+        self._shared_storage["s_"]["v"][:, idx_base:idx_base + exp_len, self._idx] = \
+            np.stack([e["s_"]["v"] for e in exp_list], axis=1)
+        self._shared_storage["s_"]["p"][:, idx_base:idx_base + exp_len, self._idx] = \
+            np.stack([e["s_"]["p"] for e in exp_list], axis=1)
+        self._shared_storage["s_"]["vo"][idx_base:idx_base + exp_len, self._idx] = \
+            np.stack([e["s_"]["vo"] for e in exp_list], axis=0)
+        self._shared_storage["s_"]["po"][idx_base:idx_base + exp_len, self._idx] = \
+            np.stack([e["s_"]["po"] for e in exp_list], axis=0)
+        self._shared_storage["s_"]["vedge"][idx_base:idx_base + exp_len, self._idx] = \
+            np.stack([e["s_"]["vedge"] for e in exp_list], axis=0)
+        self._shared_storage["s_"]["pedge"][idx_base:idx_base + exp_len, self._idx] = \
+            np.stack([e["s_"]["pedge"] for e in exp_list], axis=0)
+
+        self._shared_storage["a"][idx_base: idx_base + exp_len, self._idx] = \
+            np.array([exp["a"] for exp in exp_list], dtype=np.int64)
+        self._shared_storage["R"][idx_base: idx_base + exp_len, self._idx] = \
+            np.vstack([exp["R"] for exp in exp_list])
+        tmpi += 1
+
+
 def single_player_worker(index, config, exp_idx_mapping, pipe, action_io, exp_output):
     """The A2C worker function to collect experience.
 
@@ -123,10 +162,10 @@ def single_player_worker(index, config, exp_idx_mapping, pipe, action_io, exp_ou
     else:
         env = Env(**config.env.param)
     fix_seed(env, config.env.seed)
-    static_code_list, dynamic_code_list = list(env.summary["node_mapping"]["ports"].values()), \
-        list(env.summary["node_mapping"]["vessels"].values())
+    static_code_list = list(env.summary["node_mapping"]["ports"].values())
+    dynamic_code_list = list(env.summary["node_mapping"]["vessels"].values())
+    
     # Create gnn_state_shaper without consuming any resources.
-
     gnn_state_shaper = GNNStateShaper(
         static_code_list, dynamic_code_list, config.env.param.durations, config.model.feature,
         tick_buffer=config.model.tick_buffer, max_value=env.configs["total_containers"])
@@ -143,11 +182,11 @@ def single_player_worker(index, config, exp_idx_mapping, pipe, action_io, exp_ou
 
     i = 0
     while pipe.recv() == "reset":
-        r, decision_event, is_done = env.step(None)
+        r, decision_event, done = env.step(None)
 
         j = 0
         logs = []
-        while not is_done:
+        while not done:
             model_input = gnn_state_shaper(decision_event, env.snapshot_list)
             action_io_np["v"][:, index] = model_input["v"]
             action_io_np["p"][:, index] = model_input["p"]
@@ -161,20 +200,19 @@ def single_player_worker(index, config, exp_idx_mapping, pipe, action_io, exp_ou
             action_io_np["vid"][index] = decision_event.vessel_idx
             pipe.send("features")
             model_action = pipe.recv()
-            env_action = action_shaper(decision_event, model_action)
+            action = action_shaper(decision_event, model_action)
             exp_shaper.record(decision_event=decision_event, model_action=model_action, model_input=model_input)
             logs.append([
                 index, decision_event.tick, decision_event.port_idx, decision_event.vessel_idx, model_action,
-                env_action, decision_event.action_scope.load, decision_event.action_scope.discharge])
-            action = Action(decision_event.vessel_idx, decision_event.port_idx, env_action)
-            r, decision_event, is_done = env.step(action)
+                action, decision_event.action_scope.load, decision_event.action_scope.discharge])
+            r, decision_event, done = env.step(action)
             j += 1
         action_io_np["sh"][index] = compute_shortage(env.snapshot_list, config.env.param.durations, static_code_list)
         i += 1
         pipe.send("done")
         gnn_state_shaper.end_ep_callback(env.snapshot_list)
         # Organize and synchronize exp to shared memory.
-        exp_shaper(env.snapshot_list)
+        experiences = exp_shaper(env.snapshot_list)
         exp_shaper.reset()
         logs = np.array(logs, dtype=np.float)
         pipe.send(logs)
@@ -320,21 +358,19 @@ class ParallelActor(AbsActor):
             step_i += 1
 
             t = time.time()
-            graph = gnn_union(
+            state = self._agent_manager.union(
                 self.action_io_np["p"], self.action_io_np["po"], self.action_io_np["pedge"],
                 self.action_io_np["v"], self.action_io_np["vo"], self.action_io_np["vedge"],
-                self._gnn_state_shaper.p2p_static_graph, self.action_io_np["ppedge"],
-                self.action_io_np["mask"], self.device
+                self._gnn_state_shaper.p2p_static_graph, self.action_io_np["ppedge"], self.action_io_np["mask"]
             )
+            state["p_idx"], state["v_idx"] = self.action_io_np["pid"][0], self.action_io_np["vid"][0]
             t_state += time.time() - t
 
             assert(np.min(self.action_io_np["pid"]) == np.max(self.action_io_np["pid"]))
             assert(np.min(self.action_io_np["vid"]) == np.max(self.action_io_np["vid"]))
 
             t = time.time()
-            actions = self._inference_agents.choose_action(
-                agent_id=(self.action_io_np["pid"][0], self.action_io_np["vid"][0]), state=graph
-            )
+            actions = self._agent_manager.choose_action(state)
             t_action += time.time() - t
 
             for i, p in enumerate(self.pipes):

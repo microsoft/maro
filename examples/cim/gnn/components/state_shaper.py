@@ -61,7 +61,7 @@ class GNNStateShaper(StateShaper):
         self._norm_scale = 2.0 / max_value
         if not only_demo:
             self._state_dict = {
-                # Last "tick" is used for embedding, all zero and never be modified.
+                # Last "tick" is used for embedding, all zero and never modified.
                 "v": np.zeros((self._max_tick + 1, self.vessel_cnt, self.get_input_dim("v"))),
                 "p": np.zeros((self._max_tick + 1, self.port_cnt, self.get_input_dim("p"))),
                 "vo": np.zeros((self._max_tick + 1, self.vessel_cnt, self.port_cnt), dtype=np.int),

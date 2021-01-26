@@ -114,3 +114,25 @@ def create_gnn_agent(config):
         "gnn-a2c", model, GNNBasedActorCriticConfig(**config.algorithm), get_experience_pool(config),
         logger=training_logger
     )
+
+
+class GNNAgentManager(AbsAgentManager):
+    def choose_action(self, decision_event, snapshot_list):
+        model_input = self._state_shaper(decision_event, snapshot_list)
+        state = self.agents.union(
+            model_input["p"], model_input["po"], model_input["pedge"],
+            model_input["v"], model_input["vo"], model_input["vedge"],
+            self._state_shaper.p2p_static_graph, model_input["ppedge"], model_input["mask"]
+        )
+        state.update({"p_idx": decision_event.port_idx, "v_idx": decision_event.vessel_idx})
+        model_action = self.agents.choose_action(state)
+        self._experience_shaper.record(decision_event, model_action, model_input)
+        return self._action_shaper(decision_event, model_action)
+
+    def on_env_feedback(self):
+        pass
+
+    def post_process(self):
+        
+
+    
