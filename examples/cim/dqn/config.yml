@@ -42,4 +42,4 @@ agents:
       tau: 0.1
       is_double: true
       per_sample_td_error_enabled: true
-  seed: 16  # for reproducibility
+  seed: 8  # for reproducibility

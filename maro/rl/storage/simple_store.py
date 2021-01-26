@@ -64,7 +64,7 @@ class SimpleStore(AbsStore):
     @property
     def keys(self):
         return self._keys
-    
+
     @property
     def capacity(self):
         """Store capacity.
@@ -78,7 +78,7 @@ class SimpleStore(AbsStore):
     def overwrite_type(self):
         """An ``OverwriteType`` member indicating the overwrite behavior when the store capacity is exceeded."""
         return self._overwrite_type
-    
+
     def get(self, indexes: [int]) -> dict:
         return {k: [self._store[k][i] for i in indexes] for k in self._store}
 
@@ -128,8 +128,8 @@ class SimpleStore(AbsStore):
             for index, value in zip(indexes, val):
                 self._store[key][index] = value
 
-        return indexes            
-    
+        return indexes          
+
     def apply_multi_filters(self, filters: List[Callable]):
         """Multi-filter method.
 
@@ -225,10 +225,10 @@ class SimpleStore(AbsStore):
 
     def clear(self):
         """Empty the store."""
-        self._store = {key: [] if self._capacity < 0 else [None] * self._capacity for key in keys}
+        self._store = {key: [] if self._capacity < 0 else [None] * self._capacity for key in self._keys}
         self._size = 0
         self._iter_index = 0
-    
+
     def dumps(self):
         """Return a deep copy of store contents."""
         return clone(dict(self._store))
@@ -264,7 +264,7 @@ class SimpleStore(AbsStore):
         # Ensure that all values are lists of the same length.
         if any(not isinstance(val, list) for val in contents.values()):
             raise TypeError("All values must be of type 'list'")
-        
+   
         reference_val = contents[list(contents.keys())[0]]
         if any(len(val) != len(reference_val) for val in contents.values()):
             raise StoreMisalignment("values of contents should consist of lists of the same length")
