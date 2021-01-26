@@ -9,7 +9,7 @@ class DiscreteActionShaper(ActionShaper):
         self._action_dim = action_dim
         self._zero_action = self._action_dim // 2
 
-    def __call__(self, decision_event, model_action):
+    def __call__(self, model_action, decision_event):
         """Shaping the action in [-1,1] range to the actual repositioning function.
 
         This function maps integer model action within the range of [-A, A] to actual action. We define negative actual
@@ -17,8 +17,8 @@ class DiscreteActionShaper(ActionShaper):
         upper bound and lower bound of actual action are the resource in dynamic and static node respectively.
 
         Args:
-            decision_event (Event): The decision event from the environment.
             model_action (int): Output action, range A means the half of the agent output dim.
+            decision_event (Event): The decision event from the environment.
         """
         env_action = 0
         model_action -= self._zero_action

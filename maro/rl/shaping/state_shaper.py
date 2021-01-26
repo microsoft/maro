@@ -14,7 +14,3 @@ class StateShaper(AbsShaper):
     @abstractmethod
     def __call__(self, decision_event, snapshot_list):
         pass
-
-    def reset(self):
-        """Reset stateful members, if any, to their states at the beginning of an episode."""
-        pass

@@ -10,8 +10,6 @@ agent:
     enable: True
     parallel_cnt: 1
     device: "cpu"
-    train_freq: 1
-    model_save_freq: 1
   algorithm:
     reward_discount: 0.99
     num_batches: 1
@@ -42,6 +40,8 @@ agent:
       onehot_identity: False
 main_loop:
   max_episode: 500
+  train_freq: 1
+  model_save_freq: 1
 log:
   path: "./"
   exp:

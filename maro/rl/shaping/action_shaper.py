@@ -12,13 +12,9 @@ class ActionShaper(AbsShaper):
     An action shaper is used to convert an agent's model output to an environment executable action.
     """
     @abstractmethod
-    def __call__(self, model_action, decision_event, snapshot_list):
+    def __call__(self, model_action, decision_event):
         """This method converts a model output to an environment executable action.
 
         Information from the decision event and snapshot list may also be needed as contexts for this conversion.
         """
-        pass
-
-    def reset(self):
-        """Reset stateful members, if any, to their states at the beginning of an episode."""
         pass

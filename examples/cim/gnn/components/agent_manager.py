@@ -1,4 +1,5 @@
 import os
+from collections import defaultdict
 from copy import copy
 
 import numpy as np
@@ -6,18 +7,18 @@ import torch
 from torch.nn import GELU, TransformerEncoder, TransformerEncoderLayer
 from torch.optim import Adam
 
-from maro.rl import AbsAgentManager, AgentMode, FullyConnectedBlock, NNStack, OptimizerOptions
+from maro.rl import ActionInfo, FullyConnectedBlock, NNStack, OptimizerOptions, SimpleAgentManager
 from maro.utils import DummyLogger, Logger
 
 from examples.cim.gnn.config import training_logger
-from examples.cim.gnn.components.actor_critic import GNNBasedActorCritic, GNNBasedActorCriticConfig
+from examples.cim.gnn.components.gnn_based_actor_critic import GNNBasedActorCritic, GNNBasedActorCriticConfig
 from examples.cim.gnn.components.agent import GNNAgent
 from examples.cim.gnn.components.numpy_store import NumpyStore
 from examples.cim.gnn.components.simple_gnn import GNNBasedACModel, PositionalEncoder, SharedAC, SimpleTransformer
 from examples.cim.gnn.components.state_shaper import GNNStateShaper
 
 
-def get_experience_pool(config, agent_id):
+def get_experience_pool(config):
     num_static_nodes, num_dynamic_nodes = config.num_static_nodes, config.num_dynamic_nodes
     p_dim, pedge_dim = config.model.port_feature_dim, config.model.port_edge_feature_dim
     v_dim, vedge_dim = config.model.vessel_feature_dim, config.model.vessel_edge_feature_dim
@@ -111,28 +112,25 @@ def create_gnn_agent(config):
     )
 
     return GNNBasedActorCritic(
-        "gnn-a2c", model, GNNBasedActorCriticConfig(**config.algorithm), get_experience_pool(config),
+        "gnn-a2c", model, GNNBasedActorCriticConfig(**config.algorithm), 
+        experience_pool=get_experience_pool(config),
         logger=training_logger
     )
 
 
-class GNNAgentManager(AbsAgentManager):
+class GNNAgentManager(SimpleAgentManager):
     def choose_action(self, decision_event, snapshot_list):
-        model_input = self._state_shaper(decision_event, snapshot_list)
-        state = self.agents.union(
-            model_input["p"], model_input["po"], model_input["pedge"],
-            model_input["v"], model_input["vo"], model_input["vedge"],
-            self._state_shaper.p2p_static_graph, model_input["ppedge"], model_input["mask"]
-        )
-        state.update({"p_idx": decision_event.port_idx, "v_idx": decision_event.vessel_idx})
-        model_action = self.agents.choose_action(state)
-        self._experience_shaper.record(decision_event, model_action, model_input)
-        return self._action_shaper(decision_event, model_action)
-
-    def on_env_feedback(self):
-        pass
-
-    def post_process(self):
+        state = self._state_shaper(decision_event, snapshot_list)
+        action_info = self.agents.choose_action(state)
+        self._trajectory["state"].append(state)
+        self._trajectory["event"].append(decision_event)
+        if isinstance(action_info, ActionInfo):
+            self._trajectory["action"].append(action_info.action)
+            self._trajectory["log_action_probability"].append(action_info.log_probability)
+        else:
+            self._trajectory["action"].append(action_info)
         
+        return self._action_shaper(self._trajectory["action"][-1], decision_event)
 
-    
+    def store_experiences(self, experiences):
+        self.sgents.store_experiences(experiences)

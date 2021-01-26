@@ -91,7 +91,7 @@ class AgentManager(AbsAgentManager):
         else:
             self._trajectory["action"].append(action_info)
 
-        return self._action_shaper(self._trajectory["action"][-1], decision_event, snapshot_list)
+        return self._action_shaper(self._trajectory["action"][-1], decision_event)
 
     def on_env_feedback(self, metrics):
         """This method records the environment-generated metrics as part of the latest transition in the trajectory.

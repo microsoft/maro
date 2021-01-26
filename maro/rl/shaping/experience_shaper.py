@@ -34,7 +34,3 @@ class ExperienceShaper(AbsShaper):
             Experiences that can be used by the algorithm.
         """
         pass
-
-    def reset(self):
-        """Reset stateful members, if any, to their states at the beginning of an episode."""
-        pass

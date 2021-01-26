@@ -13,3 +13,7 @@ class AbsShaper(ABC):
     def __call__(self, *args, **kwargs):
         """The general interface for conversion."""
         pass
+
+    def reset(self):
+        """Reset stateful members, if any, to their states at the beginning of an episode."""
+        pass

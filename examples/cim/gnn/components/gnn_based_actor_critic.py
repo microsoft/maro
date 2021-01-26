@@ -7,7 +7,7 @@ from torch import nn
 from torch.distributions import Categorical
 from torch.nn.utils import clip_grad
 
-from maro.rl import AbsAgent, AbsLearningModel
+from maro.rl import AbsAgent, AbsLearningModel, ActionInfo
 from maro.utils import DummyLogger
 
 from examples.cim.gnn.components.numpy_store import Shuffler
@@ -96,10 +96,18 @@ class GNNBasedActorCritic(AbsAgent):
         Returns:
             model_action (numpy.int64): The action returned from the module.
         """
-        prob, _ = self._model(state, actor_enabled=True, is_training=False)
+        model_state = self.union(
+            state["p"], state["po"], state["pedge"], state["v"], state["vo"], state["vedge"],
+            state["ppedge"], state["mask"]
+        )
+        model_state.update({"p_idx": state["p_idx"], "v_idx": state["v_idx"]})
+        prob, _ = self._model(model_state, actor_enabled=True, is_training=False)
         distribution = Categorical(prob)
-        model_action = distribution.sample().cpu().numpy()
-        return model_action
+        action = distribution.sample().cpu().numpy()
+        if len(action) == 1:
+            return ActionInfo(action=action, log_probability=np.log(prob[action]))
+        else:
+            return [ActionInfo(action=act, log_probability=dist[act]) for act, dist in zip(action, prob)] 
 
     def train(self):
         loss_dict = defaultdict(list)
@@ -184,6 +192,10 @@ class GNNBasedActorCritic(AbsAgent):
             if key in self._model.state_dict().keys():
                 self._model.state_dict()[key].copy_(weights[key])
 
+    def store_experiences(self, experiences):
+        for code, exp_list in experiences.items():
+            self._experience_pool[code].store_experiences(exp_list)
+    
     def load_model(self, folder_pth, idx=-1):
         if idx == -1:
             fps = os.listdir(folder_pth)

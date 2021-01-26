@@ -2,7 +2,7 @@ import numpy as np
 
 from maro.rl.shaping.state_shaper import StateShaper
 
-from .utils import compute_v2p_degree_matrix
+from examples.cim.gnn.components.utils import compute_v2p_degree_matrix
 
 
 class GNNStateShaper(StateShaper):
@@ -202,6 +202,8 @@ class GNNStateShaper(StateShaper):
         mask[:len(state_tick_range)] = False
         ret = {
             "tick": state_tick_range,
+            "v_idx": action_info.vessel_idx if action_info is not None else None,
+            "p_idx": action_info.port_idx if action_info is not None else None,
             "v": v,
             "p": p,
             "vo": self._state_dict["vo"][tick],

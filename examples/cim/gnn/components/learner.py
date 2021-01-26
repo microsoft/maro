@@ -10,13 +10,18 @@ from examples.cim.gnn.components.agent_manager import SimpleAgentManger
 class GNNLearner(AbsLearner):
     """Learner class for the training pipeline and the specialized logging in GNN solution for CIM problem."""
     def __init__(
-        self, env, agent_manager, scheduler, train_freq, model_save_freq, log_pth, logger=DummyLogger()
+        self, env, agent_manager, scheduler, train_freq=1, model_save_freq=1, log_pth=os.getcwd(), logger=DummyLogger()
     ):
         super().__init__()
+        self._env = env
+        self._agent_manager = agent_manager
+        self._scheduler = scheduler
         self._train_freq = train_freq
         self._model_save_freq = model_save_freq
+        self._log_pth = log_pth
+        self._logger = logger
 
-    def learn(self, training_config):
+    def learn(self):
         rollout_time = 0
         training_time = 0
         for _ in self._scheduler:
