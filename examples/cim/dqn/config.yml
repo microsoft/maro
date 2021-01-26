@@ -42,6 +42,4 @@ agents:
       tau: 0.1
       is_double: true
       per_sample_td_error_enabled: true
-  experience_pool:
-    capacity: -1
   seed: 64  # for reproducibility

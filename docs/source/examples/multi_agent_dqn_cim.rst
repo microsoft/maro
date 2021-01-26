@@ -79,26 +79,27 @@ combination of fulfillment and shortage in a limited time window.
     class TruncatedExperienceShaper(ExperienceShaper):
         ...
         def __call__(self, trajectory, snapshot_list):
-            experiences_by_agent = {}
-            for i in range(len(trajectory) - 1):
-                transition = trajectory[i]
-                agent_id = transition["agent_id"]
-                if agent_id not in experiences_by_agent:
-                    experiences_by_agent[agent_id] = defaultdict(list)
-                experiences = experiences_by_agent[agent_id]
-                experiences["state"].append(transition["state"])
-                experiences["action"].append(transition["action"])
-                experiences["reward"].append(self._compute_reward(transition["event"], snapshot_list))
-                experiences["next_state"].append(trajectory[i + 1]["state"])
+            experiences_by_agent = defaultdict(lambda: defaultdict(list))
+            states = trajectory["state"]
+            actions = trajectory["action"]
+            agent_ids = trajectory["agent_id"]
+            events = trajectory["event"]
+            for i in range(len(states) - 1):
+                experiences = experiences_by_agent[agent_ids[i]]
+                experiences["state"].append(states[i])
+                experiences["action"].append(actions[i])
+                experiences["reward"].append(self._compute_reward(events[i], snapshot_list))
+                experiences["next_state"].append(states[i + 1])
 
-            return experiences_by_agent
+            return dict(experiences_by_agent)
 
 Agent
 -----
 
-`Agent <https://maro.readthedocs.io/en/latest/key_components/rl_toolkit.html#agent>`_ is a combination of (RL)
-algorithm, experience pool, and a set of parameters that governs the training loop. For this scenario, the agent is the
-abstraction of a port. We choose DQN as our underlying learning algorithm with a TD-error-based sampling mechanism.
+`Agent <https://maro.readthedocs.io/en/latest/key_components/rl_toolkit.html#agent>`_ is the
+kernel abstraction of the RL formulation for a real-world problem. For this scenario, the agent
+is the algorithmic abstraction of a port. We choose DQN as our underlying learning algorithm
+with a TD-error-based sampling mechanism.
 
 .. code-block:: python
     NUM_ACTIONS = 21
@@ -133,25 +134,25 @@ abstraction of a port. We choose DQN as our underlying learning algorithm with a
                     skip_connection_enabled=False,
                     dropout_p=.0)
             )
-
-            algorithm = DQN(
-                model=LearningModel(
-                    q_net, optimizer_options=OptimizerOptions(cls=RMSprop, params={"lr": 0.05})
-                ),
+            
+            learning_model = SimpleMultiHeadedModel(
+                q_net, optimizer_options=OptimizerOptions(cls=RMSprop, params={"lr": 0.05})
+            )
+            agent_dict[agent_id] = DQN(
+                agent_id, 
+                learning_model, 
                 config=DQNConfig(
-                    reward_decay=.0, 
+                    reward_discount=.0, 
+                    min_experiences_to_train=1024,
+                    num_batches=10,
+                    batch_size=128, 
                     target_update_frequency=5, 
                     tau=0.1, 
                     is_double=True, 
                     per_sample_td_error_enabled=True,
                     loss_cls=nn.SmoothL1Loss
-                )
-            )
-
-            experience_pool = ColumnBasedStore(**config.experience_pool)
-            agent_dict[agent_id] = DQNAgent(
-                agent_id, algorithm, ColumnBasedStore(), 
-                min_experiences_to_train=1024, num_batches=10, batch_size=128
+                ),
+                experience_pool=SimpleStore(["state", "action", "reward", "next_state", "loss"])
             )
 
         return agent_dict

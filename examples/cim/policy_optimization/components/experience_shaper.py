@@ -18,12 +18,12 @@ class TruncatedExperienceShaper(ExperienceShaper):
         self._shortage_factor = shortage_factor
 
     def __call__(self, trajectory, snapshot_list):
-        agent_ids = np.asarray(trajectory.get_by_key("agent_id"))
-        states = np.asarray(trajectory.get_by_key("state"))
-        actions = np.asarray(trajectory.get_by_key("action"))
-        log_action_probabilities = np.asarray(trajectory.get_by_key("log_action_probability"))
+        agent_ids = np.asarray(trajectory["agent_id"])
+        states = np.asarray(trajectory["state"])
+        actions = np.asarray(trajectory["action"])
+        log_action_probabilities = np.asarray(trajectory["log_action_probability"])
         rewards = np.fromiter(
-            map(self._compute_reward, trajectory.get_by_key("event"), [snapshot_list] * len(trajectory)),
+            map(self._compute_reward, trajectory["event"], [snapshot_list] * len(states)),
             dtype=np.float32
         )
         return {agent_id: {

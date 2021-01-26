@@ -102,12 +102,15 @@ different distributed components, such as inference mode in actor, training mode
 Agent
 -----
 
-An agent is a combination of (RL) algorithm, experience pool, and a set of
-non-algorithm-specific parameters (algorithm-specific parameters are managed by
-the algorithm module). Non-algorithm-specific parameters are used to manage
-experience storage, sampling strategies, and training strategies. Since all kinds
-of scenario-specific stuff will be handled by the agent manager, the agent is
-scenario agnostic.
+The Agent is the kernel abstraction of the RL formulation for a real-world problem. 
+Our abstraction decouples agent and its underlying model so that an agent can exist 
+as an RL paradigm independent of the inner workings of the models it uses to generate 
+actions or estimate values. For example, the actor-critic algorithm does not need to 
+concern itself with the structures and optimizing schemes of the actor and critic models. 
+This decoupling is achieved by the model abstraction described below. Ideally, the
+agent is scenario agnostic because agent manager handles all scenario-specific logic.
+In reality, however, this type of separation might not be achievable. 
+ 
 
 .. image:: ../images/rl/agent.svg
    :target: ../images/rl/agent.svg
@@ -116,37 +119,12 @@ scenario agnostic.
 .. code-block:: python
 
   class AbsAgent(ABC):
-      def __init__(self, name: str, algorithm: AbsAlgorithm, experience_pool: AbsStore = None):
-        self._name = name
-        self._algorithm = algorithm
-        self._experience_pool = experience_pool
-
-
-Algorithm
----------
-
-The algorithm is the kernel abstraction of the RL formulation for a real-world problem. Our abstraction
-decouples algorithm and model so that an algorithm can exist as an RL paradigm independent of the inner
-workings of the models it uses to generate actions or estimate values. For example, the actor-critic
-algorithm does not need to concern itself with the structures and optimizing schemes of the actor and
-critic models. This decoupling is achieved by the ``LearningModel`` abstraction described below.
-
-
-.. image:: ../images/rl/algorithm.svg
-   :target: ../images/rl/algorithm.svg
-   :alt: Algorithm
-   :width: 650
-
-* ``choose_action`` is used to make a decision based on a provided model state.
-* ``train`` is used to trigger training and the policy update from external.
-
-.. code-block:: python
-
-  class AbsAlgorithm(ABC):
-      def __init__(self, model: LearningModel, config):
+      def __init__(self, name: str, model: AbsLearningModel, config, experience_pool=None):
+          self._name = name
           self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
           self._model = model.to(self._device)
           self._config = config
+          self._experience_pool = experience_pool
 
 
 Block, NNStack and LearningModel

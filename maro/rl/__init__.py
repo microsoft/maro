@@ -18,8 +18,8 @@ from maro.rl.model import (
     AbsBlock, AbsLearningModel, FullyConnectedBlock, NNStack, OptimizerOptions, SimpleMultiHeadedModel
 )
 from maro.rl.scheduling import LinearParameterScheduler, Scheduler, TwoPhaseLinearParameterScheduler
-from maro.rl.shaping import AbsShaper, ActionShaper, ExperienceShaper, KStepExperienceShaper, StateShaper
-from maro.rl.storage import AbsStore, ColumnBasedStore, OverwriteType
+from maro.rl.shaping import AbsShaper, ActionShaper, ExperienceShaper, StateShaper
+from maro.rl.storage import AbsStore, SimpleStore, OverwriteType
 
 __all__ = [
     "AbsActor", "SimpleActor",
@@ -31,6 +31,6 @@ __all__ = [
     "AbsLearner", "SimpleLearner",
     "AbsBlock", "AbsLearningModel", "FullyConnectedBlock", "NNStack", "OptimizerOptions", "SimpleMultiHeadedModel",
     "LinearParameterScheduler", "Scheduler", "TwoPhaseLinearParameterScheduler",
-    "AbsShaper", "ActionShaper", "ExperienceShaper", "KStepExperienceShaper", "StateShaper",
-    "AbsStore", "ColumnBasedStore", "OverwriteType"
+    "AbsShaper", "ActionShaper", "ExperienceShaper", "StateShaper",
+    "AbsStore", "SimpleStore", "OverwriteType"
 ]
