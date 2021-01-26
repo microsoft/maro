@@ -19,11 +19,12 @@ class TruncatedExperienceShaper(ExperienceShaper):
         self._shortage_factor = shortage_factor
 
     def __call__(self, trajectory, snapshot_list):
-        experiences_by_agent = defaultdict(lambda: defaultdict(list))
         states = trajectory["state"]
         actions = trajectory["action"]
         agent_ids = trajectory["agent_id"]
         events = trajectory["event"]
+
+        experiences_by_agent = defaultdict(lambda: defaultdict(list))
         for i in range(len(states) - 1):
             experiences = experiences_by_agent[agent_ids[i]]
             experiences["state"].append(states[i])
