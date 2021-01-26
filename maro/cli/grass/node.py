@@ -2,86 +2,120 @@
 # Licensed under the MIT license.
 
 
-import yaml
-
-from maro.cli.grass.executors.grass_azure_executor import GrassAzureExecutor
-from maro.cli.grass.executors.grass_on_premises_executor import GrassOnPremisesExecutor
-from maro.cli.utils.checkers import check_details_validity
-from maro.cli.utils.details import load_cluster_details
-from maro.cli.utils.lock import lock
-from maro.utils.exception.cli_exception import BadRequestError, FileOperationError
+from maro.cli.utils.details_validity_wrapper import check_details_validity
+from maro.cli.utils.operation_lock_wrapper import operation_lock
 
 
 @check_details_validity
-@lock
+@operation_lock
 def scale_node(cluster_name: str, replicas: int, node_size: str, **kwargs):
-    cluster_details = load_cluster_details(cluster_name=cluster_name)
+    # Late import.
+    from maro.cli.grass.executors.grass_azure_executor import GrassAzureExecutor
+    from maro.cli.utils.details_reader import DetailsReader
+    from maro.utils.exception.cli_exception import BadRequestError
+
+    cluster_details = DetailsReader.load_cluster_details(cluster_name=cluster_name)
 
     if cluster_details["mode"] == "grass/azure":
         executor = GrassAzureExecutor(cluster_name=cluster_name)
         executor.scale_node(replicas=replicas, node_size=node_size)
     else:
-        raise BadRequestError(f"Unsupported command in mode '{cluster_details['mode']}'.")
+        raise BadRequestError(f"Unsupported operation in mode '{cluster_details['mode']}'.")
 
 
 @check_details_validity
-@lock
+@operation_lock
 def start_node(cluster_name: str, replicas: int, node_size: str, **kwargs):
-    cluster_details = load_cluster_details(cluster_name=cluster_name)
+    # Late import.
+    from maro.cli.grass.executors.grass_azure_executor import GrassAzureExecutor
+    from maro.cli.utils.details_reader import DetailsReader
+    from maro.utils.exception.cli_exception import BadRequestError
+
+    cluster_details = DetailsReader.load_cluster_details(cluster_name=cluster_name)
 
     if cluster_details["mode"] == "grass/azure":
         executor = GrassAzureExecutor(cluster_name=cluster_name)
         executor.start_node(replicas=replicas, node_size=node_size)
     else:
-        raise BadRequestError(f"Unsupported command in mode '{cluster_details['mode']}'.")
+        raise BadRequestError(f"Unsupported operation in mode '{cluster_details['mode']}'.")
 
 
 @check_details_validity
-@lock
+@operation_lock
 def stop_node(cluster_name: str, replicas: int, node_size: str, **kwargs):
-    cluster_details = load_cluster_details(cluster_name=cluster_name)
+    # Late import.
+    from maro.cli.grass.executors.grass_azure_executor import GrassAzureExecutor
+    from maro.cli.utils.details_reader import DetailsReader
+    from maro.utils.exception.cli_exception import BadRequestError
+
+    cluster_details = DetailsReader.load_cluster_details(cluster_name=cluster_name)
 
     if cluster_details["mode"] == "grass/azure":
         executor = GrassAzureExecutor(cluster_name=cluster_name)
         executor.stop_node(replicas=replicas, node_size=node_size)
     else:
-        raise BadRequestError(f"Unsupported command in mode '{cluster_details['mode']}'.")
+        raise BadRequestError(f"Unsupported operation in mode '{cluster_details['mode']}'.")
 
 
 @check_details_validity
-@lock
+@operation_lock
 def list_node(cluster_name: str, **kwargs):
-    cluster_details = load_cluster_details(cluster_name=cluster_name)
+    # Late import.
+    from maro.cli.grass.executors.grass_azure_executor import GrassAzureExecutor
+    from maro.cli.grass.executors.grass_on_premises_executor import GrassOnPremisesExecutor
+    from maro.cli.utils.details_reader import DetailsReader
+    from maro.utils.exception.cli_exception import BadRequestError
 
-    if cluster_details["mode"] in ["grass/azure", "grass/on-premises"]:
+    cluster_details = DetailsReader.load_cluster_details(cluster_name=cluster_name)
+
+    if cluster_details["mode"] == "grass/azure":
         executor = GrassAzureExecutor(cluster_name=cluster_name)
         executor.list_node()
+    elif cluster_details["mode"] == "grass/on-premises":
+        executor = GrassOnPremisesExecutor(cluster_name=cluster_name)
+        executor.list_node()
+    else:
+        raise BadRequestError(f"Unsupported operation in mode '{cluster_details['mode']}'.")
 
 
-def node_join(node_join_path: str, **kwargs):
+def join_cluster(deployment_path: str, **kwargs):
+    # Late import.
+    import yaml
+
+    from maro.cli.grass.executors.grass_on_premises_executor import GrassOnPremisesExecutor
+    from maro.utils.exception.cli_exception import BadRequestError, FileOperationError, InvalidDeploymentTemplateError
 
     try:
-        with open(node_join_path, "r") as fr:
-            node_join_info = yaml.safe_load(fr)
-            fr.close()
-
-        if node_join_info["mode"] != "grass/on-premises":
-            raise BadRequestError(
-                f"Node join cluster interrupted: Invalid mode: {node_join_info['mode']}")
-
-        executor = GrassOnPremisesExecutor(node_join_info["cluster"])
-        executor.node_join_cluster(node_join_info)
+        with open(deployment_path, "r") as fr:
+            join_cluster_deployment = yaml.safe_load(stream=fr)
+        if join_cluster_deployment["mode"] == "grass/on-premises":
+            GrassOnPremisesExecutor.join_cluster(join_cluster_deployment=join_cluster_deployment)
+        else:
+            raise BadRequestError(f"Unsupported operation in mode '{join_cluster_deployment['mode']}'.")
+    except KeyError as e:
+        raise InvalidDeploymentTemplateError(f"Missing key '{e.args[0]}'.")
     except FileNotFoundError:
         raise FileOperationError("Invalid template file path.")
 
 
-@check_details_validity
-@lock
-def node_leave(cluster_name: str, node_name: str, **kwargs):
+def leave_cluster(deployment_path: str, **kwargs):
+    # Late import.
+    import yaml
 
-    cluster_details = load_cluster_details(cluster_name)
-    if cluster_details["mode"] != "grass/on-premises":
-        raise BadRequestError("Node join cluster interrupted: Invalid mode.")
+    from maro.cli.grass.executors.grass_on_premises_executor import GrassOnPremisesExecutor
+    from maro.utils.exception.cli_exception import BadRequestError, FileOperationError, InvalidDeploymentTemplateError
 
-    executor = GrassOnPremisesExecutor(cluster_name)
-    executor.node_leave_cluster(node_name)
+    try:
+        if not deployment_path:
+            GrassOnPremisesExecutor.leave(leave_cluster_deployment={})
+        else:
+            with open(deployment_path, "r") as fr:
+                leave_cluster_deployment = yaml.safe_load(stream=fr)
+            if leave_cluster_deployment["mode"] == "grass/on-premises":
+                GrassOnPremisesExecutor.leave(leave_cluster_deployment=leave_cluster_deployment)
+            else:
+                raise BadRequestError(f"Unsupported operation in mode '{leave_cluster_deployment['mode']}'.")
+    except KeyError as e:
+        raise InvalidDeploymentTemplateError(f"Missing key '{e.args[0]}'.")
+    except FileNotFoundError:
+        raise FileOperationError("Invalid template file path.")

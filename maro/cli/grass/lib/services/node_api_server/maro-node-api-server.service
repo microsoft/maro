@@ -1,0 +1,13 @@
+[Unit]
+Description=Maro Node API Server
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+WorkingDirectory={maro_shared_path}/lib/grass
+ExecStart={home_path}/.local/bin/gunicorn --workers=4 --bind 0.0.0.0:{node_api_server_port} services.node_api_server.root:app
+
+[Install]
+WantedBy=default.target

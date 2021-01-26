@@ -1,0 +1,13 @@
+[Unit]
+Description=Maro Node Agent
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+WorkingDirectory={maro_shared_path}/lib/grass
+ExecStart=/usr/bin/python3 -m services.node_agent.agent
+
+[Install]
+WantedBy=default.target

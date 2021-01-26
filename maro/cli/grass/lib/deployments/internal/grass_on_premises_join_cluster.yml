@@ -1,0 +1,26 @@
+mode: ""
+
+master:
+  private_ip_address: ""
+  api_server:
+    port: ""
+  redis:
+    port: ""
+
+node:
+  hostname: ""
+  username: ""
+  public_ip_address: ""
+  private_ip_address: ""
+  resources:
+    cpu: ""
+    memory: ""
+    gpu: ""
+  ssh:
+    port: ""
+  api_server:
+    port: ""
+
+configs:
+  install_node_runtime: ""
+  install_node_gpu_support: ""

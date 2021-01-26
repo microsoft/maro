@@ -11,7 +11,7 @@ from maro.simulator import Env
 from maro.utils import convert_dottable
 
 from components import (
-    CIMActionShaper, CIMStateShaper, DQNAgentManager, TruncatedExperienceShaper, create_dqn_agents, set_input_dim
+    CIMActionShaper, CIMStateShaper, DQNAgentManager, TruncatedExperienceShaper, create_dqn_agents
 )
 
 

@@ -1,0 +1,39 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.1.0.0",
+  "parameters": {
+    "acrName": {
+      "value": null
+    },
+    "acrSku": {
+      "value": null
+    },
+    "adminPublicKey": {
+      "value": null
+    },
+    "adminUsername": {
+      "value": null
+    },
+    "agentCount": {
+      "value": null
+    },
+    "agentVMSize": {
+      "value": null
+    },
+    "clusterName": {
+      "value": null
+    },
+    "fileShareName": {
+      "value": null
+    },
+    "location": {
+      "value": null
+    },
+    "storageAccountName": {
+      "value": null
+    },
+    "virtualNetworkName": {
+      "value": null
+    }
+  }
+}
