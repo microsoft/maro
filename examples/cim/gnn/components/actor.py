@@ -99,43 +99,21 @@ def organize_obs(obs, idx, exp_len):
     return {"v": v, "p": p, "vo": vo, "po": po, "pedge": pedge, "vedge": vedge, "ppedge": ppedge, "mask": mask}
 
 
-def put_experiences_in_shared_memory(experiences, exp_output, exp_idx_mapping):
+def put_experiences_in_shared_memory(experience_dict, shared_storage, idx, agent2offset):
     tmpi = 0
-    for (agent_idx, vessel_idx), idx_base in exp_idx_mapping.items():
-        exp_list = self._experience_dict[(agent_idx, vessel_idx)]
-        exp_len = len(exp_list)
+    for (agent_idx, vessel_idx), idx_base in agent2offset.items():
         # Here, we assume that exp_idx_mapping order is not changed.
-        self._shared_storage["len"][self._idx, tmpi] = exp_len
-        self._shared_storage["s"]["v"][:, idx_base:idx_base + exp_len, self._idx] = \
-            np.stack([e["s"]["v"] for e in exp_list], axis=1)
-        self._shared_storage["s"]["p"][:, idx_base:idx_base + exp_len, self._idx] = \
-            np.stack([e["s"]["p"] for e in exp_list], axis=1)
-        self._shared_storage["s"]["vo"][idx_base:idx_base + exp_len, self._idx] = \
-            np.stack([e["s"]["vo"] for e in exp_list], axis=0)
-        self._shared_storage["s"]["po"][idx_base:idx_base + exp_len, self._idx] = \
-            np.stack([e["s"]["po"] for e in exp_list], axis=0)
-        self._shared_storage["s"]["vedge"][idx_base:idx_base + exp_len, self._idx] = \
-            np.stack([e["s"]["vedge"] for e in exp_list], axis=0)
-        self._shared_storage["s"]["pedge"][idx_base:idx_base + exp_len, self._idx] = \
-            np.stack([e["s"]["pedge"] for e in exp_list], axis=0)
+        exp = experience_dict[agent_idx, vessel_idx]
+        exp_len = exp["len"]
+        shared_storage["len"][idx, tmpi] = exp_len
+        shared_storage["a"][idx_base: idx_base + exp_len, idx] = exp["a"]
+        shared_storage["R"][idx_base: idx_base + exp_len, idx] = exp["R"]
+        for key in ["s", "s_"]:
+            for key2 in ["v", "p"]: 
+                shared_storage[key][key2][:, idx_base:idx_base + exp_len, idx] = exp[key][key2]
+            for key2 in ["vo", "po", "vedge", "pedge"]:
+                shared_storage[key][key2][idx_base:idx_base + exp_len, idx] = exp[key][key2]
 
-        self._shared_storage["s_"]["v"][:, idx_base:idx_base + exp_len, self._idx] = \
-            np.stack([e["s_"]["v"] for e in exp_list], axis=1)
-        self._shared_storage["s_"]["p"][:, idx_base:idx_base + exp_len, self._idx] = \
-            np.stack([e["s_"]["p"] for e in exp_list], axis=1)
-        self._shared_storage["s_"]["vo"][idx_base:idx_base + exp_len, self._idx] = \
-            np.stack([e["s_"]["vo"] for e in exp_list], axis=0)
-        self._shared_storage["s_"]["po"][idx_base:idx_base + exp_len, self._idx] = \
-            np.stack([e["s_"]["po"] for e in exp_list], axis=0)
-        self._shared_storage["s_"]["vedge"][idx_base:idx_base + exp_len, self._idx] = \
-            np.stack([e["s_"]["vedge"] for e in exp_list], axis=0)
-        self._shared_storage["s_"]["pedge"][idx_base:idx_base + exp_len, self._idx] = \
-            np.stack([e["s_"]["pedge"] for e in exp_list], axis=0)
-
-        self._shared_storage["a"][idx_base: idx_base + exp_len, self._idx] = \
-            np.array([exp["a"] for exp in exp_list], dtype=np.int64)
-        self._shared_storage["R"][idx_base: idx_base + exp_len, self._idx] = \
-            np.vstack([exp["R"] for exp in exp_list])
         tmpi += 1
 
 

@@ -25,6 +25,7 @@ class ExperienceShaper:
         self._experience_dict = defaultdict(ColumnBasedStore())
         self._init_state()
         self._scale_factor = scale_factor
+        self._state_keys = ["v", "p", "vo", "po", "vedge", "pedge"]
 
     def _init_state(self):
         self._fulfillment_list, self._shortage_list = np.zeros(self._max_tick + 1), np.zeros(self._max_tick + 1)
@@ -67,46 +68,22 @@ class ExperienceShaper:
                 exp["s_"] = self._gnn_state_shaper(tick=tick + self._time_slot)
                 exp["R"] = self._scale_factor * R[tick]
 
-        return 
-            for agent_id, exp in self._experience_dict.items()
+        return {
+            agent_id: {
+                "s": {
+                    key: np.stack([e["s"][key] for e in exp_list], axis=1 if key in {"v", "p"} else 0)
+                    for key in self._state_keys
+                },
+                "s_": {
+                    key: np.stack([e["s"][key] for e in exp_list], axis=1 if key in {"v", "p"} else 0)
+                    for key in self._state_keys
+                },
+                "a": np.array([e["a"] for e in exp_list], dtype=np.int64),
+                "R": np.vstack([e["R"] for e in exp_list]),
+                "len": len(exp_list)
+            }
+            for agent_id, exp_list in self._experience_dict.items()
         }
-        experience_dict = defaultdict(dict)
-        for agent_id, exp_list in self._experience_dict.items():
-            exp_len = len(exp_list)
-            # Here, we assume that exp_idx_mapping order is not changed.
-            experience_dict[agent_id]["len"] = exp_len
-            experience_dict[agent_id][]
-            self._shared_storage["s"]["v"][:, idx_base:idx_base + exp_len, self._idx] = \
-                np.stack([e["s"]["v"] for e in exp_list], axis=1)
-            self._shared_storage["s"]["p"][:, idx_base:idx_base + exp_len, self._idx] = \
-                np.stack([e["s"]["p"] for e in exp_list], axis=1)
-            self._shared_storage["s"]["vo"][idx_base:idx_base + exp_len, self._idx] = \
-                np.stack([e["s"]["vo"] for e in exp_list], axis=0)
-            self._shared_storage["s"]["po"][idx_base:idx_base + exp_len, self._idx] = \
-                np.stack([e["s"]["po"] for e in exp_list], axis=0)
-            self._shared_storage["s"]["vedge"][idx_base:idx_base + exp_len, self._idx] = \
-                np.stack([e["s"]["vedge"] for e in exp_list], axis=0)
-            self._shared_storage["s"]["pedge"][idx_base:idx_base + exp_len, self._idx] = \
-                np.stack([e["s"]["pedge"] for e in exp_list], axis=0)
-
-            self._shared_storage["s_"]["v"][:, idx_base:idx_base + exp_len, self._idx] = \
-                np.stack([e["s_"]["v"] for e in exp_list], axis=1)
-            self._shared_storage["s_"]["p"][:, idx_base:idx_base + exp_len, self._idx] = \
-                np.stack([e["s_"]["p"] for e in exp_list], axis=1)
-            self._shared_storage["s_"]["vo"][idx_base:idx_base + exp_len, self._idx] = \
-                np.stack([e["s_"]["vo"] for e in exp_list], axis=0)
-            self._shared_storage["s_"]["po"][idx_base:idx_base + exp_len, self._idx] = \
-                np.stack([e["s_"]["po"] for e in exp_list], axis=0)
-            self._shared_storage["s_"]["vedge"][idx_base:idx_base + exp_len, self._idx] = \
-                np.stack([e["s_"]["vedge"] for e in exp_list], axis=0)
-            self._shared_storage["s_"]["pedge"][idx_base:idx_base + exp_len, self._idx] = \
-                np.stack([e["s_"]["pedge"] for e in exp_list], axis=0)
-
-            self._shared_storage["a"][idx_base: idx_base + exp_len, self._idx] = \
-                np.array([exp["a"] for exp in exp_list], dtype=np.int64)
-            self._shared_storage["R"][idx_base: idx_base + exp_len, self._idx] = \
-                np.vstack([exp["R"] for exp in exp_list])
-            tmpi += 1
 
     def reset(self):
         del self._experience_dict
