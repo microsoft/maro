@@ -7,7 +7,7 @@ from typing import Callable, List, Union
 import numpy as np
 import torch
 
-from maro.rl.model.learning_model import AbsLearningModel
+from maro.rl.model import AbsLearningModel
 from maro.rl.utils.trajectory_utils import get_lambda_returns, get_truncated_cumulative_reward
 
 from .abs_agent import AbsAgent
