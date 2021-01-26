@@ -1,0 +1,50 @@
+env:
+  scenario: "cim"
+  topology: "toy.4p_ssdd_l0.0"
+  durations: 1120
+  state_shaping:
+    look_back: 7
+    max_ports_downstream: 2
+  experience_shaping:
+    time_window: 100
+    fulfillment_factor: 1.0
+    shortage_factor: 1.0
+    time_decay_factor: 0.97
+main_loop:
+  max_episode: 100
+  early_stopping:
+    warmup_ep: 20
+    last_k: 5
+    perf_threshold: 0.95   # minimum performance (fulfillment ratio) required to trigger early stopping
+    perf_stability_threshold: 0.1  # stability is measured by the maximum of abs(perf_(i+1) - perf_i) / perf_i
+                                   # over the last k episodes (where perf is short for performance). This value must
+                                   # be below this threshold to trigger early stopping
+agents:
+  seed: 1024   # for reproducibility
+  type: "actor_critic"  # "actor_critic" or "policy_gradient"
+  num_actions: 21
+  actor_model:
+    hidden_dims:
+      - 256
+      - 128
+      - 64
+    softmax_enabled: true
+    batch_norm_enabled: false
+  actor_optimizer:
+    lr: 0.001
+  critic_model:
+    hidden_dims:
+      - 256
+      - 128
+      - 64
+    softmax_enabled: false
+    batch_norm_enabled: true
+  critic_optimizer:
+    lr: 0.001
+  reward_discount: .0
+  actor_critic_hyper_parameters:
+    train_iters: 10
+    actor_loss_coefficient: 0.1
+    k: 1
+    lam: 0.0
+    # clip_ratio: 0.8

@@ -38,7 +38,6 @@ def launch(config):
 
     # Step 4: Create an actor and a learner to start the training process.
     scheduler = TwoPhaseLinearParameterScheduler(config.main_loop.max_episode, **config.main_loop.exploration)
-
     actor = SimpleActor(env, agent_manager)
     learner = SimpleLearner(
         agent_manager, actor, scheduler,

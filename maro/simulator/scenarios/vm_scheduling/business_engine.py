@@ -141,7 +141,9 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             cpu_readings_data_path = os.path.expanduser(cpu_readings_data_path)
 
         if (not os.path.exists(vm_table_data_path)) or (not os.path.exists(cpu_readings_data_path)):
+            logger.info_green("Lack data. Start preparing data.")
             self._download_processed_data()
+            logger.info_green("Data preparation is finished.")
 
     def _cal_pm_amount(self) -> int:
         amount: int = 0
@@ -513,6 +515,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         if len(valid_pm_list) > 0:
             # Generate pending decision.
             decision_payload = DecisionPayload(
+                frame_index=self.frame_index(tick=self._tick),
                 valid_pms=valid_pm_list,
                 vm_id=vm_info.id,
                 vm_cpu_cores_requirement=vm_info.cpu_cores_requirement,
@@ -611,16 +614,19 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         else:
             logger.info_green("File already exists, skipping download.")
 
-        logger.info_green(f"Unzip {download_file_path} to {build_folder}")
         # Unzip files.
+        logger.info_green(f"Unzip {download_file_path} to {build_folder}")
         tar = tarfile.open(download_file_path, "r:gz")
         tar.extractall(path=build_folder)
         tar.close()
 
         # Move to the correct path.
-        unzip_file = os.path.join(build_folder, "build")
-        file_names = os.listdir(unzip_file)
-        for file_name in file_names:
-            shutil.move(os.path.join(unzip_file, file_name), build_folder)
+        for _, directories, _ in os.walk(build_folder):
+            for directory in directories:
+                unzip_file = os.path.join(build_folder, directory)
+                logger.info_green(f"Move files to {build_folder} from {unzip_file}")
+                for file_name in os.listdir(unzip_file):
+                    if file_name.endswith(".bin"):
+                        shutil.move(os.path.join(unzip_file, file_name), build_folder)
 
         os.rmdir(unzip_file)
