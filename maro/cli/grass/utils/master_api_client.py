@@ -6,6 +6,9 @@ from maro.cli.grass.utils.encrypted_requests import EncryptedRequests
 
 
 class MasterApiClientV1:
+    """Client class for Master API Server.
+    """
+
     def __init__(
         self,
         master_hostname: str, master_api_server_port: int,

@@ -146,6 +146,11 @@ class NodeAgent:
 
 
 class NodeTrackingAgent(multiprocessing.Process):
+    """Node Tracking Agent.
+
+    Update node_details by tracking container statuses and computing resource info of the current machine.
+    """
+
     def __init__(
         self,
         local_cluster_details: dict, local_master_details: dict, local_node_details: dict,
@@ -322,6 +327,11 @@ class NodeTrackingAgent(multiprocessing.Process):
 
 
 class LoadImageAgent(multiprocessing.Process):
+    """Load Image Agent.
+
+    Iterate /image_files folder of the samba server, and load image if there is a new one.
+    """
+
     def __init__(
         self,
         local_cluster_details: dict, local_master_details: dict, local_node_details: dict,

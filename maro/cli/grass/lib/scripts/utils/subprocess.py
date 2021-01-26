@@ -7,6 +7,9 @@ import sys
 
 
 class Subprocess:
+    """Wrapper class of subprocess, with CliException integrated.
+    """
+
     @staticmethod
     def run(command: str, timeout: int = None) -> str:
         """Run one-time command with subprocess.run().

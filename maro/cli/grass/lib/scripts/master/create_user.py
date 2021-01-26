@@ -2,6 +2,18 @@
 # Licensed under the MIT license.
 
 
+"""Create MARO User.
+
+MARO User is a MARO resource for local-master authorization.
+Four pairs of public-private keys will be created here, some of the keys will be kept in the master,
+the others will be sent back to local.
+Then, local will use these keys to encrypt token and sign signature when communicating to Master API Server.
+The communication is encrypted with RSA+AES in a hybrid mode, follow the JWT standard.
+
+The script will do the following jobs in this VM:
+- Create four pairs of keys, save some of them to Redis, and print some of them to the command line.
+"""
+
 import argparse
 import json
 import sys

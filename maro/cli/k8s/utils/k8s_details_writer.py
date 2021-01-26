@@ -8,6 +8,11 @@ from kubernetes import client
 
 
 class K8sDetailsWriter:
+    """Writer class for details in k8s mode.
+
+    The details will be saved in the config_map of the k8s cluster.
+    """
+
     @staticmethod
     def save_job_details(job_details: dict) -> None:
         job_name = job_details["name"]

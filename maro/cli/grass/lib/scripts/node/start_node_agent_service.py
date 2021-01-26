@@ -2,6 +2,9 @@
 # Licensed under the MIT license.
 
 
+"""Start the maro-node-agent service.
+"""
+
 import os
 import pwd
 import sys

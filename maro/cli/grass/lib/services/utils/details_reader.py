@@ -8,6 +8,9 @@ from .params import Paths
 
 
 class DetailsReader:
+    """Reader class for details.
+    """
+
     @staticmethod
     def load_cluster_details(cluster_name: str) -> dict:
         with open(file=f"{Paths.ABS_MARO_SHARED}/clusters/{cluster_name}/cluster_details.yml", mode="r") as fr:

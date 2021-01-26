@@ -2,6 +2,11 @@
 # Licensed under the MIT license.
 
 
+""" A Flask server for MARO Master API Server.
+
+Hosted by gunicorn at systemd.
+"""
+
 from flask import Flask
 
 from .blueprints.cluster import blueprint as cluster_blueprint

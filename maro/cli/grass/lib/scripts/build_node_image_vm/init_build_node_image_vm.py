@@ -2,6 +2,21 @@
 # Licensed under the MIT license.
 
 
+"""Init Build Node Image VM.
+
+[WARNING] This script is a standalone script, which cannot use the ./utils tools.
+
+Only executed in grass/azure mode.
+
+After the initialization, this VM will deallocate and become a VM Image.
+See https://docs.microsoft.com/en-us/azure/virtual-machines/linux/capture-image for reference.
+
+The script will do the following jobs in this VM:
+- Install docker.
+- Install python3 and related packages.
+- Install nvidia driver and nvidia container toolkit.
+"""
+
 import subprocess
 import sys
 

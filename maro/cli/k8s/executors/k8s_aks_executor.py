@@ -28,6 +28,10 @@ logger = CliLogger(name=__name__)
 
 
 class K8sAksExecutor(K8sExecutor):
+    """Executor for k8s/aks mode.
+
+    See https://maro.readthedocs.io/en/latest/key_components/orchestration.html for reference.
+    """
 
     def __init__(self, cluster_name: str):
         self.cluster_details = DetailsReader.load_cluster_details(cluster_name=cluster_name)
@@ -42,7 +46,15 @@ class K8sAksExecutor(K8sExecutor):
     # maro k8s create
 
     @staticmethod
-    def create(create_deployment: dict):
+    def create(create_deployment: dict) -> None:
+        """Create MARO Cluster with create_deployment.
+
+        Args:
+            create_deployment (dict): create_deployment of k8s/aks. See lib/deployments/internal for reference.
+
+        Returns:
+            None.
+        """
         logger.info("Creating cluster")
 
         # Get standardized cluster_details
@@ -72,7 +84,17 @@ class K8sAksExecutor(K8sExecutor):
         logger.info_green(f"Cluster '{cluster_name}' is created")
 
     @staticmethod
-    def _standardize_cluster_details(create_deployment: dict):
+    def _standardize_cluster_details(create_deployment: dict) -> dict:
+        """Standardize cluster_details from create_deployment.
+
+        We use create_deployment to build cluster_details (they share the same keys structure).
+
+        Args:
+            create_deployment (dict): create_deployment of k8s/aks. See lib/deployments/internal for reference.
+
+        Returns:
+            dict: standardized cluster_details.
+        """
         optional_key_to_value = {
             "root['master']['redis']": {
                 "port": GlobalParams.DEFAULT_REDIS_PORT
@@ -93,7 +115,16 @@ class K8sAksExecutor(K8sExecutor):
         return create_deployment
 
     @staticmethod
-    def _create_resource_group(cluster_details: dict):
+    def _create_resource_group(cluster_details: dict) -> None:
+        """Create the resource group if it does not exist.
+
+        Args:
+            cluster_details (dict): details of the cluster.
+
+        Returns:
+            None.
+        """
+
         # Get params
         subscription = cluster_details["cloud"]["subscription"]
         resource_group = cluster_details["cloud"]["resource_group"]
@@ -108,7 +139,7 @@ class K8sAksExecutor(K8sExecutor):
 
         # Check and create resource group
         resource_group_info = AzureController.get_resource_group(resource_group=resource_group)
-        if resource_group_info is not None:
+        if resource_group_info:
             logger.warning_yellow(f"Azure resource group '{resource_group}' already exists")
         else:
             AzureController.create_resource_group(
@@ -118,7 +149,15 @@ class K8sAksExecutor(K8sExecutor):
             logger.info_green(f"Resource group '{resource_group}' is created")
 
     @staticmethod
-    def _create_k8s_cluster(cluster_details: dict):
+    def _create_k8s_cluster(cluster_details: dict) -> None:
+        """Create k8s cluster for the MARO Cluster.
+
+        Args:
+            cluster_details (dict): details of the MARO Cluster.
+
+        Returns:
+            None.
+        """
         logger.info("Creating k8s cluster")
 
         # Create ARM parameters and start deployment
@@ -147,7 +186,12 @@ class K8sAksExecutor(K8sExecutor):
         logger.info_green("K8s cluster is created")
 
     @staticmethod
-    def _init_nvidia_plugin():
+    def _init_nvidia_plugin() -> None:
+        """Setup nvidia plugin for the MARO Cluster.
+
+        Returns:
+            None.
+        """
         client.CoreV1Api().create_namespace(body=client.V1Namespace(metadata=client.V1ObjectMeta(name="gpu-resources")))
 
         with open(
@@ -157,7 +201,14 @@ class K8sAksExecutor(K8sExecutor):
         client.AppsV1Api().create_namespaced_daemon_set(body=redis_deployment, namespace="gpu-resources")
 
     @staticmethod
-    def _create_storage_account_secret(cluster_details: dict):
+    def _create_storage_account_secret(cluster_details: dict) -> None:
+        """Setup storage_account_secret for the MARO Cluster.
+
+        The secret is used in Azure File Service.
+
+        Returns:
+            None.
+        """
         # Build params
         storage_account_name = f"{cluster_details['id']}st"
 
@@ -182,7 +233,12 @@ class K8sAksExecutor(K8sExecutor):
 
     # maro k8s delete
 
-    def delete(self):
+    def delete(self) -> None:
+        """Delete the MARO Cluster.
+
+        Returns:
+            None.
+        """
         logger.info(f"Deleting cluster '{self.cluster_name}'")
 
         # Get resource list
@@ -196,7 +252,7 @@ class K8sAksExecutor(K8sExecutor):
 
         # Delete resources
         if deletable_ids:
-            AzureController.delete_resources(resources=deletable_ids)
+            AzureController.delete_resources(resource_ids=deletable_ids)
 
         # Delete cluster folder
         shutil.rmtree(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}")
@@ -205,7 +261,17 @@ class K8sAksExecutor(K8sExecutor):
 
     # maro k8s node
 
-    def scale_node(self, replicas: int, node_size: str):
+    def scale_node(self, replicas: int, node_size: str) -> None:
+        """Scale up/down MARO Node.
+
+        Args:
+            replicas (int): desired number of MARO Node in specific node_size.
+            node_size (str): size of the MARO Node VM, see https://docs.microsoft.com/en-us/azure/virtual-machines/sizes
+                for reference.
+
+        Returns:
+            None.
+        """
         # Get node_size_to_info
         node_size_to_info = self._get_node_size_to_info()
 
@@ -229,7 +295,12 @@ class K8sAksExecutor(K8sExecutor):
         else:
             logger.warning_yellow("Replica is match, no create or delete")
 
-    def _get_node_size_to_info(self):
+    def _get_node_size_to_info(self) -> dict:
+        """Get node_size to info mapping of the K8s Cluster.
+
+        Returns:
+            dict: node_size to info mapping.
+        """
         # List nodepool
         nodepools = AzureController.list_nodepool(
             resource_group=self.resource_group,
@@ -244,6 +315,11 @@ class K8sAksExecutor(K8sExecutor):
         return node_size_to_count
 
     def _get_node_size_to_spec(self) -> dict:
+        """Get node_size to spec mapping of Azure VM.
+
+        Returns:
+            dict: node_size to spec mapping.
+        """
         # List available sizes for VM
         specs = AzureController.list_vm_sizes(location=self.location)
 
@@ -254,14 +330,24 @@ class K8sAksExecutor(K8sExecutor):
 
         return node_size_to_spec
 
-    def _build_node_pool(self, replicas: int, node_size: str):
+    def _build_node_pool(self, replicas: int, node_size: str) -> None:
+        """Build node pool for the specific node_size.
+
+        Args:
+            replicas (int): number of MARO Node in specific node_size to stop.
+            node_size (str): size of the MARO Node VM,
+                see https://docs.microsoft.com/en-us/azure/virtual-machines/sizes for reference.
+
+        Returns:
+            None.
+        """
         logger.info(f"Building '{node_size}' nodepool")
 
         # Build nodepool
         AzureController.add_nodepool(
             resource_group=self.resource_group,
             aks_name=f"{self.cluster_id}-aks",
-            nodepool_name=K8sAksExecutor._generate_nodepool_name(key=node_size),
+            nodepool_name=K8sAksExecutor._generate_nodepool_name(node_size=node_size),
             node_count=replicas,
             node_size=node_size
         )
@@ -269,6 +355,17 @@ class K8sAksExecutor(K8sExecutor):
         logger.info_green(f"'{node_size}' nodepool is built")
 
     def _scale_node_pool(self, replicas: int, node_size: str, node_size_to_info: dict):
+        """Scale node pool of the specific node_size.
+
+        Args:
+            replicas (int): number of MARO Node in specific node_size to stop.
+            node_size (str): size of the MARO Node VM,
+                see https://docs.microsoft.com/en-us/azure/virtual-machines/sizes for reference.
+            node_size_to_info (dict): node_size to info mapping.
+
+        Returns:
+            None.
+        """
         logger.info(f"Scaling '{node_size}' nodepool")
 
         # Scale node pool
@@ -282,10 +379,23 @@ class K8sAksExecutor(K8sExecutor):
         logger.info_green(f"'{node_size}' nodepool is scaled")
 
     @staticmethod
-    def _generate_nodepool_name(key: str) -> str:
-        return NameCreator.create_name_with_md5(prefix="pool", key=key, md5_len=8)
+    def _generate_nodepool_name(node_size: str) -> str:
+        """Generate name of the nodepool.
 
-    def list_node(self):
+        Args:
+            node_size (str): size of the MARO Node VM.
+
+        Returns:
+            None.
+        """
+        return NameCreator.create_name_with_md5(prefix="pool", key=node_size, md5_len=8)
+
+    def list_node(self) -> None:
+        """Print node details to the command line.
+
+        Returns:
+            None.
+        """
         # Get aks details
         aks_details = AzureController.get_aks(
             resource_group=self.resource_group,
@@ -306,7 +416,15 @@ class K8sAksExecutor(K8sExecutor):
 
     # maro k8s image
 
-    def push_image(self, image_name: str):
+    def push_image(self, image_name: str) -> None:
+        """Push local image to the MARO Cluster.
+
+        Args:
+            image_name (str): name of the local image that loaded in the docker.
+
+        Returns:
+            None.
+        """
         remote_image_name = f"{self.cluster_id}acr.azurecr.io/{image_name}"
 
         # ACR login
@@ -321,13 +439,27 @@ class K8sAksExecutor(K8sExecutor):
         _ = Subprocess.run(command=command)
 
     def list_image(self):
+        """Print image details to the command line.
+
+        Returns:
+            None.
+        """
         # List acr repository
         acr_repositories = AzureController.list_acr_repositories(acr_name=f"{self.cluster_id}acr")
         logger.info(acr_repositories)
 
     # maro k8s data
 
-    def push_data(self, local_path: str, remote_dir: str):
+    def push_data(self, local_path: str, remote_dir: str) -> None:
+        """Push local data to the remote AFS service via azcopy.
+
+        Args:
+            local_path (str): path of the local data.
+            remote_dir (str): path of the remote folder.
+
+        Returns:
+            None.
+        """
         # Get sas
         sas = self._check_and_get_account_sas()
 
@@ -345,7 +477,16 @@ class K8sAksExecutor(K8sExecutor):
         )
         _ = Subprocess.run(command=copy_command)
 
-    def pull_data(self, local_dir: str, remote_path: str):
+    def pull_data(self, local_dir: str, remote_path: str) -> None:
+        """Pull remote AFS service data to local folder via azcopy.
+
+        Args:
+            local_dir (str): path of the local folder.
+            remote_path (str): path of the remote data.
+
+        Returns:
+            None.
+        """
         # Get sas
         sas = self._check_and_get_account_sas()
 
@@ -364,7 +505,15 @@ class K8sAksExecutor(K8sExecutor):
         )
         _ = Subprocess.run(command=copy_command)
 
-    def remove_data(self, remote_path: str):
+    def remove_data(self, remote_path: str) -> None:
+        """Remote data at the remote AFS service.
+
+        Args:
+            remote_path (str): path of the remote data.
+
+        Returns:
+            None.
+        """
         # FIXME: Remove failed, The specified resource may be in use by an SMB client
 
         # Get sas
@@ -378,9 +527,13 @@ class K8sAksExecutor(K8sExecutor):
         )
         _ = Subprocess.run(command=copy_command)
 
-    def _check_and_get_account_sas(self):
-        """
+    def _check_and_get_account_sas(self) -> str:
+        """Check and get account sas token, also update it to the cluster_details.
+
         Ref: https://msdn.microsoft.com/library/azure/mt584140.aspx
+
+        Returns:
+            str: account sas token.
         """
 
         # Load details
@@ -400,6 +553,14 @@ class K8sAksExecutor(K8sExecutor):
     # maro k8s job
 
     def _create_k8s_job(self, job_details: dict) -> dict:
+        """Create k8s job object with job_details.
+
+        Args:
+            job_details (dict): details of the MARO Job.
+
+        Returns:
+            dict: k8s job object.
+        """
         # Get config template
         with open(f"{K8sPaths.ABS_MARO_K8S_LIB}/modes/aks/create_job/job.yml") as fr:
             k8s_job_config = yaml.safe_load(fr)
@@ -429,7 +590,18 @@ class K8sAksExecutor(K8sExecutor):
     def _create_k8s_container_config(
         self, job_details: dict, k8s_container_config_template: dict,
         component_type: str, component_index: int
-    ):
+    ) -> dict:
+        """Create the container config in the k8s job object.
+
+        Args:
+            job_details (dict): details of the MARO Job.
+            k8s_container_config_template (dict): template of the k8s_container_config.
+            component_type (str): type of the component.
+            component_index (int): index of the component.
+
+        Returns:
+            dict: the container config.
+        """
         # Copy config.
         k8s_container_config = copy.deepcopy(k8s_container_config_template)
 
@@ -492,6 +664,14 @@ class K8sAksExecutor(K8sExecutor):
         return k8s_container_config
 
     def _build_image_address(self, image_name: str) -> str:
+        """Build image address name for image that stored at Azure Container Registry.
+
+        Args:
+            image_name (str): name of the image.
+
+        Returns:
+            str: image address name.
+        """
         # Get repositories
         acr_repositories = AzureController.list_acr_repositories(acr_name=f"{self.cluster_id}acr")
 
@@ -502,7 +682,17 @@ class K8sAksExecutor(K8sExecutor):
             return image_name
 
     @staticmethod
-    def _export_log(pod_id: str, container_name: str, export_dir: str):
+    def _export_log(pod_id: str, container_name: str, export_dir: str) -> None:
+        """Export k8s job logs to the specific folder.
+
+        Args:
+            pod_id (str): id of the k8s pod.
+            container_name (str): name of the container.
+            export_dir (str): path of the exported folder.
+
+        Returns:
+            None.
+        """
         os.makedirs(os.path.expanduser(export_dir + f"/{pod_id}"), exist_ok=True)
         with open(os.path.expanduser(export_dir + f"/{pod_id}/{container_name}.log"), "w") as fw:
             return_str = client.CoreV1Api().read_namespaced_pod_log(name=pod_id, namespace="default")
@@ -510,7 +700,12 @@ class K8sAksExecutor(K8sExecutor):
 
     # maro k8s status
 
-    def status(self):
+    def status(self) -> None:
+        """Print details of specific MARO Resources (redis only at this time).
+
+        Returns:
+            None.
+        """
         return_status = {}
 
         # Get pods details
@@ -533,14 +728,30 @@ class K8sAksExecutor(K8sExecutor):
 
     # Utils
 
-    def load_k8s_context(self):
-        return self._load_k8s_context(
+    def load_k8s_context(self) -> None:
+        """Activate load k8s context operation.
+
+        Returns:
+            None.
+        """
+        self._load_k8s_context(
             cluster_id=self.cluster_id,
             resource_group=self.resource_group
         )
 
     @staticmethod
-    def _load_k8s_context(cluster_id: int, resource_group: str):
+    def _load_k8s_context(cluster_id: int, resource_group: str) -> None:
+        """Load the k8s context.
+
+        Set current k8s context (only in the CLI runtime) to the k8s cluster that related to the MARO Cluster.
+
+        Args:
+            cluster_id (str): id of the MARO Cluster.
+            resource_group (str): name of the resource group.
+
+        Returns:
+            None.
+        """
         AzureController.load_aks_context(
             resource_group=resource_group,
             aks_name=f"{cluster_id}-aks"
@@ -551,6 +762,16 @@ class K8sAksExecutor(K8sExecutor):
 class ArmTemplateParameterBuilder:
     @staticmethod
     def create_aks_cluster(cluster_details: dict, export_path: str) -> dict:
+        """Create parameters file for AKS cluster.
+
+        Args:
+            cluster_details (dict): details of the MARO Cluster.
+            export_path (str): path to export the parameter file.
+
+        Returns:
+            dict: parameter dict, should be exported to json.
+        """
+
         # Get params
         cluster_id = cluster_details['id']
 

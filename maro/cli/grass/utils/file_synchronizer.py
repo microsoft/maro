@@ -17,6 +17,9 @@ logger = CliLogger(name=__name__)
 
 
 class FileSynchronizer:
+    """Synchronizer class for files.
+    """
+
     @staticmethod
     def copy_files_to_node(
         local_path: str,
@@ -28,11 +31,11 @@ class FileSynchronizer:
         """Copy local files to node, automatically create folder if not exist.
 
         Args:
-            local_path (str): path of the local file
-            remote_dir (str): dir for remote files
-            node_username (str)
-            node_hostname (str)
-            node_ssh_port (int): port of the ssh connection
+            local_path (str): path of the local file.
+            remote_dir (str): dir for remote files.
+            node_username (str): username of the vm.
+            node_hostname (str): hostname of the vm.
+            node_ssh_port (int): port of the ssh connection.
         """
         source_path = PathConvertor.build_path_without_trailing_slash(local_path)
         basename = os.path.basename(source_path)
@@ -89,11 +92,11 @@ class FileSynchronizer:
         """Copy node files to local, automatically create folder if not exist.
 
         Args:
-            local_dir (str): dir for local files
-            remote_path (str): path of the remote file
-            node_username (str)
-            node_hostname (str)
-            node_ssh_port (int): port of the ssh connection
+            local_dir (str): dir for local files.
+            remote_path (str): path of the remote file.
+            node_username (str): username of the vm.
+            node_hostname (str): hostname of the vm.
+            node_ssh_port (int): port of the ssh connection.
         """
         source_path = PathConvertor.build_path_without_trailing_slash(remote_path)
         basename = os.path.basename(source_path)
@@ -140,9 +143,9 @@ class FileSynchronizer:
         """Copy and rename a file.
 
         Args:
-            source_path (str): path of the source
-            target_dir (str): dir of the target
-            new_name (str): name of the new file, if None, will not do rename
+            source_path (str): path of the source.
+            target_dir (str): dir of the target.
+            new_name (str): name of the new file, if None, will not do rename.
         """
         source_path = os.path.expanduser(source_path)
         target_dir = os.path.expanduser(target_dir)

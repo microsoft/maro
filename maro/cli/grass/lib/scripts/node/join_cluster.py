@@ -2,7 +2,17 @@
 # Licensed under the MIT license.
 
 
-""" This script is a standalone script, which cannot use the ./utils tools.
+"""Join the current VM to the cluster.
+
+[WARNING] This script is a standalone script, which cannot use the ./utils tools.
+
+The script will do the following jobs in this VM:
+- Install Node Runtime. [Optional, depend on join_cluster_deployment]
+- Install Node GPU Support. [Optional, depend on join_cluster_deployment]
+- Start MARO Node services: maro-node-agent, maro-node-api-server.
+- Create docker user.
+- Setup samba client to mount to the MARO Master.
+- Add MARO Master's ssh_public_key to the current VM.
 """
 
 import argparse

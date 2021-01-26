@@ -15,6 +15,9 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
 
 class EncryptedRequests:
+    """Wrapper class for requests with encryption/decryption integrated.
+    """
+
     def __init__(
         self,
         user_id: str,

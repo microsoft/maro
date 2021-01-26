@@ -31,6 +31,10 @@ logger = CliLogger(name=__name__)
 
 
 class GrassAzureExecutor(GrassExecutor):
+    """Executor for grass/azure mode.
+
+    See https://maro.readthedocs.io/en/latest/key_components/orchestration.html for reference.
+    """
 
     def __init__(self, cluster_name: str):
         super().__init__(cluster_details=DetailsReader.load_cluster_details(cluster_name=cluster_name))
@@ -48,7 +52,15 @@ class GrassAzureExecutor(GrassExecutor):
     # maro grass create
 
     @staticmethod
-    def create(create_deployment: dict):
+    def create(create_deployment: dict) -> None:
+        """Create MARO Cluster with create_deployment.
+
+        Args:
+            create_deployment (dict): create_deployment of grass/azure. See lib/deployments/internal for reference.
+
+        Returns:
+            None.
+        """
         logger.info("Creating cluster")
 
         # Get standardized cluster_details
@@ -88,6 +100,16 @@ class GrassAzureExecutor(GrassExecutor):
 
     @staticmethod
     def _standardize_cluster_details(create_deployment: dict) -> dict:
+        """Standardize cluster_details from create_deployment.
+
+        We use create_deployment to build cluster_details (they share the same keys structure).
+
+        Args:
+            create_deployment (dict): create_deployment of grass/azure. See lib/deployments/internal for reference.
+
+        Returns:
+            dict: standardized cluster_details.
+        """
         samba_password = "".join(secrets.choice(string.ascii_letters + string.digits) for _ in range(20))
         optional_key_to_value = {
             "root['master']['redis']": {"port": GlobalParams.DEFAULT_REDIS_PORT},
@@ -120,6 +142,14 @@ class GrassAzureExecutor(GrassExecutor):
 
     @staticmethod
     def _create_resource_group(cluster_details: dict) -> None:
+        """Create the resource group if it does not exist.
+
+        Args:
+            cluster_details (dict): details of the cluster.
+
+        Returns:
+            None.
+        """
         # Load params
         subscription = cluster_details["cloud"]["subscription"]
         resource_group = cluster_details["cloud"]["resource_group"]
@@ -134,7 +164,7 @@ class GrassAzureExecutor(GrassExecutor):
 
         # Check and create resource group
         resource_group_details = AzureController.get_resource_group(resource_group=resource_group)
-        if resource_group_details is not None:
+        if resource_group_details:
             logger.warning_yellow(f"Azure resource group '{resource_group}' already exists")
         else:
             AzureController.create_resource_group(
@@ -145,6 +175,14 @@ class GrassAzureExecutor(GrassExecutor):
 
     @staticmethod
     def _create_vnet(cluster_details: dict) -> None:
+        """Create vnet for the MARO Cluster.
+
+        Args:
+            cluster_details (dict): details of the MARO Cluster.
+
+        Returns:
+            None.
+        """
         logger.info("Creating vnet")
 
         # Create ARM parameters and start deployment
@@ -167,6 +205,17 @@ class GrassAzureExecutor(GrassExecutor):
 
     @staticmethod
     def _build_node_image(cluster_details: dict) -> None:
+        """Build Azure Image for MARO Node.
+
+        The built image will contain required Node runtime environment including GPU support.
+        See https://docs.microsoft.com/en-us/azure/virtual-machines/linux/capture-image for reference.
+
+        Args:
+            cluster_details (dict): details of the MARO Cluster.
+
+        Returns:
+            None.
+        """
         logger.info("Building MARO Node image")
 
         # Build params
@@ -243,6 +292,14 @@ class GrassAzureExecutor(GrassExecutor):
 
     @staticmethod
     def _create_and_init_master(cluster_details: dict) -> None:
+        """Create and init MARO Master.
+
+        Args:
+            cluster_details (dict): details of the MARO Cluster.
+
+        Returns:
+            None.
+        """
         logger.info("Creating MARO Master")
 
         GrassAzureExecutor._create_master_vm(cluster_details=cluster_details)
@@ -265,6 +322,14 @@ class GrassAzureExecutor(GrassExecutor):
 
     @staticmethod
     def _create_master_vm(cluster_details: dict) -> None:
+        """Create MARO Master VM.
+
+        Args:
+            cluster_details (dict): details of the MARO Cluster.
+
+        Returns:
+            None.
+        """
         logger.info("Creating Master VM")
 
         # Build params
@@ -312,7 +377,12 @@ class GrassAzureExecutor(GrassExecutor):
 
     # maro grass delete
 
-    def delete(self):
+    def delete(self) -> None:
+        """Delete the MARO Cluster.
+
+        Returns:
+            None.
+        """
         logger.info(f"Deleting cluster '{self.cluster_name}'")
 
         # Get resource list
@@ -326,7 +396,7 @@ class GrassAzureExecutor(GrassExecutor):
 
         # Delete resources
         if len(deletable_ids) > 0:
-            AzureController.delete_resources(resources=deletable_ids)
+            AzureController.delete_resources(resource_ids=deletable_ids)
 
         # Delete cluster folder
         shutil.rmtree(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}")
@@ -336,6 +406,16 @@ class GrassAzureExecutor(GrassExecutor):
     # maro grass node
 
     def scale_node(self, replicas: int, node_size: str):
+        """Scale up/down MARO Node using predefined Node Image.
+
+        Args:
+            replicas (int): desired number of MARO Node in specific node_size.
+            node_size (str): size of the MARO Node VM, see https://docs.microsoft.com/en-us/azure/virtual-machines/sizes
+                for reference.
+
+        Returns:
+            None.
+        """
         # Load details
         nodes_details = self.master_api_client.list_nodes()
 
@@ -364,6 +444,15 @@ class GrassAzureExecutor(GrassExecutor):
             logger.warning_yellow("Replica is match, no create or delete")
 
     def _create_nodes(self, num: int, node_size: str) -> None:
+        """Create MARO Nodes in parallel.
+
+        Args:
+            num (int): number of MARO Nodes (with specific node_size) to create.
+            node_size (str): size of the MARO Node VM.
+
+        Returns:
+            None.
+        """
         logger.info(f"Scaling up {num}")
 
         # Parallel create
@@ -373,7 +462,15 @@ class GrassAzureExecutor(GrassExecutor):
                 [[node_size]] * num
             )
 
-    def _create_node(self, node_size: str):
+    def _create_node(self, node_size: str) -> None:
+        """Create a MARO Node.
+
+        Args:
+            node_size (str): size of the MARO Node VM.
+
+        Returns:
+            None.
+        """
         # Generate node name
         node_name = NameCreator.create_node_name()
         logger.info(message=f"Creating node '{node_name}'")
@@ -390,6 +487,15 @@ class GrassAzureExecutor(GrassExecutor):
         logger.info_green(message=f"Node '{node_name}' is created")
 
     def _delete_nodes(self, num: int, node_size: str) -> None:
+        """Delete MARO Nodes in parallel.
+
+        Args:
+            num (int): number of MARO Nodes (with specific node_size) to delete.
+            node_size (str): size of the MARO Node VM.
+
+        Returns:
+            None.
+        """
         # Load details
         nodes_details = self.master_api_client.list_nodes()
 
@@ -415,14 +521,17 @@ class GrassAzureExecutor(GrassExecutor):
             )
 
     def _create_vm(self, node_name: str, node_size: str) -> dict:
-        logger.info(message=f"Creating VM '{node_name}'")
+        """Create MARO Node VM.
 
-        # Build params
-        image_name = f"{self.cluster_id}-node-image"
-        image_resource_id = AzureController.get_image_resource_id(
-            resource_group=self.resource_group,
-            image_name=image_name
-        )
+        Args:
+            node_name (str): name of the MARO Node. Also the id of the MARO Node.
+            node_size (str): size of the MARO Node VM.
+
+        Returns:
+            dict: join_cluster_deployment that needed in "join cluster" operation.
+                See /lib/scripts/join_cluster.py for reference.
+        """
+        logger.info(message=f"Creating VM '{node_name}'")
 
         # Create ARM parameters and start deployment
         os.makedirs(name=f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/nodes/{node_name}", exist_ok=True)
@@ -434,7 +543,6 @@ class GrassAzureExecutor(GrassExecutor):
             node_name=node_name,
             cluster_details=self.cluster_details,
             node_size=node_size,
-            image_resource_id=image_resource_id,
             export_path=parameters_file_path
         )
         AzureController.start_deployment(
@@ -498,7 +606,15 @@ class GrassAzureExecutor(GrassExecutor):
 
         return join_cluster_deployment
 
-    def _delete_node(self, node_name: str):
+    def _delete_node(self, node_name: str) -> None:
+        """Delete the MARO Node.
+
+        Args:
+            node_name (str): name of the MARO Node.
+
+        Returns:
+            None.
+        """
         logger.info(f"Deleting node '{node_name}'")
 
         # Delete node
@@ -522,7 +638,15 @@ class GrassAzureExecutor(GrassExecutor):
 
         logger.info_green(f"Node '{node_name}' is deleted")
 
-    def _join_cluster(self, node_details: dict):
+    def _join_cluster(self, node_details: dict) -> None:
+        """Join the cluster using node_details.
+
+        Args:
+            node_details (str): details of the MARO Node.
+
+        Returns:
+            None.
+        """
         node_name = node_details["name"]
 
         logger.info(f"Node '{node_name}' is joining the cluster '{self.cluster_name}'")
@@ -564,6 +688,16 @@ class GrassAzureExecutor(GrassExecutor):
         logger.info_green(f"Node '{node_name}' is joined")
 
     def start_node(self, replicas: int, node_size: str):
+        """Start MARO Node VMs in parallel.
+
+        Args:
+            replicas (int): number of MARO Node in specific node_size to start.
+            node_size (str): size of the MARO Node VM, see https://docs.microsoft.com/en-us/azure/virtual-machines/sizes
+                for reference.
+
+        Returns:
+            None.
+        """
         # Get nodes details
         nodes_details = self.master_api_client.list_nodes()
 
@@ -588,6 +722,14 @@ class GrassAzureExecutor(GrassExecutor):
             )
 
     def _start_node(self, node_name: str):
+        """Start the MARO Node VM.
+
+        Args:
+            node_name (str): name of the MARO Node.
+
+        Returns:
+            None.
+        """
         logger.info(f"Starting node '{node_name}'")
 
         # Start node vm
@@ -602,6 +744,16 @@ class GrassAzureExecutor(GrassExecutor):
         logger.info_green(f"Node '{node_name}' is started")
 
     def stop_node(self, replicas: int, node_size: str):
+        """Stop MARO Node VMs in parallel.
+
+        Args:
+            replicas (int): number of MARO Node in specific node_size to stop.
+            node_size (str): size of the MARO Node VM,
+                see https://docs.microsoft.com/en-us/azure/virtual-machines/sizes for reference.
+
+        Returns:
+            None.
+        """
         # Get nodes details
         nodes_details = self.master_api_client.list_nodes()
 
@@ -630,6 +782,14 @@ class GrassAzureExecutor(GrassExecutor):
             )
 
     def _stop_node(self, node_details: dict):
+        """Stop MARO Node VM.
+
+        Args:
+            node_details (dict): details of the MARO Node.
+
+        Returns:
+            None.
+        """
         node_name = node_details["name"]
 
         logger.info(f"Stopping node '{node_name}'")
@@ -646,6 +806,11 @@ class GrassAzureExecutor(GrassExecutor):
         logger.info_green(f"Node '{node_name}' is stopped")
 
     def _get_node_size_to_spec(self) -> dict:
+        """Get node_size to spec mapping of Azure VM.
+
+        Returns:
+            dict: node_size to spec mapping.
+        """
         # List available sizes for VMs
         specs = AzureController.list_vm_sizes(location=self.location)
 
@@ -657,7 +822,15 @@ class GrassAzureExecutor(GrassExecutor):
         return node_size_to_spec
 
     @staticmethod
-    def _count_running_containers(node_details: dict):
+    def _count_running_containers(node_details: dict) -> int:
+        """Count running containers based on field "Status".
+
+        Args:
+            node_details (dict): details of the MARO Node.
+
+        Returns:
+            int: num of running containers.
+        """
         # Extract details
         containers_details = node_details["containers"]
 
@@ -671,14 +844,29 @@ class GrassAzureExecutor(GrassExecutor):
 
     # maro grass clean
 
-    def clean(self):
+    def clean(self) -> None:
+        """Delete running jobs, schedule and containers of the MARO Cluster.
+
+        Returns:
+            None.
+        """
         # Remote clean jobs
         self.master_api_client.clean_jobs()
 
     # Utils
 
     @staticmethod
-    def _delete_resources(resource_group: str, cluster_id: int, resource_name: str):
+    def _delete_resources(resource_group: str, cluster_id: int, resource_name: str) -> None:
+        """Delete resources in the resource group.
+
+        Args:
+            resource_group (str): name of the resource group.
+            cluster_id (id): id of the MARO Cluster.
+            resource_name (str): name of the MARO Resource. e.g. node_name
+
+        Returns:
+            None.
+        """
         # Get resource list
         resource_list = AzureController.list_resources(resource_group=resource_group)
 
@@ -690,12 +878,26 @@ class GrassAzureExecutor(GrassExecutor):
 
         # Delete resources
         if len(deletable_ids) > 0:
-            AzureController.delete_resources(resources=deletable_ids)
+            AzureController.delete_resources(resource_ids=deletable_ids)
 
 
 class ArmTemplateParameterBuilder:
+    """Builder for ARM Template Parameters.
+
+    See https://docs.microsoft.com/en-us/azure/azure-resource-manager/templates/ for reference.
+    """
+
     @staticmethod
     def create_vnet(cluster_details: dict, export_path: str) -> dict:
+        """Create parameters file for vnet.
+
+        Args:
+            cluster_details (dict): details of the MARO Cluster.
+            export_path (str): location to export the parameter file.
+
+        Returns:
+            dict: parameter dict, should be exported to json.
+        """
         # Load and update parameters
         with open(file=f"{GrassPaths.ABS_MARO_GRASS_LIB}/modes/azure/create_vnet/parameters.json", mode="r") as fr:
             base_parameters = json.load(fr)
@@ -713,6 +915,16 @@ class ArmTemplateParameterBuilder:
 
     @staticmethod
     def create_master(cluster_details: dict, node_size: str, export_path: str) -> dict:
+        """Create parameters file for MARO Master VM.
+
+        Args:
+            cluster_details (dict): details of the MARO Cluster.
+            node_size (str): node_size of the MARO Master VM.
+            export_path (str): path to export the parameter file.
+
+        Returns:
+            dict: parameter dict, should be exported to json.
+        """
         # Load and update parameters
         with open(file=f"{GrassPaths.ABS_MARO_GRASS_LIB}/modes/azure/create_master/parameters.json", mode="r") as fr:
             base_parameters = json.load(fr)
@@ -739,6 +951,16 @@ class ArmTemplateParameterBuilder:
 
     @staticmethod
     def create_build_node_image_vm(cluster_details: dict, node_size: str, export_path: str) -> dict:
+        """Create parameters file for Build Image Node VM.
+
+        Args:
+            cluster_details (dict): details of the MARO Cluster.
+            node_size (str): node_size of the Build Image Node VM.
+            export_path (str): path to export the parameter file.
+
+        Returns:
+            dict: parameter dict, should be exported to json.
+        """
         # Load and update parameters
         with open(
             file=f"{GrassPaths.ABS_MARO_GRASS_LIB}/modes/azure/create_build_node_image_vm/parameters.json",
@@ -766,18 +988,28 @@ class ArmTemplateParameterBuilder:
         return base_parameters
 
     @staticmethod
-    def create_node(
-        node_name: str, cluster_details: dict,
-        node_size: str, image_resource_id: str,
-        export_path: str
-    ) -> dict:
+    def create_node(node_name: str, cluster_details: dict, node_size: str, export_path: str) -> dict:
+        """Create parameters file for MARO Node VM.
+
+        Args:
+            cluster_details (dict): details of the MARO Cluster.
+            node_name (str): name of the MARO Node.
+            node_size (str): node_size of the MARO Node VM.
+            export_path (str): path to export the parameter file.
+
+        Returns:
+            dict: parameter dict, should be exported to json.
+        """
         # Load and update parameters
         with open(file=f"{GrassPaths.ABS_MARO_GRASS_LIB}/modes/azure/create_node/parameters.json", mode="r") as fr:
             base_parameters = json.load(fr)
             parameters = base_parameters["parameters"]
             parameters["adminPublicKey"]["value"] = cluster_details["cloud"]["default_public_key"]
             parameters["adminUsername"]["value"] = cluster_details["cloud"]["default_username"]
-            parameters["imageResourceId"]["value"] = image_resource_id
+            parameters["imageResourceId"]["value"] = AzureController.get_image_resource_id(
+                resource_group=cluster_details["cloud"]["resource_group"],
+                image_name=f"{cluster_details['id']}-node-image"
+            )
             parameters["location"]["value"] = cluster_details["cloud"]["location"]
             parameters["networkInterfaceName"]["value"] = f"{cluster_details['id']}-{node_name}-nic"
             parameters["networkSecurityGroupName"]["value"] = f"{cluster_details['id']}-{node_name}-nsg"

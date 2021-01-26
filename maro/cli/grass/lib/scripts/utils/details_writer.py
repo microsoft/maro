@@ -10,6 +10,9 @@ from .params import Paths
 
 
 class DetailsWriter:
+    """Writer class for details.
+    """
+
     @staticmethod
     def save_local_cluster_details(cluster_details: dict) -> None:
         os.makedirs(name=f"{Paths.ABS_MARO_LOCAL}/cluster", exist_ok=True)

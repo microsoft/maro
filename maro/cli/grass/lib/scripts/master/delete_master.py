@@ -2,7 +2,13 @@
 # Licensed under the MIT license.
 
 
-""" This script is a standalone script, which cannot use the ./utils tools.
+""" Delete Master.
+
+[WARNING] This script is a standalone script, which cannot use the ./utils tools.
+
+Do the following works:
+- Stop master services (agent and api-server).
+- Remove Redis and Fluentd containers.
 """
 
 import os
