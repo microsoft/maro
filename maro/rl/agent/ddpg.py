@@ -69,7 +69,7 @@ class DDPG(AbsAgent):
         self,
         model: AbsLearningModel,
         config: DDPGConfig,
-        experience_pool=SimpleStore(["state", "action", "reward", "next_state"]);
+        experience_pool=SimpleStore(["state", "action", "reward", "next_state"]),
         explorer: NoiseExplorer = None
     ):
         self.validate_task_names(model.task_names, {"policy", "q_value"})
@@ -105,7 +105,7 @@ class DDPG(AbsAgent):
             reward = np.asarray(sample["reward"])
             next_state = np.asarray(sample["next_state"])
             self._train_on_batch(state, action, reward, next_state)
-    
+
     def _train_on_batch(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray, next_states: np.ndarray):
         states = torch.from_numpy(states).to(self._device)
         actual_actions = torch.from_numpy(actions).to(self._device)

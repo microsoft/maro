@@ -23,7 +23,7 @@ from maro.rl.storage import AbsStore, OverwriteType, SimpleStore
 
 __all__ = [
     "AbsActor", "SimpleActor",
-    "AbsAgent", "ActionInfo", "ActorCritic", "ActorCriticConfig", "DDPG", "DDPGConfig", "DQN", "DQNConfig", 
+    "AbsAgent", "ActionInfo", "ActorCritic", "ActorCriticConfig", "DDPG", "DDPGConfig", "DQN", "DQNConfig",
     "PolicyGradient", "PolicyOptimization", "PolicyOptimizationConfig",
     "AbsAgentManager", "AgentManagerMode", "SimpleAgentManager",
     "ActorProxy", "ActorWorker", "concat_experiences_by_agent", "merge_experiences_with_trajectory_boundaries",
