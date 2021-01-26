@@ -4,4 +4,4 @@
 from .abs_store import AbsStore
 from .simple_store import SimpleStore, OverwriteType
 
-__all__ = ["AbsStore", "SimpleStore", "OverwriteType"]
+__all__ = ["AbsStore", "OverwriteType", "SimpleStore"]

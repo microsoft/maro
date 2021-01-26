@@ -76,10 +76,10 @@ class DQN(AbsAgent):
         config: Configuration for DQN algorithm.
     """
     def __init__(
-        self, 
-        name: str, 
-        model: AbsLearningModel, 
-        config: DQNConfig, 
+        self,
+        name: str,
+        model: AbsLearningModel,
+        config: DQNConfig,
         experience_pool: SimpleStore = SimpleStore(["state", "action", "reward", "next_state", "loss"])
     ):
         self.validate_task_names(model.task_names, {"state_value", "advantage"})
