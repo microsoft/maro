@@ -128,7 +128,7 @@ class SimpleStore(AbsStore):
             for index, value in zip(indexes, val):
                 self._store[key][index] = value
 
-        return indexes        
+        return indexes   
 
     def apply_multi_filters(self, filters: List[Callable]):
         """Multi-filter method.
