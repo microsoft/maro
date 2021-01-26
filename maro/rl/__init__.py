@@ -19,7 +19,7 @@ from maro.rl.model import (
 )
 from maro.rl.scheduling import LinearParameterScheduler, Scheduler, TwoPhaseLinearParameterScheduler
 from maro.rl.shaping import AbsShaper, ActionShaper, ExperienceShaper, StateShaper
-from maro.rl.storage import AbsStore, OverwriteType, SimpleStore 
+from maro.rl.storage import AbsStore, OverwriteType, SimpleStore
 
 __all__ = [
     "AbsActor", "SimpleActor",

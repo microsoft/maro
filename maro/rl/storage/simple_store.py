@@ -128,7 +128,7 @@ class SimpleStore(AbsStore):
             for index, value in zip(indexes, val):
                 self._store[key][index] = value
 
-        return indexes          
+        return indexes        
 
     def apply_multi_filters(self, filters: List[Callable]):
         """Multi-filter method.
@@ -264,7 +264,7 @@ class SimpleStore(AbsStore):
         # Ensure that all values are lists of the same length.
         if any(not isinstance(val, list) for val in contents.values()):
             raise TypeError("All values must be of type 'list'")
-   
+
         reference_val = contents[list(contents.keys())[0]]
         if any(len(val) != len(reference_val) for val in contents.values()):
             raise StoreMisalignment("values of contents should consist of lists of the same length")
