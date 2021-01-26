@@ -3,18 +3,20 @@
 
 import os
 import pickle
-import numpy as np
-
-from multiprocessing import Process, Pipe
+from multiprocessing import Pipe, Process
 from multiprocessing.connection import Connection
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, Dict
+
+import numpy as np
 
 from maro.simulator import DecisionMode
 
-from .mpenv_wrapper import MPEnvWrapper
+from .env_process import EnvProcess
 
 
-class SnapshotQueryNodeWrapper:
+class SnapshotListNodeWrapper:
+    """Wrapper to provide same interface as normal snapshot nodes."""
+
     def __init__(self,  env, node_name: str):
         self.node_name = node_name
         self._env = env
@@ -22,31 +24,43 @@ class SnapshotQueryNodeWrapper:
     def __getitem__(self, args) -> List[np.ndarray]:
         return self._env._query(self.node_name, args)
 
-class SnapshotQueryWrapper:
+
+class SnapshotListWrapper:
+    """Wrapper for snapshot list, used to provide same interface as normal snapshot list."""
     def __init__(self, env):
         self._env = env
 
-    def __getitem__(self, node_name: str) -> SnapshotQueryNodeWrapper:
-        return SnapshotQueryNodeWrapper(self._env, node_name)
+    def __getitem__(self, node_name: str) -> SnapshotListNodeWrapper:
+        return SnapshotListNodeWrapper(self._env, node_name)
+
+
+ActionType = Union[Dict[int, object], List[object], object]
 
 
 class VectorEnv:
-    def __init__(self, batch_num: int, sync_tick=False,
+    """Helper used to maintain several environment instances in different processes.
+
+    NOTE:
+        This helper do not care about if each environment has same tick (frame_index).
+    """
+    def __init__(self, batch_num: int,
                  scenario: str = None, topology: str = None,
-                 start_tick: int = 0, durations: int = 100, snapshot_resolution: int = 1, max_snapshots: int = None,
+                 start_tick: int = 0, durations: int = 100,
+                 snapshot_resolution: int = 1, max_snapshots: int = None,
                  decision_mode: DecisionMode = DecisionMode.Sequential,
-                 business_engine_cls: type = None, disable_finished_events: bool = False,
+                 business_engine_cls: type = None,
+                 disable_finished_events: bool = False,
                  options: dict = {}):
         # Ensure batch number less than CPU core
         assert batch_num <= os.cpu_count()
 
         self._env_pipes: List[Connection] = []
         self._pipes: List[Connection] = []
-        self._sub_process_list: List[MPEnvWrapper] = []
+        self._sub_process_list: List[EnvProcess] = []
 
         self._batch_num = batch_num
         self._is_stopping = False
-        self._snapshot_wrapper = SnapshotQueryWrapper(self)
+        self._snapshot_wrapper = SnapshotListWrapper(self)
 
         self._start_environments(
             scenario, topology, start_tick, durations, snapshot_resolution, max_snapshots,
@@ -54,36 +68,62 @@ class VectorEnv:
         )
 
     @property
-    def snapshot_list(self):
+    def batch_number(self) -> int:
+        """Int: Number of environment processes."""
+        return self._batch_num
+
+    @property
+    def snapshot_list(self) -> SnapshotListWrapper:
+        """SnapshotListWrapper: Snapshot list of environments, used to query states.
+        The query result will be a list of numpy array."""
         return self._snapshot_wrapper
 
-    def step(self, action: Union[List[object], object]) -> List[Tuple[int, dict, object]]:
-        # call step on each environemnts
+    @property
+    def tick(self) -> List[int]:
+        """List[int]: Return tick of all environments."""
+        return self._send("tick")
+
+    @property
+    def frame_index(self) -> List[int]:
+        """List[int]: Return frame_index of all environments."""
+        return self._send("frame_index")
+
+    def step(self, action: ActionType) -> Tuple[dict, object, bool]:
+        """Push environments to next step.
+
+        Args:
+            action (ActionType): If action is a normal object, then it will be send to all environments as action.
+            If it is a list, then its length must same as environment number, then will send to environments one by one.
+            If it is a dict, then means we want to send action to specified environment, key is the index of environment, value is action.
+
+        Returns:
+            Tuple[dict, object, bool]: Tuple with: list of metrics, list of decision_events, is_done
+        """
         if type(action) is list:
-            assert len(action) == len(self._batch_num)
+            assert len(action) == self._batch_num
 
         response_list = self._send("step", action)
 
         # Due with response
-        # Combine is_done
-        is_done = True
         metrics = []
         decision_events = []
 
         for resp in response_list:
             # Only is done when all
-            is_done = is_done and resp[2]
-
             metrics.append(resp[0])
             decision_events.append(resp[1])
 
-        return metrics, decision_events, is_done
+        is_done = self._send("is_done")
+
+        return metrics, decision_events, all(is_done)
 
     def reset(self):
-        # send reset command, and wait for response from all process
+        """Reset all the environments."""
+        # Send reset command, and wait for response from all process.
         self._send("reset", wait_response=True)
 
     def stop(self):
+        """Stop all environments."""
         if not self._is_stopping:
             self._is_stopping = True
 
@@ -97,36 +137,65 @@ class VectorEnv:
                     pipe.close()
 
     def __enter__(self):
+        """Support with statement."""
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
+        """Stop after exit with statement."""
         self.stop()
 
     def __del__(self):
-        # In case forget to call stop
+        """In case forget to call stop."""
         self.stop()
 
-    def _query(self, node_name: str, args):
+    def _query(self, node_name: str, args: slice):
+        """Query state from each environments.
+        
+        Args:
+            node_name (str): Node name to query.
+            args (slice): Args for snapshot list querying.
+        """
         return self._send("query", (node_name, args))
 
-    def _send(self, cmd: str, content: Union[list, str] = None, wait_response=True):
+    def _send(self, cmd: str, content: Union[list, object, dict] = None, wait_response=True):
+        """Send cmd and data to environments.
+
+        Args:
+            cmd (str): Command name to send.
+            content (Union[list, object, dict]): Content to send.
+            wait_response (bool): Wait for response from all environments?
+        """
         content_type = type(content)
+
+        # Pipes we sent message to.
+        pipes = []
 
         for index, pipe in enumerate(self._pipes):
             if content_type is list:
-                pipe.send((cmd, content[list]))
+                pipe.send((cmd, content[index]))
+
+                pipes.append(pipe)
+            elif content_type is dict:
+                # Check if index exist.
+                if index in content:
+                    pipe.send((cmd, content[index]))
+
+                    pipes.append(pipe)
             else:
                 pipe.send((cmd, content))
+                pipes.append(pipe)
 
         if wait_response:
-            return [pipe.recv() for pipe in self._pipes]
+            return [pipe.recv() for pipe in pipes]
 
         return None
 
     def _start_environments(self, scenario: str = None, topology: str = None,
-                            start_tick: int = 0, durations: int = 100, snapshot_resolution: int = 1, max_snapshots: int = None,
+                            start_tick: int = 0, durations: int = 100,
+                            snapshot_resolution: int = 1, max_snapshots: int = None,
                             decision_mode: DecisionMode = DecisionMode.Sequential,
-                            business_engine_cls: type = None, disable_finished_events: bool = False,
+                            business_engine_cls: type = None,
+                            disable_finished_events: bool = False,
                             options: dict = {}):
         for i in range(self._batch_num):
             mp, sp = Pipe()
@@ -134,7 +203,7 @@ class VectorEnv:
             self._pipes.append(mp)
             self._env_pipes.append(sp)
 
-            env_proc = MPEnvWrapper(
+            env_proc = EnvProcess(
                 sp, scenario, topology, start_tick,
                 durations, snapshot_resolution, max_snapshots,
                 decision_mode, business_engine_cls,
