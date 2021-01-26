@@ -128,7 +128,7 @@ maro.rl.storage.abs\_store
 maro.rl.storage.column\_based\_store
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.storage.column_based_store
+.. automodule:: maro.rl.storage.simple_store
    :members:
    :undoc-members:
    :show-inheritance:

@@ -18,21 +18,24 @@ class TruncatedExperienceShaper(ExperienceShaper):
         self._shortage_factor = shortage_factor
 
     def __call__(self, trajectory, snapshot_list):
-        agent_ids = np.asarray(trajectory.get_by_key("agent_id"))
-        states = np.asarray(trajectory.get_by_key("state"))
-        actions = np.asarray(trajectory.get_by_key("action"))
-        log_action_probabilities = np.asarray(trajectory.get_by_key("log_action_probability"))
-        rewards = np.fromiter(
-            map(self._compute_reward, trajectory.get_by_key("event"), [snapshot_list] * len(trajectory)),
-            dtype=np.float32
-        )
-        return {agent_id: {
-                    "state": states[agent_ids == agent_id],
-                    "action": actions[agent_ids == agent_id],
-                    "log_action_probability": log_action_probabilities[agent_ids == agent_id],
-                    "reward": rewards[agent_ids == agent_id],
-                }
-                for agent_id in set(agent_ids)}
+        agent_ids = trajectory["agent_id"]
+        events = trajectory["event"]
+        states = trajectory["state"]
+        actions = trajectory["action"]
+        log_action_probabilities = trajectory["log_action_probability"]
+        
+        exp_by_agent = defaultdict(lambda: defaultdict(list))
+        for i in range(len(states)):
+            exp_by_agent[agent_ids[i]]["state"].append(states[i])
+            exp_by_agent[agent_ids[i]]["action"].append(actions[i])
+            exp_by_agent[agent_ids[i]]["log_action_probability"].append(log_action_probabilities[i])
+            exp_by_agent[agent_ids[i]]["reward"].append(self._compute_reward(events[i], snapshot_list))
+            
+        for agent_id in exp_by_agent:
+            for key, vals in exp_by_agent[agent_id].items():
+                exp_by_agent[agent_id][key] = np.asarray(vals, dtype=np.float32 if key == "reward" else None)
+        
+        return exp_by_agent
 
     def _compute_reward(self, decision_event, snapshot_list):
         start_tick = decision_event.tick + 1

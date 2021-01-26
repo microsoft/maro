@@ -3,17 +3,17 @@
 
 import os
 from abc import abstractmethod
+from collections import defaultdict
 from enum import Enum
 from typing import Dict
 
+from maro.rl.agent.abs_agent import AbsAgent
 from maro.rl.agent.policy_optimization import ActionInfo
 from maro.rl.shaping.action_shaper import ActionShaper
 from maro.rl.shaping.experience_shaper import ExperienceShaper
 from maro.rl.shaping.state_shaper import StateShaper
-from maro.rl.storage.column_based_store import ColumnBasedStore
 from maro.utils.exception.rl_toolkit_exception import AgentManagerModeError, MissingShaper
 
-from .abs_agent import AbsAgent
 from .abs_agent_manager import AbsAgentManager
 
 
@@ -65,11 +65,10 @@ class AgentManager(AbsAgentManager):
             action_shaper=action_shaper,
             experience_shaper=experience_shaper
         )
-        # Data structures to temporarily store transitions and trajectory
         self._name = name
         self._mode = mode
-        self._transition_cache = {}
-        self._trajectory = ColumnBasedStore()
+        # Data structure to temporarily store the trajectory
+        self._trajectory = defaultdict(list)
 
     def __getitem__(self, agent_id):
         return self.agents[agent_id]
@@ -83,19 +82,16 @@ class AgentManager(AbsAgentManager):
         self._assert_inference_mode()
         agent_id, model_state = self._state_shaper(decision_event, snapshot_list)
         action_info = self.agents[agent_id].choose_action(model_state)
-        self._transition_cache = {
-            "state": model_state,
-            "reward": None,
-            "agent_id": agent_id,
-            "event": decision_event
-        }
+        self._trajectory["state"].append(model_state)
+        self._trajectory["agent_id"].append(agent_id)
+        self._trajectory["event"].append(decision_event)
         if isinstance(action_info, ActionInfo):
-            self._transition_cache["action"] = action_info.action
-            self._transition_cache["log_action_probability"] = action_info.log_probability
+            self._trajectory["action"].append(action_info.action)
+            self._trajectory["log_action_probability"].append(action_info.log_probability)
         else:
-            self._transition_cache["action"] = action_info
+            self._trajectory["action"].append(action_info)
 
-        return self._action_shaper(self._transition_cache["action"], decision_event, snapshot_list)
+        return self._action_shaper(self._trajectory["action"][-1], decision_event, snapshot_list)
 
     def on_env_feedback(self, metrics):
         """This method records the environment-generated metrics as part of the latest transition in the trajectory.
@@ -103,8 +99,7 @@ class AgentManager(AbsAgentManager):
         Args:
             metrics: business metrics provided by the environment after an action has been executed.
         """
-        self._transition_cache["metrics"] = metrics
-        self._trajectory.put(self._transition_cache)
+        self._trajectory["metrics"].append(metrics)
 
     def post_process(self, snapshot_list):
         """This method processes the latest trajectory into experiences.
@@ -114,7 +109,6 @@ class AgentManager(AbsAgentManager):
         """
         experiences = self._experience_shaper(self._trajectory, snapshot_list)
         self._trajectory.clear()
-        self._transition_cache = {}
         self._state_shaper.reset()
         self._action_shaper.reset()
         self._experience_shaper.reset()

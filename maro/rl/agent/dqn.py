@@ -9,7 +9,7 @@ import numpy as np
 import torch
 
 from maro.rl.model import AbsLearningModel
-from maro.rl.storage import ColumnBasedStore
+from maro.rl.storage import SimpleStore
 
 from .abs_agent import AbsAgent
 
@@ -75,7 +75,13 @@ class DQN(AbsAgent):
         model (LearningModel): Q-value model.
         config: Configuration for DQN algorithm.
     """
-    def __init__(self, name: str, model: AbsLearningModel, config: DQNConfig, experience_pool: ColumnBasedStore):
+    def __init__(
+        self, 
+        name: str, 
+        model: AbsLearningModel, 
+        config: DQNConfig, 
+        experience_pool: SimpleStore = SimpleStore(["state", "action", "reward", "next_state", "loss"])
+    ):
         self.validate_task_names(model.task_names, {"state_value", "advantage"})
         super().__init__(name, model, config, experience_pool=experience_pool)
         if isinstance(self._model.output_dim, int):
@@ -145,7 +151,7 @@ class DQN(AbsAgent):
             reward = np.asarray(sample["reward"])
             next_state = np.asarray(sample["next_state"])
             loss = self._train_on_batch(state, action, reward, next_state)
-            self._experience_pool.update(indexes, {"loss": loss})
+            self._experience_pool.update(indexes, {"loss": list(loss)})
 
     def set_exploration_params(self, epsilon):
         self._config.epsilon = epsilon
