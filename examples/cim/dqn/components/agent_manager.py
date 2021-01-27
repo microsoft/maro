@@ -47,9 +47,9 @@ class DQNAgentManager(AbsAgentManager):
     def __init__(
         self,
         agent,
-        state_shaper: CIMStateShaper,
-        action_shaper: CIMActionShaper,
-        experience_shaper: TruncatedExperienceShaper
+        state_shaper: CIMStateShaper = None,
+        action_shaper: CIMActionShaper = None,
+        experience_shaper: TruncatedExperienceShaper = None
     ):
         super().__init__(
             agent,
