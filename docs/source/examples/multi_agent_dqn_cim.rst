@@ -167,7 +167,7 @@ that implements the ``train`` method where the newly obtained experiences are st
 experience pools before training, in accordance with the DQN algorithm.
 
 .. code-block:: python
-    class DQNAgentManager(SimpleAgentManager):
+    class DQNAgentManager(AbsAgentManager):
         def train(self, experiences_by_agent, performance=None):
             self._assert_train_mode()
 
@@ -200,9 +200,7 @@ policies.
         time_window=100, fulfillment_factor=1.0, shortage_factor=1.0, time_decay_factor=0.97
     )
     agent_manager = DQNAgentManager(
-        name="cim_learner",
-        mode=AgentManagerMode.TRAIN_INFERENCE,
-        agent_dict=create_dqn_agents(agent_id_list),
+        create_dqn_agents(agent_id_list),
         state_shaper=state_shaper,
         action_shaper=action_shaper,
         experience_shaper=experience_shaper
@@ -231,19 +229,17 @@ launching a learner process and an actor process separately. Because training oc
 occurs on the actor side, we need to create appropriate agent managers on both sides.
 
 On the actor side, the agent manager must be equipped with all shapers as well as an explorer. Thus, The code for
-creating an environment and an agent manager on the actor side is similar to that for the single-host version,
-except that it is necessary to set the AgentManagerMode to AgentManagerMode.INFERENCE. As in the single-process version, the environment
-and the agent manager are wrapped in a SimpleActor instance. To make the actor a distributed worker, we need to further
-wrap it in an ActorWorker instance. Finally, we launch the worker and it starts to listen to roll-out requests from the
-learner. The following code snippet shows the creation of an actor worker with a simple (local) actor wrapped inside.
+creating an environment and an agent manager on the actor side is similar to that for the single-host version. As in the
+single-process version, the environment and the agent manager are wrapped in a SimpleActor instance. To make the actor a
+distributed worker, we need to further wrap it in an ActorWorker instance. Finally, we launch the worker and it starts to
+listen to roll-out requests from the learner. The following code snippet shows the creation of an actor worker with a
+simple(local) actor wrapped inside.
 
 .. code-block:: python
     env = Env("cim", "toy.4p_ssdd_l0.0", durations=1120)
     agent_id_list = [str(agent_id) for agent_id in env.agent_idx_list]
     agent_manager = DQNAgentManager(
-        name="cim_learner",
-        mode=AgentManagerMode.INFERENCE,
-        agent_dict=create_dqn_agents(agent_id_list),
+        create_dqn_agents(agent_id_list),
         state_shaper=state_shaper,
         action_shaper=action_shaper,
         experience_shaper=experience_shaper
@@ -260,8 +256,7 @@ learner. The following code snippet shows the creation of an actor worker with a
     )
     actor_worker.launch()
 
-On the learner side, an agent manager in AgentManagerMode.TRAIN mode is required. However, it is not necessary to create shapers for an
-agent manager in AgentManagerMode.TRAIN mode. Instead of creating an actor, we create an actor proxy and wrap it inside the learner. This proxy
+On the learner side, instead of creating an actor, we create an actor proxy and wrap it inside the learner. This proxy
 serves as the communication interface for the learner and is responsible for sending roll-out requests to remote actor
 processes and receiving results. Calling the train method executes the usual training loop except that the actual
 roll-out is performed remotely. The code snippet below shows the creation of a learner with an actor proxy wrapped
@@ -270,9 +265,7 @@ inside that communicates with 3 actors.
 .. code-block:: python
 
     agent_manager = DQNAgentManager(
-        name="cim_learner",
-        mode=AgentManagerMode.TRAIN,
-        agent_dict=create_dqn_agents(agent_id_list),
+        create_dqn_agents(agent_id_list),
         state_shaper=state_shaper,
         action_shaper=action_shaper,
         experience_shaper=experience_shaper

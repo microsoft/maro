@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import os
 from abc import ABC, abstractmethod
 from typing import Dict, Union
 
@@ -17,22 +18,23 @@ class AbsAgentManager(ABC):
     agents, so that the whole agent manager will behave just like a single agent.
 
     Args:
-        agents (Union[Dict[str, AbsAgent], Proxy]): A dictionary of agents to be wrapper by the agent manager.
+        agent (Union[AbsAgent, Dict[str, AbsAgent], Proxy]): Agent(s) to be wrapped by the agent manager.
+            Alternatively, it can also be a ``Proxy`` instance in distributed mode.
         state_shaper (Shaper, optional): It is responsible for converting the environment observation to model
             input.
         action_shaper (Shaper, optional): It is responsible for converting an agent's model output to environment
-            executable action. Cannot be None under Inference and TrainInference modes.
+            executable action.
         experience_shaper (Shaper, optional): It is responsible for processing data in the replay buffer at
             the end of an episode.
     """
     def __init__(
         self,
-        agents: Union[Dict[str, AbsAgent], Proxy],
+        agent: Union[AbsAgent, Dict[str, AbsAgent], Proxy],
         state_shaper: Shaper = None,
         action_shaper: Shaper = None,
         experience_shaper: Shaper = None
     ):
-        self.agents = agents
+        self.agent = agent
         self._state_shaper = state_shaper
         self._action_shaper = action_shaper
         self._experience_shaper = experience_shaper
@@ -64,3 +66,54 @@ class AbsAgentManager(ABC):
     def train(self, *args, **kwargs):
         """Train agents."""
         return NotImplemented
+
+    def set_exploration_params(self, params):
+        # Per-agent exploration parameters
+        if isinstance(self.agent, AbsAgent):
+            self.agent.set_exploration_params(**params)
+        else:
+            if isinstance(params, dict) and params.keys() <= self.agent.keys():
+                for agent_id, params in params.items():
+                    self.agent[agent_id].set_exploration_params(**params)
+            # Shared exploration parameters for all agents
+            else:
+                for agent in self.agent.values():
+                    agent.set_exploration_params(**params)
+
+    def load_models(self, agent_model_dict):
+        """Load models from memory for each agent."""
+        if isinstance(self.agent, AbsAgent):
+            self.agent.load_model()
+        else:
+            for agent_id, models in agent_model_dict.items():
+                self.agent[agent_id].load_model(models)
+
+    def dump_models(self) -> dict:
+        """Get agents' underlying models.
+
+        This is usually used in distributed mode where models need to be broadcast to remote roll-out actors.
+        """
+        if isinstance(self.agent, AbsAgent):
+            return self.agent.dump_model()
+        else:
+            return {agent_id: agent.dump_model() for agent_id, agent in self.agent.items()}
+
+    def load_models_from_files(self, dir_path):
+        """Load models from disk for each agent."""
+        if isinstance(self.agent, AbsAgent):
+            self.agent.load_model_from_file(dir_path)
+        else:
+            for agent in self.agent.values():
+                agent.load_model_from_file(dir_path)
+
+    def dump_models_to_files(self, dir_path: str):
+        """Dump agents' models to disk.
+
+        Each agent will use its own name to create a separate file under ``dir_path`` for dumping.
+        """
+        os.makedirs(dir_path, exist_ok=True)
+        if isinstance(self.agent, AbsAgent):
+            self.agent.dump_model_to_file(dir_path)
+        else:
+            for agent in self.agent.values():
+                agent.dump_model_to_file(dir_path)

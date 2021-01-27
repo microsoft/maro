@@ -7,7 +7,7 @@ from statistics import mean
 import numpy as np
 
 from maro.simulator import Env
-from maro.rl import AgentManagerMode, Scheduler, SimpleActor, SimpleLearner
+from maro.rl import Scheduler, SimpleActor, SimpleLearner
 from maro.utils import LogFormat, Logger, convert_dottable
 
 from components import CIMActionShaper, CIMStateShaper, POAgentManager, TruncatedExperienceShaper, create_po_agents
@@ -62,9 +62,7 @@ def launch(config):
     # Step 3: create an agent manager.
     config["agents"]["input_dim"] = state_shaper.dim
     agent_manager = POAgentManager(
-        name="cim_learner",
-        mode=AgentManagerMode.TRAIN_INFERENCE,
-        agent_dict=create_po_agents(agent_id_list, config.agents),
+        create_po_agents(agent_id_list, config.agents),
         state_shaper=state_shaper,
         action_shaper=action_shaper,
         experience_shaper=experience_shaper,

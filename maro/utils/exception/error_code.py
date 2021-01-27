@@ -47,7 +47,6 @@ ERROR_CODE = {
     3003: "Deployment Error",
 
     # 4000-4999: Error codes for RL toolkit
-    4000: "Wrong Agent Manager Mode",
     4001: "Missing Shaper",
     4002: "Store Misalignment",
     4003: "Invalid Episode",

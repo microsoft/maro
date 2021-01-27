@@ -5,7 +5,7 @@ import os
 
 import numpy as np
 
-from maro.rl import AgentManagerMode, SimpleLearner, TwoPhaseLinearParameterScheduler
+from maro.rl import SimpleLearner, TwoPhaseLinearParameterScheduler
 from maro.simulator import Env
 from maro.utils import LogFormat, Logger, convert_dottable
 
@@ -28,9 +28,7 @@ def launch(config):
     # Step 3: Create agents and an agent manager.
     config["agents"]["algorithm"]["input_dim"] = state_shaper.dim
     agent_manager = DQNAgentManager(
-        name="cim_learner",
-        mode=AgentManagerMode.TRAIN_INFERENCE,
-        agents=create_dqn_agents(agent_id_list, config.agents),
+        create_dqn_agents(agent_id_list, config.agents),
         state_shaper=state_shaper,
         action_shaper=action_shaper,
         experience_shaper=experience_shaper

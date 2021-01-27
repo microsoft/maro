@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from maro.rl.agent_manager.simple_agent_manager import AgentManager
+from maro.rl.agent_manager import AbsAgentManager
 from maro.rl.scheduling.scheduler import Scheduler
 from maro.simulator import Env
 from maro.utils import InternalLogger, Logger
@@ -21,13 +21,13 @@ class SimpleLearner(AbsLearner):
     def __init__(
         self,
         env: Env,
-        agent_manager: AgentManager,
+        agent_manager: AbsAgentManager,
         scheduler: Scheduler,
         logger: Logger = InternalLogger("learner")
     ):
         super().__init__()
         self._env = env
-        self._agent_manager = agent_manager
+        self.agent_manager = agent_manager
         self._scheduler = scheduler
         self._logger = logger
 
@@ -40,7 +40,7 @@ class SimpleLearner(AbsLearner):
             if exploration_params:
                 ep_summary = f"{ep_summary}, exploration_params: {self._scheduler.exploration_params}"
             self._logger.info(ep_summary)
-            self._agent_manager.train(exp_by_agent)
+            self.agent_manager.train(exp_by_agent)
 
     def test(self):
         """Test policy performance."""
@@ -48,10 +48,10 @@ class SimpleLearner(AbsLearner):
         self._scheduler.record_performance(performance)
 
     def load_models(self, dir_path: str):
-        self._agent_manager.load_models_from_files(dir_path)
+        self.agent_manager.load_models_from_files(dir_path)
 
     def dump_models(self, dir_path: str):
-        self._agent_manager.dump_models_to_files(dir_path)
+        self.agent_manager.dump_models_to_files(dir_path)
 
     def _sample(self, exploration_params=None, return_details: bool = True):
         """Perform one episode of roll-out and return performance and experiences.
@@ -67,14 +67,14 @@ class SimpleLearner(AbsLearner):
 
         # load exploration parameters:
         if exploration_params is not None:
-            self._agent_manager.set_exploration_params(exploration_params)
+            self.agent_manager.set_exploration_params(exploration_params)
 
         metrics, decision_event, is_done = self._env.step(None)
         while not is_done:
-            action = self._agent_manager.choose_action(decision_event, self._env.snapshot_list)
+            action = self.agent_manager.choose_action(decision_event, self._env.snapshot_list)
             metrics, decision_event, is_done = self._env.step(action)
-            self._agent_manager.on_env_feedback(metrics)
+            self.agent_manager.on_env_feedback(metrics)
 
-        details = self._agent_manager.post_process(self._env.snapshot_list) if return_details else None
+        details = self.agent_manager.post_process(self._env.snapshot_list) if return_details else None
 
         return self._env.metrics, details
