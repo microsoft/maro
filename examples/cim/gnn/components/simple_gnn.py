@@ -25,7 +25,7 @@ class PositionalEncoder(nn.Module):
         self.d_model = d_model
         self.times = 4 * math.sqrt(self.d_model)
 
-        # Create constant "pe" matrix with values dependant on pos and i.
+        # Create constant "pe" matrix with values dependent on pos and i.
         self.pe = torch.zeros(max_seq_len, d_model)
         for pos in range(max_seq_len):
             for i in range(0, d_model, 2):

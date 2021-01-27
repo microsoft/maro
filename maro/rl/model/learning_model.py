@@ -165,10 +165,6 @@ class SimpleMultiHeadedModel(AbsLearningModel):
         super().__init__(*stacks, optimizer_options=optimizer_options)
         self._shared_stack = shared_stack
         self._input_dim = self._shared_stack.input_dim if self._shared_stack else task_stacks[0].input_dim
-        if len(task_stacks) == 1:
-            self._output_dim = task_stacks[0].output_dim
-        else:
-            self._output_dim = {task_stack.name: task_stack.output_dim for task_stack in task_stacks}
 
     @property
     def is_trainable(self) -> bool:

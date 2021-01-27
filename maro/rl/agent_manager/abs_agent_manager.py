@@ -5,11 +5,8 @@ from abc import ABC, abstractmethod
 from typing import Dict, Union
 
 from maro.communication import Proxy
-from maro.rl.shaping.action_shaper import ActionShaper
-from maro.rl.shaping.experience_shaper import ExperienceShaper
-from maro.rl.shaping.state_shaper import StateShaper
-
-from .abs_agent import AbsAgent
+from maro.rl.agent import AbsAgent
+from maro.rl.shaping import Shaper
 
 
 class AbsAgentManager(ABC):
@@ -21,19 +18,19 @@ class AbsAgentManager(ABC):
 
     Args:
         agents (Union[Dict[str, AbsAgent], Proxy]): A dictionary of agents to be wrapper by the agent manager.
-        state_shaper (StateShaper, optional): It is responsible for converting the environment observation to model
+        state_shaper (Shaper, optional): It is responsible for converting the environment observation to model
             input.
-        action_shaper (ActionShaper, optional): It is responsible for converting an agent's model output to environment
+        action_shaper (Shaper, optional): It is responsible for converting an agent's model output to environment
             executable action. Cannot be None under Inference and TrainInference modes.
-        experience_shaper (ExperienceShaper, optional): It is responsible for processing data in the replay buffer at
+        experience_shaper (Shaper, optional): It is responsible for processing data in the replay buffer at
             the end of an episode.
     """
     def __init__(
         self,
         agents: Union[Dict[str, AbsAgent], Proxy],
-        state_shaper: StateShaper = None,
-        action_shaper: ActionShaper = None,
-        experience_shaper: ExperienceShaper = None
+        state_shaper: Shaper = None,
+        action_shaper: Shaper = None,
+        experience_shaper: Shaper = None
     ):
         self.agents = agents
         self._state_shaper = state_shaper
@@ -61,4 +58,9 @@ class AbsAgentManager(ABC):
         These things may involve generating experiences and resetting stateful objects. See ``AgentManager``
         for example.
         """
+        return NotImplemented
+
+    @abstractmethod
+    def train(self, *args, **kwargs):
+        """Train agents."""
         return NotImplemented

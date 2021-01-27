@@ -7,7 +7,7 @@ import numpy as np
 import torch
 
 from maro.rl.exploration import NoiseExplorer
-from maro.rl.models import AbsLearningModel
+from maro.rl.model import AbsLearningModel
 from maro.rl.storage import SimpleStore
 
 from .abs_agent import AbsAgent
@@ -69,7 +69,7 @@ class DDPG(AbsAgent):
         self,
         model: AbsLearningModel,
         config: DDPGConfig,
-        experience_pool=SimpleStore(["state", "action", "reward", "next_state"]);
+        experience_pool=SimpleStore(["state", "action", "reward", "next_state"]),
         explorer: NoiseExplorer = None
     ):
         self.validate_task_names(model.task_names, {"policy", "q_value"})

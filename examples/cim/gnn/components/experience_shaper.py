@@ -2,8 +2,6 @@ from collections import defaultdict
 
 import numpy as np
 
-from maro.rl import ColumnBasedStore
-
 
 class ExperienceShaper:
     def __init__(
@@ -22,7 +20,7 @@ class ExperienceShaper:
         self._len_return = self._max_tick - self._time_slot
         self._gnn_state_shaper = gnn_state_shaper
         self._fulfillment_list, self._shortage_list, self._experience_dict = None, None, None
-        self._experience_dict = defaultdict(ColumnBasedStore())
+        self._experience_dict = defaultdict(list)
         self._init_state()
         self._scale_factor = scale_factor
         self._state_keys = ["v", "p", "vo", "po", "vedge", "pedge"]
@@ -32,13 +30,13 @@ class ExperienceShaper:
         self._experience_dict = defaultdict(list)
         self._last_tick = 0
 
-    def record(self, decision_event, model_action, model_input):
+    def record(self, decision_event, action_info, model_input):
         # Only the experience that has the next state of given time slot is valuable.
         if decision_event.tick + self._time_slot < self._max_tick:
             self._experience_dict[decision_event.port_idx, decision_event.vessel_idx].put({
                 "tick": decision_event.tick,
                 "s": model_input,
-                "a": model_action,
+                "a": action_info.action,
             })
 
     def _compute_delta(self, arr):

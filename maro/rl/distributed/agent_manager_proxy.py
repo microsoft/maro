@@ -1,12 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from collections import defaultdict
+
 from maro.communication import Proxy, SessionMessage
-from maro.rl.agent import AbsAgentManager
-from maro.rl.shaping.action_shaper import ActionShaper
-from maro.rl.shaping.experience_shaper import ExperienceShaper
-from maro.rl.shaping.state_shaper import StateShaper
-from maro.rl.storage.column_based_store import ColumnBasedStore
+from maro.rl.agent_manager import AbsAgentManager
+from maro.rl.shaping import Shaper
 
 from .common import MessageTag, PayloadKey, TerminateEpisode
 
@@ -17,11 +16,11 @@ class AgentManagerProxy(AbsAgentManager):
     executes it locally.
 
     Args:
-        state_shaper (StateShaper, optional): It is responsible for converting the environment observation to model
+        state_shaper (Shaper, optional): It is responsible for converting the environment observation to model
             input.
-        action_shaper (ActionShaper, optional): It is responsible for converting an agent's model output to environment
+        action_shaper (Shaper, optional): It is responsible for converting an agent's model output to environment
             executable action. Cannot be None under Inference and TrainInference modes.
-        experience_shaper (ExperienceShaper, optional): It is responsible for processing data in the replay buffer at
+        experience_shaper (Shaper, optional): It is responsible for processing data in the replay buffer at
             the end of an episode.
         max_receive_action_attempts (int): Maximum number of attempts to receive an action from the remote learner.
             Defaults to None, in which case, the proxy will keep trying to receive messages until the message containing
@@ -30,9 +29,9 @@ class AgentManagerProxy(AbsAgentManager):
     def __init__(
         self,
         agent_proxy: Proxy,
-        state_shaper: StateShaper = None,
-        action_shaper: ActionShaper = None,
-        experience_shaper: ExperienceShaper = None,
+        state_shaper: Shaper = None,
+        action_shaper: Shaper = None,
+        experience_shaper: Shaper = None,
         max_receive_action_attempts: int = None
     ):
         super().__init__(
@@ -44,9 +43,8 @@ class AgentManagerProxy(AbsAgentManager):
         self._max_receive_action_attempts = max_receive_action_attempts
         self._action_source = self.agents.peers_name["learner"][0]
 
-        # Data structures to temporarily store transitions and trajectory
-        self._transition_cache = {}
-        self._trajectory = ColumnBasedStore()
+        # Data structures to temporarily store trajectories
+        self._trajectory = defaultdict(list)
 
         self._current_ep = None
         self._time_step = None

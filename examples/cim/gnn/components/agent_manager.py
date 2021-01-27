@@ -7,15 +7,14 @@ import torch
 from torch.nn import GELU, TransformerEncoder, TransformerEncoderLayer
 from torch.optim import Adam
 
-from maro.rl import ActionInfo, FullyConnectedBlock, NNStack, OptimizerOptions, SimpleAgentManager
+from maro.rl import AbsAgentManager, ActionInfo, FullyConnectedBlock, NNStack, OptimizerOptions
 from maro.utils import DummyLogger, Logger
 
-from examples.cim.gnn.config import training_logger
 from examples.cim.gnn.components.gnn_based_actor_critic import GNNBasedActorCritic, GNNBasedActorCriticConfig
-from examples.cim.gnn.components.agent import GNNAgent
 from examples.cim.gnn.components.numpy_store import NumpyStore
-from examples.cim.gnn.components.simple_gnn import GNNBasedACModel, PositionalEncoder, SharedAC, SimpleTransformer
+from examples.cim.gnn.components.simple_gnn import GNNBasedACModel, PositionalEncoder, SimpleTransformer
 from examples.cim.gnn.components.state_shaper import GNNStateShaper
+from examples.cim.gnn.general import training_logger
 
 
 def get_experience_pool(config):
@@ -118,19 +117,29 @@ def create_gnn_agent(config):
     )
 
 
-class GNNAgentManager(SimpleAgentManager):
+class GNNAgentManager(AbsAgentManager):
     def choose_action(self, decision_event, snapshot_list):
         state = self._state_shaper(decision_event, snapshot_list)
         action_info = self.agents.choose_action(state)
-        self._trajectory["state"].append(state)
-        self._trajectory["event"].append(decision_event)
-        if isinstance(action_info, ActionInfo):
-            self._trajectory["action"].append(action_info.action)
-            self._trajectory["log_action_probability"].append(action_info.log_probability)
-        else:
-            self._trajectory["action"].append(action_info)
-        
+        self._experience_shaper.record(decision_event, action_info, state)
         return self._action_shaper(self._trajectory["action"][-1], decision_event)
 
+    def on_env_feed_back(self, metrics):
+        pass
+
+    def post_process(self, snapshot_list):
+        experiences = self._experience_shaper(self._trajectory, snapshot_list)
+        self._trajectory.clear()
+        self._state_shaper.reset()
+        self._action_shaper.reset()
+        self._experience_shaper.reset()
+        return experiences
+
     def store_experiences(self, experiences):
-        self.sgents.store_experiences(experiences)
+        self.agents.store_experiences(experiences)
+
+    def train(self):
+        self.agents.train()
+
+    def dump_models_to_files(self, path):
+        self.agents.dump_model_to_file(path)

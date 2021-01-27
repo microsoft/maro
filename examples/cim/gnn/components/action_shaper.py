@@ -1,8 +1,8 @@
-from maro.rl import ActionShaper
+from maro.rl import Shaper
 from maro.simulator.scenarios.cim.common import Action
 
 
-class DiscreteActionShaper(ActionShaper):
+class DiscreteActionShaper(Shaper):
     """The shaping class to transform the action in [-1, 1] to actual repositioning function."""
     def __init__(self, action_dim):
         super().__init__()

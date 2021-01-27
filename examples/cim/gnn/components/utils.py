@@ -103,7 +103,7 @@ def load_config(config_pth):
 def save_config(config, config_pth):
     with open(config_pth, "w") as fp:
         config = dottable2dict(config)
-        config["env"]["exp_per_ep"] = [f"{k[0]}, {k[1]}, {d}" for k, d in config["env"]["exp_per_ep"].items()]
+        config["agent"]["exp_per_ep"] = [f"{k[0]}, {k[1]}, {d}" for k, d in config["agent"]["exp_per_ep"].items()]
         yaml.safe_dump(config, fp)
 
 

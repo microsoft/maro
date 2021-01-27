@@ -20,7 +20,7 @@ remaining space on vessel.
     PORT_ATTRIBUTES = ["empty", "full", "on_shipper", "on_consignee", "booking", "shortage", "fulfillment"]
     VESSEL_ATTRIBUTES = ["empty", "full", "remaining_space"]
 
-    class CIMStateShaper(StateShaper):
+    class CIMStateShaper(Shaper):
         ...
         def __call__(self, decision_event, snapshot_list):
             tick, port_idx, vessel_idx = decision_event.tick, decision_event.port_idx, decision_event.vessel_idx
@@ -42,7 +42,7 @@ integers from -10 to 10, with -10 indicating loading 100% of the containers in t
 
 .. code-block:: python
 
-    class CIMActionShaper(ActionShaper):
+    class CIMActionShaper(Shaper):
         ...
         def __call__(self, model_action, decision_event, snapshot_list):
             scope = decision_event.action_scope
@@ -76,7 +76,7 @@ an episode trajectory to trainable experiences for RL agents. For this specific 
 combination of fulfillment and shortage in a limited time window.
 
 .. code-block:: python
-    class TruncatedExperienceShaper(ExperienceShaper):
+    class TruncatedExperienceShaper(Shaper):
         ...
         def __call__(self, trajectory, snapshot_list):
             experiences_by_agent = defaultdict(lambda: defaultdict(list))

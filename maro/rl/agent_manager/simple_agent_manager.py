@@ -7,11 +7,8 @@ from collections import defaultdict
 from enum import Enum
 from typing import Dict
 
-from maro.rl.agent.abs_agent import AbsAgent
-from maro.rl.agent.policy_optimization import ActionInfo
-from maro.rl.shaping.action_shaper import ActionShaper
-from maro.rl.shaping.experience_shaper import ExperienceShaper
-from maro.rl.shaping.state_shaper import StateShaper
+from maro.rl.agent import AbsAgent, ActionInfo
+from maro.rl.shaping import Shaper
 from maro.utils.exception.rl_toolkit_exception import AgentManagerModeError, MissingShaper
 
 from .abs_agent_manager import AbsAgentManager
@@ -35,11 +32,11 @@ class AgentManager(AbsAgentManager):
         mode (AgentManagerMode): An ``AgentManagerNode`` enum member that indicates the role of the agent manager
             in the current process.
         agents (Dict[str, AbsAgent]): A dictionary of agents to be wrapper by the agent manager.
-        state_shaper (StateShaper, optional): It is responsible for converting the environment observation to model
+        state_shaper (Shaper, optional): It is responsible for converting the environment observation to model
             input.
-        action_shaper (ActionShaper, optional): It is responsible for converting an agent's model output to environment
+        action_shaper (Shaper, optional): It is responsible for converting an agent's model output to environment
             executable action. Cannot be None under Inference and TrainInference modes.
-        experience_shaper (ExperienceShaper, optional): It is responsible for processing data in the replay buffer at
+        experience_shaper (Shaper, optional): It is responsible for processing data in the replay buffer at
             the end of an episode.
     """
     def __init__(
@@ -47,9 +44,9 @@ class AgentManager(AbsAgentManager):
         name: str,
         mode: AgentManagerMode,
         agents: Dict[str, AbsAgent],
-        state_shaper: StateShaper = None,
-        action_shaper: ActionShaper = None,
-        experience_shaper: ExperienceShaper = None
+        state_shaper: Shaper = None,
+        action_shaper: Shaper = None,
+        experience_shaper: Shaper = None
     ):
         if mode in {AgentManagerMode.INFERENCE, AgentManagerMode.TRAIN_INFERENCE}:
             if state_shaper is None:

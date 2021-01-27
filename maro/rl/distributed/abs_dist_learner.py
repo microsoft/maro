@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from typing import Callable
 
 from maro.communication import Proxy, RegisterTable, SessionMessage, SessionType
-from maro.rl.agent.abs_agent_manager import AbsAgentManager
+from maro.rl.agent_manager import AbsAgentManager
 from maro.rl.scheduling.scheduler import Scheduler
 from maro.utils import InternalLogger
 

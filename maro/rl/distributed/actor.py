@@ -6,7 +6,7 @@ from abc import ABC
 from typing import Union
 
 from maro.communication import Proxy
-from maro.rl.agent import AgentManager
+from maro.rl.agent_manager import AgentManager
 from maro.simulator import Env
 from maro.utils import InternalLogger
 

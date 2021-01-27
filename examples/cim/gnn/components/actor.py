@@ -9,7 +9,6 @@ from multiprocessing import Pipe, Process
 import numpy as np
 import torch
 
-from maro.rl import AbsActor
 from maro.simulator import Env
 
 from .action_shaper import DiscreteActionShaper
@@ -145,7 +144,7 @@ def single_player_worker(index, config, exp_idx_mapping, pipe, action_io, exp_ou
     
     # Create gnn_state_shaper without consuming any resources.
     gnn_state_shaper = GNNStateShaper(
-        static_code_list, dynamic_code_list, config.env.param.durations, config.model.feature,
+        static_code_list, dynamic_code_list, config.env.durations, config.model.feature,
         tick_buffer=config.model.tick_buffer, max_value=env.configs["total_containers"])
     gnn_state_shaper.compute_static_graph_structure(env)
 
@@ -153,7 +152,7 @@ def single_player_worker(index, config, exp_idx_mapping, pipe, action_io, exp_ou
 
     action_shaper = DiscreteActionShaper(config.model.action_dim)
     exp_shaper = ExperienceShaper(
-        static_code_list, dynamic_code_list, config.env.param.durations, gnn_state_shaper,
+        static_code_list, dynamic_code_list, config.env.durations, gnn_state_shaper,
         scale_factor=config.env.return_scaler, time_slot=config.training.td_steps,
         discount_factor=config.training.gamma, idx=index, shared_storage=exp_output.structuralize(),
         exp_idx_mapping=exp_idx_mapping)
@@ -185,7 +184,7 @@ def single_player_worker(index, config, exp_idx_mapping, pipe, action_io, exp_ou
                 action, decision_event.action_scope.load, decision_event.action_scope.discharge])
             r, decision_event, done = env.step(action)
             j += 1
-        action_io_np["sh"][index] = compute_shortage(env.snapshot_list, config.env.param.durations, static_code_list)
+        action_io_np["sh"][index] = compute_shortage(env.snapshot_list, config.env.durations, static_code_list)
         i += 1
         pipe.send("done")
         gnn_state_shaper.end_ep_callback(env.snapshot_list)
@@ -202,7 +201,7 @@ def compute_shortage(snapshot_list, max_tick, static_code_list):
     return np.sum(snapshot_list["ports"][max_tick - 1: static_code_list: "acc_shortage"])
 
 
-class ParallelActor(AbsActor):
+class ParallelActor:
     def __init__(self, config, demo_env, gnn_state_shaper, agent_manager, logger):
         """A2C rollout class.
 

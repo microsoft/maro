@@ -4,7 +4,7 @@
 from abc import ABC, abstractmethod
 
 
-class AbsShaper(ABC):
+class Shaper(ABC):
     """Abstract shaper class. Classes inheriting from it must implement the ``__call__`` method."""
     def __init__(self, *args, **kwargs):
         pass

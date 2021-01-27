@@ -5,10 +5,8 @@ from collections import defaultdict
 
 import numpy as np
 
-from maro.rl import ExperienceShaper
 
-
-class TruncatedExperienceShaper(ExperienceShaper):
+class TruncatedExperienceShaper(Shaper):
     def __init__(
         self, *, time_window: int, time_decay_factor: float, fulfillment_factor: float, shortage_factor: float
     ):
