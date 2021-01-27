@@ -1,17 +1,13 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import os
 from abc import ABC, abstractmethod
-from enum import Enum
+from typing import Dict, Union
 
+from maro.communication import Proxy
+from maro.rl.agent import AbsAgent
 from maro.rl.shaping import Shaper
-from maro.utils.exception.rl_toolkit_exception import AgentManagerModeError
-
-
-class AgentManagerMode(Enum):
-    TRAIN = "train"
-    INFERENCE = "inference"
-    TRAIN_INFERENCE = "train_inference"
 
 
 class AbsAgentManager(ABC):
@@ -22,10 +18,7 @@ class AbsAgentManager(ABC):
     agents, so that the whole agent manager will behave just like a single agent.
 
     Args:
-        name (str): Name of agent manager.
-        mode (AgentManagerMode): An ``AgentManagerNode`` enum member that indicates the role of the agent manager
-            in the current process.
-        agent_dict (dict): A dictionary of agents to be wrapper by the agent manager.
+        agent (Union[AbsAgent, Dict[str, AbsAgent]]): Agent(s) to be wrapper by the agent manager.
         state_shaper (Shaper, optional): It is responsible for converting the environment observation to model
             input.
         action_shaper (Shaper, optional): It is responsible for converting an agent's model output to environment
@@ -35,27 +28,15 @@ class AbsAgentManager(ABC):
     """
     def __init__(
         self,
-        name: str,
-        mode: AgentManagerMode,
-        agent_dict: dict,
+        agent: Union[AbsAgent, Dict[str, AbsAgent]],
         state_shaper: Shaper = None,
         action_shaper: Shaper = None,
         experience_shaper: Shaper = None
     ):
-        self._name = name
-        self._mode = mode
-        self.agent_dict = agent_dict
+        self.agent = agent
         self._state_shaper = state_shaper
         self._action_shaper = action_shaper
         self._experience_shaper = experience_shaper
-
-    def __getitem__(self, agent_id):
-        return self.agent_dict[agent_id]
-
-    @property
-    def name(self):
-        """Agent manager's name."""
-        return self._name
 
     @abstractmethod
     def choose_action(self, *args, **kwargs):
@@ -67,7 +48,7 @@ class AbsAgentManager(ABC):
     def on_env_feedback(self, *args, **kwargs):
         """Processing logic after receiving feedback from the environment is implemented here.
 
-        See ``SimpleAgentManager`` for example.
+        See ``AgentManager`` for example.
         """
         return NotImplemented
 
@@ -75,30 +56,63 @@ class AbsAgentManager(ABC):
     def post_process(self, *args, **kwargs):
         """Processing logic after an episode is finished.
 
-        These things may involve generating experiences and resetting stateful objects. See ``SimpleAgentManager``
+        These things may involve generating experiences and resetting stateful objects. See ``AgentManager``
         for example.
         """
         return NotImplemented
 
     @abstractmethod
-    def train(self, experience_by_agent: dict):
-        """Train the agents."""
+    def train(self, *args, **kwargs):
+        """Train agents."""
         return NotImplemented
 
     def set_exploration_params(self, params):
         # Per-agent exploration parameters
-        if isinstance(params, dict) and params.keys() <= self.agent_dict.keys():
-            for agent_id, params in params.items():
-                self.agent_dict[agent_id].set_exploration_params(**params)
-        # Shared exploration parameters for all agents
+        if isinstance(self.agent, AbsAgent):
+            self.agent.set_exploration_params(**params)
         else:
-            for agent in self.agent_dict.values():
-                agent.set_exploration_params(**params)
+            if isinstance(params, dict) and params.keys() <= self.agent.keys():
+                for agent_id, params in params.items():
+                    self.agent[agent_id].set_exploration_params(**params)
+            # Shared exploration parameters for all agents
+            else:
+                for agent in self.agent.values():
+                    agent.set_exploration_params(**params)
+    
+    def load_models(self, agent_model_dict):
+        """Load models from memory for each agent."""
+        if isinstance(self.agent, AbsAgent):
+            self.agent.load_model()
+        else:
+            for agent_id, models in agent_model_dict.items():
+                self.agent[agent_id].load_model(models)
 
-    def _assert_train_mode(self):
-        if self._mode != AgentManagerMode.TRAIN and self._mode != AgentManagerMode.TRAIN_INFERENCE:
-            raise AgentManagerModeError(msg=f"this method is unavailable under mode {self._mode}")
+    def dump_models(self) -> dict:
+        """Get agents' underlying models.
 
-    def _assert_inference_mode(self):
-        if self._mode != AgentManagerMode.INFERENCE and self._mode != AgentManagerMode.TRAIN_INFERENCE:
-            raise AgentManagerModeError(msg=f"this method is unavailable under mode {self._mode}")
+        This is usually used in distributed mode where models need to be broadcast to remote roll-out actors.
+        """
+        if isinstance(self.agent, AbsAgent):
+            return self.agent.dump_model()
+        else:
+            return {agent_id: agent.dump_model() for agent_id, agent in self.agent.items()}
+
+    def load_models_from_files(self, dir_path):
+        """Load models from disk for each agent."""
+        if isinstance(self.agent, AbsAgent):
+            self.agent.load_model_from_file(dir_path)
+        else:
+            for agent in self.agent.values():
+                agent.load_model_from_file(dir_path)
+
+    def dump_models_to_files(self, dir_path: str):
+        """Dump agents' models to disk.
+
+        Each agent will use its own name to create a separate file under ``dir_path`` for dumping.
+        """
+        os.makedirs(dir_path, exist_ok=True)
+        if isinstance(self.agent, AbsAgent):
+            self.agent.dump_model_to_file(dir_path)
+        else:
+            for agent in self.agent.values():
+                agent.dump_model_to_file(dir_path)

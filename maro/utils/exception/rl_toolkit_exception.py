@@ -4,12 +4,6 @@
 from .base_exception import MAROException
 
 
-class AgentManagerModeError(MAROException):
-    """Wrong agent manager mode."""
-    def __init__(self, msg: str = None):
-        super().__init__(4000, msg)
-
-
 class MissingShaper(MAROException):
     """Missing shaper."""
     def __init__(self, msg: str = None):

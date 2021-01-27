@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from maro.rl.agent_manager.simple_agent_manager import SimpleAgentManager
+from maro.rl.agent_manager import AbsAgentManager
 from maro.simulator import Env
 
 from .abs_actor import AbsActor
@@ -12,9 +12,9 @@ class SimpleActor(AbsActor):
 
     Args:
         env (Env): An Env instance.
-        agent_manager (SimpleAgentManager): An AgentManager instance that manages all agents.
+        agent_manager (AbsAgentManager): An AgentManager instance that manages all agents.
     """
-    def __init__(self, env: Env, agent_manager: SimpleAgentManager):
+    def __init__(self, env: Env, agent_manager: AbsAgentManager):
         super().__init__(env, agent_manager)
 
     def roll_out(
@@ -40,18 +40,18 @@ class SimpleActor(AbsActor):
 
         # load models
         if model_dict is not None:
-            self._agents.load_models(model_dict)
+            self.agent_manager.load_models(model_dict)
 
         # load exploration parameters:
         if exploration_params is not None:
-            self._agents.set_exploration_params(exploration_params)
+            self.agent_manager.set_exploration_params(exploration_params)
 
         metrics, decision_event, is_done = self._env.step(None)
         while not is_done:
-            action = self._agents.choose_action(decision_event, self._env.snapshot_list)
+            action = self.agent_manager.choose_action(decision_event, self._env.snapshot_list)
             metrics, decision_event, is_done = self._env.step(action)
-            self._agents.on_env_feedback(metrics)
+            self.agent_manager.on_env_feedback(metrics)
 
-        details = self._agents.post_process(self._env.snapshot_list) if return_details else None
+        details = self.agent_manager.post_process(self._env.snapshot_list) if return_details else None
 
         return self._env.metrics, details

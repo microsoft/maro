@@ -16,12 +16,12 @@ class AbsActor(ABC):
 
     Args:
         env (Env): An Env instance.
-        agents (AbsAgentManager or dict): A dict of agents or an AgentManager instance that manages
+        agent_manager (AbsAgentManager): An AgentManager instance that contains necessary shapers and manages
             all agents.
     """
-    def __init__(self, env: Env, agents: Union[AbsAgentManager, dict]):
+    def __init__(self, env: Env, agent_manager: AbsAgentManager):
         self._env = env
-        self._agents = agents
+        self.agent_manager = agent_manager
 
     @abstractmethod
     def roll_out(
@@ -43,7 +43,3 @@ class AbsActor(ABC):
         """
         return NotImplementedError
 
-    @property
-    def agents(self):
-        """Agents performing inference during roll-out."""
-        return self._agents

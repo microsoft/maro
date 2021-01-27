@@ -6,7 +6,7 @@ import os
 import numpy as np
 
 
-from maro.rl import ActorWorker, AgentManagerMode, SimpleActor
+from maro.rl import ActorWorker, SimpleActor
 from maro.simulator import Env
 from maro.utils import convert_dottable
 
@@ -26,9 +26,7 @@ def launch(config, distributed_config):
 
     config["agents"]["algorithm"]["input_dim"] = state_shaper.dim
     agent_manager = DQNAgentManager(
-        name="cim_actor",
-        mode=AgentManagerMode.INFERENCE,
-        agent_dict=create_dqn_agents(agent_id_list, config.agents),
+        create_dqn_agents(agent_id_list, config.agents),
         state_shaper=state_shaper,
         action_shaper=action_shaper,
         experience_shaper=experience_shaper
