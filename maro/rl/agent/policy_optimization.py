@@ -28,7 +28,7 @@ class PolicyGradient(AbsAgent):
     """
     def __init__(self, name: str, model: SimpleMultiHeadedModel, reward_discount: float):
         super().__init__(name, model, reward_discount)
-    
+
     def choose_action(self, state: np.ndarray) -> Union[ActionInfo, List[ActionInfo]]:
         """Use the actor (policy) model to generate stochastic actions.
 
@@ -48,7 +48,7 @@ class PolicyGradient(AbsAgent):
         action_probs = action_probs.numpy()
         action_info = [ActionInfo(action=act, log_prob=np.log(action_probs[i][act])) for i, act in enumerate(action)]
         return action_info[0] if is_single else action_info
-    
+
     def train(
         self, states: np.ndarray, actions: np.ndarray, log_action_prob: np.ndarray, rewards: np.ndarray
     ):
@@ -156,7 +156,7 @@ class ActorCritic(AbsAgent):
             actor_loss = self._actor_loss(log_action_prob_new, log_action_prob, advantages)
             loss = critic_loss + self._config.actor_loss_coefficient * actor_loss
             self._model.learn(loss)
-    
+
     def _actor_loss(self, log_action_prob_new, log_action_prob_old, advantages):
         if self._config.clip_ratio is not None:
             ratio = torch.exp(log_action_prob_new - log_action_prob_old)
