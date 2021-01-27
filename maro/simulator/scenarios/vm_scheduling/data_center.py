@@ -13,6 +13,8 @@ class DataCenter(NodeBase):
     region_id = NodeAttribute("i2")
     zone_id = NodeAttribute("i2")
 
+    total_machine_num = NodeAttribute("i")
+
     def __init__(self):
         self._id: int = 0
 
@@ -32,10 +34,9 @@ class DataCenter(NodeBase):
     def reset(self):
         """Reset to default value."""
         self.id = self._id
-        self._cluster_list.clear()
 
-        self.region_id = -1
-        self.zone_id = -1
+        self._name = ""
+        self._cluster_list.clear()
 
     @property
     def cluster_list(self) -> List[int]:

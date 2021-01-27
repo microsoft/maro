@@ -12,6 +12,8 @@ class Zone(NodeBase):
     id = NodeAttribute("i2")
     region_id = NodeAttribute("i2")
 
+    total_machine_num = NodeAttribute("i")
+
     def __init__(self):
         self._id: int = 0
 
@@ -32,7 +34,6 @@ class Zone(NodeBase):
         """Reset to default value."""
         self.id = self._id
 
-        self.region_id = -1
         self._name = ""
         self._data_center_list.clear()
 

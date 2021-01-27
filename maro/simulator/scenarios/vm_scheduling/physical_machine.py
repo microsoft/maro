@@ -95,12 +95,6 @@ class PhysicalMachine(NodeBase):
         self.cpu_utilization = 0.0
         self.energy_consumption = 0.0
 
-        self.region_id = 0
-        self.zone_id = 0
-        self.data_center_id = 0
-        self.cluster_id = 0
-        self.rack_id = 0
-
     @property
     def live_vms(self) -> Set[int]:
         return self._live_vms

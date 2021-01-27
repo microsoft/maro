@@ -13,6 +13,9 @@ class Cluster(NodeBase):
     region_id = NodeAttribute("i2")
     zone_id = NodeAttribute("i2")
     data_center_id = NodeAttribute("i2")
+
+    # Total number of machines in the cluster.
+    total_machine_num = NodeAttribute("i")
     # The number of empty machines in this cluster. A empty machine means that its allocated CPU cores are 0.
     empty_machine_num = NodeAttribute("i")
 
@@ -35,13 +38,11 @@ class Cluster(NodeBase):
     def reset(self):
         """Reset to default value."""
         self.id = self._id
+
         self._cluster_type = ""
         self._rack_list.clear()
 
-        self.region_id = -1
-        self.zone_id = -1
-        self.data_center_id = -1
-        self.empty_machine_num = 0
+        self.empty_machine_num = self.total_machine_num
 
     @property
     def rack_list(self) -> List[int]:

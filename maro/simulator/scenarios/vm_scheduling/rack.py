@@ -16,7 +16,7 @@ class Rack(NodeBase):
     data_center_id = NodeAttribute("i2")
     cluster_id = NodeAttribute("i2")
 
-    total_pm_num = NodeAttribute("i")
+    total_machine_num = NodeAttribute("i")
     empty_machine_num = NodeAttribute("i")
 
     def __init__(self):
@@ -40,11 +40,8 @@ class Rack(NodeBase):
         self.id = self._id
         self._pm_list.clear()
 
-        self.region_id = -1
-        self.zone_id = -1
-        self.data_center_id = -1
-        self.cluster_id = -1
-        self.empty_machine_num = 0
+        self._name = ""
+        self.empty_machine_num = self.total_machine_num
 
     @property
     def pm_list(self) -> List[int]:

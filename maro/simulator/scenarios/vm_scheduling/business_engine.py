@@ -72,12 +72,13 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._init_data()
 
         # Data center structure for quick accessing.
+        self._init_pms()
+        self._init_racks()
+        self._init_clusters()
+        self._init_data_centers()
         self._init_regions()
         self._init_zones()
-        self._init_data_centers()
-        self._init_clusters()
-        self._init_racks()
-        self._init_pms()
+
         self._dfs_update_id()
 
         # All living VMs.
@@ -137,7 +138,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._cluster_amount: int = len(self._config.components.cluster)
         self._rack_amount: int = len(self._config.components.rack)
         self._pm_amount: int = sum(
-            amount for amount in self._find_item(key="pm_amount", dictionary=self._config.architecture)
+            amount for amount in self._find_item(key="amount", dictionary=self._config.components)
         )
 
         self._kill_all_vms_if_overload: bool = self._config.KILL_ALL_VMS_IF_OVERLOAD
@@ -195,6 +196,9 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 )
                 region.name = region_dict["name"]
                 region.zone_list = [next(zone_id) for _ in range(len(region_dict["zone"]))]
+                region.total_machine_num = sum(
+                    self._zones[zone_id].total_machine_num for zone_id in region.zone_list
+                )
                 region_id += 1
 
     def _init_zones(self):
@@ -210,6 +214,9 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 )
                 zone.name = zone_dict["name"]
                 zone.data_center_list = [next(data_center_id) for _ in range(len(zone_dict["data_center"]))]
+                zone.total_machine_num = sum(
+                    self._data_centers[data_center_id].total_machine_num for data_center_id in zone.data_center_list
+                )
                 zone_id += 1
 
     def _init_data_centers(self):
@@ -225,6 +232,9 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 )
                 data_center.name = data_center_dict["name"]
                 data_center.cluster_list = [next(cluster_id) for _ in range(len(data_center_dict["cluster"]))]
+                data_center.total_machine_num = sum(
+                    self._clusters[cluster_id].total_machine_num for cluster_id in data_center.cluster_list
+                )
                 data_center_id += 1
 
     def _init_clusters(self):
@@ -240,6 +250,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             )
             cluster.cluster_type = cluster_dict["type"]
             cluster.rack_list = [next(rack_id) for _ in range(len(cluster_dict["rack"]))]
+            cluster.total_machine_num = sum(self._racks[rack_id].total_machine_num for rack_id in cluster.rack_list)
             cluster_id += 1
 
     def _init_racks(self):
@@ -253,8 +264,9 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 id=rack_id
             )
             rack.type = rack_dict["type"]
-            rack.total_pm_num = sum(pm["amount"] for pm in rack_dict["pm"])
-            rack.pm_list = [next(pm_id) for _ in range(rack.total_pm_num)]
+            rack.total_machine_num = sum(pm["amount"] for pm in rack_dict["pm"])
+            rack.pm_list = [next(pm_id) for _ in range(rack.total_machine_num)]
+            rack_id += 1
 
     def _init_pms(self):
         """Initialize the physical machines based on the config setting. The PM id starts from 0."""
@@ -486,14 +498,14 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             else:
                 pending_vm.add_utilization(cpu_utilization=cur_tick_cpu_utilization[pending_vm.id])
 
-    def _update_cluster_metrics(self):
-        for cluster in self._clusters:
+    def _update_rack_metrics(self):
+        for rack in self._racks:
             count_empty_machine: int = 0
-            for pm_id in cluster.pm_list:
+            for pm_id in rack.pm_list:
                 pm = self._machines[pm_id]
                 if pm.cpu_cores_allocated == 0:
                     count_empty_machine += 1
-            cluster.empty_machine_num = count_empty_machine
+            rack.empty_machine_num = count_empty_machine
 
     def _update_pm_workload(self):
         """Update CPU utilization occupied by total VMs on each PM."""

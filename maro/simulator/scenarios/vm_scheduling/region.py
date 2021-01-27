@@ -11,6 +11,8 @@ class Region(NodeBase):
     """Region node definition in frame."""
     id = NodeAttribute("i2")
 
+    total_machine_num = NodeAttribute("i")
+
     def __init__(self):
         self._id: int = 0
 

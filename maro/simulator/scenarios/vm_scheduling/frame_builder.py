@@ -11,7 +11,10 @@ from .region import Region
 from .zone import Zone
 
 
-def build_frame(snapshots_num: int, **kwargs):
+def build_frame(
+    snapshots_num: int, region_amount: int, zone_amount: int, data_center_amount: int, cluster_amount: int,
+    rack_amount: int, pm_amount: int
+):
     """Function to build vm_scheduling Frame.
 
     Args:
@@ -25,12 +28,12 @@ def build_frame(snapshots_num: int, **kwargs):
         VmSchedulingFrame: Frame instance for vm_scheduling scenario.
     """
     class VmSchedulingFrame(FrameBase):
-        regions = FrameNode(Region, kwargs["region_amount"])
-        zones = FrameNode(Zone, kwargs["zone_amount"])
-        data_centers = FrameNode(DataCenter, kwargs["data_center_amount"])
-        clusters = FrameNode(Cluster, kwargs["cluster_amount"])
-        racks = FrameNode(Rack, kwargs["rack_amount"])
-        pms = FrameNode(PhysicalMachine, kwargs["pm_amount"])
+        regions = FrameNode(Region, region_amount)
+        zones = FrameNode(Zone, zone_amount)
+        data_centers = FrameNode(DataCenter, data_center_amount)
+        clusters = FrameNode(Cluster, cluster_amount)
+        racks = FrameNode(Rack, rack_amount)
+        pms = FrameNode(PhysicalMachine, pm_amount)
 
         def __init__(self):
             super().__init__(enable_snapshot=True, total_snapshot=snapshots_num)
