@@ -4,30 +4,33 @@
 import copy
 import json
 import os
-import psutil
 import shutil
 import subprocess
-import torch
-import yaml
 
 import redis
+import yaml
 
-from maro.cli.grass.lib.agents.resource import ResourceInfo
+from maro.cli.grass.lib.services.utils.resource import ResourceInfo
 from maro.cli.process.utils.details import close_by_pid
 from maro.cli.utils.cmp import resource_op
-from maro.cli.utils.details import load_cluster_details, save_cluster_details
+from maro.cli.utils.details_reader import DetailsReader
+from maro.cli.utils.details_writer import DetailsWriter
 from maro.cli.utils.params import GlobalPaths, GrassLocalRedisName, LocalPaths
 from maro.utils.exception.cli_exception import BadRequestError
 from maro.utils.logger import CliLogger
-
 
 logger = CliLogger(name=__name__)
 
 
 class GrassLocalExecutor:
-    def __init__(self, cluster_name: str):
-        self.cluster_name = cluster_name
-        self.cluster_details = load_cluster_details(cluster_name=cluster_name)
+    def __init__(self, cluster_name: str = None, cluster_details: dict = None):
+        if not cluster_name and not cluster_details:
+            raise BadRequestError(
+                "Failure to create GrassLocalExecutor. At least given a cluster_name or cluster_details"
+            )
+        self.cluster_name = cluster_name if cluster_name else cluster_details["name"]
+        self.cluster_details = cluster_details if cluster_details else \
+            DetailsReader.load_cluster_details(cluster_name=cluster_name)
 
         # Connection with Redis
         redis_port = self.cluster_details["master"]["redis"]["port"]
@@ -40,20 +43,7 @@ class GrassLocalExecutor:
             )
             redis_process.wait(timeout=2)
 
-    @staticmethod
-    def build_cluster_details(create_deployment: dict):
-        # Get cluster name and save details
-        cluster_name = create_deployment["name"]
-        if os.path.isdir(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_name}"):
-            raise BadRequestError(f"Cluster '{cluster_name}' is exist.")
-        os.makedirs(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_name}")
-        save_cluster_details(
-            cluster_name=cluster_name,
-            cluster_details=create_deployment,
-            sync=False
-        )
-
-    def _standardize_local_deployment(self, deployment: dict):
+    def _complated_local_job_deployment(self, deployment: dict):
         total_cpu, total_memory, total_gpu = 0, 0, 0
         for component_type, component_dict in deployment["components"].items():
             total_cpu += int(component_dict["num"]) * int(component_dict["resources"]["cpu"])
@@ -69,6 +59,17 @@ class GrassLocalExecutor:
 
     def create(self):
         logger.info("Creating cluster")
+
+        # Get cluster name and save cluster details.
+        if os.path.isdir(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}"):
+            raise BadRequestError(f"Cluster '{self.cluster_name}' is exist.")
+
+        # self._details_validation(create_deployment)
+
+        DetailsWriter.save_cluster_details(
+            cluster_name=self.cluster_name,
+            cluster_details=self.cluster_details
+        )
 
         # Allocation
         cluster_resource = self.cluster_details["master"]["resource"]
@@ -104,33 +105,33 @@ class GrassLocalExecutor:
 
         self._agents_start()
 
+        logger.info(f"{self.cluster_name} is created.")
+
     def delete(self):
-        # Get Redis resource
+        # Remove local cluster file.
+        shutil.rmtree(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}", True)
+
+        # Stop cluster agents.
+        self._agents_stop()
+
+        # Release cluster resource.
         try:
             available_resource = json.loads(
                 self._redis_connection.hget(GrassLocalRedisName.RUNTIME_DETAILS, "available_resource")
             )
-            need_update = True
         except Exception:
-            logger.warning("Failure to get runtime details from Redis. Please check Redis Connection.")
-            need_update = False
-
-        cluster_resource = self.cluster_details["master"]["resource"]
+            raise BadRequestError("Failure to get current resource from Redis. Please check Redis Connection.")
 
         # Update resource
-        if need_update:
-            _, updated_resource = resource_op(available_resource, cluster_resource, "release")
+        cluster_resource = self.cluster_details["master"]["resource"]
+        _, updated_resource = resource_op(available_resource, cluster_resource, "release")
 
-            self._redis_connection.hset(
-                GrassLocalRedisName.RUNTIME_DETAILS,
-                "available_resource",
-                json.dumps(updated_resource)
-            )
-            self._redis_connection.hdel(GrassLocalRedisName.CLUSTER_DETAILS, self.cluster_name)
-
-        shutil.rmtree(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}", True)
-
-        self._agents_stop()
+        self._redis_connection.hset(
+            GrassLocalRedisName.RUNTIME_DETAILS,
+            "available_resource",
+            json.dumps(updated_resource)
+        )
+        self._redis_connection.hdel(GrassLocalRedisName.CLUSTER_DETAILS, self.cluster_name)
 
     def _agents_start(self):
         command = f"python {LocalPaths.MARO_GRASS_LOCAL_AGENT} {self.cluster_name}"
@@ -149,7 +150,7 @@ class GrassLocalExecutor:
         with open(deployment_path, "r") as fr:
             start_job_deployment = yaml.safe_load(fr)
 
-        start_job_deployment = self._standardize_local_deployment(start_job_deployment)
+        start_job_deployment = self._complated_local_job_deployment(start_job_deployment)
 
         # Check resource
         is_satisfied, _ = resource_op(
@@ -224,7 +225,7 @@ class GrassLocalExecutor:
             start_schedule_deployment = yaml.safe_load(fr)
 
         schedule_name = start_schedule_deployment["name"]
-        start_schedule_deployment = self._standardize_local_deployment(start_schedule_deployment)
+        start_schedule_deployment = self._complated_local_job_deployment(start_schedule_deployment)
 
         # Check resource
         is_satisfied, _ = resource_op(

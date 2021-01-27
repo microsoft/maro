@@ -41,7 +41,7 @@ class LocalPaths:
     MARO_LOCAL_LOG = "~/.maro/logs"
     MARO_GRASS_LOCAL_AGENT = os.path.join(
         os.path.dirname(os.path.abspath(__file__)),
-        "../grass/lib/agents/local_agent.py"
+        "../grass/lib/services/master_agent/local_agent.py"
     )
 
 

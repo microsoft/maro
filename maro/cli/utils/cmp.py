@@ -1,4 +1,4 @@
-from maro.cli.grass.lib.agents.resource import BasicResource
+from maro.cli.grass.lib.services.utils.resource import BasicResource
 
 
 def resource_op(node_resource: dict, container_resource: dict, op: str):

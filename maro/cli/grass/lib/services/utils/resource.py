@@ -1,9 +1,10 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from collections import namedtuple
+
 import GPUtil
 import psutil
-import time
 
 
 class BasicResource:
@@ -54,12 +55,13 @@ class NodeResource(BasicResource):
         self.node_name = node_name
 
 
-from collections import namedtuple
 
 
 _CPU_INFO = namedtuple("CPU_INFO", ["cpu_count", "cpu_usage_per_core"])
 _MEMORY_INFO = namedtuple("MEMORY_INFO", ["total_memory", "free_memory", "used_memory", "memory_usage"])
 _GPU_INFO = namedtuple("GPU_INFO", ["id", "name", "total_memory", "free_memory", "used_memory", "memory_usage"])
+
+
 class ResourceInfo:
     @staticmethod
     def cpu_info(interval: int = None) -> tuple:
@@ -85,7 +87,7 @@ class ResourceInfo:
         free_memory = round(float(memory.free) / (1024 ** 2), 2)
         used_memory = round(float(memory.used) / (1024 ** 2), 2)
         memory_usage = memory.percent / 100
-        
+
         return _MEMORY_INFO(
             total_memory=total_memory,
             free_memory=free_memory,
@@ -104,7 +106,7 @@ class ResourceInfo:
         gpu_info = []
         if not gpu_list:
             return gpu_info
-        
+
         for gpu in gpu_list:
             gpu_info.append(_GPU_INFO(
                 id=gpu.id,
@@ -116,17 +118,3 @@ class ResourceInfo:
             ))
 
         return gpu_info
-
-    @staticmethod
-    def period_generate(period: int, mode: str):
-        while True:
-            if mode == "CPU":
-                yield ResourceInfo.cpu_info(period)
-            elif mode == "MEMORY":
-                yield ResourceInfo.memory_info()
-                time.sleep(period)
-            elif mode == "GPU":
-                yield ResourceInfo.gpu_info()
-                time.sleep(period)
-            else:
-                raise KeyError(f"Unsupported resource info {mode}")

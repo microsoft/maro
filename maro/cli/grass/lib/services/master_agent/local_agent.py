@@ -10,12 +10,11 @@ import time
 
 import redis
 
-from exception import AllocationFailed
+from maro.cli.grass.lib.services.utils.exception import ResourceAllocationFailed
+from maro.cli.grass.lib.services.utils.name_creator import NameCreator
 from maro.cli.utils.cmp import resource_op
-from maro.cli.utils.details import load_cluster_details
-from maro.cli.utils.naming import generate_name_with_uuid
+from maro.cli.utils.details_reader import DetailsReader
 from maro.cli.utils.params import GrassLocalRedisName
-
 
 START_CONTAINER_COMMAND = (
     "sudo docker run "
@@ -87,7 +86,7 @@ class PendingJobAgent(mp.Process):
         container_name_list = []
         for component_type, command_info in job_detail["components"].items():
             for number in range(command_info["num"]):
-                container_name = generate_name_with_uuid(prefix=component_type)
+                container_name = NameCreator.create_name_with_uuid(prefix=component_type)
                 environment_parameters = (
                     f"-e CONTAINER_NAME={container_name} "
                     f"-e JOB_NAME={job_detail['name']} "
@@ -123,7 +122,7 @@ class PendingJobAgent(mp.Process):
                     shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf8"
                 )
                 if completed_process.returncode != 0:
-                    raise AllocationFailed(completed_process.stderr)
+                    raise ResourceAllocationFailed(completed_process.stderr)
                 container_name_list.append(container_name)
 
         self.redis_connection.hset(
@@ -231,7 +230,7 @@ class JobTrackingAgent(mp.Process):
                 command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf8"
             )
             if completed_process.returncode != 0:
-                raise AllocationFailed(completed_process.stderr)
+                raise ResourceAllocationFailed(completed_process.stderr)
 
     def _job_clear(self, job_name: str, release_resource: dict):
         cluster_resource = json.loads(
@@ -279,7 +278,7 @@ class KilledJobAgent(mp.Process):
                 command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf8"
             )
             if completed_process.returncode != 0:
-                raise AllocationFailed(completed_process.stderr)
+                raise ResourceAllocationFailed(completed_process.stderr)
 
         # Update job state
         job_detail = json.loads(self.redis_connection.hget(f"{self.cluster_name}:job_details", job_name))
@@ -300,7 +299,7 @@ class KilledJobAgent(mp.Process):
 class MasterAgent:
     def __init__(self, cluster_name: str):
         self.cluster_name = cluster_name
-        self.cluster_detail = load_cluster_details(cluster_name)
+        self.cluster_detail = DetailsReader.load_cluster_details(cluster_name)
         self.check_interval = self.cluster_detail["master"]["agents"]["check_interval"]
         self.redis_connection = redis.Redis(
             host="localhost",
