@@ -5,7 +5,6 @@ import os
 from abc import ABC, abstractmethod
 from typing import Dict, Union
 
-from maro.communication import Proxy
 from maro.rl.agent import AbsAgent
 from maro.rl.shaping import Shaper
 
@@ -78,7 +77,7 @@ class AbsAgentManager(ABC):
             else:
                 for agent in self.agent.values():
                     agent.set_exploration_params(**params)
-    
+
     def load_models(self, agent_model_dict):
         """Load models from memory for each agent."""
         if isinstance(self.agent, AbsAgent):

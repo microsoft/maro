@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 from abc import ABC, abstractmethod
-from typing import Union
 
 from maro.rl.agent_manager.abs_agent_manager import AbsAgentManager
 from maro.simulator import Env
@@ -42,4 +41,3 @@ class AbsActor(ABC):
             Relevant results from the roll-out (e.g., performance, experiences), depending on the implementation.
         """
         return NotImplementedError
-
