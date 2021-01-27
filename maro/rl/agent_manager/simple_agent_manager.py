@@ -6,9 +6,7 @@ from abc import abstractmethod
 from collections import defaultdict
 
 from maro.rl.agent.policy_optimization import ActionInfo
-from maro.rl.shaping.action_shaper import ActionShaper
-from maro.rl.shaping.experience_shaper import ExperienceShaper
-from maro.rl.shaping.state_shaper import StateShaper
+from maro.rl.shaping import Shaper
 from maro.utils.exception.rl_toolkit_exception import MissingShaper
 
 from .abs_agent_manager import AbsAgentManager, AgentManagerMode
@@ -20,9 +18,9 @@ class SimpleAgentManager(AbsAgentManager):
         name: str,
         mode: AgentManagerMode,
         agent_dict: dict,
-        state_shaper: StateShaper = None,
-        action_shaper: ActionShaper = None,
-        experience_shaper: ExperienceShaper = None
+        state_shaper: Shaper = None,
+        action_shaper: Shaper = None,
+        experience_shaper: Shaper = None
     ):
         if mode in {AgentManagerMode.INFERENCE, AgentManagerMode.TRAIN_INFERENCE}:
             if state_shaper is None:
@@ -51,7 +49,7 @@ class SimpleAgentManager(AbsAgentManager):
         self._trajectory["event"].append(decision_event)
         if isinstance(action_info, ActionInfo):
             self._trajectory["action"].append(action_info.action)
-            self._trajectory["log_action_probability"].append(action_info.log_probability)
+            self._trajectory["log_action_probability"].append(action_info.log_prob)
         else:
             self._trajectory["action"].append(action_info)
 

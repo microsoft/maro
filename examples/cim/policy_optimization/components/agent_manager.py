@@ -7,7 +7,7 @@ from torch.optim import Adam, RMSprop
 
 from maro.rl import (
     AbsAgent, ActorCritic, ActorCriticConfig, FullyConnectedBlock, NNStack, OptimizerOptions,
-    PolicyGradient, PolicyOptimizationConfig, SimpleAgentManager, SimpleMultiHeadedModel
+    PolicyGradient, SimpleAgentManager, SimpleMultiHeadedModel
 )
 from maro.utils import set_seeds
 
@@ -57,9 +57,7 @@ def create_po_agents(agent_id_list, config):
                 actor_net, 
                 optimizer_options=OptimizerOptions(cls=Adam, params=config.actor_optimizer)  
             )
-            agent_dict[agent_id] = PolicyGradient(
-                agent_id, learning_model, PolicyOptimizationConfig(config.reward_discount)
-            )
+            agent_dict[agent_id] = PolicyGradient(agent_id, learning_model, config.reward_discount)
 
     return agent_dict
 

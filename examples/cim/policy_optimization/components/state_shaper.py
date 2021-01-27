@@ -3,13 +3,13 @@
 
 import numpy as np
 
-from maro.rl import StateShaper
+from maro.rl import Shaper
 
 PORT_ATTRIBUTES = ["empty", "full", "on_shipper", "on_consignee", "booking", "shortage", "fulfillment"]
 VESSEL_ATTRIBUTES = ["empty", "full", "remaining_space"]
 
 
-class CIMStateShaper(StateShaper):
+class CIMStateShaper(Shaper):
     def __init__(self, *, look_back, max_ports_downstream):
         super().__init__()
         self._look_back = look_back

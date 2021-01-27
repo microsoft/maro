@@ -1,11 +1,11 @@
 import numpy as np
 
-from maro.rl.shaping.state_shaper import StateShaper
+from maro.rl import Shaper
 
 from .utils import compute_v2p_degree_matrix
 
 
-class GNNStateShaper(StateShaper):
+class GNNStateShaper(Shaper):
     """State shaper to extract graph information.
 
     Args:

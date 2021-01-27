@@ -1,11 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from maro.rl import ActionShaper
+from maro.rl import Shaper
 from maro.simulator.scenarios.cim.common import Action
 
 
-class CIMActionShaper(ActionShaper):
+class CIMActionShaper(Shaper):
     def __init__(self, action_space):
         super().__init__()
         self._action_space = action_space

@@ -1,14 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from .abs_shaper import AbsShaper
-from .action_shaper import ActionShaper
-from .experience_shaper import ExperienceShaper
-from .state_shaper import StateShaper
+from .abs_shaper import Shaper
 
-__all__ = [
-    "AbsShaper",
-    "ActionShaper",
-    "ExperienceShaper",
-    "StateShaper"
-]
+__all__ = ["Shaper"]

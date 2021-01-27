@@ -27,21 +27,11 @@ class NNStack(nn.Module):
     def __init__(self, name: str, *blocks: [AbsBlock]):
         super().__init__()
         self._name = name
-        self._input_dim = blocks[0].input_dim
-        self._output_dim = blocks[-1].output_dim
         self._net = nn.Sequential(*blocks)
 
     @property
     def name(self):
         return self._name
-
-    @property
-    def input_dim(self):
-        return self._input_dim
-
-    @property
-    def output_dim(self):
-        return self._output_dim
 
     def forward(self, inputs):
         """Feedforward computation.
@@ -164,11 +154,6 @@ class SimpleMultiHeadedModel(AbsLearningModel):
         stacks = task_stacks + (shared_stack,) if shared_stack else task_stacks
         super().__init__(*stacks, optimizer_options=optimizer_options)
         self._shared_stack = shared_stack
-        self._input_dim = self._shared_stack.input_dim if self._shared_stack else task_stacks[0].input_dim
-        if len(task_stacks) == 1:
-            self._output_dim = task_stacks[0].output_dim
-        else:
-            self._output_dim = {task_stack.name: task_stack.output_dim for task_stack in task_stacks}
 
     @property
     def task_names(self) -> [str]:
@@ -177,14 +162,6 @@ class SimpleMultiHeadedModel(AbsLearningModel):
     @property
     def shared_stack(self):
         return self._shared_stack
-
-    @property
-    def input_dim(self):
-        return self._input_dim
-
-    @property
-    def output_dim(self):
-        return self._output_dim
 
     def _forward(self, inputs, task_name: str = None):
         if self._shared_stack:

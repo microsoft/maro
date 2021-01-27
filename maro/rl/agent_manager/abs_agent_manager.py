@@ -4,9 +4,7 @@
 from abc import ABC, abstractmethod
 from enum import Enum
 
-from maro.rl.shaping.action_shaper import ActionShaper
-from maro.rl.shaping.experience_shaper import ExperienceShaper
-from maro.rl.shaping.state_shaper import StateShaper
+from maro.rl.shaping import Shaper
 from maro.utils.exception.rl_toolkit_exception import AgentManagerModeError
 
 
@@ -28,11 +26,11 @@ class AbsAgentManager(ABC):
         mode (AgentManagerMode): An ``AgentManagerNode`` enum member that indicates the role of the agent manager
             in the current process.
         agent_dict (dict): A dictionary of agents to be wrapper by the agent manager.
-        state_shaper (StateShaper, optional): It is responsible for converting the environment observation to model
+        state_shaper (Shaper, optional): It is responsible for converting the environment observation to model
             input.
-        action_shaper (ActionShaper, optional): It is responsible for converting an agent's model output to environment
+        action_shaper (Shaper, optional): It is responsible for converting an agent's model output to environment
             executable action. Cannot be None under Inference and TrainInference modes.
-        experience_shaper (ExperienceShaper, optional): It is responsible for processing data in the replay buffer at
+        experience_shaper (Shaper, optional): It is responsible for processing data in the replay buffer at
             the end of an episode.
     """
     def __init__(
@@ -40,9 +38,9 @@ class AbsAgentManager(ABC):
         name: str,
         mode: AgentManagerMode,
         agent_dict: dict,
-        state_shaper: StateShaper = None,
-        action_shaper: ActionShaper = None,
-        experience_shaper: ExperienceShaper = None
+        state_shaper: Shaper = None,
+        action_shaper: Shaper = None,
+        experience_shaper: Shaper = None
     ):
         self._name = name
         self._mode = mode

@@ -7,7 +7,7 @@ import numpy as np
 import torch
 
 from maro.rl.exploration import NoiseExplorer
-from maro.rl.models import AbsLearningModel
+from maro.rl.model import SimpleMultiHeadedModel
 from maro.rl.storage import SimpleStore
 
 from .abs_agent import AbsAgent
@@ -61,20 +61,19 @@ class DDPG(AbsAgent):
     https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch/ddpg
 
     Args:
-        model (AbsLearningModel): DDPG policy and q-value models.
+        model (SimpleMultiHeadedModel): DDPG policy and q-value models.
         config: Configuration for DDPG algorithm.
         explorer (NoiseExplorer): An NoiseExplorer instance for generating exploratory actions. Defaults to None.
     """
     def __init__(
         self,
-        model: AbsLearningModel,
+        model: SimpleMultiHeadedModel,
         config: DDPGConfig,
         experience_pool=SimpleStore(["state", "action", "reward", "next_state"]),
         explorer: NoiseExplorer = None
     ):
         self.validate_task_names(model.task_names, {"policy", "q_value"})
         super().__init__(model, config)
-        self._action_dim = model.output_dim["policy"]
         self._explorer = explorer
         self._target_model = model.copy() if model.is_trainable else None
         self._train_cnt = 0
@@ -86,10 +85,11 @@ class DDPG(AbsAgent):
             state = state.unsqueeze(dim=0)
 
         action = self.model(state, task_name="policy", is_training=False).data.numpy()
+        action_dim = action.shape[1]
         if self._explorer:
             action = self._explorer(action)
 
-        if self._action_dim == 1:
+        if action_dim == 1:
             action = action.squeeze(axis=1)
 
         return action[0] if is_single else action
