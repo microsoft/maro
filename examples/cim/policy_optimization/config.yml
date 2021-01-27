@@ -21,7 +21,7 @@ main_loop:
                                    # be below this threshold to trigger early stopping
 agents:
   seed: 1024   # for reproducibility
-  type: "actor_critic"  # "actor_critic" or "policy_gradient"
+  type: "policy_gradient"  # "actor_critic" or "policy_gradient"
   num_actions: 21
   actor_model:
     hidden_dims:

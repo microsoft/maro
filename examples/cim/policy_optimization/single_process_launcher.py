@@ -42,7 +42,6 @@ class EarlyStoppingChecker:
         max_delta = max(
             abs(metric_series[i] - metric_series[i - 1]) / metric_series[i - 1] for i in range(1, self._last_k)
         )
-        print(f"mean_metric: {mean(metric_series)}, max_delta: {max_delta}")
         return mean(metric_series) > self._perf_threshold and max_delta < self._perf_stability_threshold
 
 

@@ -6,28 +6,29 @@ from typing import Callable, List, Union
 
 import numpy as np
 import torch
+from torch.distributions import Categorical
 
-from maro.rl.model import AbsLearningModel
+from maro.rl.model import SimpleMultiHeadedModel
 from maro.rl.utils.trajectory_utils import get_lambda_returns, get_truncated_cumulative_reward
 
 from .abs_agent import AbsAgent
 
-ActionInfo = namedtuple("ActionInfo", ["action", "log_probability"])
+ActionInfo = namedtuple("ActionInfo", ["action", "log_prob"])
 
 
-class PolicyOptimizationConfig:
-    """Configuration for the policy optimization algorithm family."""
-    __slots__ = ["reward_discount"]
+class PolicyGradient(AbsAgent):
+    """The vanilla Policy Gradient (VPG) algorithm, a.k.a., REINFORCE.
 
-    def __init__(self, reward_discount):
-        self.reward_discount = reward_discount
+    Reference: https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch.
 
-
-class PolicyOptimization(AbsAgent):
-    """Policy optimization algorithm family.
-
-    The algorithm family includes policy gradient (e.g. REINFORCE), actor-critic, PPO, etc.
+    Args:
+        name (str): Agent's name.
+        model (SimpleMultiHeadedModel): Model that computes action distributions.
+        reward_discount (float): Reward decay as defined in standard RL terminology.
     """
+    def __init__(self, name: str, model: SimpleMultiHeadedModel, reward_discount: float):
+        super().__init__(name, model, reward_discount)
+
     def choose_action(self, state: np.ndarray) -> Union[ActionInfo, List[ActionInfo]]:
         """Use the actor (policy) model to generate stochastic actions.
 
@@ -42,36 +43,18 @@ class PolicyOptimization(AbsAgent):
         if is_single:
             state = state.unsqueeze(dim=0)
 
-        action_distribution = self._model(state, task_name="actor", is_training=False).squeeze().numpy()
-        if is_single:
-            action = np.random.choice(len(action_distribution), p=action_distribution)
-            return ActionInfo(action=action, log_probability=np.log(action_distribution[action]))
+        action_probs = self._model(state, task_name="actor", is_training=False)
+        action = Categorical(action_probs).sample().cpu().numpy()
+        action_probs = action_probs.numpy()
+        action_info = [ActionInfo(action=act, log_prob=np.log(action_probs[i][act])) for i, act in enumerate(action)]
+        return action_info[0] if is_single else action_info
 
-        # batch inference
-        batch_results = []
-        for distribution in action_distribution:
-            action = np.random.choice(len(distribution), p=distribution)
-            batch_results.append(ActionInfo(action=action, log_probability=np.log(distribution[action])))
-
-        return batch_results
-
-    def train(
-        self, states: np.ndarray, actions: np.ndarray, log_action_prob: np.ndarray, rewards: np.ndarray
-    ):
-        raise NotImplementedError
-
-
-class PolicyGradient(PolicyOptimization):
-    """The vanilla Policy Gradient (VPG) algorithm, a.k.a., REINFORCE.
-
-    Reference: https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch.
-    """
     def train(
         self, states: np.ndarray, actions: np.ndarray, log_action_prob: np.ndarray, rewards: np.ndarray
     ):
         states = torch.from_numpy(states).to(self._device)
         actions = torch.from_numpy(actions).to(self._device)
-        returns = get_truncated_cumulative_reward(rewards, self._config.reward_discount)
+        returns = get_truncated_cumulative_reward(rewards, self._config)
         returns = torch.from_numpy(returns).to(self._device)
         action_distributions = self._model(states)
         action_prob = action_distributions.gather(1, actions.unsqueeze(1)).squeeze()   # (N, 1)
@@ -79,7 +62,7 @@ class PolicyGradient(PolicyOptimization):
         self._model.learn(loss)
 
 
-class ActorCriticConfig(PolicyOptimizationConfig):
+class ActorCriticConfig:
     """Configuration for the Actor-Critic algorithm.
 
     Args:
@@ -109,7 +92,7 @@ class ActorCriticConfig(PolicyOptimizationConfig):
         lam: float = 1.0,
         clip_ratio: float = None
     ):
-        super().__init__(reward_discount)
+        self.reward_discount = reward_discount
         self.critic_loss_func = critic_loss_func
         self.train_iters = train_iters
         self.actor_loss_coefficient = actor_loss_coefficient
@@ -118,7 +101,7 @@ class ActorCriticConfig(PolicyOptimizationConfig):
         self.clip_ratio = clip_ratio
 
 
-class ActorCritic(PolicyOptimization):
+class ActorCritic(AbsAgent):
     """Actor Critic algorithm with separate policy and value models.
 
     References:
@@ -127,20 +110,33 @@ class ActorCritic(PolicyOptimization):
 
     Args:
         name (str): Agent's name.
-        model (AbsLearningModel): Multi-task model that computes action distributions and state values.
+        model (SimpleMultiHeadedModel): Multi-task model that computes action distributions and state values.
             It may or may not have a shared bottom stack.
         config: Configuration for the AC algorithm.
     """
-    def __init__(self, name: str, model: AbsLearningModel, config: ActorCriticConfig):
+    def __init__(self, name: str, model: SimpleMultiHeadedModel, config: ActorCriticConfig):
         self.validate_task_names(model.task_names, {"actor", "critic"})
         super().__init__(name, model, config)
 
-    def _get_values_and_bootstrapped_returns(self, state_sequence, reward_sequence):
-        state_values = self._model(state_sequence, task_name="critic").detach().squeeze()
-        return_est = get_lambda_returns(
-            reward_sequence, state_values, self._config.reward_discount, self._config.lam, k=self._config.k
-        )
-        return state_values, return_est
+    def choose_action(self, state: np.ndarray) -> Union[ActionInfo, List[ActionInfo]]:
+        """Use the actor (policy) model to generate stochastic actions.
+
+        Args:
+            state: Input to the actor model.
+
+        Returns:
+            A single ActionInfo namedtuple or a list of ActionInfo namedtuples.
+        """
+        state = torch.from_numpy(state).to(self._device)
+        is_single = len(state.shape) == 1
+        if is_single:
+            state = state.unsqueeze(dim=0)
+
+        action_probs = self._model(state, task_name="actor", is_training=False)
+        action = Categorical(action_probs).sample().cpu().numpy()
+        action_probs = action_probs.numpy()
+        action_info = [ActionInfo(action=act, log_prob=np.log(action_probs[i][act])) for i, act in enumerate(action)]
+        return action_info[0] if is_single else action_info
 
     def train(
         self, states: np.ndarray, actions: np.ndarray, log_action_prob: np.ndarray, rewards: np.ndarray
@@ -170,3 +166,10 @@ class ActorCritic(PolicyOptimization):
             actor_loss = -(log_action_prob_new * advantages).mean()
 
         return actor_loss
+
+    def _get_values_and_bootstrapped_returns(self, state_sequence, reward_sequence):
+        state_values = self._model(state_sequence, task_name="critic").detach().squeeze()
+        return_est = get_lambda_returns(
+            reward_sequence, state_values, self._config.reward_discount, self._config.lam, k=self._config.k
+        )
+        return state_values, return_est

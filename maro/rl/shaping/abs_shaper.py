@@ -12,6 +12,10 @@ class Shaper(ABC):
     @abstractmethod
     def __call__(self, *args, **kwargs):
         """The general interface for conversion."""
+        return NotImplemented
+
+    def reset(self):
+        """Reset stateful members, if any, to their states at the beginning of an episode."""
         pass
 
     def reset(self):

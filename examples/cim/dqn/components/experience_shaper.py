@@ -5,6 +5,8 @@ from collections import defaultdict
 
 import numpy as np
 
+from maro.rl import Shaper
+
 
 class TruncatedExperienceShaper(Shaper):
     def __init__(

@@ -84,7 +84,7 @@ class AgentManager(AbsAgentManager):
         self._trajectory["event"].append(decision_event)
         if isinstance(action_info, ActionInfo):
             self._trajectory["action"].append(action_info.action)
-            self._trajectory["log_action_probability"].append(action_info.log_probability)
+            self._trajectory["log_action_probability"].append(action_info.log_prob)
         else:
             self._trajectory["action"].append(action_info)
 

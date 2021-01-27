@@ -8,7 +8,7 @@ from typing import Union
 import numpy as np
 import torch
 
-from maro.rl.model import AbsLearningModel
+from maro.rl.model import SimpleMultiHeadedModel
 from maro.rl.storage import SimpleStore
 
 from .abs_agent import AbsAgent
@@ -72,22 +72,18 @@ class DQN(AbsAgent):
     See https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf for details.
 
     Args:
-        model (LearningModel): Q-value model.
+        model (SimpleMultiHeadedModel): Q-value model.
         config: Configuration for DQN algorithm.
     """
     def __init__(
         self,
         name: str,
-        model: AbsLearningModel,
+        model: SimpleMultiHeadedModel,
         config: DQNConfig,
         experience_pool: SimpleStore = SimpleStore(["state", "action", "reward", "next_state", "loss"])
     ):
         self.validate_task_names(model.task_names, {"state_value", "advantage"})
         super().__init__(name, model, config, experience_pool=experience_pool)
-        if isinstance(self._model.output_dim, int):
-            self._num_actions = self._model.output_dim
-        else:
-            self._num_actions = self._model.output_dim["advantage"]
         self._training_counter = 0
         self._target_model = model.copy() if model.is_trainable else None
 
@@ -97,17 +93,19 @@ class DQN(AbsAgent):
         if is_single:
             state = state.unsqueeze(dim=0)
 
-        greedy_action = self._get_q_values(self._model, state, is_training=False).argmax(dim=1).data
+        q_values = self._get_q_values(self._model, state, is_training=False)
+        num_actions = q_values.shape[1]
+        greedy_action = q_values.argmax(dim=1).data
         # No exploration
         if self._config.epsilon == .0:
             return greedy_action.item() if is_single else greedy_action.numpy()
 
         if is_single:
-            return greedy_action if np.random.random() > self._config.epsilon else np.random.choice(self._num_actions)
+            return greedy_action if np.random.random() > self._config.epsilon else np.random.choice(num_actions)
 
         # batch inference
         return np.array([
-            act if np.random.random() > self._config.epsilon else np.random.choice(self._num_actions)
+            act if np.random.random() > self._config.epsilon else np.random.choice(num_actions)
             for act in greedy_action
         ])
 

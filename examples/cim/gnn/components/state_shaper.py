@@ -1,6 +1,6 @@
 import numpy as np
 
-from maro.rl.shaping import Shaper
+from maro.rl import Shaper
 
 from examples.cim.gnn.components.utils import compute_v2p_degree_matrix
 
