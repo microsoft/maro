@@ -192,7 +192,7 @@ class ColumnBasedStore(AbsStore):
         """
         if weights is not None:
             weights = np.asarray(weights)
-            weights /= np.sum(weights)
+            weights = weights / np.sum(weights)
         indexes = np.random.choice(self._size, size=size, replace=replace, p=weights)
         return indexes, self.get(indexes)
 
