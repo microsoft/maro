@@ -4,10 +4,10 @@ from copy import copy
 
 import numpy as np
 import torch
-from torch.nn import GELU, TransformerEncoder, TransformerEncoderLayer
+from torch.nn import GELU, Sequential, TransformerEncoder, TransformerEncoderLayer
 from torch.optim import Adam
 
-from maro.rl import AbsAgentManager, ActionInfo, FullyConnectedBlock, NNStack, OptimizerOptions
+from maro.rl import AbsAgentManager, ActionInfo, FullyConnectedBlock, OptimizerOptions
 from maro.utils import DummyLogger, Logger
 
 from examples.cim.gnn.components.gnn_based_actor_critic import GNNBasedActorCritic, GNNBasedActorCriticConfig
@@ -56,43 +56,36 @@ def create_gnn_agent(config):
     sequence_buffer_size = config.model.sequence_buffer_size
     gnn_output_size = config.model.graph_output_dim * scale
     actor_input_dim = 3 * gnn_output_size // 2
-    model = GNNBasedACModel(
-        p_pre_layers=NNStack(
-            "static_node_pre_layers",
-            FullyConnectedBlock(p_dim, p_pre_dim, [], activation=GELU),
-            PositionalEncoder(d_model=p_pre_dim, max_seq_len=sequence_buffer_size)
-        ), 
-        v_pre_layers=NNStack(
-            "dynamic_node_pre_layers",
-            FullyConnectedBlock(v_dim, v_pre_dim, [], activation=GELU),
-            PositionalEncoder(d_model=v_pre_dim, max_seq_len=sequence_buffer_size)
-        ),
-        p_trans_layers=NNStack(
-            "static_node_transformer_encoder",
+    model = GNNBasedACModel({
+        "p_pre_layers": 
+            Sequential(
+                FullyConnectedBlock(p_dim, p_pre_dim, [], activation=GELU),
+                PositionalEncoder(d_model=p_pre_dim, max_seq_len=sequence_buffer_size)
+            ), 
+        "v_pre_layers": 
+            Sequential(
+                FullyConnectedBlock(v_dim, v_pre_dim, [], activation=GELU),
+                PositionalEncoder(d_model=v_pre_dim, max_seq_len=sequence_buffer_size)
+            ),
+        "p_trans_layers": 
             TransformerEncoder(
                 TransformerEncoderLayer(d_model=p_pre_dim, nhead=4, activation="gelu", dim_feedforward=p_pre_dim * 4),
                 num_layers=3
-            )
-        ),
-        v_trans_layers=NNStack(
-            "dynamic_node_transformer_encoder",
+            ),
+        "v_trans_layers":
             TransformerEncoder(
                 TransformerEncoderLayer(d_model=v_pre_dim, nhead=2, activation="gelu", dim_feedforward=v_pre_dim * 4),
                 num_layers=3
-            )
-        ),
-        trans_gat=NNStack(
-            "graph_attention_transformer",
+            ),
+        "trans_gat":
             SimpleTransformer(
                 p_dim=p_pre_dim,
                 v_dim=v_pre_dim,
                 output_size=gnn_output_size // 2,
                 edge_dim={"p": pedge_dim, "v": vedge_dim},
                 layer_num=2
-            )
-        ),
-        actor_head=NNStack(
-            "actor",
+            ),
+        "actor_head":
             FullyConnectedBlock(
                 actor_input_dim, 
                 config.model.action_dim,
@@ -100,18 +93,15 @@ def create_gnn_agent(config):
                 activation=GELU,
                 is_head=True,
                 softmax_enabled=True
-            )
-        ),
-        critic_head=NNStack(
-            "critic",
+            ),
+        "critic_head":
             FullyConnectedBlock(
                 gnn_output_size,
                 1,
                 [d * scale for d in config.model.value_hidden_dims] + [gnn_output_size],
                 is_head=True,
                 activation=GELU
-            )
-        ),
+            ),
         p_pre_dim=p_pre_dim,
         v_pre_dim=v_pre_dim,
         sequence_buffer_size=sequence_buffer_size,

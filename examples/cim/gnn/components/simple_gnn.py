@@ -9,7 +9,7 @@ from torch.nn.modules.activation import MultiheadAttention
 from torch.nn.modules.dropout import Dropout
 from torch.nn.modules.normalization import LayerNorm
 
-from maro.rl import AbsLearningModel, NNStack, OptimizerOptions
+from maro.rl import AbsLearningModel, OptimizerOptions
 
 
 class PositionalEncoder(nn.Module):
@@ -214,38 +214,8 @@ class GNNBasedACModel(AbsLearningModel):
     as a critic layer, which are the two MLPs with residual connections.
     """
 
-    def __init__(
-        self, 
-        p_pre_layers, 
-        v_pre_layers, 
-        p_trans_layers, 
-        v_trans_layers, 
-        trans_gat, 
-        actor_head, 
-        critic_head,
-        p_pre_dim,
-        v_pre_dim,
-        sequence_buffer_size,
-        gnn_output_size,
-        optimizer_options: OptimizerOptions = None
-    ):
-        super().__init__(
-            p_pre_layers, 
-            v_pre_layers, 
-            p_trans_layers, 
-            v_trans_layers, 
-            trans_gat, 
-            actor_head, 
-            critic_head,
-            optimizer_options=optimizer_options
-        )
-        self.p_pre_layers = p_pre_layers
-        self.v_pre_layers = v_pre_layers
-        self.p_trans_layers = p_trans_layers
-        self.v_trans_layers = v_trans_layers
-        self.trans_gat = trans_gat
-        self.actor_head = actor_head
-        self.critic_head = critic_head
+    def __init__(self, component, p_pre_dim, v_pre_dim, sequence_buffer_size, gnn_output_size, optimizer_options=None):
+        super().__init__(component, optimizer_options=optimizer_options)
         self.p_pre_dim = p_pre_dim
         self.v_pre_dim = v_pre_dim
         self.sequence_buffer_size = sequence_buffer_size
@@ -269,30 +239,30 @@ class GNNBasedACModel(AbsLearningModel):
 
         # Before: feature_p.shape: (tick_buffer, batch_size, p_cnt, p_dim)
         # After: feature_p.shape: (tick_buffer, batch_size*p_cnt, p_dim)
-        feature_p = self.p_pre_layers(feature_p.reshape(feature_p.shape[0], -1, feature_p.shape[-1]))
+        feature_p = self._component["p_pre_layers"](feature_p.reshape(feature_p.shape[0], -1, feature_p.shape[-1]))
         # state["mask"]: (batch_size, tick_buffer)
         # mask_p: (batch_size, p_cnt, tick_buffer)
         mask_p = state["mask"].repeat(1, p_cnt).reshape(-1, self.sequence_buffer_size)
-        feature_p = self.p_trans_layers(feature_p, src_key_padding_mask=mask_p)
+        feature_p = self._component["p_trans_layers"](feature_p, src_key_padding_mask=mask_p)
 
-        feature_v = self.v_pre_layers(feature_v.reshape(feature_v.shape[0], -1, feature_v.shape[-1]))
+        feature_v = self._component["v_pre_layers"](feature_v.reshape(feature_v.shape[0], -1, feature_v.shape[-1]))
         mask_v = state["mask"].repeat(1, v_cnt).reshape(-1, self.sequence_buffer_size)
-        feature_v = self.v_trans_layers(feature_v, src_key_padding_mask=mask_v)
+        feature_v = self._component["v_trans_layers"](feature_v, src_key_padding_mask=mask_v)
 
         feature_p = feature_p[0].reshape(bsize, p_cnt, self.p_pre_dim)
         feature_v = feature_v[0].reshape(bsize, v_cnt, self.v_pre_dim)
 
-        emb_p, emb_v = self.trans_gat(feature_p, state["pe"], feature_v, state["ve"], state["ppe"])
+        emb_p, emb_v = self._component["trans_gat"](feature_p, state["pe"], feature_v, state["ve"], state["ppe"])
 
         a_rtn, c_rtn = None, None
-        if actor_enabled and self.actor_head is not None:
+        if actor_enabled and "actor_head" in self._component:
             ap = emb_p.reshape(bsize, p_cnt, self.gnn_output_size)
             ap = ap[:, p_idx, :]
             av = emb_v.reshape(bsize, v_cnt, self.gnn_output_size // 2)
             av = av[:, v_idx, :]
             emb_a = torch.cat((ap, av), axis=1)
-            a_rtn = self.actor_head(emb_a)
-        if critic_enabled and self.critic_head is not None:
-            c_rtn = self.critic_head(emb_p).reshape(bsize, p_cnt)
+            a_rtn = self._component["actor_head"](emb_a)
+        if critic_enabled and "critic_head" in self._component:
+            c_rtn = self._component["critic_head"](emb_p).reshape(bsize, p_cnt)
         
         return a_rtn, c_rtn
