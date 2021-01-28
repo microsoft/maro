@@ -10,6 +10,7 @@ import torch
 
 from maro.rl.model import SimpleMultiHeadModel
 from maro.rl.storage import SimpleStore
+from maro.utils.exception.rl_toolkit_exception import UnrecognizedTask
 
 from .abs_agent import AbsAgent
 
@@ -82,10 +83,11 @@ class DQN(AbsAgent):
         config: DQNConfig,
         experience_pool: SimpleStore = SimpleStore(["state", "action", "reward", "next_state", "loss"])
     ):
-        if config.advantage_mode is not None:
-            assert (model.task_names is not None and set(model.task_names) == {"state_value", "advantage"}), (
+        if (config.advantage_mode is not None and
+                (model.task_names is None or set(model.task_names) != {"state_value", "advantage"})): 
+            raise UnrecognizedTask(
                 f"Expected model task names 'state_value' and 'advantage' since dueling DQN is used, "
-                f"but got {model.task_names}"
+                f"got {model.task_names}"
             )
         super().__init__(name, model, config, experience_pool=experience_pool)
         self._training_counter = 0

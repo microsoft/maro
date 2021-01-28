@@ -9,6 +9,7 @@ import torch
 from maro.rl.exploration import NoiseExplorer
 from maro.rl.model import SimpleMultiHeadModel
 from maro.rl.storage import SimpleStore
+from maro.utils.exception.rl_toolkit_exception import UnrecognizedTask
 
 from .abs_agent import AbsAgent
 
@@ -72,9 +73,8 @@ class DDPG(AbsAgent):
         experience_pool=SimpleStore(["state", "action", "reward", "next_state"]),
         explorer: NoiseExplorer = None
     ):
-        assert (model.task_names is not None and set(model.task_names) == {"policy", "q_value"}), (
-            f"Expected model task names 'policy' and 'q_value', but got {model.task_names}"
-        )
+        if model.task_names is None or set(model.task_names) != {"policy", "q_value"}:
+            raise UnrecognizedTask(f"Expected model task names 'policy' and 'q_value', but got {model.task_names}")
         super().__init__(model, config)
         self._explorer = explorer
         self._target_model = model.copy() if model.is_trainable else None
