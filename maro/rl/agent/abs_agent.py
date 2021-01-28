@@ -7,7 +7,6 @@ from abc import ABC, abstractmethod
 import torch
 
 from maro.rl.model.learning_model import AbsLearningModel
-from maro.utils.exception.rl_toolkit_exception import UnrecognizedTask
 
 
 class AbsAgent(ABC):
