@@ -121,20 +121,17 @@ with a TD-error-based sampling mechanism.
     def create_dqn_agents(agent_id_list):
         agent_dict = {}
         for agent_id in agent_id_list:
-            q_net = NNStack(
-                "q_value",
-                FullyConnectedBlock(
-                    input_dim=state_shaper.dim,
-                    hidden_dims=[256, 128, 64],
-                    output_dim=NUM_ACTIONS,
-                    activation=nn.LeakyReLU,
-                    is_head=True,
-                    batch_norm_enabled=True, 
-                    softmax_enabled=False,
-                    skip_connection_enabled=False,
-                    dropout_p=.0)
+            q_net = FullyConnectedBlock(
+                input_dim=state_shaper.dim,
+                hidden_dims=[256, 128, 64],
+                output_dim=NUM_ACTIONS,
+                activation=nn.LeakyReLU,
+                is_head=True,
+                batch_norm_enabled=True, 
+                softmax_enabled=False,
+                skip_connection_enabled=False,
+                dropout_p=.0
             )
-            
             learning_model = SimpleMultiHeadModel(
                 q_net, optimizer_options=OptimizerOptions(cls=RMSprop, params={"lr": 0.05})
             )
