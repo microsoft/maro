@@ -8,7 +8,7 @@ from typing import Union
 import numpy as np
 import torch
 
-from maro.rl.model import SimpleMultiHeadedModel
+from maro.rl.model import SimpleMultiHeadModel
 from maro.rl.storage import SimpleStore
 
 from .abs_agent import AbsAgent
@@ -72,17 +72,21 @@ class DQN(AbsAgent):
     See https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf for details.
 
     Args:
-        model (SimpleMultiHeadedModel): Q-value model.
+        model (SimpleMultiHeadModel): Q-value model.
         config: Configuration for DQN algorithm.
     """
     def __init__(
         self,
         name: str,
-        model: SimpleMultiHeadedModel,
+        model: SimpleMultiHeadModel,
         config: DQNConfig,
         experience_pool: SimpleStore = SimpleStore(["state", "action", "reward", "next_state", "loss"])
     ):
-        self.validate_task_names(model.task_names, {"state_value", "advantage"})
+        if config.advantage_mode is not None:
+            assert (model.task_names is not None and set(model.task_names) == {"state_value", "advantage"}), (
+                f"Expected model task names 'state_value' and 'advantage' since dueling DQN is used, "
+                f"but got {model.task_names}"
+            )
         super().__init__(name, model, config, experience_pool=experience_pool)
         self._training_counter = 0
         self._target_model = model.copy() if model.is_trainable else None

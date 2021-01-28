@@ -135,7 +135,7 @@ with a TD-error-based sampling mechanism.
                     dropout_p=.0)
             )
             
-            learning_model = SimpleMultiHeadedModel(
+            learning_model = SimpleMultiHeadModel(
                 q_net, optimizer_options=OptimizerOptions(cls=RMSprop, params={"lr": 0.05})
             )
             agent_dict[agent_id] = DQN(

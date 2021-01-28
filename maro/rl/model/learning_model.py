@@ -9,68 +9,45 @@ import torch
 import torch.nn as nn
 
 from maro.utils import clone
-from maro.utils.exception.rl_toolkit_exception import MissingOptimizer, NNStackDimensionError
+from maro.utils.exception.rl_toolkit_exception import MissingOptimizer
 
 from .abs_block import AbsBlock
 
 OptimizerOptions = namedtuple("OptimizerOptions", ["cls", "params"])
 
 
-class NNStack(nn.Module):
-    """An NN stack that consists of a sequence of chainable blocks.
-
-    Args:
-        name (str): Name of the stack.
-        blocks (AbsBlock): Blocks that comprise the model. They must be chainable, i.e., the output dimension
-            of a block must match the input dimension of its successor.
-    """
-    def __init__(self, name: str, *blocks: [AbsBlock]):
-        super().__init__()
-        self._name = name
-        self._net = nn.Sequential(*blocks)
-
-    @property
-    def name(self):
-        return self._name
-
-    def forward(self, inputs):
-        """Feedforward computation.
-
-        Args:
-            inputs: Inputs to the model.
-
-        Returns:
-            Outputs from the model.
-        """
-        return self._net(inputs)
-
-
 class AbsLearningModel(nn.Module):
-    """NN model that consists of NN stacks.
+    """Trainable model that consists of multiple network components.
 
     Args:
-        stacks (NNStack): NNStack instances.
+        component (Union[nn.Module, Dict[str, nn.Module]]): Network component(s) comprising the model.
         optimizer_options (Union[OptimizerOptions, Dict[str, OptimizerOptions]]): Optimizer options for
-            the internal stacks. If none, no optimizer will be created for the model and the model will not
+            the components. If none, no optimizer will be created for the model and the model will not
             be trainable. If it is a single OptimizerOptions instance, an optimizer will be created to jointly
-            optimize all parameters of the model. If it is a dictionary, for each `(key, value)` pair, an optimizer
-            specified by `value` will be created for the internal stack named `key`. Defaults to None.
+            optimize all parameters of the model. If it is a dictionary, for each `(key, value)` pair, 
+            an optimizer specified by `value` will be created for the internal component named `key`. 
+            Note that it is possible to freeze certain components while optimizing others by providing
+            a subset of the keys in ``component``. Defaults to None.
     """
     def __init__(
         self,
-        *stacks: NNStack,
+        component: Union[nn.Module, Dict[str, nn.Module]],
         optimizer_options: Union[OptimizerOptions, Dict[str, OptimizerOptions]] = None
     ):
         super().__init__()
-        self._component = nn.ModuleDict({stack.name: stack for stack in stacks})
+        assert (
+            optimizer_options is None or isinstance(optimizer_options, OptimizerOptions)
+            or isinstance(component, dict) 
+        )
+        self._component = component if isinstance(component, nn.Module) else nn.ModuleDict(component)
         self._is_trainable = optimizer_options is not None
         if self._is_trainable:
             if isinstance(optimizer_options, OptimizerOptions):
                 self._optimizer = optimizer_options.cls(self.parameters(), **optimizer_options.params)
             else:
                 self._optimizer = {
-                    stack_name: opt.cls(self._component[stack_name].parameters(), **opt.params)
-                    for stack_name, opt in optimizer_options.items()
+                    name: opt.cls(self._component[name].parameters(), **opt.params)
+                    for name, opt in optimizer_options.items()
                 }
         else:
             self.eval()
@@ -115,6 +92,10 @@ class AbsLearningModel(nn.Module):
         else:
             self._optimizer.step()
 
+    def soft_update(self, other_model: nn.Module, tau: float):
+        for params, other_params in zip(self.parameters(), other_model.parameters()):
+            params.data = (1 - tau) * params.data + tau * other_params.data
+
     def copy(self):
         return clone(self)
 
@@ -131,44 +112,46 @@ class AbsLearningModel(nn.Module):
         torch.save(self.state_dict(), path)
 
 
-class SimpleMultiHeadedModel(AbsLearningModel):
-    """NN model that consists of multiple task heads and an optional shared stack.
+class SimpleMultiHeadModel(AbsLearningModel):
+    """A compound network structure that consists of multiple task heads and an optional shared stack.
 
     Args:
-        task_stacks (NNStack): NNStack instances, each of which performs a designated task.
-        shared_stack (NNStack): Network module that forms that shared part of the model. Defaults to None.
+        component (Union[nn.Module, Dict[str, nn.Module]]): Network component(s) comprising the model.
+            All components must have the same input dimension except the one designated as the shared
+            component by ``shared_component_name``.
         optimizer_options (Union[OptimizerOptions, Dict[str, OptimizerOptions]]): Optimizer options for
-            the internal stacks. If none, no optimizer will be created for the model and the model will not
-            be trainable. If it is a single OptimizerOptions instance, an optimizer will be created to jointly
-            optimize all parameters of the model. If it is a dictionary, for each `(key, value)` pair, an optimizer
-            specified by `value` will be created for the internal stack named `key`. Defaults to None.
+            the components. Defaults to None.
+        shared_component_name (str): Name of the network component to be designated as the shared component at the
+            bottom of the architecture. Must be None or a key in ``component``. If only a single component
+            is present, this is ignored. Defaults to None.
     """
     def __init__(
         self,
-        *task_stacks: NNStack,
-        shared_stack: NNStack = None,
-        optimizer_options: Union[OptimizerOptions, Dict[str, OptimizerOptions]] = None
+        component: Union[nn.Module, Dict[str, nn.Module]],
+        optimizer_options: Union[OptimizerOptions, Dict[str, OptimizerOptions]] = None,
+        shared_component_name: str = None
     ):
-        self.validate_dims(*task_stacks, shared_stack=shared_stack)
-        self._task_names = [stack.name for stack in task_stacks]
-        stacks = task_stacks + (shared_stack,) if shared_stack else task_stacks
-        super().__init__(*stacks, optimizer_options=optimizer_options)
-        self._shared_stack = shared_stack
+        super().__init__(component, optimizer_options=optimizer_options)
+        if isinstance(component, dict):
+            if shared_component_name is not None:
+                assert (shared_component_name in component), (
+                    f"shared_component_name must be one of {list(component.keys())}, got {shared_component_name}"
+                )
+            self._task_names = [name for name in component if name != shared_component_name]
+        else:
+            self._task_names = None
+        self._shared_component_name = shared_component_name
 
     @property
     def task_names(self) -> [str]:
         return self._task_names
 
-    @property
-    def shared_stack(self):
-        return self._shared_stack
-
     def _forward(self, inputs, task_name: str = None):
-        if self._shared_stack:
-            inputs = self._shared_stack(inputs)  # features
+        if not isinstance(self._component, nn.ModuleDict):
+            return self._component(inputs)
 
-        if len(self._component) == 1:
-            return list(self._component.values())[0](inputs)
+        if self._shared_component_name is not None:
+            inputs = self._component[self._shared_component_name](inputs)  # features
 
         if task_name is None:
             return {name: self._component[name](inputs) for name in self._task_names}
@@ -201,17 +184,3 @@ class SimpleMultiHeadedModel(AbsLearningModel):
 
         with torch.no_grad():
             return self._forward(inputs, task_name)
-
-    def soft_update(self, other_model: nn.Module, tau: float):
-        for params, other_params in zip(self.parameters(), other_model.parameters()):
-            params.data = (1 - tau) * params.data + tau * other_params.data
-
-    @staticmethod
-    def validate_dims(*task_stacks, shared_stack=None):
-        if shared_stack:
-            expected_dim = shared_stack.output_dim
-            for task_stack in task_stacks:
-                if task_stack.input_dim != expected_dim:
-                    raise NNStackDimensionError(
-                        f"Expected input dimension {expected_dim} for task module: {task_stack.name}, "
-                        f"got {task_stack.input_dim}")

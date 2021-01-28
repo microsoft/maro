@@ -8,8 +8,8 @@ import torch.nn as nn
 from torch.optim import Adam, RMSprop
 
 from maro.rl import (
-    AbsAgentManager, ActorCritic, ActorCriticConfig, FullyConnectedBlock, NNStack, OptimizerOptions,
-    PolicyGradient, SimpleMultiHeadedModel
+    AbsAgentManager, ActorCritic, ActorCriticConfig, FullyConnectedBlock, OptimizerOptions,
+    PolicyGradient, SimpleMultiHeadModel
 )
 from maro.utils import set_seeds
 
@@ -23,43 +23,37 @@ def create_po_agents(agent_id_list, config):
     set_seeds(config.seed)
     agent_dict = {}
     for agent_id in agent_id_list:
-        actor_net = NNStack(
-            "actor",
-            FullyConnectedBlock(
-                input_dim=input_dim,
-                output_dim=num_actions,
-                activation=nn.Tanh,
-                is_head=True,
-                **config.actor_model
-            )
+        actor_net = FullyConnectedBlock(
+            input_dim=input_dim,
+            output_dim=num_actions,
+            activation=nn.Tanh,
+            is_head=True,
+            **config.actor_model
         )
 
         if config.type == "actor_critic":
-            critic_net = NNStack(
-                "critic",
-                FullyConnectedBlock(
-                    input_dim=config.input_dim,
-                    output_dim=1,
-                    activation=nn.LeakyReLU,
-                    is_head=True,
-                    **config.critic_model
-                )
+            critic_net = FullyConnectedBlock(
+                input_dim=config.input_dim,
+                output_dim=1,
+                activation=nn.LeakyReLU,
+                is_head=True,
+                **config.critic_model
             )
 
             hyper_params = config.actor_critic_hyper_parameters
             hyper_params.update({"reward_discount": config.reward_discount})
-            learning_model = SimpleMultiHeadedModel(
-                actor_net, critic_net, 
+            learning_model = SimpleMultiHeadModel(
+                {"actor": actor_net, "critic": critic_net}, 
                 optimizer_options={
                     "actor": OptimizerOptions(cls=Adam, params=config.actor_optimizer),
                     "critic": OptimizerOptions(cls=RMSprop, params=config.critic_optimizer)
-                } 
+                }
             )
             agent_dict[agent_id] = ActorCritic(
                 agent_id, learning_model, ActorCriticConfig(critic_loss_func=nn.SmoothL1Loss(), **hyper_params)
             )
         else:
-            learning_model = SimpleMultiHeadedModel(
+            learning_model = SimpleMultiHeadModel(
                 actor_net, 
                 optimizer_options=OptimizerOptions(cls=Adam, params=config.actor_optimizer)  
             )

@@ -14,7 +14,7 @@ from maro.rl.exploration import (
 )
 from maro.rl.learner import AbsLearner, SimpleLearner
 from maro.rl.model import (
-    AbsBlock, AbsLearningModel, FullyConnectedBlock, NNStack, OptimizerOptions, SimpleMultiHeadedModel
+    AbsBlock, AbsLearningModel, FullyConnectedBlock, OptimizerOptions, SimpleMultiHeadModel
 )
 from maro.rl.scheduling import LinearParameterScheduler, Scheduler, TwoPhaseLinearParameterScheduler
 from maro.rl.shaping import Shaper
@@ -28,7 +28,7 @@ __all__ = [
     "ActorProxy", "ActorWorker", "concat_experiences_by_agent", "merge_experiences_with_trajectory_boundaries",
     "AbsExplorer", "EpsilonGreedyExplorer", "GaussianNoiseExplorer", "NoiseExplorer", "UniformNoiseExplorer",
     "AbsLearner", "SimpleLearner",
-    "AbsBlock", "AbsLearningModel", "FullyConnectedBlock", "NNStack", "OptimizerOptions", "SimpleMultiHeadedModel",
+    "AbsBlock", "AbsLearningModel", "FullyConnectedBlock", "OptimizerOptions", "SimpleMultiHeadModel",
     "LinearParameterScheduler", "Scheduler", "TwoPhaseLinearParameterScheduler",
     "Shaper",
     "AbsStore", "OverwriteType", "SimpleStore"

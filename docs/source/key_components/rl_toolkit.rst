@@ -127,48 +127,43 @@ In reality, however, this type of separation might not be achievable.
           self._experience_pool = experience_pool
 
 
-Block, NNStack and LearningModel
+Block and LearningModel
 --------------------------------
 
 MARO provides an abstraction for the underlying models used by agents to form policies and estimate values.
-The abstraction consists of a 3-level hierachy formed by ``AbsBlock``, ``NNStack`` and ``LearningModel`` from
-the bottom up, all of which subclass torch's nn.Module. An ``AbsBlock`` is the smallest structural
-unit of an NN-based model. For instance, the ``FullyConnectedBlock`` provided in the toolkit represents a stack
-of fully connected layers with features like batch normalization, drop-out and skip connection. An ``NNStack`` is
-a composite network that consists of one or more such blocks, each with its own set of network features.
-The complete model as used directly by an ``Algorithm`` is represented by a ``LearningModel``, which consists of
-one or more task stacks as "heads" and an optional shared stack at the bottom (which serves to produce representations
-as input to all task stacks). It also contains one or more optimizers responsible for applying gradient steps to the
-trainable parameters within each stack, which is the smallest trainable unit from the perspective of a ``LearningModel``.
-The assignment of optimizers is flexible: it is possible to freeze certain stacks while optimizing others. Such an
-abstraction presents a unified interface to the algorithm, regardless of how many individual models it requires and how
+The abstraction consists of ``AbsBlock`` and ``AbsLearningModel``, both of which subclass torch's nn.Module. 
+The ``AbsBlock`` represents the smallest structural unit of an NN-based model. For instance, the ``FullyConnectedBlock`` 
+provided in the toolkit is a stack of fully connected layers with features like batch normalization,
+drop-out and skip connection. The ``AbsLearningModel`` is a collection of network components with
+embedded optimizers and serves as an agent's "brain" by providing a unified interface to it. regardless of how many individual models it requires and how
 complex the model architecture might be.
-
-.. image:: ../images/rl/learning_model.svg
-   :target: ../images/rl/learning_model.svg
-   :alt: Algorithm
-   :width: 650
 
 As an example, the initialization of the actor-critic algorithm may look like this:
 
 .. code-block:: python
 
-  actor_stack = NNStack(name="actor", block_a1, block_a2, ...)
-  critic_stack = NNStack(name="critic", block_c1, block_c2, ...)
-  learning_model = LearningModel(actor_stack, critic_stack)
-  actor_critic = ActorCritic(learning_model, config)
+  actor_stack = FullyConnectedBlock(...)
+  critic_stack = FullyConnectedBlock(...)
+  model = SimpleMultiHeadModel(
+      {"actor": actor_stack, "critic": critic_stack},
+      optimizer_options={
+        "actor": OptimizerOption(cls=Adam, params={"lr": 0.001})
+        "critic": OptimizerOption(cls=RMSprop, params={"lr": 0.0001})  
+      }
+  )
+  agent = ActorCritic("actor_critic", learning_model, config)
 
 Choosing an action is simply:
 
 .. code-block:: python
 
-  learning_model(state, task_name="actor", is_training=False)
+  model(state, task_name="actor", is_training=False)
 
 And performing one gradient step is simply:
 
 .. code-block:: python
 
-  learning_model.learn(critic_loss + actor_loss)
+  model.learn(critic_loss + actor_loss)
 
 
 Explorer

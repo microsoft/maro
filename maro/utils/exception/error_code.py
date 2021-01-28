@@ -52,6 +52,5 @@ ERROR_CODE = {
     4003: "Invalid Episode",
     4004: "Infinite Training Loop",
     4005: "Missing Optimizer",
-    4006: "Unrecognized Task",
-    4007: "Wrong Learning Module Dimension",
+    4006: "Unrecognized Task"
 }
