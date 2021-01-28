@@ -4,12 +4,12 @@ chdir "%~dp0.."
 
 pip install -r .\maro\requirements.build.txt
 
-REM delete old .c files
+REM delete old .cpp files
 
 DEL /F .\maro\backends\*.cpp
 
 REM generate code
-python scripts\code_gen.py
+REM python scripts\code_gen.py
 
 REM compile pyx into .c files
 REM use numpy backend, and use a big memory block to hold array
