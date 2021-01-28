@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 import os
-
 from multiprocessing import Pipe
 from multiprocessing.connection import Connection
 from typing import Dict, List, Tuple, Union
@@ -27,6 +26,7 @@ class SnapshotListNodeWrapper:
 
 class SnapshotListWrapper:
     """Wrapper for snapshot list, used to provide same interface as normal snapshot list."""
+
     def __init__(self, env):
         self._env = env
 
@@ -43,14 +43,21 @@ class VectorEnv:
     NOTE:
         This helper do not care about if each environment has same tick (frame_index).
     """
-    def __init__(self, batch_num: int,
-                scenario: str = None, topology: str = None,
-                start_tick: int = 0, durations: int = 100,
-                snapshot_resolution: int = 1, max_snapshots: int = None,
-                decision_mode: DecisionMode = DecisionMode.Sequential,
-                business_engine_cls: type = None,
-                disable_finished_events: bool = False,
-                options: dict = {}):
+
+    def __init__(
+        self,
+        batch_num: int,
+        scenario: str = None,
+        topology: str = None,
+        start_tick: int = 0,
+        durations: int = 100,
+        snapshot_resolution: int = 1,
+        max_snapshots: int = None,
+        decision_mode: DecisionMode = DecisionMode.Sequential,
+        business_engine_cls: type = None,
+        disable_finished_events: bool = False,
+        options: dict = {}
+    ):
         self._is_env_started = False
 
         # Ensure batch number less than CPU core
@@ -65,8 +72,16 @@ class VectorEnv:
         self._snapshot_wrapper = SnapshotListWrapper(self)
 
         self._start_environments(
-            scenario, topology, start_tick, durations, snapshot_resolution, max_snapshots,
-            decision_mode, business_engine_cls, disable_finished_events, options
+            scenario,
+            topology,
+            start_tick,
+            durations,
+            snapshot_resolution,
+            max_snapshots,
+            decision_mode,
+            business_engine_cls,
+            disable_finished_events,
+            options
         )
 
     @property
@@ -193,13 +208,19 @@ class VectorEnv:
 
         return None
 
-    def _start_environments(self, scenario: str = None, topology: str = None,
-                            start_tick: int = 0, durations: int = 100,
-                            snapshot_resolution: int = 1, max_snapshots: int = None,
-                            decision_mode: DecisionMode = DecisionMode.Sequential,
-                            business_engine_cls: type = None,
-                            disable_finished_events: bool = False,
-                            options: dict = {}):
+    def _start_environments(
+        self,
+        scenario: str = None,
+        topology: str = None,
+        start_tick: int = 0,
+        durations: int = 100,
+        snapshot_resolution: int = 1,
+        max_snapshots: int = None,
+        decision_mode: DecisionMode = DecisionMode.Sequential,
+        business_engine_cls: type = None,
+        disable_finished_events: bool = False,
+        options: dict = {}
+    ):
         for i in range(self._batch_num):
             mp, sp = Pipe()
 
@@ -207,10 +228,17 @@ class VectorEnv:
             self._env_pipes.append(sp)
 
             env_proc = EnvProcess(
-                sp, scenario, topology, start_tick,
-                durations, snapshot_resolution, max_snapshots,
-                decision_mode, business_engine_cls,
-                disable_finished_events, options
+                sp,
+                scenario,
+                topology,
+                start_tick,
+                durations,
+                snapshot_resolution,
+                max_snapshots,
+                decision_mode,
+                business_engine_cls,
+                disable_finished_events,
+                options
             )
 
             self._sub_process_list.append(env_proc)
