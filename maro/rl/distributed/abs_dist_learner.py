@@ -17,7 +17,7 @@ class AbsDistLearner(ABC):
     """Abstract distributed learner class.
 
     Args:
-        agent_manager (AbsAgentManager): An AgentManager instance that manages all agents.
+        agent_manager (AbsAgentManager): An AbsAgentManager instance that manages all agents.
         scheduler (AbsScheduler): A scheduler responsible for iterating over episodes and generating exploration
             parameters if necessary.
         proxy: A ``Proxy`` instance responsible for communication.

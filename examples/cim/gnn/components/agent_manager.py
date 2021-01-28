@@ -44,7 +44,7 @@ def get_experience_pool(config):
         ("a",): (tuple(), np.int64, True),
     }
 
-    return {agent_id: NumpyStore(value_dict, size) for agent_id, size in config.training.exp_per_ep.items()}
+    return {agent_id: NumpyStore(value_dict, size) for agent_id, size in config.exp_per_ep.items()}
 
 
 def create_gnn_agent(config):
@@ -67,20 +67,29 @@ def create_gnn_agent(config):
             FullyConnectedBlock(v_dim, v_pre_dim, [], activation=GELU),
             PositionalEncoder(d_model=v_pre_dim, max_seq_len=sequence_buffer_size)
         ),
-        p_trans_layers=TransformerEncoder(
-            TransformerEncoderLayer(d_model=p_pre_dim, nhead=4, activation="gelu", dim_feedforward=p_pre_dim * 4),
-            num_layers=3
+        p_trans_layers=NNStack(
+            "static_node_transformer_encoder",
+            TransformerEncoder(
+                TransformerEncoderLayer(d_model=p_pre_dim, nhead=4, activation="gelu", dim_feedforward=p_pre_dim * 4),
+                num_layers=3
+            )
         ),
-        v_trans_layers=TransformerEncoder(
-            TransformerEncoderLayer(d_model=v_pre_dim, nhead=2, activation="gelu", dim_feedforward=v_pre_dim * 4),
-            num_layers=3
+        v_trans_layers=NNStack(
+            "dynamic_node_transformer_encoder",
+            TransformerEncoder(
+                TransformerEncoderLayer(d_model=v_pre_dim, nhead=2, activation="gelu", dim_feedforward=v_pre_dim * 4),
+                num_layers=3
+            )
         ),
-        trans_gat=SimpleTransformer(
-            p_dim=p_pre_dim,
-            v_dim=v_pre_dim,
-            output_size=gnn_output_size // 2,
-            edge_dim={"p": pedge_dim, "v": vedge_dim},
-            layer_num=2
+        trans_gat=NNStack(
+            "graph_attention_transformer",
+            SimpleTransformer(
+                p_dim=p_pre_dim,
+                v_dim=v_pre_dim,
+                output_size=gnn_output_size // 2,
+                edge_dim={"p": pedge_dim, "v": vedge_dim},
+                layer_num=2
+            )
         ),
         actor_head=NNStack(
             "actor",
@@ -119,12 +128,12 @@ def create_gnn_agent(config):
 
 class GNNAgentManager(AbsAgentManager):
     def choose_action(self, decision_event, snapshot_list):
-        state = self._state_shaper(decision_event, snapshot_list)
-        action_info = self.agents.choose_action(state)
+        state = self._state_shaper(action_info=decision_event, snapshot_list=snapshot_list)
+        action_info = self.agent.choose_action(state)
         self._experience_shaper.record(decision_event, action_info, state)
         return self._action_shaper(self._trajectory["action"][-1], decision_event)
 
-    def on_env_feed_back(self, metrics):
+    def on_env_feedback(self, metrics):
         pass
 
     def post_process(self, snapshot_list):
@@ -136,10 +145,10 @@ class GNNAgentManager(AbsAgentManager):
         return experiences
 
     def store_experiences(self, experiences):
-        self.agents.store_experiences(experiences)
+        self.agent.store_experiences(experiences)
 
     def train(self):
-        self.agents.train()
+        self.agent.train()
 
     def dump_models_to_files(self, path):
-        self.agents.dump_model_to_file(path)
+        self.agent.dump_model_to_file(path)

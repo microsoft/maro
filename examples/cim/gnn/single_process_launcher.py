@@ -7,8 +7,8 @@ from maro.utils import Logger
 
 from examples.cim.gnn.general import simulation_logger, training_logger
 from examples.cim.gnn.components import (
-    GNNLearner, GNNStateShaper, GNNAgentManager, create_gnn_agent, decision_cnt_analysis, load_config,
-    return_scaler, save_code, save_config
+    DiscreteActionShaper, GNNAgentManager, GNNExperienceShaper, GNNLearner, GNNStateShaper,
+    create_gnn_agent, decision_cnt_analysis, load_config, return_scaler, save_code, save_config
 )
 
 
@@ -36,29 +36,36 @@ def launch(config):
 
     # Create a mock gnn state shaper.
     static_code_list, dynamic_code_list = list(port_mapping.values()), list(vessel_mapping.values())
-    gnn_state_shaper = GNNStateShaper(
+    state_shaper = GNNStateShaper(
         static_code_list, dynamic_code_list, config.env.durations, config.agent.model.feature,
-        sequence_buffer_size=config.agent.model.sequence_buffer_size, only_demo=True, 
-        max_value=env.configs["total_containers"]
+        sequence_buffer_size=config.agent.model.sequence_buffer_size, max_value=env.configs["total_containers"]
     )
-    gnn_state_shaper.compute_static_graph_structure(env)
+    state_shaper.compute_static_graph_structure(env)
+    action_shaper = DiscreteActionShaper(config.agent.model.action_dim)
+    experience_shaper = GNNExperienceShaper(
+        static_code_list, dynamic_code_list, config.env.durations, state_shaper,
+        scale_factor=config.env.return_scaler, time_slot=config.agent.algorithm.td_steps,
+        discount_factor=config.agent.algorithm.reward_discount
+    )
 
     # Create an agent_manager.
     config.agent.num_static_nodes = len(static_code_list)
     config.agent.num_dynamic_nodes = len(dynamic_code_list)
-    config.agent.algorithm.p2p_adj = gnn_state_shaper.p2p_static_graph
-    config.agent.model.port_feature_dim = gnn_state_shaper.get_input_dim("p")
-    config.agent.model.vessel_feature_dim = gnn_state_shaper.get_input_dim("v")
+    config.agent.algorithm.p2p_adj = state_shaper.p2p_static_graph
+    config.agent.model.port_feature_dim = state_shaper.get_input_dim("p")
+    config.agent.model.vessel_feature_dim = state_shaper.get_input_dim("v")
     agent = create_gnn_agent(config.agent)
-    
+    agent_manager = GNNAgentManager(
+        agent, state_shaper=state_shaper, action_shaper=action_shaper, experience_shaper=experience_shaper
+    )
     # Learner function for training and testing.
     learner = GNNLearner(
-        env, agent, Scheduler(config.main_loop.max_episode), 
+        env, agent_manager, Scheduler(config.main_loop.max_episode), 
         train_freq=config.main_loop.train_freq,
         model_save_freq=config.main_loop.model_save_freq,
         logger=simulation_logger
     )
-    learner.learn(config.training)
+    learner.learn()
 
 
 if __name__ == "__main__":

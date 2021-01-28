@@ -6,7 +6,7 @@ import os
 import numpy as np
 
 from maro.communication import Proxy
-from maro.rl import Actor, AgentManagerMode, AgentManagerProxy
+from maro.rl import Actor, AgentManagerProxy
 from maro.simulator import Env
 from maro.utils import convert_dottable
 

@@ -3,7 +3,7 @@ from collections import defaultdict
 import numpy as np
 
 
-class ExperienceShaper:
+class GNNExperienceShaper:
     def __init__(
             self, static_list, dynamic_list, max_tick, gnn_state_shaper, 
             scale_factor=0.0001, 

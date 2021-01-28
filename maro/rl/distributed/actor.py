@@ -6,7 +6,7 @@ from abc import ABC
 from typing import Union
 
 from maro.communication import Proxy
-from maro.rl.agent_manager import AgentManager
+from maro.rl.agent_manager import AbsAgentManager
 from maro.simulator import Env
 from maro.utils import InternalLogger
 
@@ -26,7 +26,7 @@ class Actor(ABC):
     def __init__(
         self,
         env: Env,
-        agent_manager: Union[AgentManager, AgentManagerProxy],
+        agent_manager: Union[AbsAgentManager, AgentManagerProxy],
         proxy: Proxy
     ):
         self._env = env
@@ -55,7 +55,7 @@ class Actor(ABC):
         """
         self._env.reset()
         ep = message.payload[PayloadKey.EPISODE]
-        if isinstance(self._agent_manager, AgentManager):
+        if isinstance(self._agent_manager, AbsAgentManager):
             model_dict = message.payload.get(PayloadKey.MODEL, None)
             if model_dict is not None:
                 self._agent_manager.load_models(model_dict)

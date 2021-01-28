@@ -5,10 +5,7 @@ import os
 import time
 
 from maro.communication import Proxy
-from maro.rl import (
-    AgentManagerMode, InferenceLearner, SimpleDistLearner, TwoPhaseLinearParameterScheduler,
-    concat_experiences_by_agent
-)
+from maro.rl import InferenceLearner, SimpleDistLearner, TwoPhaseLinearParameterScheduler, concat_experiences_by_agent
 from maro.simulator import Env
 from maro.utils import convert_dottable
 

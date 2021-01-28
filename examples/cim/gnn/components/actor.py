@@ -12,7 +12,7 @@ import torch
 from maro.simulator import Env
 
 from .action_shaper import DiscreteActionShaper
-from .experience_shaper import ExperienceShaper
+from .experience_shaper import GNNExperienceShaper
 from .shared_structure import SharedStructure
 from .state_shaper import GNNStateShaper
 from .utils import fix_seed

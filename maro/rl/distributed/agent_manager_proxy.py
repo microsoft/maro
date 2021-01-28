@@ -41,7 +41,7 @@ class AgentManagerProxy(AbsAgentManager):
             experience_shaper=experience_shaper
         )
         self._max_receive_action_attempts = max_receive_action_attempts
-        self._action_source = self.agents.peers_name["learner"][0]
+        self._action_source = self.agent.peers_name["learner"][0]
 
         # Data structures to temporarily store trajectories
         self._trajectory = defaultdict(list)
@@ -97,16 +97,16 @@ class AgentManagerProxy(AbsAgentManager):
             PayloadKey.EPISODE: self._current_ep,
             PayloadKey.TIME_STEP: self._time_step
         }
-        self.agents.isend(
+        self.agent.isend(
             SessionMessage(
                 tag=MessageTag.CHOOSE_ACTION,
-                source=self.agents.component_name,
+                source=self.agent.component_name,
                 destination=self._action_source,
                 payload=payload
             )
         )
         attempts_left = self._max_receive_action_attempts
-        for msg in self.agents.receive():
+        for msg in self.agent.receive():
             # Timeout
             if not msg:
                 return

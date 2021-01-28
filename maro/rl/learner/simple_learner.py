@@ -14,7 +14,7 @@ class SimpleLearner(AbsLearner):
 
     Args:
         env (Env): An Env instance.
-        agent_manager (AbsAgentManager): An AgentManager instance that manages all agents.
+        agent_manager (AbsAgentManager): An AbsAgentManager instance that manages all agents.
         scheduler (AbsScheduler): A scheduler responsible for iterating over episodes and generating exploration
             parameters if necessary.
     """

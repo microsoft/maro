@@ -40,6 +40,15 @@ class PositionalEncoder(nn.Module):
         return x + addon
 
 
+class GeLU(nn.Module):
+    """Simple gelu wrapper as a independent module."""
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, input):
+        return F.gelu(input)
+
+
 class SimpleGATLayer(nn.Module):
     """The enhanced graph attention layer for heterogenenous neighborhood.
 
@@ -253,8 +262,7 @@ class GNNBasedACModel(AbsLearningModel):
     def _forward(self, state, actor_enabled=False, critic_enabled=False):
         p_idx, v_idx = state.get("p_idx", None), state.get("v_idx", None)
         assert((actor_enabled and p_idx is not None and v_idx is not None) or critic_enabled)
-        feature_p, feature_v = state["p"], state["v"]
-
+        feature_p, feature_v = state["p"].float(), state["v"].float()
         tb, bsize, p_cnt, _ = feature_p.shape
         v_cnt = feature_v.shape[2]
         assert(tb == self.sequence_buffer_size)

@@ -110,29 +110,29 @@ class GNNBasedActorCritic(AbsAgent):
             return [ActionInfo(action=act, log_probability=dist[act]) for act, dist in zip(action, prob)] 
 
     def train(self):
-        loss_dict = defaultdict(list)
-        for _ in range(self._config.num_batches):
-            shuffler = Shuffler(self._experience_pool, batch_size=self._config.batch_size)
-            while shuffler.has_next():
-                batch = shuffler.next()
-                actor_loss, critic_loss, entropy_loss, tot_loss = self._train_on_batch(
-                    batch["s"], batch["a"], batch["R"], batch["s_"], self._name[0], self._name[1]
-                )
-                loss_dict["actor"].append(actor_loss)
-                loss_dict["critic"].append(critic_loss)
-                loss_dict["entropy"].append(entropy_loss)
-                loss_dict["tot"].append(tot_loss)
+        for pid_vid, exp_pool in self._experience_pool.items():
+            loss_dict = defaultdict(list)
+            for _ in range(self._config.num_batches):
+                shuffler = Shuffler(exp_pool, batch_size=self._config.batch_size)
+                while shuffler.has_next():
+                    batch = shuffler.next()
+                    actor_loss, critic_loss, entropy_loss, tot_loss = self._train_on_batch(
+                        batch["s"], batch["a"], batch["R"], batch["s_"], self._name[0], self._name[1]
+                    )
+                    loss_dict["actor"].append(actor_loss)
+                    loss_dict["critic"].append(critic_loss)
+                    loss_dict["entropy"].append(entropy_loss)
+                    loss_dict["tot"].append(tot_loss)
 
-        a_loss = np.mean(loss_dict["actor"])
-        c_loss = np.mean(loss_dict["critic"])
-        e_loss = np.mean(loss_dict["entropy"])
-        tot_loss = np.mean(loss_dict["tot"])
-        self._logger.debug(
-            f"code: {str(self._name)} \t actor: {float(a_loss)} \t critic: {float(c_loss)} \t entropy: {float(e_loss)} \
-            \t tot: {float(tot_loss)}")
+            a_loss = np.mean(loss_dict["actor"])
+            c_loss = np.mean(loss_dict["critic"])
+            e_loss = np.mean(loss_dict["entropy"])
+            tot_loss = np.mean(loss_dict["tot"])
+            self._logger.debug(
+                f"code: {str(self._name)} \t actor: {float(a_loss)} \t critic: {float(c_loss)} \t entropy: {float(e_loss)} \
+                \t tot: {float(tot_loss)}")
 
-        self._experience_pool.clear()
-        return loss_dict
+            self._experience_pool.clear()
     
     def _train_on_batch(self, states, actions, returns, next_states, p_idx, v_idx):
         """Model training.

@@ -12,7 +12,7 @@ class GNNLearner(AbsLearner):
     ):
         super().__init__()
         self._env = env
-        self._agent_manager = agent_manager
+        self.agent_manager = agent_manager
         self._scheduler = scheduler
         self._train_freq = train_freq
         self._model_save_freq = model_save_freq
@@ -27,16 +27,16 @@ class GNNLearner(AbsLearner):
             performance, exp_dict = self._sample()
             rollout_time += time.time() - tick
             self._logger.info(f"ep {self._scheduler.current_ep} - performance: {performance}")
-            self._agent_manager.store_experiences(exp_dict)
+            self.agent_manager.store_experiences(exp_dict)
 
             if self._scheduler.current_ep % self._train_freq == self._train_freq - 1:
                 self._logger.info("training start")
                 tick = time.time()
-                self._agent_manager.train()
+                self.agent_manager.train()
                 training_time += time.time() - tick
 
             if self._log_pth is not None and (self._scheduler.current_ep + 1) % self._model_save_freq == 0:
-                self._agent_manager.dump_models_to_files(
+                self.agent_manager.dump_models_to_files(
                     os.path.join(self._log_pth, "models", self._scheduler.current_ep + 1)
                 )
 
@@ -47,10 +47,10 @@ class GNNLearner(AbsLearner):
         self._env.reset()
         metrics, decision_event, is_done = self._env.step(None)
         while not is_done:
-            action = self._agent_manager.choose_action(decision_event, self._env.snapshot_list)
+            action = self.agent_manager.choose_action(decision_event, self._env.snapshot_list)
             metrics, decision_event, is_done = self._env.step(action)
-            self._agent_manager.on_env_feedback(metrics)
+            self.agent_manager.on_env_feedback(metrics)
 
-        details = self._agent_manager.post_process(self._env.snapshot_list) if return_details else None
+        details = self.agent_manager.post_process(self._env.snapshot_list) if return_details else None
 
         return self._env.metrics, details
