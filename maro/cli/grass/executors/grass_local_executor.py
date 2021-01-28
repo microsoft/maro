@@ -79,12 +79,11 @@ class GrassLocalExecutor:
             )
         else:
             # Get local machine resource information
-            cpu_count = ResourceInfo.cpu_info().cpu_count
-            free_memory = ResourceInfo.memory_info().free_memory
-            gpu_count = len(ResourceInfo.gpu_info())
-            available_resource = {"cpu": cpu_count,
-                                  "memory": free_memory,
-                                  "gpu": gpu_count}
+            available_resource = {
+                "cpu": ResourceInfo.cpu_info().cpu_count,
+                "memory": ResourceInfo.memory_info().free_memory,
+                "gpu": len(ResourceInfo.gpu_info())
+            }
 
         # Update resource
         is_satisfied, updated_resource = resource_op(available_resource, cluster_resource, op="allocate")

@@ -4,12 +4,12 @@
 import csv
 import json
 import os
+from typing import List
 
 import numpy as np
 import pandas as pd
 import tqdm
 import yaml
-from typing import List
 
 from maro.utils.exception.cli_exception import CliError
 from maro.utils.logger import CliLogger
@@ -189,8 +189,8 @@ def _generate_summary(scenario: GlobalScenarios, source_path: str, prefix: str, 
                     lambda x, y: round(x / (y + 1 / 1000), 4),
                     data["fulfillment"],
                     data["trip_requirement"]
-                    )
                 )
+            )
             data.to_csv(os.path.join(source_path, f"{prefix}{epoch_index}", GlobalFileNames.stations_sum))
             _summary_append(
                 scenario, input_path, stations_header, stations_sum_dataframe,

@@ -55,8 +55,6 @@ class NodeResource(BasicResource):
         self.node_name = node_name
 
 
-
-
 _CPU_INFO = namedtuple("CPU_INFO", ["cpu_count", "cpu_usage_per_core"])
 _MEMORY_INFO = namedtuple("MEMORY_INFO", ["total_memory", "free_memory", "used_memory", "memory_usage"])
 _GPU_INFO = namedtuple("GPU_INFO", ["id", "name", "total_memory", "free_memory", "used_memory", "memory_usage"])

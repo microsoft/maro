@@ -2,11 +2,11 @@
 # Licensed under the MIT license.
 
 import math
+from typing import List
 
 import altair as alt
 import pandas as pd
 import streamlit as st
-from typing import List
 
 from maro.cli.inspector.params import CIMItemOption, CITIBIKEItemOption, GlobalScenarios
 
@@ -257,7 +257,7 @@ def _formula_define(data_original: pd.DataFrame) -> dict:
                         lambda x, y: x + y,
                         data_original[res[0]],
                         data_original[res[1]]
-                        )
+                    )
                 )
             else:
                 return
@@ -328,7 +328,7 @@ def _formula_define(data_original: pd.DataFrame) -> dict:
                     map(
                         lambda x: math.sqrt(x),
                         data_original[res[0]]
-                        )
+                    )
                 )
             else:
                 return
