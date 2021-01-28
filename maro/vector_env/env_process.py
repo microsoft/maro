@@ -1,12 +1,10 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import pickle
-import warnings
 from multiprocessing import Process
 from multiprocessing.connection import Connection
 
-from maro.simulator import DecisionMode, Env
+from maro.simulator import Env
 
 
 class EnvProcess(Process):

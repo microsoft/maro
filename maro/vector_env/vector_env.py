@@ -2,10 +2,10 @@
 # Licensed under the MIT license.
 
 import os
-import pickle
-from multiprocessing import Pipe, Process
+
+from multiprocessing import Pipe
 from multiprocessing.connection import Connection
-from typing import List, Tuple, Union, Dict
+from typing import Dict, List, Tuple, Union
 
 import numpy as np
 
@@ -17,7 +17,7 @@ from .env_process import EnvProcess
 class SnapshotListNodeWrapper:
     """Wrapper to provide same interface as normal snapshot nodes."""
 
-    def __init__(self,  env, node_name: str):
+    def __init__(self, env, node_name: str):
         self.node_name = node_name
         self._env = env
 
@@ -44,13 +44,13 @@ class VectorEnv:
         This helper do not care about if each environment has same tick (frame_index).
     """
     def __init__(self, batch_num: int,
-                 scenario: str = None, topology: str = None,
-                 start_tick: int = 0, durations: int = 100,
-                 snapshot_resolution: int = 1, max_snapshots: int = None,
-                 decision_mode: DecisionMode = DecisionMode.Sequential,
-                 business_engine_cls: type = None,
-                 disable_finished_events: bool = False,
-                 options: dict = {}):
+                scenario: str = None, topology: str = None,
+                start_tick: int = 0, durations: int = 100,
+                snapshot_resolution: int = 1, max_snapshots: int = None,
+                decision_mode: DecisionMode = DecisionMode.Sequential,
+                business_engine_cls: type = None,
+                disable_finished_events: bool = False,
+                options: dict = {}):
         # Ensure batch number less than CPU core
         assert batch_num <= os.cpu_count()
 
@@ -94,7 +94,8 @@ class VectorEnv:
         Args:
             action (ActionType): If action is a normal object, then it will be send to all environments as action.
             If it is a list, then its length must same as environment number, then will send to environments one by one.
-            If it is a dict, then means we want to send action to specified environment, key is the index of environment, value is action.
+            If it is a dict, then means we want to send action to specified environment, key is the index of environment,
+            value is action.
 
         Returns:
             Tuple[dict, object, bool]: Tuple with: list of metrics, list of decision_events, is_done
@@ -150,7 +151,7 @@ class VectorEnv:
 
     def _query(self, node_name: str, args: slice):
         """Query state from each environments.
-        
+
         Args:
             node_name (str): Node name to query.
             args (slice): Args for snapshot list querying.
