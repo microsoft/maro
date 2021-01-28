@@ -39,9 +39,3 @@ class UnrecognizedTask(MAROException):
     """Raised when a LearningModel has task names that are not unrecognized by an algorithm."""
     def __init__(self, msg: str = None):
         super().__init__(4006, msg)
-
-
-class NNStackDimensionError(MAROException):
-    """Raised when a learning module's input dimension is incorrect."""
-    def __init__(self, msg: str = None):
-        super().__init__(4007, msg)

@@ -8,7 +8,7 @@ import numpy as np
 import torch
 from torch.distributions import Categorical
 
-from maro.rl.model import SimpleMultiHeadedModel
+from maro.rl.model import SimpleMultiHeadModel
 from maro.rl.utils.trajectory_utils import get_lambda_returns, get_truncated_cumulative_reward
 
 from .abs_agent import AbsAgent
@@ -23,10 +23,10 @@ class PolicyGradient(AbsAgent):
 
     Args:
         name (str): Agent's name.
-        model (SimpleMultiHeadedModel): Model that computes action distributions.
+        model (SimpleMultiHeadModel): Model that computes action distributions.
         reward_discount (float): Reward decay as defined in standard RL terminology.
     """
-    def __init__(self, name: str, model: SimpleMultiHeadedModel, reward_discount: float):
+    def __init__(self, name: str, model: SimpleMultiHeadModel, reward_discount: float):
         super().__init__(name, model, reward_discount)
 
     def choose_action(self, state: np.ndarray) -> Union[ActionInfo, List[ActionInfo]]:
@@ -110,12 +110,14 @@ class ActorCritic(AbsAgent):
 
     Args:
         name (str): Agent's name.
-        model (SimpleMultiHeadedModel): Multi-task model that computes action distributions and state values.
+        model (SimpleMultiHeadModel): Multi-task model that computes action distributions and state values.
             It may or may not have a shared bottom stack.
         config: Configuration for the AC algorithm.
     """
-    def __init__(self, name: str, model: SimpleMultiHeadedModel, config: ActorCriticConfig):
-        self.validate_task_names(model.task_names, {"actor", "critic"})
+    def __init__(self, name: str, model: SimpleMultiHeadModel, config: ActorCriticConfig):
+        assert (model.task_names is not None and set(model.task_names) == {"actor", "critic"}), (
+            f"Expected model task names 'actor' and 'critic', but got {model.task_names}"
+        )
         super().__init__(name, model, config)
 
     def choose_action(self, state: np.ndarray) -> Union[ActionInfo, List[ActionInfo]]:

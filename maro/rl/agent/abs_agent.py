@@ -94,9 +94,3 @@ class AbsAgent(ABC):
             dir_path (str): path to the directory where the models are saved.
         """
         self._model.dump_to_file(os.path.join(dir_path, self._name))
-
-    @staticmethod
-    def validate_task_names(model_task_names, expected_task_names):
-        task_names, expected_task_names = set(model_task_names), set(expected_task_names)
-        if len(model_task_names) > 1 and task_names != expected_task_names:
-            raise UnrecognizedTask(f"Expected task names {expected_task_names}, got {task_names}")

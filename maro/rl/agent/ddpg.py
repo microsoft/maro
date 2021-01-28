@@ -7,7 +7,7 @@ import numpy as np
 import torch
 
 from maro.rl.exploration import NoiseExplorer
-from maro.rl.model import SimpleMultiHeadedModel
+from maro.rl.model import SimpleMultiHeadModel
 from maro.rl.storage import SimpleStore
 
 from .abs_agent import AbsAgent
@@ -61,18 +61,20 @@ class DDPG(AbsAgent):
     https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch/ddpg
 
     Args:
-        model (SimpleMultiHeadedModel): DDPG policy and q-value models.
+        model (SimpleMultiHeadModel): DDPG policy and q-value models.
         config: Configuration for DDPG algorithm.
         explorer (NoiseExplorer): An NoiseExplorer instance for generating exploratory actions. Defaults to None.
     """
     def __init__(
         self,
-        model: SimpleMultiHeadedModel,
+        model: SimpleMultiHeadModel,
         config: DDPGConfig,
         experience_pool=SimpleStore(["state", "action", "reward", "next_state"]),
         explorer: NoiseExplorer = None
     ):
-        self.validate_task_names(model.task_names, {"policy", "q_value"})
+        assert (model.task_names is not None and set(model.task_names) == {"policy", "q_value"}), (
+            f"Expected model task names 'policy' and 'q_value', but got {model.task_names}"
+        )
         super().__init__(model, config)
         self._explorer = explorer
         self._target_model = model.copy() if model.is_trainable else None
