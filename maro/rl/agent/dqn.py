@@ -84,7 +84,7 @@ class DQN(AbsAgent):
         experience_pool: SimpleStore = SimpleStore(["state", "action", "reward", "next_state", "loss"])
     ):
         if (config.advantage_mode is not None and
-                (model.task_names is None or set(model.task_names) != {"state_value", "advantage"})): 
+                (model.task_names is None or set(model.task_names) != {"state_value", "advantage"})):
             raise UnrecognizedTask(
                 f"Expected model task names 'state_value' and 'advantage' since dueling DQN is used, "
                 f"got {model.task_names}"

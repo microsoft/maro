@@ -46,8 +46,9 @@ class PolicyGradient(AbsAgent):
 
         action_probs = self._model(state, is_training=False)
         action = Categorical(action_probs).sample().cpu().numpy()
-        action_probs = action_probs.numpy()
-        action_info = [ActionInfo(action=act, log_prob=np.log(action_probs[i][act])) for i, act in enumerate(action)]
+        action_info = [
+            ActionInfo(action=act, log_prob=np.log(prob[act])) for act, prob in zip(action, action_probs.numpy())
+        ]
         return action_info[0] if is_single else action_info
 
     def train(
@@ -136,8 +137,9 @@ class ActorCritic(AbsAgent):
 
         action_probs = self._model(state, task_name="actor", is_training=False)
         action = Categorical(action_probs).sample().cpu().numpy()
-        action_probs = action_probs.numpy()
-        action_info = [ActionInfo(action=act, log_prob=np.log(action_probs[i][act])) for i, act in enumerate(action)]
+        action_info = [
+            ActionInfo(action=act, log_prob=np.log(prob[act])) for act, prob in zip(action, action_probs.numpy())
+        ]
         return action_info[0] if is_single else action_info
 
     def train(
