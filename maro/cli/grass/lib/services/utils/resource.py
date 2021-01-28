@@ -1,10 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from collections import namedtuple
+import subprocess
 
-import GPUtil
 import psutil
+
+from .subprocess import Subprocess
 
 
 class BasicResource:
@@ -55,64 +56,58 @@ class NodeResource(BasicResource):
         self.node_name = node_name
 
 
-_CPU_INFO = namedtuple("CPU_INFO", ["cpu_count", "cpu_usage_per_core"])
-_MEMORY_INFO = namedtuple("MEMORY_INFO", ["total_memory", "free_memory", "used_memory", "memory_usage"])
-_GPU_INFO = namedtuple("GPU_INFO", ["id", "name", "total_memory", "free_memory", "used_memory", "memory_usage"])
-
-
 class ResourceInfo:
     @staticmethod
-    def cpu_info(interval: int = None) -> tuple:
-        """ Get CPU information about local environment.
+    def get_static_info() -> dict:
+        """ Get static resource information about local environment.
 
         Returns:
             Tuple[int, list]: (total cpu number, [cpu usage per core])
         """
-        cpu = psutil.cpu_count()
-        cpu_usage_per_core = psutil.cpu_percent(interval=interval, percpu=True)
-        return _CPU_INFO(cpu_count=cpu, cpu_usage_per_core=cpu_usage_per_core)
+        static_info = {}
+        static_info["cpu"] = psutil.cpu_count()
+        
+        memory = psutil.virtual_memory()
+        static_info["total_memory"] = round(float(memory.total) / (1024 ** 2), 2)
+        static_info["memory"] = round(float(memory.free) / (1024 ** 2), 2)
+
+        gpu_static_command = "nvidia-smi --query-gpu=name,memory.total --format=csv,noheader,nounits"
+        try:
+            return_str = Subprocess.run(command=GET_GPU_INFO_COMMAND)
+            gpus_info = return_str.split(os.linesep)
+            static_info["gpu"] = len(gpus_info) - 1  # (int) logical number
+            static_info["gpu_name"] = []
+            static_info["gpu_memory"] = []
+            for info in gpus_info:
+                name, total_memory = info.split(", ")
+                static_info["gpu_name"].append(name)
+                static_info["gpu_memory"].append(total_memory)
+        except Exception:
+            static_info["gpu"] = 0
+        
+        return static_info
 
     @staticmethod
-    def memory_info() -> tuple:
-        """ Get memory information about local environment.
+    def get_dynamic_info(interval: int = None) -> dict:
+        """ Get dynamic resource information about local environment.
 
         Returns:
             Tuple[float]: (total memory, free memory, used memory, memory usage)
         """
+        dynamic_info = {}
+        dynamic_info["cpu_usage_per_core"] = psutil.cpu_percent(interval=interval, percpu=True)
+
         memory = psutil.virtual_memory()
-        # Unit MB
-        total_memory = round(float(memory.total) / (1024 ** 2), 2)
-        free_memory = round(float(memory.free) / (1024 ** 2), 2)
-        used_memory = round(float(memory.used) / (1024 ** 2), 2)
-        memory_usage = memory.percent / 100
+        dynamic_info["memory_usage"] = memory.percent / 100
 
-        return _MEMORY_INFO(
-            total_memory=total_memory,
-            free_memory=free_memory,
-            used_memory=used_memory,
-            memory_usage=memory_usage
-        )
+        gpu_dynamic_command = "nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits"
+        dynamic_info["gpu_memory_usage"] = []
+        try:
+            return_str = Subprocess.run(command=GET_UTILIZATION_GPUS_COMMAND)
+            memory_usage_per_gpu = return_str.split("\n")
+            for single_usage in memory_usage_per_gpu:
+                dynamic_info["gpu_memory_usage"].append(float(single_usage))
+        except Exception:
+            pass
 
-    @staticmethod
-    def gpu_info() -> tuple:
-        """ Get GPU information about local environment.
-
-        Returns:
-            Tuple: (GPU ID, GPU name, total memory, free memory, used memory, memory usage)
-        """
-        gpu_list = GPUtil.getGPUs()
-        gpu_info = []
-        if not gpu_list:
-            return gpu_info
-
-        for gpu in gpu_list:
-            gpu_info.append(_GPU_INFO(
-                id=gpu.id,
-                name=gpu.name,
-                total_memory=gpu.memoryTotal,
-                free_memory=gpu.memoryFree,
-                used_memory=gpu.memoryUsed,
-                memory_usage=gpu.memoryUtil
-            ))
-
-        return gpu_info
+        return dynamic_info

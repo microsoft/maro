@@ -19,7 +19,7 @@ def create(deployment_path: str, **kwargs):
         elif create_deployment["mode"] == "grass/on-premises":
             GrassOnPremisesExecutor.create(create_deployment=create_deployment)
         elif create_deployment["mode"] == "grass/local":
-            executor = GrassLocalExecutor(cluster_details=create_deployment)
+            executor = GrassLocalExecutor(cluster_name=create_deployment["name"], cluster_details=create_deployment)
             executor.create()
         else:
             raise BadRequestError(f"Unsupported operation in mode '{create_deployment['mode']}'.")

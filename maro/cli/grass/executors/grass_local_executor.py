@@ -23,14 +23,10 @@ logger = CliLogger(name=__name__)
 
 
 class GrassLocalExecutor:
-    def __init__(self, cluster_name: str = None, cluster_details: dict = None):
-        if not cluster_name and not cluster_details:
-            raise BadRequestError(
-                "Failure to create GrassLocalExecutor. At least given a cluster_name or cluster_details"
-            )
-        self.cluster_name = cluster_name if cluster_name else cluster_details["name"]
-        self.cluster_details = cluster_details if cluster_details else \
-            DetailsReader.load_cluster_details(cluster_name=cluster_name)
+    def __init__(self, cluster_name: str, cluster_details: dict = None):
+        self.cluster_name = cluster_name
+        self.cluster_details = DetailsReader.load_cluster_details(cluster_name=cluster_name) \
+            if not cluster_details else cluster_details
 
         # Connection with Redis
         redis_port = self.cluster_details["master"]["redis"]["port"]
@@ -65,7 +61,6 @@ class GrassLocalExecutor:
             raise BadRequestError(f"Cluster '{self.cluster_name}' is exist.")
 
         # self._details_validation(create_deployment)
-
         DetailsWriter.save_cluster_details(
             cluster_name=self.cluster_name,
             cluster_details=self.cluster_details
@@ -79,11 +74,12 @@ class GrassLocalExecutor:
             )
         else:
             # Get local machine resource information
-            available_resource = {
-                "cpu": ResourceInfo.cpu_info().cpu_count,
-                "memory": ResourceInfo.memory_info().free_memory,
-                "gpu": len(ResourceInfo.gpu_info())
-            }
+            available_resource = ResourceInfo.get_static_info()
+            self._redis_connection.hset(
+                GrassLocalRedisName.RUNTIME_DETAILS,
+                "total_resource",
+                json.dumps(available_resource)
+            )
 
         # Update resource
         is_satisfied, updated_resource = resource_op(available_resource, cluster_resource, op="allocate")
@@ -131,6 +127,8 @@ class GrassLocalExecutor:
             json.dumps(updated_resource)
         )
         self._redis_connection.hdel(GrassLocalRedisName.CLUSTER_DETAILS, self.cluster_name)
+
+        logger.info(f"{self.cluster_name} is deleted.")
 
     def _agents_start(self):
         command = f"python {LocalPaths.MARO_GRASS_LOCAL_AGENT} {self.cluster_name}"
