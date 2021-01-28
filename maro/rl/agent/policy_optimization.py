@@ -10,6 +10,7 @@ from torch.distributions import Categorical
 
 from maro.rl.model import SimpleMultiHeadModel
 from maro.rl.utils.trajectory_utils import get_lambda_returns, get_truncated_cumulative_reward
+from maro.utils.exception.rl_toolkit_exception import UnrecognizedTask
 
 from .abs_agent import AbsAgent
 
@@ -43,7 +44,7 @@ class PolicyGradient(AbsAgent):
         if is_single:
             state = state.unsqueeze(dim=0)
 
-        action_probs = self._model(state, task_name="actor", is_training=False)
+        action_probs = self._model(state, is_training=False)
         action = Categorical(action_probs).sample().cpu().numpy()
         action_probs = action_probs.numpy()
         action_info = [ActionInfo(action=act, log_prob=np.log(action_probs[i][act])) for i, act in enumerate(action)]
@@ -115,9 +116,8 @@ class ActorCritic(AbsAgent):
         config: Configuration for the AC algorithm.
     """
     def __init__(self, name: str, model: SimpleMultiHeadModel, config: ActorCriticConfig):
-        assert (model.task_names is not None and set(model.task_names) == {"actor", "critic"}), (
-            f"Expected model task names 'actor' and 'critic', but got {model.task_names}"
-        )
+        if model.task_names is None or set(model.task_names) != {"actor", "critic"}:
+            raise UnrecognizedTask(f"Expected model task names 'actor' and 'critic', but got {model.task_names}")
         super().__init__(name, model, config)
 
     def choose_action(self, state: np.ndarray) -> Union[ActionInfo, List[ActionInfo]]:

@@ -11,8 +11,6 @@ import torch.nn as nn
 from maro.utils import clone
 from maro.utils.exception.rl_toolkit_exception import MissingOptimizer
 
-from .abs_block import AbsBlock
-
 OptimizerOptions = namedtuple("OptimizerOptions", ["cls", "params"])
 
 
@@ -24,8 +22,8 @@ class AbsLearningModel(nn.Module):
         optimizer_options (Union[OptimizerOptions, Dict[str, OptimizerOptions]]): Optimizer options for
             the components. If none, no optimizer will be created for the model and the model will not
             be trainable. If it is a single OptimizerOptions instance, an optimizer will be created to jointly
-            optimize all parameters of the model. If it is a dictionary, for each `(key, value)` pair, 
-            an optimizer specified by `value` will be created for the internal component named `key`. 
+            optimize all parameters of the model. If it is a dictionary, for each `(key, value)` pair,
+            an optimizer specified by `value` will be created for the internal component named `key`.
             Note that it is possible to freeze certain components while optimizing others by providing
             a subset of the keys in ``component``. Defaults to None.
     """
@@ -36,8 +34,9 @@ class AbsLearningModel(nn.Module):
     ):
         super().__init__()
         assert (
-            optimizer_options is None or isinstance(optimizer_options, OptimizerOptions)
-            or isinstance(component, dict) 
+            optimizer_options is None
+            or isinstance(optimizer_options, OptimizerOptions)
+            or isinstance(component, dict)
         )
         self._component = component if isinstance(component, nn.Module) else nn.ModuleDict(component)
         self._is_trainable = optimizer_options is not None
