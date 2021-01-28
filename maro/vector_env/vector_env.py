@@ -51,8 +51,10 @@ class VectorEnv:
                 business_engine_cls: type = None,
                 disable_finished_events: bool = False,
                 options: dict = {}):
+        self._is_env_started = False
+
         # Ensure batch number less than CPU core
-        assert batch_num <= os.cpu_count()
+        assert 0 < batch_num <= os.cpu_count()
 
         self._env_pipes: List[Connection] = []
         self._pipes: List[Connection] = []
@@ -125,7 +127,7 @@ class VectorEnv:
 
     def stop(self):
         """Stop all environments."""
-        if not self._is_stopping:
+        if self._is_env_started and not self._is_stopping:
             self._is_stopping = True
 
             self._send("stop", wait_response=False)
@@ -214,3 +216,5 @@ class VectorEnv:
             self._sub_process_list.append(env_proc)
 
             env_proc.start()
+
+        self._is_env_started = True
