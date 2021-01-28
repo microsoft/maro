@@ -34,7 +34,6 @@ class EnvProcess(Process):
         env = Env(*self._args, **self._kwargs)
 
         while True:
-            # try:
             cmd, content = self._pipe.recv()
 
             if cmd == "step":
@@ -68,6 +67,3 @@ class EnvProcess(Process):
             elif cmd == "stop":
                 self._pipe.send(None)
                 break
-            # except Exception as ex:
-            #     print(ex)
-            #     break
