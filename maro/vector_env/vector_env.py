@@ -111,8 +111,8 @@ class VectorEnv:
         Args:
             action (ActionType): If action is a normal object, then it will be send to all environments as action.
             If it is a list, then its length must same as environment number, then will send to environments one by one.
-            If it is a dict, then means we want to send action to specified environment, key is the index of environment,
-            value is action.
+            If it is a dict, then means we want to send action to specified environment,
+            key is the index of environment, value is action.
 
         Returns:
             Tuple[dict, object, bool]: Tuple with: list of metrics, list of decision_events, is_done
@@ -208,38 +208,14 @@ class VectorEnv:
 
         return None
 
-    def _start_environments(
-        self,
-        scenario: str = None,
-        topology: str = None,
-        start_tick: int = 0,
-        durations: int = 100,
-        snapshot_resolution: int = 1,
-        max_snapshots: int = None,
-        decision_mode: DecisionMode = DecisionMode.Sequential,
-        business_engine_cls: type = None,
-        disable_finished_events: bool = False,
-        options: dict = {}
-    ):
+    def _start_environments(self, *args, **kwargs):
         for i in range(self._batch_num):
             mp, sp = Pipe()
 
             self._pipes.append(mp)
             self._env_pipes.append(sp)
 
-            env_proc = EnvProcess(
-                sp,
-                scenario,
-                topology,
-                start_tick,
-                durations,
-                snapshot_resolution,
-                max_snapshots,
-                decision_mode,
-                business_engine_cls,
-                disable_finished_events,
-                options
-            )
+            env_proc = EnvProcess(sp, *args, **kwargs)
 
             self._sub_process_list.append(env_proc)
 
