@@ -38,9 +38,7 @@ class Rack(NodeBase):
     def reset(self):
         """Reset to default value."""
         self.id = self._id
-        self._pm_list.clear()
 
-        self._name = ""
         self.empty_machine_num = self.total_machine_num
 
     @property

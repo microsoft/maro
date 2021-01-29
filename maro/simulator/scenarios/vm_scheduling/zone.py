@@ -34,9 +34,6 @@ class Zone(NodeBase):
         """Reset to default value."""
         self.id = self._id
 
-        self._name = ""
-        self._data_center_list.clear()
-
     @property
     def data_center_list(self) -> List[int]:
         return self._data_center_list

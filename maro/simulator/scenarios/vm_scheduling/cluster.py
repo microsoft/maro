@@ -39,9 +39,6 @@ class Cluster(NodeBase):
         """Reset to default value."""
         self.id = self._id
 
-        self._cluster_type = ""
-        self._rack_list.clear()
-
         self.empty_machine_num = self.total_machine_num
 
     @property

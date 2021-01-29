@@ -35,9 +35,6 @@ class DataCenter(NodeBase):
         """Reset to default value."""
         self.id = self._id
 
-        self._name = ""
-        self._cluster_list.clear()
-
     @property
     def cluster_list(self) -> List[int]:
         return self._cluster_list
