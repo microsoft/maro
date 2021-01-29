@@ -1,8 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from collections import namedtuple
-from typing import Callable, List, Tuple
+from typing import Callable, Tuple
 
 import numpy as np
 import torch
