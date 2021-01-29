@@ -3,7 +3,7 @@
 
 from maro.rl.actor import AbsActor, SimpleActor
 from maro.rl.agent import (
-    DDPG, DQN, AbsAgent, ActionInfo, ActorCritic, ActorCriticConfig, DDPGConfig, DQNConfig, PolicyGradient
+    DDPG, DQN, AbsAgent, ActorCritic, ActorCriticConfig, DDPGConfig, DQNConfig, PolicyGradient
 )
 from maro.rl.agent_manager import AbsAgentManager
 from maro.rl.dist_topologies import (
@@ -20,7 +20,7 @@ from maro.rl.storage import AbsStore, OverwriteType, SimpleStore
 
 __all__ = [
     "AbsActor", "SimpleActor",
-    "AbsAgent", "ActionInfo", "ActorCritic", "ActorCriticConfig", "DDPG", "DDPGConfig", "DQN", "DQNConfig",
+    "AbsAgent", "ActorCritic", "ActorCriticConfig", "DDPG", "DDPGConfig", "DQN", "DQNConfig",
     "PolicyGradient",
     "AbsAgentManager",
     "ActorProxy", "ActorWorker", "concat_experiences_by_agent", "merge_experiences_with_trajectory_boundaries",

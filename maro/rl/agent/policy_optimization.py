@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 from collections import namedtuple
-from typing import Callable, List, Union
+from typing import Callable, List, Tuple
 
 import numpy as np
 import torch
@@ -13,8 +13,6 @@ from maro.rl.utils.trajectory_utils import get_lambda_returns, get_truncated_cum
 from maro.utils.exception.rl_toolkit_exception import UnrecognizedTask
 
 from .abs_agent import AbsAgent
-
-ActionInfo = namedtuple("ActionInfo", ["action", "log_prob"])
 
 
 class PolicyGradient(AbsAgent):
@@ -30,26 +28,25 @@ class PolicyGradient(AbsAgent):
     def __init__(self, name: str, model: SimpleMultiHeadModel, reward_discount: float):
         super().__init__(name, model, reward_discount)
 
-    def choose_action(self, state: np.ndarray) -> Union[ActionInfo, List[ActionInfo]]:
+    def choose_action(self, state: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """Use the actor (policy) model to generate stochastic actions.
 
         Args:
             state: Input to the actor model.
 
         Returns:
-            A single ActionInfo namedtuple or a list of ActionInfo namedtuples.
+            Actions and corresponding log probabilities.
         """
         state = torch.from_numpy(state).to(self._device)
         is_single = len(state.shape) == 1
         if is_single:
             state = state.unsqueeze(dim=0)
 
-        action_probs = self._model(state, is_training=False)
-        action = Categorical(action_probs).sample().cpu().numpy()
-        action_info = [
-            ActionInfo(action=act, log_prob=np.log(prob[act])) for act, prob in zip(action, action_probs.numpy())
-        ]
-        return action_info[0] if is_single else action_info
+        action_prob = Categorical(self._model(state, is_training=False))
+        action = action_prob.sample()
+        log_p = action_prob.log_prob(action)
+        action, log_p = action.cpu().numpy(), log_p.cpu().numpy()
+        return (action[0], log_p[0]) if is_single else (action, log_p)
 
     def train(
         self, states: np.ndarray, actions: np.ndarray, log_action_prob: np.ndarray, rewards: np.ndarray
@@ -121,26 +118,25 @@ class ActorCritic(AbsAgent):
             raise UnrecognizedTask(f"Expected model task names 'actor' and 'critic', but got {model.task_names}")
         super().__init__(name, model, config)
 
-    def choose_action(self, state: np.ndarray) -> Union[ActionInfo, List[ActionInfo]]:
+    def choose_action(self, state: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """Use the actor (policy) model to generate stochastic actions.
 
         Args:
             state: Input to the actor model.
 
         Returns:
-            A single ActionInfo namedtuple or a list of ActionInfo namedtuples.
+            Actions and corresponding log probabilities.
         """
         state = torch.from_numpy(state).to(self._device)
         is_single = len(state.shape) == 1
         if is_single:
             state = state.unsqueeze(dim=0)
 
-        action_probs = self._model(state, task_name="actor", is_training=False)
-        action = Categorical(action_probs).sample().cpu().numpy()
-        action_info = [
-            ActionInfo(action=act, log_prob=np.log(prob[act])) for act, prob in zip(action, action_probs.numpy())
-        ]
-        return action_info[0] if is_single else action_info
+        action_prob = Categorical(self._model(state, task_name="actor", is_training=False))
+        action = action_prob.sample()
+        log_p = action_prob.log_prob(action)
+        action, log_p = action.cpu().numpy(), log_p.cpu().numpy()
+        return (action[0], log_p[0]) if is_single else (action, log_p)
 
     def train(
         self, states: np.ndarray, actions: np.ndarray, log_action_prob: np.ndarray, rewards: np.ndarray

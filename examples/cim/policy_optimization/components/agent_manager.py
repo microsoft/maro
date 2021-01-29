@@ -81,13 +81,13 @@ class POAgentManager(AbsAgentManager):
 
     def choose_action(self, decision_event, snapshot_list):
         agent_id, model_state = self._state_shaper(decision_event, snapshot_list)
-        action_info = self.agent[agent_id].choose_action(model_state)
+        action, log_p = self.agent[agent_id].choose_action(model_state)
         self._trajectory["state"].append(model_state)
         self._trajectory["agent_id"].append(agent_id)
         self._trajectory["event"].append(decision_event)
-        self._trajectory["action"].append(action_info.action)
-        self._trajectory["log_action_probability"].append(action_info.log_prob)
-        return self._action_shaper(action_info.action, decision_event, snapshot_list)
+        self._trajectory["action"].append(action)
+        self._trajectory["log_action_prob"].append(log_p)
+        return self._action_shaper(action, decision_event, snapshot_list)
 
     def train(self, experiences_by_agent: dict):
         for agent_id, exp in experiences_by_agent.items():
@@ -97,7 +97,7 @@ class POAgentManager(AbsAgentManager):
                 self.agent[agent_id].train(
                     trajectory["state"],
                     trajectory["action"],
-                    trajectory["log_action_probability"],
+                    trajectory["log_action_prob"],
                     trajectory["reward"]
                 )
 
