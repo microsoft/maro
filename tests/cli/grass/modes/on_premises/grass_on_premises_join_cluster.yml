@@ -1,0 +1,18 @@
+mode: grass/on-premises
+
+master:
+  private_ip_address: ""
+  api_server:
+    port: 51812
+  redis:
+    port: 6379
+
+node:
+  hostname: ""
+  username: marotest
+  public_ip_address: ""
+  private_ip_address: ""
+
+configs:
+  install_node_runtime: True
+  install_node_gpu_support: False

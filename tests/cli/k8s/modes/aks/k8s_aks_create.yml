@@ -1,0 +1,12 @@
+name: ""
+mode: k8s/aks
+
+cloud:
+  location: japaneast
+  resource_group: ""
+  subscription: ""
+  default_username: marotest
+  default_public_key: ""
+
+master:
+  node_size: Standard_D2s_v3
