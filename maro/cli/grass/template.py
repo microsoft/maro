@@ -2,10 +2,10 @@
 # Licensed under the MIT license.
 
 
-from maro.cli.grass.executors.grass_azure_executor import GrassAzureExecutor
-
-
 def template(export_path: str, **kwargs):
-    GrassAzureExecutor.template(
+    # Late import.
+    from maro.cli.grass.executors.grass_executor import GrassExecutor
+
+    GrassExecutor.template(
         export_path=export_path
     )
