@@ -14,7 +14,7 @@ from examples.cim.gnn.components import (
 
 def launch(config):
     # Create a demo environment to retrieve environment information.
-    simulation_logger.info("Approximating the experience quantity for each agent...")
+    simulation_logger.info("Getting experience quantity estimates for each (port, vessel) pair...")
     env = Env(config.env.scenario, config.env.topology, durations=config.env.durations)
     exp_per_ep = decision_cnt_analysis(env, pv=True, buffer_size=8)
     config.agent.exp_per_ep = {

@@ -23,7 +23,6 @@ class GNNExperienceShaper:
         self._experience_dict = defaultdict(list)
         self._init_state()
         self._scale_factor = scale_factor
-        self._state_keys = ["v", "p", "vo", "po", "vedge", "pedge"]
 
     def _init_state(self):
         self._fulfillment_list, self._shortage_list = np.zeros(self._max_tick + 1), np.zeros(self._max_tick + 1)
@@ -33,7 +32,7 @@ class GNNExperienceShaper:
     def record(self, decision_event, action_info, model_input):
         # Only the experience that has the next state of given time slot is valuable.
         if decision_event.tick + self._time_slot < self._max_tick:
-            self._experience_dict[decision_event.port_idx, decision_event.vessel_idx].put({
+            self._experience_dict[decision_event.port_idx, decision_event.vessel_idx].append({
                 "tick": decision_event.tick,
                 "s": model_input,
                 "a": action_info.action,
@@ -66,21 +65,22 @@ class GNNExperienceShaper:
                 exp["s_"] = self._gnn_state_shaper(tick=tick + self._time_slot)
                 exp["R"] = self._scale_factor * R[tick]
 
+        def get_state_items(exp_list, which: str):
+            assert which in {"s", "s_"}
+            return {
+                key: np.stack([e[which][key] for e in exp_list], axis=1 if key in {"v", "p"} else 0)
+                for key in ["v", "p", "vo", "po", "vedge", "pedge", "ppedge", "mask"]
+            }
+        
         return {
-            agent_id: {
-                "s": {
-                    key: np.stack([e["s"][key] for e in exp_list], axis=1 if key in {"v", "p"} else 0)
-                    for key in self._state_keys
-                },
-                "s_": {
-                    key: np.stack([e["s"][key] for e in exp_list], axis=1 if key in {"v", "p"} else 0)
-                    for key in self._state_keys
-                },
+            pid_vid: {
+                "s": get_state_items(exp_list, "s"),
+                "s_": get_state_items(exp_list, "s_"),
                 "a": np.array([e["a"] for e in exp_list], dtype=np.int64),
                 "R": np.vstack([e["R"] for e in exp_list]),
                 "len": len(exp_list)
             }
-            for agent_id, exp_list in self._experience_dict.items()
+            for pid_vid, exp_list in self._experience_dict.items()
         }
 
     def reset(self):

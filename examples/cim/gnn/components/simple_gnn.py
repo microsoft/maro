@@ -184,10 +184,10 @@ class SimpleTransformer(nn.Module):
 
         Args:
             p (Tensor): The port feature.
-            pe (Tensor): The vessel-port edge feature.
+            pe (dict): The vessel-port edge feature.
             v (Tensor): The vessel feature.
-            ve (Tensor): The port-vessel edge feature.
-            ppe (Tensor): The port-port edge feature.
+            ve (dict): The port-vessel edge feature.
+            ppe (dict): The port-port edge feature.
         """
         # p.shape: (batch*p_cnt, p_dim)
         pp = p
@@ -221,18 +221,17 @@ class GNNBasedACModel(AbsLearningModel):
         self.sequence_buffer_size = sequence_buffer_size
         self.gnn_output_size = gnn_output_size
 
-    def forward(self, state, actor_enabled=False, critic_enabled=False, is_training=True):
+    def forward(self, state, p_idx=None, v_idx=None, use_actor=False, use_critic=False, is_training=True):
         self.train(mode=is_training)
         if is_training:
-            return self._forward(state, actor_enabled=actor_enabled, critic_enabled=critic_enabled)
+            return self._forward(state, p_idx=p_idx, v_idx=v_idx, use_actor=use_actor, use_critic=use_critic)
 
         with torch.no_grad():
-            return self._forward(state, actor_enabled=actor_enabled, critic_enabled=critic_enabled)
+            return self._forward(state, p_idx=p_idx, v_idx=v_idx, use_actor=use_actor, use_critic=use_critic)
 
-    def _forward(self, state, actor_enabled=False, critic_enabled=False):
-        p_idx, v_idx = state.get("p_idx", None), state.get("v_idx", None)
-        assert((actor_enabled and p_idx is not None and v_idx is not None) or critic_enabled)
-        feature_p, feature_v = state["p"].float(), state["v"].float()
+    def _forward(self, state, p_idx=None, v_idx=None, use_actor=False, use_critic=False):
+        assert((use_actor and p_idx is not None and v_idx is not None) or use_critic)
+        feature_p, feature_v = state["p"], state["v"]
         tb, bsize, p_cnt, _ = feature_p.shape
         v_cnt = feature_v.shape[2]
         assert(tb == self.sequence_buffer_size)
@@ -255,14 +254,14 @@ class GNNBasedACModel(AbsLearningModel):
         emb_p, emb_v = self._component["trans_gat"](feature_p, state["pe"], feature_v, state["ve"], state["ppe"])
 
         a_rtn, c_rtn = None, None
-        if actor_enabled and "actor_head" in self._component:
+        if use_actor and "actor_head" in self._component:
             ap = emb_p.reshape(bsize, p_cnt, self.gnn_output_size)
             ap = ap[:, p_idx, :]
             av = emb_v.reshape(bsize, v_cnt, self.gnn_output_size // 2)
             av = av[:, v_idx, :]
             emb_a = torch.cat((ap, av), axis=1)
             a_rtn = self._component["actor_head"](emb_a)
-        if critic_enabled and "critic_head" in self._component:
+        if use_critic and "critic_head" in self._component:
             c_rtn = self._component["critic_head"](emb_p).reshape(bsize, p_cnt)
         
         return a_rtn, c_rtn

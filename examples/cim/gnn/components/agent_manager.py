@@ -56,7 +56,8 @@ def create_gnn_agent(config):
     sequence_buffer_size = config.model.sequence_buffer_size
     gnn_output_size = config.model.graph_output_dim * scale
     actor_input_dim = 3 * gnn_output_size // 2
-    model = GNNBasedACModel({
+    model = GNNBasedACModel(
+        {
         "p_pre_layers": 
             Sequential(
                 FullyConnectedBlock(p_dim, p_pre_dim, [], activation=GELU),
@@ -101,7 +102,8 @@ def create_gnn_agent(config):
                 [d * scale for d in config.model.value_hidden_dims] + [gnn_output_size],
                 is_head=True,
                 activation=GELU
-            ),
+            )
+        },
         p_pre_dim=p_pre_dim,
         v_pre_dim=v_pre_dim,
         sequence_buffer_size=sequence_buffer_size,
@@ -121,14 +123,13 @@ class GNNAgentManager(AbsAgentManager):
         state = self._state_shaper(action_info=decision_event, snapshot_list=snapshot_list)
         action_info = self.agent.choose_action(state)
         self._experience_shaper.record(decision_event, action_info, state)
-        return self._action_shaper(self._trajectory["action"][-1], decision_event)
+        return self._action_shaper(action_info.action, decision_event)
 
     def on_env_feedback(self, metrics):
         pass
 
     def post_process(self, snapshot_list):
-        experiences = self._experience_shaper(self._trajectory, snapshot_list)
-        self._trajectory.clear()
+        experiences = self._experience_shaper(snapshot_list)
         self._state_shaper.reset()
         self._action_shaper.reset()
         self._experience_shaper.reset()
@@ -139,6 +140,3 @@ class GNNAgentManager(AbsAgentManager):
 
     def train(self):
         self.agent.train()
-
-    def dump_models_to_files(self, path):
-        self.agent.dump_model_to_file(path)

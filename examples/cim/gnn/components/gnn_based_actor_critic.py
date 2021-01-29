@@ -100,39 +100,40 @@ class GNNBasedActorCritic(AbsAgent):
             state["p"], state["po"], state["pedge"], state["v"], state["vo"], state["vedge"],
             state["ppedge"], state["mask"]
         )
-        model_state.update({"p_idx": state["p_idx"], "v_idx": state["v_idx"]})
-        prob, _ = self._model(model_state, actor_enabled=True, is_training=False)
-        distribution = Categorical(prob)
-        action = distribution.sample().cpu().numpy()
-        if len(action) == 1:
-            return ActionInfo(action=action, log_probability=np.log(prob[action]))
-        else:
-            return [ActionInfo(action=act, log_probability=dist[act]) for act, dist in zip(action, prob)] 
+        action_probs, _ = self._model(
+            model_state, p_idx=state["p_idx"], v_idx=state["v_idx"], use_actor=True, is_training=False
+        )
+        action = Categorical(action_probs).sample().cpu().numpy()
+        action_info = [
+            ActionInfo(action=act, log_prob=np.log(prob[act])) for act, prob in zip(action, action_probs.numpy())
+        ]
+        return action_info[0] if len(action_info) == 1 else action_info
 
     def train(self):
-        for pid_vid, exp_pool in self._experience_pool.items():
+        for (p_idx, v_idx), exp_pool in self._experience_pool.items():
             loss_dict = defaultdict(list)
             for _ in range(self._config.num_batches):
                 shuffler = Shuffler(exp_pool, batch_size=self._config.batch_size)
                 while shuffler.has_next():
                     batch = shuffler.next()
                     actor_loss, critic_loss, entropy_loss, tot_loss = self._train_on_batch(
-                        batch["s"], batch["a"], batch["R"], batch["s_"], self._name[0], self._name[1]
+                        batch["s"], batch["a"], batch["R"], batch["s_"], p_idx, v_idx
                     )
                     loss_dict["actor"].append(actor_loss)
                     loss_dict["critic"].append(critic_loss)
                     loss_dict["entropy"].append(entropy_loss)
                     loss_dict["tot"].append(tot_loss)
 
-            a_loss = np.mean(loss_dict["actor"])
-            c_loss = np.mean(loss_dict["critic"])
-            e_loss = np.mean(loss_dict["entropy"])
-            tot_loss = np.mean(loss_dict["tot"])
-            self._logger.debug(
-                f"code: {str(self._name)} \t actor: {float(a_loss)} \t critic: {float(c_loss)} \t entropy: {float(e_loss)} \
-                \t tot: {float(tot_loss)}")
+            if loss_dict:
+                a_loss = np.mean(loss_dict["actor"])
+                c_loss = np.mean(loss_dict["critic"])
+                e_loss = np.mean(loss_dict["entropy"])
+                tot_loss = np.mean(loss_dict["tot"])
+                self._logger.debug(
+                    f"code: {str(self._name)} \t actor: {float(a_loss)} \t critic: {float(c_loss)} \t entropy: {float(e_loss)} \
+                    \t tot: {float(tot_loss)}")
 
-            self._experience_pool.clear()
+            exp_pool.clear()
     
     def _train_on_batch(self, states, actions, returns, next_states, p_idx, v_idx):
         """Model training.
@@ -158,19 +159,19 @@ class GNNBasedActorCritic(AbsAgent):
         states, actions, returns, next_states = self._preprocess(states, actions, returns, next_states)
         # Every port has a value.
         # values.shape: (batch, p_cnt)
-        probs, values = self._model(states, p_idx=p_idx, v_idx=v_idx, actor_enabled=True, critic_enabled=True)
+        probs, values = self._model(states, p_idx=p_idx, v_idx=v_idx, use_actor=True, use_critic=True)
         distribution = Categorical(probs)
         log_prob = distribution.log_prob(actions)
         entropy_loss = distribution.entropy()
 
-        _, values_ = self._model(next_states, critic_enabled=True)
-        advantage = returns + self._value_discount * values_.detach() - values
+        _, values_ = self._model(next_states, use_critic=True)
+        advantage = returns + self._config.value_discount * values_.detach() - values
 
-        if self._entropy_factor != 0:
+        if self._config.entropy_factor != 0:
             # actor_loss = actor_loss* torch.log(entropy_loss + np.e)
-            advantage[:, p_idx] += self._entropy_factor * entropy_loss.detach()
+            advantage[:, p_idx] += self._config.entropy_factor * entropy_loss.detach()
 
-        actor_loss = - (log_prob * torch.sum(advantage, axis=-1).detach()).mean()
+        actor_loss = -(log_prob * torch.sum(advantage, axis=-1).detach()).mean()
         critic_loss = torch.sum(advantage.pow(2), axis=1).mean()
         # torch.nn.utils.clip_grad_norm_(self._critic_model.parameters(),0.5)
         tot_loss = self._config.actor_loss_coefficient * actor_loss + critic_loss
@@ -194,7 +195,7 @@ class GNNBasedActorCritic(AbsAgent):
 
     def store_experiences(self, experiences):
         for code, exp_list in experiences.items():
-            self._experience_pool[code].store_experiences(exp_list)
+            self._experience_pool[code].put(exp_list)
     
     def load_model(self, folder_pth, idx=-1):
         if idx == -1:
@@ -228,8 +229,15 @@ class GNNBasedActorCritic(AbsAgent):
         seq_len, batch, v_cnt, v_dim = v.shape
         _, _, p_cnt, p_dim = p.shape
 
-        p, po, pedge, v, vo, vedge, p2p, ppedge, seq_mask = self._from_numpy(
-            p, po, pedge, v, vo, vedge, self._config.p2p_adj, ppedge, seq_mask)
+        p = torch.from_numpy(p).float().to(self._device)
+        po = torch.from_numpy(po).long().to(self._device)
+        pedge = torch.from_numpy(pedge).float().to(self._device)
+        v = torch.from_numpy(v).float().to(self._device)
+        vo = torch.from_numpy(vo).long().to(self._device)
+        vedge = torch.from_numpy(vedge).float().to(self._device)
+        p2p = torch.from_numpy(self._config.p2p_adj).to(self._device)
+        ppedge = torch.from_numpy(ppedge).float().to(self._device)
+        seq_mask = torch.from_numpy(seq_mask).bool().to(self._device)
 
         batch_range = torch.arange(batch, dtype=torch.long).to(self._device)
         # vadj.shape: (batch*v_cnt, p_cnt*)
@@ -264,17 +272,14 @@ class GNNBasedActorCritic(AbsAgent):
             "mask": seq_mask,
         }
 
-    def _from_numpy(self, *np_arr):
-        return [torch.from_numpy(v).to(self._device) for v in np_arr]
-
     def _preprocess(self, states, actions, returns, next_states):
-        states = self._union(
+        states = self.union(
             states["p"], states["po"], states["pedge"], states["v"], states["vo"], states["vedge"],
             states["ppedge"], states["mask"]
         )
         actions = torch.from_numpy(actions).long().to(self._device)
         returns = torch.from_numpy(returns).float().to(self._device)
-        next_states = self._union(
+        next_states = self.union(
             next_states["p"], next_states["po"], next_states["pedge"],
             next_states["v"], next_states["vo"], next_states["vedge"],
             next_states["ppedge"], next_states["mask"]
