@@ -2,9 +2,7 @@
 # Licensed under the MIT license.
 
 from maro.rl.actor import AbsActor, SimpleActor
-from maro.rl.agent import (
-    DDPG, DQN, AbsAgent, ActorCritic, ActorCriticConfig, DDPGConfig, DQNConfig, PolicyGradient
-)
+from maro.rl.agent import DDPG, DQN, AbsAgent, ActorCritic, ActorCriticConfig, DDPGConfig, DQNConfig, PolicyGradient
 from maro.rl.agent_manager import AbsAgentManager
 from maro.rl.dist_topologies import (
     ActorProxy, ActorWorker, concat_experiences_by_agent, merge_experiences_with_trajectory_boundaries
