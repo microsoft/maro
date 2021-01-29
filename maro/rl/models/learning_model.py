@@ -2,14 +2,13 @@
 # Licensed under the MIT license.
 
 from collections import namedtuple
-from itertools import chain
 from typing import Dict, Union
 
 import torch
 import torch.nn as nn
 
 from maro.utils import clone
-from maro.utils.exception.rl_toolkit_exception import NNStackDimensionError, MissingOptimizer
+from maro.utils.exception.rl_toolkit_exception import MissingOptimizer, NNStackDimensionError
 
 from .abs_block import AbsBlock
 
@@ -61,21 +60,21 @@ class LearningModel(nn.Module):
     Args:
         task_stacks (NNStack): NNStack instances, each of which performs a designated task.
         shared_stack (NNStack): Network module that forms that shared part of the model. Defaults to None.
-        optimizer_options (Union[OptimizerOptions, Dict[str, OptimizerOptions]]): Optimizer options for 
+        optimizer_options (Union[OptimizerOptions, Dict[str, OptimizerOptions]]): Optimizer options for
             the internal stacks. If none, no optimizer will be created for the model and the model will not
             be trainable. If it is a single OptimizerOptions instance, an optimizer will be created to jointly
             optimize all parameters of the model. If it is a dictionary, for each `(key, value)` pair, an optimizer
             specified by `value` will be created for the internal stack named `key`. Defaults to None.
     """
     def __init__(
-        self, 
-        *task_stacks: NNStack, 
-        shared_stack: NNStack = None, 
+        self,
+        *task_stacks: NNStack,
+        shared_stack: NNStack = None,
         optimizer_options: Union[OptimizerOptions, Dict[str, OptimizerOptions]] = None
     ):
         self.validate_dims(*task_stacks, shared_stack=shared_stack)
         super().__init__()
-        self._stack_dict = {stack.name: stack for stack in task_stacks} 
+        self._stack_dict = {stack.name: stack for stack in task_stacks}
         # shared stack
         self._shared_stack = shared_stack
         if self._shared_stack:
@@ -112,7 +111,7 @@ class LearningModel(nn.Module):
 
     def __setstate__(self, dic: dict):
         self.__dict__ = dic
-    
+
     @property
     def task_names(self) -> [str]:
         return list(self._task_stack_dict.keys())
@@ -171,7 +170,7 @@ class LearningModel(nn.Module):
 
         with torch.no_grad():
             return self._forward(inputs, task_name)
-    
+
     def learn(self, loss):
         """Use the loss to back-propagate gradients and apply them to the underlying parameters."""
         if not self._is_trainable:
