@@ -22,13 +22,13 @@ class TruncatedExperienceShaper(Shaper):
         events = trajectory["event"]
         states = trajectory["state"]
         actions = trajectory["action"]
-        log_action_probabilities = trajectory["log_action_probability"]
+        log_action_prob = trajectory["log_action_prob"]
         
         exp_by_agent = defaultdict(lambda: defaultdict(list))
         for i in range(len(states)):
             exp_by_agent[agent_ids[i]]["state"].append(states[i])
             exp_by_agent[agent_ids[i]]["action"].append(actions[i])
-            exp_by_agent[agent_ids[i]]["log_action_probability"].append(log_action_probabilities[i])
+            exp_by_agent[agent_ids[i]]["log_action_prob"].append(log_action_prob[i])
             exp_by_agent[agent_ids[i]]["reward"].append(self._compute_reward(events[i], snapshot_list))
             
         for agent_id in exp_by_agent:

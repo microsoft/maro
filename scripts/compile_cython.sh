@@ -8,10 +8,10 @@ fi
 
 pip install -r ./maro/requirements.build.txt
 
-# delete old .c files
+# delete old .cpp files
 rm -f ./maro/backends/*.cpp
 
-python scripts\code_gen.py
+# python scripts\code_gen.py
 
 # compile pyx into .c files
 # use numpy backend, and use a big memory block to hold array
