@@ -7,7 +7,7 @@ from torch import nn
 from torch.distributions import Categorical
 from torch.nn.utils import clip_grad
 
-from maro.rl import AbsAgent, AbsLearningModel, ActionInfo
+from maro.rl import AbsAgent, AbsLearningModel
 from maro.utils import DummyLogger
 
 from examples.cim.gnn.components.numpy_store import Shuffler
@@ -100,14 +100,14 @@ class GNNBasedActorCritic(AbsAgent):
             state["p"], state["po"], state["pedge"], state["v"], state["vo"], state["vedge"],
             state["ppedge"], state["mask"]
         )
-        action_probs, _ = self._model(
+        action_prob, _ = self._model(
             model_state, p_idx=state["p_idx"], v_idx=state["v_idx"], use_actor=True, is_training=False
         )
-        action = Categorical(action_probs).sample().cpu().numpy()
-        action_info = [
-            ActionInfo(action=act, log_prob=np.log(prob[act])) for act, prob in zip(action, action_probs.numpy())
-        ]
-        return action_info[0] if len(action_info) == 1 else action_info
+        action_prob = Categorical(action_prob)
+        action = action_prob.sample()
+        log_p = action_prob.log_prob(action)
+        action, log_p = action.cpu().numpy(), log_p.cpu().numpy()
+        return (action[0], log_p[0]) if len(action) == 1 else (action, log_p)
 
     def train(self):
         for (p_idx, v_idx), exp_pool in self._experience_pool.items():

@@ -7,7 +7,7 @@ import torch
 from torch.nn import GELU, Sequential, TransformerEncoder, TransformerEncoderLayer
 from torch.optim import Adam
 
-from maro.rl import AbsAgentManager, ActionInfo, FullyConnectedBlock, OptimizerOptions
+from maro.rl import AbsAgentManager, FullyConnectedBlock, OptimizerOptions
 from maro.utils import DummyLogger, Logger
 
 from examples.cim.gnn.components.gnn_based_actor_critic import GNNBasedActorCritic, GNNBasedActorCriticConfig
@@ -121,9 +121,9 @@ def create_gnn_agent(config):
 class GNNAgentManager(AbsAgentManager):
     def choose_action(self, decision_event, snapshot_list):
         state = self._state_shaper(action_info=decision_event, snapshot_list=snapshot_list)
-        action_info = self.agent.choose_action(state)
-        self._experience_shaper.record(decision_event, action_info, state)
-        return self._action_shaper(action_info.action, decision_event)
+        action, log_p = self.agent.choose_action(state)
+        self._experience_shaper.record(decision_event, action, state)
+        return self._action_shaper(action, decision_event)
 
     def on_env_feedback(self, metrics):
         pass
