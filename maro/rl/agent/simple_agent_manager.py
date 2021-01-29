@@ -4,6 +4,7 @@
 import os
 from abc import abstractmethod
 
+from maro.rl.algorithms.policy_optimization import ActionInfo
 from maro.rl.shaping.action_shaper import ActionShaper
 from maro.rl.shaping.experience_shaper import ExperienceShaper
 from maro.rl.shaping.state_shaper import StateShaper
@@ -45,15 +46,20 @@ class SimpleAgentManager(AbsAgentManager):
     def choose_action(self, decision_event, snapshot_list):
         self._assert_inference_mode()
         agent_id, model_state = self._state_shaper(decision_event, snapshot_list)
-        model_action = self.agent_dict[agent_id].choose_action(model_state)
+        action_info = self.agent_dict[agent_id].choose_action(model_state)
         self._transition_cache = {
             "state": model_state,
-            "action": model_action,
             "reward": None,
             "agent_id": agent_id,
             "event": decision_event
         }
-        return self._action_shaper(model_action, decision_event, snapshot_list)
+        if isinstance(action_info, ActionInfo):
+            self._transition_cache["action"] = action_info.action
+            self._transition_cache["log_action_probability"] = action_info.log_probability
+        else:
+            self._transition_cache["action"] = action_info
+
+        return self._action_shaper(self._transition_cache["action"], decision_event, snapshot_list)
 
     def on_env_feedback(self, metrics):
         """This method records the environment-generated metrics as part of the latest transition in the trajectory.
