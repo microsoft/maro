@@ -80,8 +80,7 @@ class DQN(AbsAgent):
         self,
         name: str,
         model: SimpleMultiHeadModel,
-        config: DQNConfig,
-        experience_pool: SimpleStore = SimpleStore(["state", "action", "reward", "next_state", "loss"])
+        config: DQNConfig
     ):
         if (config.advantage_mode is not None and
                 (model.task_names is None or set(model.task_names) != {"state_value", "advantage"})):
@@ -89,7 +88,10 @@ class DQN(AbsAgent):
                 f"Expected model task names 'state_value' and 'advantage' since dueling DQN is used, "
                 f"got {model.task_names}"
             )
-        super().__init__(name, model, config, experience_pool=experience_pool)
+        super().__init__(
+            name, model, config, 
+            experience_pool=SimpleStore(["state", "action", "reward", "next_state", "loss"])
+        )
         self._training_counter = 0
         self._target_model = model.copy() if model.is_trainable else None
 
@@ -162,15 +164,13 @@ class DQN(AbsAgent):
 
     def store_experiences(self, experiences):
         """Store new experiences in the experience pool."""
-        if self._experience_pool is not None:
-            self._experience_pool.put(experiences)
+        self._experience_pool.put(experiences)
 
     def dump_experience_pool(self, dir_path: str):
         """Dump the experience pool to disk."""
-        if self._experience_pool is not None:
-            os.makedirs(dir_path, exist_ok=True)
-            with open(os.path.join(dir_path, self._name), "wb") as fp:
-                pickle.dump(self._experience_pool, fp)
+        os.makedirs(dir_path, exist_ok=True)
+        with open(os.path.join(dir_path, self._name), "wb") as fp:
+            pickle.dump(self._experience_pool, fp)
 
     def _train_on_batch(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray, next_states: np.ndarray):
         states = torch.from_numpy(states).to(self._device)

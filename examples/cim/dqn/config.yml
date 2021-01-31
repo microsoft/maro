@@ -20,26 +20,28 @@ main_loop:
     mid_values: 0.32
     end_values: 0.0
 agents:
-  algorithm:
-    num_actions: 21
-    model:
-      hidden_dims:
-        - 256
-        - 128
-        - 64
-      softmax_enabled: false
-      batch_norm_enabled: true
-      skip_connection_enabled: false
-      dropout_p: 0.0
-    optimizer:
-      lr: 0.05
-    hyper_params:
-      reward_discount: .0
-      min_experiences_to_train: 1024
-      num_batches: 10
-      batch_size: 128
-      target_update_frequency: 5
-      tau: 0.1
-      is_double: true
-      per_sample_td_error_enabled: true
+  model:
+    hidden_dims:
+      - 256
+      - 128
+      - 64
+    output_dim: 21   # number of possible actions
+    softmax_enabled: false
+    batch_norm_enabled: true
+    skip_connection_enabled: false
+    dropout_p: 0.0
+  optimizer:
+    lr: 0.05
+  scheduler:
+    step_size: 5
+    gamma: 0.1
+  hyper_params:
+    reward_discount: .0
+    min_experiences_to_train: 1024
+    num_batches: 10
+    batch_size: 128
+    target_update_frequency: 5
+    tau: 0.1
+    is_double: true
+    per_sample_td_error_enabled: true
   seed: 8  # for reproducibility

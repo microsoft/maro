@@ -133,7 +133,7 @@ with a TD-error-based sampling mechanism.
                 dropout_p=.0
             )
             learning_model = SimpleMultiHeadModel(
-                q_net, optimizer_options=OptimizerOptions(cls=RMSprop, params={"lr": 0.05})
+                q_net, optim_option=OptimOption(optim_cls=RMSprop, optim_params={"lr": 0.05})
             )
             agent_dict[agent_id] = DQN(
                 agent_id, 
@@ -148,8 +148,7 @@ with a TD-error-based sampling mechanism.
                     is_double=True, 
                     per_sample_td_error_enabled=True,
                     loss_cls=nn.SmoothL1Loss
-                ),
-                experience_pool=SimpleStore(["state", "action", "reward", "next_state", "loss"])
+                )
             )
 
         return agent_dict
