@@ -9,7 +9,7 @@ from typing import Dict, List
 from yaml import safe_load
 
 from maro.backends.frame import FrameBase, SnapshotList
-from maro.cli.data_pipeline.utils import download_file, StaticParameter
+from maro.cli.data_pipeline.utils import StaticParameter, download_file
 from maro.data_lib import BinaryReader
 from maro.event_buffer import CascadeEvent, EventBuffer, MaroEvents
 from maro.simulator.scenarios.abs_business_engine import AbsBusinessEngine
@@ -17,9 +17,9 @@ from maro.simulator.scenarios.helpers import DocableDict
 from maro.utils.logger import CliLogger
 from maro.utils.utils import convert_dottable
 
-from .common import AllocateAction, DecisionPayload, Latency, PostponeAction, PostponeType, VmRequestPayload
+from .common import AllocateAction, DecisionPayload, Latency, PostponeAction, VmRequestPayload
 from .cpu_reader import CpuReader
-from .events import Events
+from .enums import Events, PmState, PostponeType, VmCategory
 from .frame_builder import build_frame
 from .physical_machine import PhysicalMachine
 from .virtual_machine import VirtualMachine
@@ -33,8 +33,11 @@ total_energy_consumption (float): Accumulative total PM energy consumption.
 successful_allocation (int): Accumulative successful VM allocation until now.
 successful_completion (int): Accumulative successful completion of tasks.
 failed_allocation (int): Accumulative failed VM allocation until now.
+failed_completion (int): Accumulative failed VM completion due to PM overloading.
 total_latency (Latency): Accumulative used buffer time until now.
-total_oversubscriptions (int): Accumulative over-subscriptions.
+total_oversubscriptions (int): Accumulative over-subscriptions. The unit is PM amount * tick.
+total_overload_pms (int): Accumulative overload pms. The unit is PM amount * tick.
+total_overload_vms (int): Accumulative VMs on overload pms. The unit is VM amount * tick.
 """
 
 logger = CliLogger(name=__name__)
@@ -57,23 +60,15 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             additional_options=additional_options
         )
 
-        # Env metrics.
-        self._total_vm_requests: int = 0
-        self._total_energy_consumption: float = 0
-        self._successful_allocation: int = 0
-        self._successful_completion: int = 0
-        self._failed_allocation: int = 0
-        self._total_latency: Latency = Latency()
-        self._total_oversubscriptions: int = 0
-
+        # Initialize environment metrics.
+        self._init_metrics()
         # Load configurations.
         self._load_configs()
         self._register_events()
 
         self._init_frame()
-
+        # Initialize simulation data.
         self._init_data()
-
         # PMs list used for quick accessing.
         self._init_pms()
         # All living VMs.
@@ -114,7 +109,26 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
         self._delay_duration: int = self._config.DELAY_DURATION
         self._buffer_time_budget: int = self._config.BUFFER_TIME_BUDGET
-        self._pm_amount: int = self._config.PM.AMOUNT
+        # Oversubscription rate.
+        self._max_cpu_oversubscription_rate: float = self._config.MAX_CPU_OVERSUBSCRIPTION_RATE
+        self._max_memory_oversubscription_rate: float = self._config.MAX_MEM_OVERSUBSCRIPTION_RATE
+        self._max_utilization_rate: float = self._config.MAX_UTILIZATION_RATE
+        # Load PM related configs.
+        self._pm_amount: int = self._cal_pm_amount()
+        self._kill_all_vms_if_overload = self._config.KILL_ALL_VMS_IF_OVERLOAD
+
+    def _init_metrics(self):
+        # Env metrics.
+        self._total_vm_requests: int = 0
+        self._total_energy_consumption: float = 0.0
+        self._successful_allocation: int = 0
+        self._successful_completion: int = 0
+        self._failed_allocation: int = 0
+        self._failed_completion: int = 0
+        self._total_latency: Latency = Latency()
+        self._total_oversubscriptions: int = 0
+        self._total_overload_pms: int = 0
+        self._total_overload_vms: int = 0
 
     def _init_data(self):
         """If the file does not exist, then trigger the short data pipeline to download the processed data."""
@@ -127,31 +141,51 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             cpu_readings_data_path = os.path.expanduser(cpu_readings_data_path)
 
         if (not os.path.exists(vm_table_data_path)) or (not os.path.exists(cpu_readings_data_path)):
+            logger.info_green("Lack data. Start preparing data.")
             self._download_processed_data()
+            logger.info_green("Data preparation is finished.")
+
+    def _cal_pm_amount(self) -> int:
+        amount: int = 0
+        for pm_type in self._config.PM:
+            amount += pm_type["amount"]
+
+        return amount
 
     def _init_pms(self):
         """Initialize the physical machines based on the config setting. The PM id starts from 0."""
-        self._pm_cpu_cores_capacity: int = self._config.PM.CPU
-        self._pm_memory_capacity: int = self._config.PM.MEMORY
-
         # TODO: Improve the scalability. Like the use of multiple PM sets.
         self._machines = self._frame.pms
-        for pm_id in range(self._pm_amount):
-            pm = self._machines[pm_id]
-            pm.set_init_state(
-                id=pm_id,
-                cpu_cores_capacity=self._pm_cpu_cores_capacity,
-                memory_capacity=self._pm_memory_capacity
-            )
+        # PM type dictionary.
+        self._pm_type_dict: dict = {}
+        pm_id = 0
+        for pm_type in self._config.PM:
+            amount = pm_type["amount"]
+            self._pm_type_dict[pm_type["PM_type"]] = pm_type
+            while amount > 0:
+                pm = self._machines[pm_id]
+                pm.set_init_state(
+                    id=pm_id,
+                    cpu_cores_capacity=pm_type["CPU"],
+                    memory_capacity=pm_type["memory"],
+                    pm_type=pm_type["PM_type"],
+                    oversubscribable=PmState.EMPTY
+                )
+                amount -= 1
+                pm_id += 1
 
     def reset(self):
         """Reset internal states for episode."""
+        self._total_vm_requests: int = 0
         self._total_energy_consumption: float = 0.0
         self._successful_allocation: int = 0
         self._successful_completion: int = 0
         self._failed_allocation: int = 0
+        self._failed_completion: int = 0
         self._total_latency: Latency = Latency()
         self._total_oversubscriptions: int = 0
+        self._total_overload_pms: int = 0
+        self._total_overload_vms: int = 0
 
         self._frame.reset()
         self._snapshots.reset()
@@ -189,12 +223,15 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._update_pm_workload()
 
         for vm in self._vm_item_picker.items(tick):
-            # TODO: Calculate
+            # TODO: Batch request support.
             vm_info = VirtualMachine(
                 id=vm.vm_id,
                 cpu_cores_requirement=vm.vm_cpu_cores,
                 memory_requirement=vm.vm_memory,
-                lifetime=vm.vm_deleted - vm.timestamp + 1
+                lifetime=vm.vm_lifetime,
+                sub_id=vm.sub_id,
+                deployment_id=vm.deploy_id,
+                category=VmCategory(vm.vm_category)
             )
 
             if vm.vm_id not in cur_tick_cpu_utilization:
@@ -217,7 +254,12 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         # Update energy to the environment metrices.
         total_energy: float = 0.0
         for pm in self._machines:
+            if pm.oversubscribable and pm.cpu_cores_allocated > pm.cpu_cores_capacity:
+                self._total_oversubscriptions += 1
             total_energy += pm.energy_consumption
+            # Overload PMs.
+            if pm.cpu_utilization > 100:
+                self._overload(pm.id)
         self._total_energy_consumption += total_energy
 
         if (tick + 1) % self._snapshot_resolution == 0:
@@ -265,8 +307,11 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             successful_allocation=self._successful_allocation,
             successful_completion=self._successful_completion,
             failed_allocation=self._failed_allocation,
+            failed_completion=self._failed_completion,
             total_latency=self._total_latency,
-            total_oversubscriptions=self._total_oversubscriptions
+            total_oversubscriptions=self._total_oversubscriptions,
+            total_overload_pms=self._total_overload_pms,
+            total_overload_vms=self._total_overload_vms
         )
 
     def _register_events(self):
@@ -304,18 +349,42 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 vm = self._live_vms[vm_id]
                 total_pm_cpu_cores_used += vm.cpu_utilization * vm.cpu_cores_requirement
             pm.update_cpu_utilization(vm=None, cpu_utilization=total_pm_cpu_cores_used / pm.cpu_cores_capacity)
-            pm.energy_consumption = self._cpu_utilization_to_energy_consumption(cpu_utilization=pm.cpu_utilization)
+            pm.energy_consumption = self._cpu_utilization_to_energy_consumption(
+                pm_type=self._pm_type_dict[pm.pm_type],
+                cpu_utilization=pm.cpu_utilization
+            )
 
-    def _cpu_utilization_to_energy_consumption(self, cpu_utilization: float) -> float:
+    def _overload(self, pm_id: int):
+        """Overload logic.
+
+        Currently only support killing all VMs on the overload PM and note them as failed allocations.
+        """
+        # TODO: Future features of overload modeling.
+        #       1. Performance degradation
+        #       2. Quiesce specific VMs.
+        pm: PhysicalMachine = self._machines[pm_id]
+        vm_ids: List[int] = [vm_id for vm_id in pm.live_vms]
+
+        if self._kill_all_vms_if_overload:
+            for vm_id in vm_ids:
+                self._live_vms.pop(vm_id)
+
+            pm.deallocate_vms(vm_ids=vm_ids)
+            self._failed_completion += len(vm_ids)
+
+        self._total_overload_vms += len(vm_ids)
+
+    def _cpu_utilization_to_energy_consumption(self, pm_type: dict, cpu_utilization: float) -> float:
         """Convert the CPU utilization to energy consumption.
 
         The formulation refers to https://dl.acm.org/doi/epdf/10.1145/1273440.1250665
         """
-        power: float = self._config.PM.POWER_CURVE.CALIBRATION_PARAMETER
-        busy_power = self._config.PM.POWER_CURVE.BUSY_POWER
-        idle_power = self._config.PM.POWER_CURVE.IDLE_POWER
+        power: float = pm_type["power_curve"]["calibration_parameter"]
+        busy_power: int = pm_type["power_curve"]["busy_power"]
+        idle_power: int = pm_type["power_curve"]["idle_power"]
 
         cpu_utilization /= 100
+        cpu_utilization = min(1, cpu_utilization)
 
         return idle_power + (busy_power - idle_power) * (2 * cpu_utilization - pow(cpu_utilization, power))
 
@@ -342,19 +411,65 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             # Add failed allocation.
             self._failed_allocation += 1
 
-    def _get_valid_pms(self, vm_cpu_cores_requirement: int, vm_memory_requirement: int) -> List[int]:
+    def _get_valid_pms(
+        self, vm_cpu_cores_requirement: int, vm_memory_requirement: int, vm_category: VmCategory
+    ) -> List[int]:
         """Check all valid PMs.
 
-        Args: vm_cpu_cores_requirement (int): The CPU cores requested by the VM.
+        Args:
+            vm_cpu_cores_requirement (int): The CPU cores requested by the VM.
+            vm_memory_requirement (int): The memory requested by the VM.
+            vm_category (VmCategory): The VM category. Delay-insensitive: 0, Interactive: 1, Unknown: 2.
         """
         # NOTE: Should we implement this logic inside the action scope?
-        # TODO: In oversubscribable scenario, we should consider more situations, like
-        #       the PM type (oversubscribable and non-oversubscribable).
+        valid_pm_list = []
+
+        # Delay-insensitive: 0, Interactive: 1, and Unknown: 2.
+        if vm_category == VmCategory.INTERACTIVE or vm_category == VmCategory.UNKNOWN:
+            valid_pm_list = self._get_valid_non_oversubscribable_pms(
+                vm_cpu_cores_requirement=vm_cpu_cores_requirement,
+                vm_memory_requirement=vm_memory_requirement
+            )
+        else:
+            valid_pm_list = self._get_valid_oversubscribable_pms(
+                vm_cpu_cores_requirement=vm_cpu_cores_requirement,
+                vm_memory_requirement=vm_memory_requirement
+            )
+
+        return valid_pm_list
+
+    def _get_valid_non_oversubscribable_pms(self, vm_cpu_cores_requirement: int, vm_memory_requirement: int) -> list:
         valid_pm_list = []
         for pm in self._machines:
-            if (pm.cpu_cores_capacity - pm.cpu_cores_allocated >= vm_cpu_cores_requirement and
-                    pm.memory_capacity - pm.memory_allocated >= vm_memory_requirement):
-                valid_pm_list.append(pm.id)
+            if pm.oversubscribable == PmState.EMPTY or pm.oversubscribable == PmState.NON_OVERSUBSCRIBABLE:
+                # In the condition of non-oversubscription, the valid PMs mean:
+                # PM allocated resource + VM allocated resource <= PM capacity.
+                if (pm.cpu_cores_allocated + vm_cpu_cores_requirement <= pm.cpu_cores_capacity
+                        and pm.memory_allocated + vm_memory_requirement <= pm.memory_capacity):
+                    valid_pm_list.append(pm.id)
+
+        return valid_pm_list
+
+    def _get_valid_oversubscribable_pms(self, vm_cpu_cores_requirement: int, vm_memory_requirement: int) -> List[int]:
+        valid_pm_list = []
+        for pm in self._machines:
+            if pm.oversubscribable == PmState.EMPTY or pm.oversubscribable == PmState.OVERSUBSCRIBABLE:
+                # In the condition of oversubscription, the valid PMs mean:
+                # 1. PM allocated resource + VM allocated resource <= Max oversubscription rate * PM capacity.
+                # 2. PM CPU usage + VM requirements <= Max utilization rate * PM capacity.
+                if (
+                    (
+                        pm.cpu_cores_allocated + vm_cpu_cores_requirement
+                        <= self._max_cpu_oversubscription_rate * pm.cpu_cores_capacity
+                    ) and (
+                        pm.memory_allocated + vm_memory_requirement
+                        <= self._max_memory_oversubscription_rate * pm.memory_capacity
+                    ) and (
+                        pm.cpu_utilization / 100 * pm.cpu_cores_capacity + vm_cpu_cores_requirement
+                        <= self._max_utilization_rate * pm.cpu_cores_capacity
+                    )
+                ):
+                    valid_pm_list.append(pm.id)
 
         return valid_pm_list
 
@@ -369,6 +484,9 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 pm.cpu_cores_allocated -= vm.cpu_cores_requirement
                 pm.memory_allocated -= vm.memory_requirement
                 pm.deallocate_vms(vm_ids=[vm.id])
+                # If the VM list is empty, switch the state to empty.
+                if not pm.live_vms:
+                    pm.oversubscribable = PmState.EMPTY
 
                 vm_id_list.append(vm.id)
                 # VM completed task succeed.
@@ -390,12 +508,14 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         # Get valid pm list.
         valid_pm_list = self._get_valid_pms(
             vm_cpu_cores_requirement=vm_info.cpu_cores_requirement,
-            vm_memory_requirement=vm_info.memory_requirement
+            vm_memory_requirement=vm_info.memory_requirement,
+            vm_category=vm_info.category
         )
 
         if len(valid_pm_list) > 0:
             # Generate pending decision.
             decision_payload = DecisionPayload(
+                frame_index=self.frame_index(tick=self._tick),
                 valid_pms=valid_pm_list,
                 vm_id=vm_info.id,
                 vm_cpu_cores_requirement=vm_info.cpu_cores_requirement,
@@ -444,10 +564,18 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 self._pending_vm_request_payload.pop(vm_id)
                 self._live_vms[vm_id] = vm
 
-                # TODO: Current logic can not fulfill the oversubscription case.
-
                 # Update PM resources requested by VM.
                 pm = self._machines[pm_id]
+
+                # Empty pm (init state).
+                if pm.oversubscribable == PmState.EMPTY:
+                    # Delay-Insensitive: oversubscribable.
+                    if vm.category == VmCategory.DELAY_INSENSITIVE:
+                        pm.oversubscribable = PmState.OVERSUBSCRIBABLE
+                    # Interactive or Unknown: non-oversubscribable
+                    else:
+                        pm.oversubscribable = PmState.NON_OVERSUBSCRIBABLE
+
                 pm.allocate_vms(vm_ids=[vm.id])
                 pm.cpu_cores_allocated += vm.cpu_cores_requirement
                 pm.memory_allocated += vm.memory_requirement
@@ -455,7 +583,10 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                     vm=vm,
                     cpu_utilization=None
                 )
-                pm.energy_consumption = self._cpu_utilization_to_energy_consumption(cpu_utilization=pm.cpu_utilization)
+                pm.energy_consumption = self._cpu_utilization_to_energy_consumption(
+                    pm_type=self._pm_type_dict[pm.pm_type],
+                    cpu_utilization=pm.cpu_utilization
+                )
                 self._successful_allocation += 1
             elif type(action) == PostponeAction:
                 postpone_step = action.postpone_step
@@ -483,16 +614,19 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         else:
             logger.info_green("File already exists, skipping download.")
 
-        logger.info_green(f"Unzip {download_file_path} to {build_folder}")
         # Unzip files.
+        logger.info_green(f"Unzip {download_file_path} to {build_folder}")
         tar = tarfile.open(download_file_path, "r:gz")
         tar.extractall(path=build_folder)
         tar.close()
 
         # Move to the correct path.
-        unzip_file = os.path.join(build_folder, "build")
-        file_names = os.listdir(unzip_file)
-        for file_name in file_names:
-            shutil.move(os.path.join(unzip_file, file_name), build_folder)
+        for _, directories, _ in os.walk(build_folder):
+            for directory in directories:
+                unzip_file = os.path.join(build_folder, directory)
+                logger.info_green(f"Move files to {build_folder} from {unzip_file}")
+                for file_name in os.listdir(unzip_file):
+                    if file_name.endswith(".bin"):
+                        shutil.move(os.path.join(unzip_file, file_name), build_folder)
 
         os.rmdir(unzip_file)

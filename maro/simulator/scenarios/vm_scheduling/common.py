@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from enum import Enum
 from typing import List
 
 from .virtual_machine import VirtualMachine
@@ -59,35 +58,33 @@ class DecisionPayload:
     """Decision event in VM Scheduling scenario that contains information for agent to choose action.
 
     Args:
+        frame_index (int): The current frame index (converted by tick).
         valid_pms (List[int]): A list contains pm id of all valid pms.
         vm_id (int): The id of the VM.
         vm_cpu_cores_requirement (int): The CPU requested by VM.
         vm_memory_requirement (int): The memory requested by VM.
         remaining_buffer_time (int): The remaining buffer time.
     """
-    summary_key = ["valid_pms", "vm_id", "vm_cpu_cores_requirement", "vm_memory_requirement", "remaining_buffer_time"]
+    summary_key = [
+        "frame_index", "valid_pms", "vm_id", "vm_cpu_cores_requirement", "vm_memory_requirement",
+        "remaining_buffer_time"
+    ]
 
     def __init__(
         self,
+        frame_index: int,
         valid_pms: List[int],
         vm_id: int,
         vm_cpu_cores_requirement: int,
         vm_memory_requirement: int,
         remaining_buffer_time: int
     ):
+        self.frame_index = frame_index
         self.valid_pms = valid_pms
         self.vm_id = vm_id
         self.vm_cpu_cores_requirement = vm_cpu_cores_requirement
         self.vm_memory_requirement = vm_memory_requirement
         self.remaining_buffer_time = remaining_buffer_time
-
-
-class PostponeType(Enum):
-    """Postpone type."""
-    # Postpone the VM requirement due to the resource exhaustion.
-    Resource = 'resource'
-    # Postpone the VM requirement due to the agent's decision.
-    Agent = 'agent'
 
 
 class Latency:
