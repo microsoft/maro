@@ -89,7 +89,7 @@ class DQN(AbsAgent):
                 f"got {model.task_names}"
             )
         super().__init__(
-            name, model, config, 
+            name, model, config,
             experience_pool=SimpleStore(["state", "action", "reward", "next_state", "loss"])
         )
         self._training_counter = 0

@@ -5,8 +5,8 @@ class Scheduler(object):
     """Scheduler that generates new parameters each iteration.
 
     Args:
-        max_iter (int): Maximum number of iterations. If -1, the next() method can be called
-            an unlimited number of times 
+        max_iter (int): Maximum number of iterations. If -1, using the scheduler in a for-loop
+            will result in an infinite loop unless the ``check_for_stopping`` method is implemented.
     """
 
     def __init__(self, max_iter: int = -1):

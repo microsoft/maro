@@ -13,7 +13,7 @@ from maro.utils.exception.rl_toolkit_exception import MissingOptimizer
 
 OptimOption = namedtuple(
     "OptimOption", ["optim_cls", "optim_params", "scheduler_cls", "scheduler_params"],
-    defaults=[None, None]    
+    defaults=[None, None]
 )
 
 
@@ -108,7 +108,7 @@ class AbsLearningModel(nn.Module):
             self._scheduler.step()
         elif isinstance(component_name, str):
             self._scheduler[component_name].step()
-        elif isintance(component_name, list):
+        elif isinstance(component_name, list):
             for key in component_name:
                 self._scheduler[key].step()
         else:
