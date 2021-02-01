@@ -2,7 +2,13 @@
 # Licensed under the MIT license.
 
 from .abs_agent import AbsAgent
-from .abs_agent_manager import AbsAgentManager, AgentManagerMode
-from .simple_agent_manager import SimpleAgentManager
+from .ddpg import DDPG, DDPGConfig
+from .dqn import DQN, DQNConfig
+from .policy_optimization import ActorCritic, ActorCriticConfig, PolicyGradient
 
-__all__ = ["AbsAgent", "AbsAgentManager", "AgentManagerMode", "SimpleAgentManager"]
+__all__ = [
+    "AbsAgent",
+    "DDPG", "DDPGConfig",
+    "DQN", "DQNConfig",
+    "ActorCritic", "ActorCriticConfig", "PolicyGradient"
+]
