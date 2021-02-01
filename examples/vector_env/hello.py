@@ -1,8 +1,9 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from maro.vector_env import VectorEnv
 from maro.simulator.scenarios.cim.common import Action, DecisionEvent
+from maro.vector_env import VectorEnv
+
 
 if __name__ == "__main__":
     with VectorEnv(batch_num=4, scenario="cim", topology="toy.5p_ssddd_l0.0", durations=100) as env:

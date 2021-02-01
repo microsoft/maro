@@ -13,27 +13,6 @@ from maro.simulator import DecisionMode
 from .env_process import EnvProcess
 
 
-class SnapshotListNodeWrapper:
-    """Wrapper to provide same interface as normal snapshot nodes."""
-
-    def __init__(self, env, node_name: str):
-        self.node_name = node_name
-        self._env = env
-
-    def __getitem__(self, args) -> List[np.ndarray]:
-        return self._env._query(self.node_name, args)
-
-
-class SnapshotListWrapper:
-    """Wrapper for snapshot list, used to provide same interface as normal snapshot list."""
-
-    def __init__(self, env):
-        self._env = env
-
-    def __getitem__(self, node_name: str) -> SnapshotListNodeWrapper:
-        return SnapshotListNodeWrapper(self._env, node_name)
-
-
 ActionType = Union[Dict[int, object], List[object], object]
 
 
@@ -43,6 +22,25 @@ class VectorEnv:
     NOTE:
         This helper do not care about if each environment has same tick (frame_index).
     """
+
+    class SnapshotListNodeWrapper:
+        """Wrapper to provide same interface as normal snapshot nodes."""
+
+        def __init__(self, env, node_name: str):
+            self.node_name = node_name
+            self._env = env
+
+        def __getitem__(self, args) -> List[np.ndarray]:
+            return self._env._query(self.node_name, args)
+
+    class SnapshotListWrapper:
+        """Wrapper for snapshot list, used to provide same interface as normal snapshot list."""
+
+        def __init__(self, env):
+            self._env = env
+
+        def __getitem__(self, node_name: str):
+            return VectorEnv.SnapshotListNodeWrapper(self._env, node_name)
 
     def __init__(
         self,
@@ -69,7 +67,7 @@ class VectorEnv:
 
         self._batch_num = batch_num
         self._is_stopping = False
-        self._snapshot_wrapper = SnapshotListWrapper(self)
+        self._snapshot_wrapper = VectorEnv.SnapshotListWrapper(self)
 
         self._start_environments(
             scenario,

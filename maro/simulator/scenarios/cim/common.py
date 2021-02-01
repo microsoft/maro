@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 
-from enum import IntEnum
+from enum import Enum, IntEnum
 
 from maro.backends.frame import SnapshotList
 
@@ -12,6 +12,11 @@ class VesselState(IntEnum):
     PARKING = 0
     SAILING = 1
 
+
+class ActionType(Enum):
+    """Type of CIM action."""
+    LOAD = "load",
+    DISCHARGE = "discharge"
 
 class Action:
     """Action object that used to pass action from agent to business engine.
@@ -23,10 +28,11 @@ class Action:
     """
     summary_key = ["port_idx", "vessel_idx", "quantity"]
 
-    def __init__(self, vessel_idx: int, port_idx: int, quantity: int):
+    def __init__(self, vessel_idx: int, port_idx: int, quantity: int, action_type: ActionType):
         self.vessel_idx = vessel_idx
         self.port_idx = port_idx
         self.quantity = quantity
+        self.action_type = action_type
 
     def __repr__(self):
         return self.__str__()
