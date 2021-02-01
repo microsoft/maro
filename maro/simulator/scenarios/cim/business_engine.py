@@ -618,7 +618,7 @@ class CimBusinessEngine(AbsBusinessEngine):
                 action_type: ActionType = getattr(action, "action_type", None)
 
                 # Make it compatiable with previous action.
-                if action_type is not None:
+                if action_type is None:
                     action_type = ActionType.DISCHARGE if move_num > 0 else ActionType.LOAD
 
                 # Make sure the move number is positive, as we have the action type.
