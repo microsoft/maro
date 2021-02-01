@@ -7,7 +7,7 @@ import torch
 from torch.nn import GELU, Sequential, TransformerEncoder, TransformerEncoderLayer
 from torch.optim import Adam
 
-from maro.rl import AbsAgentManager, FullyConnectedBlock, OptimizerOptions
+from maro.rl import AbsAgentManager, FullyConnectedBlock, OptimOption
 from maro.utils import DummyLogger, Logger
 
 from examples.cim.gnn.components.gnn_based_actor_critic import GNNBasedActorCritic, GNNBasedActorCriticConfig
@@ -93,7 +93,7 @@ def create_gnn_agent(config):
                 [d * scale for d in config.model.policy_hidden_dims] + [actor_input_dim],
                 activation=GELU,
                 is_head=True,
-                softmax_enabled=True
+                softmax=True
             ),
         "critic_head":
             FullyConnectedBlock(
@@ -104,11 +104,8 @@ def create_gnn_agent(config):
                 activation=GELU
             )
         },
-        p_pre_dim=p_pre_dim,
-        v_pre_dim=v_pre_dim,
         sequence_buffer_size=sequence_buffer_size,
-        gnn_output_size=gnn_output_size,
-        optimizer_options=OptimizerOptions(cls=Adam, params={"lr": config.model.learning_rate})
+        optim_option=OptimOption(optim_cls=Adam, optim_params={"lr": config.model.learning_rate})
     )
 
     return GNNBasedActorCritic(

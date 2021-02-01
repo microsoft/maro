@@ -26,18 +26,18 @@ class GNNLearner(AbsLearner):
             tick = time.time()
             performance, exp_dict = self._sample()
             rollout_time += time.time() - tick
-            self._logger.info(f"ep {self._scheduler.current_ep} - performance: {performance}")
+            self._logger.info(f"ep {self._scheduler.current_iter} - performance: {performance}")
             self.agent_manager.store_experiences(exp_dict)
 
-            if self._scheduler.current_ep % self._train_freq == self._train_freq - 1:
+            if self._scheduler.current_iter % self._train_freq == self._train_freq - 1:
                 self._logger.info("training start")
                 tick = time.time()
                 self.agent_manager.train()
                 training_time += time.time() - tick
 
-            if self._log_pth is not None and (self._scheduler.current_ep + 1) % self._model_save_freq == 0:
+            if self._log_pth is not None and (self._scheduler.current_iter + 1) % self._model_save_freq == 0:
                 self.agent_manager.dump_models_to_files(
-                    os.path.join(self._log_pth, "models", str(self._scheduler.current_ep + 1))
+                    os.path.join(self._log_pth, "models", str(self._scheduler.current_iter + 1))
                 )
 
             self._logger.debug(f"rollout time: {int(rollout_time)}")

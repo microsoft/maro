@@ -9,7 +9,7 @@ from torch.nn.modules.activation import MultiheadAttention
 from torch.nn.modules.dropout import Dropout
 from torch.nn.modules.normalization import LayerNorm
 
-from maro.rl import AbsLearningModel, OptimizerOptions
+from maro.rl import AbsLearningModel, OptimOption
 
 
 class PositionalEncoder(nn.Module):
@@ -214,12 +214,9 @@ class GNNBasedACModel(AbsLearningModel):
     as a critic layer, which are the two MLPs with residual connections.
     """
 
-    def __init__(self, component, p_pre_dim, v_pre_dim, sequence_buffer_size, gnn_output_size, optimizer_options=None):
-        super().__init__(component, optimizer_options=optimizer_options)
-        self.p_pre_dim = p_pre_dim
-        self.v_pre_dim = v_pre_dim
+    def __init__(self, component, sequence_buffer_size, optim_option=None):
+        super().__init__(component, optim_option=optim_option)
         self.sequence_buffer_size = sequence_buffer_size
-        self.gnn_output_size = gnn_output_size
 
     def forward(self, state, p_idx=None, v_idx=None, use_actor=False, use_critic=False, is_training=True):
         self.train(mode=is_training)
@@ -248,16 +245,16 @@ class GNNBasedACModel(AbsLearningModel):
         mask_v = state["mask"].repeat(1, v_cnt).reshape(-1, self.sequence_buffer_size)
         feature_v = self._component["v_trans_layers"](feature_v, src_key_padding_mask=mask_v)
 
-        feature_p = feature_p[0].reshape(bsize, p_cnt, self.p_pre_dim)
-        feature_v = feature_v[0].reshape(bsize, v_cnt, self.v_pre_dim)
+        feature_p = feature_p[0].reshape(bsize, p_cnt, -1)
+        feature_v = feature_v[0].reshape(bsize, v_cnt, -1)
 
         emb_p, emb_v = self._component["trans_gat"](feature_p, state["pe"], feature_v, state["ve"], state["ppe"])
 
         a_rtn, c_rtn = None, None
         if use_actor and "actor_head" in self._component:
-            ap = emb_p.reshape(bsize, p_cnt, self.gnn_output_size)
+            ap = emb_p.reshape(bsize, p_cnt, -1)
             ap = ap[:, p_idx, :]
-            av = emb_v.reshape(bsize, v_cnt, self.gnn_output_size // 2)
+            av = emb_v.reshape(bsize, v_cnt, -1)
             av = av[:, v_idx, :]
             emb_a = torch.cat((ap, av), axis=1)
             a_rtn = self._component["actor_head"](emb_a)
