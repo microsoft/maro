@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ""
+  labels:
+    jobName: ""
+spec:
+  completions: 1
+  parallelism: 1
+  ttlSecondsAfterFinished: 100
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      containers: []
+      volumes:
+        - name: azure-file-mount
+          azureFile:
+            secretName: ""
+            shareName: ""
+            readOnly: false

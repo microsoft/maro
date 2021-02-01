@@ -1,0 +1,15 @@
+name: ""
+mode: grass/azure
+
+cloud:
+  location: japaneast
+  resource_group: ""
+  subscription: ""
+  default_username: marotest
+  default_public_key: ""
+
+user:
+  admin_id: admin
+
+master:
+  node_size: Standard_D2s_v3
