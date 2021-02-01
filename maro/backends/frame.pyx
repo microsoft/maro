@@ -207,6 +207,10 @@ cdef class _NodeAttributeAccessor:
 
         self._slot_number -= 1
 
+    def where(self, filter_func: callable):
+        """"""
+        return self._backend.where(self._node_index, self._attr_type, filter_func)
+
     def __iter__(self):
         """Start for-loop."""
         self._cur_iter_slot_index = 0

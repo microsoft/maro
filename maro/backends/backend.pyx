@@ -105,3 +105,6 @@ cdef class BackendAbc:
 
     cdef void dump(self, str folder) except +:
         pass
+
+    cdef list where(self, NODE_INDEX index, ATTR_TYPE attr_type, filter_func: callable) except +:
+        pass

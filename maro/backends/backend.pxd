@@ -132,3 +132,5 @@ cdef class BackendAbc:
 
     # Dump Snapshot into target folder (without filename).
     cdef void dump(self, str folder) except +
+
+    cdef list where(self, NODE_INDEX index, ATTR_TYPE attr_type, filter_func: callable) except +

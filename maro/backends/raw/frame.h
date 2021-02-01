@@ -208,6 +208,8 @@ namespace maro
         /// <param name="node_type">Type of node</param>
         /// <returns>True if exist, or false.</returns>
         bool is_node_exist(NODE_TYPE node_type) const noexcept;
+
+        SLOT_INDEX get_slot_number(NODE_INDEX node_index, ATTR_TYPE attr_type);
       };
 
 
