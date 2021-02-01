@@ -10,8 +10,9 @@ import subprocess
 import redis
 import yaml
 
-from maro.cli.grass.lib.services.utils.resource import ResourceInfo
-from maro.cli.process.utils.details import close_by_pid
+from maro.cli.grass.lib.services.utils.params import JobStatus
+from maro.cli.utils.resource_executor import ResourceInfo, LocalResourceExecutor
+from maro.cli.process.utils.details import close_by_pid, get_redis_pid_by_port
 from maro.cli.utils.cmp import resource_op
 from maro.cli.utils.details_reader import DetailsReader
 from maro.cli.utils.details_writer import DetailsWriter
@@ -39,6 +40,9 @@ class GrassLocalExecutor:
             )
             redis_process.wait(timeout=2)
 
+        # Connection with Resource Redis
+        self._resource_redis = LocalResourceExecutor()
+
     def _complated_local_job_deployment(self, deployment: dict):
         total_cpu, total_memory, total_gpu = 0, 0, 0
         for component_type, component_dict in deployment["components"].items():
@@ -50,6 +54,8 @@ class GrassLocalExecutor:
             "memory": total_memory,
             "gpu": total_gpu
         }
+
+        deployment["status"] = JobStatus.PENDING
 
         return deployment
 
@@ -68,18 +74,7 @@ class GrassLocalExecutor:
 
         # Allocation
         cluster_resource = self.cluster_details["master"]["resource"]
-        if self._redis_connection.exists(GrassLocalRedisName.RUNTIME_DETAILS):
-            available_resource = json.loads(
-                self._redis_connection.hget(GrassLocalRedisName.RUNTIME_DETAILS, "available_resource")
-            )
-        else:
-            # Get local machine resource information
-            available_resource = ResourceInfo.get_static_info()
-            self._redis_connection.hset(
-                GrassLocalRedisName.RUNTIME_DETAILS,
-                "total_resource",
-                json.dumps(available_resource)
-            )
+        available_resource = self._resource_redis.get_available_resource()
 
         # Update resource
         is_satisfied, updated_resource = resource_op(available_resource, cluster_resource, op="allocate")
@@ -87,22 +82,17 @@ class GrassLocalExecutor:
             shutil.rmtree(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}", True)
             raise BadRequestError("No enough resource for this cluster.")
 
-        self._redis_connection.hset(
-            GrassLocalRedisName.RUNTIME_DETAILS, "available_resource", json.dumps(updated_resource)
-        )
+        self._resource_redis.set_available_resource(updated_resource)
+        self._resource_redis.add_cluster()
 
-        # Push cluster details into Redis
-        self._redis_connection.hset(
-            GrassLocalRedisName.CLUSTER_DETAILS,
-            self.cluster_name,
-            json.dumps(self.cluster_details["master"]["resource"])
-        )
-
+        # Start agents.
         self._agents_start()
 
         logger.info(f"{self.cluster_name} is created.")
 
     def delete(self):
+        logger.info(f"Deleting cluster {self.cluster_name}")
+
         # Remove local cluster file.
         shutil.rmtree(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}", True)
 
@@ -110,23 +100,15 @@ class GrassLocalExecutor:
         self._agents_stop()
 
         # Release cluster resource.
-        try:
-            available_resource = json.loads(
-                self._redis_connection.hget(GrassLocalRedisName.RUNTIME_DETAILS, "available_resource")
-            )
-        except Exception:
-            raise BadRequestError("Failure to get current resource from Redis. Please check Redis Connection.")
+        available_resource = self._resource_redis.get_available_resource()
 
         # Update resource
         cluster_resource = self.cluster_details["master"]["resource"]
         _, updated_resource = resource_op(available_resource, cluster_resource, "release")
+        self._resource_redis.set_available_resource(updated_resource)
 
-        self._redis_connection.hset(
-            GrassLocalRedisName.RUNTIME_DETAILS,
-            "available_resource",
-            json.dumps(updated_resource)
-        )
-        self._redis_connection.hdel(GrassLocalRedisName.CLUSTER_DETAILS, self.cluster_name)
+        # Rm connection from resource redis.
+        current_connection = self._resource_redis.sub_cluster()            
 
         logger.info(f"{self.cluster_name} is deleted.")
 
@@ -259,7 +241,38 @@ class GrassLocalExecutor:
             logger.error(f"No such schedule '{schedule_name}' in Redis.")
             return
 
+        if "job_names" not in schedule_details.keys():
+            logger.error(f"'{schedule_name}' is not a schedule.")
+            return
+
         job_list = schedule_details["job_names"]
 
         for job_name in job_list:
             self.stop_job(job_name)
+
+    def get_job_details(self):
+        jobs = self._redis_connection.hgetall(f"{self.cluster_name}:job_details")
+        for job_name, job_details_str in jobs.items():
+            jobs[job_name.decode()] = json.loads(job_details_str)
+
+        return list(jobs.values())
+
+    def get_job_queue(self):
+        pending_job_queue = self._redis_connection.lrange(
+            f"{self.cluster_name}:pending_job_tickets",
+            0, -1
+        )
+        killed_job_queue = self._redis_connection.lrange(
+            f"{self.cluster_name}:killed_job_tickets",
+            0, -1
+        )
+        return {
+            "pending_jobs": pending_job_queue, 
+            "killed_jobs": killed_job_queue
+        }
+
+    def get_resource(self):
+        return self._resource_redis.get_local_resource()
+
+    def get_resource_usage(self, previous_length: int):
+        return self._resource_redis.get_local_resource_usage(previous_length) 
