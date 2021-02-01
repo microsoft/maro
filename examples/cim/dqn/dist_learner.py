@@ -3,9 +3,7 @@
 
 import os
 
-from maro.rl import (
-    ActorProxy, AgentManagerMode, SimpleLearner, TwoPhaseLinearParameterScheduler, concat_experiences_by_agent
-)
+from maro.rl import ActorProxy, SimpleLearner, TwoPhaseLinearParameterScheduler, concat_experiences_by_agent
 from maro.simulator import Env
 from maro.utils import Logger, convert_dottable
 
@@ -19,11 +17,7 @@ def launch(config, distributed_config):
     agent_id_list = [str(agent_id) for agent_id in env.agent_idx_list]
 
     config["agents"]["algorithm"]["input_dim"] = CIMStateShaper(**config.env.state_shaping).dim
-    agent_manager = DQNAgentManager(
-        name="cim_learner",
-        mode=AgentManagerMode.TRAIN,
-        agent_dict=create_dqn_agents(agent_id_list, config.agents)
-    )
+    agent_manager = DQNAgentManager(create_dqn_agents(agent_id_list, config.agents))
 
     proxy_params = {
         "group_name": os.environ["GROUP"] if "GROUP" in os.environ else distributed_config.group,

@@ -17,6 +17,8 @@ class DecisionMode(IntEnum):
     Sequential = 0
     # Ask agent to take action at same time, not supported yet.
     Joint = 1
+    # Same as joint mode, by apply actions sequentially.
+    JointWithSequentialAction = 2
 
 
 class AbsEnv(ABC):

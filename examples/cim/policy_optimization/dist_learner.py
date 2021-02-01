@@ -3,7 +3,7 @@
 
 import os
 
-from maro.rl import ActorProxy, AgentManagerMode, Scheduler, SimpleLearner, merge_experiences_with_trajectory_boundaries
+from maro.rl import ActorProxy, Scheduler, SimpleLearner, merge_experiences_with_trajectory_boundaries
 from maro.simulator import Env
 from maro.utils import Logger, convert_dottable
 
@@ -15,11 +15,7 @@ def launch(config):
     env = Env(config.env.scenario, config.env.topology, durations=config.env.durations)
     agent_id_list = [str(agent_id) for agent_id in env.agent_idx_list]
     config["agents"]["input_dim"] = CIMStateShaper(**config.env.state_shaping).dim
-    agent_manager = POAgentManager(
-        name="cim_learner",
-        mode=AgentManagerMode.TRAIN,
-        agent_dict=create_po_agents(agent_id_list, config.agents)
-    )
+    agent_manager = POAgentManager(create_po_agents(agent_id_list, config.agents))
 
     proxy_params = {
         "group_name": os.environ["GROUP"],
