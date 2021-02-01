@@ -123,15 +123,16 @@ setup(
         "pyaml==20.4.0",
         "redis==3.5.3",
         "pyzmq==19.0.2",
-        "requests==2.24.0",
+        "requests==2.25.1",
         "psutil==5.7.2",
-        "deepdiff==5.0.2",
+        "deepdiff==5.2.2",
         "azure-storage-blob==12.6.0",
         "azure-storage-common==2.1.0",
         "geopy==2.0.0",
         "pandas==0.25.3",
         "PyYAML==5.3.1",
-        "paramiko==2.7.2"
+        "paramiko==2.7.2",
+        "kubernetes==12.0.1"
     ],
     entry_points={
         "console_scripts": [
@@ -143,8 +144,8 @@ setup(
     package_data={
         "maro.simulator.scenarios.cim": ["topologies/*/*.yml", "meta/*.yml"],
         "maro.simulator.scenarios.citi_bike": ["topologies/*/*.yml", "meta/*.yml"],
-        "maro.cli.k8s": ["lib/*", "lib/*/*", "lib/*/*/*"],
-        "maro.cli.grass": ["lib/*", "lib/*/*", "lib/*/*/*"],
+        "maro.cli.k8s": ["lib/*", "lib/*/*", "lib/*/*/*", "lib/*/*/*/*"],
+        "maro.cli.grass": ["lib/*", "lib/*/*", "lib/*/*/*", "lib/*/*/*/*", "lib/*/*/*/*/*"],
     },
     zip_safe=False,
     ext_modules=extensions,

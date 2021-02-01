@@ -37,14 +37,16 @@ author = "MARO Team"
 # extensions coming with Sphinx (named "sphinx.ext.*") or your custom
 # ones.
 
-extensions = ["recommonmark",
-              "sphinx.ext.autodoc",
-              "sphinx.ext.coverage",
-              "sphinx.ext.napoleon",
-              "sphinx.ext.viewcode",
-              "sphinx_markdown_tables",
-              "sphinx_copybutton",
-              ]
+extensions = [
+    "recommonmark",
+    "sphinx.ext.autodoc",
+    "sphinx.ext.coverage",
+    "sphinx.ext.napoleon",
+    "sphinx.ext.viewcode",
+    "sphinx_markdown_tables",
+    "sphinx_copybutton",
+    "sphinx.ext.autosectionlabel",
+]
 
 napoleon_google_docstring = True
 napoleon_use_param = False
