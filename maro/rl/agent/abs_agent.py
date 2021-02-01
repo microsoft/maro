@@ -4,8 +4,9 @@
 import os
 from abc import ABC, abstractmethod
 
-from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
-from maro.rl.storage.abs_store import AbsStore
+import torch
+
+from maro.rl.model.learning_model import AbsLearningModel
 
 
 class AbsAgent(ABC):
@@ -19,45 +20,42 @@ class AbsAgent(ABC):
 
     Args:
         name (str): Agent's name.
-        algorithm (AbsAlgorithm): A concrete algorithm instance that inherits from AbstractAlgorithm.
-            This is the centerpiece of the Agent class and is responsible for the most important tasks of an agent:
-            choosing actions and optimizing models.
-        experience_pool (AbsStore): It is used to store experiences processed by the experience shaper, which will be
+        model (AbsLearningModel): Task model or container of task models required by the algorithm.
+        config: Settings for the algorithm.
+        experience_pool: It is used to store experiences processed by the experience shaper, which will be
             used by some value-based algorithms, such as DQN. Defaults to None.
     """
-    def __init__(
-        self,
-        name: str,
-        algorithm: AbsAlgorithm,
-        experience_pool: AbsStore = None
-    ):
+    def __init__(self, name: str, model: AbsLearningModel, config, experience_pool=None):
         self._name = name
-        self._algorithm = algorithm
+        self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self._model = model.to(self._device)
+        self._config = config
         self._experience_pool = experience_pool
 
     @property
-    def algorithm(self):
-        """Underlying algorithm employed by the agent."""
-        return self._algorithm
+    def model(self):
+        return self._model
 
     @property
     def experience_pool(self):
         """Underlying experience pool where the agent stores experiences."""
         return self._experience_pool
 
+    @abstractmethod
     def choose_action(self, model_state):
-        """Choose an action using the underlying algorithm based on a preprocessed env state.
+        """This method uses the underlying model(s) to compute an action from a shaped state.
 
         Args:
-            model_state: State vector as accepted by the underlying algorithm.
+            state: A state object shaped by a ``StateShaper`` to conform to the model input format.
+
         Returns:
-            If the agent's explorer is None, the action given by the underlying model is returned. Otherwise,
-            an exploratory action is returned.
+            The action to be taken given ``state``. It is usually necessary to use an ``ActionShaper`` to convert
+            this to an environment executable action.
         """
-        return self._algorithm.choose_action(model_state)
+        return NotImplementedError
 
     def set_exploration_params(self, **params):
-        self._algorithm.set_exploration_params(**params)
+        pass
 
     @abstractmethod
     def train(self, *args, **kwargs):
@@ -68,18 +66,13 @@ class AbsAgent(ABC):
         """
         return NotImplementedError
 
-    def store_experiences(self, experiences):
-        """Store new experiences in the experience pool."""
-        if self._experience_pool is not None:
-            self._experience_pool.put(experiences)
-
     def load_model(self, model):
         """Load models from memory."""
-        self._algorithm.model.load(model)
+        self._model.load(model)
 
     def dump_model(self):
         """Return the algorithm's trainable models."""
-        return self._algorithm.model.dump()
+        return self._model.dump()
 
     def load_model_from_file(self, dir_path: str):
         """Load trainable models from disk.
@@ -89,7 +82,7 @@ class AbsAgent(ABC):
         Args:
             dir_path (str): path to the directory where the models are saved.
         """
-        self._algorithm.model.load_from_file(os.path.join(dir_path, self._name))
+        self._model.load_from_file(os.path.join(dir_path, self._name))
 
     def dump_model_to_file(self, dir_path: str):
         """Dump the algorithm's trainable models to disk.
@@ -99,4 +92,4 @@ class AbsAgent(ABC):
         Args:
             dir_path (str): path to the directory where the models are saved.
         """
-        self._algorithm.model.dump_to_file(os.path.join(dir_path, self._name))
+        self._model.dump_to_file(os.path.join(dir_path, self._name))

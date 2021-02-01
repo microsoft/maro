@@ -5,10 +5,10 @@ from collections import defaultdict
 
 import numpy as np
 
-from maro.rl import ExperienceShaper
+from maro.rl import Shaper
 
 
-class TruncatedExperienceShaper(ExperienceShaper):
+class TruncatedExperienceShaper(Shaper):
     def __init__(
         self, *, time_window: int, time_decay_factor: float, fulfillment_factor: float, shortage_factor: float
     ):
@@ -19,19 +19,20 @@ class TruncatedExperienceShaper(ExperienceShaper):
         self._shortage_factor = shortage_factor
 
     def __call__(self, trajectory, snapshot_list):
-        experiences_by_agent = {}
-        for i in range(len(trajectory) - 1):
-            transition = trajectory[i]
-            agent_id = transition["agent_id"]
-            if agent_id not in experiences_by_agent:
-                experiences_by_agent[agent_id] = defaultdict(list)
-            experiences = experiences_by_agent[agent_id]
-            experiences["state"].append(transition["state"])
-            experiences["action"].append(transition["action"])
-            experiences["reward"].append(self._compute_reward(transition["event"], snapshot_list))
-            experiences["next_state"].append(trajectory[i + 1]["state"])
+        states = trajectory["state"]
+        actions = trajectory["action"]
+        agent_ids = trajectory["agent_id"]
+        events = trajectory["event"]
 
-        return experiences_by_agent
+        experiences_by_agent = defaultdict(lambda: defaultdict(list))
+        for i in range(len(states) - 1):
+            experiences = experiences_by_agent[agent_ids[i]]
+            experiences["state"].append(states[i])
+            experiences["action"].append(actions[i])
+            experiences["reward"].append(self._compute_reward(events[i], snapshot_list))
+            experiences["next_state"].append(states[i + 1])
+
+        return dict(experiences_by_agent)
 
     def _compute_reward(self, decision_event, snapshot_list):
         start_tick = decision_event.tick + 1
