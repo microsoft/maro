@@ -45,8 +45,8 @@ def create_po_agents(agent_id_list, config):
             learning_model = SimpleMultiHeadModel(
                 {"actor": actor_net, "critic": critic_net}, 
                 optim_option={
-                    "actor": OptimOption(cls=Adam, params=config.actor_optimizer),
-                    "critic": OptimOption(cls=RMSprop, params=config.critic_optimizer)
+                    "actor": OptimOption(optim_cls=Adam, optim_params=config.actor_optimizer),
+                    "critic": OptimOption(optim_cls=RMSprop, optim_params=config.critic_optimizer)
                 }
             )
             agent_dict[agent_id] = ActorCritic(
@@ -55,7 +55,7 @@ def create_po_agents(agent_id_list, config):
         else:
             learning_model = SimpleMultiHeadModel(
                 actor_net, 
-                optim_option=OptimOption(cls=Adam, params=config.actor_optimizer)  
+                optim_option=OptimOption(optim_cls=Adam, optim_params=config.actor_optimizer)
             )
             agent_dict[agent_id] = PolicyGradient(agent_id, learning_model, config.reward_discount)
 

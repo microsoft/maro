@@ -18,38 +18,38 @@ class DDPGConfig:
     """Configuration for the DDPG algorithm.
     Args:
         reward_discount (float): Reward decay as defined in standard RL terminology.
-        min_experiences_to_train (int): minimum number of experiences required for training.
+        min_exp_to_train (int): minimum number of experiences required for training.
         num_batches (int): number of batches to train the DQN model on per call to ``train``.
         batch_size (int): mini-batch size.
         q_value_loss_func (Callable): Loss function for the Q-value estimator.
-        target_update_frequency (int): Number of training rounds between policy target model updates.
+        target_update_freq (int): Number of training rounds between policy target model updates.
         actor_loss_coefficient (float): The coefficient for policy loss in the total loss function, e.g.,
             loss = q_value_loss + ``policy_loss_coefficient`` * policy_loss. Defaults to 1.0.
         tau (float): Soft update coefficient, e.g., target_model = tau * eval_model + (1-tau) * target_model.
             Defaults to 1.0.
     """
     __slots__ = [
-        "reward_discount", "min_experiences_to_train", "num_batches", "batch_size", "q_value_loss_func",
-        "target_update_frequency", "policy_loss_coefficient", "tau"
+        "reward_discount", "min_exp_to_train", "num_batches", "batch_size", "q_value_loss_func",
+        "target_update_freq", "policy_loss_coefficient", "tau"
     ]
 
     def __init__(
         self,
         reward_discount: float,
-        min_experiences_to_train: int,
+        min_exp_to_train: int,
         num_batches: int,
         batch_size: int,
         q_value_loss_func: Callable,
-        target_update_frequency: int,
+        target_update_freq: int,
         policy_loss_coefficient: float = 1.0,
         tau: float = 1.0,
     ):
         self.reward_discount = reward_discount
-        self.min_experiences_to_train = min_experiences_to_train
+        self.min_exp_to_train = min_exp_to_train
         self.num_batches = num_batches
         self.batch_size = batch_size
         self.q_value_loss_func = q_value_loss_func
-        self.target_update_frequency = target_update_frequency
+        self.target_update_freq = target_update_freq
         self.policy_loss_coefficient = policy_loss_coefficient
         self.tau = tau
 
@@ -97,7 +97,7 @@ class DDPG(AbsAgent):
         return action[0] if is_single else action
 
     def train(self):
-        if len(self._experience_pool) < self._config.min_experiences_to_train:
+        if len(self._experience_pool) < self._config.min_exp_to_train:
             return
 
         for _ in range(self._config.num_batches):
@@ -128,5 +128,5 @@ class DDPG(AbsAgent):
         policy_loss = -self._model(torch.cat([states, actions_from_model], dim=1), task_name="q_value").mean()
         self._model.learn(q_value_loss + self._config.policy_loss_coefficient * policy_loss)
         self._train_cnt += 1
-        if self._train_cnt % self._config.target_update_frequency == 0:
+        if self._train_cnt % self._config.target_update_freq == 0:
             self._target_model.soft_update(self._model, self._config.tau)

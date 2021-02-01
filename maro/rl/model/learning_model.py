@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 from abc import abstractmethod
-from collections import namedtuple
+from itertools import chain
 from typing import Dict, List, Union
 
 import torch
@@ -11,10 +11,22 @@ import torch.nn as nn
 from maro.utils import clone
 from maro.utils.exception.rl_toolkit_exception import MissingOptimizer
 
-OptimOption = namedtuple(
-    "OptimOption", ["optim_cls", "optim_params", "scheduler_cls", "scheduler_params"],
-    defaults=[None, None]
-)
+
+class OptimOption:
+    """Model optimization options.
+    Args:
+        optim_cls: Subclass of torch.optim.Optimizer.
+        optim_params (dict): Parameters for the optimizer class.
+        scheduler_cls: torch lr_scheduler class. Defaults to None.
+        scheduler_params (dict): Parameters for the scheduler class. Defaults to None.
+    """
+    __slots__ = ["optim_cls", "optim_params", "scheduler_cls", "scheduler_params"]
+
+    def __init__(self, optim_cls, optim_params: dict, scheduler_cls=None, scheduler_params: dict = None):
+        self.optim_cls = optim_cls
+        self.optim_params = optim_params
+        self.scheduler_cls = scheduler_cls
+        self.scheduler_params = scheduler_params
 
 
 class AbsLearningModel(nn.Module):
@@ -23,13 +35,12 @@ class AbsLearningModel(nn.Module):
     Args:
         component (Union[nn.Module, Dict[str, nn.Module]]): Network component(s) comprising the model.
         optim_option (Union[OptimOption, Dict[str, OptimOption]]): Optimizer options for the components.
-            Each option consists of an optimizer class (which is a subclass of torch.optim.Optimizer) and its
-            corresponding optimizer parameters and optionally the scheduler class and parameters. If none, no
-            optimizer will be created for the model which means the model is not trainable. If it is a single
-            OptimOption instance, an optimizer will be created to jointly optimize all parameters of the model.
-            If it is a dictionary, for each `(key, value)` pair, an optimizer specified by `value` will be
-            created for the internal component named `key`. Note that it is possible to freeze certain components
-            while optimizing others by providing a subset of the keys in ``component``. Defaults to None.
+            If none, no optimizer will be created for the model which means the model is not trainable.
+            If it is a OptimOption instance, a single optimizer will be created to jointly optimize all
+            parameters of the model. If it is a dictionary of OptimOptions, the keys will be matched against
+            the component names and optimizers created for them. Note that it is possible to freeze certain
+            components while optimizing others by providing a subset of the keys in ``component``.
+            Defaults toNone.
     """
     def __init__(
         self,
@@ -37,39 +48,28 @@ class AbsLearningModel(nn.Module):
         optim_option: Union[OptimOption, Dict[str, OptimOption]] = None
     ):
         super().__init__()
-        assert (
-            optim_option is None
-            or isinstance(optim_option, OptimOption)
-            or isinstance(component, dict)
-        )
         self._component = component if isinstance(component, nn.Module) else nn.ModuleDict(component)
-        self._is_trainable = optim_option is not None
-        if self._is_trainable:
-            if isinstance(optim_option, OptimOption):
-                self._optimizer = optim_option.optim_cls(self.parameters(), **optim_option.optim_params)
-                if optim_option.scheduler_cls:
-                    self._scheduler = optim_option.scheduler_cls(self._optimizer, **optim_option.scheduler_params)
-                else:
-                    self._scheduler = None
-            else:
-                self._optimizer = {
-                    name: opt.optim_cls(self._component[name].parameters(), **opt.optim_params)
-                    for name, opt in optim_option.items()
-                }
-                self._scheduler = {
-                    name: opt.scheduler_cls(self._optimizer[name], **opt.scheduler_params)
-                    for name, opt in optim_option.items() if opt.scheduler_cls
-                }
-        else:
+        if optim_option is None:
+            self._optimizer = None
+            self._scheduler = None
             self.eval()
             for param in self.parameters():
                 param.requires_grad = False
+        else:
+            if isinstance(optim_option, dict):
+                self._optimizer = {}
+                for name, opt in optim_option.items():
+                    self._optimizer[name] = opt.optim_cls(self._component[name].parameters(), **opt.optim_params)
+                    if opt.scheduler_cls:
+                        self._scheduler[name] = opt.scheduler_cls(self._optimizer[name], **opt.scheduler_params)
+            else:
+                self._optimizer = optim_option.optim_cls(self.parameters(), **optim_option.optim_params)
+                if optim_option.scheduler_cls:
+                    self._scheduler = optim_option.scheduler_cls(self._optimizer, **optim_option.scheduler_params)
 
     def __getstate__(self):
         dic = self.__dict__.copy()
-        if "_optimizer" in dic:
-            del dic["_optimizer"]
-        dic["_is_trainable"] = False
+        dic["_optimizer"] = None
         return dic
 
     def __setstate__(self, dic: dict):
@@ -77,7 +77,7 @@ class AbsLearningModel(nn.Module):
 
     @property
     def is_trainable(self) -> bool:
-        return self._is_trainable
+        return self._optimizer is not None
 
     @abstractmethod
     def forward(self, *args, **kwargs):
@@ -85,7 +85,7 @@ class AbsLearningModel(nn.Module):
 
     def learn(self, loss):
         """Use the loss to back-propagate gradients and apply them to the underlying parameters."""
-        if not self._is_trainable:
+        if self._optimizer is None:
             raise MissingOptimizer("No optimizer registered to the model")
         if isinstance(self._optimizer, dict):
             for optimizer in self._optimizer.values():
@@ -107,9 +107,13 @@ class AbsLearningModel(nn.Module):
         if not isinstance(self._scheduler, dict):
             self._scheduler.step()
         elif isinstance(component_name, str):
+            if component_name not in self._scheduler:
+                raise KeyError(f"Component {component_name} does not have a learning rate scheduler")
             self._scheduler[component_name].step()
         elif isinstance(component_name, list):
             for key in component_name:
+                if key not in self._scheduler:
+                    raise KeyError(f"Component {key} does not have a learning rate scheduler")
                 self._scheduler[key].step()
         else:
             for sch in self._scheduler.values():
