@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import Union
+from typing import List, Union
 
 import numpy as np
 
@@ -13,7 +13,7 @@ class LinearParameterScheduler(Scheduler):
 
     Args:
         max_iter (int): Maximum number of iterations.
-        parameter_names ([str]): List of exploration parameter names.
+        parameter_names (List[str]): List of exploration parameter names.
         start_values (Union[float, list, tuple, np.ndarray]): Exploration parameter values for the first episode.
             These values must correspond to ``parameter_names``.
         end_values (Union[float, list, tuple, np.ndarray]): Exploration parameter values rate for the last episode.
@@ -22,7 +22,7 @@ class LinearParameterScheduler(Scheduler):
     def __init__(
         self,
         max_iter: int,
-        parameter_names: [str],
+        parameter_names: List[str],
         start_values: Union[float, list, tuple, np.ndarray],
         end_values: Union[float, list, tuple, np.ndarray]
     ):
@@ -53,7 +53,7 @@ class TwoPhaseLinearParameterScheduler(Scheduler):
 
     Args:
         max_iter (int): Maximum number of episodes to run.
-        parameter_names ([str]): List of exploration parameter names.
+        parameter_names (List[str]): List of exploration parameter names.
         split_ep (float): The episode where the switch from the first linear schedule to the second occurs.
         start_values (Union[float, list, tuple, np.ndarray]): Exploration parameter values for the first episode.
             These values must correspond to ``parameter_names``.
@@ -69,7 +69,7 @@ class TwoPhaseLinearParameterScheduler(Scheduler):
     def __init__(
         self,
         max_iter: int,
-        parameter_names: [str],
+        parameter_names: List[str],
         split_ep: float,
         start_values: Union[float, list, tuple, np.ndarray],
         mid_values: Union[float, list, tuple, np.ndarray],
