@@ -18,6 +18,7 @@ class ActionType(Enum):
     LOAD = "load",
     DISCHARGE = "discharge"
 
+
 class Action:
     """Action object that used to pass action from agent to business engine.
 

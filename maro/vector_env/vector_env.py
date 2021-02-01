@@ -12,7 +12,6 @@ from maro.simulator import DecisionMode
 
 from .env_process import EnvProcess
 
-
 ActionType = Union[Dict[int, object], List[object], object]
 
 
