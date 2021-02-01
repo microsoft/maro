@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 from abc import abstractmethod
-from itertools import chain
 from typing import Dict, List, Union
 
 import torch
