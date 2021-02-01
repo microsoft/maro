@@ -1,5 +1,4 @@
 from .action_shaper import DiscreteActionShaper
-from .actor import ParallelActor
 from .agent_manager import GNNAgentManager, create_gnn_agent
 from .experience_shaper import GNNExperienceShaper
 from .learner import GNNLearner
@@ -8,7 +7,6 @@ from .utils import decision_cnt_analysis, load_config, return_scaler, save_code,
 
 __all__ = [
     "DiscreteActionShaper",
-    "ParallelActor",
     "GNNAgentManager", "create_gnn_agent",
     "GNNExperienceShaper",
     "GNNLearner",
