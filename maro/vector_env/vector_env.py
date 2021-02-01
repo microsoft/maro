@@ -23,8 +23,12 @@ class VectorEnv:
     """
 
     class SnapshotListNodeWrapper:
-        """Wrapper to provide same interface as normal snapshot nodes."""
+        """Wrapper to provide same interface as normal snapshot nodes.
 
+        Args:
+            env (VectorEnv): VectorEnv instance to send query command.
+            node_name (str): Name of node bind to this wrapper, used for furthur querying.
+        """
         def __init__(self, env, node_name: str):
             self.node_name = node_name
             self._env = env
@@ -33,7 +37,11 @@ class VectorEnv:
             return self._env._query(self.node_name, args)
 
     class SnapshotListWrapper:
-        """Wrapper for snapshot list, used to provide same interface as normal snapshot list."""
+        """Wrapper for snapshot list, used to provide same interface as normal snapshot list.
+
+        Args:
+            env (VectorEnv): VectorEnv instance used to send query command.
+        """
 
         def __init__(self, env):
             self._env = env
