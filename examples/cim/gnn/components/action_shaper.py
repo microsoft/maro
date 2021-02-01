@@ -1,5 +1,4 @@
 from maro.rl import Shaper
-from maro.simulator.scenarios.cim.common import Action
 
 
 class DiscreteActionShaper(Shaper):
@@ -9,7 +8,7 @@ class DiscreteActionShaper(Shaper):
         self._action_dim = action_dim
         self._zero_action = self._action_dim // 2
 
-    def __call__(self, model_action, decision_event):
+    def __call__(self, decision_event, model_action):
         """Shaping the action in [-1,1] range to the actual repositioning function.
 
         This function maps integer model action within the range of [-A, A] to actual action. We define negative actual
@@ -17,8 +16,8 @@ class DiscreteActionShaper(Shaper):
         upper bound and lower bound of actual action are the resource in dynamic and static node respectively.
 
         Args:
-            model_action (int): Output action, range A means the half of the agent output dim.
             decision_event (Event): The decision event from the environment.
+            model_action (int): Output action, range A means the half of the agent output dim.
         """
         env_action = 0
         model_action -= self._zero_action
@@ -33,5 +32,6 @@ class DiscreteActionShaper(Shaper):
         else:
             # Load resource to dynamic node.
             env_action = round(int(model_action) * 1.0 / self._zero_action * action_scope.discharge)
-        
-        return Action(decision_event.vessel_idx, decision_event.port_idx, int(env_action))
+        env_action = int(env_action)
+
+        return env_action

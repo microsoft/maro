@@ -2,7 +2,7 @@ import numpy as np
 
 from maro.rl import Shaper
 
-from examples.cim.gnn.components.utils import compute_v2p_degree_matrix
+from .utils import compute_v2p_degree_matrix
 
 
 class GNNStateShaper(Shaper):
@@ -14,14 +14,14 @@ class GNNStateShaper(Shaper):
         max_tick (int): The duration of the simulation.
         feature_config (dict): The dottable dict that stores the configuration of the observation feature.
         max_value (int): The norm scale. All the feature are simply divided by this number.
-        sequence_buffer_size (int): The value n in n-step TD.
+        tick_buffer (int): The value n in n-step TD.
         only_demo (bool): Define if the shaper instance is used only for shape demonstration(True) or runtime
             shaping(False).
     """
 
     def __init__(
-            self, port_code_list, vessel_code_list, max_tick, feature_config, 
-            max_value=100000, sequence_buffer_size=20, only_demo=False):
+            self, port_code_list, vessel_code_list, max_tick, feature_config, max_value=100000, tick_buffer=20,
+            only_demo=False):
         # Collect and encode all ports.
         self.port_code_list = list(port_code_list)
         self.port_cnt = len(self.port_code_list)
@@ -48,7 +48,7 @@ class GNNStateShaper(Shaper):
         self.vessel_features = ["empty", "full", "capacity", "remaining_space"]
 
         self._max_tick = max_tick
-        self._sequence_buffer_size = sequence_buffer_size
+        self._tick_buffer = tick_buffer
         # To identify one vessel would never arrive at the port.
         self.max_arrival_time = 99999999
 
@@ -61,7 +61,7 @@ class GNNStateShaper(Shaper):
         self._norm_scale = 2.0 / max_value
         if not only_demo:
             self._state_dict = {
-                # Last "tick" is used for embedding, all zero and never modified.
+                # Last "tick" is used for embedding, all zero and never be modified.
                 "v": np.zeros((self._max_tick + 1, self.vessel_cnt, self.get_input_dim("v"))),
                 "p": np.zeros((self._max_tick + 1, self.port_cnt, self.get_input_dim("p"))),
                 "vo": np.zeros((self._max_tick + 1, self.vessel_cnt, self.port_cnt), dtype=np.int),
@@ -191,19 +191,17 @@ class GNNStateShaper(Shaper):
             tick = action_info.tick
 
         # State_tick_range is inverse order.
-        state_tick_range = np.arange(tick, max(-1, tick - self._sequence_buffer_size), -1)
-        v = np.zeros((self._sequence_buffer_size, self.vessel_cnt, self.get_input_dim("v")))
+        state_tick_range = np.arange(tick, max(-1, tick - self._tick_buffer), -1)
+        v = np.zeros((self._tick_buffer, self.vessel_cnt, self.get_input_dim("v")))
         v[:len(state_tick_range)] = self._state_dict["v"][state_tick_range]
-        p = np.zeros((self._sequence_buffer_size, self.port_cnt, self.get_input_dim("p")))
+        p = np.zeros((self._tick_buffer, self.port_cnt, self.get_input_dim("p")))
         p[:len(state_tick_range)] = self._state_dict["p"][state_tick_range]
 
         # True means padding.
-        mask = np.ones(self._sequence_buffer_size, dtype=np.bool)
+        mask = np.ones(self._tick_buffer, dtype=np.bool)
         mask[:len(state_tick_range)] = False
         ret = {
             "tick": state_tick_range,
-            "v_idx": action_info.vessel_idx if action_info is not None else None,
-            "p_idx": action_info.port_idx if action_info is not None else None,
             "v": v,
             "p": p,
             "vo": self._state_dict["vo"][tick],

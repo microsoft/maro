@@ -31,6 +31,93 @@ def compute_v2p_degree_matrix(env):
     return adj_matrix
 
 
+def from_numpy(device, *np_values):
+    return [torch.from_numpy(v).to(device) for v in np_values]
+
+
+def gnn_union(p, po, pedge, v, vo, vedge, p2p, ppedge, seq_mask, device):
+    """Union multiple graph in CIM.
+
+    Args:
+        v: Numpy array of shape (seq_len, batch, v_cnt, v_dim).
+        vo: Numpy array of shape (batch, v_cnt, p_cnt).
+        vedge: Numpy array of shape (batch, v_cnt, p_cnt, e_dim).
+    Returns:
+        result (dict): The dictionary that describes the graph.
+    """
+    seq_len, batch, v_cnt, v_dim = v.shape
+    _, _, p_cnt, p_dim = p.shape
+
+    p, po, pedge, v, vo, vedge, p2p, ppedge, seq_mask = from_numpy(
+        device, p, po, pedge, v, vo, vedge, p2p, ppedge, seq_mask)
+
+    batch_range = torch.arange(batch, dtype=torch.long).to(device)
+    # vadj.shape: (batch*v_cnt, p_cnt*)
+    vadj, vedge = flatten_embedding(vo, batch_range, vedge)
+    # vmask.shape: (batch*v_cnt, p_cnt*)
+    vmask = vadj == 0
+    # vadj.shape: (p_cnt*, batch*v_cnt)
+    vadj = vadj.transpose(0, 1)
+    # vedge.shape: (p_cnt*, batch*v_cnt, e_dim)
+    vedge = vedge.transpose(0, 1)
+
+    padj, pedge = flatten_embedding(po, batch_range, pedge)
+    pmask = padj == 0
+    padj = padj.transpose(0, 1)
+    pedge = pedge.transpose(0, 1)
+
+    p2p_adj = p2p.repeat(batch, 1, 1)
+    # p2p_adj.shape: (batch*p_cnt, p_cnt*)
+    p2p_adj, ppedge = flatten_embedding(p2p_adj, batch_range, ppedge)
+    # p2p_mask.shape: (batch*p_cnt, p_cnt*)
+    p2p_mask = p2p_adj == 0
+    # p2p_adj.shape: (p_cnt*, batch*p_cnt)
+    p2p_adj = p2p_adj.transpose(0, 1)
+    ppedge = ppedge.transpose(0, 1)
+
+    return {
+        "v": v,
+        "p": p,
+        "pe": {
+            "edge": pedge,
+            "adj": padj,
+            "mask": pmask,
+        },
+        "ve": {
+            "edge": vedge,
+            "adj": vadj,
+            "mask": vmask,
+        },
+        "ppe": {
+            "edge": ppedge,
+            "adj": p2p_adj,
+            "mask": p2p_mask,
+        },
+        "mask": seq_mask,
+    }
+
+
+def flatten_embedding(embedding, batch_range, edge=None):
+    if len(embedding.shape) == 3:
+        batch, x_cnt, y_cnt = embedding.shape
+        addon = (batch_range * y_cnt).view(batch, 1, 1)
+    else:
+        seq_len, batch, x_cnt, y_cnt = embedding.shape
+        addon = (batch_range * y_cnt).view(seq_len, batch, 1, 1)
+
+    embedding_mask = embedding == 0
+    embedding += addon
+    embedding[embedding_mask] = 0
+    ret = embedding.reshape(-1, embedding.shape[-1])
+    col_mask = ret.sum(dim=0) != 0
+    ret = ret[:, col_mask]
+    if edge is None:
+        return ret
+    else:
+        edge = edge.reshape(-1, *edge.shape[2:])[:, col_mask, :]
+        return ret, edge
+
+
 def log2json(file_path):
     """load the log file as a json list."""
     with open(file_path, "r") as fp:
@@ -41,10 +128,10 @@ def log2json(file_path):
 
 def decision_cnt_analysis(env, pv=False, buffer_size=8):
     if not pv:
-        decision_cnt = {str(agent_id): buffer_size for agent_id in env.agent_idx_list}
+        decision_cnt = [buffer_size] * len(env.node_name_mapping["static"])
         r, pa, is_done = env.step(None)
         while not is_done:
-            decision_cnt[str(pa.port_idx)] += 1
+            decision_cnt[pa.port_idx] += 1
             action = Action(pa.vessel_idx, pa.port_idx, 0)
             r, pa, is_done = env.step(action)
     else:
@@ -103,7 +190,7 @@ def load_config(config_pth):
 def save_config(config, config_pth):
     with open(config_pth, "w") as fp:
         config = dottable2dict(config)
-        config["agent"]["exp_per_ep"] = [f"{k[0]}, {k[1]}, {d}" for k, d in config["agent"]["exp_per_ep"].items()]
+        config["env"]["exp_per_ep"] = [f"{k[0]}, {k[1]}, {d}" for k, d in config["env"]["exp_per_ep"].items()]
         yaml.safe_dump(config, fp)
 
 
