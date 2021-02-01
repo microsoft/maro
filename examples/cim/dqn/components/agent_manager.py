@@ -4,10 +4,10 @@
 from collections import defaultdict
 
 import torch.nn as nn
-from torch.optim import RMSprop
+from torch.optim import RMSprop, lr_scheduler
 
 from maro.rl import (
-    AbsAgentManager, DQN, DQNConfig, FullyConnectedBlock, OptimizerOptions, SimpleMultiHeadModel,
+    AbsAgentManager, DQN, DQNConfig, FullyConnectedBlock, OptimOption, SimpleMultiHeadModel,
     SimpleStore
 )
 from maro.utils import set_seeds
@@ -17,24 +17,26 @@ from examples.cim.dqn.components.action_shaper import CIMActionShaper
 from examples.cim.dqn.components.experience_shaper import TruncatedExperienceShaper
 
 
-def create_dqn_agents(agent_id_list, config):
-    num_actions = config.algorithm.num_actions
+def create_dqn_agents(agent_names, config):
     set_seeds(config.seed)
     agent_dict = {}
-    for agent_id in agent_id_list:
+    for name in agent_names:
         q_net = FullyConnectedBlock(
-            input_dim=config.algorithm.input_dim,
-            output_dim=num_actions,
             activation=nn.LeakyReLU,
             is_head=True,
-            **config.algorithm.model
+            **config.model
         )            
         learning_model = SimpleMultiHeadModel(
-            q_net, 
-            optimizer_options=OptimizerOptions(cls=RMSprop, params=config.algorithm.optimizer)
+            q_net,
+            optim_option=OptimOption(
+                optim_cls=RMSprop, 
+                optim_params=config.optimizer,
+                scheduler_cls=lr_scheduler.StepLR,
+                scheduler_params=config.scheduler    
+            )
         )
-        agent_dict[agent_id] = DQN(
-            agent_id, learning_model, DQNConfig(**config.algorithm.hyper_params, loss_cls=nn.SmoothL1Loss)
+        agent_dict[name] = DQN(
+            name, learning_model, DQNConfig(**config.hyper_params, loss_cls=nn.SmoothL1Loss)
         )
 
     return agent_dict

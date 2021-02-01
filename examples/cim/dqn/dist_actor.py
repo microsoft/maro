@@ -19,10 +19,10 @@ def launch(config, distributed_config):
     env = Env(config.env.scenario, config.env.topology, durations=config.env.durations)
     agent_id_list = [str(agent_id) for agent_id in env.agent_idx_list]
     state_shaper = CIMStateShaper(**config.env.state_shaping)
-    action_shaper = CIMActionShaper(action_space=list(np.linspace(-1.0, 1.0, config.agents.algorithm.num_actions)))
+    action_shaper = CIMActionShaper(action_space=list(np.linspace(-1.0, 1.0, config.agents.model.output_dim)))
     experience_shaper = TruncatedExperienceShaper(**config.env.experience_shaping)
 
-    config["agents"]["algorithm"]["input_dim"] = state_shaper.dim
+    config.agents.model.input_dim = state_shaper.dim
     agent_manager = DQNAgentManager(
         create_dqn_agents(agent_id_list, config.agents),
         state_shaper=state_shaper,

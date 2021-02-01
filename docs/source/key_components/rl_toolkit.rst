@@ -146,7 +146,7 @@ As an example, the initialization of the actor-critic algorithm may look like th
   critic_stack = FullyConnectedBlock(...)
   model = SimpleMultiHeadModel(
       {"actor": actor_stack, "critic": critic_stack},
-      optimizer_options={
+      optim_option={
         "actor": OptimizerOption(cls=Adam, params={"lr": 0.001})
         "critic": OptimizerOption(cls=RMSprop, params={"lr": 0.0001})  
       }
