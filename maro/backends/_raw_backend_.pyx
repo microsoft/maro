@@ -77,6 +77,7 @@ cdef class AttributeAccessor:
     def __dealloc__(self):
         self._backend = None
 
+
 cdef class RawBackend(BackendAbc):
     def __cinit__(self):
         self._node_info = {}
@@ -213,6 +214,24 @@ cdef class RawBackend(BackendAbc):
                 result.append(slot)
 
         return result
+
+    cdef list slots_greater_than(self, NODE_INDEX index, ATTR_TYPE attr_type, object value) except +:
+        pass
+
+    cdef list slots_greater_equal(self, NODE_INDEX index, ATTR_TYPE attr_type, object value) except +:
+        pass
+
+    cdef list slots_less_than(self, NODE_INDEX index, ATTR_TYPE attr_type, object value) except +:
+        pass
+
+    cdef list slots_less_equal(self, NODE_INDEX index, ATTR_TYPE attr_type, object value) except +:
+        pass
+
+    cdef list slots_equal(self, NODE_INDEX index, ATTR_TYPE attr_type, object value) except +:
+        pass
+
+    cdef list slots_not_equal(self, NODE_INDEX index, ATTR_TYPE attr_type, object value) except +:
+        pass
 
 
 cdef class RawSnapshotList(SnapshotListAbc):

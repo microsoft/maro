@@ -208,8 +208,33 @@ cdef class _NodeAttributeAccessor:
         self._slot_number -= 1
 
     def where(self, filter_func: callable):
-        """"""
+        """Filter current attribute slots with input function.
+
+        Args:
+            filter_func (callable): Function to filter slot value.
+
+        Returns:
+            List[int]: List of slot index whoes value match the filter function.
+        """
         return self._backend.where(self._node_index, self._attr_type, filter_func)
+
+    def __lt__(self, other):
+        return self._backend.slots_less_than(self._node_index, self._attr_type, other)
+
+    def __le__(self, other):
+        return self._backend.slots_less_equal(self._node_index, self._attr_type, other)
+
+    def __gt__(self, other):
+        return self._backend.slots_greater_than(self._node_index, self._attr_type, other)
+
+    def __ge__(self, other):
+        return self._backend.slots_greater_equal(self._node_index, self._attr_type, other)
+
+    def __eq__(self, other):
+        return self._backend.slots_equal(self._node_index, self._attr_type, other)
+
+    def __ne__(self, other):
+        return self._backend.slots_not_equal(self._node_index, self._attr_type, other)
 
     def __iter__(self):
         """Start for-loop."""
