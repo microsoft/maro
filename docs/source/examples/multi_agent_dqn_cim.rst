@@ -20,7 +20,7 @@ remaining space on vessel.
     PORT_ATTRIBUTES = ["empty", "full", "on_shipper", "on_consignee", "booking", "shortage", "fulfillment"]
     VESSEL_ATTRIBUTES = ["empty", "full", "remaining_space"]
 
-    class CIMStateShaper(Shaper):
+    class CIMStateShaper(StateShaper):
         ...
         def __call__(self, decision_event, snapshot_list):
             tick, port_idx, vessel_idx = decision_event.tick, decision_event.port_idx, decision_event.vessel_idx
@@ -42,7 +42,7 @@ integers from -10 to 10, with -10 indicating loading 100% of the containers in t
 
 .. code-block:: python
 
-    class CIMActionShaper(Shaper):
+    class CIMActionShaper(ActionShaper):
         ...
         def __call__(self, model_action, decision_event, snapshot_list):
             scope = decision_event.action_scope
@@ -76,7 +76,7 @@ an episode trajectory to trainable experiences for RL agents. For this specific 
 combination of fulfillment and shortage in a limited time window.
 
 .. code-block:: python
-    class TruncatedExperienceShaper(Shaper):
+    class TruncatedExperienceShaper(ExperienceShaper):
         ...
         def __call__(self, trajectory, snapshot_list):
             experiences_by_agent = defaultdict(lambda: defaultdict(list))
@@ -103,22 +103,8 @@ with a TD-error-based sampling mechanism.
 
 .. code-block:: python
     NUM_ACTIONS = 21
-    class DQNAgent(AbsAgent):
-        ...
-        def train(self):
-            if len(self._experience_pool) < self._min_experiences_to_train:
-                return
-
-            for _ in range(self._num_batches):
-                indexes, sample = self._experience_pool.sample_by_key("loss", self._batch_size)
-                state = np.asarray(sample["state"])
-                action = np.asarray(sample["action"])
-                reward = np.asarray(sample["reward"])
-                next_state = np.asarray(sample["next_state"])
-                loss = self._algorithm.train(state, action, reward, next_state)
-                self._experience_pool.update(indexes, {"loss": loss})
-
     def create_dqn_agents(agent_id_list):
+        set_seeds(64)  # for reproducibility
         agent_dict = {}
         for agent_id in agent_id_list:
             q_net = FullyConnectedBlock(
@@ -127,29 +113,29 @@ with a TD-error-based sampling mechanism.
                 output_dim=NUM_ACTIONS,
                 activation=nn.LeakyReLU,
                 is_head=True,
-                batch_norm_enabled=True, 
-                softmax_enabled=False,
-                skip_connection_enabled=False,
+                batch_norm=True, 
+                softmax=False,
+                skip_connection=False,
                 dropout_p=.0
             )
+            
             learning_model = SimpleMultiHeadModel(
-                q_net, optimizer_options=OptimizerOptions(cls=RMSprop, params={"lr": 0.05})
+                q_net, optim_option=OptimOption(optim_cls=RMSprop, optim_params={"lr": 0.05})
             )
             agent_dict[agent_id] = DQN(
                 agent_id, 
                 learning_model, 
                 config=DQNConfig(
                     reward_discount=.0, 
-                    min_experiences_to_train=1024,
+                    min_exp_to_train=1024,
                     num_batches=10,
                     batch_size=128, 
-                    target_update_frequency=5, 
+                    target_update_freq=5, 
                     tau=0.1, 
                     is_double=True, 
-                    per_sample_td_error_enabled=True,
+                    per_sample_td_error=True,
                     loss_cls=nn.SmoothL1Loss
-                ),
-                experience_pool=SimpleStore(["state", "action", "reward", "next_state", "loss"])
+                )
             )
 
         return agent_dict
@@ -165,16 +151,50 @@ experience pools before training, in accordance with the DQN algorithm.
 
 .. code-block:: python
     class DQNAgentManager(AbsAgentManager):
-        def train(self, experiences_by_agent, performance=None):
-            self._assert_train_mode()
+        def __init__(
+            self,
+            agent,
+            state_shaper: CIMStateShaper,
+            action_shaper: CIMActionShaper,
+            experience_shaper: TruncatedExperienceShaper
+        ):
+            super().__init__(
+                agent,
+                state_shaper=state_shaper,
+                action_shaper=action_shaper,
+                experience_shaper=experience_shaper
+            )
+            # Data structure to temporarily store the trajectory
+            self._trajectory = defaultdict(list)
 
+        def choose_action(self, decision_event, snapshot_list):
+            agent_id, model_state = self._state_shaper(decision_event, snapshot_list)
+            action = self.agent[agent_id].choose_action(model_state)
+            self._trajectory["state"].append(model_state)
+            self._trajectory["agent_id"].append(agent_id)
+            self._trajectory["event"].append(decision_event)
+            self._trajectory["action"].append(action)
+            return self._action_shaper(action, decision_event, snapshot_list)
+
+        def train(self, experiences_by_agent):
             # store experiences for each agent
             for agent_id, exp in experiences_by_agent.items():
                 exp.update({"loss": [1e8] * len(list(exp.values())[0])})
-                self.agent_dict[agent_id].store_experiences(exp)
+                self.agent[agent_id].store_experiences(exp)
 
-            for agent in self.agent_dict.values():
+            for agent in self.agent.values():
                 agent.train()
+
+        def on_env_feedback(self, metrics):
+            self._trajectory["metrics"].append(metrics)
+
+        def post_process(self, snapshot_list):
+            experiences = self._experience_shaper(self._trajectory, snapshot_list)
+            self._trajectory.clear()
+            self._state_shaper.reset()
+            self._action_shaper.reset()
+            self._experience_shaper.reset()
+            return experiences
 
 Main Loop with Actor and Learner (Single Process)
 -------------------------------------------------

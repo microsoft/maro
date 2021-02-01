@@ -7,42 +7,12 @@ from statistics import mean
 import numpy as np
 
 from maro.simulator import Env
-from maro.rl import Scheduler, SimpleActor, SimpleLearner
+from maro.rl import Scheduler, SimpleLearner
 from maro.utils import LogFormat, Logger, convert_dottable
 
-from components import CIMActionShaper, CIMStateShaper, POAgentManager, TruncatedExperienceShaper, create_po_agents
-
-
-class EarlyStoppingChecker:
-    """Callable class that checks the performance history to determine early stopping.
-
-    Args:
-        warmup_ep (int): Episode from which early stopping checking is initiated.
-        last_k (int): Number of latest performance records to check for early stopping.
-        perf_threshold (float): The mean of the ``last_k`` performance metric values must be above this value to
-            trigger early stopping.
-        perf_stability_threshold (float): The maximum one-step change over the ``last_k`` performance metrics must be
-            below this value to trigger early stopping.
-    """
-    def __init__(self, warmup_ep: int, last_k: int, perf_threshold: float, perf_stability_threshold: float):
-        self._warmup_ep = warmup_ep
-        self._last_k = last_k
-        self._perf_threshold = perf_threshold
-        self._perf_stability_threshold = perf_stability_threshold
-
-        def get_metric(record):
-            return 1 - record["container_shortage"] / record["order_requirements"]
-        self._metric_func = get_metric
-
-    def __call__(self, perf_history) -> bool:
-        if len(perf_history) < max(self._last_k, self._warmup_ep):
-            return False
-
-        metric_series = list(map(self._metric_func, perf_history[-self._last_k:]))
-        max_delta = max(
-            abs(metric_series[i] - metric_series[i - 1]) / metric_series[i - 1] for i in range(1, self._last_k)
-        )
-        return mean(metric_series) > self._perf_threshold and max_delta < self._perf_stability_threshold
+from components import (
+    CIMActionShaper, CIMStateShaper, SchedulerWithStopping, POAgentManager, TruncatedExperienceShaper, create_po_agents
+)
 
 
 def launch(config):
@@ -69,15 +39,8 @@ def launch(config):
     )
 
     # Step 4: Create an actor and a learner to start the training process.
-    scheduler = Scheduler(
-        config.main_loop.max_episode,
-        early_stopping_checker=EarlyStoppingChecker(**config.main_loop.early_stopping)
-    )
-    actor = SimpleActor(env, agent_manager)
-    learner = SimpleLearner(
-        agent_manager, actor, scheduler,
-        logger=Logger("cim_learner", format_=LogFormat.simple, auto_timestamp=False)
-    )
+    scheduler = SchedulerWithStopping(config.main_loop.max_episode, **config.main_loop.early_stopping)
+    learner = SimpleLearner(env, agent_manager, scheduler)
     learner.learn()
     learner.test()
     learner.dump_models(os.path.join(os.getcwd(), "models"))

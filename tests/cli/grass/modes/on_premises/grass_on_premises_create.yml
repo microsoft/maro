@@ -1,0 +1,11 @@
+name: ""
+mode: grass/on-premises
+
+user:
+  admin_id: admin
+
+master:
+  username: marotest
+  hostname: ""
+  public_ip_address: ""
+  private_ip_address: ""

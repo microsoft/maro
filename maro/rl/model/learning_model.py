@@ -2,8 +2,7 @@
 # Licensed under the MIT license.
 
 from abc import abstractmethod
-from collections import namedtuple
-from typing import Dict, Union
+from typing import Dict, List, Union
 
 import torch
 import torch.nn as nn
@@ -11,7 +10,22 @@ import torch.nn as nn
 from maro.utils import clone
 from maro.utils.exception.rl_toolkit_exception import MissingOptimizer
 
-OptimizerOptions = namedtuple("OptimizerOptions", ["cls", "params"])
+
+class OptimOption:
+    """Model optimization options.
+    Args:
+        optim_cls: Subclass of torch.optim.Optimizer.
+        optim_params (dict): Parameters for the optimizer class.
+        scheduler_cls: torch lr_scheduler class. Defaults to None.
+        scheduler_params (dict): Parameters for the scheduler class. Defaults to None.
+    """
+    __slots__ = ["optim_cls", "optim_params", "scheduler_cls", "scheduler_params"]
+
+    def __init__(self, optim_cls, optim_params: dict, scheduler_cls=None, scheduler_params: dict = None):
+        self.optim_cls = optim_cls
+        self.optim_params = optim_params
+        self.scheduler_cls = scheduler_cls
+        self.scheduler_params = scheduler_params
 
 
 class AbsLearningModel(nn.Module):
@@ -19,45 +33,42 @@ class AbsLearningModel(nn.Module):
 
     Args:
         component (Union[nn.Module, Dict[str, nn.Module]]): Network component(s) comprising the model.
-        optimizer_options (Union[OptimizerOptions, Dict[str, OptimizerOptions]]): Optimizer options for
-            the components. If none, no optimizer will be created for the model and the model will not
-            be trainable. If it is a single OptimizerOptions instance, an optimizer will be created to jointly
-            optimize all parameters of the model. If it is a dictionary, for each `(key, value)` pair,
-            an optimizer specified by `value` will be created for the internal component named `key`.
-            Note that it is possible to freeze certain components while optimizing others by providing
-            a subset of the keys in ``component``. Defaults to None.
+        optim_option (Union[OptimOption, Dict[str, OptimOption]]): Optimizer options for the components.
+            If none, no optimizer will be created for the model which means the model is not trainable.
+            If it is a OptimOption instance, a single optimizer will be created to jointly optimize all
+            parameters of the model. If it is a dictionary of OptimOptions, the keys will be matched against
+            the component names and optimizers created for them. Note that it is possible to freeze certain
+            components while optimizing others by providing a subset of the keys in ``component``.
+            Defaults toNone.
     """
     def __init__(
         self,
         component: Union[nn.Module, Dict[str, nn.Module]],
-        optimizer_options: Union[OptimizerOptions, Dict[str, OptimizerOptions]] = None
+        optim_option: Union[OptimOption, Dict[str, OptimOption]] = None
     ):
         super().__init__()
-        assert (
-            optimizer_options is None
-            or isinstance(optimizer_options, OptimizerOptions)
-            or isinstance(component, dict)
-        )
         self._component = component if isinstance(component, nn.Module) else nn.ModuleDict(component)
-        self._is_trainable = optimizer_options is not None
-        if self._is_trainable:
-            if isinstance(optimizer_options, OptimizerOptions):
-                self._optimizer = optimizer_options.cls(self.parameters(), **optimizer_options.params)
-            else:
-                self._optimizer = {
-                    name: opt.cls(self._component[name].parameters(), **opt.params)
-                    for name, opt in optimizer_options.items()
-                }
-        else:
+        if optim_option is None:
+            self._optimizer = None
+            self._scheduler = None
             self.eval()
             for param in self.parameters():
                 param.requires_grad = False
+        else:
+            if isinstance(optim_option, dict):
+                self._optimizer = {}
+                for name, opt in optim_option.items():
+                    self._optimizer[name] = opt.optim_cls(self._component[name].parameters(), **opt.optim_params)
+                    if opt.scheduler_cls:
+                        self._scheduler[name] = opt.scheduler_cls(self._optimizer[name], **opt.scheduler_params)
+            else:
+                self._optimizer = optim_option.optim_cls(self.parameters(), **optim_option.optim_params)
+                if optim_option.scheduler_cls:
+                    self._scheduler = optim_option.scheduler_cls(self._optimizer, **optim_option.scheduler_params)
 
     def __getstate__(self):
         dic = self.__dict__.copy()
-        if "_optimizer" in dic:
-            del dic["_optimizer"]
-        dic["_is_trainable"] = False
+        dic["_optimizer"] = None
         return dic
 
     def __setstate__(self, dic: dict):
@@ -65,7 +76,7 @@ class AbsLearningModel(nn.Module):
 
     @property
     def is_trainable(self) -> bool:
-        return self._is_trainable
+        return self._optimizer is not None
 
     @abstractmethod
     def forward(self, *args, **kwargs):
@@ -73,7 +84,7 @@ class AbsLearningModel(nn.Module):
 
     def learn(self, loss):
         """Use the loss to back-propagate gradients and apply them to the underlying parameters."""
-        if not self._is_trainable:
+        if self._optimizer is None:
             raise MissingOptimizer("No optimizer registered to the model")
         if isinstance(self._optimizer, dict):
             for optimizer in self._optimizer.values():
@@ -90,6 +101,22 @@ class AbsLearningModel(nn.Module):
                 optimizer.step()
         else:
             self._optimizer.step()
+
+    def update_learning_rate(self, component_name: Union[str, List[str]] = None):
+        if not isinstance(self._scheduler, dict):
+            self._scheduler.step()
+        elif isinstance(component_name, str):
+            if component_name not in self._scheduler:
+                raise KeyError(f"Component {component_name} does not have a learning rate scheduler")
+            self._scheduler[component_name].step()
+        elif isinstance(component_name, list):
+            for key in component_name:
+                if key not in self._scheduler:
+                    raise KeyError(f"Component {key} does not have a learning rate scheduler")
+                self._scheduler[key].step()
+        else:
+            for sch in self._scheduler.values():
+                sch.step()
 
     def soft_update(self, other_model: nn.Module, tau: float):
         for params, other_params in zip(self.parameters(), other_model.parameters()):
@@ -118,7 +145,7 @@ class SimpleMultiHeadModel(AbsLearningModel):
         component (Union[nn.Module, Dict[str, nn.Module]]): Network component(s) comprising the model.
             All components must have the same input dimension except the one designated as the shared
             component by ``shared_component_name``.
-        optimizer_options (Union[OptimizerOptions, Dict[str, OptimizerOptions]]): Optimizer options for
+        optim_option (Union[OptimOption, Dict[str, OptimOption]]): Optimizer option for
             the components. Defaults to None.
         shared_component_name (str): Name of the network component to be designated as the shared component at the
             bottom of the architecture. Must be None or a key in ``component``. If only a single component
@@ -127,10 +154,10 @@ class SimpleMultiHeadModel(AbsLearningModel):
     def __init__(
         self,
         component: Union[nn.Module, Dict[str, nn.Module]],
-        optimizer_options: Union[OptimizerOptions, Dict[str, OptimizerOptions]] = None,
+        optim_option: Union[OptimOption, Dict[str, OptimOption]] = None,
         shared_component_name: str = None
     ):
-        super().__init__(component, optimizer_options=optimizer_options)
+        super().__init__(component, optim_option=optim_option)
         if isinstance(component, dict):
             if shared_component_name is not None:
                 assert (shared_component_name in component), (
@@ -142,7 +169,7 @@ class SimpleMultiHeadModel(AbsLearningModel):
         self._shared_component_name = shared_component_name
 
     @property
-    def task_names(self) -> [str]:
+    def task_names(self):
         return self._task_names
 
     def _forward(self, inputs, task_name: str = None):
@@ -160,7 +187,7 @@ class SimpleMultiHeadModel(AbsLearningModel):
         else:
             return self._component[task_name](inputs)
 
-    def forward(self, inputs, task_name: str = None, is_training: bool = True):
+    def forward(self, inputs, task_name: Union[str, List[str]] = None, is_training: bool = True):
         """Feedforward computations for the given head(s).
 
         Args:

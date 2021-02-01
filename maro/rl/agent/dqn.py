@@ -20,10 +20,10 @@ class DQNConfig:
 
     Args:
         reward_discount (float): Reward decay as defined in standard RL terminology.
-        min_experiences_to_train (int): minimum number of experiences required for training.
-        num_batches (int): number of batches to train the DQN model on per call to ``train``.
-        batch_size (int): mini-batch size.
+        num_batches (int): Number of batches to train the DQN model on per call to ``train``.
+        batch_size (int): Mini-batch size.
         epsilon (float): Exploration rate for epsilon-greedy exploration. Defaults to None.
+        min_exp_to_train (int): Minimum number of experiences required for training. Defaults to 0.
         tau (float): Soft update coefficient, i.e., target_model = tau * eval_model + (1 - tau) * target_model.
         is_double (bool): If True, the next Q values will be computed according to the double DQN algorithm,
             i.e., q_next = Q_target(s, argmax(Q_eval(s, a))). Otherwise, q_next = max(Q_target(s, a)).
@@ -31,40 +31,40 @@ class DQNConfig:
         advantage_mode (str): Advantage mode for the dueling architecture. Defaults to None, in which
             case it is assumed that the regular Q-value model is used.
         loss_cls: Loss function class for evaluating TD errors. Defaults to torch.nn.MSELoss.
-        per_sample_td_error_enabled (bool): If True, per-sample TD errors will be returned by the DQN's train()
+        per_sample_td_error (bool): If True, per-sample TD errors will be returned by the DQN's train()
             method. Defaults to False.
-        target_update_frequency (int): Number of training rounds between target model updates.
+        target_update_freq (int): Number of training rounds between target model updates.
     """
     __slots__ = [
-        "reward_discount", "min_experiences_to_train", "num_batches", "batch_size", "target_update_frequency",
-        "epsilon", "tau", "is_double", "advantage_mode", "per_sample_td_error_enabled", "loss_func"
+        "reward_discount", "min_exp_to_train", "num_batches", "batch_size", "target_update_freq",
+        "epsilon", "tau", "is_double", "advantage_mode", "per_sample_td_error", "loss_func"
     ]
 
     def __init__(
         self,
         reward_discount: float,
-        min_experiences_to_train: int,
         num_batches: int,
         batch_size: int,
-        target_update_frequency: int,
+        target_update_freq: int,
+        min_exp_to_train: int = 0,
         epsilon: float = .0,
         tau: float = 0.1,
         is_double: bool = True,
         advantage_mode: str = None,
         loss_cls=torch.nn.MSELoss,
-        per_sample_td_error_enabled: bool = False
+        per_sample_td_error: bool = False
     ):
         self.reward_discount = reward_discount
-        self.min_experiences_to_train = min_experiences_to_train
+        self.min_exp_to_train = min_exp_to_train
         self.num_batches = num_batches
         self.batch_size = batch_size
-        self.target_update_frequency = target_update_frequency
+        self.target_update_freq = target_update_freq
         self.epsilon = epsilon
         self.tau = tau
         self.is_double = is_double
         self.advantage_mode = advantage_mode
-        self.per_sample_td_error_enabled = per_sample_td_error_enabled
-        self.loss_func = loss_cls(reduction="none" if per_sample_td_error_enabled else "mean")
+        self.per_sample_td_error = per_sample_td_error
+        self.loss_func = loss_cls(reduction="none" if per_sample_td_error else "mean")
 
 
 class DQN(AbsAgent):
@@ -80,8 +80,7 @@ class DQN(AbsAgent):
         self,
         name: str,
         model: SimpleMultiHeadModel,
-        config: DQNConfig,
-        experience_pool: SimpleStore = SimpleStore(["state", "action", "reward", "next_state", "loss"])
+        config: DQNConfig
     ):
         if (config.advantage_mode is not None and
                 (model.task_names is None or set(model.task_names) != {"state_value", "advantage"})):
@@ -89,7 +88,10 @@ class DQN(AbsAgent):
                 f"Expected model task names 'state_value' and 'advantage' since dueling DQN is used, "
                 f"got {model.task_names}"
             )
-        super().__init__(name, model, config, experience_pool=experience_pool)
+        super().__init__(
+            name, model, config,
+            experience_pool=SimpleStore(["state", "action", "reward", "next_state", "loss"])
+        )
         self._training_counter = 0
         self._target_model = model.copy() if model.is_trainable else None
 
@@ -145,7 +147,7 @@ class DQN(AbsAgent):
         return self._config.loss_func(current_q_values, target_q_values)
 
     def train(self):
-        if len(self._experience_pool) < self._config.min_experiences_to_train:
+        if len(self._experience_pool) <= self._config.min_exp_to_train:
             return
 
         for _ in range(self._config.num_batches):
@@ -162,15 +164,13 @@ class DQN(AbsAgent):
 
     def store_experiences(self, experiences):
         """Store new experiences in the experience pool."""
-        if self._experience_pool is not None:
-            self._experience_pool.put(experiences)
+        self._experience_pool.put(experiences)
 
     def dump_experience_pool(self, dir_path: str):
         """Dump the experience pool to disk."""
-        if self._experience_pool is not None:
-            os.makedirs(dir_path, exist_ok=True)
-            with open(os.path.join(dir_path, self._name), "wb") as fp:
-                pickle.dump(self._experience_pool, fp)
+        os.makedirs(dir_path, exist_ok=True)
+        with open(os.path.join(dir_path, self._name), "wb") as fp:
+            pickle.dump(self._experience_pool, fp)
 
     def _train_on_batch(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray, next_states: np.ndarray):
         states = torch.from_numpy(states).to(self._device)
@@ -178,9 +178,9 @@ class DQN(AbsAgent):
         rewards = torch.from_numpy(rewards).to(self._device)
         next_states = torch.from_numpy(next_states).to(self._device)
         loss = self._compute_td_errors(states, actions, rewards, next_states)
-        self._model.learn(loss.mean() if self._config.per_sample_td_error_enabled else loss)
+        self._model.learn(loss.mean() if self._config.per_sample_td_error else loss)
         self._training_counter += 1
-        if self._training_counter % self._config.target_update_frequency == 0:
+        if self._training_counter % self._config.target_update_freq == 0:
             self._target_model.soft_update(self._model, self._config.tau)
 
         return loss.detach().numpy()

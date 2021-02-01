@@ -21,15 +21,15 @@ main_loop:
                                    # be below this threshold to trigger early stopping
 agents:
   seed: 1024   # for reproducibility
-  type: "policy_gradient"  # "actor_critic" or "policy_gradient"
+  type: "actor_critic"  # "actor_critic" or "policy_gradient"
   num_actions: 21
   actor_model:
     hidden_dims:
       - 256
       - 128
       - 64
-    softmax_enabled: true
-    batch_norm_enabled: false
+    softmax: true
+    batch_norm: false
   actor_optimizer:
     lr: 0.001
   critic_model:
@@ -37,8 +37,8 @@ agents:
       - 256
       - 128
       - 64
-    softmax_enabled: false
-    batch_norm_enabled: true
+    softmax: false
+    batch_norm: true
   critic_optimizer:
     lr: 0.001
   reward_discount: .0

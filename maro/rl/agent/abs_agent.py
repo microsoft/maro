@@ -46,10 +46,10 @@ class AbsAgent(ABC):
         """This method uses the underlying model(s) to compute an action from a shaped state.
 
         Args:
-            state: A state object shaped by a state shaper to conform to the model input format.
+            state: A state object shaped by a ``StateShaper`` to conform to the model input format.
 
         Returns:
-            The action to be taken given ``state``. It is usually necessary to use an action shaper to convert
+            The action to be taken given ``state``. It is usually necessary to use an ``ActionShaper`` to convert
             this to an environment executable action.
         """
         return NotImplementedError

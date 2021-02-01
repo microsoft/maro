@@ -16,6 +16,7 @@ class AgentManagerProxy(AbsAgentManager):
     executes it locally.
 
     Args:
+        agent_proxy (Proxy): A ``Proxy`` instance responsible for communicating with the inference learner.
         state_shaper (Shaper, optional): It is responsible for converting the environment observation to model
             input.
         action_shaper (Shaper, optional): It is responsible for converting an agent's model output to environment
@@ -59,7 +60,7 @@ class AgentManagerProxy(AbsAgentManager):
 
     def choose_action(self, decision_event, snapshot_list):
         agent_id, model_state = self._state_shaper(decision_event, snapshot_list)
-        action = self._query(*agent_id, model_state)
+        action = self._query(agent_id, model_state)
         if isinstance(action, TerminateEpisode):
             return action
 
@@ -105,7 +106,7 @@ class AgentManagerProxy(AbsAgentManager):
                 payload=payload
             )
         )
-        attempts_left = self._max_receive_action_attempts
+        attempts = self._max_receive_action_attempts
         for msg in self.agent.receive():
             # Timeout
             if not msg:
@@ -116,6 +117,6 @@ class AgentManagerProxy(AbsAgentManager):
                 if (msg.payload[PayloadKey.EPISODE] == self._current_ep and
                         msg.payload[PayloadKey.TIME_STEP] == self._time_step):
                     return msg.payload[PayloadKey.ACTION]
-            attempts_left -= 1
-            if attempts_left == 0:
+            attempts -= 1
+            if attempts == 0:
                 return

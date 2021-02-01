@@ -20,10 +20,10 @@ class FullyConnectedBlock(AbsBlock):
         activation: A ``torch.nn`` activation type. If None, there will be no activation. Defaults to LeakyReLU.
         is_head (bool): If true, this block will be the top block of the full model and the top layer of this block
             will be the final output layer. Defaults to False.
-        softmax_enabled (bool): If true, the output of the net will be a softmax transformation of the top layer's
+        softmax (bool): If true, the output of the net will be a softmax transformation of the top layer's
             output. Defaults to False.
-        batch_norm_enabled (bool): If true, batch normalization will be performed at each layer.
-        skip_connection_enabled (bool): If true, a skip connection will be built between the bottom (input) layer and
+        batch_norm (bool): If true, batch normalization will be performed at each layer.
+        skip_connection (bool): If true, a skip connection will be built between the bottom (input) layer and
             top (output) layer. Defaults to False.
         dropout_p (float): Dropout probability. Defaults to None, in which case there is no drop-out.
         gradient_threshold (float): Gradient clipping threshold. Defaults to None, in which case not gradient clipping
@@ -36,9 +36,9 @@ class FullyConnectedBlock(AbsBlock):
         hidden_dims: [int],
         activation=nn.LeakyReLU,
         is_head: bool = False,
-        softmax_enabled: bool = False,
-        batch_norm_enabled: bool = False,
-        skip_connection_enabled: bool = False,
+        softmax: bool = False,
+        batch_norm: bool = False,
+        skip_connection: bool = False,
         dropout_p: float = None,
         gradient_threshold: float = None,
         name: str = None
@@ -51,17 +51,17 @@ class FullyConnectedBlock(AbsBlock):
         # network features
         self._activation = activation
         self._is_head = is_head
-        self._softmax = nn.Softmax(dim=1) if softmax_enabled else None
-        self._batch_norm_enabled = batch_norm_enabled
+        self._softmax = nn.Softmax(dim=1) if softmax else None
+        self._batch_norm = batch_norm
         self._dropout_p = dropout_p
 
-        if skip_connection_enabled and input_dim != output_dim:
+        if skip_connection and input_dim != output_dim:
             raise ValueError(
                 f"input and output dimensions must match if skip connection is enabled, "
                 f"got {input_dim} and {output_dim}"
             )
 
-        self._skip_connection_enabled = skip_connection_enabled
+        self._skip_connection = skip_connection
 
         # build the net
         dims = [self._input_dim] + self._hidden_dims
@@ -80,7 +80,7 @@ class FullyConnectedBlock(AbsBlock):
 
     def forward(self, x):
         out = self._net(x)
-        if self._skip_connection_enabled:
+        if self._skip_connection:
             out += x
         return self._softmax(out) if self._softmax else out
 
@@ -102,7 +102,7 @@ class FullyConnectedBlock(AbsBlock):
         BN -> Linear -> Activation -> Dropout
         """
         components = []
-        if self._batch_norm_enabled:
+        if self._batch_norm:
             components.append(("batch_norm", nn.BatchNorm1d(input_dim)))
         components.append(("linear", nn.Linear(input_dim, output_dim)))
         if not is_head and self._activation is not None:

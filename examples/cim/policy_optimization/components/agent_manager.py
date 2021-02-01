@@ -8,7 +8,7 @@ import torch.nn as nn
 from torch.optim import Adam, RMSprop
 
 from maro.rl import (
-    AbsAgentManager, ActorCritic, ActorCriticConfig, FullyConnectedBlock, OptimizerOptions,
+    AbsAgentManager, ActorCritic, ActorCriticConfig, FullyConnectedBlock, OptimOption,
     PolicyGradient, SimpleMultiHeadModel
 )
 from maro.utils import set_seeds
@@ -44,9 +44,9 @@ def create_po_agents(agent_id_list, config):
             hyper_params.update({"reward_discount": config.reward_discount})
             learning_model = SimpleMultiHeadModel(
                 {"actor": actor_net, "critic": critic_net}, 
-                optimizer_options={
-                    "actor": OptimizerOptions(cls=Adam, params=config.actor_optimizer),
-                    "critic": OptimizerOptions(cls=RMSprop, params=config.critic_optimizer)
+                optim_option={
+                    "actor": OptimOption(optim_cls=Adam, optim_params=config.actor_optimizer),
+                    "critic": OptimOption(optim_cls=RMSprop, optim_params=config.critic_optimizer)
                 }
             )
             agent_dict[agent_id] = ActorCritic(
@@ -55,7 +55,7 @@ def create_po_agents(agent_id_list, config):
         else:
             learning_model = SimpleMultiHeadModel(
                 actor_net, 
-                optimizer_options=OptimizerOptions(cls=Adam, params=config.actor_optimizer)  
+                optim_option=OptimOption(optim_cls=Adam, optim_params=config.actor_optimizer)
             )
             agent_dict[agent_id] = PolicyGradient(agent_id, learning_model, config.reward_discount)
 

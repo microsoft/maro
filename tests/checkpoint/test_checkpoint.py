@@ -7,7 +7,7 @@ import uuid
 
 import yaml
 
-from maro.cli.utils.executors.azure_executor import AzureExecutor
+from maro.cli.utils.azure_controller import AzureController
 from maro.cli.utils.params import GlobalParams, GlobalPaths
 from maro.utils.checkpoint import AzureBlobCheckpoint, ServerCheckpoint
 
@@ -39,7 +39,7 @@ class TestCheckPoint(unittest.TestCase):
                 raise Exception("Invalid config")
 
         # Create resource group
-        AzureExecutor.create_resource_group(cls.resource_group, cls.location)
+        AzureController.create_resource_group(cls.resource_group, cls.location)
 
         # Create ARM params
         template_file_location = f"{cls.test_dir_path}/test_checkpoint_template.json"
@@ -63,7 +63,7 @@ class TestCheckPoint(unittest.TestCase):
             json.dump(base_parameters, fw, indent=4)
 
         # Start ARM deployment
-        AzureExecutor.start_deployment(
+        AzureController.start_deployment(
             resource_group=cls.resource_group,
             deployment_name=cls.test_id,
             template_file=template_file_location,
@@ -72,14 +72,14 @@ class TestCheckPoint(unittest.TestCase):
         cls._gracefully_wait(15)
 
         # Get params after ARM deployment
-        cls.conn_str = AzureExecutor.get_connection_string(storage_account_name=f"{cls.test_id}st")
-        ip_addresses = AzureExecutor.list_ip_addresses(resource_group=cls.resource_group, vm_name=f"{cls.test_id}-vm")
+        cls.conn_str = AzureController.get_connection_string(storage_account_name=f"{cls.test_id}st")
+        ip_addresses = AzureController.list_ip_addresses(resource_group=cls.resource_group, vm_name=f"{cls.test_id}-vm")
         cls.ip_address = ip_addresses[0]["virtualMachine"]["network"]["publicIpAddresses"][0]["ipAddress"]
 
     @classmethod
     def tearDownClass(cls) -> None:
         # Delete resource group after the test
-        AzureExecutor.delete_resource_group(cls.resource_group)
+        AzureController.delete_resource_group(cls.resource_group)
 
     # Utils
 

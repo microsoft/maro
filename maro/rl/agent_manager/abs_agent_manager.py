@@ -18,12 +18,13 @@ class AbsAgentManager(ABC):
     agents, so that the whole agent manager will behave just like a single agent.
 
     Args:
-        agent (Union[AbsAgent, Dict[str, AbsAgent], Proxy]): Agent(s) to be wrapped by the agent manager.
-            Alternatively, it can also be a ``Proxy`` instance in distributed mode.
+        agent (Union[AbsAgent, Dict[str, AbsAgent], Proxy]): Agent or ditionary of agents managed by the agent.
+            It may also be a ``Proxy`` instance under distributed mode with a central inference learner.
+            See ``AgentManagerProxy`` for details.
         state_shaper (Shaper, optional): It is responsible for converting the environment observation to model
             input.
         action_shaper (Shaper, optional): It is responsible for converting an agent's model output to environment
-            executable action.
+            executable action. Cannot be None under Inference and TrainInference modes.
         experience_shaper (Shaper, optional): It is responsible for processing data in the replay buffer at
             the end of an episode.
     """
@@ -71,7 +72,7 @@ class AbsAgentManager(ABC):
         # Per-agent exploration parameters
         if isinstance(self.agent, AbsAgent):
             self.agent.set_exploration_params(**params)
-        else:
+        elif isinstance(self.agent, dict):
             if isinstance(params, dict) and params.keys() <= self.agent.keys():
                 for agent_id, params in params.items():
                     self.agent[agent_id].set_exploration_params(**params)
@@ -84,7 +85,7 @@ class AbsAgentManager(ABC):
         """Load models from memory for each agent."""
         if isinstance(self.agent, AbsAgent):
             self.agent.load_model()
-        else:
+        elif isinstance(self.agent, dict):
             for agent_id, models in agent_model_dict.items():
                 self.agent[agent_id].load_model(models)
 
@@ -95,14 +96,14 @@ class AbsAgentManager(ABC):
         """
         if isinstance(self.agent, AbsAgent):
             return self.agent.dump_model()
-        else:
+        elif isinstance(self.agent, dict):
             return {agent_id: agent.dump_model() for agent_id, agent in self.agent.items()}
 
     def load_models_from_files(self, dir_path):
         """Load models from disk for each agent."""
         if isinstance(self.agent, AbsAgent):
             self.agent.load_model_from_file(dir_path)
-        else:
+        elif isinstance(self.agent, dict):
             for agent in self.agent.values():
                 agent.load_model_from_file(dir_path)
 
@@ -114,6 +115,6 @@ class AbsAgentManager(ABC):
         os.makedirs(dir_path, exist_ok=True)
         if isinstance(self.agent, AbsAgent):
             self.agent.dump_model_to_file(dir_path)
-        else:
+        elif isinstance(self.agent, dict):
             for agent in self.agent.values():
                 agent.dump_model_to_file(dir_path)
