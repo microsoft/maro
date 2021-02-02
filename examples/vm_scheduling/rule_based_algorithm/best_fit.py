@@ -1,6 +1,6 @@
-import pdb
-import random
+import numpy as np
 
+from maro.simulator import Env
 from maro.simulator.scenarios.vm_scheduling.common import Action
 from maro.simulator.scenarios.vm_scheduling import AllocateAction, DecisionPayload, PostponeAction
 
@@ -15,10 +15,7 @@ class BestFit(VMSchedulingAgent):
         super().__init__()
         self._metric_type: str = metric_type
 
-    def choose_action(self, decision_event, env) -> Action:
-        env = env
-        decision_event = decision_event
-
+    def choose_action(self, decision_event: DecisionPayload, env: Env) -> Action:
         valid_pm_num: int = len(decision_event.valid_pms)
 
         # Check whether there exists a valid PM.

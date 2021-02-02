@@ -1,4 +1,3 @@
-import pdb
 import random
 
 from maro.simulator import Env
@@ -9,10 +8,7 @@ from algorithm import VMSchedulingAgent
 
 
 class RandomPick(VMSchedulingAgent):
-    def choose_action(self, decision_event, env) -> Action:
-        env = env
-        decision_event = decision_event
-
+    def choose_action(self, decision_event: DecisionPayload, env: Env) -> Action:
         valid_pm_num: int = len(decision_event.valid_pms)
 
         # Check whether there exists a valid PM.

@@ -1,7 +1,4 @@
-import pdb
-import math
-import random
-
+from maro.simulator import Env
 from maro.simulator.scenarios.vm_scheduling.common import Action
 from maro.simulator.scenarios.vm_scheduling import AllocateAction, DecisionPayload, PostponeAction
 
@@ -13,10 +10,7 @@ class FirstFit(VMSchedulingAgent):
         super().__init__()
         self._pm_list: list[int] = list()
 
-    def choose_action(self, decision_event, env) -> Action:
-        env = env
-        decision_event = decision_event
-
+    def choose_action(self, decision_event: DecisionPayload, env: Env) -> Action:
         valid_pm_num: int = len(decision_event.valid_pms)
 
         # Check whether there exists a valid PM.

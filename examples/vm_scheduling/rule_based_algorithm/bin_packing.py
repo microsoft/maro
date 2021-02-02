@@ -1,7 +1,8 @@
-import pdb
 import random
 import numpy as np
 
+from maro.simulator import Env
+from maro.simulator.scenarios.vm_scheduling.common import Action
 from maro.simulator.scenarios.vm_scheduling import AllocateAction, DecisionPayload, PostponeAction
 
 from algorithm import VMSchedulingAgent
@@ -10,20 +11,17 @@ from algorithm import VMSchedulingAgent
 class BinPacking(VMSchedulingAgent):
     def __init__(self, pm_num, pm_cpu_core_num):
         super().__init__()
-        self._pm_num = pm_num
-        self._pm_cpu_core_num = pm_cpu_core_num
+        self._pm_num: int = pm_num
+        self._pm_cpu_core_num: int = pm_cpu_core_num
 
-        self._bins = [[] for _ in range(self._pm_cpu_core_num + 1)]
-        self._bin_size = [0] * (self._pm_cpu_core_num + 1)
+        self._bins: list = [[] for _ in range(self._pm_cpu_core_num + 1)]
+        self._bin_size: list[int] = [0] * (self._pm_cpu_core_num + 1)
 
     def _init_bin(self):
         self._bins = [[] for _ in range(self._pm_cpu_core_num + 1)]
         self._bin_size = [0] * (self._pm_cpu_core_num + 1)
 
-    def choose_action(self, decision_event, env):
-        decision_event = decision_event
-        env = env
-
+    def choose_action(self, decision_event: DecisionPayload, env: Env) -> Action:
         valid_pm_num: int = len(decision_event.valid_pms)
 
         if valid_pm_num <= 0:
