@@ -208,6 +208,10 @@ class ProcessExecutor:
             logger.error(f"Cannot find {schedule_name} in Redis. Please check schedule name.")
             return
 
+        if "job_names" not in schedule_details.keys():
+            logger.error(f"'{schedule_name}' is not a schedule.")
+            return
+
         job_list = schedule_details["job_names"]
 
         for job_name in job_list:

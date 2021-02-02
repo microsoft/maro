@@ -31,8 +31,8 @@ class GrassLocalExecutor:
 
         # Connection with Redis
         redis_port = self.cluster_details["master"]["redis"]["port"]
+        self._redis_connection = redis.Redis(host="localhost", port=redis_port)
         try:
-            self._redis_connection = redis.Redis(host="localhost", port=redis_port)
             self._redis_connection.ping()
         except Exception:
             redis_process = subprocess.Popen(
@@ -88,6 +88,13 @@ class GrassLocalExecutor:
         # Start agents.
         self._agents_start()
 
+        # Set available resource for cluster
+        self._redis_connection.hset(
+            f"{self.cluster_name}:runtime_detail",
+            "available_resource",
+            json.dumps(cluster_resource)
+        )
+
         logger.info(f"{self.cluster_name} is created.")
 
     def delete(self):
@@ -108,7 +115,7 @@ class GrassLocalExecutor:
         self._resource_redis.set_available_resource(updated_resource)
 
         # Rm connection from resource redis.
-        current_connection = self._resource_redis.sub_cluster()            
+        self._resource_redis.sub_cluster()
 
         logger.info(f"{self.cluster_name} is deleted.")
 
@@ -118,11 +125,11 @@ class GrassLocalExecutor:
 
     def _agents_stop(self):
         try:
-            agent_pid = int(self._redis_connection.hget(GrassLocalRedisName.CLUSTER_AGENTS, self.cluster_name))
+            agent_pid = int(self._redis_connection.hget(f"{self.cluster_name}:runtime_detail", "agent_id"))
             close_by_pid(agent_pid, recursive=True)
             self._redis_connection.hdel(GrassLocalRedisName.CLUSTER_AGENTS, self.cluster_name)
         except Exception as e:
-            raise BadRequestError(f"Failure to close {self.cluster_name}'s agents, due to {e}")
+            logger.warning(f"Failure to close {self.cluster_name}'s agents, due to {e}")
 
     def start_job(self, deployment_path: str):
         # Load start_job_deployment
@@ -253,7 +260,7 @@ class GrassLocalExecutor:
     def get_job_details(self):
         jobs = self._redis_connection.hgetall(f"{self.cluster_name}:job_details")
         for job_name, job_details_str in jobs.items():
-            jobs[job_name.decode()] = json.loads(job_details_str)
+            jobs[job_name] = json.loads(job_details_str)
 
         return list(jobs.values())
 

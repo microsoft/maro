@@ -42,7 +42,7 @@ class LocalParams:
 
 class LocalPaths:
     """Only use by maro process cli"""
-    MARO_PROCESS = "~/.maro/cluster/process"
+    MARO_PROCESS = "~/.maro/clusters/process"
     MARO_PROCESS_AGENT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../process/agent/job_agent.py")
     MARO_RESOURCE_AGENT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../process/agent/resource_agent.py")
     MARO_PROCESS_DEPLOYMENT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../process/deployment")

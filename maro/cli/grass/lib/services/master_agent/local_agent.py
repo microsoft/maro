@@ -10,6 +10,7 @@ import time
 
 import redis
 
+from maro.cli.grass.lib.services.utils.params import JobStatus
 from maro.cli.grass.lib.services.utils.exception import ResourceAllocationFailed
 from maro.cli.grass.lib.services.utils.name_creator import NameCreator
 from maro.cli.utils.cmp import resource_op
@@ -39,6 +40,10 @@ START_CONTAINER_WITH_GPU_COMMAND = (
     "{image_name} {command}"
 )
 
+ERROR_CODES_FOR_NOT_RESTART_CONTAINER = {0, 64, 65}
+
+UNFINISHED_JOB_STATUS = [JobStatus.PENDING, JobStatus.RUNNING]
+
 
 class PendingJobAgent(mp.Process):
     def __init__(self, cluster_name: str, redis_connection, check_interval: int = 60):
@@ -61,7 +66,7 @@ class PendingJobAgent(mp.Process):
 
             # Allocation
             cluster_resource = json.loads(
-                self.redis_connection.hget(GrassLocalRedisName.CLUSTER_DETAILS, self.cluster_name)
+                self.redis_connection.hget(f"{self.cluster_name}:runtime_detail", "available_resource")
             )
             is_satisfied, updated_resource = resource_op(
                 cluster_resource,
@@ -73,12 +78,10 @@ class PendingJobAgent(mp.Process):
 
             # Start job
             self._start_job(job_detail)
-            job_detail["State"] = "Running"
-            self.redis_connection.hset(f"{self.cluster_name}:job_details", job_name, json.dumps(job_detail))
             self.redis_connection.lrem(f"{self.cluster_name}:pending_job_tickets", 0, job_name)
             self.redis_connection.hset(
-                GrassLocalRedisName.CLUSTER_DETAILS,
-                self.cluster_name,
+                f"{self.cluster_name}:runtime_detail",
+                "available_resource",
                 json.dumps(updated_resource)
             )
 
@@ -125,12 +128,7 @@ class PendingJobAgent(mp.Process):
                     raise ResourceAllocationFailed(completed_process.stderr)
                 container_name_list.append(container_name)
 
-        self.redis_connection.hset(
-            f"{self.cluster_name}:running_jobs",
-            job_detail["name"],
-            json.dumps(container_name_list)
-        )
-
+        job_detail["status"] = JobStatus.RUNNING
         job_detail["container_name_list"] = container_name_list
         self.redis_connection.hset(
             f"{self.cluster_name}:job_details",
@@ -152,14 +150,13 @@ class ContainerTrackingAgent(mp.Process):
             time.sleep(self.check_interval)
 
     def _check_container_status(self):
-        running_containers = self.redis_connection.hgetall(f"{self.cluster_name}:running_jobs")
-        running_containers = {
-            job_name.decode(): json.loads(container_name_list)
-            for job_name, container_name_list in running_containers.items()
-        }
+        running_jobs = ContainerTrackingAgent.get_running_jobs(
+            self.redis_connection.hgetall(f"{self.cluster_name}:job_details")
+        )
 
-        for job_name, container_name_list in running_containers.items():
+        for job_name, job_detail in running_jobs.items():
             alive_containers = []
+            container_name_list = job_detail["container_name_list"]
             for container_name in container_name_list:
                 # Check container status
                 command = f"docker inspect {container_name}"
@@ -172,20 +169,38 @@ class ContainerTrackingAgent(mp.Process):
 
                 # Update container status
                 if not inspect_details_list[0]["State"]["Running"]:
-                    self._container_exit(job_name, container_name, inspect_details_list[0])
+                    is_continuous = self._container_exit(job_detail, inspect_details_list[0])
+                    if not is_continuous:
+                        break
                 else:
                     alive_containers.append(container_name)
 
-            self.redis_connection.hset(f"{self.cluster_name}:running_jobs", job_name, json.dumps(alive_containers))
+            if not alive_containers and is_continuous:
+                job_detail["status"] = JobStatus.FINISH
+                self.redis_connection.hset(f"{self.cluster_name}:job_details", job_name, json.dumps(job_detail))
 
-    def _container_exit(self, job_name: str, container_name: str, inspect_details: dict):
-        if inspect_details["State"]["ExitCode"] != 0:
+    @staticmethod
+    def get_running_jobs(job_details: dict):
+        name_to_running_job_detail = {}
+        for job_name, job_detail in job_details.items():
+            job_detail = json.loads(job_detail)
+            if job_detail["status"] == JobStatus.RUNNING:
+                name_to_running_job_detail[job_name.decode()] = job_detail
+        
+        return name_to_running_job_detail
+
+    def _container_exit(self, job_detail: dict, inspect_details: dict):
+        exit_code = int(inspect_details["State"]["ExitCode"])
+        if exit_code not in ERROR_CODES_FOR_NOT_RESTART_CONTAINER:
             # Unsuccessfully exited
-            job_details = json.loads(self.redis_connection.hget(f"{self.cluster_name}:job_details", job_name))
-            job_details["State"] = "Failed"
-            job_details["ExitCode"] = inspect_details["State"]["ExitCode"]
-            job_details["Error"] = inspect_details["State"]["Error"]
-            self.redis_connection.hset(f"{self.cluster_name}:job_details", job_name, json.dumps(job_details))
+            job_detail["status"] = JobStatus.FAILED
+            job_detail["ExitCode"] = exit_code
+            job_detail["Error"] = inspect_details["State"]["Error"]
+            self.redis_connection.hset(f"{self.cluster_name}:job_details", job_detail["name"], json.dumps(job_detail))
+            
+            return False
+
+        return True
 
 
 class JobTrackingAgent(mp.Process):
@@ -201,27 +216,28 @@ class JobTrackingAgent(mp.Process):
             time.sleep(self.check_interval)
 
     def _check_job_state(self):
-        running_containers = self.redis_connection.hgetall(f"{self.cluster_name}:running_jobs")
-        running_containers = {
-            job_name.decode(): json.loads(container_name_list)
-            for job_name, container_name_list in running_containers.items()
-        }
+        unfinished_jobs = self._get_unfinished_jobs(
+            self.redis_connection.hgetall(f"{self.cluster_name}:job_details")
+        )
 
-        for job_name, container_list in running_containers.items():
-            job_details = json.loads(
-                self.redis_connection.hget(f"{self.cluster_name}:job_details", job_name)
-            )
+        for job_name, job_detail in unfinished_jobs.items():
+            if job_detail["status"] in [JobStatus.KILLED, JobStatus.FAILED]:
+                self._stop_containers(job_detail["container_name_list"])
+            
+            if job_detail["status"] not in UNFINISHED_JOB_STATUS:
+                self._job_clear(job_name, job_detail["total_request_resource"])
 
-            if job_details["State"] == "Failed":
-                self._stop_containers(container_list)
-                self.redis_connection.hdel(f"{self.cluster_name}:running_jobs", job_name)
-                self._job_clear(job_name, job_details["total_request_resource"])
-                continue
+            self.redis_connection.hset(f"{self.cluster_name}:job_details", job_name, json.dumps(job_detail))
 
-            if not container_list:
-                job_details["State"] = "Finish"
-                self.redis_connection.hset(f"{self.cluster_name}:job_details", job_name, json.dumps(job_details))
-                self._job_clear(job_name, job_details["total_request_resource"])
+    def _get_unfinished_jobs(self, job_details: dict):
+        unfinished_jobs = {}
+        for job_name, job_detail in job_details.items():
+            job_detail = json.loads(job_detail)
+            if "checked" not in job_detail.keys():
+                job_detail["checked"] = 1
+                unfinished_jobs[job_name.decode()] = job_detail
+        
+        return unfinished_jobs
 
     def _stop_containers(self, container_list: list):
         for container_name in container_list:
@@ -234,15 +250,13 @@ class JobTrackingAgent(mp.Process):
 
     def _job_clear(self, job_name: str, release_resource: dict):
         cluster_resource = json.loads(
-            self.redis_connection.hget(GrassLocalRedisName.CLUSTER_DETAILS, self.cluster_name)
+            self.redis_connection.hget(f"{self.cluster_name}:runtime_detail", "available_resource")
         )
 
         # resource release
         _, updated_resource = resource_op(cluster_resource, release_resource, op="release")
 
-        self.redis_connection.hdel(f"{self.cluster_name}:running_jobs", job_name)
-
-        self.redis_connection.hset(GrassLocalRedisName.CLUSTER_DETAILS, self.cluster_name, json.dumps(updated_resource))
+        self.redis_connection.hset(f"{self.cluster_name}:runtime_detail", "available_resource", json.dumps(updated_resource))
 
 
 class KilledJobAgent(mp.Process):
@@ -262,38 +276,17 @@ class KilledJobAgent(mp.Process):
         killed_job_names = self.redis_connection.lrange(f"{self.cluster_name}:killed_job_tickets", 0, -1)
 
         for job_name in killed_job_names:
-            if self.redis_connection.hexists(f"{self.cluster_name}:running_jobs", job_name):
-                self._kill_job(job_name)
-            else:
-                self.redis_connection.lrem(f"{self.cluster_name}:pending_job_tickets", 0, job_name)
+            job_detail = self.redis_connection.hget(f"{self.cluster_name}:job_details", job_name)
+            if job_detail["status"] in UNFINISHED_JOB_STATUS:
+                job_detail["status"] = JobStatus.KILLED
+                self.redis_connection.hset(f"{self.cluster_name}:job_details", job_name, json.dumps(job_detail))
+                
+                if job_detail["status"] == JobStatus.PENDING:
+                    self.redis_connection.lrem(f"{self.cluster_name}:pending_job_tickets", 0, job_name)
+
+                self._killed_job(job_detail)
 
             self.redis_connection.lrem(f"{self.cluster_name}:killed_job_tickets", 0, job_name)
-
-    def _kill_job(self, job_name):
-        # Stop all related containers
-        container_list = json.loads(self.redis_connection.hget(f"{self.cluster_name}:running_jobs", job_name))
-        for container_name in container_list:
-            command = f"docker stop {container_name}"
-            completed_process = subprocess.run(
-                command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf8"
-            )
-            if completed_process.returncode != 0:
-                raise ResourceAllocationFailed(completed_process.stderr)
-
-        # Update job state
-        job_detail = json.loads(self.redis_connection.hget(f"{self.cluster_name}:job_details", job_name))
-        job_detail["State"] = "Killed"
-        self.redis_connection.hset(f"{self.cluster_name}:job_details", job_name, json.dumps(job_detail))
-        self.redis_connection.hdel(f"{self.cluster_name}:running_jobs", job_name)
-
-        # Release resource
-        cluster_resource = json.loads(
-            self.redis_connection.hget(GrassLocalRedisName.CLUSTER_DETAILS, self.cluster_name)
-        )
-        job_resource = job_detail["total_request_resource"]
-        _, updated_resource = resource_op(cluster_resource, job_resource, op="release")
-
-        self.redis_connection.hset(GrassLocalRedisName.CLUSTER_DETAILS, self.cluster_name, json.dumps(updated_resource))
 
 
 class MasterAgent:
@@ -305,7 +298,7 @@ class MasterAgent:
             host="localhost",
             port=self.cluster_detail["master"]["redis"]["port"]
         )
-        self.redis_connection.hset(GrassLocalRedisName.CLUSTER_AGENTS, cluster_name, os.getpid())
+        self.redis_connection.hset(f"{self.cluster_name}:runtime_detail", "agent_id", os.getpid())
 
     def start(self) -> None:
         """Start agents."""

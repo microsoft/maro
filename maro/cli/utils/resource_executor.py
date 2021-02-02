@@ -89,9 +89,9 @@ class LocalResourceExecutor:
             _ = subprocess.Popen(start_agent_command, shell=True)
 
     def add_cluster(self):
-        if self._redis_connection.hexists("local:total_resource", "connections"):
+        if self._redis_connection.hexists(LocalParams.RESOURCE_INFO, "connections"):
             current_connection = self._redis_connection.hget(
-                "local:total_resource",
+                LocalParams.RESOURCE_INFO,
                 "connections"
             )
         else:
@@ -125,12 +125,14 @@ class LocalResourceExecutor:
         logger.info("Resource Redis exited!")
     
     def get_available_resource(self):
-        available_resource = self._redis_connection.hget(
-            LocalParams.RESOURCE_INFO,
-            "available_resource"
-        )
+        if self._redis_connection.hexists(LocalParams.RESOURCE_INFO, "available_resource"):
+            available_resource = json.loads(
+                self._redis_connection.hget(LocalParams.RESOURCE_INFO, "available_resource")
+            )
+        else:
+            available_resource = self.get_local_resource()
 
-        return json.loads(available_resource)
+        return available_resource
 
     def set_available_resource(self, available_resource: dict):
         self._redis_connection.hset(
@@ -140,12 +142,14 @@ class LocalResourceExecutor:
         )
 
     def get_local_resource(self):
-        static_resource = self._redis_connection.hget(
-            LocalParams.RESOURCE_INFO,
-            "resource"
-        )
+        if self._redis_connection.hexists(LocalParams.RESOURCE_INFO, "resource"):
+            static_resource = json.loads(
+                self._redis_connection.hget(LocalParams.RESOURCE_INFO, "resource")
+            )
+        else:
+            static_resource = ResourceInfo.get_static_info()
 
-        return json.loads(static_resource)
+        return static_resource
 
     def get_local_resource_usage(self, previous_length: int):
         usage_dict = {}
