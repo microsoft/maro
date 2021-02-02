@@ -28,6 +28,14 @@ ERROR_CODE = {
     2100: "Invalid parameter to get attribute value, please use tuple, list or slice instead",
     2101: "Invalid parameter to set attribute value",
     2102: "Cannot set value for frame fields directly if slot number more than 1, please use slice interface instead",
+    2103: "Append method only support for list attribute.",
+    2104: "Resize method only support for list attribute.",
+    2105: "Clear method only fupport for list attribute.",
+    2106: "Insert method only fupport for list attribute.",
+    2107: "Remove method only fupport for list attribute.",
+    2108: "Node already been deleted.",
+    2109: "Node not exist.",
+    2110: "Invalid attribute.",
 
     # simulator
     2200: "Cannot find specified business engine",
@@ -39,12 +47,8 @@ ERROR_CODE = {
     3003: "Deployment Error",
 
     # 4000-4999: Error codes for RL toolkit
-    4000: "Wrong Agent Manager Mode",
-    4001: "Missing Shaper",
-    4002: "Store Misalignment",
-    4003: "Invalid Episode",
-    4004: "Infinite Training Loop",
-    4005: "Missing Optimizer",
-    4006: "Unrecognized Task",
-    4007: "Wrong Learning Module Dimension",
+    4000: "Missing Shaper",
+    4001: "Store Misalignment",
+    4002: "Missing Optimizer",
+    4003: "Unrecognized Task"
 }

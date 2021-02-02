@@ -14,7 +14,7 @@ from maro.simulator.scenarios import AbsBusinessEngine
 from maro.simulator.scenarios.helpers import DocableDict
 from maro.simulator.scenarios.matrix_accessor import MatrixAttributeAccessor
 
-from .common import Action, ActionScope, DecisionEvent
+from .common import Action, ActionScope, ActionType, DecisionEvent
 from .event_payload import EmptyReturnPayload, LadenReturnPayload, VesselDischargePayload, VesselStatePayload
 from .events import Events
 from .frame_builder import gen_cim_frame
@@ -615,20 +615,31 @@ class CimBusinessEngine(AbsBusinessEngine):
                 port_empty = port.empty
                 vessel_empty = vessel.empty
 
-                assert (
-                    -min(port.empty, vessel.remaining_space) <= move_num <= vessel_empty
-                )
+                action_type: ActionType = getattr(action, "action_type", None)
 
-                port.empty = port_empty + move_num
-                vessel.empty = vessel_empty - move_num
+                # Make it compatiable with previous action.
+                if action_type is None:
+                    action_type = ActionType.DISCHARGE if move_num > 0 else ActionType.LOAD
 
-                event.event_type = Events.DISCHARGE_EMPTY if move_num > 0 else Events.LOAD_EMPTY
+                # Make sure the move number is positive, as we have the action type.
+                move_num = abs(move_num)
 
-                # Update cost.
-                num = abs(move_num)
+                if action_type == ActionType.DISCHARGE:
+                    assert(move_num <= vessel_empty)
+
+                    port.empty = port_empty + move_num
+                    vessel.empty = vessel_empty - move_num
+                else:
+                    assert(move_num <= min(port_empty, vessel.remaining_space))
+
+                    port.empty = port_empty - move_num
+                    vessel.empty = vessel_empty + move_num
+
+                # Align the event type to make the output readable.
+                event.event_type = Events.DISCHARGE_EMPTY if action_type == ActionType.DISCHARGE else Events.LOAD_EMPTY
 
                 # Update transfer cost for port and metrics.
-                self._total_operate_num += num
-                port.transfer_cost += num
+                self._total_operate_num += move_num
+                port.transfer_cost += move_num
 
                 self._vessel_plans[vessel_idx, port_idx] += self._data_cntr.vessel_period[vessel_idx]

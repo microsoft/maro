@@ -5,10 +5,11 @@ cloud:
   subscription: ""
   resource_group: ""
   location: ""
+  default_username: ""
+  default_public_key: ""
 
 user:
-  admin_username: ""
-  admin_public_key: ""
+  admin_id: ""
 
 master:
   node_size: ""
@@ -21,4 +22,6 @@ master:
 
 connection:
   ssh:
+    port: ""
+  api_server:
     port: ""

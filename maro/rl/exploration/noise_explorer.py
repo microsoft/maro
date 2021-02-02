@@ -81,9 +81,9 @@ class GaussianNoiseExplorer(NoiseExplorer):
         self._noise_stddev = noise_stddev
         self._is_relative = is_relative
 
-    def set_parameters(self, *, noise_mean, noise_stddev):
-        self._noise_mean = noise_mean
+    def set_parameters(self, *, noise_stddev, noise_mean=.0):
         self._noise_stddev = noise_stddev
+        self._noise_mean = noise_mean
 
     def __call__(self, action: np.ndarray) -> np.ndarray:
         return np.array([self._get_exploration_action(act) for act in action])
