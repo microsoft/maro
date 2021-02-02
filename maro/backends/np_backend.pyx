@@ -375,37 +375,37 @@ cdef class NumpyBackend(BackendAbc):
         cdef AttrInfo attr = self._attrs_list[attr_type]
         cdef np.ndarray attr_array = self._node_data_dict[attr.node_type][attr.name]
 
-        return np.where(attr_array > value)[0].tolist()
+        return np.where(attr_array[0][index] > value)[0].tolist()
 
     cdef list slots_greater_equal(self, NODE_INDEX index, ATTR_TYPE attr_type, object value) except +:
         cdef AttrInfo attr = self._attrs_list[attr_type]
         cdef np.ndarray attr_array = self._node_data_dict[attr.node_type][attr.name]
 
-        return np.where(attr_array >= value)[0].tolist()
+        return np.where(attr_array[0][index] >= value)[0].tolist()
 
     cdef list slots_less_than(self, NODE_INDEX index, ATTR_TYPE attr_type, object value) except +:
         cdef AttrInfo attr = self._attrs_list[attr_type]
         cdef np.ndarray attr_array = self._node_data_dict[attr.node_type][attr.name]
 
-        return np.where(attr_array < value)[0].tolist()
+        return np.where(attr_array[0][index] < value)[0].tolist()
 
     cdef list slots_less_equal(self, NODE_INDEX index, ATTR_TYPE attr_type, object value) except +:
         cdef AttrInfo attr = self._attrs_list[attr_type]
         cdef np.ndarray attr_array = self._node_data_dict[attr.node_type][attr.name]
 
-        return np.where(attr_array <= value)[0].tolist()
+        return np.where(attr_array[0][index] <= value)[0].tolist()
 
     cdef list slots_equal(self, NODE_INDEX index, ATTR_TYPE attr_type, object value) except +:
         cdef AttrInfo attr = self._attrs_list[attr_type]
         cdef np.ndarray attr_array = self._node_data_dict[attr.node_type][attr.name]
 
-        return np.where(attr_array == value)[0].tolist()
+        return np.where(attr_array[0][index] == value)[0].tolist()
 
     cdef list slots_not_equal(self, NODE_INDEX index, ATTR_TYPE attr_type, object value) except +:
         cdef AttrInfo attr = self._attrs_list[attr_type]
         cdef np.ndarray attr_array = self._node_data_dict[attr.node_type][attr.name]
 
-        return np.where(attr_array != value)[0].tolist()
+        return np.where(attr_array[0][index] != value)[0].tolist()
 
 # TODO:
 # 1. dump as csv
