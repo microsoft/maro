@@ -76,8 +76,8 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._init_racks()
         self._init_clusters()
         self._init_data_centers()
-        self._init_regions()
         self._init_zones()
+        self._init_regions()
 
         self._dfs_update_id()
 
@@ -134,12 +134,25 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._data_center_amount: int = sum(
             len(item) for item in self._find_item(key="data_center", dictionary=self._config.architecture)
         )
+        # Cluster amount list.
+        cluster_amount_list = [
+            amount for amount in self._find_item(key="cluster_amount", dictionary=self._config.architecture)
+        ]
+        # Summation of cluster amount.
+        self._cluster_amount: int = sum(cluster_amount_list)
 
-        self._cluster_amount: int = len(self._config.components.cluster)
-        self._rack_amount: int = len(self._config.components.rack)
-        self._pm_amount: int = sum(
-            amount for amount in self._find_item(key="amount", dictionary=self._config.components)
-        )
+        # Rack amount list. The index is cluster type.
+        self._rack_amount: int = 0
+        for index, cluster in enumerate(self._config.components.cluster):
+            self._rack_amount += cluster_amount_list[index] * sum(rack["rack_amount"] for rack in cluster["rack"])
+
+        self._pm_amount = 0
+        for index, cluster in enumerate(self._config.components.cluster):
+            rack_amount_list = [rack["rack_amount"] for rack in cluster["rack"]]
+            pm_amount_list = []
+            for rack in self._config.components.rack:
+                pm_amount_list.append(sum(pm["pm_amount"] for pm in rack["pm"]))
+            self._pm_amount += cluster_amount_list[index] * sum(r*p for r, p in zip(rack_amount_list, pm_amount_list))
 
         self._kill_all_vms_if_overload: bool = self._config.KILL_ALL_VMS_IF_OVERLOAD
 
@@ -249,7 +262,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 id=cluster_id
             )
             cluster.cluster_type = cluster_dict["type"]
-            cluster.rack_list = [next(rack_id) for _ in range(len(cluster_dict["rack"]))]
+            cluster.rack_list = [next(rack_id) for _ in range(sum(rack["rack_amount"] for rack in cluster_dict["rack"]))]
             cluster.total_machine_num = sum(self._racks[rack_id].total_machine_num for rack_id in cluster.rack_list)
             cluster_id += 1
 
@@ -264,7 +277,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 id=rack_id
             )
             rack.type = rack_dict["type"]
-            rack.total_machine_num = sum(pm["amount"] for pm in rack_dict["pm"])
+            rack.total_machine_num = sum(pm["pm_amount"] for pm in rack_dict["pm"])
             rack.pm_list = [next(pm_id) for _ in range(rack.total_machine_num)]
             rack_id += 1
 
@@ -280,7 +293,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         pm_id = 0
         for rack_dict in self._config.components.rack:
             for pm in rack_dict["pm"]:
-                pm_amount = pm["amount"]
+                pm_amount = pm["pm_amount"]
                 pm_type = pm["pm_type"]
                 while pm_amount > 0:
                     pm = self._machines[pm_id]

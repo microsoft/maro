@@ -40,19 +40,23 @@ components:
         busy_power: 10
         idle_power: 1
   rack:
-    - type: 'JP1-a'
+    - type: 'a'
       pm:
         - pm_type: 0
-          amount: 50
-    - type: 'JP1-b'
+          pm_amount: 10
+        - pm_type: 1
+          pm_amount: 10
+    - type: 'b'
       pm:
         - pm_type: 1
-          amount: 50
+          amount: 10
   cluster:
     - type: 'JP1'
       rack:
-        - rack_type: 'JP1-a'
-        - rack_type: 'JP1-b'
+        - rack_type: 'a'
+          rack_amount: 5
+        - rack_type: 'b'
+          rack_amount: 5
 
 architecture:
   region:
@@ -63,4 +67,4 @@ architecture:
             - name: 'Japan'
               cluster:
                 - type: 'JP1'
-                  rack_amount: 2
+                  cluster_amount: 1
