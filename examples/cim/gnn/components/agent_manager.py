@@ -1,119 +1,139 @@
+import os
+from collections import defaultdict
 from copy import copy
 
 import numpy as np
 import torch
+from torch.nn import GELU, Sequential, TransformerEncoder, TransformerEncoderLayer
+from torch.optim import Adam
 
-from maro.rl import AbsAgentManager, AgentMode
-from maro.utils import DummyLogger
+from maro.rl import AbsAgentManager, FullyConnectedBlock, OptimOption
+from maro.utils import DummyLogger, Logger
 
-from .actor_critic import ActorCritic
-from .agent import TrainableAgent
-from .numpy_store import NumpyStore
-from .simple_gnn import SharedAC
-from .state_shaper import GNNStateShaper
+from examples.cim.gnn.components.gnn_based_actor_critic import GNNBasedActorCritic, GNNBasedActorCriticConfig
+from examples.cim.gnn.components.numpy_store import NumpyStore
+from examples.cim.gnn.components.simple_gnn import GNNBasedACModel, PositionalEncoder, SimpleTransformer
+from examples.cim.gnn.components.state_shaper import GNNStateShaper
+from examples.cim.gnn.general import training_logger
 
 
-class SimpleAgentManger(AbsAgentManager):
-    def __init__(
-            self, name, agent_id_list, port_code_list, vessel_code_list, demo_env, state_shaper: GNNStateShaper,
-            logger=DummyLogger()):
-        super().__init__(
-            name, AgentMode.TRAIN, agent_id_list, state_shaper=state_shaper, action_shaper=None,
-            experience_shaper=None, explorer=None)
-        self.port_code_list = copy(port_code_list)
-        self.vessel_code_list = copy(vessel_code_list)
-        self.demo_env = demo_env
-        self._logger = logger
+def get_experience_pool(config):
+    num_static_nodes, num_dynamic_nodes = config.num_static_nodes, config.num_dynamic_nodes
+    p_dim, pedge_dim = config.model.port_feature_dim, config.model.port_edge_feature_dim
+    v_dim, vedge_dim = config.model.vessel_feature_dim, config.model.vessel_edge_feature_dim
+    sequence_buffer_size = config.model.sequence_buffer_size
+    value_dict = {
+        ("s", "v"): ((sequence_buffer_size, num_dynamic_nodes, v_dim), np.float32, False),
+        ("s", "p"): ((sequence_buffer_size, num_static_nodes, p_dim), np.float32, False),
+        ("s", "vo"): ((num_dynamic_nodes, num_static_nodes), np.int64, True),
+        ("s", "po"): ((num_static_nodes, num_dynamic_nodes), np.int64, True),
+        ("s", "vedge"): ((num_dynamic_nodes, num_static_nodes, vedge_dim), np.float32, True),
+        ("s", "pedge"): ((num_static_nodes, num_dynamic_nodes, vedge_dim), np.float32, True),
+        ("s", "ppedge"): ((num_static_nodes, num_static_nodes, pedge_dim), np.float32, True),
+        ("s", "mask"): ((sequence_buffer_size,), np.bool, True),
+        ("s_", "v"): ((sequence_buffer_size, num_dynamic_nodes, v_dim), np.float32, False),
+        ("s_", "p"): ((sequence_buffer_size, num_static_nodes, p_dim), np.float32, False),
+        ("s_", "vo"): ((num_dynamic_nodes, num_static_nodes), np.int64, True),
+        ("s_", "po"): ((num_static_nodes, num_dynamic_nodes), np.int64, True),
+        ("s_", "vedge"): ((num_dynamic_nodes, num_static_nodes, vedge_dim), np.float32, True),
+        ("s_", "pedge"): ((num_static_nodes, num_dynamic_nodes, vedge_dim), np.float32, True),
+        ("s_", "ppedge"): ((num_static_nodes, num_static_nodes, pedge_dim), np.float32, True),
+        ("s_", "mask"): ((sequence_buffer_size,), np.bool, True),
+        # To identify 1-dimensional variables.
+        ("R",): ((num_static_nodes,), np.float32, True),
+        ("a",): (tuple(), np.int64, True),
+    }
 
-    def assemble(self, config):
-        v_dim, vedge_dim = self._state_shaper.get_input_dim("v"), self._state_shaper.get_input_dim("vedge")
-        p_dim, pedge_dim = self._state_shaper.get_input_dim("p"), self._state_shaper.get_input_dim("pedge")
+    return {agent_id: NumpyStore(value_dict, size) for agent_id, size in config.exp_per_ep.items()}
 
-        self.device = torch.device(config.training.device)
-        self._logger.info(config.training.device)
-        ac_model = SharedAC(
-            p_dim, pedge_dim, v_dim, vedge_dim, config.model.tick_buffer, config.model.action_dim).to(self.device)
 
-        value_dict = {
-            ("s", "v"):
-                (
-                    (config.model.tick_buffer, len(self.vessel_code_list), self._state_shaper.get_input_dim("v")),
-                    np.float32, False),
-            ("s", "p"):
-                (
-                    (config.model.tick_buffer, len(self.port_code_list), self._state_shaper.get_input_dim("p")),
-                    np.float32, False),
-            ("s", "vo"): ((len(self.vessel_code_list), len(self.port_code_list)), np.int64, True),
-            ("s", "po"): ((len(self.port_code_list), len(self.vessel_code_list)), np.int64, True),
-            ("s", "vedge"):
-                (
-                    (len(self.vessel_code_list), len(self.port_code_list), self._state_shaper.get_input_dim("vedge")),
-                    np.float32, True),
-            ("s", "pedge"):
-                (
-                    (len(self.port_code_list), len(self.vessel_code_list), self._state_shaper.get_input_dim("vedge")),
-                    np.float32, True),
-            ("s", "ppedge"):
-                (
-                    (len(self.port_code_list), len(self.port_code_list), self._state_shaper.get_input_dim("pedge")),
-                    np.float32, True),
-            ("s", "mask"): ((config.model.tick_buffer, ), np.bool, True),
+def create_gnn_agent(config):
+    training_logger.info(config.training.device)
+    scale = config.model.scale
+    p_dim, pedge_dim = config.model.port_feature_dim, config.model.port_edge_feature_dim
+    v_dim, vedge_dim = config.model.vessel_feature_dim, config.model.vessel_edge_feature_dim
+    p_pre_dim, v_pre_dim = config.model.port_pre_dim * scale, config.model.vessel_pre_dim * scale
+    sequence_buffer_size = config.model.sequence_buffer_size
+    gnn_output_size = config.model.graph_output_dim * scale
+    actor_input_dim = 3 * gnn_output_size // 2
+    model = GNNBasedACModel(
+        {
+        "p_pre_layers": 
+            Sequential(
+                FullyConnectedBlock(p_dim, p_pre_dim, [], activation=GELU),
+                PositionalEncoder(d_model=p_pre_dim, max_seq_len=sequence_buffer_size)
+            ), 
+        "v_pre_layers": 
+            Sequential(
+                FullyConnectedBlock(v_dim, v_pre_dim, [], activation=GELU),
+                PositionalEncoder(d_model=v_pre_dim, max_seq_len=sequence_buffer_size)
+            ),
+        "p_trans_layers": 
+            TransformerEncoder(
+                TransformerEncoderLayer(d_model=p_pre_dim, nhead=4, activation="gelu", dim_feedforward=p_pre_dim * 4),
+                num_layers=3
+            ),
+        "v_trans_layers":
+            TransformerEncoder(
+                TransformerEncoderLayer(d_model=v_pre_dim, nhead=2, activation="gelu", dim_feedforward=v_pre_dim * 4),
+                num_layers=3
+            ),
+        "trans_gat":
+            SimpleTransformer(
+                p_dim=p_pre_dim,
+                v_dim=v_pre_dim,
+                output_size=gnn_output_size // 2,
+                edge_dim={"p": pedge_dim, "v": vedge_dim},
+                layer_num=2
+            ),
+        "actor_head":
+            FullyConnectedBlock(
+                actor_input_dim, 
+                config.model.action_dim,
+                [d * scale for d in config.model.policy_hidden_dims] + [actor_input_dim],
+                activation=GELU,
+                is_head=True,
+                softmax=True
+            ),
+        "critic_head":
+            FullyConnectedBlock(
+                gnn_output_size,
+                1,
+                [d * scale for d in config.model.value_hidden_dims] + [gnn_output_size],
+                is_head=True,
+                activation=GELU
+            )
+        },
+        sequence_buffer_size=sequence_buffer_size,
+        optim_option=OptimOption(optim_cls=Adam, optim_params={"lr": config.model.learning_rate})
+    )
 
-            ("s_", "v"):
-                (
-                    (config.model.tick_buffer, len(self.vessel_code_list), self._state_shaper.get_input_dim("v")),
-                    np.float32, False),
-            ("s_", "p"):
-                (
-                    (config.model.tick_buffer, len(self.port_code_list), self._state_shaper.get_input_dim("p")),
-                    np.float32, False),
-            ("s_", "vo"): ((len(self.vessel_code_list), len(self.port_code_list)), np.int64, True),
-            ("s_", "po"):
-                (
-                    (len(self.port_code_list), len(self.vessel_code_list)), np.int64, True),
-            ("s_", "vedge"):
-                (
-                    (len(self.vessel_code_list), len(self.port_code_list), self._state_shaper.get_input_dim("vedge")),
-                    np.float32, True),
-            ("s_", "pedge"):
-                (
-                    (len(self.port_code_list), len(self.vessel_code_list), self._state_shaper.get_input_dim("vedge")),
-                    np.float32, True),
-            ("s_", "ppedge"):
-                (
-                    (len(self.port_code_list), len(self.port_code_list), self._state_shaper.get_input_dim("pedge")),
-                    np.float32, True),
-            ("s_", "mask"): ((config.model.tick_buffer, ), np.bool, True),
+    return GNNBasedActorCritic(
+        "gnn-a2c", model, GNNBasedActorCriticConfig(**config.algorithm), 
+        experience_pool=get_experience_pool(config),
+        logger=training_logger
+    )
 
-            # To identify one dimension variable.
-            ("R",): ((len(self.port_code_list), ), np.float32, True),
-            ("a",): (tuple(), np.int64, True),
-        }
 
-        self._algorithm = ActorCritic(
-            ac_model, self.device, td_steps=config.training.td_steps, p2p_adj=self._state_shaper.p2p_static_graph,
-            gamma=config.training.gamma, learning_rate=config.training.learning_rate)
+class GNNAgentManager(AbsAgentManager):
+    def choose_action(self, decision_event, snapshot_list):
+        state = self._state_shaper(action_info=decision_event, snapshot_list=snapshot_list)
+        action, log_p = self.agent.choose_action(state)
+        self._experience_shaper.record(decision_event, action, state)
+        return self._action_shaper(action, decision_event)
 
-        for agent_id, cnt in config.env.exp_per_ep.items():
-            experience_pool = NumpyStore(value_dict, config.training.parallel_cnt * config.training.train_freq * cnt)
-            self._agent_dict[agent_id] = TrainableAgent(agent_id, self._algorithm, experience_pool, self._logger)
+    def on_env_feedback(self, metrics):
+        pass
 
-    def choose_action(self, agent_id, state):
-        return self._agent_dict[agent_id].choose_action(state)
-
-    def load_models_from_files(self, model_pth):
-        self._algorithm.load_model(model_pth)
-
-    def train(self, training_config):
-        for agent in self._agent_dict.values():
-            agent.train(training_config)
+    def post_process(self, snapshot_list):
+        experiences = self._experience_shaper(snapshot_list)
+        self._state_shaper.reset()
+        self._action_shaper.reset()
+        self._experience_shaper.reset()
+        return experiences
 
     def store_experiences(self, experiences):
-        for code, exp_list in experiences.items():
-            self._agent_dict[code].store_experiences(exp_list)
+        self.agent.store_experiences(experiences)
 
-    def save_model(self, pth, id):
-        self._algorithm.save_model(pth, id)
-
-    def load_model(self, pth):
-        self._algorithm.load_model(pth)
+    def train(self):
+        self.agent.train()

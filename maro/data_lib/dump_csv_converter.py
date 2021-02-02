@@ -1,5 +1,5 @@
-# Copyright (c) Microsoft Corporation.
-# Licensed under the MIT license.
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
 
 
 import os
@@ -7,7 +7,6 @@ import threading
 from datetime import datetime
 from math import floor
 from pathlib import Path
-from shutil import copyfile
 
 import numpy as np
 import pandas as pd

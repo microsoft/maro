@@ -29,7 +29,7 @@ jobs:
     - name: Build image
       run: |
         pip install -r ./maro/requirements.build.txt
-        cython ./maro/backends/backend.pyx ./maro/backends/np_backend.pyx ./maro/backends/raw_backend.pyx ./maro/backends/frame.pyx -3 -E FRAME_BACKEND=NUMPY,NODES_MEMORY_LAYOUT=ONE_BLOCK -X embedsignature=True
+        cython ./maro/backends/backend.pyx ./maro/backends/np_backend.pyx ./maro/backends/raw_backend.pyx ./maro/backends/frame.pyx --cplus -3 -E NODES_MEMORY_LAYOUT=ONE_BLOCK -X embedsignature=True
         cat ./maro/__misc__.py | grep __version__ | egrep -o [0-9].[0-9].[0-9,a-z]+ | { read version; docker build -f ./docker_files/cpu.play.df . -t ${{ secrets.DOCKER_HUB_USERNAME }}/maro:cpu -t ${{ secrets.DOCKER_HUB_USERNAME }}/maro:latest -t ${{ secrets.DOCKER_HUB_USERNAME }}/maro:cpu-$version; }
 
     - name: Login docker hub
