@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-=======
-import pdb
-import random
->>>>>>> 7571cb1ce9f645bdbbdb152aade3f18bd9c299c7
 import numpy as np
 
 from maro.simulator import Env
@@ -67,8 +62,13 @@ class BestFit(VMSchedulingAgent):
             minimum_remaining_cpu_cores = cpu_cores_remaining[0]
             for i, remaining in enumerate(cpu_cores_remaining):
                 energy = energy_consumption[i]
-                if remaining < minimum_remaining_cpu_cores or \
-                        (remaining == minimum_remaining_cpu_cores and energy > maximum_energy_consumption):
+                if (
+                        remaining < minimum_remaining_cpu_cores
+                        or (
+                            remaining == minimum_remaining_cpu_cores
+                            and energy > maximum_energy_consumption
+                        )
+                ):
                     chosen_idx = i
                     minimum_remaining_cpu_cores = remaining
                     maximum_energy_consumption = energy
