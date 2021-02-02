@@ -179,7 +179,10 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         if cpu_readings_data_path.startswith("~"):
             cpu_readings_data_path = os.path.expanduser(cpu_readings_data_path)
 
-        if (not os.path.exists(vm_table_data_path)) or (not os.path.exists(cpu_readings_data_path)):
+        # Testing file.
+        if vm_table_data_path.startswith("tests") or cpu_readings_data_path.startswith("tests"):
+            pass
+        elif (not os.path.exists(vm_table_data_path)) or (not os.path.exists(cpu_readings_data_path)):
             logger.info_green("Lack data. Start preparing data.")
             self._download_processed_data()
             logger.info_green("Data preparation is finished.")

@@ -1,0 +1,4 @@
+vmid,subscriptionid,deploymentid,vmcreated,vmdeleted,vmcategory,vmcorecountbucket,vmmemorybucket
+0,0,0,0,1,1,16,32
+1,0,1,0,2,0,8,16
+2,0,1,0,3,0,2,4
