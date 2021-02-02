@@ -1,0 +1,18 @@
+env:
+  scenario: vm_scheduling
+  topology: azure.2019.10k
+  start_tick: 0
+  durations: 8638
+  resolution: 1
+  seed: 128
+
+ilp:
+  plan_window_size: 10
+  # apply_buffer_size: 5
+  performance:
+    core_safety_remaining_ratio: 0
+    mem_safety_remaining_ratio: 0
+  objective:
+    current_vm_reward_factor: 10
+    successful_allocation_decay: 1
+    allocation_multiple_core_num: false
