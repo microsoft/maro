@@ -216,22 +216,22 @@ cdef class RawBackend(BackendAbc):
         return result
 
     cdef list slots_greater_than(self, NODE_INDEX index, ATTR_TYPE attr_type, object value) except +:
-        pass
+        return self.where(index, attr_type, lambda x : x > value)
 
     cdef list slots_greater_equal(self, NODE_INDEX index, ATTR_TYPE attr_type, object value) except +:
-        pass
+        return self.where(index, attr_type, lambda x : x >= value)
 
     cdef list slots_less_than(self, NODE_INDEX index, ATTR_TYPE attr_type, object value) except +:
-        pass
+        return self.where(index, attr_type, lambda x : x < value)
 
     cdef list slots_less_equal(self, NODE_INDEX index, ATTR_TYPE attr_type, object value) except +:
-        pass
+        return self.where(index, attr_type, lambda x : x <= value)
 
     cdef list slots_equal(self, NODE_INDEX index, ATTR_TYPE attr_type, object value) except +:
-        pass
+        return self.where(index, attr_type, lambda x : x == value)
 
     cdef list slots_not_equal(self, NODE_INDEX index, ATTR_TYPE attr_type, object value) except +:
-        pass
+        return self.where(index, attr_type, lambda x : x != value)
 
 
 cdef class RawSnapshotList(SnapshotListAbc):

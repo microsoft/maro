@@ -295,11 +295,6 @@ namespace maro
       ATTRIBUTE_INSERTER(ATTR_FLOAT)
       ATTRIBUTE_INSERTER(ATTR_DOUBLE)
 
-      void Frame::write_attribute(ofstream &file, NODE_INDEX node_index, ATTR_TYPE attr_id, SLOT_INDEX slot_index)
-      {
-
-      }
-
       void Frame::dump(string folder)
       {
         // for dump, we will save for each node, named as "node_<node_name>.csv"
