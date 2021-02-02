@@ -593,6 +593,8 @@ class TestFrame(unittest.TestCase):
         batch_number = 100
 
         for backend_name in backends_to_test:
+            print("current backend:", backend_name)
+
             @node("test")
             class TestNode(NodeBase):
                 a1 = NodeAttribute("i", batch_number)
@@ -620,6 +622,33 @@ class TestFrame(unittest.TestCase):
             results = node1.a1.where(lambda x : x > batch_number)
 
             self.assertEqual(0, len(results))
+
+            # use basic comparison
+            results = node1.a1 < 10
+
+            self.assertListEqual([i for i in range(10)], results)
+
+            results = node1.a1 > batch_number
+
+            self.assertEqual(0, len(results))
+
+            results = node1.a1 == 10
+
+            self.assertEqual(10, results[0])
+
+            results = node1.a1 <= 10
+
+            self.assertListEqual([i for i in range(10+1)], results)
+
+            results = node1.a1 >= 99
+
+            self.assertEqual(1, len(results))
+
+            results = node1.a1 != 99
+
+            self.assertEqual(99, len(results))
+
+            self.assertListEqual([i for i in range(99)], results)
 
 if __name__ == "__main__":
     unittest.main()
