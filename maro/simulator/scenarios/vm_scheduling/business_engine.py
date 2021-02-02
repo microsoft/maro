@@ -152,7 +152,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             pm_amount_list = []
             for rack in self._config.components.rack:
                 pm_amount_list.append(sum(pm["pm_amount"] for pm in rack["pm"]))
-            self._pm_amount += cluster_amount_list[index] * sum(r*p for r, p in zip(rack_amount_list, pm_amount_list))
+            self._pm_amount += cluster_amount_list[index] * sum(r * p for r, p in zip(rack_amount_list, pm_amount_list))
 
         self._kill_all_vms_if_overload: bool = self._config.KILL_ALL_VMS_IF_OVERLOAD
 
@@ -262,7 +262,9 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 id=cluster_id
             )
             cluster.cluster_type = cluster_dict["type"]
-            cluster.rack_list = [next(rack_id) for _ in range(sum(rack["rack_amount"] for rack in cluster_dict["rack"]))]
+            cluster.rack_list = [
+                next(rack_id) for _ in range(sum(rack["rack_amount"] for rack in cluster_dict["rack"]))
+            ]
             cluster.total_machine_num = sum(self._racks[rack_id].total_machine_num for rack_id in cluster.rack_list)
             cluster_id += 1
 

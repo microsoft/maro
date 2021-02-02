@@ -49,7 +49,7 @@ components:
     - type: 'b'
       pm:
         - pm_type: 1
-          amount: 10
+          pm_amount: 10
   cluster:
     - type: 'JP1'
       rack:
