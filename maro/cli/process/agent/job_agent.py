@@ -4,7 +4,6 @@
 import json
 import multiprocessing as mp
 import os
-import psutil
 import subprocess
 import time
 
@@ -12,13 +11,9 @@ import psutil
 import redis
 
 from maro.cli.grass.lib.services.utils.params import JobStatus
-from maro.cli.grass.lib.services.utils.subprocess import Subprocess
 from maro.cli.process.utils.details import close_by_pid, get_child_pid
-from maro.cli.utils.params import LocalPaths, ProcessRedisName
 from maro.cli.utils.details_reader import DetailsReader
-
-
-GET_UTILIZATION_GPUS_COMMAND = "nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits"
+from maro.cli.utils.params import LocalPaths, ProcessRedisName
 
 
 class PendingJobAgent(mp.Process):
@@ -79,7 +74,7 @@ class JobTrackingAgent(mp.Process):
         self.redis_connection = redis_connection
         self.check_interval = check_interval
         self._shutdown_count = 0
-        self._countdown = self.redis_connection.hget(ProcessRedisName.SETTING, "agent_countdown")
+        self._countdown = cluster_detail["agent_countdown"]
 
     def run(self):
         while True:
@@ -123,8 +118,8 @@ class JobTrackingAgent(mp.Process):
     def _close_agents(self):
         if (
             not len(
-                JobTrackingAgent.get_running_jobs(self.redis_connection.hgetall(ProcessRedisName.JOB_DETAILS)
-            )) and
+                JobTrackingAgent.get_running_jobs(self.redis_connection.hgetall(ProcessRedisName.JOB_DETAILS))
+            ) and
             not self.redis_connection.llen(ProcessRedisName.PENDING_JOB_TICKETS)
         ):
             self._shutdown_count += 1

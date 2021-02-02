@@ -84,7 +84,8 @@ class RedisController:
             node_name
         )
 
-    def push_resource_usage(self,
+    def push_resource_usage(
+        self,
         node_name: str,
         cpu_usage: list,
         memory_usage: float,
@@ -162,14 +163,14 @@ class RedisController:
             "name_to_job_details",
             job_name
         )
-    
+
     def get_job_status(self) -> dict:
         return_str = self._redis.hgetall(
             "name_to_job_status"
         )
         for job_name, job_status in return_str.items():
             return_str[job_name] = json.loads(job_status)
-        
+
         return return_str
 
     def set_job_status(self, job_name: str, job_state: str) -> None:

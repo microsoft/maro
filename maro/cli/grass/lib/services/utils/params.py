@@ -22,7 +22,7 @@ class JobStatus:
     KILLED = "killed"
     FINISH = "finish"
     FAILED = "failed"
-    
+
 
 class UserRole:
     ADMIN = "admin"

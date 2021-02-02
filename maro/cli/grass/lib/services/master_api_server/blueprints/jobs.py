@@ -5,9 +5,9 @@
 import requests
 from flask import Blueprint
 
+from ...utils.params import JobStatus
 from ..jwt_wrapper import check_jwt_validity
 from ..objects import redis_controller
-from ...utils.params import JobStatus
 
 # Flask related.
 
@@ -35,7 +35,7 @@ def get_job_queue():
     pending_job_queue = redis_controller.get_pending_job_ticket()
     killed_job_queue = redis_controller.get_killed_job_ticket()
     return {
-        "pending_jobs": pending_job_queue, 
+        "pending_jobs": pending_job_queue,
         "killed_jobs": killed_job_queue
     }
 

@@ -137,15 +137,13 @@ class JobTrackingAgent(multiprocessing.Process):
                 elif container_details["state"]["ExitCode"] in ERROR_CODES_FOR_NOT_RESTART_CONTAINER:
                     job_state = JobStatus.FAILED
                     break
-            
+
             self._redis_controller.set_job_status(
                 job_name=job_name,
                 job_state=job_state
             )
 
-
     # Utils.
-
     @staticmethod
     def _get_job_id_to_job_name(name_to_job_details: dict) -> dict:
         """Get job_id_to_job_name mapping from name_to_job_details.

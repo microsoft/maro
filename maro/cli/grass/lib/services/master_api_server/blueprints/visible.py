@@ -1,9 +1,7 @@
-import requests
-from flask import Blueprint, jsonify, request
+from flask import Blueprint
 
 from ..jwt_wrapper import check_jwt_validity
-from ..objects import redis_controller, local_cluster_details, local_master_details
-
+from ..objects import redis_controller
 
 # Flask related.
 

@@ -2,18 +2,16 @@
 # Licensed under the MIT license.
 
 import json
+import os
 import subprocess
 
 import psutil
 import redis
 
 from maro.cli.process.utils.details import close_by_pid, get_redis_pid_by_port
-from maro.cli.utils.details_reader import DetailsReader
-from maro.cli.utils.params import LocalPaths, LocalParams, ProcessRedisName
+from maro.cli.utils.params import LocalParams, LocalPaths
 from maro.cli.utils.subprocess import Subprocess
-from maro.utils.exception.cli_exception import BadRequestError
 from maro.utils.logger import CliLogger
-
 
 logger = CliLogger(name=__name__)
 
@@ -28,14 +26,14 @@ class ResourceInfo:
         """
         static_info = {}
         static_info["cpu"] = psutil.cpu_count()
-        
+
         memory = psutil.virtual_memory()
         static_info["total_memory"] = round(float(memory.total) / (1024 ** 2), 2)
         static_info["memory"] = round(float(memory.free) / (1024 ** 2), 2)
 
         gpu_static_command = "nvidia-smi --query-gpu=name,memory.total --format=csv,noheader,nounits"
         try:
-            return_str = Subprocess.run(command=GET_GPU_INFO_COMMAND)
+            return_str = Subprocess.run(command=gpu_static_command)
             gpus_info = return_str.split(os.linesep)
             static_info["gpu"] = len(gpus_info) - 1  # (int) logical number
             static_info["gpu_name"] = []
@@ -46,7 +44,7 @@ class ResourceInfo:
                 static_info["gpu_memory"].append(total_memory)
         except Exception:
             static_info["gpu"] = 0
-        
+
         return static_info
 
     @staticmethod
@@ -65,7 +63,7 @@ class ResourceInfo:
         gpu_dynamic_command = "nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits"
         dynamic_info["gpu_memory_usage"] = []
         try:
-            return_str = Subprocess.run(command=GET_UTILIZATION_GPUS_COMMAND)
+            return_str = Subprocess.run(command=gpu_dynamic_command)
             memory_usage_per_gpu = return_str.split("\n")
             for single_usage in memory_usage_per_gpu:
                 dynamic_info["gpu_memory_usage"].append(float(single_usage))
@@ -123,7 +121,7 @@ class LocalResourceExecutor:
         redis_pid = get_redis_pid_by_port(LocalParams.RESOURCE_REDIS_PORT)
         close_by_pid(redis_pid, recursive=False)
         logger.info("Resource Redis exited!")
-    
+
     def get_available_resource(self):
         if self._redis_connection.hexists(LocalParams.RESOURCE_INFO, "available_resource"):
             available_resource = json.loads(

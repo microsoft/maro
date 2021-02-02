@@ -11,12 +11,12 @@ import redis
 import yaml
 
 from maro.cli.grass.lib.services.utils.params import JobStatus
-from maro.cli.utils.resource_executor import ResourceInfo, LocalResourceExecutor
-from maro.cli.process.utils.details import close_by_pid, get_redis_pid_by_port
+from maro.cli.process.utils.details import close_by_pid
 from maro.cli.utils.cmp import resource_op
 from maro.cli.utils.details_reader import DetailsReader
 from maro.cli.utils.details_writer import DetailsWriter
-from maro.cli.utils.params import GlobalPaths, GrassLocalRedisName, LocalPaths
+from maro.cli.utils.params import GlobalPaths, LocalPaths
+from maro.cli.utils.resource_executor import LocalResourceExecutor
 from maro.utils.exception.cli_exception import BadRequestError
 from maro.utils.logger import CliLogger
 
@@ -72,6 +72,9 @@ class GrassLocalExecutor:
             cluster_details=self.cluster_details
         )
 
+        # Build connection with Resource Redis
+        self._resource_redis.add_cluster()
+
         # Allocation
         cluster_resource = self.cluster_details["master"]["resource"]
         available_resource = self._resource_redis.get_available_resource()
@@ -80,10 +83,10 @@ class GrassLocalExecutor:
         is_satisfied, updated_resource = resource_op(available_resource, cluster_resource, op="allocate")
         if not is_satisfied:
             shutil.rmtree(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}", True)
+            self._resource_redis.sub_cluster()
             raise BadRequestError("No enough resource for this cluster.")
 
         self._resource_redis.set_available_resource(updated_resource)
-        self._resource_redis.add_cluster()
 
         # Start agents.
         self._agents_start()
@@ -117,6 +120,9 @@ class GrassLocalExecutor:
         # Rm connection from resource redis.
         self._resource_redis.sub_cluster()
 
+        # Clear local redis data.
+        self._redis_clear()
+
         logger.info(f"{self.cluster_name} is deleted.")
 
     def _agents_start(self):
@@ -127,9 +133,13 @@ class GrassLocalExecutor:
         try:
             agent_pid = int(self._redis_connection.hget(f"{self.cluster_name}:runtime_detail", "agent_id"))
             close_by_pid(agent_pid, recursive=True)
-            self._redis_connection.hdel(GrassLocalRedisName.CLUSTER_AGENTS, self.cluster_name)
         except Exception as e:
             logger.warning(f"Failure to close {self.cluster_name}'s agents, due to {e}")
+
+    def _redis_clear(self):
+        redis_keys = self._redis_connection.keys(f"{self.cluster_name}:*")
+        for key in redis_keys:
+            self._redis_connection.delete(key)
 
     def start_job(self, deployment_path: str):
         # Load start_job_deployment
@@ -274,7 +284,7 @@ class GrassLocalExecutor:
             0, -1
         )
         return {
-            "pending_jobs": pending_job_queue, 
+            "pending_jobs": pending_job_queue,
             "killed_jobs": killed_job_queue
         }
 
@@ -282,4 +292,4 @@ class GrassLocalExecutor:
         return self._resource_redis.get_local_resource()
 
     def get_resource_usage(self, previous_length: int):
-        return self._resource_redis.get_local_resource_usage(previous_length) 
+        return self._resource_redis.get_local_resource_usage(previous_length)

@@ -7,11 +7,6 @@ import subprocess
 from typing import Union
 
 import psutil
-import redis
-import yaml
-
-from maro.cli.utils.params import LocalPaths, ProcessRedisName
-from maro.utils.exception.cli_exception import ProcessInternalError
 
 
 def close_by_pid(pid: Union[int, list], recursive: bool = False):
@@ -48,6 +43,7 @@ def get_child_pid(parent_pid):
         children_pids = [int(pid) for pid in children_pids[:-1]]
 
     return children_pids
+
 
 def get_redis_pid_by_port(port: int):
     get_redis_pid_command = f"pidof 'redis-server *:{port}'"

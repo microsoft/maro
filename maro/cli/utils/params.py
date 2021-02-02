@@ -58,10 +58,3 @@ class ProcessRedisName:
     KILLED_JOB_TICKETS = "process:killed_job_tickets"
     JOB_DETAILS = "process:job_details"
     SETTING = "process:setting"
-
-
-class GrassLocalRedisName:
-    """Record Redis elements name, and only for grass/local"""
-    RUNTIME_DETAILS = "local:runtime_details"
-    CLUSTER_DETAILS = "local:cluster_details"
-    CLUSTER_AGENTS = "local:cluster_agents"

@@ -6,16 +6,16 @@ import json
 import os
 import shutil
 import subprocess
-import yaml
 
 import redis
+import yaml
 
 from maro.cli.grass.lib.services.utils.params import JobStatus
 from maro.cli.process.utils.details import close_by_pid, get_redis_pid_by_port
 from maro.cli.utils.details_reader import DetailsReader
 from maro.cli.utils.details_writer import DetailsWriter
-from maro.cli.utils.params import LocalPaths, LocalParams, GlobalPaths, ProcessRedisName
-from maro.cli.utils.resource_executor import ResourceInfo, LocalResourceExecutor
+from maro.cli.utils.params import GlobalPaths, LocalPaths, ProcessRedisName
+from maro.cli.utils.resource_executor import LocalResourceExecutor
 from maro.utils.logger import CliLogger
 
 logger = CliLogger(name=__name__)
@@ -41,10 +41,10 @@ class ProcessExecutor:
         self._resource_redis = LocalResourceExecutor()
 
     def create(self):
-        logger.info(f"Starting MARO Multi-Process Mode.")
+        logger.info("Starting MARO Multi-Process Mode.")
         if os.path.isdir(f"{GlobalPaths.ABS_MARO_CLUSTERS}/process"):
             logger.warning("Process mode has been created.")
-        
+
         # Get environment setting
         DetailsWriter.save_cluster_details(
             cluster_name="process",
@@ -77,7 +77,7 @@ class ProcessExecutor:
                     logger.info(f"Stop running job {job_name.decode()}.")
 
         # Stop agents
-        agent_status = True # int(process_setting["agent_status"])
+        agent_status = int(process_setting["agent_status"])
         if agent_status:
             agent_pid = int(process_setting["agent_pid"])
             close_by_pid(pid=agent_pid, recursive=True)
@@ -96,14 +96,16 @@ class ProcessExecutor:
         # Rm connection from resource redis.
         self._resource_redis.sub_cluster()
 
-        logger.info(f"Redis cleared.")
+        logger.info("Redis cleared.")
 
         # Remove local process file.
         shutil.rmtree(f"{GlobalPaths.ABS_MARO_CLUSTERS}/process", True)
-        logger.info(f"Process mode has been deleted.")
+        logger.info("Process mode has been deleted.")
 
     def _redis_clear(self):
-        pass
+        redis_keys = self._redis_connection.keys("process:*")
+        for key in redis_keys:
+            self._redis_connection.delete(key)
 
     def start_job(self, deployment_path: str):
         # Load start_job_deployment
@@ -171,11 +173,11 @@ class ProcessExecutor:
             job_name = job_name.decode()
             job_detail = json.loads(job_detail)
 
-            logger.info(job_details)
+            logger.info(job_detail)
 
     def start_schedule(self, deployment_path: str):
         with open(deployment_path, "r") as fr:
-            start_schedule_deployment = yaml.safe_load(fr)
+            schedule_detail = yaml.safe_load(fr)
 
         # push schedule details to Redis
         self._redis_connection.hset(
@@ -234,7 +236,7 @@ class ProcessExecutor:
             0, -1
         )
         return {
-            "pending_jobs": pending_job_queue, 
+            "pending_jobs": pending_job_queue,
             "killed_jobs": killed_job_queue
         }
 

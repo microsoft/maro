@@ -10,12 +10,11 @@ import time
 
 import redis
 
-from maro.cli.grass.lib.services.utils.params import JobStatus
 from maro.cli.grass.lib.services.utils.exception import ResourceAllocationFailed
 from maro.cli.grass.lib.services.utils.name_creator import NameCreator
+from maro.cli.grass.lib.services.utils.params import JobStatus
 from maro.cli.utils.cmp import resource_op
 from maro.cli.utils.details_reader import DetailsReader
-from maro.cli.utils.params import GrassLocalRedisName
 
 START_CONTAINER_COMMAND = (
     "sudo docker run "
@@ -186,7 +185,7 @@ class ContainerTrackingAgent(mp.Process):
             job_detail = json.loads(job_detail)
             if job_detail["status"] == JobStatus.RUNNING:
                 name_to_running_job_detail[job_name.decode()] = job_detail
-        
+
         return name_to_running_job_detail
 
     def _container_exit(self, job_detail: dict, inspect_details: dict):
@@ -197,7 +196,7 @@ class ContainerTrackingAgent(mp.Process):
             job_detail["ExitCode"] = exit_code
             job_detail["Error"] = inspect_details["State"]["Error"]
             self.redis_connection.hset(f"{self.cluster_name}:job_details", job_detail["name"], json.dumps(job_detail))
-            
+
             return False
 
         return True
@@ -223,7 +222,7 @@ class JobTrackingAgent(mp.Process):
         for job_name, job_detail in unfinished_jobs.items():
             if job_detail["status"] in [JobStatus.KILLED, JobStatus.FAILED]:
                 self._stop_containers(job_detail["container_name_list"])
-            
+
             if job_detail["status"] not in UNFINISHED_JOB_STATUS:
                 self._job_clear(job_name, job_detail["total_request_resource"])
 
@@ -236,7 +235,7 @@ class JobTrackingAgent(mp.Process):
             if "checked" not in job_detail.keys():
                 job_detail["checked"] = 1
                 unfinished_jobs[job_name.decode()] = job_detail
-        
+
         return unfinished_jobs
 
     def _stop_containers(self, container_list: list):
@@ -256,7 +255,11 @@ class JobTrackingAgent(mp.Process):
         # resource release
         _, updated_resource = resource_op(cluster_resource, release_resource, op="release")
 
-        self.redis_connection.hset(f"{self.cluster_name}:runtime_detail", "available_resource", json.dumps(updated_resource))
+        self.redis_connection.hset(
+            f"{self.cluster_name}:runtime_detail",
+            "available_resource",
+            json.dumps(updated_resource)
+        )
 
 
 class KilledJobAgent(mp.Process):
@@ -280,7 +283,7 @@ class KilledJobAgent(mp.Process):
             if job_detail["status"] in UNFINISHED_JOB_STATUS:
                 job_detail["status"] = JobStatus.KILLED
                 self.redis_connection.hset(f"{self.cluster_name}:job_details", job_name, json.dumps(job_detail))
-                
+
                 if job_detail["status"] == JobStatus.PENDING:
                     self.redis_connection.lrem(f"{self.cluster_name}:pending_job_tickets", 0, job_name)
 

@@ -29,8 +29,8 @@ class ResourceTrackingAgent(mp.Process):
             )
         except Exception:
             raise BadRequestError(
-                f"Failure to connect to Resource Redis."
-                f"Please make sure at least one cluster running."
+                "Failure to connect to Resource Redis."
+                "Please make sure at least one cluster running."
             )
 
         self._set_static_resource_info()
