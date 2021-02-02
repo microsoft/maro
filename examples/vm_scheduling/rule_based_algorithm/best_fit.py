@@ -1,5 +1,6 @@
 import pdb
 import random
+import numpy as np
 
 from maro.simulator.scenarios.vm_scheduling.common import Action
 from maro.simulator.scenarios.vm_scheduling import AllocateAction, DecisionPayload, PostponeAction
