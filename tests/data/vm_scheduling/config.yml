@@ -57,6 +57,12 @@ components:
           rack_amount: 5
         - rack_type: 'b'
           rack_amount: 5
+    - type: 'FN1'
+      rack:
+        - rack_type: 'a'
+          rack_amount: 3
+        - rack_type: 'b'
+          rack_amount: 2
 
 architecture:
   region:
@@ -67,4 +73,16 @@ architecture:
             - name: 'Japan'
               cluster:
                 - type: 'JP1'
+                  cluster_amount: 2
+            - name: 'Korea'
+              cluster:
+                - type: 'JP1'
+                  cluster_amount: 5
+    - name: 'EU'
+      zone:
+        - name: 'eu-north1'
+          data_center:
+            - name: 'Finland'
+              cluster:
+                - type: 'FN1'
                   cluster_amount: 1

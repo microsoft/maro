@@ -100,27 +100,27 @@ class TestRegion(unittest.TestCase):
 
     def test_config(self):
         region_amount = self.be._region_amount
-        expected = 1
+        expected = 2
         self.assertEqual(expected, region_amount)
 
         zone_amount = self.be._zone_amount
-        expected = 1
+        expected = 2
         self.assertEqual(expected, zone_amount)
 
         data_center_amount = self.be._data_center_amount
-        expected = 1
+        expected = 3
         self.assertEqual(expected, data_center_amount)
 
         cluster_amount = self.be._cluster_amount
-        expected = 1
+        expected = 8
         self.assertEqual(expected, cluster_amount)
 
         rack_amount = self.be._rack_amount
-        expected = 10
+        expected = 75
         self.assertEqual(expected, rack_amount)
 
         pm_amount = self.be._pm_amount
-        expected = 150
+        expected = 1130
         self.assertEqual(expected, pm_amount)
 
 if __name__ == "__main__":
