@@ -192,7 +192,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                     yield result
 
     def _init_structure(self):
-        """Initialize the physical machines based on the config setting. The PM id starts from 0."""
+        """Initialize the whole pm structure."""
         # TODO: Improve the scalability. Like the use of multiple PM sets.
         self._regions = self._frame.regions
         self._zones = self._frame.zones
@@ -264,7 +264,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         data_center_id: int,
         data_center_list: list
     ):
-        """Initialize the zones based on the config setting. The zone id starts from 0."""
+        """Initialize the data_centers based on the config setting. The data_center id starts from 0."""
         start_data_center_id = data_center_id
         cluster_id = 0
         for data_center_dict in data_center_list:
@@ -352,6 +352,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         rack_id: int,
         pm_id: int
     ):
+        """Initialize the racks based on the config setting. The rack id starts from 0."""
         rack_type_dict = {
             rack['type']: {
                 pm['pm_type']: pm['pm_amount'] for pm in rack['pm']
@@ -392,6 +393,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         rack_id: int,
         pm_id: int
     ):
+        """Initialize the pms based on the config setting. The pm id starts from 0."""
         start_pm_id = pm_id
         for pm_type, pm_amount in pm_dict.items():
             while pm_amount > 0:
