@@ -456,7 +456,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._update_vm_workload(cur_tick_cpu_utilization=cur_tick_cpu_utilization)
         # Update all PM CPU utilization.
         self._update_pm_workload()
-        # self._update_upper_level_metrics()
+        self._update_upper_level_metrics()
 
         for vm in self._vm_item_picker.items(tick):
             # TODO: Batch request support.
