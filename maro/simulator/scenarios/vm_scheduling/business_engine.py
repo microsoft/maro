@@ -586,25 +586,25 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
     def _update_region_metrics(self):
         for region in self._regions:
-            region.empty_machine_num = sum (
+            region.empty_machine_num = sum(
                 self._zones[zone_id].empty_machine_num for zone_id in region.zone_list
             )
 
     def _update_zone_metrics(self):
         for zone in self._zones:
-            zone.empty_machine_num = sum (
+            zone.empty_machine_num = sum(
                 self._data_centers[data_center_id].empty_machine_num for data_center_id in zone.data_center_list
             )
 
     def _update_data_center_metrics(self):
         for data_center in self._data_centers:
-            data_center.empty_machine_num = sum (
+            data_center.empty_machine_num = sum(
                 self._clusters[cluster_id].empty_machine_num for cluster_id in data_center.cluster_list
             )
 
     def _update_cluster_metrics(self):
         for cluster in self._clusters:
-            cluster.empty_machine_num = sum (
+            cluster.empty_machine_num = sum(
                 self._racks[rack_id].empty_machine_num for rack_id in cluster.rack_list
             )
 
