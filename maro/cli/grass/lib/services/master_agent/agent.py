@@ -124,21 +124,22 @@ class JobTrackingAgent(multiprocessing.Process):
         # Save jobs details.
         for job_name, job_details in name_to_job_details.items():
             job_details["check_time"] = self._redis_controller.get_time()
-            for container_name, container_details in job_details["containers"]:
-                if container_details["state"]["Status"] == "running":
-                    job_state = JobStatus.RUNNING
-                    break
-                elif container_details["state"]["ExitCode"] == 0:
-                    job_state = JobStatus.FINISH
-                elif container_details["state"]["ExitCode"] in ERROR_CODES_FOR_NOT_RESTART_CONTAINER:
-                    job_state = JobStatus.FAILED
-                    break
+            if job_details["containers"] != {}:
+                for container_name, container_details in job_details["containers"].items():
+                    if container_details["state"]["Status"] == "running":
+                        job_state = JobStatus.RUNNING
+                        break
+                    elif container_details["state"]["ExitCode"] == 0:
+                        job_state = JobStatus.FINISH
+                    elif container_details["state"]["ExitCode"] in ERROR_CODES_FOR_NOT_RESTART_CONTAINER:
+                        job_state = JobStatus.FAILED
+                        break
 
-            job_details["status"] = job_state
-            self._redis_controller.set_job_details(
-                job_name=job_name,
-                job_details=job_details
-            )
+                job_details["status"] = job_state
+                self._redis_controller.set_job_details(
+                    job_name=job_name,
+                    job_details=job_details
+                )
 
     # Utils.
     @staticmethod
