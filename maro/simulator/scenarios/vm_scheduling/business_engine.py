@@ -126,25 +126,36 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._data_center_amount: int = sum(
             len(item) for item in self._find_item(key="data_center", dictionary=self._config.architecture)
         )
-        # Cluster amount list.
-        cluster_amount_list = [
-            amount for amount in self._find_item(key="cluster_amount", dictionary=self._config.architecture)
-        ]
+        # Cluster amount dict.
+        cluster_amount_dict = {}
+        for cluster_list in self._find_item(key="cluster", dictionary=self._config.architecture):
+            for cluster in cluster_list:
+                cluster_amount_dict[cluster['type']] = cluster_amount_dict.get(cluster['type'], 0) + cluster['cluster_amount']
         # Summation of cluster amount.
-        self._cluster_amount: int = sum(cluster_amount_list)
+        self._cluster_amount: int = sum(value for value in cluster_amount_dict.values())
 
-        # Rack amount list. The index is cluster type.
-        self._rack_amount: int = 0
-        for index, cluster in enumerate(self._config.components.cluster):
-            self._rack_amount += cluster_amount_list[index] * sum(rack["rack_amount"] for rack in cluster["rack"])
+        # Rack amount dict.
+        rack_amount_dict = {}
+        for cluster_list in self._find_item(key="cluster", dictionary=self._config.components):
+            for cluster in cluster_list:
+                for rack in cluster['rack']:
+                    rack_amount_dict[rack['rack_type']] = (
+                        rack_amount_dict.get(rack['rack_type'], 0)
+                        + cluster_amount_dict[cluster['type']] * rack['rack_amount']
+                    )
+        # Summation of rack amount.
+        self._rack_amount: int = sum(value for value in rack_amount_dict.values())
 
-        self._pm_amount = 0
-        for index, cluster in enumerate(self._config.components.cluster):
-            rack_amount_list = [rack["rack_amount"] for rack in cluster["rack"]]
-            pm_amount_list = []
-            for rack in self._config.components.rack:
-                pm_amount_list.append(sum(pm["pm_amount"] for pm in rack["pm"]))
-            self._pm_amount += cluster_amount_list[index] * sum(r * p for r, p in zip(rack_amount_list, pm_amount_list))
+        # PM amount dict.
+        pm_amount_dict = {}
+        for rack in self._config.components.rack:
+            for pm in rack['pm']:
+                pm_amount_dict[pm['pm_type']] = (
+                    pm_amount_dict.get(pm['pm_type'], 0)
+                    + rack_amount_dict[rack['type']] * pm['pm_amount']
+                )
+        # Summation of pm amount.
+        self._pm_amount: int = sum(value for value in pm_amount_dict.values())
 
         self._kill_all_vms_if_overload: bool = self._config.KILL_ALL_VMS_IF_OVERLOAD
 
