@@ -72,14 +72,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._init_data()
 
         # Data center structure for quick accessing.
-        self._init_pms()
-        self._init_racks()
-        self._init_clusters()
-        self._init_data_centers()
-        self._init_zones()
-        self._init_regions()
-
-        self._dfs_update_id()
+        self._init_structure()
 
         # All living VMs.
         self._live_vms: Dict[int, VirtualMachine] = {}
@@ -199,147 +192,194 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 for result in self._find_item(key, v):
                     yield result
 
-    def _init_regions(self):
-        """Initialize the regions based on the config setting. The regions id starts from 0."""
+    def _init_structure(self):
+        """Initialize the physical machines based on the config setting. The PM id starts from 0."""
+        # TODO: Improve the scalability. Like the use of multiple PM sets.
         self._regions = self._frame.regions
-        region_id = 0
-        zone_id = count(start=0)
+        self._zones = self._frame.zones
+        self._data_centers = self._frame.data_centers
+        self._clusters = self._frame.clusters
+        self._racks = self._frame.racks
+        self._machines = self._frame.pms
+        # PM type dictionary.
+        self._pm_type_dict: dict = {
+            pm_type: pm_dict
+                for pm_type, pm_dict in enumerate(self._config.components.pm)
+        }
+        self._init_regions(region_id=0)
+
+    def _init_regions(self, region_id):
+        """Initialize the regions based on the config setting. The regions id starts from 0."""
+        zone_id = 0
         for region_list in self._find_item("region", self._config.architecture):
             for region_dict in region_list:
+                start_zone_id, zone_id = self._init_zones(
+                    region_id=region_id,
+                    zone_id=zone_id,
+                    zone_list=region_dict["zone"]
+                )
                 region = self._regions[region_id]
                 region.set_init_state(
                     id=region_id
                 )
                 region.name = region_dict["name"]
-                region.zone_list = [next(zone_id) for _ in range(len(region_dict["zone"]))]
+                region.zone_list = [id for id in range(start_zone_id, zone_id)]
                 region.total_machine_num = sum(
-                    self._zones[zone_id].total_machine_num for zone_id in region.zone_list
+                    self._zones[id].total_machine_num for id in region.zone_list
                 )
+
                 region_id += 1
 
-    def _init_zones(self):
+    def _init_zones(self, region_id, zone_id, zone_list):
         """Initialize the zones based on the config setting. The zone id starts from 0."""
-        self._zones = self._frame.zones
-        zone_id = 0
-        data_center_id = count(start=0)
-        for zone_list in self._find_item("zone", self._config.architecture):
-            for zone_dict in zone_list:
-                zone = self._zones[zone_id]
-                zone.set_init_state(
-                    id=zone_id
-                )
-                zone.name = zone_dict["name"]
-                zone.data_center_list = [next(data_center_id) for _ in range(len(zone_dict["data_center"]))]
-                zone.total_machine_num = sum(
-                    self._data_centers[data_center_id].total_machine_num for data_center_id in zone.data_center_list
-                )
-                zone_id += 1
-
-    def _init_data_centers(self):
-        """Initialize the zones based on the config setting. The zone id starts from 0."""
-        self._data_centers = self._frame.data_centers
+        start_zone_id = zone_id
         data_center_id = 0
-        cluster_id = count(start=0)
-        for data_center_list in self._find_item("data_center", self._config.architecture):
-            for data_center_dict in data_center_list:
-                data_center = self._data_centers[data_center_id]
-                data_center.set_init_state(
-                    id=data_center_id
-                )
-                data_center.name = data_center_dict["name"]
-                data_center.cluster_list = [next(cluster_id) for _ in range(len(data_center_dict["cluster"]))]
-                data_center.total_machine_num = sum(
-                    self._clusters[cluster_id].total_machine_num for cluster_id in data_center.cluster_list
-                )
-                data_center_id += 1
+        for zone_dict in zone_list:
+            start_data_center_id, data_center_id = self._init_data_centers(
+                region_id=region_id,
+                zone_id=zone_id,
+                data_center_id=data_center_id,
+                data_center_list=zone_dict["data_center"]
+            )
+            zone = self._zones[zone_id]
+            zone.set_init_state(
+                id=zone_id,
+                region_id=region_id
+            )
+            zone.name = zone_dict["name"]
+            zone.data_center_list = [id for id in range(start_data_center_id, data_center_id)]
+            zone.total_machine_num = sum(
+                self._data_centers[id].total_machine_num for id in zone.data_center_list
+            )
 
-    def _init_clusters(self):
-        """Initialize the clusters based on the config setting. The cluster id starts from 0."""
-        self._clusters = self._frame.clusters
+            zone_id += 1
+
+        return start_zone_id, zone_id
+
+    def _init_data_centers(self, region_id, zone_id, data_center_id, data_center_list):
+        """Initialize the zones based on the config setting. The zone id starts from 0."""
+        start_data_center_id = data_center_id
         cluster_id = 0
-        rack_id = count(start=0)
-        cluster_list = self._config.components.cluster
-        for cluster_dict in cluster_list:
+        for data_center_dict in data_center_list:
+            start_cluster_id, cluster_id = self._init_clusters(
+                region_id=region_id,
+                zone_id=zone_id,
+                data_center_id=data_center_id,
+                cluster_id=cluster_id,
+                cluster_list=data_center_dict["cluster"]
+            )
+            data_center = self._data_centers[data_center_id]
+            data_center.set_init_state(
+                id=data_center_id,
+                region_id=region_id,
+                zone_id=zone_id
+            )
+            data_center.name = data_center_dict["name"]
+            data_center.cluster_list = [id for id in range(start_cluster_id, cluster_id)]
+            data_center.total_machine_num = sum(
+                self._clusters[id].total_machine_num for id in data_center.cluster_list
+            )
+            data_center_id += 1
+
+        return start_data_center_id, data_center_id
+
+    def _init_clusters(self, region_id, zone_id, data_center_id, cluster_id, cluster_list):
+        """Initialize the clusters based on the config setting. The cluster id starts from 0."""
+        self._cluster_dict = {
+            cluster['type']: {
+                rack['rack_type']: rack['rack_amount'] for rack in cluster['rack']
+            }
+            for cluster in self._config.components.cluster
+        }
+        self._rack_dict = {
+            rack['type']: {
+                pm['pm_type']: pm['pm_amount'] for pm in rack['pm']
+            }
+            for rack in self._config.components.rack
+        }
+        start_cluster_id = cluster_id
+        pm_id = 0
+        rack_id = 0
+        for cluster in cluster_list:
+            cluster_type = cluster['type']
+            cluster_amount = cluster['cluster_amount']
+            # Init racks.
+            start_rack_id, rack_id = self._init_racks(
+                cluster_amount=cluster_amount,
+                rack_dict=self._cluster_dict[cluster_type],
+                region_id=region_id,
+                zone_id=zone_id,
+                data_center_id=data_center_id,
+                cluster_id=cluster_id,
+                rack_id=rack_id,
+                pm_id=pm_id
+            )
             cluster = self._clusters[cluster_id]
             cluster.set_init_state(
-                id=cluster_id
+                id=cluster_id,
+                region_id=region_id,
+                zone_id=zone_id,
+                data_center_id=data_center_id
             )
-            cluster.cluster_type = cluster_dict["type"]
-            cluster.rack_list = [
-                next(rack_id) for _ in range(sum(rack["rack_amount"] for rack in cluster_dict["rack"]))
-            ]
-            cluster.total_machine_num = sum(self._racks[rack_id].total_machine_num for rack_id in cluster.rack_list)
+            cluster.cluster_type = cluster_type
+            cluster.rack_list = [id for id in range(start_rack_id, rack_id)]
+            cluster.total_machine_num = sum(
+                self._racks[id].total_machine_num for id in cluster.rack_list
+            )
+
             cluster_id += 1
 
-    def _init_racks(self):
-        self._racks = self._frame.racks
-        rack_id = 0
-        pm_id = count(start=0)
-        rack_list = self._config.components.rack
-        for rack_dict in rack_list:
-            rack = self._racks[rack_id]
-            rack.set_init_state(
-                id=rack_id
+        return start_cluster_id, cluster_id
+
+    def _init_racks(self, cluster_amount, rack_dict, region_id, zone_id, data_center_id, cluster_id, rack_id, pm_id):
+        start_rack_id = rack_id
+        for rack_type, rack_amount in rack_dict.items():
+            start_pm_id, pm_id = self._init_pms(
+                cluster_amount=cluster_amount,
+                rack_amount=rack_amount,
+                pm_dict=self._rack_dict[rack_type],
+                cluster_id=cluster_id,
+                rack_id=rack_id,
+                pm_id=pm_id
             )
-            rack.type = rack_dict["type"]
-            rack.total_machine_num = sum(pm["pm_amount"] for pm in rack_dict["pm"])
-            rack.pm_list = [next(pm_id) for _ in range(rack.total_machine_num)]
-            rack_id += 1
+            total_amount = cluster_amount * rack_amount
+            while total_amount > 0:
+                rack = self._racks[rack_id]
+                rack.set_init_state(
+                    id=rack_id,
+                    region_id=region_id,
+                    zone_id=zone_id,
+                    data_center_id=data_center_id,
+                    cluster_id=cluster_id
+                )
+                rack.type = rack_type
+                rack.pm_list = [id for id in range(start_pm_id, pm_id)]
+                rack.total_machine_num = len(rack.pm_list)
 
-    def _init_pms(self):
-        """Initialize the physical machines based on the config setting. The PM id starts from 0."""
-        # TODO: Improve the scalability. Like the use of multiple PM sets.
-        self._machines = self._frame.pms
-        # PM type dictionary.
-        self._pm_type_dict: dict = {}
-        for pm_type, pm_dict in enumerate(self._config.components.pm):
-            self._pm_type_dict[pm_type] = pm_dict
+                total_amount -= 1
+                rack_id += 1
 
-        pm_id = 0
-        for rack_dict in self._config.components.rack:
-            for pm in rack_dict["pm"]:
-                pm_amount = pm["pm_amount"]
-                pm_type = pm["pm_type"]
-                while pm_amount > 0:
-                    pm = self._machines[pm_id]
-                    pm.set_init_state(
-                        id=pm_id,
-                        cpu_cores_capacity=self._pm_type_dict[pm_type]["cpu"],
-                        memory_capacity=self._pm_type_dict[pm_type]["memory"],
-                        pm_type=pm_type,
-                        oversubscribable=PmState.EMPTY
-                    )
-                    pm_amount -= 1
-                    pm_id += 1
+        return start_rack_id, rack_id
 
-    def _dfs_update_id(self):
-        """Update parent node's id."""
-        for region_id, region in enumerate(self._regions):
-            for zone_id in region.zone_list:
-                zone = self._zones[zone_id]
-                zone.region_id = region_id
-                for data_center_id in zone.data_center_list:
-                    data_center = self._data_centers[data_center_id]
-                    data_center.region_id = region_id
-                    data_center.zone_id = zone_id
-                    for cluster_id in data_center.cluster_list:
-                        cluster = self._clusters[cluster_id]
-                        cluster.region_id = region_id
-                        cluster.zone_id = zone_id
-                        cluster.data_center_id = data_center_id
-                        for rack_id in cluster.rack_list:
-                            rack = self._racks[rack_id]
-                            rack.region_id = region_id
-                            rack.zone_id = zone_id
-                            rack.data_center_id = data_center_id
-                            rack.cluster_id = cluster_id
-                            for pm_id in rack.pm_list:
-                                pm = self._machines[pm_id]
-                                pm.region_id = region_id
-                                pm.zone_id = zone_id
-                                pm.data_center_id = data_center_id
-                                pm.cluster_id = cluster_id
-                                pm.rack_id = rack_id
+    def _init_pms(self, cluster_amount, rack_amount, pm_dict, cluster_id, rack_id, pm_id):
+        start_pm_id = pm_id
+        for pm_type, pm_amount in pm_dict.items():
+            total_amount = cluster_amount * rack_amount * pm_amount
+            while total_amount > 0:
+                pm = self._machines[pm_id]
+                pm.set_init_state(
+                    id=pm_id,
+                    cpu_cores_capacity=self._pm_type_dict[pm_type]["cpu"],
+                    memory_capacity=self._pm_type_dict[pm_type]["memory"],
+                    pm_type=pm_type,
+                    oversubscribable=PmState.EMPTY
+                )
+                pm.cluster_id = cluster_id
+                pm.rack_id = rack_id
+                total_amount -= 1
+                pm_id += 1
+
+        return start_pm_id, pm_id
 
     def reset(self):
         """Reset internal states for episode."""

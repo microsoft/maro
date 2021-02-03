@@ -21,23 +21,32 @@ class Cluster(NodeBase):
 
     def __init__(self):
         self._id: int = 0
+        self._region_id: int = 0
+        self._zone_id: int = 0
+        self._data_center_id: int = 0
 
         self._cluster_type: str = ""
         self._rack_list: List[int] = []
 
-    def set_init_state(self, id: int):
+    def set_init_state(self, id: int, region_id: int, zone_id: int, data_center_id: int):
         """Set initialize state, that will be used after frame reset.
 
         Args:
             id (int): Region id.
         """
         self._id = id
+        self._region_id = region_id
+        self._zone_id = zone_id
+        self._data_center_id = data_center_id
 
         self.reset()
 
     def reset(self):
         """Reset to default value."""
         self.id = self._id
+        self.region_id = self._region_id
+        self.zone_id = self._zone_id
+        self.data_center_id = self._data_center_id
 
         self.empty_machine_num = self.total_machine_num
 
