@@ -1,5 +1,6 @@
 import math
 
+from maro.simulator import Env
 from maro.simulator.scenarios.vm_scheduling.common import Action
 from maro.simulator.scenarios.vm_scheduling import AllocateAction, DecisionPayload, PostponeAction
 
@@ -15,6 +16,7 @@ class VMSchedulingAgent(object):
             action: PostponeAction = PostponeAction(
                 vm_id=decision_event.vm_id,
                 postpone_step=1
+            )
         else:
             action: AllocateAction = self.allocate_vm(decision_event, env)
 
