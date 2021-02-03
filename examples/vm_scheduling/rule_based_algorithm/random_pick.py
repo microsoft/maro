@@ -9,6 +9,7 @@ from algorithm import VMSchedulingAgent
 
 class RandomPick(VMSchedulingAgent):
     def allocate_vm(self, decision_event: DecisionPayload, env: Env) -> AllocateAction:
+        valid_pm_num: int = len(decision_event.valid_pms)
         # Random choose a valid PM.
         chosen_idx: int = random.randint(0, valid_pm_num - 1)
         # Take action to allocate on the chosen PM.
