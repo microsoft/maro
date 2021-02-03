@@ -411,16 +411,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
     def reset(self):
         """Reset internal states for episode."""
-        self._total_vm_requests: int = 0
-        self._total_energy_consumption: float = 0.0
-        self._successful_allocation: int = 0
-        self._successful_completion: int = 0
-        self._failed_allocation: int = 0
-        self._failed_completion: int = 0
-        self._total_latency: Latency = Latency()
-        self._total_oversubscriptions: int = 0
-        self._total_overload_pms: int = 0
-        self._total_overload_vms: int = 0
+        self._init_metrics()
 
         self._frame.reset()
         self._snapshots.reset()
