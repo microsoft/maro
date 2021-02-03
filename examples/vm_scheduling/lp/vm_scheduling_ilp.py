@@ -11,6 +11,10 @@ from maro.utils import DottableDict
 
 from common import IlpAllocatedVmInfo, IlpFutureVmInfo, IlpPmCapacity, IlpVmInfo
 
+
+# To indicates not or can not allocate any PM for current VM request.
+NOT_ALLOCATE_NOW = -1
+
 class VmSchedulingILP():
     def __init__(self, config: DottableDict, pm_capacity=List[IlpPmCapacity]):
         self._pm_capacity = pm_capacity
@@ -18,7 +22,6 @@ class VmSchedulingILP():
 
         # For formulation and action application.
         self.plan_window_size = config.plan_window_size
-        # self.apply_buffer_size = config.apply_buffer_size
 
         # For performance.
         self.core_upper_ratio = 1 - config.performance.core_safety_remaining_ratio
@@ -28,8 +31,6 @@ class VmSchedulingILP():
         self.current_vm_reward_factor = config.objective.current_vm_reward_factor
         self.successful_allocation_decay = config.objective.successful_allocation_decay
         self.allocation_multiple_core_num = config.objective.allocation_multiple_core_num
-
-        # self._last_start_tick = -1
 
     def _init_variables(self):
         def _init_with_shape(shape: tuple):
@@ -116,9 +117,6 @@ class VmSchedulingILP():
         self._set_objective(problem=problem)
         problem.solve(GLPK(msg=0))
 
-        # print(f"Status: {LpStatus[problem.status]}")
-        # problem.writeLP("solution.lp")
-
     def choose_pm(
         self,
         env_tick: int,
@@ -142,12 +140,4 @@ class VmSchedulingILP():
             if self._mapping[pm_idx][0].varValue:
                 return pm_idx
 
-
-        for vm_idx in range(10):
-            mapping = []
-            for pm_idx in range(self._pm_num):
-                mapping.append(self._mapping[pm_idx][0].varValue)
-            print(mapping)
-
-        # -1 indicates not or can not allocate any PM for current VM request.
-        return -1
+        return NOT_ALLOCATE_NOW

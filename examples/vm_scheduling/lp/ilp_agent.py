@@ -12,7 +12,7 @@ from maro.simulator.scenarios.vm_scheduling.common import Action
 from maro.utils import DottableDict
 
 from common import IlpVmInfo, IlpAllocatedVmInfo, IlpFutureVmInfo, IlpPmCapacity
-from vm_scheduling_ilp import VmSchedulingILP
+from vm_scheduling_ilp import NOT_ALLOCATE_NOW, VmSchedulingILP
 
 class IlpAgent():
     def __init__(
@@ -105,7 +105,7 @@ class IlpAgent():
         chosen_pm_idx = self.ilp.choose_pm(env_tick, vm_req, allocated_vm, future_vm_req)
         end_time = timeit.default_timer()
         print(f"vm: {cur_vm_id} -> pm: {chosen_pm_idx}")
-        if chosen_pm_idx == -1:
+        if chosen_pm_idx == NOT_ALLOCATE_NOW:
             return PostponeAction(vm_id=cur_vm_id, postpone_step=1)
         else:
             return AllocateAction(vm_id=cur_vm_id, pm_id=chosen_pm_idx)
