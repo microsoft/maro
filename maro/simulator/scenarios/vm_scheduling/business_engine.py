@@ -313,37 +313,37 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         for cluster in cluster_list:
             cluster_type = cluster['type']
             cluster_amount = cluster['cluster_amount']
-            # Init racks.
-            start_rack_id, rack_id = self._init_racks(
-                cluster_amount=cluster_amount,
-                rack_amount_dict=cluster_type_dict[cluster_type],
-                region_id=region_id,
-                zone_id=zone_id,
-                data_center_id=data_center_id,
-                cluster_id=cluster_id,
-                rack_id=rack_id,
-                pm_id=pm_id
-            )
-            cluster = self._clusters[cluster_id]
-            cluster.set_init_state(
-                id=cluster_id,
-                region_id=region_id,
-                zone_id=zone_id,
-                data_center_id=data_center_id
-            )
-            cluster.cluster_type = cluster_type
-            cluster.rack_list = [id for id in range(start_rack_id, rack_id)]
-            cluster.total_machine_num = sum(
-                self._racks[id].total_machine_num for id in cluster.rack_list
-            )
+            while cluster_amount > 0:
+                # Init racks.
+                start_rack_id, rack_id = self._init_racks(
+                    rack_amount_dict=cluster_type_dict[cluster_type],
+                    region_id=region_id,
+                    zone_id=zone_id,
+                    data_center_id=data_center_id,
+                    cluster_id=cluster_id,
+                    rack_id=rack_id,
+                    pm_id=pm_id
+                )
+                cluster = self._clusters[cluster_id]
+                cluster.set_init_state(
+                    id=cluster_id,
+                    region_id=region_id,
+                    zone_id=zone_id,
+                    data_center_id=data_center_id
+                )
+                cluster.cluster_type = cluster_type
+                cluster.rack_list = [id for id in range(start_rack_id, rack_id)]
+                cluster.total_machine_num = sum(
+                    self._racks[id].total_machine_num for id in cluster.rack_list
+                )
 
-            cluster_id += 1
+                cluster_amount -= 1
+                cluster_id += 1
 
         return start_cluster_id, cluster_id
 
     def _init_racks(
         self,
-        cluster_amount: int,
         rack_amount_dict: dict,
         region_id: int,
         zone_id: int,
@@ -361,15 +361,12 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         start_rack_id = rack_id
         for rack_type, rack_amount in rack_amount_dict.items():
             start_pm_id, pm_id = self._init_pms(
-                cluster_amount=cluster_amount,
-                rack_amount=rack_amount,
                 pm_dict=rack_type_dict[rack_type],
                 cluster_id=cluster_id,
                 rack_id=rack_id,
                 pm_id=pm_id
             )
-            total_amount = cluster_amount * rack_amount
-            while total_amount > 0:
+            while rack_amount > 0:
                 rack = self._racks[rack_id]
                 rack.set_init_state(
                     id=rack_id,
@@ -382,15 +379,13 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 rack.pm_list = [id for id in range(start_pm_id, pm_id)]
                 rack.total_machine_num = len(rack.pm_list)
 
-                total_amount -= 1
+                rack_amount -= 1
                 rack_id += 1
 
         return start_rack_id, rack_id
 
     def _init_pms(
         self,
-        cluster_amount: int,
-        rack_amount: int,
         pm_dict: dict,
         cluster_id: int,
         rack_id: int,
@@ -398,8 +393,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
     ):
         start_pm_id = pm_id
         for pm_type, pm_amount in pm_dict.items():
-            total_amount = cluster_amount * rack_amount * pm_amount
-            while total_amount > 0:
+            while pm_amount > 0:
                 pm = self._machines[pm_id]
                 pm.set_init_state(
                     id=pm_id,
@@ -410,7 +404,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 )
                 pm.cluster_id = cluster_id
                 pm.rack_id = rack_id
-                total_amount -= 1
+                pm_amount -= 1
                 pm_id += 1
 
         return start_pm_id, pm_id
