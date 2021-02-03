@@ -130,7 +130,9 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         cluster_amount_dict = {}
         for cluster_list in self._find_item(key="cluster", dictionary=self._config.architecture):
             for cluster in cluster_list:
-                cluster_amount_dict[cluster['type']] = cluster_amount_dict.get(cluster['type'], 0) + cluster['cluster_amount']
+                cluster_amount_dict[cluster['type']] = (
+                    cluster_amount_dict.get(cluster['type'], 0) + cluster['cluster_amount']
+                )
         # Summation of cluster amount.
         self._cluster_amount: int = sum(value for value in cluster_amount_dict.values())
 
