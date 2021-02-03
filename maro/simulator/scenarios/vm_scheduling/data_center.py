@@ -14,6 +14,7 @@ class DataCenter(NodeBase):
     zone_id = NodeAttribute("i2")
 
     total_machine_num = NodeAttribute("i")
+    empty_machine_num = NodeAttribute("i")
 
     def __init__(self):
         self._id: int = 0

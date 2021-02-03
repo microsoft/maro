@@ -315,7 +315,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             cluster_amount = cluster['cluster_amount']
             while cluster_amount > 0:
                 # Init racks.
-                start_rack_id, rack_id = self._init_racks(
+                start_rack_id, rack_id, pm_id = self._init_racks(
                     rack_amount_dict=cluster_type_dict[cluster_type],
                     region_id=region_id,
                     zone_id=zone_id,
@@ -360,13 +360,14 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         }
         start_rack_id = rack_id
         for rack_type, rack_amount in rack_amount_dict.items():
-            start_pm_id, pm_id = self._init_pms(
-                pm_dict=rack_type_dict[rack_type],
-                cluster_id=cluster_id,
-                rack_id=rack_id,
-                pm_id=pm_id
-            )
             while rack_amount > 0:
+                # Initialize pms.
+                start_pm_id, pm_id = self._init_pms(
+                    pm_dict=rack_type_dict[rack_type],
+                    cluster_id=cluster_id,
+                    rack_id=rack_id,
+                    pm_id=pm_id
+                )
                 rack = self._racks[rack_id]
                 rack.set_init_state(
                     id=rack_id,
@@ -382,7 +383,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 rack_amount -= 1
                 rack_id += 1
 
-        return start_rack_id, rack_id
+        return start_rack_id, rack_id, pm_id
 
     def _init_pms(
         self,
@@ -455,6 +456,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._update_vm_workload(cur_tick_cpu_utilization=cur_tick_cpu_utilization)
         # Update all PM CPU utilization.
         self._update_pm_workload()
+        # self._update_upper_level_metrics()
 
         for vm in self._vm_item_picker.items(tick):
             # TODO: Batch request support.
@@ -574,6 +576,37 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 pending_vm.add_utilization(cpu_utilization=-1.0)
             else:
                 pending_vm.add_utilization(cpu_utilization=cur_tick_cpu_utilization[pending_vm.id])
+
+    def _update_upper_level_metrics(self):
+        self._update_rack_metrics()
+        self._update_cluster_metrics()
+        self._update_data_center_metrics()
+        self._update_zone_metrics()
+        self._update_region_metrics()
+
+    def _update_region_metrics(self):
+        for region in self._regions:
+            region.empty_machine_num = sum (
+                self._zones[zone_id].empty_machine_num for zone_id in region.zone_list
+            )
+
+    def _update_zone_metrics(self):
+        for zone in self._zones:
+            zone.empty_machine_num = sum (
+                self._data_centers[data_center_id].empty_machine_num for data_center_id in zone.data_center_list
+            )
+
+    def _update_data_center_metrics(self):
+        for data_center in self._data_centers:
+            data_center.empty_machine_num = sum (
+                self._clusters[cluster_id].empty_machine_num for cluster_id in data_center.cluster_list
+            )
+
+    def _update_cluster_metrics(self):
+        for cluster in self._clusters:
+            cluster.empty_machine_num = sum (
+                self._racks[rack_id].empty_machine_num for rack_id in cluster.rack_list
+            )
 
     def _update_rack_metrics(self):
         for rack in self._racks:
