@@ -8,9 +8,18 @@
     "adminUsername": {
       "type": "string"
     },
+<<<<<<< HEAD
     "apiServerDestinationPorts": {
       "type": "array"
     },
+=======
+<<<<<<< HEAD:maro/cli/grass/lib/modes/azure/create_build_node_image_vm/template.json
+=======
+    "apiServerDestinationPorts": {
+      "type": "array"
+    },
+>>>>>>> upstream/v0.2:maro/cli/grass/lib/modes/azure/create_master/template.json
+>>>>>>> upstream/v0.2
     "location": {
       "type": "string"
     },
@@ -90,6 +99,11 @@
               "priority": 100,
               "direction": "Inbound",
               "destinationPortRanges": "[parameters('sshDestinationPorts')]"
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD:maro/cli/grass/lib/modes/azure/create_build_node_image_vm/template.json
+=======
+>>>>>>> upstream/v0.2
             }
           },
           {
@@ -103,6 +117,10 @@
               "priority": 101,
               "direction": "Inbound",
               "destinationPortRanges": "[parameters('apiServerDestinationPorts')]"
+<<<<<<< HEAD
+=======
+>>>>>>> upstream/v0.2:maro/cli/grass/lib/modes/azure/create_master/template.json
+>>>>>>> upstream/v0.2
             }
           }
         ]
