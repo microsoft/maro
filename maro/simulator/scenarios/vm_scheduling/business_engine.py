@@ -4,7 +4,6 @@
 import os
 import shutil
 import tarfile
-from itertools import count
 from typing import Dict, List
 
 from yaml import safe_load
@@ -203,16 +202,17 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._machines = self._frame.pms
         # PM type dictionary.
         self._pm_type_dict: dict = {
-            pm_type: pm_dict
-                for pm_type, pm_dict in enumerate(self._config.components.pm)
+            pm_type: pm_dict for pm_type, pm_dict in enumerate(self._config.components.pm)
         }
+        # Initialize regions.
         self._init_regions(region_id=0)
 
-    def _init_regions(self, region_id):
+    def _init_regions(self, region_id: int):
         """Initialize the regions based on the config setting. The regions id starts from 0."""
         zone_id = 0
         for region_list in self._find_item("region", self._config.architecture):
             for region_dict in region_list:
+                # Initialize zones.
                 start_zone_id, zone_id = self._init_zones(
                     region_id=region_id,
                     zone_id=zone_id,
@@ -230,11 +230,12 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
                 region_id += 1
 
-    def _init_zones(self, region_id, zone_id, zone_list):
+    def _init_zones(self, region_id: int, zone_id: int, zone_list: list):
         """Initialize the zones based on the config setting. The zone id starts from 0."""
         start_zone_id = zone_id
         data_center_id = 0
         for zone_dict in zone_list:
+            # Initialize data centers.
             start_data_center_id, data_center_id = self._init_data_centers(
                 region_id=region_id,
                 zone_id=zone_id,
@@ -256,11 +257,18 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
         return start_zone_id, zone_id
 
-    def _init_data_centers(self, region_id, zone_id, data_center_id, data_center_list):
+    def _init_data_centers(
+        self,
+        region_id: int,
+        zone_id: int,
+        data_center_id: int,
+        data_center_list: list
+    ):
         """Initialize the zones based on the config setting. The zone id starts from 0."""
         start_data_center_id = data_center_id
         cluster_id = 0
         for data_center_dict in data_center_list:
+            # Initialize clusters.
             start_cluster_id, cluster_id = self._init_clusters(
                 region_id=region_id,
                 zone_id=zone_id,
@@ -283,20 +291,22 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
         return start_data_center_id, data_center_id
 
-    def _init_clusters(self, region_id, zone_id, data_center_id, cluster_id, cluster_list):
+    def _init_clusters(
+        self,
+        region_id: int,
+        zone_id: int,
+        data_center_id: int,
+        cluster_id: int,
+        cluster_list: list
+    ):
         """Initialize the clusters based on the config setting. The cluster id starts from 0."""
-        self._cluster_dict = {
+        cluster_type_dict = {
             cluster['type']: {
                 rack['rack_type']: rack['rack_amount'] for rack in cluster['rack']
             }
             for cluster in self._config.components.cluster
         }
-        self._rack_dict = {
-            rack['type']: {
-                pm['pm_type']: pm['pm_amount'] for pm in rack['pm']
-            }
-            for rack in self._config.components.rack
-        }
+
         start_cluster_id = cluster_id
         pm_id = 0
         rack_id = 0
@@ -306,7 +316,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             # Init racks.
             start_rack_id, rack_id = self._init_racks(
                 cluster_amount=cluster_amount,
-                rack_dict=self._cluster_dict[cluster_type],
+                rack_amount_dict=cluster_type_dict[cluster_type],
                 region_id=region_id,
                 zone_id=zone_id,
                 data_center_id=data_center_id,
@@ -331,13 +341,29 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
         return start_cluster_id, cluster_id
 
-    def _init_racks(self, cluster_amount, rack_dict, region_id, zone_id, data_center_id, cluster_id, rack_id, pm_id):
+    def _init_racks(
+        self,
+        cluster_amount: int,
+        rack_amount_dict: dict,
+        region_id: int,
+        zone_id: int,
+        data_center_id: int,
+        cluster_id: int,
+        rack_id: int,
+        pm_id: int
+    ):
+        rack_type_dict = {
+            rack['type']: {
+                pm['pm_type']: pm['pm_amount'] for pm in rack['pm']
+            }
+            for rack in self._config.components.rack
+        }
         start_rack_id = rack_id
-        for rack_type, rack_amount in rack_dict.items():
+        for rack_type, rack_amount in rack_amount_dict.items():
             start_pm_id, pm_id = self._init_pms(
                 cluster_amount=cluster_amount,
                 rack_amount=rack_amount,
-                pm_dict=self._rack_dict[rack_type],
+                pm_dict=rack_type_dict[rack_type],
                 cluster_id=cluster_id,
                 rack_id=rack_id,
                 pm_id=pm_id
@@ -361,7 +387,15 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
         return start_rack_id, rack_id
 
-    def _init_pms(self, cluster_amount, rack_amount, pm_dict, cluster_id, rack_id, pm_id):
+    def _init_pms(
+        self,
+        cluster_amount: int,
+        rack_amount: int,
+        pm_dict: dict,
+        cluster_id: int,
+        rack_id: int,
+        pm_id: int
+    ):
         start_pm_id = pm_id
         for pm_type, pm_amount in pm_dict.items():
             total_amount = cluster_amount * rack_amount * pm_amount
