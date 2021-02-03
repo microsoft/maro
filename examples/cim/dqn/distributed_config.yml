@@ -3,7 +3,7 @@ redis:
   port: 6379
 group: test_group
 num_actors: 1
-mode: "simple"
+inference_mode: "remote"
 receive_action_timeout: 100  # milliseconds
 max_receive_action_attempts: 1
 update_trigger: 1

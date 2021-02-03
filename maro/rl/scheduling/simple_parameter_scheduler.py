@@ -102,5 +102,5 @@ class TwoPhaseLinearParameterScheduler(Scheduler):
 
     def next_params(self):
         current_values = self._current_values.copy()
-        self._current_values += self._delta_1 if self._current_iter < self._split_ep else self._delta_2
+        self._current_values += self._delta_1 if self._iter_index < self._split_ep else self._delta_2
         return dict(zip(self._parameter_names, current_values))

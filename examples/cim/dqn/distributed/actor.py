@@ -1,71 +1,37 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import os
-
-import numpy as np
-
-from maro.communication import Proxy
-from maro.rl import Actor, AgentManagerProxy
-from maro.simulator import Env
-from maro.utils import convert_dottable
-
-from examples.cim.dqn.components import (
-    CIMActionShaper, CIMStateShaper, DQNAgentManager, TruncatedExperienceShaper, create_dqn_agents
-)
+from maro.rl import ActorClient
+from maro.utils import LogFormat, Logger
 
 
-def launch(config, distributed_config):
-    config = convert_dottable(config)
-    distributed_config = convert_dottable(distributed_config)
-    env = Env(config.env.scenario, config.env.topology, durations=config.env.durations)
-    agent_id_list = [str(agent_id) for agent_id in env.agent_idx_list]
-    state_shaper = CIMStateShaper(**config.env.state_shaping)
-    action_shaper = CIMActionShaper(action_space=list(np.linspace(-1.0, 1.0, config.agents.algorithm.num_actions)))
-    experience_shaper = TruncatedExperienceShaper(**config.env.experience_shaping)
-
-    distributed_mode = os.environ.get("MODE", distributed_config.mode)
-    redis_address = distributed_config.redis.hostname, distributed_config.redis.port
-    if distributed_mode == "seed":
-        agent_manager = AgentManagerProxy(
-            Proxy(
-                group_name=os.environ.get("GROUP", distributed_config.group),
-                component_type="agent_manager",
-                expected_peers={"learner": 1},
-                redis_address=redis_address,
-                max_retries=20,
-                driver_parameters={"receive_timeout": distributed_config.receive_action_timeout}
-            ),
-            state_shaper=state_shaper, 
-            action_shaper=action_shaper,
-            experience_shaper=experience_shaper,
-            max_receive_action_attempts=distributed_config.max_receive_action_attempts
+class SimpleActorClient(ActorClient):
+    def __init__(
+        self, env, agent_proxy, state_shaper, action_shaper, experience_shaper
+        receive_action_timeout=None, max_receive_action_attempts=None
+    ):
+        super().__init__(
+            env, agent_proxy, 
+            state_shaper=state_shaper, action_shaper=action_shaper, experience_shaper=experience_shaper,
+            receive_action_timeout=receive_action_timeout, max_receive_action_attempts=max_receive_action_attempts
         )
-    elif distributed_mode == "simple":
-        config["agents"]["algorithm"]["input_dim"] = state_shaper.dim
-        agent_manager = DQNAgentManager(
-            name="cim_actor",
-            mode=AgentManagerMode.INFERENCE,
-            agents=create_dqn_agents(agent_id_list, config.agents),
-            state_shaper=state_shaper,
-            action_shaper=action_shaper,
-            experience_shaper=experience_shaper
-        )
-    else:
-        raise ValueError(f'Supported distributed training modes: "simple", "seed", got {distributed_mode}')
-
-    proxy = Proxy(
-        group_name=os.environ.get("GROUP", distributed_config.group),
-        component_type="actor",
-        expected_peers={"learner": 1},
-        redis_address=redis_address,
-        max_retries=20
-    )
+        self._logger = Logger("actor_client", format_=LogFormat.simple, auto_timestamp=False)
     
-    actor = Actor(env, agent_manager, proxy)
-    actor.run()
+    def roll_out(self, is_training: bool = True):
+        self.logger.info(f"Rolling out for ep-{ep}...")
+        self.env.reset()
+        metrics, event, is_done = self.env.step(None)
+        while not is_done:
+            action = self.get_action(*self.state_shaper(event, self.env.snapshot_list))
+            if isinstance(action, TerminateEpisode):
+                self.logger.info(f"Roll-out aborted at time step {self.agent.time_step}.")
+                return
 
+            metrics, event, is_done = self.env.step(self.action_shaper(action, event, self.env.snapshot_list))
+            if not action:
+                self.logger.info(
+                    f"Failed to receive an action for time step {self.agent.time_step}, "
+                    f"proceed with NULL action."
+                )
 
-if __name__ == "__main__":
-    from examples.cim.dqn.components.config import config, distributed_config
-    launch(config=config, distributed_config=distributed_config)
+        self.logger.info(f"Roll-out finished for ep-{self._ep}")

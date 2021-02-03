@@ -274,10 +274,7 @@ class RegisterTable:
             message_list = event.get_qualified_message()
 
             if message_list:
-                if len(message_list) == 1:
-                    satisfied_handler_fn.append((handler_fn, message_list[0]))
-                else:
-                    satisfied_handler_fn.append((handler_fn, message_list))
+                satisfied_handler_fn.append((handler_fn, message_list))
 
         return satisfied_handler_fn
 

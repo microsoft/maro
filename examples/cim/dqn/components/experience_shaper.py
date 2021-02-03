@@ -1,8 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from collections import defaultdict
-
 import numpy as np
 
 from maro.rl import Shaper
@@ -17,12 +15,13 @@ class TruncatedExperienceShaper(Shaper):
         self._time_decay_factor = time_decay_factor
         self._fulfillment_factor = fulfillment_factor
         self._shortage_factor = shortage_factor
-
-    def __call__(self, trajectory, snapshot_list):
-        states = trajectory["state"]
-        actions = trajectory["action"]
-        agent_ids = trajectory["agent_id"]
-        events = trajectory["event"]
+        self._trajectory = {key: [] for key in ["state", "action", "agent_id", "event"]}
+    
+    def __call__(self, snapshot_list):
+        states = self._trajectory["state"]
+        actions = self._trajectory["action"]
+        agent_ids = self._trajectory["agent_id"]
+        events = self._trajectory["event"]
 
         experiences_by_agent = defaultdict(lambda: defaultdict(list))
         for i in range(len(states) - 1):
@@ -33,6 +32,13 @@ class TruncatedExperienceShaper(Shaper):
             experiences["next_state"].append(states[i + 1])
 
         return dict(experiences_by_agent)
+
+    def record(self, transition: dict):
+        for key, val in transition.items():
+            self._trajectory[key].append(val)
+
+    def reset(self):
+        self._trajectory.clear()
 
     def _compute_reward(self, decision_event, snapshot_list):
         start_tick = decision_event.tick + 1

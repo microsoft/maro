@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 from maro.rl import Shaper
-from maro.simulator.scenarios.cim.common import Action
+from maro.simulator.scenarios.cim.common import Action, ActionType
 
 
 class CIMActionShaper(Shaper):
@@ -25,10 +25,13 @@ class CIMActionShaper(Shaper):
 
         if model_action < self._zero_action_index:
             actual_action = max(round(operation_num * port_empty), -vessel_remaining_space)
+            action_type = ActionType.DISCHARGE
         elif model_action > self._zero_action_index:
             plan_action = operation_num * (scope.discharge + early_discharge) - early_discharge
             actual_action = round(plan_action) if plan_action > 0 else round(operation_num * scope.discharge)
+            action_type = ActionType.LOAD
         else:
             actual_action = 0
+            action_type = None
 
-        return Action(vessel_idx, port_idx, actual_action)
+        return Action(vessel_idx, port_idx, actual_action, action_type)

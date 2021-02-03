@@ -18,10 +18,11 @@ class PayloadKey(Enum):
     MODEL = "model"
     EXPLORATION_PARAMS = "exploration_params"
     PERFORMANCE = "performance"
-    EXPERIENCES = "experiences"
+    DETAILS = "details"
     STATE = "state"
     IS_TRAINING = "is_training"
-    AGENT_MANAGER_ID = "agent_manager_id"
+    ROLLOUT_OPTIONS = "rollout_options"
+    ACTOR_CLIENT_ID = "actor_client_id"
 
 
 # type definition for the special action that should be used to terminate a roll-out episode

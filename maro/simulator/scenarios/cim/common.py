@@ -15,7 +15,7 @@ class VesselState(IntEnum):
 
 class ActionType(Enum):
     """Type of CIM action."""
-    LOAD = "load",
+    LOAD = "load"
     DISCHARGE = "discharge"
 
 

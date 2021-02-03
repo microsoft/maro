@@ -42,7 +42,7 @@ class AbsAgent(ABC):
         return self._experience_pool
 
     @abstractmethod
-    def choose_action(self, model_state):
+    def choose_action(self, state):
         """This method uses the underlying model(s) to compute an action from a shaped state.
 
         Args:

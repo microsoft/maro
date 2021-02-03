@@ -19,7 +19,7 @@ main_loop:
     start_values: 0.4
     mid_values: 0.32
     end_values: 0.0
-agents:
+agent:
   model:
     hidden_dims:
       - 256
