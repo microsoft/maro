@@ -8,15 +8,6 @@
     "adminUsername": {
       "type": "string"
     },
-<<<<<<< HEAD
-<<<<<<< HEAD:maro/cli/grass/lib/modes/azure/create_build_node_image_vm/template.json
-=======
-    "apiServerDestinationPorts": {
-      "type": "array"
-    },
->>>>>>> upstream/v0.2:maro/cli/grass/lib/modes/azure/create_master/template.json
-=======
->>>>>>> upstream/v0.2
     "location": {
       "type": "string"
     },
@@ -86,11 +77,7 @@
       "properties": {
         "securityRules": [
           {
-<<<<<<< HEAD
-            "name": "ssh",
-=======
             "name": "SSH",
->>>>>>> upstream/v0.2
             "properties": {
               "protocol": "*",
               "sourcePortRange": "*",
@@ -100,25 +87,6 @@
               "priority": 100,
               "direction": "Inbound",
               "destinationPortRanges": "[parameters('sshDestinationPorts')]"
-<<<<<<< HEAD
-<<<<<<< HEAD:maro/cli/grass/lib/modes/azure/create_build_node_image_vm/template.json
-=======
-            }
-          },
-          {
-            "name": "api_server",
-            "properties": {
-              "protocol": "*",
-              "sourcePortRange": "*",
-              "sourceAddressPrefix": "*",
-              "destinationAddressPrefix": "*",
-              "access": "Allow",
-              "priority": 101,
-              "direction": "Inbound",
-              "destinationPortRanges": "[parameters('apiServerDestinationPorts')]"
->>>>>>> upstream/v0.2:maro/cli/grass/lib/modes/azure/create_master/template.json
-=======
->>>>>>> upstream/v0.2
             }
           }
         ]

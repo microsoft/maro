@@ -672,7 +672,6 @@ class GrassExecutor:
             node_hostname (str): hostname of the MARO Node VM.
             node_ssh_port (str): ssh port of the MARO Node VM.
 
->>>>>>> upstream/v0.2
         Returns:
             None.
         """
