@@ -13,7 +13,7 @@ import yaml
 from maro.cli.grass.utils.docker_controller import DockerController
 from maro.cli.grass.utils.file_synchronizer import FileSynchronizer
 from maro.cli.grass.utils.master_api_client import MasterApiClientV1
-from maro.cli.grass.utils.params import GrassPaths, UserRole
+from maro.cli.grass.utils.params import GrassPaths, JobStatus, UserRole
 from maro.cli.utils.deployment_validator import DeploymentValidator
 from maro.cli.utils.details_reader import DetailsReader
 from maro.cli.utils.details_writer import DetailsWriter
@@ -397,6 +397,7 @@ class GrassExecutor:
             )
 
         # Init runtime fields
+        start_job_deployment["status"] = JobStatus.PENDING
         start_job_deployment["containers"] = {}
         start_job_deployment["id"] = NameCreator.create_job_id()
         for _, component_details in start_job_deployment["components"].items():
@@ -764,3 +765,17 @@ class GrassExecutor:
             for chunk in iter(lambda: f.read(block_size * md5.block_size), b""):
                 md5.update(chunk)
         return md5.hexdigest()
+
+    # Visible
+
+    def get_job_details(self):
+        return self.master_api_client.list_jobs()
+
+    def get_job_queue(self):
+        return self.master_api_client.get_job_queue()
+
+    def get_resource(self):
+        return self.master_api_client.get_static_resource_info()
+
+    def get_resource_usage(self, previous_length: int):
+        return self.master_api_client.get_dynamic_resource_info(previous_length)

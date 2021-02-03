@@ -137,8 +137,5 @@ class MasterApiClientV1:
             url=f"{self._master_api_server_url_prefix}/visible/dynamic/{previous_length}"
         )
 
-    def get_job_status(self):
-        return self._encrypted_requests.get(url=f"{self._master_api_server_url_prefix}/jobs/status")
-
     def get_job_queue(self):
         return self._encrypted_requests.get(url=f"{self._master_api_server_url_prefix}/jobs/queue")

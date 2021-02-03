@@ -124,10 +124,6 @@ class JobTrackingAgent(multiprocessing.Process):
         # Save jobs details.
         for job_name, job_details in name_to_job_details.items():
             job_details["check_time"] = self._redis_controller.get_time()
-            self._redis_controller.set_job_details(
-                job_name=job_name,
-                job_details=job_details
-            )
             for container_name, container_details in job_details["containers"]:
                 if container_details["state"]["Status"] == "running":
                     job_state = JobStatus.RUNNING
@@ -138,9 +134,10 @@ class JobTrackingAgent(multiprocessing.Process):
                     job_state = JobStatus.FAILED
                     break
 
-            self._redis_controller.set_job_status(
+            job_details["status"] = job_state
+            self._redis_controller.set_job_details(
                 job_name=job_name,
-                job_state=job_state
+                job_details=job_details
             )
 
     # Utils.
@@ -608,7 +605,8 @@ class PendingJobAgent(multiprocessing.Process):
                         job_details=job_details
                     )
                 self._redis_controller.remove_pending_job_ticket(job_name=pending_job_name)
-                self._redis_controller.set_job_status(job_name=pending_job_name, job_state=JobStatus.RUNNING)
+                job_details["status"] = JobStatus.RUNNING
+                self._redis_controller.set_job_details(job_name=pending_job_name, job_details=job_details)
             except ResourceAllocationFailed as e:
                 logger.warning(f"Allocation failed with {e}")
             except StartContainerError as e:
@@ -749,12 +747,14 @@ class KilledJobAgent(multiprocessing.Process):
             if job_details is not None:
                 # Kill job.
                 self._kill_job(job_details=job_details)
+                if job_details["status"] in [JobStatus.PENDING, JobStatus.RUNNING]:
+                    job_details["status"] = JobStatus.KILLED
+                    self._redis_controller.set_job_details(job_name=job_name, job_details=job_details)
             else:
                 logger.warning(f"{job_name} not exists, cannot be stopped")
 
             # Remove killed job ticket.
             self._redis_controller.remove_killed_job_ticket(job_name=job_name)
-            self._redis_controller.set_job_status(job_name=job_name, job_state=JobStatus.KILLED)
 
     def _kill_job(self, job_details: dict) -> None:
         """Kill job and stop containers.

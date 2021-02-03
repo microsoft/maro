@@ -17,17 +17,6 @@ URL_PREFIX = "/v1/jobs"
 
 # Api functions.
 
-@blueprint.route(f"{URL_PREFIX}/status", methods=["GET"])
-@check_jwt_validity
-def get_job_status():
-    """Get all job status in the cluster.
-
-    Returns:
-        None.
-    """
-    job_status = redis_controller.get_job_status()
-    return job_status
-
 
 @blueprint.route(f"{URL_PREFIX}/queue", methods=["GET"])
 @check_jwt_validity
@@ -80,10 +69,6 @@ def create_job(**kwargs):
         job_name=job_details["name"],
         job_details=job_details
     )
-    redis_controller.set_job_status(
-        job_name=job_details["name"],
-        job_state=JobStatus.PENDING
-    )
     redis_controller.push_pending_job_ticket(
         job_name=job_details["name"]
     )
@@ -101,7 +86,6 @@ def delete_job(job_name: str):
     redis_controller.remove_pending_job_ticket(job_name=job_name)
     redis_controller.push_killed_job_ticket(job_name=job_name)
     redis_controller.delete_job_details(job_name=job_name)
-    redis_controller.delete_job_status(job_name=job_name)
     return {}
 
 
