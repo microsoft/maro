@@ -15,24 +15,14 @@ class BestFit(VMSchedulingAgent):
         super().__init__()
         self._metric_type: str = metric_type
 
-    def choose_action(self, decision_event: DecisionPayload, env: Env) -> Action:
-        valid_pm_num: int = len(decision_event.valid_pms)
-
-        # Check whether there exists a valid PM.
-        if valid_pm_num <= 0:
-            # No valid PM now, postpone.
-            action: PostponeAction = PostponeAction(
-                vm_id=decision_event.vm_id,
-                postpone_step=1
-            )
-        else:
-            # Use a rule to choose a valid PM.
-            chosen_idx: int = self._pick_pm_func(decision_event, env)
-            # Take action to allocate on the chose PM.
-            action: AllocateAction = AllocateAction(
-                vm_id=decision_event.vm_id,
-                pm_id=decision_event.valid_pms[chosen_idx]
-            )
+    def allocate_vm(self, decision_event: DecisionPayload, env: Env) -> AllocateAction:
+        # Use a rule to choose a valid PM.
+        chosen_idx: int = self._pick_pm_func(decision_event, env)
+        # Take action to allocate on the chose PM.
+        action: AllocateAction = AllocateAction(
+            vm_id=decision_event.vm_id,
+            pm_id=decision_event.valid_pms[chosen_idx]
+        )
 
         return action
 

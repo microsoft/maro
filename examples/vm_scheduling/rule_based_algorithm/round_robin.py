@@ -14,31 +14,18 @@ class RoundRobin(VMSchedulingAgent):
         self._pm_num: int = pm_num
         self._prev_idx: int = 0
 
-    def choose_action(self, decision_event: DecisionPayload, env: Env) -> Action:
-        valid_pm_num: int = len(decision_event.valid_pms)
-
-        # Check whether there exists a valid PM.
-        if valid_pm_num <= 0:
-            # No valid PM now, postpone.
-            action: PostponeAction = PostponeAction(
-                vm_id=decision_event.vm_id,
-                postpone_step=1
-            )
-        else:
-            # Choose the valid PM which index is next to the previous chose PM's index
-            chosen_idx: int = (self._prev_idx + 1) % self._pm_num
-            while True:
-                if chosen_idx in decision_event.valid_pms:
-                    break
-                else:
-                    chosen_idx += 1
-                    chosen_idx %= self._pm_num
-            # Update the prev index
-            self._prev_idx = chosen_idx
-            # Take action to allocate on the chosen PM.
-            action: AllocateAction = AllocateAction(
-                vm_id=decision_event.vm_id,
-                pm_id=chosen_idx
-            )
+    def allocate_vm(self, decision_event: DecisionPayload, env: Env) -> AllocateAction:
+        # Choose the valid PM which index is next to the previous chose PM's index
+        chosen_idx: int = (self._prev_idx + 1) % self._pm_num
+        while chosen_idx not in decision_event.valid_pms:
+            chosen_idx += 1
+            chosen_idx %= self._pm_num
+        # Update the prev index
+        self._prev_idx = chosen_idx
+        # Take action to allocate on the chosen PM.
+        action: AllocateAction = AllocateAction(
+            vm_id=decision_event.vm_id,
+            pm_id=chosen_idx
+        )
 
         return action

@@ -52,7 +52,7 @@ if __name__ == "__main__":
 
     end_time = timeit.default_timer()
     print(
-        f"[Best fit] Topology: {config.env.topology}. Total ticks: {config.env.durations}."
+        f"[{config.alg.type.split('.')[1]}] Topology: {config.env.topology}. Total ticks: {config.env.durations}."
         f" Start tick: {config.env.start_tick}."
     )
     print(f"[Timer] {end_time - start_time:.2f} seconds to finish the simulation.")
