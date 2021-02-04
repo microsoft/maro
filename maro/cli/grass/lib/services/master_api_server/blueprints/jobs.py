@@ -5,7 +5,6 @@
 import requests
 from flask import Blueprint
 
-from ...utils.params import JobStatus
 from ..jwt_wrapper import check_jwt_validity
 from ..objects import redis_controller
 

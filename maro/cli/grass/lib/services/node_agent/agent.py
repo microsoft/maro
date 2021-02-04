@@ -14,7 +14,6 @@ import psutil
 
 from ..utils.details_reader import DetailsReader
 from ..utils.docker_controller import DockerController
-from ..utils.exception import CommandExecutionError
 from ..utils.params import NodeStatus
 from ..utils.redis_controller import RedisController
 from ..utils.resource import BasicResource
