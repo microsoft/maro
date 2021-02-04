@@ -9,7 +9,7 @@ from typing import List, Set
 from maro.data_lib import BinaryReader
 from maro.simulator.scenarios.vm_scheduling import PostponeAction, AllocateAction
 from maro.simulator.scenarios.vm_scheduling.common import Action
-from maro.utils import DottableDict
+from maro.utils import DottableDict, Logger
 
 from common import IlpVmInfo, IlpAllocatedVmInfo, IlpFutureVmInfo, IlpPmCapacity
 from vm_scheduling_ilp import NOT_ALLOCATE_NOW, VmSchedulingILP
@@ -21,10 +21,15 @@ class IlpAgent():
         pm_capacity: np.ndarray,
         vm_table_path: str,
         env_start_tick: int,
-        env_duration: int
+        env_duration: int,
+        simulation_logger: Logger,
+        ilp_logger: Logger
     ):
+        self._simulation_logger = simulation_logger
+        self._ilp_logger = ilp_logger
+
         pm_capacity: List[IlpPmCapacity] = [IlpPmCapacity(core=pm[0], mem=pm[1]) for pm in pm_capacity]
-        self.ilp = VmSchedulingILP(config=ilp_config, pm_capacity=pm_capacity)
+        self.ilp = VmSchedulingILP(config=ilp_config, pm_capacity=pm_capacity, logger=ilp_logger)
         self.ilp_plan_window_size = ilp_config.plan_window_size
 
         # Use the vm_item_picker to get the precise vm request info.
@@ -101,10 +106,9 @@ class IlpAgent():
                     )
                 )
 
-        start_time = timeit.default_timer()
         chosen_pm_idx = self.ilp.choose_pm(env_tick, vm_req, allocated_vm, future_vm_req)
-        end_time = timeit.default_timer()
-        print(f"vm: {cur_vm_id} -> pm: {chosen_pm_idx}")
+        self._simulation_logger.info(f"vm: {cur_vm_id} -> pm: {chosen_pm_idx}")
+
         if chosen_pm_idx == NOT_ALLOCATE_NOW:
             return PostponeAction(vm_id=cur_vm_id, postpone_step=1)
         else:
