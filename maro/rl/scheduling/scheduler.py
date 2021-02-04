@@ -14,7 +14,6 @@ class Scheduler(object):
             raise ValueError("max_iter must be a positive integer or -1.")
         self._max_iter = max_iter
         self._iter_index = -1
-        self.performance_history = []
 
     def __iter__(self):
         return self
@@ -35,6 +34,3 @@ class Scheduler(object):
     @property
     def iter(self):
         return self._iter_index
-
-    def record_performance(self, performance):
-        self.performance_history.append(performance)

@@ -1,6 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from collections import defaultdict
+
 import numpy as np
 
 from maro.rl import Shaper
@@ -38,7 +40,7 @@ class TruncatedExperienceShaper(Shaper):
             self._trajectory[key].append(val)
 
     def reset(self):
-        self._trajectory.clear()
+        self._trajectory = {key: [] for key in ["state", "action", "agent_id", "event"]}
 
     def _compute_reward(self, decision_event, snapshot_list):
         start_tick = decision_event.tick + 1

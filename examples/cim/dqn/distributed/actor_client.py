@@ -1,13 +1,13 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from maro.rl import ActorClient
+from maro.rl import ActorClient, TerminateRollout
 from maro.utils import LogFormat, Logger
 
 
 class SimpleActorClient(ActorClient):
     def __init__(
-        self, env, agent_proxy, state_shaper, action_shaper, experience_shaper
+        self, env, agent_proxy, state_shaper, action_shaper, experience_shaper,
         receive_action_timeout=None, max_receive_action_attempts=None
     ):
         super().__init__(
@@ -17,21 +17,25 @@ class SimpleActorClient(ActorClient):
         )
         self._logger = Logger("actor_client", format_=LogFormat.simple, auto_timestamp=False)
     
-    def roll_out(self, is_training: bool = True):
-        self.logger.info(f"Rolling out for ep-{ep}...")
+    def roll_out(self, index, is_training=True):
         self.env.reset()
+        time_step = 0
         metrics, event, is_done = self.env.step(None)
         while not is_done:
-            action = self.get_action(*self.state_shaper(event, self.env.snapshot_list))
-            if isinstance(action, TerminateEpisode):
-                self.logger.info(f"Roll-out aborted at time step {self.agent.time_step}.")
+            state = self.state_shaper(event, self.env.snapshot_list)
+            action = self.get_action(index, time_step, state, agent_id=str(event.port_idx))
+            if isinstance(action, TerminateRollout):
+                self._logger.info(f"Roll-out aborted at time step {time_step}.")
                 return
 
+            time_step += 1
             metrics, event, is_done = self.env.step(self.action_shaper(action, event, self.env.snapshot_list))
-            if not action:
-                self.logger.info(
-                    f"Failed to receive an action for time step {self.agent.time_step}, "
-                    f"proceed with NULL action."
+            if action is None:
+                self._logger.info(
+                    f"Failed to receive an action for time step {time_step}, proceed with NULL action."
                 )
 
-        self.logger.info(f"Roll-out finished for ep-{self._ep}")
+        exp = self.experience_shaper(self.env.snapshot_list) if is_training else None
+        self.experience_shaper.reset()
+
+        return self.env.metrics, exp

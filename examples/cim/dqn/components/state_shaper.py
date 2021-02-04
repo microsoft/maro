@@ -23,7 +23,7 @@ class CIMStateShaper(Shaper):
         port_features = snapshot_list["ports"][ticks: [port_idx] + list(future_port_idx_list): PORT_ATTRIBUTES]
         vessel_features = snapshot_list["vessels"][tick: vessel_idx: VESSEL_ATTRIBUTES]
         state = np.concatenate((port_features, vessel_features))
-        return str(port_idx), state
+        return state
 
     @property
     def dim(self):

@@ -300,7 +300,7 @@ class Proxy:
         Args:
             is_continuous (bool): Continuously receive message or not. Defaults to True.
         """
-        return self._driver.receive(is_continuous, timeout)
+        return self._driver.receive(is_continuous, timeout=timeout)
 
     def receive_by_id(self, targets: List[str], timeout: int = None) -> List[Message]:
         """Receive target messages from communication driver.

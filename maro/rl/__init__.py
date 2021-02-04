@@ -6,8 +6,7 @@ from maro.rl.agent import (
     DDPG, DQN, AbsAgent, ActorCritic, ActorCriticConfig, DDPGConfig, DQNConfig, MultiAgentWrapper, PolicyGradient
 )
 from maro.rl.distributed import (
-    ActorClient, BaseDistActor, BaseDistLearner, DistLearner, InferenceLearner, concat_experiences_by_agent,
-    merge_experiences_with_trajectory_boundaries
+    AbsDistLearner, ActorClient, BaseDistActor, TerminateRollout, concat_by_agent, stack_by_agent
 )
 from maro.rl.exploration import (
     AbsExplorer, EpsilonGreedyExplorer, GaussianNoiseExplorer, NoiseExplorer, UniformNoiseExplorer
@@ -22,8 +21,7 @@ __all__ = [
     "AbsActor",
     "AbsAgent", "ActorCritic", "ActorCriticConfig", "DDPG", "DDPGConfig", "DQN", "DQNConfig", "MultiAgentWrapper",
     "PolicyGradient",
-    "ActorClient", "BaseDistActor", "BaseDistLearner", "DistLearner", "InferenceLearner",
-    "concat_experiences_by_agent", "merge_experiences_with_trajectory_boundaries",
+    "AbsDistLearner", "ActorClient", "BaseDistActor", "TerminateRollout", "concat_by_agent", "stack_by_agent",
     "AbsExplorer", "EpsilonGreedyExplorer", "GaussianNoiseExplorer", "NoiseExplorer", "UniformNoiseExplorer",
     "AbsLearner",
     "AbsBlock", "AbsLearningModel", "FullyConnectedBlock", "OptimOption", "SimpleMultiHeadModel",

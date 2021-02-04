@@ -16,13 +16,14 @@ class TruncatedExperienceShaper(Shaper):
         self._time_decay_factor = time_decay_factor
         self._fulfillment_factor = fulfillment_factor
         self._shortage_factor = shortage_factor
+        self._trajectory = {key: [] for key in ["state", "action", "agent_id", "event", "log_action_prob"]}
 
-    def __call__(self, trajectory, snapshot_list):
-        agent_ids = trajectory["agent_id"]
-        events = trajectory["event"]
-        states = trajectory["state"]
-        actions = trajectory["action"]
-        log_action_prob = trajectory["log_action_prob"]
+    def __call__(self, snapshot_list):
+        agent_ids = self._trajectory["agent_id"]
+        events = self._trajectory["event"]
+        states = self._trajectory["state"]
+        actions = self._trajectory["action"]
+        log_action_prob = self._trajectory["log_action_prob"]
         
         exp_by_agent = defaultdict(lambda: defaultdict(list))
         for i in range(len(states)):
@@ -37,6 +38,13 @@ class TruncatedExperienceShaper(Shaper):
         
         return exp_by_agent
 
+    def record(self, transition: dict):
+        for key, val in transition.items():
+            self._trajectory[key].append(val)
+    
+    def reset(self):
+        self._trajectory = {key: [] for key in ["state", "action", "agent_id", "event", "log_action_prob"]}
+    
     def _compute_reward(self, decision_event, snapshot_list):
         start_tick = decision_event.tick + 1
         end_tick = decision_event.tick + self._time_window

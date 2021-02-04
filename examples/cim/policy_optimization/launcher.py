@@ -7,11 +7,11 @@ from statistics import mean
 import numpy as np
 
 from maro.simulator import Env
-from maro.rl import Scheduler, SimpleLearner
+from maro.rl import MultiAgentWrapper
 from maro.utils import LogFormat, Logger, convert_dottable
 
-from components import (
-    CIMActionShaper, CIMStateShaper, SchedulerWithStopping, POAgentManager, TruncatedExperienceShaper, create_po_agents
+from examples.cim.policy_optimization.components import (
+    Actor, CIMActionShaper, CIMStateShaper, Learner, SchedulerWithStopping, TruncatedExperienceShaper, create_po_agents
 )
 
 
@@ -26,24 +26,20 @@ def launch(config):
     # Step 2: create state, action and experience shapers. We also need to create an explorer here due to the
     # greedy nature of the DQN algorithm.
     state_shaper = CIMStateShaper(**config.env.state_shaping)
-    action_shaper = CIMActionShaper(action_space=list(np.linspace(-1.0, 1.0, config.agent.num_actions)))
+    action_shaper = CIMActionShaper(action_space=list(np.linspace(-1.0, 1.0, config.agent.actor_model.output_dim)))
     experience_shaper = TruncatedExperienceShaper(**config.env.experience_shaping)
 
     # Step 3: create an agent manager.
-    config["agents"]["input_dim"] = state_shaper.dim
-    agent_manager = POAgentManager(
-        create_po_agents(agent_id_list, config.agent),
-        state_shaper=state_shaper,
-        action_shaper=action_shaper,
-        experience_shaper=experience_shaper,
-    )
+    config.agent.actor_model.input_dim = state_shaper.dim
+    config.agent.critic_model.input_dim = state_shaper.dim
+    agent = MultiAgentWrapper(create_po_agents(agent_id_list, config.agent))
 
     # Step 4: Create an actor and a learner to start the training process.
     scheduler = SchedulerWithStopping(config.main_loop.max_episode, **config.main_loop.early_stopping)
-    learner = SimpleLearner(env, agent_manager, scheduler)
+    actor = Actor(env, agent, state_shaper, action_shaper, experience_shaper,)
+    learner = Learner(actor, scheduler)
     learner.learn()
-    learner.test()
-    learner.dump_models(os.path.join(os.getcwd(), "models"))
+    agent.dump_model(os.path.join(os.getcwd(), "models"))
 
 
 if __name__ == "__main__":

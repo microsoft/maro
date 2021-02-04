@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 from maro.rl import Shaper
-from maro.simulator.scenarios.cim.common import Action
+from maro.simulator.scenarios.cim.common import Action, ActionType
 
 
 class CIMActionShaper(Shaper):
@@ -21,13 +21,17 @@ class CIMActionShaper(Shaper):
         vessel_remaining_space = snapshot_list["vessels"][tick: vessel_idx: ["empty", "full", "remaining_space"]][2]
         early_discharge = snapshot_list["vessels"][tick:vessel_idx: "early_discharge"][0]
         assert 0 <= model_action < len(self._action_space)
+        operation_num = self._action_space[model_action]
 
         if model_action < self._zero_action_index:
-            actual_action = max(round(self._action_space[model_action] * port_empty), -vessel_remaining_space)
+            actual_action = max(round(operation_num * port_empty), -vessel_remaining_space)
+            action_type = ActionType.LOAD
         elif model_action > self._zero_action_index:
-            plan_action = self._action_space[model_action] * (scope.discharge + early_discharge) - early_discharge
-            actual_action = round(plan_action) if plan_action > 0 else round(self._action_space[model_action] * scope.discharge)
+            plan_action = operation_num * (scope.discharge + early_discharge) - early_discharge
+            actual_action = round(plan_action) if plan_action > 0 else round(operation_num * scope.discharge)
+            action_type = ActionType.DISCHARGE
         else:
             actual_action = 0
+            action_type = None
 
-        return Action(vessel_idx, port_idx, actual_action)
+        return Action(vessel_idx, port_idx, abs(actual_action), action_type)

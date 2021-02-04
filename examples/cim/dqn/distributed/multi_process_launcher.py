@@ -13,11 +13,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("group_name", help="group name")
     parser.add_argument("num_actors", type=int, help="number of actors")
-    parser.add_argument("mode", default="simple")
+    parser.add_argument("mode", default="local")
     parser.add_argument("log_level", default="INFO")
     args = parser.parse_args()
-    learner_path = f"{os.path.split(os.path.realpath(__file__))[0]}/learner.py &"
-    actor_path = f"{os.path.split(os.path.realpath(__file__))[0]}/actor.py &"
+    learner_path = f"{os.path.split(os.path.realpath(__file__))[0]}/learner_launcher.py &"
+    actor_path = f"{os.path.split(os.path.realpath(__file__))[0]}/actor_launcher.py &"
 
     # Launch the actor processes
     for _ in range(args.num_actors):

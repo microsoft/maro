@@ -43,7 +43,7 @@ Learner and Actor
 
         # load models
         if model_dict is not None:
-            self._agents.load_models(model_dict)
+            self._agents.load_model(model_dict)
 
         # load exploration parameters:
         if exploration_params is not None:

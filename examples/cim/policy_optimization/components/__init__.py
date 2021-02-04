@@ -2,15 +2,19 @@
 # Licensed under the MIT license.
 
 from .action_shaper import CIMActionShaper
-from .agent_manager import POAgentManager, create_po_agents
+from .actor import Actor
+from .agent import create_po_agents
 from .experience_shaper import TruncatedExperienceShaper
+from .learner import Learner
 from .scheduler import SchedulerWithStopping
 from .state_shaper import CIMStateShaper
 
 __all__ = [
     "CIMActionShaper",
-    "POAgentManager", "create_po_agents",
+    "Actor",
+    "create_po_agents",
     "TruncatedExperienceShaper",
+    "Learner",
     "SchedulerWithStopping",
     "CIMStateShaper"
 ]

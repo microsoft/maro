@@ -22,8 +22,8 @@ main_loop:
 agent:
   seed: 1024   # for reproducibility
   type: "actor_critic"  # "actor_critic" or "policy_gradient"
-  num_actions: 21
   actor_model:
+    output_dim: 21
     hidden_dims:
       - 256
       - 128
@@ -33,6 +33,7 @@ agent:
   actor_optimizer:
     lr: 0.001
   critic_model:
+    output_dim: 1
     hidden_dims:
       - 256
       - 128

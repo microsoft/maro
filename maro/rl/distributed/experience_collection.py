@@ -4,7 +4,7 @@
 from collections import defaultdict
 
 
-def concat_experiences_by_agent(exp_by_source: dict) -> dict:
+def concat_by_agent(exp_by_source: dict) -> dict:
     """Concatenate experiences from multiple sources, by agent ID.
 
     The experience from each source is expected to be already grouped by agent ID. The result is a single dictionary
@@ -29,7 +29,7 @@ def concat_experiences_by_agent(exp_by_source: dict) -> dict:
     return merged
 
 
-def merge_experiences_with_trajectory_boundaries(trajectories_by_source) -> dict:
+def stack_by_agent(trajectories_by_source) -> dict:
     """Collect each agent's trajectories from multiple sources.
 
     Args:

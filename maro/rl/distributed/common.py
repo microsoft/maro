@@ -21,10 +21,10 @@ class PayloadKey(Enum):
     DETAILS = "details"
     STATE = "state"
     IS_TRAINING = "is_training"
-    ROLLOUT_OPTIONS = "rollout_options"
+    ROLLOUT_KWARGS = "rollout_kwargs"
     ACTOR_CLIENT_ID = "actor_client_id"
 
 
 # type definition for the special action that should be used to terminate a roll-out episode
-class TerminateEpisode:
+class TerminateRollout:
     pass
