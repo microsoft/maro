@@ -16,8 +16,7 @@ class AbsActor(ABC):
     Args:
         env (Env): An environment instance.
         agent (Union[AbsAgent, MultiAgentWrapper, Proxy]): Agent that interacts with the environment. If it is
-            ``Proxy``, 
-            in which case the actor will query the remote learner for action decisions.
+            ``Proxy``, the actor will query the remote learner for action decisions.
         state_shaper (Shaper, optional): It is responsible for converting the environment observation to model
             input. Defaults to None.
         action_shaper (Shaper, optional): It is responsible for converting an agent's model output to environment
@@ -28,7 +27,7 @@ class AbsActor(ABC):
     def __init__(
         self,
         env: Env,
-        agent: Union[AbsAgent, MultiAgentWrapper],
+        agent: Union[AbsAgent, MultiAgentWrapper, Proxy],
         state_shaper: Shaper = None,
         action_shaper: Shaper = None,
         experience_shaper: Shaper = None
@@ -42,17 +41,17 @@ class AbsActor(ABC):
     @abstractmethod
     def roll_out(self, index: int, is_training: bool = True, **kwargs):
         """Perform one episode of roll-out.
-        
+
         Args:
             index (int): Externally designated index to identify the roll-out round.
             is_training (bool): If true, the roll-out is for training purposes, which usually means
-                some kind of training data, e.g., experiences, needs to be collected. Defaults to True. 
+                some kind of training data, e.g., experiences, needs to be collected. Defaults to True.
         """
         raise NotImplementedError
 
     def update_agent(self, model_dict: dict = None, exploration_params: dict = None):
         """Update the agent's models and exploration parameters ahead of roll-out.
-        
+
         Args:
             model_dict (dict): Dictionary of models to be loaded for agents. Defaults to None.
             exploration_params (dict): Exploration parameters. Defaults to None.

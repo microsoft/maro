@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import os
 from typing import List, Union
 
 
@@ -21,7 +22,7 @@ class MultiAgentWrapper:
         else:
             for agent in self.agent_dict.values():
                 agent.set_exploration_params(**params)
-    
+
     def load_model(self, model_dict: dict):
         """Load models from memory for each agent."""
         for agent_id, model in model_dict.items():
@@ -32,7 +33,7 @@ class MultiAgentWrapper:
 
         This is usually used in distributed mode where models need to be broadcast to remote roll-out actors.
         """
-        if agent_ids is None:    
+        if agent_ids is None:
             return {agent_id: agent.dump_model() for agent_id, agent in self.agent_dict.items()}
         elif isinstance(agent_ids, str):
             return self.agent_dict[agent_ids].dump_model()

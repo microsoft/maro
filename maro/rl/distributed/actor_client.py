@@ -1,15 +1,14 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from abc import ABC, abstractmethod
-from typing import Union
+from abc import abstractmethod
 
 from maro.communication import Message, Proxy
 from maro.rl.actor import AbsActor
 from maro.rl.shaping import Shaper
 from maro.simulator import Env
 
-from .common import MessageTag, PayloadKey
+from .common import MessageTag, PayloadKey, TerminateRollout
 
 
 class ActorClient(AbsActor):
@@ -36,7 +35,7 @@ class ActorClient(AbsActor):
         max_receive_action_attempts: int = None
     ):
         super().__init__(
-            env, agent_proxy, 
+            env, agent_proxy,
             state_shaper=state_shaper, action_shaper=action_shaper, experience_shaper=experience_shaper
         )
         self._receive_action_timeout = receive_action_timeout
@@ -45,14 +44,14 @@ class ActorClient(AbsActor):
     @abstractmethod
     def roll_out(self, index: int, is_training: bool = True, **kwargs):
         """Perform one episode of roll-out.
-        
+
         Args:
             index (int): Externally designated index to identify the roll-out round.
             is_training (bool): If true, the roll-out is for training purposes, which usually means
-                some kind of training data, e.g., experiences, needs to be collected. Defaults to True. 
+                some kind of training data, e.g., experiences, needs to be collected. Defaults to True.
         """
         raise NotImplementedError
-    
+
     def get_action(self, rollout_index: int, time_step: int, state, agent_id: str = None):
         payload = {
             PayloadKey.STATE: state,
@@ -79,5 +78,5 @@ class ActorClient(AbsActor):
 
             # Did not receive expected reply before timeout
             attempts -= 1
-            if attempts_left == 0:
+            if attempts == 0:
                 return

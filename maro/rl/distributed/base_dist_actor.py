@@ -5,7 +5,7 @@ import sys
 
 from typing import Union
 
-from maro.communication import Proxy, Message
+from maro.communication import Message, Proxy
 from maro.rl.actor import AbsActor
 from maro.utils import InternalLogger
 
@@ -24,7 +24,7 @@ class BaseDistActor(object):
         self.actor = actor
         self.proxy = proxy
         self.name = self.proxy.component_name
-        self.learner_name = self.proxy.peers_name["learner"][0] 
+        self.learner_name = self.proxy.peers_name["learner"][0]
         self._logger = InternalLogger(self.proxy.component_name)
 
     def run(self):
@@ -50,9 +50,9 @@ class BaseDistActor(object):
                 # If the actor is an ActorClient instance, we need to tell the learner the ID of the actor client
                 # so that the learner can send termination signals to the actor clients of unfinished actors.
                 if isinstance(self.actor, ActorClient):
-                    payload[PayloadKey.ACTOR_CLIENT_ID] = self.actor.agent.component_name 
+                    payload[PayloadKey.ACTOR_CLIENT_ID] = self.actor.agent.component_name
                 self.proxy.isend(Message(MessageTag.FINISHED, self.name, self.learner_name, payload=payload))
 
     def exit(self):
-        self._logger.info(f"Exiting...")
+        self._logger.info("Exiting...")
         sys.exit(0)

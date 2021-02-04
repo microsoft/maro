@@ -4,7 +4,7 @@
 import sys
 from abc import ABC, abstractmethod
 from collections import defaultdict
-from typing import Callable, List, Union
+from typing import List, Union
 
 import numpy as np
 
@@ -55,7 +55,7 @@ class AbsDistLearner(ABC):
             if inference_trigger is None:
                 inference_trigger = len(self._actor_clients)
             self._registry_table.register_event_handler(
-                f"actor_client:{MessageTag.CHOOSE_ACTION.value}:{inference_trigger}", self._serve_action
+                f"actor_client:{MessageTag.CHOOSE_ACTION.value}:{inference_trigger}", self._on_action_request
             )
         else:
             self._actor_clients = None
@@ -69,15 +69,15 @@ class AbsDistLearner(ABC):
     def update(self, rollout_data):
         return NotImplemented
 
-    def request_rollout(
+    def collect(
         self,
         is_training: bool = True,
         agents_to_update: Union[str, List[str]] = None,
         exploration_params=None,
-        **rollout_options
-    ):
-        """Send roll-out requests to remote actors.
-        
+        **rollout_kwargs
+    ) -> tuple:
+        """Collect roll-out performances and details from remote actors.
+
         Args:
             is_training (bool): If true, the roll-out request is for training purposes.
             agents_to_update (Union[str, List[str]]): ID's of the agents whose models are to be broadcast to
@@ -86,11 +86,11 @@ class AbsDistLearner(ABC):
             exploration_params: Exploration parameters for the actors to use during roll-out. If action decisions
                 are made on the learner's side, this is ignored.
         """
-        ep = self.scheduler.iter if is_training else "test"
+        ep = self.scheduler.iter
         payload = {
             PayloadKey.EPISODE: ep,
             PayloadKey.IS_TRAINING: is_training,
-            PayloadKey.ROLLOUT_KWARGS: rollout_options
+            PayloadKey.ROLLOUT_KWARGS: rollout_kwargs
         }
         # If no actor client is found, it is necessary to broadcast agent models to the remote actors
         # so that thay can perform inference on their own. If there exists exploration parameters, they
@@ -101,10 +101,8 @@ class AbsDistLearner(ABC):
             payload[PayloadKey.MODEL] = self.agent.dump_model(agent_ids=agents_to_update)
         self.proxy.iscatter(MessageTag.ROLLOUT, SessionType.TASK, [(actor, payload) for actor in self._actors])
         self._logger.info(f"Sent roll-out requests to {self._actors} for ep-{ep}")
-
-    def collect(self) -> tuple:
-        """Collect roll-out performances and details from remote actors."""
-        ep = self.scheduler.iter
+        
+        # Receive roll-out results from remote actors
         unfinished = set(self._actors) if not self._actor_clients else set(self._actor_clients)
         for msg in self.proxy.receive():
             if msg.payload[PayloadKey.EPISODE] != ep:
@@ -124,7 +122,7 @@ class AbsDistLearner(ABC):
             elif msg.tag == MessageTag.CHOOSE_ACTION:
                 self._registry_table.push(msg)
 
-       # Send a TERMINATE_EPISODE cmd to unfinished actors to catch them up.
+        # Send a TERMINATE_EPISODE cmd to unfinished actors to catch them up.
         if unfinished:
             self.terminate_rollout(list(unfinished))
 
@@ -143,7 +141,7 @@ class AbsDistLearner(ABC):
         details = {msg.source: msg.payload[PayloadKey.DETAILS] for msg in finish_messages}
         return performances, details
 
-    def _serve_action(self, messages: List[Message]):
+    def _on_action_request(self, messages: List[Message]):
         # group messages from different actors by the AGENT_ID field
         messages_by_agent_id = defaultdict(list)
         for msg in messages:
