@@ -6,7 +6,7 @@ import os
 import numpy as np
 
 from maro.simulator import Env
-from maro.rl import AgentManagerMode, SimpleActor, ActorWorker
+from maro.rl import SimpleActor, ActorWorker
 from maro.utils import convert_dottable
 
 from components import CIMActionShaper, CIMStateShaper, POAgentManager, TruncatedExperienceShaper, create_po_agents
@@ -22,9 +22,7 @@ def launch(config):
 
     config["agents"]["input_dim"] = state_shaper.dim
     agent_manager = POAgentManager(
-        name="cim_actor",
-        mode=AgentManagerMode.INFERENCE,
-        agent_dict=create_po_agents(agent_id_list, config.agents),
+        create_po_agents(agent_id_list, config.agents),
         state_shaper=state_shaper,
         action_shaper=action_shaper,
         experience_shaper=experience_shaper,

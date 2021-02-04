@@ -2,6 +2,6 @@
 # Licensed under the MIT license.
 
 from .abs_store import AbsStore
-from .column_based_store import ColumnBasedStore, OverwriteType
+from .simple_store import OverwriteType, SimpleStore
 
-__all__ = ["AbsStore", "ColumnBasedStore", "OverwriteType"]
+__all__ = ["AbsStore", "OverwriteType", "SimpleStore"]

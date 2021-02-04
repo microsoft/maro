@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: maro-redis
+  labels:
+    app: maro-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: maro-redis
+  template:
+    metadata:
+      labels:
+        app: maro-redis
+    spec:
+      containers:
+        - name: maro-redis
+          image: redis:latest
+          ports:
+            - containerPort: 6379
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 2048Mi
