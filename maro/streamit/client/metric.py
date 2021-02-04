@@ -78,7 +78,7 @@ class Metric(object):
         if v_type is int or v_type is np.int64 or v_type is np.int32 or v_type is np.int16:
             return "%di" % value
 
-        if v_type is float or v_type is np.float:
+        if v_type is float or v_type is np.float or v_type is np.float32:
             return "%g" % value
 
         if v_type is bool:
@@ -86,6 +86,9 @@ class Metric(object):
 
         if v_type is list or v_type is dict:
             value = json.dumps(value)
+
+        if v_type is np.ndarray:
+            value = json.dumps(value.tolist())
 
         # if type(value) is bytes or type(value) is bytearray:
         #     pass

@@ -1,20 +1,22 @@
 import os
+import time
 
-client_instance = None
+import traceback
 
+from multiprocessing import Value
 
-def streamit():
-    is_streamable_enabled: bool = bool(
-        os.environ.get("MARO_STREAMABLE_ENABLED", False)
-    )
+streamit = None
 
-    global client_instance
+print("streamit?", os.environ["MARO_STREAMIT_ENABLED"])
 
-    if client_instance is not None:
-        return client_instance
+is_streamable_enabled: bool = os.environ.get("MARO_STREAMIT_ENABLED", "") == "true"
 
+experiment_name: str = os.environ.get("MARO_STREAMIT_EXPERIMENT_NAME", f"UNNAMED_EXPERIMENT_{time.time()}")
+
+server_ip = os.environ.get("MARO_STREAMIT_SERVER_IP", "127.0.0.1")
+
+if streamit is None:
     if not is_streamable_enabled:
-
         def dummy(self, *args, **kwargs):
             pass
 
@@ -22,13 +24,25 @@ def streamit():
             def __getattr__(self, name):
                 return dummy
 
-        client_instance = DummyClient()
+            def __bool__(self):
+                return False
+
+            def __enter__(self):
+                """Support with statement."""
+                return self
+
+            def __exit__(self, exc_type, exc_value, traceback):
+                """Stop after exit with statement."""
+                pass
+
+        streamit = DummyClient()
     else:
+        print("start sending service.")
+        # traceback.print_stack()
         from .client import Client
 
-        client_instance = Client()
+        streamit = Client()
 
-    return client_instance
-
+        streamit.start(experiment_name, server_ip)
 
 __all__ = ["streamit"]

@@ -1,6 +1,7 @@
 
 
 import json
+import time
 import numpy
 import torch
 from .sender import StreamitSender
@@ -26,10 +27,13 @@ class Client:
 
         self._sender = StreamitSender(self._data_queue, self._experiment_name, host)
 
-        self._sender.start()
+        try:
+            self._sender.start()
+        except Exception:
+            print("Fail to start streamit client.")
 
-    def info(self, scenario: str, topology: str, durations: int, total_episodes: int, **kwargs):
-        self._put(MessageType.Experiment, (scenario, topology, durations, total_episodes, kwargs))
+    def info(self, scenario: str, topology: str, durations: int,**kwargs):
+        self._put(MessageType.Experiment, (scenario, topology, durations, kwargs))
 
     def tick(self, tick: int):
         """Update current tick"""
@@ -133,3 +137,17 @@ class Client:
     def __getitem__(self, name: str):
         """Shorthand for category name, like: streamit["port_detail"](index=0, name="test")"""
         return partial(self.send, name)
+
+    def __bool__(self):
+        return True
+
+    def __del__(self):
+        self.close()
+
+    def __enter__(self):
+        """Support with statement."""
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        """Stop after exit with statement."""
+        self.close()

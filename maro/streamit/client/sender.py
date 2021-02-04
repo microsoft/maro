@@ -1,4 +1,8 @@
 
+import os
+
+os.environ["MARO_STREAMIT_ENABLED"] = "false"
+
 from datetime import datetime
 import asyncio
 import warnings
@@ -154,7 +158,6 @@ class StreamitSender(Process):
                 else:
                     warnings.warn(f"Invalid message type: {msg_type}")
             except Exception as ex:
-                print(str(ex))
                 if is_stopping:
                     print("stopping..")
                     break
@@ -179,7 +182,7 @@ class StreamitSender(Process):
 
             writer.write(bytes(msg_str, "utf-8"))
 
-            # NOTE: we should supply a \n to completed influxdb line protocol message
+            # NOTE: we should supply a \n to completed influxdb line protocol message.
             writer.write(NEXT_LINE)
 
             await writer.drain()
