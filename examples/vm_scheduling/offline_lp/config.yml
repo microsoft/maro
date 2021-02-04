@@ -1,3 +1,5 @@
+experiment_name: test
+
 env:
   scenario: vm_scheduling
   topology: azure.2019.10k

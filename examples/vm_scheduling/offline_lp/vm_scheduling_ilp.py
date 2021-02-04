@@ -7,16 +7,18 @@ import math
 import numpy as np
 from pulp import GLPK, LpInteger, LpMaximize, LpProblem, LpStatus, LpVariable, lpSum
 
-from maro.utils import DottableDict
+from maro.utils import DottableDict, Logger
 
 from common import IlpAllocatedVmInfo, IlpFutureVmInfo, IlpPmCapacity, IlpVmInfo
 
 
-# To indicates not or can not allocate any PM for current VM request.
+# To indicate the decision of not allocate or cannot allocate any PM for current VM request.
 NOT_ALLOCATE_NOW = -1
 
 class VmSchedulingILP():
-    def __init__(self, config: DottableDict, pm_capacity=List[IlpPmCapacity]):
+    def __init__(self, config: DottableDict, pm_capacity: List[IlpPmCapacity], logger: Logger):
+        self._logger = logger
+
         self._pm_capacity = pm_capacity
         self._pm_num = len(self._pm_capacity)
 
