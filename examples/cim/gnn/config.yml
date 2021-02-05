@@ -3,7 +3,7 @@ env:
   scenario: "cim"
   topology: "global_trade.22p_l0.8"
   # topology: "toy.4p_ssdd_l0.0"
-  durations: 1120
+  durations: 200
 agent:
   training:
     enable: True

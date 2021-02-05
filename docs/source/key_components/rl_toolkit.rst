@@ -24,7 +24,7 @@ Learner and Actor
     # Train function of learner.
     def learn(self):
         for exploration_params in self._scheduler:
-            performance, exp_by_agent = self._actor.roll_out(
+            exp_by_agent = self._actor.roll_out(
                 self._agent_manager.dump_models(),
                 exploration_params=exploration_params
             )

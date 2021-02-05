@@ -46,6 +46,9 @@ class AbsActor(ABC):
             index (int): Externally designated index to identify the roll-out round.
             training (bool): If true, the roll-out is for training purposes, which usually means
                 some kind of training data, e.g., experiences, needs to be collected. Defaults to True.
+        
+        Returns:
+            Data collected during the episode.
         """
         raise NotImplementedError
     

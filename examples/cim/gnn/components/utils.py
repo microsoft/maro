@@ -55,7 +55,7 @@ def decision_cnt_analysis(env, pv=False, buffer_size=8):
                 decision_cnt[pa.port_idx, pa.vessel_idx] = buffer_size
             else:
                 decision_cnt[pa.port_idx, pa.vessel_idx] += 1
-            action = Action(pa.vessel_idx, pa.port_idx, 0)
+            action = Action(pa.vessel_idx, pa.port_idx, 0, None)
             r, pa, is_done = env.step(action)
     env.reset()
     return decision_cnt
@@ -73,7 +73,7 @@ def random_shortage(env, tick, action_dim=21):
         else:
             actual_action = int(1.0*action_idx/zero_idx*discharge)
         """
-        action = Action(pa.vessel_idx, pa.port_idx, 0)
+        action = Action(pa.vessel_idx, pa.port_idx, 0, None)
         r, pa, is_done = env.step(action)
 
     shs = env.snapshot_list["ports"][tick - 1:list(range(node_cnt)):"acc_shortage"]

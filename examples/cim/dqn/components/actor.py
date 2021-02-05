@@ -26,4 +26,4 @@ class Actor(AbsActor):
         exp = self.experience_shaper(self.env.snapshot_list) if training else None
         self.experience_shaper.reset()
 
-        return self.env.metrics, exp
+        return exp

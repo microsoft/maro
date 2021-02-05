@@ -20,12 +20,11 @@ class PolicyGradient(AbsAgent):
     Reference: https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch.
 
     Args:
-        name (str): Agent's name.
         model (SimpleMultiHeadModel): Model that computes action distributions.
         reward_discount (float): Reward decay as defined in standard RL terminology.
     """
-    def __init__(self, name: str, model: SimpleMultiHeadModel, reward_discount: float):
-        super().__init__(name, model, reward_discount)
+    def __init__(self, model: SimpleMultiHeadModel, reward_discount: float):
+        super().__init__(model, reward_discount)
 
     def choose_action(self, state: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """Use the actor (policy) model to generate stochastic actions.
@@ -107,15 +106,14 @@ class ActorCritic(AbsAgent):
     https://towardsdatascience.com/understanding-actor-critic-methods-931b97b6df3f
 
     Args:
-        name (str): Agent's name.
         model (SimpleMultiHeadModel): Multi-task model that computes action distributions and state values.
             It may or may not have a shared bottom stack.
         config: Configuration for the AC algorithm.
     """
-    def __init__(self, name: str, model: SimpleMultiHeadModel, config: ActorCriticConfig):
+    def __init__(self, model: SimpleMultiHeadModel, config: ActorCriticConfig):
         if model.task_names is None or set(model.task_names) != {"actor", "critic"}:
             raise UnrecognizedTask(f"Expected model task names 'actor' and 'critic', but got {model.task_names}")
-        super().__init__(name, model, config)
+        super().__init__(model, config)
 
     def choose_action(self, state: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """Use the actor (policy) model to generate stochastic actions.

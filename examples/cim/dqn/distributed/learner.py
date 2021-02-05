@@ -9,7 +9,7 @@ class SimpleDistLearner(AbsDistLearner):
     def learn(self):
         for exploration_params in self.scheduler:
             self.agent.set_exploration_params(exploration_params)
-            performance, experiences = self.collect(exploration_params=exploration_params)
+            env_metrics, experiences = self.collect(exploration_params=exploration_params)
             for src, perf in performance.items():
                 self._logger.info(
                     f"{src}.ep-{self.scheduler.iter} - performance: {perf}, exploration_params: {exploration_params}"

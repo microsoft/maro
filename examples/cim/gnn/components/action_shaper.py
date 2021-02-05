@@ -1,5 +1,5 @@
 from maro.rl import Shaper
-from maro.simulator.scenarios.cim.common import Action
+from maro.simulator.scenarios.cim.common import Action, ActionType
 
 
 class DiscreteActionShaper(Shaper):
@@ -20,18 +20,21 @@ class DiscreteActionShaper(Shaper):
             model_action (int): Output action, range A means the half of the agent output dim.
             decision_event (Event): The decision event from the environment.
         """
-        env_action = 0
+        actual_action = 0
         model_action -= self._zero_action
 
         action_scope = decision_event.action_scope
 
         if model_action < 0:
-            # Discharge resource from dynamic node.
-            env_action = round(int(model_action) * 1.0 / self._zero_action * action_scope.load)
-        elif model_action == 0:
-            env_action = 0
-        else:
             # Load resource to dynamic node.
-            env_action = round(int(model_action) * 1.0 / self._zero_action * action_scope.discharge)
+            action_type = ActionType.LOAD
+            actual_action = round(int(model_action) * 1.0 / self._zero_action * action_scope.load)
+        elif model_action == 0:
+            action_type = None
+            actual_action = 0
+        else:
+            # Discharge resource from dynamic node.
+            action_type = ActionType.DISCHARGE
+            actual_action = round(int(model_action) * 1.0 / self._zero_action * action_scope.discharge)
         
-        return Action(decision_event.vessel_idx, decision_event.port_idx, int(env_action))
+        return Action(decision_event.vessel_idx, decision_event.port_idx, int(actual_action), action_type)

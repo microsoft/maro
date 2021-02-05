@@ -3,7 +3,7 @@
 
 from .action_shaper import CIMActionShaper
 from .actor import Actor
-from .agent import create_dqn_agents
+from .create_agent import create_dqn_agents
 from .experience_shaper import TruncatedExperienceShaper
 from .learner import Learner
 from .state_shaper import CIMStateShaper

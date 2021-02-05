@@ -29,11 +29,11 @@ class GNNExperienceShaper:
         self._experience_dict = defaultdict(list)
         self._last_tick = 0
 
-    def record(self, decision_event, action, model_input):
+    def record(self, event, action, model_input):
         # Only the experience that has the next state of given time slot is valuable.
-        if decision_event.tick + self._time_slot < self._max_tick:
-            self._experience_dict[decision_event.port_idx, decision_event.vessel_idx].append({
-                "tick": decision_event.tick,
+        if event.tick + self._time_slot < self._max_tick:
+            self._experience_dict[event.port_idx, event.vessel_idx].append({
+                "tick": event.tick,
                 "s": model_input,
                 "a": action,
             })

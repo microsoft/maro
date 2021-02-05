@@ -17,7 +17,7 @@ class PayloadKey(Enum):
     TIME_STEP = "time_step"
     MODEL = "model"
     EXPLORATION_PARAMS = "exploration_params"
-    PERFORMANCE = "performance"
+    METRICS = "metrics"
     DETAILS = "details"
     STATE = "state"
     TRAINING = "training"

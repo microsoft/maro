@@ -96,7 +96,7 @@ The main primitives are listed below:
   and watch and collect reply message(s) from the peer(s).
   ``scatter`` is not a real multi-cast, each message will go through the full TCP/IP
   stack (ZeroMQ driver). If the message you want to send is completely same and
-  you want better performance, use the ``broadcast`` interface instead.
+  you want better performanceuse the ``broadcast`` interface instead.
 * ``iscatter``\ : The non-blocking version of the ``scatter``. The related messages
   session ID(s) will be returned immediately, which can be used by ``receive_by_id``.
 * ``broadcast``\ : A blocking function call which is used to broadcast the message

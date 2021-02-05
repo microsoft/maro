@@ -19,14 +19,12 @@ class AbsAgent(ABC):
     on interaction with the environment.
 
     Args:
-        name (str): Agent's name.
         model (AbsLearningModel): Task model or container of task models required by the algorithm.
         config: Settings for the algorithm.
         experience_pool: It is used to store experiences processed by the experience shaper, which will be
             used by some value-based algorithms, such as DQN. Defaults to None.
     """
-    def __init__(self, name: str, model: AbsLearningModel, config, experience_pool=None):
-        self._name = name
+    def __init__(self, model: AbsLearningModel, config, experience_pool=None):
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self._model = model.to(self._device)
         self._config = config
@@ -68,28 +66,28 @@ class AbsAgent(ABC):
 
     def load_model(self, model):
         """Load models from memory."""
-        self._model.load(model)
+        self._model.load_state_dict(model)
 
     def dump_model(self):
         """Return the algorithm's trainable models."""
-        return self._model.dump()
+        return self._model.state_dict()
 
-    def load_model_from_file(self, dir_path: str):
+    def load_model_from_file(self, path: str):
         """Load trainable models from disk.
 
         Load trainable models from the specified directory. The model file is always prefixed with the agent's name.
 
         Args:
-            dir_path (str): path to the directory where the models are saved.
+            path (str): path to the directory where the models are saved.
         """
-        self._model.load_from_file(os.path.join(dir_path, self._name))
+        self._model.load_state_dict(torch.load(path))
 
-    def dump_model_to_file(self, dir_path: str):
+    def dump_model_to_file(self, path: str):
         """Dump the algorithm's trainable models to disk.
 
         Dump trainable models to the specified directory. The model file is always prefixed with the agent's name.
 
         Args:
-            dir_path (str): path to the directory where the models are saved.
+            path (str): path to the directory where the models are saved.
         """
-        self._model.dump_to_file(os.path.join(dir_path, self._name))
+        torch.save(self._model.state_dict(), path)

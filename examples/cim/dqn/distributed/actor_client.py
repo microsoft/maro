@@ -23,7 +23,8 @@ class SimpleActorClient(ActorClient):
         metrics, event, is_done = self.env.step(None)
         while not is_done:
             state = self.state_shaper(event, self.env.snapshot_list)
-            action = self.get_action(state, index, time_step, agent_id=str(event.port_idx))
+            agent_id = str(event.port_idx)
+            action = self.get_action(state, index, time_step, agent_id=agent_id)
             if isinstance(action, AbortRollout):
                 return None, None
 
@@ -32,6 +33,9 @@ class SimpleActorClient(ActorClient):
                 metrics, event, is_done = self.env.step(None)
                 self._logger.info(f"Failed to receive an action for time step {time_step}, proceed with no action.")
             else:
+                self.experience_shaper.record(
+                    {"state": state, "agent_id": agent_id, "event": event, "action": action}
+                )
                 metrics, event, is_done = self.env.step(self.action_shaper(action, event, self.env.snapshot_list))
                 
         exp = self.experience_shaper(self.env.snapshot_list) if training else None

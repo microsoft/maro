@@ -14,14 +14,12 @@ class Learner(AbsLearner):
         for exploration_params in self.scheduler:
             # load exploration parameters
             self.actor.agent.set_exploration_params(exploration_params)
-            performance, exp = self.actor.roll_out(self.scheduler.iter)
+            exp = self.actor.roll_out(self.scheduler.iter)
             self._logger.info(
-                f"ep {self.scheduler.iter} - performance: {performance}, exploration_params: {exploration_params}"
+                f"ep {self.scheduler.iter} - performance: {self.actor.env.metrics}, "
+                f"exploration_params: {exploration_params}"
             )
             self.update(exp)
-
-    def test(self):
-        performance, _ = self.actor.roll_out(self.scheduler.iter, is_training=False)
 
     def update(self, experiences_by_agent):
         # Store experiences for each agent

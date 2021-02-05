@@ -12,9 +12,10 @@ class AbsLearner(ABC):
 
     Args:
         actor (AbsActor): An ``AbsActor`` instance that performs roll-outs.
-        scheduer (Scheduler): A ``Scheduler`` instance that controls the training loop and parameter generation.
+        scheduler (Scheduler): A ``Scheduler`` instance that controls the training loop and parameter generation.
+            Defaults to None.
     """
-    def __init__(self, actor: AbsActor, scheduler: Scheduler):
+    def __init__(self, actor: AbsActor, scheduler: Scheduler = None):
         self.actor = actor
         self.scheduler = scheduler
 

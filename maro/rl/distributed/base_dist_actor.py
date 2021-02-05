@@ -41,16 +41,16 @@ class BaseDistActor(object):
                 )
                 ep = msg.payload[PayloadKey.ROLLOUT_INDEX]
                 self._logger.info(f"Rolling out for ep-{ep}...")
-                performance, details = self.actor.roll_out(
+                rollout_data = self.actor.roll_out(
                     ep, training=msg.payload[PayloadKey.TRAINING], **msg.payload[PayloadKey.ROLLOUT_KWARGS]
                 )
-                if performance is None:
+                if rollout_data is None:
                     self._logger.info(f"Roll-out aborted for ep-{ep}")
                 else:
                     self._logger.info(f"Roll-out finished for ep-{ep}")
                     payload = {
                         PayloadKey.ROLLOUT_INDEX: ep, 
-                        PayloadKey.PERFORMANCE: performance, 
+                        PayloadKey.METRICS: self.actor.env.metrics,
                         PayloadKey.DETAILS: details
                     }
                     # If the actor is an ActorClient instance, we need to tell the learner the ID of the actor client

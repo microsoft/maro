@@ -17,10 +17,9 @@ def launch(config, distributed_config):
     config = convert_dottable(config)
     distributed_config = convert_dottable(distributed_config)
     env = Env(config.env.scenario, config.env.topology, durations=config.env.durations)
-    agent_id_list = [str(agent_id) for agent_id in env.agent_idx_list]
-
     config.agent.model.input_dim = CIMStateShaper(**config.env.state_shaping).dim
-    agent = MultiAgentWrapper(create_dqn_agents(agent_id_list, config.agent))
+    config.agent.names = [str(agent_id) for agent_id in env.agent_idx_list]
+    agent = MultiAgentWrapper(create_dqn_agents(config.agent))
     scheduler = TwoPhaseLinearParameterScheduler(config.main_loop.max_episode, **config.main_loop.exploration)
 
     inference = distributed_config.inference_mode == "remote"

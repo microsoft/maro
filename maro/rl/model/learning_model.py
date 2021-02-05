@@ -125,18 +125,6 @@ class AbsLearningModel(nn.Module):
     def copy(self):
         return clone(self)
 
-    def load(self, state_dict):
-        self.load_state_dict(state_dict)
-
-    def dump(self):
-        return self.state_dict()
-
-    def load_from_file(self, path: str):
-        self.load_state_dict(torch.load(path))
-
-    def dump_to_file(self, path: str):
-        torch.save(self.state_dict(), path)
-
 
 class SimpleMultiHeadModel(AbsLearningModel):
     """A compound network structure that consists of multiple task heads and an optional shared stack.

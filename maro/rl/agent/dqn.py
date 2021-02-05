@@ -76,12 +76,7 @@ class DQN(AbsAgent):
         model (SimpleMultiHeadModel): Q-value model.
         config: Configuration for DQN algorithm.
     """
-    def __init__(
-        self,
-        name: str,
-        model: SimpleMultiHeadModel,
-        config: DQNConfig
-    ):
+    def __init__(self, model: SimpleMultiHeadModel, config: DQNConfig):
         if (config.advantage_mode is not None and
                 (model.task_names is None or set(model.task_names) != {"state_value", "advantage"})):
             raise UnrecognizedTask(
@@ -89,7 +84,7 @@ class DQN(AbsAgent):
                 f"got {model.task_names}"
             )
         super().__init__(
-            name, model, config,
+            model, config,
             experience_pool=SimpleStore(["state", "action", "reward", "next_state", "loss"])
         )
         self._training_counter = 0

@@ -21,7 +21,6 @@ def launch(config, distributed_config):
     distributed_config = convert_dottable(distributed_config)
     
     env = Env(config.env.scenario, config.env.topology, durations=config.env.durations)
-    agent_id_list = [str(agent_id) for agent_id in env.agent_idx_list]
     state_shaper = CIMStateShaper(**config.env.state_shaping)
     action_shaper = CIMActionShaper(action_space=list(np.linspace(-1.0, 1.0, config.agent.model.output_dim)))
     experience_shaper = TruncatedExperienceShaper(**config.env.experience_shaping)
@@ -44,7 +43,8 @@ def launch(config, distributed_config):
         )
     elif inference_mode == "local":
         config.agent.model.input_dim = state_shaper.dim
-        agent = MultiAgentWrapper(create_dqn_agents(agent_id_list, config.agent))
+        config.agent.names = [str(agent_id) for agent_id in env.agent_idx_list]
+        agent = MultiAgentWrapper(create_dqn_agents(config.agent))
         actor = Actor(env, agent, state_shaper, action_shaper, experience_shaper)
     else:
         raise ValueError(f'Supported distributed training modes: "local", "remote", got {inference_mode}')

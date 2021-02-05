@@ -14,11 +14,8 @@ main_loop:
   max_episode: 100
   early_stopping:
     warmup_ep: 20
-    last_k: 5
-    perf_threshold: 0.95   # minimum performance (fulfillment ratio) required to trigger early stopping
-    perf_stability_threshold: 0.1  # stability is measured by the maximum of abs(perf_(i+1) - perf_i) / perf_i
-                                   # over the last k episodes (where perf is short for performance). This value must
-                                   # be below this threshold to trigger early stopping
+    k: 5
+    perf_thresh: 0.95   # minimum performance (fulfillment ratio) required to trigger early stopping
 agent:
   seed: 1024   # for reproducibility
   type: "actor_critic"  # "actor_critic" or "policy_gradient"

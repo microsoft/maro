@@ -120,7 +120,7 @@ class AbsDistLearner(ABC):
                 unfinished.discard(src)
                 result = self._registry_table.push(msg)
                 if result:
-                    performance, details = result[0]
+                    env_metrics, details = result[0]
                     break
             elif msg.tag == MessageTag.CHOOSE_ACTION:
                 self._registry_table.push(msg)
@@ -129,7 +129,7 @@ class AbsDistLearner(ABC):
         if unfinished:
             self.terminate_rollout(list(unfinished))
 
-        return performance, details
+        return env_metrics, details
 
     def terminate_rollout(self, actors: List[str]):
         """Send messages to select actors to terminate their roll-out routines."""
@@ -139,10 +139,10 @@ class AbsDistLearner(ABC):
         )
         self._logger.info(f"Sent terminating signals to unfinished actors: {actors}")
 
-    def _on_rollout_finish(self, finish_messages: List[Message]):
-        performances = {msg.source: msg.payload[PayloadKey.PERFORMANCE] for msg in finish_messages}
-        details = {msg.source: msg.payload[PayloadKey.DETAILS] for msg in finish_messages}
-        return performances, details
+    def _on_rollout_finish(self, messages: List[Message]):
+        metrics = {msg.source: msg.payload[PayloadKey.METRICS] for msg in messages}
+        details = {msg.source: msg.payload[PayloadKey.DETAILS] for msg in messages}
+        return metrics, details
 
     def _on_action_request(self, messages: List[Message]):
         # group messages from different actors by the AGENT_ID field
@@ -153,9 +153,21 @@ class AbsDistLearner(ABC):
         # batch inference for each agent_id
         for agent_id, message_batch in messages_by_agent_id.items():
             state_batch = np.vstack([msg.payload[PayloadKey.STATE] for msg in message_batch])
-            action_batch = self.agent[agent_id].choose_action(state_batch)
-            for msg, action in zip(message_batch, action_batch):
-                if np.random.random() <= 0.99:
+            result = self.agent[agent_id].choose_action(state_batch)
+            if isinstance(result, tuple):
+                action_batch, log_p_batch = result
+                for msg, action, log_p in zip(message_batch, action_batch, log_p_batch):
+                    self.proxy.reply(
+                        msg,
+                        tag=MessageTag.ACTION,
+                        payload={
+                            PayloadKey.ACTION: (action, log_p),
+                            PayloadKey.ROLLOUT_INDEX: msg.payload[PayloadKey.ROLLOUT_INDEX],
+                            PayloadKey.TIME_STEP: msg.payload[PayloadKey.TIME_STEP]
+                        }
+                    )
+            else:
+                for msg, action in zip(message_batch, result):
                     self.proxy.reply(
                         msg,
                         tag=MessageTag.ACTION,

@@ -61,9 +61,9 @@ class GNNBasedActorCritic(AbsAgent):
     """
 
     def __init__(
-        self, name, model: AbsLearningModel, config: GNNBasedActorCriticConfig, experience_pool, logger=DummyLogger()
+        self, model: AbsLearningModel, config: GNNBasedActorCriticConfig, experience_pool, logger=DummyLogger()
     ):
-        super().__init__(name, model, config, experience_pool=experience_pool)
+        super().__init__(model, config, experience_pool=experience_pool)
         self._batch_count = 0
         self._logger = logger
 
@@ -130,7 +130,7 @@ class GNNBasedActorCritic(AbsAgent):
                 e_loss = np.mean(loss_dict["entropy"])
                 tot_loss = np.mean(loss_dict["tot"])
                 self._logger.debug(
-                    f"code: {str(self._name)} \t actor: {float(a_loss)} \t critic: {float(c_loss)} \t entropy: {float(e_loss)} \
+                    f"code: {p_idx}-{v_idx} \t actor: {float(a_loss)} \t critic: {float(c_loss)} \t entropy: {float(e_loss)} \
                     \t tot: {float(tot_loss)}")
 
             exp_pool.clear()
