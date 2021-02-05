@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 
-from enum import IntEnum
+from enum import Enum, IntEnum
 
 from maro.backends.frame import SnapshotList
 
@@ -11,6 +11,12 @@ class VesselState(IntEnum):
     """State of vessel."""
     PARKING = 0
     SAILING = 1
+
+
+class ActionType(Enum):
+    """Type of CIM action."""
+    LOAD = "load",
+    DISCHARGE = "discharge"
 
 
 class Action:
@@ -23,10 +29,11 @@ class Action:
     """
     summary_key = ["port_idx", "vessel_idx", "quantity"]
 
-    def __init__(self, vessel_idx: int, port_idx: int, quantity: int):
+    def __init__(self, vessel_idx: int, port_idx: int, quantity: int, action_type: ActionType):
         self.vessel_idx = vessel_idx
         self.port_idx = port_idx
         self.quantity = quantity
+        self.action_type = action_type
 
     def __repr__(self):
         return self.__str__()
@@ -113,6 +120,13 @@ class DecisionEvent:
             "action_scope": self.action_scope,
             "early_discharge": self.early_discharge
         }
+
+    def __setstate__(self, state):
+        self.tick = state["tick"]
+        self.port_idx = state["port_idx"]
+        self.vessel_idx = state["vessel_idx"]
+        self._action_scope = state["action_scope"]
+        self._early_discharge = state["early_discharge"]
 
     def __repr__(self):
         return self.__str__()

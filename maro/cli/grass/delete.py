@@ -2,18 +2,20 @@
 # Licensed under the MIT license.
 
 
-from maro.cli.grass.executors.grass_azure_executor import GrassAzureExecutor
-from maro.cli.grass.executors.grass_on_premises_executor import GrassOnPremisesExecutor
-from maro.cli.utils.checkers import check_details_validity
-from maro.cli.utils.details import load_cluster_details
-from maro.cli.utils.lock import lock
-from maro.utils.exception.cli_exception import BadRequestError
+from maro.cli.utils.details_validity_wrapper import check_details_validity
+from maro.cli.utils.operation_lock_wrapper import operation_lock
 
 
 @check_details_validity
-@lock
+@operation_lock
 def delete(cluster_name: str, **kwargs):
-    cluster_details = load_cluster_details(cluster_name=cluster_name)
+    # Late import.
+    from maro.cli.grass.executors.grass_azure_executor import GrassAzureExecutor
+    from maro.cli.grass.executors.grass_on_premises_executor import GrassOnPremisesExecutor
+    from maro.cli.utils.details_reader import DetailsReader
+    from maro.utils.exception.cli_exception import BadRequestError
+
+    cluster_details = DetailsReader.load_cluster_details(cluster_name=cluster_name)
 
     if cluster_details["mode"] == "grass/azure":
         executor = GrassAzureExecutor(cluster_name=cluster_name)
@@ -22,4 +24,4 @@ def delete(cluster_name: str, **kwargs):
         executor = GrassOnPremisesExecutor(cluster_name=cluster_name)
         executor.delete()
     else:
-        raise BadRequestError(f"Unsupported command in mode '{cluster_details['mode']}'.")
+        raise BadRequestError(f"Unsupported operation in mode '{cluster_details['mode']}'.")

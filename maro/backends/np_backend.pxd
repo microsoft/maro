@@ -2,29 +2,29 @@
 # Licensed under the MIT license.
 
 #cython: language_level=3
+#distutils: language = c++
 
 import numpy as np
 cimport numpy as np
 cimport cython
 
 from cpython cimport bool
-from maro.backends.backend cimport BackendAbc, SnapshotListAbc
+from maro.backends.backend cimport BackendAbc, SnapshotListAbc, UINT, ULONG, NODE_TYPE, ATTR_TYPE, NODE_INDEX, SLOT_INDEX
+
 
 cdef class NumpyBackend(BackendAbc):
     """Backend using numpy array to hold data, this backend only support fixed size array for now"""
     cdef:
-        # used to store real data, key is node name, value is np.ndarray
-        dict _node_data_dict
-
-        # node name -> node number in frame
-        dict _node_num_dict
+        # Used to store node information, index is the id (IDENTIFIER), value if NodeInfo
+        list _nodes_list
+        list _attrs_list
 
         # used to cache attribute by node name
-        # node name -> list of (name, type, slot), used to construct numpy structure array
+        # node id -> list of attribute id, used to construct numpy structure array
         dict _node_attr_dict
 
-        # quick look up table to query with (node_name, attr_name) -> AttrInfo
-        dict _node_attr_lut
+        # Used to store real data, key is node id, value is np.ndarray
+        dict _node_data_dict
 
         bool _is_snapshot_enabled
 
@@ -33,7 +33,6 @@ cdef class NumpyBackend(BackendAbc):
 
             # memory size
             size_t _data_size
-
 
 
 cdef class NPBufferedMmap:
@@ -57,7 +56,7 @@ cdef class NPBufferedMmap:
         # memory mapping np array
         np.ndarray _data_arr
 
-    cdef void reload(self) except *
+    cdef void reload(self) except +
 
 
 cdef class NPSnapshotList(SnapshotListAbc):
@@ -65,10 +64,12 @@ cdef class NPSnapshotList(SnapshotListAbc):
     cdef:
         NumpyBackend _backend
 
-        # tick -> index mapping
+        dict _node_name2type_dict
+
+        # frame_index -> index mapping
         dict _tick2index_dict
 
-        # index -> tick mapping
+        # index -> old_frame_index mapping
         dict _index2tick_dict
 
         # current index to insert snapshot, default should be 1, never be 0
@@ -82,4 +83,4 @@ cdef class NPSnapshotList(SnapshotListAbc):
         # key: node name, value: history buffer
         dict _history_dict
 
-    cdef void enable_history(self, str history_folder) except *
+    cdef void enable_history(self, str history_folder) except +

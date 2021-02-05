@@ -1,9 +1,0 @@
-mode: ""
-cluster: ""
-public_ip_address: ""
-hostname: ""
-system: ""
-resources:
-  cpu: ""
-  memory: ""
-  gpu: ""

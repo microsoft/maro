@@ -3,6 +3,7 @@
 
 import io
 import os
+import numpy
 
 # NOTE: DO NOT change the import order, as sometimes there is a conflict between setuptools and distutils,
 # it will cause following error:
@@ -30,10 +31,6 @@ compile_conditions = {}
 # CURRENTLY we using environment variables to specified compiling conditions
 # TODO: used command line arguments instead
 
-# specified frame backend
-FRAME_BACKEND = os.environ.get("FRAME_BACKEND", "NUMPY")  # NUMPY or empty
-
-
 # include dirs for frame and its backend
 include_dirs = []
 
@@ -41,37 +38,38 @@ include_dirs = []
 extensions.append(
     Extension(
         f"{BASE_MODULE_NAME}.backend",
-        sources=[f"{BASE_SRC_PATH}/backend.c"])
+        sources=[f"{BASE_SRC_PATH}/backend.cpp"],
+        extra_compile_args=['-std=c++11'])
 )
 
-if FRAME_BACKEND == "NUMPY":
-    import numpy
 
-    include_dirs.append(numpy.get_include())
+include_dirs.append(numpy.get_include())
 
-    extensions.append(
-        Extension(
-            f"{BASE_MODULE_NAME}.np_backend",
-            sources=[f"{BASE_SRC_PATH}/np_backend.c"],
-            define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")],
-            include_dirs=include_dirs)
-    )
-else:
-    # raw implementation
-    # NOTE: not implemented now
-    extensions.append(
-        Extension(
-            f"{BASE_MODULE_NAME}.raw_backend",
-            sources=[f"{BASE_SRC_PATH}/raw_backend.c"])
-    )
+extensions.append(
+    Extension(
+        f"{BASE_MODULE_NAME}.np_backend",
+        sources=[f"{BASE_SRC_PATH}/np_backend.cpp"],
+        include_dirs=include_dirs,
+        extra_compile_args=['-std=c++11'])
+)
+
+# raw implementation
+# NOTE: not implemented now
+extensions.append(
+    Extension(
+        f"{BASE_MODULE_NAME}.raw_backend",
+        sources=[f"{BASE_SRC_PATH}/raw_backend.cpp"],
+        include_dirs=include_dirs,
+        extra_compile_args=['-std=c++11'])
+)
 
 # frame
 extensions.append(
     Extension(
         f"{BASE_MODULE_NAME}.frame",
-        sources=[f"{BASE_SRC_PATH}/frame.c"],
-        define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")],
-        include_dirs=include_dirs)
+        sources=[f"{BASE_SRC_PATH}/frame.cpp"],
+        include_dirs=include_dirs,
+        extra_compile_args=['-std=c++11'])
 )
 
 
@@ -125,15 +123,16 @@ setup(
         "pyaml==20.4.0",
         "redis==3.5.3",
         "pyzmq==19.0.2",
-        "requests==2.24.0",
+        "requests==2.25.1",
         "psutil==5.7.2",
-        "deepdiff==5.0.2",
+        "deepdiff==5.2.2",
         "azure-storage-blob==12.6.0",
         "azure-storage-common==2.1.0",
         "geopy==2.0.0",
         "pandas==0.25.3",
         "PyYAML==5.3.1",
-        "paramiko==2.7.2"
+        "paramiko==2.7.2",
+        "kubernetes==12.0.1"
     ],
     entry_points={
         "console_scripts": [
@@ -145,8 +144,8 @@ setup(
     package_data={
         "maro.simulator.scenarios.cim": ["topologies/*/*.yml", "meta/*.yml"],
         "maro.simulator.scenarios.citi_bike": ["topologies/*/*.yml", "meta/*.yml"],
-        "maro.cli.k8s": ["lib/*", "lib/*/*", "lib/*/*/*"],
-        "maro.cli.grass": ["lib/*", "lib/*/*", "lib/*/*/*"],
+        "maro.cli.k8s": ["lib/*", "lib/*/*", "lib/*/*/*", "lib/*/*/*/*"],
+        "maro.cli.grass": ["lib/*", "lib/*/*", "lib/*/*/*", "lib/*/*/*/*", "lib/*/*/*/*/*"],
     },
     zip_safe=False,
     ext_modules=extensions,

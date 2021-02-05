@@ -29,10 +29,74 @@ class BackendsSetItemInvalidException(MAROException):
 
 
 class BackendsArrayAttributeAccessException(MAROException):
-    """Exception then access attribute that slot number greater than 1.
+    """Exception when access attribute that slot number greater than 1.
 
     This exception is caused when using invalid slice interface to access slots.
     """
 
     def __init__(self):
         super().__init__(2102, ERROR_CODE[2102])
+
+
+class BackendsAppendToNonListAttributeException(MAROException):
+    """Exception when append value to a non list attribute.
+    """
+
+    def __init__(self):
+        super().__init__(2103, ERROR_CODE[2103])
+
+
+class BackendsResizeNonListAttributeException(MAROException):
+    """Exception when try to resize a non list attribute.
+    """
+
+    def __init__(self):
+        super().__init__(2104, ERROR_CODE[2104])
+
+
+class BackendsClearNonListAttributeException(MAROException):
+    """Exception when try to clear a non list attribute.
+    """
+
+    def __init__(self):
+        super().__init__(2105, ERROR_CODE[2105])
+
+
+class BackendsInsertNonListAttributeException(MAROException):
+    """Exception when try to insert a value to non list attribute.
+    """
+
+    def __init__(self):
+        super().__init__(2106, ERROR_CODE[2106])
+
+
+class BackendsRemoveFromNonListAttributeException(MAROException):
+    """Exception when try to from a value to non list attribute.
+    """
+
+    def __init__(self):
+        super().__init__(2107, ERROR_CODE[2107])
+
+
+class BackendsAccessDeletedNodeException(MAROException):
+    """Exception when try to access a deleted node.
+    """
+
+    def __init__(self):
+        super().__init__(2108, ERROR_CODE[2108])
+
+
+class BackendsInvalidNodeException(MAROException):
+    """Exception when try to access a not exist node type.
+    """
+
+    def __init__(self):
+        super().__init__(2109, ERROR_CODE[2109])
+
+
+class BackendsInvalidAttributeException(MAROException):
+    """Exception when try to access a not exist attribute type.
+    """
+
+    def __init__(self):
+        super().__init__(2110, ERROR_CODE[2110])

@@ -5,7 +5,7 @@ import sys
 from typing import Union
 
 from maro.rl.actor.simple_actor import SimpleActor
-from maro.rl.agent.simple_agent_manager import SimpleAgentManager
+from maro.rl.agent_manager import AbsAgentManager
 from maro.rl.dist_topologies.single_learner_multi_actor_sync_mode import ActorProxy
 from maro.rl.scheduling.scheduler import Scheduler
 from maro.utils import DummyLogger, Logger
@@ -26,13 +26,13 @@ class SimpleLearner(AbsLearner):
     """
     def __init__(
         self,
-        agent_manager: SimpleAgentManager,
+        agent_manager: AbsAgentManager,
         actor: Union[SimpleActor, ActorProxy],
         scheduler: Scheduler,
         logger: Logger = DummyLogger()
     ):
         super().__init__()
-        self._agent_manager = agent_manager
+        self.agent_manager = agent_manager
         self._actor = actor
         self._scheduler = scheduler
         self._logger = logger
@@ -41,20 +41,20 @@ class SimpleLearner(AbsLearner):
         """Main loop for collecting experiences from the actor and using them to update policies."""
         for exploration_params in self._scheduler:
             performance, exp_by_agent = self._actor.roll_out(
-                model_dict=None if self._is_shared_agent_instance() else self._agent_manager.dump_models(),
+                model_dict=None if self._is_shared_agent_instance() else self.agent_manager.dump_models(),
                 exploration_params=exploration_params
             )
             self._scheduler.record_performance(performance)
-            ep_summary = f"ep {self._scheduler.current_ep} - performance: {performance}"
+            ep_summary = f"ep {self._scheduler.current_iter} - performance: {performance}"
             if exploration_params:
-                ep_summary = f"{ep_summary}, exploration_params: {self._scheduler.exploration_params}"
+                ep_summary = f"{ep_summary}, exploration_params: {exploration_params}"
             self._logger.info(ep_summary)
-            self._agent_manager.train(exp_by_agent)
+            self.agent_manager.train(exp_by_agent)
 
     def test(self):
         """Test policy performance."""
         performance, _ = self._actor.roll_out(
-            model_dict=self._agent_manager.dump_models(),
+            model_dict=self.agent_manager.dump_models(),
             return_details=False
         )
         self._scheduler.record_performance(performance)
@@ -66,11 +66,11 @@ class SimpleLearner(AbsLearner):
         sys.exit(code)
 
     def load_models(self, dir_path: str):
-        self._agent_manager.load_models_from_files(dir_path)
+        self.agent_manager.load_models_from_files(dir_path)
 
     def dump_models(self, dir_path: str):
-        self._agent_manager.dump_models_to_files(dir_path)
+        self.agent_manager.dump_models_to_files(dir_path)
 
     def _is_shared_agent_instance(self):
-        """If true, the set of agents performing inference in actor is the same as self._agent_manager."""
-        return isinstance(self._actor, SimpleActor) and id(self._actor.agents) == id(self._agent_manager)
+        """If true, the set of agents performing inference in actor is the same as self.agent_manager."""
+        return isinstance(self._actor, SimpleActor) and id(self._actor.agent_manager) == id(self.agent_manager)
