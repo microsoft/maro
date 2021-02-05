@@ -1,11 +1,11 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
 
+from enum import IntEnum
 
-import os
-import struct
-
-from enum import IntEnum, Enum
 
 class MessageType(IntEnum):
+    """Message types, used to identify type of message."""
     Experiment = 0
     Episode = 1
     Tick = 2

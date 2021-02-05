@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 from maro.simulator import Env
-from maro.simulator.scenarios.cim.common import Action
+from maro.simulator.scenarios.cim.common import Action, ActionType
 from maro.streamit import streamit
 
 if __name__ == "__main__":
@@ -20,13 +20,16 @@ if __name__ == "__main__":
 
         # Initialize an environment with a specific scenario, related topology.
         env = Env(scenario="cim", topology="toy.5p_ssddd_l0.0",
-                start_tick=start_tick, durations=durations, options=opts)
+                  start_tick=start_tick, durations=durations, options=opts)
 
         # Query environment summary, which includes business instances, intra-instance attributes, etc.
         print(env.summary)
 
         for ep in range(2):
-            # Gym-like step function
+            # Tell streamit we are in a new episode.
+            streamit.episode(ep)
+
+            # Gym-like step function.
             metrics, decision_event, is_done = env.step(None)
 
             while not is_done:
@@ -40,8 +43,12 @@ if __name__ == "__main__":
                                                             decision_port_idx:
                                                             intr_port_infos]
 
-                dummy_action = Action(decision_event.vessel_idx,
-                                    decision_event.port_idx, 0)
+                dummy_action = Action(
+                    decision_event.vessel_idx,
+                    decision_event.port_idx,
+                    0,
+                    ActionType.LOAD
+                )
 
                 # Drive environment with dummy action (no repositioning)
                 metrics, decision_event, is_done = env.step(dummy_action)

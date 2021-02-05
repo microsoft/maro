@@ -1,27 +1,33 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 import os
 import time
 
-import traceback
-
-from multiprocessing import Value
-
 streamit = None
 
-print("streamit?", os.environ["MARO_STREAMIT_ENABLED"])
+# We use environment variable to control if streaming enabled.
+is_streamit_enabled: bool = os.environ.get("MARO_STREAMIT_ENABLED", "") == "true"
 
-is_streamable_enabled: bool = os.environ.get("MARO_STREAMIT_ENABLED", "") == "true"
+experiment_name: str = os.environ.get("MARO_STREAMIT_EXPERIMENT_NAME", "UNNAMED_EXPERIMENT")
 
-experiment_name: str = os.environ.get("MARO_STREAMIT_EXPERIMENT_NAME", f"UNNAMED_EXPERIMENT_{time.time()}")
+# Append timestamp to all experiment name to make sure all experiment name are unique.
+experiment_name = f"{experiment_name}.{time.time()}"
 
+# Configure service host, but not port, as we hard coded the port for now.
 server_ip = os.environ.get("MARO_STREAMIT_SERVER_IP", "127.0.0.1")
 
 if streamit is None:
-    if not is_streamable_enabled:
+    # If not enabled, we return a dummy object that can accept any function/attribute call.
+    if not is_streamit_enabled:
+        # Function that use for dummy calling.
         def dummy(self, *args, **kwargs):
             pass
 
         class DummyClient:
-            def __getattr__(self, name):
+            """Dummy client that hold call function call when disable streamit,
+            to user do not need if-else for switching."""
+            def __getattr__(self, name: str):
                 return dummy
 
             def __bool__(self):
@@ -37,12 +43,8 @@ if streamit is None:
 
         streamit = DummyClient()
     else:
-        print("start sending service.")
-        # traceback.print_stack()
-        from .client import Client
+        from .client import StreamitClient
 
-        streamit = Client()
-
-        streamit.start(experiment_name, server_ip)
+        streamit = StreamitClient(experiment_name, server_ip)
 
 __all__ = ["streamit"]
