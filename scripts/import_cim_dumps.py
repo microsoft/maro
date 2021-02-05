@@ -232,7 +232,7 @@ if __name__ == "__main__":
     assert (os.path.exists(args.ssdir))
 
     # Force enable streamit.
-    os.environ["MARO_STREAMIT_ENABLED"] = "True"
+    os.environ["MARO_STREAMIT_ENABLED"] = "true"
     os.environ["MARO_STREAMIT_EXPERIMENT_NAME"] = args.name
 
     from maro.streamit import streamit
