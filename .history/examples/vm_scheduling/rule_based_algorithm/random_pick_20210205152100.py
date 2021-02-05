@@ -4,10 +4,10 @@ from maro.simulator import Env
 from maro.simulator.scenarios.vm_scheduling.common import Action
 from maro.simulator.scenarios.vm_scheduling import AllocateAction, DecisionPayload, PostponeAction
 
-from algorithm import Algorithm
+from algorithm import VMSchedulingAgent
 
 
-class RandomPick(Algorithm):
+class RandomPick(VMSchedulingAgent):
     def allocate_vm(self, decision_event: DecisionPayload, env: Env) -> AllocateAction:
         valid_pm_num: int = len(decision_event.valid_pms)
         # Random choose a valid PM.

@@ -4,10 +4,10 @@ from maro.simulator import Env
 from maro.simulator.scenarios.vm_scheduling.common import Action
 from maro.simulator.scenarios.vm_scheduling import AllocateAction, DecisionPayload, PostponeAction
 
-from algorithm import Algorithm
+from algorithm import VMSchedulingAgent
 
 
-class BestFit(Algorithm):
+class BestFit(VMSchedulingAgent):
     def __init__(
         self,
         metric_type: str = "remaining_cpu_cores"

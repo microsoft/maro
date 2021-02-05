@@ -2,10 +2,10 @@ from maro.simulator import Env
 from maro.simulator.scenarios.vm_scheduling.common import Action
 from maro.simulator.scenarios.vm_scheduling import AllocateAction, DecisionPayload, PostponeAction
 
-from algorithm import Algorithm
+from algorithm import VMSchedulingAgent
 
 
-class FirstFit(Algorithm):
+class FirstFit(VMSchedulingAgent):
     def __init__(self):
         super().__init__()
         self._pm_list: list[int] = list()

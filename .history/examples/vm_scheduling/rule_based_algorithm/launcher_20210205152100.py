@@ -1,5 +1,6 @@
 import io
 import os
+import pdb
 import random
 import timeit
 
@@ -9,8 +10,6 @@ import importlib
 from maro.simulator import Env
 from maro.simulator.scenarios.vm_scheduling import AllocateAction, DecisionPayload, PostponeAction
 from maro.utils import convert_dottable
-
-from agent import VMSchedulingAgent
 
 def import_class(name):
     components = name.rsplit('.', 1)
@@ -35,13 +34,11 @@ if __name__ == "__main__":
         snapshot_resolution=config.env.resolution
     )
 
-    algorithm_class = import_class(config.algorithm.type)
-    if config.algorithm.args is None:
-        algorithm = algorithm_class()
+    agent_class = import_class(config.alg.type)
+    if config.alg.args is None:
+        agent = agent_class()
     else:
-        algorithm = algorithm_class(**config.algorithm.args)
-
-    agent = VMSchedulingAgent(algorithm)
+        agent = agent_class(**config.alg.args)
 
     if config.env.seed is not None:
         env.set_seed(config.env.seed)
@@ -55,7 +52,7 @@ if __name__ == "__main__":
 
     end_time = timeit.default_timer()
     print(
-        f"[{config.algorithm.type.split('.')[1]}] Topology: {config.env.topology}. Total ticks: {config.env.durations}."
+        f"[{config.alg.type.split('.')[1]}] Topology: {config.env.topology}. Total ticks: {config.env.durations}."
         f" Start tick: {config.env.start_tick}."
     )
     print(f"[Timer] {end_time - start_time:.2f} seconds to finish the simulation.")

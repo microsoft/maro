@@ -6,7 +6,7 @@ env:
   resolution: 1
   seed: 666
 
-algorithm:
+alg:
   # Random
   # type: random_pick.RandomPick
   # args:
@@ -16,14 +16,14 @@ algorithm:
   # args:
 
   # BestFit
-  # type: best_fit.BestFit
-  # args:
-    # metric_type: "remaining_cpu_cores"
+  type: best_fit.BestFit
+  args:
+    metric_type: "remaining_cpu_cores"
 
   # Round Robin
-  type: round_robin.RoundRobin
-  args:
-    pm_num: 100
+  # type: round_robin.RoundRobin
+  # args:
+    # pm_num: 100
 
   # Bin packing
   # type: bin_packing.BinPacking
