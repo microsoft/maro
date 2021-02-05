@@ -8,7 +8,6 @@ from rule_based_algorithm import RuleBasedAlgorithm
 class FirstFit(RuleBasedAlgorithm):
     def __init__(self):
         super().__init__()
-        self._pm_list: list[int] = list()
 
     def allocate_vm(self, decision_event: DecisionPayload, env: Env) -> AllocateAction:
         # Use a valid PM based on its order.
