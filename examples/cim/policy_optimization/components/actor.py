@@ -11,7 +11,7 @@ class Actor(AbsActor):
             state_shaper=state_shaper, action_shaper=action_shaper, experience_shaper=experience_shaper
         )
 
-    def roll_out(self, index, is_training=True):
+    def roll_out(self, index, training=True):
         self.env.reset()
         metrics, event, is_done = self.env.step(None)
         while not is_done:
@@ -23,7 +23,7 @@ class Actor(AbsActor):
             )
             metrics, event, is_done = self.env.step(self.action_shaper(action, event, self.env.snapshot_list))
 
-        exp = self.experience_shaper(self.env.snapshot_list) if is_training else None
+        exp = self.experience_shaper(self.env.snapshot_list) if training else None
         self.experience_shaper.reset()
 
         return self.env.metrics, exp

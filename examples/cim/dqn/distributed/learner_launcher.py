@@ -23,14 +23,13 @@ def launch(config, distributed_config):
     agent = MultiAgentWrapper(create_dqn_agents(agent_id_list, config.agent))
     scheduler = TwoPhaseLinearParameterScheduler(config.main_loop.max_episode, **config.main_loop.exploration)
 
-    inference = os.environ.get("MODE", distributed_config.inference_mode) == "remote"
-    expected_peers={"actor": int(os.environ.get("NUM_ACTORS", distributed_config.num_actors))}
+    inference = distributed_config.inference_mode == "remote"
     if inference:
-        expected_peers["actor_client"] = expected_peers["actor"]
+        distributed_config.peers.learner.actor_client = distributed_config.peers.learner.actor
     proxy = Proxy(
-        group_name=os.environ["GROUP"] if "GROUP" in os.environ else distributed_config.group,
+        group_name=distributed_config.group,
         component_type="learner",
-        expected_peers=expected_peers,
+        expected_peers=distributed_config.peers.learner,
         redis_address=(distributed_config.redis.hostname, distributed_config.redis.port),
         max_retries=15
     )

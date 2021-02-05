@@ -101,7 +101,7 @@ class GNNBasedActorCritic(AbsAgent):
             state["ppedge"], state["mask"]
         )
         action_prob, _ = self._model(
-            model_state, p_idx=state["p_idx"], v_idx=state["v_idx"], use_actor=True, is_training=False
+            model_state, p_idx=state["p_idx"], v_idx=state["v_idx"], use_actor=True, training=False
         )
         action_prob = Categorical(action_prob)
         action = action_prob.sample()

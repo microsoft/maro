@@ -41,7 +41,7 @@ class PolicyGradient(AbsAgent):
         if is_single:
             state = state.unsqueeze(dim=0)
 
-        action_prob = Categorical(self._model(state, is_training=False))
+        action_prob = Categorical(self._model(state, training=False))
         action = action_prob.sample()
         log_p = action_prob.log_prob(action)
         action, log_p = action.cpu().numpy(), log_p.cpu().numpy()
@@ -131,7 +131,7 @@ class ActorCritic(AbsAgent):
         if is_single:
             state = state.unsqueeze(dim=0)
 
-        action_prob = Categorical(self._model(state, task_name="actor", is_training=False))
+        action_prob = Categorical(self._model(state, task_name="actor", training=False))
         action = action_prob.sample()
         log_p = action_prob.log_prob(action)
         action, log_p = action.cpu().numpy(), log_p.cpu().numpy()

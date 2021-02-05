@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 import sys
-
 from typing import Union
 
 from maro.communication import Message, Proxy
@@ -40,18 +39,25 @@ class BaseDistActor(object):
                     model_dict=msg.payload.get(PayloadKey.MODEL, None),
                     exploration_params=msg.payload.get(PayloadKey.EXPLORATION_PARAMS, None)
                 )
-                ep = msg.payload[PayloadKey.EPISODE]
+                ep = msg.payload[PayloadKey.ROLLOUT_INDEX]
                 self._logger.info(f"Rolling out for ep-{ep}...")
                 performance, details = self.actor.roll_out(
-                    ep, is_training=msg.payload[PayloadKey.IS_TRAINING], **msg.payload[PayloadKey.ROLLOUT_KWARGS]
+                    ep, training=msg.payload[PayloadKey.TRAINING], **msg.payload[PayloadKey.ROLLOUT_KWARGS]
                 )
-                self._logger.info(f"Roll-out finished for ep-{ep}")
-                payload = {PayloadKey.EPISODE: ep, PayloadKey.PERFORMANCE: performance, PayloadKey.DETAILS: details}
-                # If the actor is an ActorClient instance, we need to tell the learner the ID of the actor client
-                # so that the learner can send termination signals to the actor clients of unfinished actors.
-                if isinstance(self.actor, ActorClient):
-                    payload[PayloadKey.ACTOR_CLIENT_ID] = self.actor.agent.component_name
-                self.proxy.isend(Message(MessageTag.FINISHED, self.name, self.learner_name, payload=payload))
+                if performance is None:
+                    self._logger.info(f"Roll-out aborted for ep-{ep}")
+                else:
+                    self._logger.info(f"Roll-out finished for ep-{ep}")
+                    payload = {
+                        PayloadKey.ROLLOUT_INDEX: ep, 
+                        PayloadKey.PERFORMANCE: performance, 
+                        PayloadKey.DETAILS: details
+                    }
+                    # If the actor is an ActorClient instance, we need to tell the learner the ID of the actor client
+                    # so that the learner can send termination signals to the actor clients of unfinished actors.
+                    if isinstance(self.actor, ActorClient):
+                        payload[PayloadKey.ACTOR_CLIENT_ID] = self.actor.agent.component_name
+                    self.proxy.isend(Message(MessageTag.FINISHED, self.name, self.learner_name, payload=payload))
 
     def exit(self):
         self._logger.info("Exiting...")

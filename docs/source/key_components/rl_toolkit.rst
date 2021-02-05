@@ -157,7 +157,7 @@ Choosing an action is simply:
 
 .. code-block:: python
 
-  model(state, task_name="actor", is_training=False)
+  model(state, task_name="actor", training=False)
 
 And performing one gradient step is simply:
 
@@ -180,5 +180,5 @@ As an example, the exploration for DQN may be carried out with the aid of an ``E
 .. code-block:: python
 
   explorer = EpsilonGreedyExplorer(num_actions=10)
-  greedy_action = learning_model(state, is_training=False).argmax(dim=1).data
+  greedy_action = learning_model(state, training=False).argmax(dim=1).data
   exploration_action = explorer(greedy_action)

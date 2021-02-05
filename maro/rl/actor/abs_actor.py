@@ -39,16 +39,16 @@ class AbsActor(ABC):
         self.experience_shaper = experience_shaper
 
     @abstractmethod
-    def roll_out(self, index: int, is_training: bool = True, **kwargs):
+    def roll_out(self, index: int, training: bool = True, **kwargs):
         """Perform one episode of roll-out.
 
         Args:
             index (int): Externally designated index to identify the roll-out round.
-            is_training (bool): If true, the roll-out is for training purposes, which usually means
+            training (bool): If true, the roll-out is for training purposes, which usually means
                 some kind of training data, e.g., experiences, needs to be collected. Defaults to True.
         """
         raise NotImplementedError
-
+    
     def update_agent(self, model_dict: dict = None, exploration_params: dict = None):
         """Update the agent's models and exploration parameters ahead of roll-out.
 

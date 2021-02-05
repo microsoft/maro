@@ -187,7 +187,7 @@ class SimpleMultiHeadModel(AbsLearningModel):
         else:
             return self._component[task_name](inputs)
 
-    def forward(self, inputs, task_name: Union[str, List[str]] = None, is_training: bool = True):
+    def forward(self, inputs, task_name: Union[str, List[str]] = None, training: bool = True):
         """Feedforward computations for the given head(s).
 
         Args:
@@ -198,14 +198,14 @@ class SimpleMultiHeadModel(AbsLearningModel):
                 returned in the form of a dictionary; 2) if task_name is a list, the outputs from the task modules
                 specified in the list will be returned in the form of a dictionary; 3) if this is a single string,
                 the output from the corresponding task module will be returned.
-            is_training (bool): If true, all torch submodules will be set to training mode, and auto-differentiation
+            training (bool): If true, all torch submodules will be set to training mode, and auto-differentiation
                 will be turned on. Defaults to True.
 
         Returns:
             Outputs from the required head(s).
         """
-        self.train(mode=is_training)
-        if is_training:
+        self.train(mode=training)
+        if training:
             return self._forward(inputs, task_name)
 
         with torch.no_grad():

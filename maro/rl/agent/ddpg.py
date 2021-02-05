@@ -86,7 +86,7 @@ class DDPG(AbsAgent):
         if is_single:
             state = state.unsqueeze(dim=0)
 
-        action = self.model(state, task_name="policy", is_training=False).data.numpy()
+        action = self.model(state, task_name="policy", training=False).data.numpy()
         action_dim = action.shape[1]
         if self._explorer:
             action = self._explorer(action)
@@ -118,9 +118,9 @@ class DDPG(AbsAgent):
 
         current_q_values = self._model(torch.cat([states, actual_actions], dim=1), task_name="q_value")
         current_q_values = current_q_values.squeeze(dim=1)  # (N,)
-        next_actions = self._target_model(states, task_name="policy", is_training=False)
+        next_actions = self._target_model(states, task_name="policy", training=False)
         next_q_values = self._target_model(
-            torch.cat([next_states, next_actions], dim=1), task_name="q_value", is_training=False
+            torch.cat([next_states, next_actions], dim=1), task_name="q_value", training=False
         ).squeeze(1)  # (N,)
         target_q_values = (rewards + self._config.reward_discount * next_q_values).detach()  # (N,)
         q_value_loss = self._config.q_value_loss_func(current_q_values, target_q_values)

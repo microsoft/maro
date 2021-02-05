@@ -218,9 +218,9 @@ class GNNBasedACModel(AbsLearningModel):
         super().__init__(component, optim_option=optim_option)
         self.sequence_buffer_size = sequence_buffer_size
 
-    def forward(self, state, p_idx=None, v_idx=None, use_actor=False, use_critic=False, is_training=True):
-        self.train(mode=is_training)
-        if is_training:
+    def forward(self, state, p_idx=None, v_idx=None, use_actor=False, use_critic=False, training=True):
+        self.train(mode=training)
+        if training:
             return self._forward(state, p_idx=p_idx, v_idx=v_idx, use_actor=use_actor, use_critic=use_critic)
 
         with torch.no_grad():

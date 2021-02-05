@@ -8,7 +8,7 @@ from maro.rl.actor import AbsActor
 from maro.rl.shaping import Shaper
 from maro.simulator import Env
 
-from .common import MessageTag, PayloadKey, TerminateRollout
+from .common import MessageTag, PayloadKey, AbortRollout
 
 
 class ActorClient(AbsActor):
@@ -42,20 +42,30 @@ class ActorClient(AbsActor):
         self._max_receive_action_attempts = max_receive_action_attempts
 
     @abstractmethod
-    def roll_out(self, index: int, is_training: bool = True, **kwargs):
+    def roll_out(self, index: int, training: bool = True, **kwargs):
         """Perform one episode of roll-out.
 
         Args:
             index (int): Externally designated index to identify the roll-out round.
-            is_training (bool): If true, the roll-out is for training purposes, which usually means
+            training (bool): If true, the roll-out is for training purposes, which usually means
                 some kind of training data, e.g., experiences, needs to be collected. Defaults to True.
         """
         raise NotImplementedError
 
-    def get_action(self, rollout_index: int, time_step: int, state, agent_id: str = None):
+    def get_action(self, state, rollout_index: int, time_step: int, agent_id: str = None):
+        """Get an action decision from the remote agent.
+        
+        Args:
+            state: Environment state based on which the actin decision is to be made.
+            rollout_index (int): The roll-out index to which the current action decision belongs to.
+                This is used for request-response matching purposes.
+            time_step (int): The time step index at which the action decision occurs. This is used for
+                request-response matching purposes.
+            agent_id (str): The name of the agent to make the action decision. Defaults to None.
+        """
         payload = {
             PayloadKey.STATE: state,
-            PayloadKey.EPISODE: rollout_index,
+            PayloadKey.ROLLOUT_INDEX: rollout_index,
             PayloadKey.TIME_STEP: time_step,
             PayloadKey.AGENT_ID: agent_id,
         }
@@ -70,9 +80,10 @@ class ActorClient(AbsActor):
         attempts = self._max_receive_action_attempts
         for msg in self.agent.receive(timeout=self._receive_action_timeout):
             if msg:
-                ep, t = msg.payload[PayloadKey.EPISODE], msg.payload[PayloadKey.TIME_STEP]
-                if msg.tag == MessageTag.TERMINATE_EPISODE and ep == rollout_index:
-                    return TerminateRollout()
+                ep = msg.payload[PayloadKey.ROLLOUT_INDEX]
+                if msg.tag == MessageTag.TERMINATE_ROLLOUT and ep == rollout_index:
+                    return AbortRollout()
+                t = msg.payload[PayloadKey.TIME_STEP]
                 if msg.tag == MessageTag.ACTION and ep == rollout_index and t == time_step:
                     return msg.payload[PayloadKey.ACTION]
 

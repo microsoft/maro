@@ -71,7 +71,7 @@ class AbsDistLearner(ABC):
 
     def collect(
         self,
-        is_training: bool = True,
+        training: bool = True,
         agents_to_update: Union[str, List[str]] = None,
         exploration_params=None,
         **rollout_kwargs
@@ -79,35 +79,38 @@ class AbsDistLearner(ABC):
         """Collect roll-out performances and details from remote actors.
 
         Args:
-            is_training (bool): If true, the roll-out request is for training purposes.
+            training (bool): If true, the roll-out request is for training purposes.
             agents_to_update (Union[str, List[str]]): ID's of the agents whose models are to be broadcast to
                 the actors. If action decisions are made on the learner's side, this is ignored. Otherwise
                 defaults to None, in which case all agents' models will be sent.
             exploration_params: Exploration parameters for the actors to use during roll-out. If action decisions
                 are made on the learner's side, this is ignored.
+            rollout_kwargs: Keyword parameters required for roll-out. Must match the keyword parameters specified
+                for the actor class.
         """
         ep = self.scheduler.iter
         payload = {
-            PayloadKey.EPISODE: ep,
-            PayloadKey.IS_TRAINING: is_training,
+            PayloadKey.ROLLOUT_INDEX: ep, 
+            PayloadKey.TRAINING: training, 
             PayloadKey.ROLLOUT_KWARGS: rollout_kwargs
         }
         # If no actor client is found, it is necessary to broadcast agent models to the remote actors
         # so that thay can perform inference on their own. If there exists exploration parameters, they
-        # must also be sent to the remote actors.   
+        # must also be sent to the remote actors.
         if not self._actor_clients:
             if exploration_params:
                 payload[PayloadKey.EXPLORATION_PARAMS] = exploration_params
             payload[PayloadKey.MODEL] = self.agent.dump_model(agent_ids=agents_to_update)
         self.proxy.iscatter(MessageTag.ROLLOUT, SessionType.TASK, [(actor, payload) for actor in self._actors])
         self._logger.info(f"Sent roll-out requests to {self._actors} for ep-{ep}")
-        
+
         # Receive roll-out results from remote actors
         unfinished = set(self._actors) if not self._actor_clients else set(self._actor_clients)
         for msg in self.proxy.receive():
-            if msg.payload[PayloadKey.EPISODE] != ep:
+            if msg.payload[PayloadKey.ROLLOUT_INDEX] != ep:
                 self._logger.info(
-                    f"Ignore a message of {msg.tag} with ep {msg.payload[PayloadKey.EPISODE]} (current ep: {ep})"
+                    f"Ignore a message of type {msg.tag} with ep {msg.payload[PayloadKey.ROLLOUT_INDEX]} "
+                    f"(current ep: {ep})"
                 )
                 continue
             if msg.tag == MessageTag.FINISHED:
@@ -122,7 +125,7 @@ class AbsDistLearner(ABC):
             elif msg.tag == MessageTag.CHOOSE_ACTION:
                 self._registry_table.push(msg)
 
-        # Send a TERMINATE_EPISODE cmd to unfinished actors to catch them up.
+        # Send a TERMINATE_ROLLOUT cmd to unfinished actors to catch them up.
         if unfinished:
             self.terminate_rollout(list(unfinished))
 
@@ -131,8 +134,8 @@ class AbsDistLearner(ABC):
     def terminate_rollout(self, actors: List[str]):
         """Send messages to select actors to terminate their roll-out routines."""
         self.proxy.iscatter(
-            MessageTag.TERMINATE_EPISODE, SessionType.NOTIFICATION,
-            [(name, {PayloadKey.EPISODE: self.scheduler.iter}) for name in actors]
+            MessageTag.TERMINATE_ROLLOUT, SessionType.NOTIFICATION,
+            [(name, {PayloadKey.ROLLOUT_INDEX: self.scheduler.iter}) for name in actors]
         )
         self._logger.info(f"Sent terminating signals to unfinished actors: {actors}")
 
@@ -152,16 +155,17 @@ class AbsDistLearner(ABC):
             state_batch = np.vstack([msg.payload[PayloadKey.STATE] for msg in message_batch])
             action_batch = self.agent[agent_id].choose_action(state_batch)
             for msg, action in zip(message_batch, action_batch):
-                self.proxy.reply(
-                    msg,
-                    tag=MessageTag.ACTION,
-                    payload={
-                        PayloadKey.ACTION: action,
-                        PayloadKey.EPISODE: msg.payload[PayloadKey.EPISODE],
-                        PayloadKey.TIME_STEP: msg.payload[PayloadKey.TIME_STEP]
-                    }
-                )
-    
+                if np.random.random() <= 0.99:
+                    self.proxy.reply(
+                        msg,
+                        tag=MessageTag.ACTION,
+                        payload={
+                            PayloadKey.ACTION: action,
+                            PayloadKey.ROLLOUT_INDEX: msg.payload[PayloadKey.ROLLOUT_INDEX],
+                            PayloadKey.TIME_STEP: msg.payload[PayloadKey.TIME_STEP]
+                        }
+                    )
+
     def exit(self):
         """Tell the remote actor to exit."""
         self.proxy.ibroadcast(

@@ -26,13 +26,13 @@ def launch(config, distributed_config):
     action_shaper = CIMActionShaper(action_space=list(np.linspace(-1.0, 1.0, config.agent.model.output_dim)))
     experience_shaper = TruncatedExperienceShaper(**config.env.experience_shaping)
     
-    inference_mode = os.environ.get("MODE", distributed_config.inference_mode)
+    inference_mode = distributed_config.inference_mode
     redis_address = distributed_config.redis.hostname, distributed_config.redis.port
     if inference_mode == "remote":
         agent_proxy = Proxy(
-            group_name=os.environ.get("GROUP", distributed_config.group),
+            group_name=distributed_config.group,
             component_type="actor_client",
-            expected_peers={"learner": 1},
+            expected_peers=distributed_config.peers.actor,
             redis_address=redis_address,
             max_retries=20,
             driver_parameters={"receive_timeout": distributed_config.receive_action_timeout}
@@ -50,9 +50,9 @@ def launch(config, distributed_config):
         raise ValueError(f'Supported distributed training modes: "local", "remote", got {inference_mode}')
 
     proxy = Proxy(
-        group_name=os.environ.get("GROUP", distributed_config.group),
+        group_name=distributed_config.group,
         component_type="actor",
-        expected_peers={"learner": 1},
+        expected_peers=distributed_config.peers.actor,
         redis_address=redis_address,
         max_retries=20
     )

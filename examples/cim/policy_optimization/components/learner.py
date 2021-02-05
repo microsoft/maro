@@ -20,7 +20,7 @@ class Learner(AbsLearner):
             self.update(exp)
 
     def test(self):
-        performance, _ = self.actor.roll_out(self.scheduler.iter, is_training=False)
+        performance, _ = self.actor.roll_out(self.scheduler.iter, training=False)
 
     def update(self, experiences_by_agent):
         for agent_id, exp in experiences_by_agent.items():

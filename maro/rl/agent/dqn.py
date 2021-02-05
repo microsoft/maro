@@ -101,7 +101,7 @@ class DQN(AbsAgent):
         if is_single:
             state = state.unsqueeze(dim=0)
 
-        q_values = self._get_q_values(self._model, state, is_training=False)
+        q_values = self._get_q_values(self._model, state, training=False)
         num_actions = q_values.shape[1]
         greedy_action = q_values.argmax(dim=1).data
         # No exploration
@@ -117,9 +117,9 @@ class DQN(AbsAgent):
             for act in greedy_action
         ])
 
-    def _get_q_values(self, model, states, is_training: bool = True):
+    def _get_q_values(self, model, states, training: bool = True):
         if self._config.advantage_mode is not None:
-            output = model(states, is_training=is_training)
+            output = model(states, training=training)
             state_values = output["state_value"]
             advantages = output["advantage"]
             # Use mean or max correction to address the identifiability issue
@@ -127,10 +127,10 @@ class DQN(AbsAgent):
             q_values = state_values + advantages - corrections.unsqueeze(1)
             return q_values
         else:
-            return model(states, is_training=is_training)
+            return model(states, training=training)
 
     def _get_next_q_values(self, current_q_values_for_all_actions, next_states):
-        next_q_values_for_all_actions = self._get_q_values(self._target_model, next_states, is_training=False)
+        next_q_values_for_all_actions = self._get_q_values(self._target_model, next_states, training=False)
         if self._config.is_double:
             actions = current_q_values_for_all_actions.max(dim=1)[1].unsqueeze(1)
             return next_q_values_for_all_actions.gather(1, actions).squeeze(1)  # (N,)

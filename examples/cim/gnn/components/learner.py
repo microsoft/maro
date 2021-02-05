@@ -8,12 +8,9 @@ from maro.utils import DummyLogger
 class GNNLearner(AbsLearner):
     """Learner class for the training pipeline and the specialized logging in GNN solution for CIM problem."""
     def __init__(
-        self, env, agent_manager, scheduler, train_freq=1, model_save_freq=1, log_pth=os.getcwd(), logger=DummyLogger()
+        self, actor, scheduler, train_freq=1, model_save_freq=1, log_pth=os.getcwd(), logger=DummyLogger()
     ):
-        super().__init__()
-        self._env = env
-        self.agent_manager = agent_manager
-        self._scheduler = scheduler
+        super().__init__(actor, scheduler)
         self._train_freq = train_freq
         self._model_save_freq = model_save_freq
         self._log_pth = log_pth
@@ -24,10 +21,9 @@ class GNNLearner(AbsLearner):
         training_time = 0
         for _ in self._scheduler:
             tick = time.time()
-            performance, exp_dict = self._sample()
+            performance, exp_dict = self.actor.roll_out(self.scheduler.iter)
             rollout_time += time.time() - tick
             self._logger.info(f"ep {self._scheduler.iter} - performance: {performance}")
-            self.agent_manager.store_experiences(exp_dict)
 
             if self._scheduler.iter % self._train_freq == self._train_freq - 1:
                 self._logger.info("training start")
@@ -43,14 +39,7 @@ class GNNLearner(AbsLearner):
             self._logger.debug(f"rollout time: {int(rollout_time)}")
             self._logger.debug(f"training time: {int(training_time)}")
 
-    def _sample(self, return_details: bool = True):
-        self._env.reset()
-        metrics, decision_event, is_done = self._env.step(None)
-        while not is_done:
-            action = self.agent_manager.choose_action(decision_event, self._env.snapshot_list)
-            metrics, decision_event, is_done = self._env.step(action)
-            self.agent_manager.on_env_feedback(metrics)
+    def update(self, exp_dict):
+        self.actor.agent.store_experiences(exp_dict)
 
-        details = self.agent_manager.post_process(self._env.snapshot_list) if return_details else None
 
-        return self._env.metrics, details
