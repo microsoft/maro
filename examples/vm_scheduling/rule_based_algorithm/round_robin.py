@@ -2,10 +2,10 @@ from maro.simulator import Env
 from maro.simulator.scenarios.vm_scheduling.common import Action
 from maro.simulator.scenarios.vm_scheduling import AllocateAction, DecisionPayload, PostponeAction
 
-from algorithm import Algorithm
+from rule_based_algorithm import RuleBasedAlgorithm
 
 
-class RoundRobin(Algorithm):
+class RoundRobin(RuleBasedAlgorithm):
     def __init__(
         self,
         pm_num: int = 0
