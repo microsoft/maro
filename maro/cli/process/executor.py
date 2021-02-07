@@ -12,6 +12,7 @@ import yaml
 
 from maro.cli.grass.lib.services.utils.params import JobStatus
 from maro.cli.process.utils.details import close_by_pid, get_redis_pid_by_port
+from maro.cli.utils.abs_visible_executor import AbsVisibleExecutor
 from maro.cli.utils.details_reader import DetailsReader
 from maro.cli.utils.details_writer import DetailsWriter
 from maro.cli.utils.params import GlobalPaths, LocalPaths, ProcessRedisName
@@ -21,7 +22,7 @@ from maro.utils.logger import CliLogger
 logger = CliLogger(name=__name__)
 
 
-class ProcessExecutor:
+class ProcessExecutor(AbsVisibleExecutor):
     def __init__(self, details: dict = None):
         self.details = details if details else \
             DetailsReader.load_cluster_details("process")

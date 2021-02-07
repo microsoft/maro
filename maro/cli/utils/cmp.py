@@ -1,4 +1,14 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
+from enum import Enum
+
 from maro.cli.grass.lib.services.utils.resource import BasicResource
+
+
+class ResourceOperation(Enum):
+    ALLOCATION = "allocation"
+    RELEASE = "release"
 
 
 def resource_op(node_resource: dict, container_resource: dict, op: str):

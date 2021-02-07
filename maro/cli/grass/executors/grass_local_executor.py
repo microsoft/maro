@@ -12,7 +12,8 @@ import yaml
 
 from maro.cli.grass.lib.services.utils.params import JobStatus
 from maro.cli.process.utils.details import close_by_pid
-from maro.cli.utils.cmp import resource_op
+from maro.cli.utils.abs_visible_executor import AbsVisibleExecutor
+from maro.cli.utils.cmp import resource_op, ResourceOperation
 from maro.cli.utils.details_reader import DetailsReader
 from maro.cli.utils.details_writer import DetailsWriter
 from maro.cli.utils.params import GlobalPaths, LocalPaths
@@ -23,7 +24,7 @@ from maro.utils.logger import CliLogger
 logger = CliLogger(name=__name__)
 
 
-class GrassLocalExecutor:
+class GrassLocalExecutor(AbsVisibleExecutor):
     def __init__(self, cluster_name: str, cluster_details: dict = None):
         self.cluster_name = cluster_name
         self.cluster_details = DetailsReader.load_cluster_details(cluster_name=cluster_name) \
@@ -43,7 +44,7 @@ class GrassLocalExecutor:
         # Connection with Resource Redis
         self._resource_redis = LocalResourceExecutor()
 
-    def _complated_local_job_deployment(self, deployment: dict):
+    def _completed_local_job_deployment(self, deployment: dict):
         total_cpu, total_memory, total_gpu = 0, 0, 0
         for component_type, component_dict in deployment["components"].items():
             total_cpu += int(component_dict["num"]) * int(component_dict["resources"]["cpu"])
@@ -66,12 +67,6 @@ class GrassLocalExecutor:
         if os.path.isdir(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}"):
             raise BadRequestError(f"Cluster '{self.cluster_name}' is exist.")
 
-        # self._details_validation(create_deployment)
-        DetailsWriter.save_cluster_details(
-            cluster_name=self.cluster_name,
-            cluster_details=self.cluster_details
-        )
-
         # Build connection with Resource Redis
         self._resource_redis.add_cluster()
 
@@ -80,7 +75,9 @@ class GrassLocalExecutor:
         available_resource = self._resource_redis.get_available_resource()
 
         # Update resource
-        is_satisfied, updated_resource = resource_op(available_resource, cluster_resource, op="allocate")
+        is_satisfied, updated_resource = resource_op(
+            available_resource, cluster_resource, ResourceOperation.ALLOCATION
+        )
         if not is_satisfied:
             shutil.rmtree(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}", True)
             self._resource_redis.sub_cluster()
@@ -96,6 +93,12 @@ class GrassLocalExecutor:
             f"{self.cluster_name}:runtime_detail",
             "available_resource",
             json.dumps(cluster_resource)
+        )
+
+        # Save cluster config locally.
+        DetailsWriter.save_cluster_details(
+            cluster_name=self.cluster_name,
+            cluster_details=self.cluster_details
         )
 
         logger.info(f"{self.cluster_name} is created.")
@@ -114,7 +117,9 @@ class GrassLocalExecutor:
 
         # Update resource
         cluster_resource = self.cluster_details["master"]["resource"]
-        _, updated_resource = resource_op(available_resource, cluster_resource, "release")
+        _, updated_resource = resource_op(
+            available_resource, cluster_resource, ResourceOperation.RELEASE
+        )
         self._resource_redis.set_available_resource(updated_resource)
 
         # Rm connection from resource redis.
@@ -146,13 +151,13 @@ class GrassLocalExecutor:
         with open(deployment_path, "r") as fr:
             start_job_deployment = yaml.safe_load(fr)
 
-        start_job_deployment = self._complated_local_job_deployment(start_job_deployment)
+        start_job_deployment = self._completed_local_job_deployment(start_job_deployment)
 
         # Check resource
         is_satisfied, _ = resource_op(
             self.cluster_details["master"]["resource"],
             start_job_deployment["total_request_resource"],
-            op="allocate"
+            ResourceOperation.ALLOCATION
         )
         if not is_satisfied:
             raise BadRequestError(f"No enough resource to start job {start_job_deployment['name']}.")
@@ -221,13 +226,13 @@ class GrassLocalExecutor:
             start_schedule_deployment = yaml.safe_load(fr)
 
         schedule_name = start_schedule_deployment["name"]
-        start_schedule_deployment = self._complated_local_job_deployment(start_schedule_deployment)
+        start_schedule_deployment = self._completed_local_job_deployment(start_schedule_deployment)
 
         # Check resource
         is_satisfied, _ = resource_op(
             self.cluster_details["master"]["resource"],
             start_schedule_deployment["total_request_resource"],
-            op="allocate"
+            ResourceOperation.ALLOCATION
         )
         if not is_satisfied:
             raise BadRequestError(f"No enough resource to start schedule {schedule_name} in {self.cluster_name}.")
@@ -258,7 +263,7 @@ class GrassLocalExecutor:
             logger.error(f"No such schedule '{schedule_name}' in Redis.")
             return
 
-        if "job_names" not in schedule_details.keys():
+        if "job_names" not in schedule_details:
             logger.error(f"'{schedule_name}' is not a schedule.")
             return
 
@@ -289,7 +294,11 @@ class GrassLocalExecutor:
         }
 
     def get_resource(self):
-        return self._resource_redis.get_local_resource()
+        return self.cluster_details["master"]["resource"]
 
-    def get_resource_usage(self, previous_length: int):
-        return self._resource_redis.get_local_resource_usage(previous_length)
+    def get_resource_usage(self, previous_length: int = 0):
+        available_resource = self._redis_connection.hget(
+            f"{self.cluster_name}:runtime_detail",
+            "available_resource"
+        )
+        return json.loads(available_resource)
