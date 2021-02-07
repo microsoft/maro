@@ -37,3 +37,5 @@ altair==4.1.0
 tqdm==4.51.0
 editorconfig-checker
 aria2p==0.9.1
+prompt_toolkit==2.0.10
+stringcase==1.2.0
