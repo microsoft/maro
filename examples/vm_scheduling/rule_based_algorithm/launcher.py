@@ -35,6 +35,10 @@ if __name__ == "__main__":
         snapshot_resolution=config.env.resolution
     )
 
+    if config.env.seed is not None:
+        env.set_seed(config.env.seed)
+        random.seed(config.env.seed)
+
     algorithm_class = import_class(config.algorithm.type)
     if config.algorithm.args is None:
         algorithm = algorithm_class()
@@ -42,10 +46,6 @@ if __name__ == "__main__":
         algorithm = algorithm_class(**config.algorithm.args)
 
     agent = VMSchedulingAgent(algorithm)
-
-    if config.env.seed is not None:
-        env.set_seed(config.env.seed)
-        random.seed(config.env.seed)
 
     metrics, decision_event, is_done = env.step(None)
 

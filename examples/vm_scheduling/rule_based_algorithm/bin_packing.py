@@ -2,8 +2,7 @@ import random
 import numpy as np
 
 from maro.simulator import Env
-from maro.simulator.scenarios.vm_scheduling.common import Action
-from maro.simulator.scenarios.vm_scheduling import AllocateAction, DecisionPayload, PostponeAction
+from maro.simulator.scenarios.vm_scheduling import AllocateAction, DecisionPayload
 
 from rule_based_algorithm import RuleBasedAlgorithm
 
