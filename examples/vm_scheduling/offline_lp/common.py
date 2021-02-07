@@ -18,12 +18,14 @@ class IlpAllocatedVmInfo(IlpVmInfo):
         self.pm_idx = pm_idx
 
 class IlpFutureVmInfo(IlpVmInfo):
-    def __init__(self, core: int, mem: int, remaining_lifetime: int, arrival_time: int):
+    def __init__(self, core: int, mem: int, remaining_lifetime: int, id: int, arrival_time: int):
         super().__init__(core, mem, remaining_lifetime)
+        self.id = id
         self.arrival_time = arrival_time
 
     def __repr__(self):
         return (
+            f"[{self.id}]: "
             f"core: {self.core}, "
             f"mem: {self.mem}, "
             f"remaining_lifetime: {self.remaining_lifetime}, "

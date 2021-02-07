@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import timeit
 from typing import List
 
 import math
@@ -30,9 +31,12 @@ class VmSchedulingILP():
         self.mem_upper_ratio = 1 - config.performance.mem_safety_remaining_ratio
 
         # For objective.
-        self.current_vm_reward_factor = config.objective.current_vm_reward_factor
         self.successful_allocation_decay = config.objective.successful_allocation_decay
         self.allocation_multiple_core_num = config.objective.allocation_multiple_core_num
+
+        # For problem formulation and application
+        self.last_env_tick = -1
+        self.last_vm_idx = -1
 
     def _init_variables(self):
         def _init_with_shape(shape: tuple):
@@ -89,27 +93,18 @@ class VmSchedulingILP():
 
     def _set_objective(self, problem: LpProblem):
         # Reward for successful allocation.
-        allocation_reward = self.current_vm_reward_factor * lpSum(
-            self._mapping[pm_idx][0] for pm_idx in range(self._pm_num)
+        allocation_reward = lpSum(
+            math.pow(self.successful_allocation_decay, self._future_vm_req[vm_idx].arrival_time) * lpSum(
+                self._mapping[pm_idx][vm_idx] for pm_idx in range(self._pm_num)
+            ) * (self._future_vm_req[vm_idx].core if self.allocation_multiple_core_num else 1)
+            for vm_idx in range(self._vm_num)
         )
-
-        if self.allocation_multiple_core_num:
-            allocation_reward += lpSum(
-                math.pow(self.successful_allocation_decay, self._future_vm_req[vm_idx].arrival_time) * lpSum(
-                    self._mapping[pm_idx][vm_idx] for pm_idx in range(self._pm_num)
-                ) * self._future_vm_req[vm_idx].core
-                for vm_idx in range(1, self._vm_num)
-            )
-        else:
-            allocation_reward += lpSum(
-                math.pow(self.successful_allocation_decay, self._future_vm_req[vm_idx].arrival_time) * lpSum(
-                    self._mapping[pm_idx][vm_idx] for pm_idx in range(self._pm_num)
-                ) for vm_idx in range(1, self._vm_num)
-            )
 
         problem += allocation_reward
 
     def _formulate_and_solve(self):
+        start_time = timeit.default_timer()
+
         problem = LpProblem(
             name=f"VM_Scheduling_from_tick_{self._env_tick}",
             sense=LpMaximize
@@ -119,27 +114,31 @@ class VmSchedulingILP():
         self._set_objective(problem=problem)
         problem.solve(GLPK(msg=0))
 
+        end_time = timeit.default_timer()
+        self._logger.info(f"[Timer] {end_time - start_time:.2f} seconds for tick {self._env_tick}.")
+
     def choose_pm(
         self,
         env_tick: int,
-        vm_req: IlpVmInfo,
+        vm_id: int,
         allocated_vm: List[IlpAllocatedVmInfo],
         future_vm_req: List[IlpFutureVmInfo],
     ) -> int:
         self._env_tick = env_tick
         self._allocated_vm = allocated_vm
-        self._future_vm_req = [
-            IlpFutureVmInfo(
-                core=vm_req.core,
-                mem=vm_req.mem,
-                remaining_lifetime=vm_req.remaining_lifetime,
-                arrival_time=0
-            )
-        ] + future_vm_req
+        self._future_vm_req = future_vm_req
 
-        self._formulate_and_solve()
+        if env_tick != self.last_env_tick:
+            self._formulate_and_solve()
+            self.last_env_tick = env_tick
+            self.last_vm_idx = -1
+
+        vm_idx = self.last_vm_idx + 1
+        assert future_vm_req[vm_idx].id == vm_id
+        self.last_vm_idx += 1
+
         for pm_idx in range(self._pm_num):
-            if self._mapping[pm_idx][0].varValue:
+            if self._mapping[pm_idx][vm_idx].varValue:
                 return pm_idx
 
         return NOT_ALLOCATE_NOW
