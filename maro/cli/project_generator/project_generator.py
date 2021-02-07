@@ -45,10 +45,6 @@ def is_command_yes(cmd: str):
     return lower_cmd == "yes" or lower_cmd == "y"
 
 
-def run_project(project_dir: str, **kwargs: dict):
-    pass
-
-
 def new_project(**kwargs: dict):
     use_builtin_scenario = is_command_yes(prompt("Use built-in scenario?", default="yes"))
 
