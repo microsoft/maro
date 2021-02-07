@@ -70,6 +70,10 @@ class {{ project.scenario_cls }}BusinessEngine(AbsBusinessEngine):
     # Default we should stop at the end of durations.
     return tick + 1 == self._max_tick
 
+  def get_metrics(self):
+    # TODO: return any metrics information to outside as result of environment step.
+    return {}
+
   def reset(self):
     self._frame.reset()
     self._frame.snapshots.reset()
