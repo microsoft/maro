@@ -42,71 +42,59 @@ class IlpAgent():
 
         # Used to keep the info already read from the vm_item_picker.
         self.vm_req_dict = defaultdict(list)
-        self.vm_id_to_tick_idx = {}
-        self.current_tick = -1
-        self.current_tick_idx = -1
+        self.allocated_vm_dict = {}
+        self.refreshed_allocated_vm_dict = {}
+
+        self.last_env_tick = -1
+        self.future_vm_req: List[IlpFutureVmInfo] = []
+        self.allocated_vm: List[IlpAllocatedVmInfo] = []
 
     def choose_action(self, env_tick: int, cur_vm_id: int, live_vm_set_list: List[Set[int]]) -> Action:
-        # TODO: Add data erasure of useless old data.
-        for tick in range(env_tick, env_tick + self.ilp_plan_window_size + 1):
-            if tick not in self.vm_req_dict:
-                self.vm_req_dict[tick] = [item for item in self.vm_item_picker.items(tick)]
+        if env_tick != self.last_env_tick:
+            self.last_env_tick = env_tick
+            self.future_vm_req.clear()
+            self.allocated_vm.clear()
 
-        if env_tick > self.current_tick:
-            self.current_tick = env_tick
-            self.current_tick_idx = -1
+            # Read VM data from file.
+            for tick in range(env_tick, env_tick + self.ilp_plan_window_size + 1):
+                if tick not in self.vm_req_dict:
+                    self.vm_req_dict[tick] = [item for item in self.vm_item_picker.items(tick)]
 
-        vm_req: IlpVmInfo = None
-        while self.current_tick_idx < len(self.vm_req_dict[env_tick]):
-            self.current_tick_idx += 1
-            vm = self.vm_req_dict[env_tick][self.current_tick_idx]
-            if vm.vm_id == cur_vm_id:
-                vm_req = IlpVmInfo(core=vm.vm_cpu_cores, mem=vm.vm_memory, remaining_lifetime=vm.vm_lifetime)
-                self.vm_id_to_tick_idx[vm.vm_id] = (env_tick, self.current_tick_idx)
-                break
-        assert vm_req is not None
-
-        future_vm_req: List[IlpFutureVmInfo] = []
-        idx = self.current_tick_idx + 1
-        while idx < len(self.vm_req_dict[env_tick]):
-            vm = self.vm_req_dict[env_tick][idx]
-            future_vm_req.append(
-                IlpFutureVmInfo(
-                    core=vm.vm_cpu_cores,
-                    mem=vm.vm_memory,
-                    remaining_lifetime=vm.vm_lifetime,
-                    arrival_time=env_tick
-                )
-            )
-            idx += 1
-
-        for tick in range(env_tick + 1, env_tick + self.ilp_plan_window_size + 1):
-            for vm in self.vm_req_dict[tick]:
-                future_vm_req.append(
-                    IlpFutureVmInfo(
-                        core=vm.vm_cpu_cores,
-                        mem=vm.vm_memory,
-                        remaining_lifetime=vm.vm_lifetime,
-                        arrival_time=env_tick
+            # Build the future_vm_req list for ILP.
+            for tick in range(env_tick, env_tick + self.ilp_plan_window_size + 1):
+                for i, vm in enumerate(self.vm_req_dict[tick]):
+                    if vm.vm_id == cur_vm_id:
+                        self.refreshed_allocated_vm_dict[cur_vm_id] = vm
+                    self.future_vm_req.append(
+                        IlpFutureVmInfo(
+                            core=vm.vm_cpu_cores,
+                            mem=vm.vm_memory,
+                            remaining_lifetime=vm.vm_lifetime,
+                            id=vm.vm_id,
+                            arrival_time=env_tick
+                        )
                     )
-                )
 
-        allocated_vm: List[IlpAllocatedVmInfo] = []
-        for pm_idx in range(len(live_vm_set_list)):
-            for vm_id in live_vm_set_list[pm_idx]:
-                assert vm_id in self.vm_id_to_tick_idx
-                tick, idx = self.vm_id_to_tick_idx[vm_id]
-                vm = self.vm_req_dict[tick][idx]
-                allocated_vm.append(
-                    IlpAllocatedVmInfo(
-                        pm_idx=pm_idx,
-                        core=vm.vm_cpu_cores,
-                        mem=vm.vm_memory,
-                        remaining_lifetime=vm.vm_lifetime - tick
+            # Build the allocated_vm list for ILP.
+            for pm_idx in range(len(live_vm_set_list)):
+                for vm_id in live_vm_set_list[pm_idx]:
+                    assert vm_id in self.allocated_vm_dict
+                    vm = self.allocated_vm_dict[vm_id]
+                    self.refreshed_allocated_vm_dict[vm_id] = vm
+                    self.allocated_vm.append(
+                        IlpAllocatedVmInfo(
+                            pm_idx=pm_idx,
+                            core=vm.vm_cpu_cores,
+                            mem=vm.vm_memory,
+                            remaining_lifetime=vm.vm_lifetime - tick
+                        )
                     )
-                )
 
-        chosen_pm_idx = self.ilp.choose_pm(env_tick, vm_req, allocated_vm, future_vm_req)
+            self.allocated_vm_dict.clear()
+            self.allocated_vm_dict = self.refreshed_allocated_vm_dict
+            self.refreshed_allocated_vm_dict.clear()
+
+        chosen_pm_idx = self.ilp.choose_pm(env_tick, cur_vm_id, self.allocated_vm, self.future_vm_req)
         self._simulation_logger.info(f"vm: {cur_vm_id} -> pm: {chosen_pm_idx}")
 
         if chosen_pm_idx == NOT_ALLOCATE_NOW:

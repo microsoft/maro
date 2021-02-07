@@ -15,6 +15,5 @@ ilp:
     core_safety_remaining_ratio: 0
     mem_safety_remaining_ratio: 0
   objective:
-    current_vm_reward_factor: 10
     successful_allocation_decay: 1
     allocation_multiple_core_num: false
