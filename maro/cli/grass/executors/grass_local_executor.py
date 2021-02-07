@@ -13,7 +13,7 @@ import yaml
 from maro.cli.grass.lib.services.utils.params import JobStatus
 from maro.cli.process.utils.details import close_by_pid
 from maro.cli.utils.abs_visible_executor import AbsVisibleExecutor
-from maro.cli.utils.cmp import resource_op, ResourceOperation
+from maro.cli.utils.cmp import ResourceOperation, resource_op
 from maro.cli.utils.details_reader import DetailsReader
 from maro.cli.utils.details_writer import DetailsWriter
 from maro.cli.utils.params import GlobalPaths, LocalPaths
