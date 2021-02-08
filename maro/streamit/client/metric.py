@@ -30,6 +30,41 @@ def escape(value: str, escape_quotes=False):
     return new_value
 
 
+def is_int_type(v_type: type):
+    """Is input type a kind of int?
+
+    Args:
+        v_type (type): Value type.
+
+    Returns:
+        bool: True if an int type.
+    """
+    return v_type is int        \
+        or v_type is np.int64   \
+        or v_type is np.int32   \
+        or v_type is np.int16   \
+        or v_type is np.int8    \
+        or v_type is np.uint8   \
+        or v_type is np.uint16  \
+        or v_type is np.uint32  \
+        or v_type is np.uint64
+
+
+def is_float_type(v_type: type):
+    """Is input type a kind of float?
+
+    Args:
+        v_type (type): Value type.
+
+    Returns:
+        bool: True if an float type.
+    """
+    return v_type is float      \
+        or v_type is np.float   \
+        or v_type is np.float32 \
+        or v_type is np.float64
+
+
 def parse_value(value: object):
     """"Parse value into string to fit influxdb line protocol.
 
@@ -41,10 +76,10 @@ def parse_value(value: object):
     """
     v_type = type(value)
 
-    if v_type is int or v_type is np.int64 or v_type is np.int32 or v_type is np.int16:
+    if is_int_type(v_type):
         return "%di" % value
 
-    if v_type is float or v_type is np.float or v_type is np.float32 or v_type is np.float64:
+    if is_float_type(v_type):
         return "%g" % value
 
     if v_type is bool:
