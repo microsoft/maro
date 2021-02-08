@@ -138,7 +138,7 @@ setup(
             "maro=maro.cli.maro:main",
         ]
     },
-    packages=find_packages(exclude=["examples", "examples.*"]),
+    packages=find_packages(exclude=["tests", "tests.*", "examples", "examples.*"]),
     include_package_data=True,
     package_data={
         "maro.simulator.scenarios.cim": ["topologies/*/*.yml", "meta/*.yml"],
