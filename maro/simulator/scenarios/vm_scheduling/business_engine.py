@@ -227,7 +227,6 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         # Initialize regions.
         self._init_regions()
 
-
     def _init_regions(self):
         """Initialize the regions based on the config setting. The regions id starts from 0."""
         for region_list in self._find_item("region", self._config.architecture):
@@ -330,7 +329,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
         return start_cluster_id
 
-    def _init_racks(self,rack_amount_dict: dict):
+    def _init_racks(self, rack_amount_dict: dict):
         """Initialize the racks based on the config setting. The rack id starts from 0."""
         rack_type_dict = {
             rack['type']: {
@@ -362,7 +361,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
         return start_rack_id
 
-    def _init_pms(self,pm_dict: dict):
+    def _init_pms(self, pm_dict: dict):
         """Initialize the pms based on the config setting. The pm id starts from 0."""
         start_pm_id = self._pm_id
         for pm_type, pm_amount in pm_dict.items():
