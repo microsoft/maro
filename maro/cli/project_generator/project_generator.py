@@ -147,13 +147,14 @@ def new_project(**kwargs: dict):
         validate_while_typing=True
     )
 
-    options = {
-            "use_builtin_scenario": use_builtin_scenario,
-            "scenario": scenario_name,
-            "total_episodes": int(episodes),
-            "durations": int(durations),
-            "use_builtin_topology": use_builtin_topology,
-            "topology": topology_name
+    options =
+    {
+        "use_builtin_scenario": use_builtin_scenario,
+        "scenario": scenario_name,
+        "total_episodes": int(episodes),
+        "durations": int(durations),
+        "use_builtin_topology": use_builtin_topology,
+        "topology": topology_name
     }
 
     should_continue = prompt(
