@@ -363,7 +363,6 @@ cdef class NumpyBackend(BackendAbc):
 
         cdef SLOT_INDEX slot_index = 0
         cdef list result_list = []
-        cdef object value
 
         for slot_index in range(attr.slot_number):
             if filter_func(attr_array[0][index, slot_index]):
