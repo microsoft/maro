@@ -1003,6 +1003,7 @@ def load_parser_inspector(prev_parser: ArgumentParser, global_parser: ArgumentPa
 
     build_cmd_parser.set_defaults(func=start_vis)
 
+
 def load_parser_project(prev_parser: ArgumentParser, global_parser: ArgumentParser):
     sub_parsers = prev_parser.add_subparsers()
 
