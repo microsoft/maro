@@ -6,6 +6,7 @@
 *.c
 *.cpp
 *.DS_Store
+.pytest_cache/
 .idea/
 .vscode/
 .vs/
