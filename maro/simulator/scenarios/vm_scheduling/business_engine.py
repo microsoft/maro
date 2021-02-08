@@ -214,104 +214,87 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._racks = self._frame.racks
         self._machines = self._frame.pms
         # PM type dictionary.
-        self._pm_type_dict: dict = {
+        self._pm_config_dict: dict = {
             pm_type: pm_dict for pm_type, pm_dict in enumerate(self._config.components.pm)
         }
+        # Ids.
+        self._region_id = 0
+        self._zone_id = 0
+        self._data_center_id = 0
+        self._cluster_id = 0
+        self._rack_id = 0
+        self._pm_id = 0
         # Initialize regions.
-        self._init_regions(region_id=0)
+        self._init_regions()
 
-    def _init_regions(self, region_id: int):
+
+    def _init_regions(self):
         """Initialize the regions based on the config setting. The regions id starts from 0."""
-        zone_id = 0
         for region_list in self._find_item("region", self._config.architecture):
             for region_dict in region_list:
                 # Initialize zones.
-                start_zone_id, zone_id = self._init_zones(
-                    region_id=region_id,
-                    zone_id=zone_id,
+                start_zone_id = self._init_zones(
                     zone_list=region_dict["zone"]
                 )
-                region = self._regions[region_id]
+                region = self._regions[self._region_id]
                 region.set_init_state(
-                    id=region_id
+                    id=self._region_id
                 )
                 region.name = region_dict["name"]
-                region.zone_list = [id for id in range(start_zone_id, zone_id)]
+                region.zone_list = [id for id in range(start_zone_id, self._zone_id)]
                 region.total_machine_num = sum(
                     self._zones[id].total_machine_num for id in region.zone_list
                 )
 
-                region_id += 1
+                self._region_id += 1
 
-    def _init_zones(self, region_id: int, zone_id: int, zone_list: list):
+    def _init_zones(self, zone_list: list):
         """Initialize the zones based on the config setting. The zone id starts from 0."""
-        start_zone_id = zone_id
-        data_center_id = 0
+        start_zone_id = self._zone_id
         for zone_dict in zone_list:
             # Initialize data centers.
-            start_data_center_id, data_center_id = self._init_data_centers(
-                region_id=region_id,
-                zone_id=zone_id,
-                data_center_id=data_center_id,
+            start_data_center_id = self._init_data_centers(
                 data_center_list=zone_dict["data_center"]
             )
-            zone = self._zones[zone_id]
+            zone = self._zones[self._zone_id]
             zone.set_init_state(
-                id=zone_id,
-                region_id=region_id
+                id=self._zone_id,
+                region_id=self._region_id
             )
             zone.name = zone_dict["name"]
-            zone.data_center_list = [id for id in range(start_data_center_id, data_center_id)]
+            zone.data_center_list = [id for id in range(start_data_center_id, self._data_center_id)]
             zone.total_machine_num = sum(
                 self._data_centers[id].total_machine_num for id in zone.data_center_list
             )
 
-            zone_id += 1
+            self._zone_id += 1
 
-        return start_zone_id, zone_id
+        return start_zone_id
 
-    def _init_data_centers(
-        self,
-        region_id: int,
-        zone_id: int,
-        data_center_id: int,
-        data_center_list: list
-    ):
+    def _init_data_centers(self, data_center_list: list):
         """Initialize the data_centers based on the config setting. The data_center id starts from 0."""
-        start_data_center_id = data_center_id
-        cluster_id = 0
+        start_data_center_id = self._data_center_id
         for data_center_dict in data_center_list:
             # Initialize clusters.
-            start_cluster_id, cluster_id = self._init_clusters(
-                region_id=region_id,
-                zone_id=zone_id,
-                data_center_id=data_center_id,
-                cluster_id=cluster_id,
+            start_cluster_id = self._init_clusters(
                 cluster_list=data_center_dict["cluster"]
             )
-            data_center = self._data_centers[data_center_id]
+            data_center = self._data_centers[self._data_center_id]
             data_center.set_init_state(
-                id=data_center_id,
-                region_id=region_id,
-                zone_id=zone_id
+                id=self._data_center_id,
+                region_id=self._region_id,
+                zone_id=self._zone_id
             )
             data_center.name = data_center_dict["name"]
-            data_center.cluster_list = [id for id in range(start_cluster_id, cluster_id)]
+            data_center.cluster_list = [id for id in range(start_cluster_id, self._cluster_id)]
             data_center.total_machine_num = sum(
                 self._clusters[id].total_machine_num for id in data_center.cluster_list
             )
-            data_center_id += 1
+            self._data_center_id += 1
 
-        return start_data_center_id, data_center_id
+        return start_data_center_id
 
-    def _init_clusters(
-        self,
-        region_id: int,
-        zone_id: int,
-        data_center_id: int,
-        cluster_id: int,
-        cluster_list: list
-    ):
+    def _init_clusters(self, cluster_list: list):
         """Initialize the clusters based on the config setting. The cluster id starts from 0."""
         cluster_type_dict = {
             cluster['type']: {
@@ -320,51 +303,34 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             for cluster in self._config.components.cluster
         }
 
-        start_cluster_id = cluster_id
-        pm_id = 0
-        rack_id = 0
+        start_cluster_id = self._cluster_id
         for cluster in cluster_list:
             cluster_type = cluster['type']
             cluster_amount = cluster['cluster_amount']
             while cluster_amount > 0:
                 # Init racks.
-                start_rack_id, rack_id, pm_id = self._init_racks(
-                    rack_amount_dict=cluster_type_dict[cluster_type],
-                    region_id=region_id,
-                    zone_id=zone_id,
-                    data_center_id=data_center_id,
-                    cluster_id=cluster_id,
-                    rack_id=rack_id,
-                    pm_id=pm_id
+                start_rack_id = self._init_racks(
+                    rack_amount_dict=cluster_type_dict[cluster_type]
                 )
-                cluster = self._clusters[cluster_id]
+                cluster = self._clusters[self._cluster_id]
                 cluster.set_init_state(
-                    id=cluster_id,
-                    region_id=region_id,
-                    zone_id=zone_id,
-                    data_center_id=data_center_id
+                    id=self._cluster_id,
+                    region_id=self._region_id,
+                    zone_id=self._zone_id,
+                    data_center_id=self._data_center_id
                 )
                 cluster.cluster_type = cluster_type
-                cluster.rack_list = [id for id in range(start_rack_id, rack_id)]
+                cluster.rack_list = [id for id in range(start_rack_id, self._rack_id)]
                 cluster.total_machine_num = sum(
                     self._racks[id].total_machine_num for id in cluster.rack_list
                 )
 
                 cluster_amount -= 1
-                cluster_id += 1
+                self._cluster_id += 1
 
-        return start_cluster_id, cluster_id
+        return start_cluster_id
 
-    def _init_racks(
-        self,
-        rack_amount_dict: dict,
-        region_id: int,
-        zone_id: int,
-        data_center_id: int,
-        cluster_id: int,
-        rack_id: int,
-        pm_id: int
-    ):
+    def _init_racks(self,rack_amount_dict: dict):
         """Initialize the racks based on the config setting. The rack id starts from 0."""
         rack_type_dict = {
             rack['type']: {
@@ -372,58 +338,53 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             }
             for rack in self._config.components.rack
         }
-        start_rack_id = rack_id
+        start_rack_id = self._rack_id
         for rack_type, rack_amount in rack_amount_dict.items():
             while rack_amount > 0:
                 # Initialize pms.
-                start_pm_id, pm_id = self._init_pms(
-                    pm_dict=rack_type_dict[rack_type],
-                    cluster_id=cluster_id,
-                    rack_id=rack_id,
-                    pm_id=pm_id
+                start_pm_id = self._init_pms(
+                    pm_dict=rack_type_dict[rack_type]
                 )
-                rack = self._racks[rack_id]
+                rack = self._racks[self._rack_id]
                 rack.set_init_state(
-                    id=rack_id,
-                    region_id=region_id,
-                    zone_id=zone_id,
-                    data_center_id=data_center_id,
-                    cluster_id=cluster_id
+                    id=self._rack_id,
+                    region_id=self._region_id,
+                    zone_id=self._zone_id,
+                    data_center_id=self._data_center_id,
+                    cluster_id=self._cluster_id
                 )
                 rack.type = rack_type
-                rack.pm_list = [id for id in range(start_pm_id, pm_id)]
+                rack.pm_list = [id for id in range(start_pm_id, self._pm_id)]
                 rack.total_machine_num = len(rack.pm_list)
 
                 rack_amount -= 1
-                rack_id += 1
+                self._rack_id += 1
 
-        return start_rack_id, rack_id, pm_id
+        return start_rack_id
 
-    def _init_pms(
-        self,
-        pm_dict: dict,
-        cluster_id: int,
-        rack_id: int,
-        pm_id: int
-    ):
+    def _init_pms(self,pm_dict: dict):
         """Initialize the pms based on the config setting. The pm id starts from 0."""
-        start_pm_id = pm_id
+        start_pm_id = self._pm_id
         for pm_type, pm_amount in pm_dict.items():
             while pm_amount > 0:
-                pm = self._machines[pm_id]
+                pm = self._machines[self._pm_id]
                 pm.set_init_state(
-                    id=pm_id,
-                    cpu_cores_capacity=self._pm_type_dict[pm_type]["cpu"],
-                    memory_capacity=self._pm_type_dict[pm_type]["memory"],
+                    id=self._pm_id,
+                    cpu_cores_capacity=self._pm_config_dict[pm_type]["cpu"],
+                    memory_capacity=self._pm_config_dict[pm_type]["memory"],
                     pm_type=pm_type,
                     oversubscribable=PmState.EMPTY
                 )
-                pm.cluster_id = cluster_id
-                pm.rack_id = rack_id
-                pm_amount -= 1
-                pm_id += 1
+                pm.region_id = self._region_id
+                pm.zone_id = self._zone_id
+                pm.data_center_id = self._data_center_id
+                pm.cluster_id = self._cluster_id
+                pm.rack_id = self._rack_id
 
-        return start_pm_id, pm_id
+                pm_amount -= 1
+                self._pm_id += 1
+
+        return start_pm_id
 
     def reset(self):
         """Reset internal states for episode."""
@@ -434,6 +395,21 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
         for pm in self._machines:
             pm.reset()
+
+        for rack in self._racks:
+            rack.reset()
+
+        for cluster in self._clusters:
+            cluster.reset()
+
+        for data_center in self._data_centers:
+            data_center.reset()
+
+        for zone in self._zones:
+            zone.reset()
+
+        for region in self._regions:
+            region.reset()
 
         self._live_vms.clear()
         self._pending_vm_request_payload.clear()
@@ -641,7 +617,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 total_pm_cpu_cores_used += vm.cpu_utilization * vm.cpu_cores_requirement
             pm.update_cpu_utilization(vm=None, cpu_utilization=total_pm_cpu_cores_used / pm.cpu_cores_capacity)
             pm.energy_consumption = self._cpu_utilization_to_energy_consumption(
-                pm_type=self._pm_type_dict[pm.pm_type],
+                pm_type=self._pm_config_dict[pm.pm_type],
                 cpu_utilization=pm.cpu_utilization
             )
 
@@ -875,7 +851,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                     cpu_utilization=None
                 )
                 pm.energy_consumption = self._cpu_utilization_to_energy_consumption(
-                    pm_type=self._pm_type_dict[pm.pm_type],
+                    pm_type=self._pm_config_dict[pm.pm_type],
                     cpu_utilization=pm.cpu_utilization
                 )
                 self._successful_allocation += 1

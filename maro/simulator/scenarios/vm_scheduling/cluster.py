@@ -48,6 +48,8 @@ class Cluster(NodeBase):
         self.zone_id = self._zone_id
         self.data_center_id = self._data_center_id
 
+        self.empty_machine_num = 0
+
     @property
     def rack_list(self) -> List[int]:
         return self._rack_list
