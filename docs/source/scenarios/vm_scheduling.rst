@@ -320,6 +320,48 @@ and process the data files. Afterwards, if you want to run multiple simulations,
 whether the processed data files exist or not. If not, it will then trigger the pipeline again. Otherwise,
 the system will reuse the processed data files.
 
+Customize Dataset
+~~~~~~~~~~~~~~~~~~~~
+
+If you want to use your own dataset, below is the data schema and the format that you need to follow to generate your own dataset.
+
+* ``vm_table``:
+
+  * vm_id: int, The id number of VMs.
+  * sub_id: int, The subscription id of VMs.
+  * deploy_id: int, The deployment id of VMs.
+  * timestamp: int, The timestamp of VM's creation time.
+  * vm_lifetime: int, The life time of VMs.
+  * vm_deleted: int, The timestamp of VM's deletion time.
+  * vm_category: int,
+  * vm_cpu_cores
+  * vm_memory
+
+* ``cpu_readings_file``
+
+Build Command
+~~~~~~~~~~~~~~~~
+
+If you want to generate your own data, we also provide the ``build`` command to build your own CSV dataset to binary files
+that the MARO simulator can use. Currently, there are three required arguments for the data ``build`` command:
+
+* ``--meta``: required, used to specify the path of the meta file. The source columns that to be converted and
+  the data type of each columns should be specified in the meta file.
+* ``--file``: required, used to specify the path of the source CSV data file(s). If multiple source CSV data files are needed,
+  you can list all the full paths of the source files in a specific file and use a ``@`` symbol to specify it.
+* ``--output``: required, used to specify the path of the target binary file.
+
+.. code-block:: sh
+
+   maro data build --meta $PATH_TO_META_FILE --file $PATH_TO_CSV_FILE  --output $PATH_TO_OUTPUT_FILE
+
+For example,
+
+.. code-block:: sh
+
+    maro data build --meta ~/.maro/data/vm_scheduling/meta/vmtable.yml  --file ~/.maro/data/vm_scheduling/.build/azure.2019.10k/vmtable.bin --output $PWD/vmtable.bin
+
+
 
 Environment Interface
 ^^^^^^^^^^^^^^^^^^^^^^
