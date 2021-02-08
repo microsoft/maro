@@ -103,7 +103,7 @@ def new_project(**kwargs: dict):
                         raise ValidationError(message="Topology not exist.")
 
             topology_name = prompt(
-                "New topology (configuration) to use:",
+                "New topology name (configuration) to use:",
                 default=builtin_topologies[0],
                 completer=builtin_topologies_completer,
                 validator=BuiltinTopologyValidator(),
@@ -167,6 +167,11 @@ def new_project(**kwargs: dict):
 
 
 def new_project_with_builtin_scenario(options: dict):
+    """Create a runner.py to run with built-in scenario.
+
+    Args:
+        options (dict): Options to generate runner.py.
+    """
     if not options["use_builtin_topology"]:
         # Create a folder to place new topology.
         topology_root_path = os.path.join(os.getcwd(), "topologies")
@@ -218,6 +223,11 @@ def new_project_with_builtin_scenario(options: dict):
 
 
 def new_project_from_scratch(options: dict):
+    """Create a project to customize scenario.
+
+    Args:
+        options (dict): Options for new project.
+    """
     # Scenario folder
     scenario_folder = os.path.join(os.getcwd(), "scenario")
 
@@ -263,6 +273,7 @@ def new_project_from_scratch(options: dict):
 
 
 def generate_environment():
+    """Generate a common template environment."""
     env = Environment(
         loader=PackageLoader("maro", "cli/project_generator/templates"),
         trim_blocks=True
@@ -272,6 +283,12 @@ def generate_environment():
 
 
 def generate_runner(env: Environment, options: dict):
+    """Generate runner.py with options.
+
+    Args:
+        env (Environment): Template environment used to retrieve template.
+        options (dict): Options for runner.py.
+    """
     use_builtin_scenario = options.get("use_builtin_scenario", False)
 
     if use_builtin_scenario:
@@ -286,6 +303,12 @@ def generate_runner(env: Environment, options: dict):
 
 
 def generate_business_engine(env: Environment, folder: str, options: dict):
+    """Generate business_engine.py with options.
+
+    Args:
+        env (Environment): Template environment used to retrieve template.
+        options (dict): Options for business_engine.py.
+    """
     template = env.get_template("business_engine.py.jinja")
 
     with open(os.path.join(folder, "business_engine.py"), "wt") as fp:
@@ -293,6 +316,13 @@ def generate_business_engine(env: Environment, folder: str, options: dict):
 
 
 def generate_frame_builder(env: Environment, folder: str, options: dict):
+    """Generate frame_builder.py with options.
+
+    Args:
+        env (Environment): Template environment used to retrieve template.
+        folder (str): Folder to place new file.
+        options (dict): Options for frame_builder.py.
+    """
     template = env.get_template("frame_builder.py.jinja")
 
     with open(os.path.join(folder, "frame_builder.py"), "wt") as fp:
@@ -300,6 +330,13 @@ def generate_frame_builder(env: Environment, folder: str, options: dict):
 
 
 def generate_commons(env: Environment, folder: str, options: dict):
+    """Generate common.py with options.
+
+    Args:
+        env (Environment): Template environment used to retrieve template.
+        folder (str): Folder to place new file.
+        options (dict): Options for common.py.
+    """
     template = env.get_template("common.py.jinja")
 
     with open(os.path.join(folder, "common.py"), "wt") as fp:
@@ -307,6 +344,13 @@ def generate_commons(env: Environment, folder: str, options: dict):
 
 
 def generate_events(env: Environment, folder: str, options: dict):
+    """Generate events.py with options.
+
+    Args:
+        env (Environment): Template environment used to retrieve template.
+        folder (str): Folder to place new file.
+        options (dict): Options for events.py.
+    """
     template = env.get_template("events.py.jinja")
 
     with open(os.path.join(folder, "events.py"), "wt") as fp:
