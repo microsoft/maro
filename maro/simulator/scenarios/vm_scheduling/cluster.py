@@ -24,11 +24,12 @@ class Cluster(NodeBase):
         self._region_id: int = 0
         self._zone_id: int = 0
         self._data_center_id: int = 0
+        self._total_machine_num: int = 0
 
         self._cluster_type: str = ""
         self._rack_list: List[int] = []
 
-    def set_init_state(self, id: int, region_id: int, zone_id: int, data_center_id: int):
+    def set_init_state(self, id: int, region_id: int, zone_id: int, data_center_id: int, total_machine_num: int):
         """Set initialize state, that will be used after frame reset.
 
         Args:
@@ -38,6 +39,7 @@ class Cluster(NodeBase):
         self._region_id = region_id
         self._zone_id = zone_id
         self._data_center_id = data_center_id
+        self._total_machine_num = total_machine_num
 
         self.reset()
 
@@ -47,9 +49,9 @@ class Cluster(NodeBase):
         self.region_id = self._region_id
         self.zone_id = self._zone_id
         self.data_center_id = self._data_center_id
+        self.total_machine_num = self._total_machine_num
 
-        self.total_machine_num = 0
-        self.empty_machine_num = 0
+        self.empty_machine_num = self.total_machine_num
 
     @property
     def rack_list(self) -> List[int]:

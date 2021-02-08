@@ -40,6 +40,13 @@ class PhysicalMachine(NodeBase):
         self._init_memory_capacity = 0
         self._init_pm_type = 0
         self._init_pm_state = 0
+
+        self._region_id = 0
+        self._zone_id = 0
+        self._data_center_id = 0
+        self._cluster_id = 0
+        self._rack_id = 0
+
         # PM resource.
         self._live_vms: Set[int] = set()
 
@@ -56,7 +63,17 @@ class PhysicalMachine(NodeBase):
         self.cpu_utilization = round(max(0, cpu_utilization), 2)
 
     def set_init_state(
-        self, id: int, cpu_cores_capacity: int, memory_capacity: int, pm_type: int, oversubscribable: PmState = 0
+        self,
+        id: int,
+        cpu_cores_capacity: int,
+        memory_capacity: int,
+        pm_type: int,
+        region_id: int,
+        zone_id: int,
+        data_center_id: int,
+        cluster_id: int,
+        rack_id: int,
+        oversubscribable: PmState = 0,
     ):
         """Set initialize state, that will be used after frame reset.
 
@@ -65,6 +82,11 @@ class PhysicalMachine(NodeBase):
             cpu_cores_capacity (int): The capacity of cores of the PM, which can be set in config.
             memory_capacity (int): The capacity of memory of the PM, which can be set in config.
             pm_type (int): The type of the PM.
+            region_id (int): The region's id where the PM locates in.
+            zone_id (int): The zone's id where the PM locates in.
+            data_center_id (int): The data center's id where the PM locates in.
+            cluster_id (int): The cluster's id where the PM locates in.
+            rack_id (int): The rack's id where the PM locates in.
             oversubscribable (int): The state of the PM:
                                     - non-oversubscribable: -1.
                                     - empty: 0.
@@ -76,16 +98,33 @@ class PhysicalMachine(NodeBase):
         self._init_pm_type = pm_type
         self._init_pm_state = oversubscribable
 
+        self._region_id = region_id
+        self._zone_id = zone_id
+        self._data_center_id = data_center_id
+        self._cluster_id = cluster_id
+        self._rack_id = rack_id
+
         self.reset()
 
     def reset(self):
-        """Reset to default value."""
+        """Reset to default value.
+
+        Note:
+            Since frame reset will reset all the node's attributes to 0, we need to
+            call set_init_state to store correct initial value.
+        """
         # When we reset frame, all the value will be set to 0, so we need these lines.
         self.id = self._id
         self.cpu_cores_capacity = self._init_cpu_cores_capacity
         self.memory_capacity = self._init_memory_capacity
         self.pm_type = self._init_pm_type
         self.oversubscribable = self._init_pm_state
+
+        self.region_id = self._region_id
+        self.zone_id = self._zone_id
+        self.data_center_id = self._data_center_id
+        self.cluster_id = self._cluster_id
+        self.rack_id = self._rack_id
 
         self._live_vms.clear()
 

@@ -18,11 +18,12 @@ class Zone(NodeBase):
     def __init__(self):
         self._id: int = 0
         self._region_id: int = 0
+        self._total_machine_num: int = 0
 
         self._name: str = ""
         self._data_center_list: List[int] = []
 
-    def set_init_state(self, id: int, region_id: int):
+    def set_init_state(self, id: int, region_id: int, total_machine_num: int):
         """Set initialize state, that will be used after frame reset.
 
         Args:
@@ -30,6 +31,7 @@ class Zone(NodeBase):
         """
         self._id = id
         self._region_id = region_id
+        self._total_machine_num = total_machine_num
 
         self.reset()
 
@@ -37,9 +39,9 @@ class Zone(NodeBase):
         """Reset to default value."""
         self.id = self._id
         self.region_id = self._region_id
+        self.total_machine_num = self._total_machine_num
 
-        self.total_machine_num = 0
-        self.empty_machine_num = 0
+        self.empty_machine_num = self.total_machine_num
 
     @property
     def data_center_list(self) -> List[int]:

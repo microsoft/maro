@@ -16,26 +16,28 @@ class Region(NodeBase):
 
     def __init__(self):
         self._id: int = 0
+        self._total_machine_num: int = 0
 
         self._name: str = ""
         self._zone_list: List[int] = []
 
-    def set_init_state(self, id: int):
+    def set_init_state(self, id: int, total_machine_num: int):
         """Set initialize state, that will be used after frame reset.
 
         Args:
             id (int): Region id.
         """
         self._id = id
+        self._total_machine_num = total_machine_num
 
         self.reset()
 
     def reset(self):
         """Reset to default value."""
         self.id = self._id
+        self.total_machine_num = self._total_machine_num
 
-        self.total_machine_num = 0
-        self.empty_machine_num = 0
+        self.empty_machine_num = self.total_machine_num
 
     @property
     def zone_list(self) -> List[int]:
