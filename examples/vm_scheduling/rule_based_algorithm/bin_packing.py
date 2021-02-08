@@ -11,11 +11,13 @@ class BinPacking(RuleBasedAlgorithm):
     def __init__(
         self, 
         pm_num: int, 
-        pm_cpu_core_num: int
+        pm_cpu_core_num: int,
+        max_cpu_oversubscription_rate: int
     ):
         super().__init__()
         self._pm_num: int = pm_num
-        self._pm_cpu_core_num: int = pm_cpu_core_num
+        self._pm_cpu_core_num: int = int(pm_cpu_core_num * max_cpu_oversubscription_rate)
+        self._max_cpu_oversubscription_rate = max_cpu_oversubscription_rate
 
     def _init_bin(self):
         self._bins = [[] for _ in range(self._pm_cpu_core_num + 1)]
@@ -27,7 +29,7 @@ class BinPacking(RuleBasedAlgorithm):
         total_pm_info = env.snapshot_list["pms"][
             env.frame_index::["cpu_cores_capacity", "cpu_cores_allocated"]
         ].reshape(-1, 2)
-        cpu_cores_remaining = total_pm_info[:, 0] - total_pm_info[:, 1]
+        cpu_cores_remaining = total_pm_info[:, 0] * self._max_cpu_oversubscription_rate - total_pm_info[:, 1]
 
         for i, cpu_core in enumerate(cpu_cores_remaining):
             self._bins[int(cpu_core)].append(i)
