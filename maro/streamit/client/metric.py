@@ -44,7 +44,7 @@ def parse_value(value: object):
     if v_type is int or v_type is np.int64 or v_type is np.int32 or v_type is np.int16:
         return "%di" % value
 
-    if v_type is float or v_type is np.float or v_type is np.float32:
+    if v_type is float or v_type is np.float or v_type is np.float32 or v_type is np.float64:
         return "%g" % value
 
     if v_type is bool:
