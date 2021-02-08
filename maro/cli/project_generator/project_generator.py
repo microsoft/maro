@@ -2,17 +2,16 @@
 # Licensed under the MIT license.
 
 import os
-import maro
 import pprint
-import stringcase
 
+import stringcase
 from jinja2 import Environment
 from jinja2.loaders import PackageLoader
-
-from prompt_toolkit import prompt, PromptSession
+from prompt_toolkit import prompt
 from prompt_toolkit.completion import WordCompleter
-from prompt_toolkit.validation import Validator, ValidationError
+from prompt_toolkit.validation import ValidationError, Validator
 
+import maro
 from maro.simulator.utils.common import get_scenarios, get_topologies
 
 # Default topology to use to generate customize topology.
