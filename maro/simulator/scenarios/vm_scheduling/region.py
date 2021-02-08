@@ -34,6 +34,9 @@ class Region(NodeBase):
         """Reset to default value."""
         self.id = self._id
 
+        self.total_machine_num = 0
+        self.empty_machine_num = 0
+
     @property
     def zone_list(self) -> List[int]:
         return self._zone_list

@@ -42,6 +42,9 @@ class DataCenter(NodeBase):
         self.region_id = self._region_id
         self.zone_id = self._zone_id
 
+        self.total_machine_num = 0
+        self.empty_machine_num = 0
+
     @property
     def cluster_list(self) -> List[int]:
         return self._cluster_list

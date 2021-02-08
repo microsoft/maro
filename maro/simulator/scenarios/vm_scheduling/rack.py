@@ -51,6 +51,9 @@ class Rack(NodeBase):
         self.data_center_id = self._data_center_id
         self.cluster_id = self._cluster_id
 
+        self.total_machine_num = 0
+        self.empty_machine_num = 0
+
     @property
     def pm_list(self) -> List[int]:
         return self._pm_list

@@ -48,6 +48,7 @@ class Cluster(NodeBase):
         self.zone_id = self._zone_id
         self.data_center_id = self._data_center_id
 
+        self.total_machine_num = 0
         self.empty_machine_num = 0
 
     @property

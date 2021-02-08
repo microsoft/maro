@@ -38,6 +38,9 @@ class Zone(NodeBase):
         self.id = self._id
         self.region_id = self._region_id
 
+        self.total_machine_num = 0
+        self.empty_machine_num = 0
+
     @property
     def data_center_list(self) -> List[int]:
         return self._data_center_list
