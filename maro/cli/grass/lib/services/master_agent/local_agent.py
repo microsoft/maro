@@ -215,28 +215,27 @@ class JobTrackingAgent(mp.Process):
             time.sleep(self.check_interval)
 
     def _check_job_state(self):
-        unfinished_jobs = self._get_unfinished_jobs(
+        finished_jobs = self._get_finished_jobs(
             self.redis_connection.hgetall(f"{self.cluster_name}:job_details")
         )
 
-        for job_name, job_detail in unfinished_jobs.items():
+        for job_name, job_detail in finished_jobs.items():
             if job_detail["status"] in [JobStatus.KILLED, JobStatus.FAILED]:
                 self._stop_containers(job_detail["container_name_list"])
 
-            if job_detail["status"] not in UNFINISHED_JOB_STATUS:
-                self._job_clear(job_name, job_detail["total_request_resource"])
+            self._job_clear(job_name, job_detail["total_request_resource"])
 
             self.redis_connection.hset(f"{self.cluster_name}:job_details", job_name, json.dumps(job_detail))
 
-    def _get_unfinished_jobs(self, job_details: dict):
-        unfinished_jobs = {}
+    def _get_finished_jobs(self, job_details: dict):
+        finished_jobs = {}
         for job_name, job_detail in job_details.items():
             job_detail = json.loads(job_detail)
-            if "checked" not in job_detail.keys():
+            if "checked" not in job_detail and job_detail["status"] not in UNFINISHED_JOB_STATUS:
                 job_detail["checked"] = 1
-                unfinished_jobs[job_name.decode()] = job_detail
+                finished_jobs[job_name.decode()] = job_detail
 
-        return unfinished_jobs
+        return finished_jobs
 
     def _stop_containers(self, container_list: list):
         for container_name in container_list:
@@ -288,8 +287,6 @@ class KilledJobAgent(mp.Process):
 
                 if job_detail["status"] == JobStatus.PENDING:
                     self.redis_connection.lrem(f"{self.cluster_name}:pending_job_tickets", 0, job_name)
-
-                self._killed_job(job_detail)
 
             self.redis_connection.lrem(f"{self.cluster_name}:killed_job_tickets", 0, job_name)
 

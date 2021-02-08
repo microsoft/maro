@@ -11,8 +11,8 @@ class ResourceOperation(Enum):
     RELEASE = "release"
 
 
-def resource_op(node_resource: dict, container_resource: dict, op: str):
-    if op == "release":
+def resource_op(node_resource: dict, container_resource: dict, op: ResourceOperation):
+    if op == ResourceOperation.RELEASE:
         updated_resource = {
             "cpu": node_resource["cpu"] + container_resource["cpu"],
             "memory": node_resource["memory"] + container_resource["memory"],
