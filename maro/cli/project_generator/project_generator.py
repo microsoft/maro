@@ -1,3 +1,5 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
 
 import os
 import maro
@@ -22,6 +24,7 @@ default_topologies = {
 
 
 class NonEmptyStringValidator(Validator):
+    """Validator used to validate to make sure input is not empty string."""
     def __init__(self, err_msg: str):
         super().__init__()
         self._err_msg = err_msg
@@ -32,6 +35,7 @@ class NonEmptyStringValidator(Validator):
 
 
 class NumberValidator(Validator):
+    """Validator used to make sure input value is a positive number."""
     def validate(self, document):
         text = document.text
 
@@ -40,12 +44,21 @@ class NumberValidator(Validator):
 
 
 def is_command_yes(cmd: str):
+    """Check if user agree with current command.
+
+    Args:
+        cmd (str): Command input value.
+
+    Returns:
+        bool: True if command value is match "yes" or "y" (case insensitive.).
+    """
     lower_cmd = cmd.lower()
 
     return lower_cmd == "yes" or lower_cmd == "y"
 
 
 def new_project(**kwargs: dict):
+    """Create a new project."""
     use_builtin_scenario = is_command_yes(prompt("Use built-in scenario?", default="yes"))
 
     if use_builtin_scenario:
@@ -56,6 +69,7 @@ def new_project(**kwargs: dict):
 
         # Validator for scenario name to make sure input is a built-in scenario.
         class BuiltInScenarioValidator(Validator):
+            """Validate is input scenario is built-in one."""
             def validate(self, document):
                 if document.text not in builtin_scenarios:
                     raise ValidationError(message="Scenario name not a built-in one.")
@@ -83,6 +97,7 @@ def new_project(**kwargs: dict):
             builtin_topologies_completer = WordCompleter(builtin_topologies)
 
             class BuiltinTopologyValidator(Validator):
+                """Validate if input topology is built-in one."""
                 def validate(self, document):
                     if document.text not in builtin_topologies:
                         raise ValidationError(message="Topology not exist.")
