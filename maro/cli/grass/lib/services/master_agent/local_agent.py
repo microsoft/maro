@@ -281,7 +281,7 @@ class KilledJobAgent(mp.Process):
         killed_job_names = self.redis_connection.lrange(f"{self.cluster_name}:killed_job_tickets", 0, -1)
 
         for job_name in killed_job_names:
-            job_detail = self.redis_connection.hget(f"{self.cluster_name}:job_details", job_name)
+            job_detail = json.loads(self.redis_connection.hget(f"{self.cluster_name}:job_details", job_name))
             if job_detail["status"] in UNFINISHED_JOB_STATUS:
                 job_detail["status"] = JobStatus.KILLED
                 self.redis_connection.hset(f"{self.cluster_name}:job_details", job_name, json.dumps(job_detail))
