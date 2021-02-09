@@ -23,6 +23,7 @@ START_CONTAINER_COMMAND = (
     "-m {memory} "
     "--name {container_name} "
     "--network host "
+    "-v {volumes} "
     "{environment_parameters} {labels} "
     "{image_name} {command}"
 )
@@ -35,6 +36,7 @@ START_CONTAINER_WITH_GPU_COMMAND = (
     "--gpus {gpu} "
     "--name {container_name} "
     "--network host "
+    "-v {volumes} "
     "{environment_parameters} {labels} "
     "{image_name} {command}"
 )
@@ -102,6 +104,7 @@ class PendingJobAgent(mp.Process):
                         cpu=command_info["resources"]["cpu"],
                         memory=command_info["resources"]["memory"],
                         container_name=container_name,
+                        volumes=command_info["mount"]["target"],
                         environment_parameters=environment_parameters,
                         labels=labels,
                         image_name=command_info["image"],
@@ -113,6 +116,7 @@ class PendingJobAgent(mp.Process):
                         memory=command_info["resources"]["memory"],
                         gpu=command_info["resources"]["gpu"],
                         container_name=container_name,
+                        volumes=command_info["mount"]["target"],
                         environment_parameters=environment_parameters,
                         labels=labels,
                         image_name=command_info["image"],
