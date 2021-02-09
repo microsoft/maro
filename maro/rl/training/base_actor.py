@@ -8,7 +8,6 @@ from maro.utils import InternalLogger
 
 from .abs_rollout_executor import AbsRolloutExecutor
 from .message_enums import MessageTag, PayloadKey
-from .rollout_client import RolloutClient
 
 
 class BaseActor(object):
@@ -50,7 +49,7 @@ class BaseActor(object):
                 else:
                     self._logger.info(f"Roll-out {ep} finished")
                     payload = {
-                        PayloadKey.ROLLOUT_INDEX: ep, 
+                        PayloadKey.ROLLOUT_INDEX: ep,
                         PayloadKey.METRICS: self.executor.env.metrics,
                         PayloadKey.DETAILS: rollout_data
                     }

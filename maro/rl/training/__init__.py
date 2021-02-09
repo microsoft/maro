@@ -8,7 +8,7 @@ from .rollout_client import RolloutClient
 
 __all__ = [
     "AbsLearner",
-    "AbsRolloutExecutor", 
-    "BaseActor", 
+    "AbsRolloutExecutor",
+    "BaseActor",
     "RolloutClient",
 ]

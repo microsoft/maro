@@ -5,7 +5,6 @@ from abc import abstractmethod
 
 from maro.communication import Message, Proxy
 from maro.rl.shaping import Shaper
-
 from maro.simulator import Env
 
 from .abs_rollout_executor import AbsRolloutExecutor
@@ -50,7 +49,7 @@ class RolloutClient(AbsRolloutExecutor):
             index (int): Externally designated index to identify the roll-out round.
             training (bool): If true, the roll-out is for training purposes, which usually means
                 some kind of training data, e.g., experiences, needs to be collected. Defaults to True.
-        
+
         Returns:
             Data collected during the episode.
         """
@@ -58,7 +57,7 @@ class RolloutClient(AbsRolloutExecutor):
 
     def get_action(self, state, rollout_index: int, time_step: int, agent_id: str = None):
         """Get an action decision from the remote agent.
-        
+
         Args:
             state: Environment state based on which the actin decision is to be made.
             rollout_index (int): The roll-out index to which the current action decision belongs to.

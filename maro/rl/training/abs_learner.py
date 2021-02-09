@@ -6,8 +6,6 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 from typing import Callable, List, Union
 
-import numpy as np
-
 from maro.communication import Message, Proxy, RegisterTable, SessionType
 from maro.rl.agent import AbsAgent, MultiAgentWrapper
 from maro.rl.scheduling.scheduler import Scheduler
@@ -92,8 +90,8 @@ class AbsLearner(ABC):
                 for the actor class.
         """
         payload = {
-            PayloadKey.ROLLOUT_INDEX: rollout_index, 
-            PayloadKey.TRAINING: training, 
+            PayloadKey.ROLLOUT_INDEX: rollout_index,
+            PayloadKey.TRAINING: training,
             PayloadKey.ROLLOUT_KWARGS: rollout_kwargs
         }
         # If no actor client is found, it is necessary to broadcast agent models to the remote actors
@@ -146,8 +144,8 @@ class AbsLearner(ABC):
         else:
             state_batch = self._state_batching_func([msg.payload[PayloadKey.STATE] for msg in messages])
             action_info = self.agent.choose_action(state_batch)
-            self._serve(messages, action_info)    
-    
+            self._serve(messages, action_info)
+
     def _serve(self, queries, action_info):
         if isinstance(action_info, tuple):
             action_info = list(zip(*action_info))
