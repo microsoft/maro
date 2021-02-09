@@ -6,10 +6,12 @@
 *.c
 *.cpp
 *.DS_Store
+.pytest_cache/
 .idea/
 .vscode/
 .vs/
 build/
+log/
 dist/
 *.egg-info/
 tools/schedule
