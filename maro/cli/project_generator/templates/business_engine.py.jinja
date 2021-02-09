@@ -35,8 +35,6 @@ class {{ project.scenario_cls }}BusinessEngine(AbsBusinessEngine):
     return {}
 
   def step(self, tick: int):
-    # NOTE: this function may be invoked several times per tick.
-
     # NOTE: following is a dummy logic to show how to generate normal event, and decision event.
     # TODO: REPLACE with your business logic.
     if tick == 10:
