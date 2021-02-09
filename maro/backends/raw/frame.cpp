@@ -270,6 +270,17 @@ namespace maro
         node.insert_to_list(node_index, attr_type, slot_index, value);
       }
 
+      SLOT_INDEX Frame::get_slot_number(NODE_INDEX node_index, ATTR_TYPE attr_type)
+      {
+        NODE_TYPE node_type = extract_node_type(attr_type);
+
+        ensure_node_type(node_type);
+
+        auto& node = get_node(node_type);
+
+        return node.get_slot_number(node_index, attr_type);
+      }
+
 #define ATTRIBUTE_INSERTER(type) \
   template void Frame::insert_to_list(NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX slot_index, type value);
 
@@ -283,11 +294,6 @@ namespace maro
       ATTRIBUTE_INSERTER(ATTR_ULONG)
       ATTRIBUTE_INSERTER(ATTR_FLOAT)
       ATTRIBUTE_INSERTER(ATTR_DOUBLE)
-
-      void Frame::write_attribute(ofstream &file, NODE_INDEX node_index, ATTR_TYPE attr_id, SLOT_INDEX slot_index)
-      {
-
-      }
 
       void Frame::dump(string folder)
       {

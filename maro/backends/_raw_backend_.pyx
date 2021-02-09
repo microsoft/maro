@@ -77,6 +77,7 @@ cdef class AttributeAccessor:
     def __dealloc__(self):
         self._backend = None
 
+
 cdef class RawBackend(BackendAbc):
     def __cinit__(self):
         self._node_info = {}
@@ -199,6 +200,38 @@ cdef class RawBackend(BackendAbc):
 
     cdef void dump(self, str folder) except +:
         self._frame.dump(folder.encode())
+
+    cdef list where(self, NODE_INDEX index, ATTR_TYPE attr_type, filter_func: callable) except +:
+        cdef AttributeAccessor acc = self._attr_type_dict[attr_type]
+
+        cdef SLOT_INDEX slot
+        cdef SLOT_INDEX slot_number = self._frame.get_slot_number(index, attr_type)
+
+        cdef list result = []
+
+        for slot in range(slot_number):
+            if filter_func(acc.get_value(index, slot)):
+                result.append(slot)
+
+        return result
+
+    cdef list slots_greater_than(self, NODE_INDEX index, ATTR_TYPE attr_type, object value) except +:
+        return self.where(index, attr_type, lambda x : x > value)
+
+    cdef list slots_greater_equal(self, NODE_INDEX index, ATTR_TYPE attr_type, object value) except +:
+        return self.where(index, attr_type, lambda x : x >= value)
+
+    cdef list slots_less_than(self, NODE_INDEX index, ATTR_TYPE attr_type, object value) except +:
+        return self.where(index, attr_type, lambda x : x < value)
+
+    cdef list slots_less_equal(self, NODE_INDEX index, ATTR_TYPE attr_type, object value) except +:
+        return self.where(index, attr_type, lambda x : x <= value)
+
+    cdef list slots_equal(self, NODE_INDEX index, ATTR_TYPE attr_type, object value) except +:
+        return self.where(index, attr_type, lambda x : x == value)
+
+    cdef list slots_not_equal(self, NODE_INDEX index, ATTR_TYPE attr_type, object value) except +:
+        return self.where(index, attr_type, lambda x : x != value)
 
 
 cdef class RawSnapshotList(SnapshotListAbc):
