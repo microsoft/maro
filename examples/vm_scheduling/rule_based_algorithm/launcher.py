@@ -7,16 +7,17 @@ import yaml
 import importlib
 
 from maro.simulator import Env
-from maro.simulator.scenarios.vm_scheduling import AllocateAction, DecisionPayload, PostponeAction
 from maro.utils import convert_dottable
 
 from agent import VMSchedulingAgent
+
 
 def import_class(name):
     components = name.rsplit('.', 1)
     mod = importlib.import_module(components[0])
     mod = getattr(mod, components[1])
     return mod
+
 
 CONFIG_PATH = os.path.join(os.path.split(os.path.realpath(__file__))[0], "config.yml")
 with io.open(CONFIG_PATH, "r") as in_file:
