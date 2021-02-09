@@ -4,12 +4,12 @@ BUFFER_TIME_BUDGET: 0
 DELAY_DURATION: 1
 
 # Path of the vm table data.
-VM_TABLE: "~/.maro/data/vm_scheduling/.build/azure.2019.336k/vmtable.bin"
+VM_TABLE: "~/.maro/data/vm_scheduling/.build/azure.2019.10k/vmtable.bin"
 
 # Path of the cpu readings file.
-CPU_READINGS: "~/.maro/data/vm_scheduling/.build/azure.2019.336k/vm_cpu_readings-file-1-of-195.bin"
+CPU_READINGS: "~/.maro/data/vm_scheduling/.build/azure.2019.10k/vm_cpu_readings-file-1-of-195.bin"
 
-PROCESSED_DATA_URL: "https://marodatasource.blob.core.windows.net/vm-scheduling-azure/azure.2019.336k/azure.2019.336k.tar.gz"
+PROCESSED_DATA_URL: "https://marodatasource.blob.core.windows.net/vm-scheduling-azure/azure.2019.10k/azure.2019.10k.tar.gz"
 
 # True means kill all VMs on the overload PM.
 # False means only count these VMs as failed allocation, but not kill them.
@@ -17,7 +17,7 @@ KILL_ALL_VMS_IF_OVERLOAD: True
 
 # Oversubscription configuration.
 # Max CPU oversubscription rate.
-MAX_CPU_OVERSUBSCRIPTION_RATE: 1
+MAX_CPU_OVERSUBSCRIPTION_RATE: 1.15
 # Max memory oversubscription rate.
 MAX_MEM_OVERSUBSCRIPTION_RATE: 1
 # Max CPU utilization rate.
@@ -26,8 +26,8 @@ MAX_UTILIZATION_RATE: 1
 components:
   pm:
     - pm_type: 0
-      cpu: 16
-      memory: 112
+      cpu: 32
+      memory: 128
       power_curve:
         calibration_parameter: 1.4
         busy_power: 10
@@ -41,7 +41,7 @@ components:
     - type: 'JP1'
       rack:
         - rack_type: 'a'
-          rack_amount: 88
+          rack_amount: 10
 
 architecture:
   region:
