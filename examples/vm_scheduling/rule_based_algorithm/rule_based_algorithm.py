@@ -5,7 +5,7 @@ from maro.simulator.scenarios.vm_scheduling import AllocateAction, DecisionPaylo
 
 
 class RuleBasedAlgorithm(object):
-    __metaclass__= abc.ABCMeta
+    __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
     def allocate_vm(self, decision_event: DecisionPayload, env: Env) -> AllocateAction:
