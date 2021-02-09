@@ -11,6 +11,7 @@
 .vscode/
 .vs/
 build/
+log/
 dist/
 *.egg-info/
 tools/schedule
