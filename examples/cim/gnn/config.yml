@@ -46,11 +46,8 @@ log:
     freq: 10
 multi_process:
   enable: true
-  group: "dfwtehf"
+  group: "fwtehf"
   num_actors: 2
   inference_mode: "remote"  # supported: "local", "remote"
-  receive_action_timeout: 100  # milliseconds
-  max_receive_action_attempts: 1
-  allowed_null_responses: 15
   update_trigger: 2
   inference_trigger: 2

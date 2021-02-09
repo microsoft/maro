@@ -52,8 +52,8 @@ class BaseActor(object):
                 else:
                     self._logger.info(f"Roll-out {ep} finished")
                     rollout_finish_msg = Message(
-                        MessageTag.FINISHED, 
-                        self._proxy.component_name, 
+                        MessageTag.FINISHED,
+                        self._proxy.component_name,
                         self._proxy.peers_name["learner"][0],
                         payload={
                             PayloadKey.ROLLOUT_INDEX: ep,

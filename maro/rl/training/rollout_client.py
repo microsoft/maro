@@ -95,8 +95,8 @@ class RolloutClient(object):
                 ep, t = msg.payload[PayloadKey.ROLLOUT_INDEX], msg.payload[PayloadKey.TIME_STEP]
                 if msg.tag == MessageTag.ACTION and ep == rollout_index and t == time_step:
                     return msg.payload[PayloadKey.ACTION]
-            else:
+            elif attempts is not None:
                 # Did not receive expected reply before timeout
                 attempts -= 1
-            if attempts == 0:
-                return
+                if attempts == 0:
+                    return
