@@ -30,3 +30,4 @@ algorithm:
   # args:
     # pm_num: 100
     # pm_cpu_core_num: 16
+    # max_cpu_oversubscription_rate: 1.15
