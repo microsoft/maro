@@ -110,7 +110,7 @@ def launch(config):
         config.agent.model.input_dim = state_shaper.dim
         config.agent.names = [str(agent_id) for agent_id in env.agent_idx_list]
         agent = MultiAgentWrapper(create_dqn_agents(config.agent))
-        executor = Actor(env, agent, state_shaper, action_shaper, experience_shaper)
+        executor = SimpleRolloutExecutor(env, agent, state_shaper, action_shaper, experience_shaper)
     else:
         raise ValueError(f'Supported distributed training modes: "local", "remote", got {inference_mode}')
 

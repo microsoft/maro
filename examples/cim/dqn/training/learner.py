@@ -73,7 +73,7 @@ def launch(config):
     )
 
     time.sleep(5)
-    learner.learn()
+    learner.run()
     learner.exit()
 
 

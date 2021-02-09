@@ -11,11 +11,11 @@ env:
     shortage_factor: 1.0
     time_decay_factor: 0.97
 training:
-  max_episode: 6
+  max_episode: 200
   exploration:
     parameter_names:
       - "epsilon"
-    split_ep: 3
+    split_ep: 100
     start_values: 0.4
     mid_values: 0.32
     end_values: 0.0
@@ -50,9 +50,9 @@ multi_process:
   redis:
     hostname: "localhost"
     port: 6379
-  group: qqkkrtrfv
+  group: "test"
   num_actors: 2 
-  inference_mode: "remote"  # supported: "local", "remote"
+  inference_mode: "local"  # supported: "local", "remote"
   receive_action_timeout: 100  # milliseconds
   max_receive_action_attempts: 1
   allowed_null_responses: 15

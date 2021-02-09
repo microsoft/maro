@@ -234,7 +234,7 @@ policies.
 
     actor = SimpleActor(env, agent_manager)
     learner = SimpleLearner(agent_manager, actor, scheduler)
-    learner.learn()
+    learner.run()
 
 
 Main Loop with Actor and Learner (Distributed/Multi-process)
@@ -303,7 +303,7 @@ inside that communicates with 3 actors.
         end_values=.0
     )
     learner = SimpleLearner(agent_manager, actor, scheduler)
-    learner.learn()
+    learner.run()
 
 .. note::
 
