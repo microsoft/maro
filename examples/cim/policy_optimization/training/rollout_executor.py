@@ -1,10 +1,10 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from maro.rl import AbsActor
+from maro.rl import AbsRolloutExecutor
 
 
-class Actor(AbsActor):
+class SimpleRolloutExecutor(AbsRolloutExecutor):
     def __init__(self, env, agent, state_shaper, action_shaper, experience_shaper):
         super().__init__(
             env, agent, 
@@ -15,11 +15,11 @@ class Actor(AbsActor):
         self.env.reset()
         metrics, event, is_done = self.env.step(None)
         while not is_done:
-            state = self.state_shaper(event, self.env.snapshot_list)
             agent_id = str(event.port_idx)
-            action = self.agent[agent_id].choose_action(state)
+            state = self.state_shaper(event, self.env.snapshot_list)
+            action, log_p = self.agent[agent_id].choose_action(state)
             self.experience_shaper.record(
-                {"state": state, "agent_id": agent_id, "event": event, "action": action}
+                {"state": state, "agent_id": agent_id, "event": event, "action": action, "log_action_prob": log_p}
             )
             metrics, event, is_done = self.env.step(self.action_shaper(action, event, self.env.snapshot_list))
 

@@ -20,12 +20,6 @@ with io.open(config_path, "r") as in_file:
 
 config = convert_dottable(config)
 
-DISTRIBUTED_CONFIG_PATH = os.path.join(os.path.split(os.path.realpath(__file__))[0], "distributed_config.yml")
-with io.open(DISTRIBUTED_CONFIG_PATH, "r") as in_file:
-    distributed_config = yaml.safe_load(in_file)
-
-distributed_config = convert_dottable(distributed_config)
-
 # Generate log path.
 date_str = datetime.datetime.now().strftime("%Y%m%d")
 time_str = datetime.datetime.now().strftime("%H%M%S.%f")

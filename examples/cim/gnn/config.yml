@@ -5,11 +5,7 @@ env:
   # topology: "toy.4p_ssdd_l0.0"
   durations: 200
 agent:
-  training:
-    enable: True
-    parallel_cnt: 1
-    device: "cpu"
-  algorithm:
+  hyper_params:
     reward_discount: 0.99
     num_batches: 1
     batch_size: 16
@@ -17,6 +13,7 @@ agent:
     actor_loss_coefficient: 0.1
     entropy_factor: 0.1
   model:
+    device: "cpu"
     path: "./" 
     scale: 4
     sequence_buffer_size: 20
@@ -37,7 +34,8 @@ agent:
       # random order.
       attention_order: temporal
       onehot_identity: False
-main_loop:
+training:
+  enable: true
   max_episode: 500
   train_freq: 1
   model_save_freq: 1
@@ -46,3 +44,16 @@ log:
   exp:
     enable: false
     freq: 10
+multi_process:
+  enable: true
+  redis:
+    hostname: "localhost"
+    port: 6379
+  group: hwtehf
+  num_actors: 2
+  inference_mode: "remote"  # supported: "local", "remote"
+  receive_action_timeout: 100  # milliseconds
+  max_receive_action_attempts: 1
+  allowed_null_responses: 15
+  update_trigger: 2
+  inference_trigger: 2

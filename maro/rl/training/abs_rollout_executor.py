@@ -10,8 +10,8 @@ from maro.rl.shaping import Shaper
 from maro.simulator import Env
 
 
-class AbsActor(ABC):
-    """Abstract actor class.
+class AbsRolloutExecutor(ABC):
+    """Abstract rollout executor class.
 
     Args:
         env (Env): An environment instance.

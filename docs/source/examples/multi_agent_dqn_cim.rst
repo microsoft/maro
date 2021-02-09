@@ -76,7 +76,7 @@ an episode trajectory to trainable experiences for RL agents. For this specific 
 combination of fulfillment and shortage in a limited time window.
 
 .. code-block:: python
-    class TruncatedExperienceShaper(ExperienceShaper):
+    class CIMExperienceShaper(ExperienceShaper):
         ...
         def __call__(self, trajectory, snapshot_list):
             experiences_by_agent = defaultdict(lambda: defaultdict(list))
@@ -156,7 +156,7 @@ experience pools before training, in accordance with the DQN algorithm.
             agent,
             state_shaper: CIMStateShaper,
             action_shaper: CIMActionShaper,
-            experience_shaper: TruncatedExperienceShaper
+            experience_shaper: CIMExperienceShaper
         ):
             super().__init__(
                 agent,
@@ -213,7 +213,7 @@ policies.
     agent_id_list = [str(agent_id) for agent_id in env.agent_idx_list]
     state_shaper = CIMStateShaper(look_back=7, max_ports_downstream=2)
     action_shaper = CIMActionShaper(action_space=list(np.linspace(-1.0, 1.0, NUM_ACTIONS)))
-    experience_shaper = TruncatedExperienceShaper(
+    experience_shaper = CIMExperienceShaper(
         time_window=100, fulfillment_factor=1.0, shortage_factor=1.0, time_decay_factor=0.97
     )
     agent_manager = DQNAgentManager(

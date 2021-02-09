@@ -5,7 +5,7 @@ class MessageTag(Enum):
     ROLLOUT = "rollout"
     CHOOSE_ACTION = "choose_action"
     ACTION = "action"
-    TERMINATE_ROLLOUT = "terminate_episode"
+    ABORT_ROLLOUT = "abort_rollout"
     FINISHED = "finished"
     EXIT = "exit"
 
@@ -23,8 +23,3 @@ class PayloadKey(Enum):
     TRAINING = "training"
     ROLLOUT_KWARGS = "rollout_kwargs"
     ACTOR_CLIENT_ID = "actor_client_id"
-
-
-# type definition for the special action that should be used to terminate a roll-out episode
-class AbortRollout:
-    pass

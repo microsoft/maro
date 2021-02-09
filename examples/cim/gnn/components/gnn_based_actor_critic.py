@@ -96,18 +96,15 @@ class GNNBasedActorCritic(AbsAgent):
         Returns:
             model_action (numpy.int64): The action returned from the module.
         """
-        model_state = self.union(
-            state["p"], state["po"], state["pedge"], state["v"], state["vo"], state["vedge"],
-            state["ppedge"], state["mask"]
-        )
+        single = len(state["p"].shape) == 3
         action_prob, _ = self._model(
-            model_state, p_idx=state["p_idx"], v_idx=state["v_idx"], use_actor=True, training=False
+            self.union(state), p_idx=state["p_idx"], v_idx=state["v_idx"], use_actor=True, training=False
         )
         action_prob = Categorical(action_prob)
         action = action_prob.sample()
         log_p = action_prob.log_prob(action)
         action, log_p = action.cpu().numpy(), log_p.cpu().numpy()
-        return (action[0], log_p[0]) if len(action) == 1 else (action, log_p)
+        return (action[0], log_p[0]) if single else (action, log_p)
 
     def train(self):
         for (p_idx, v_idx), exp_pool in self._experience_pool.items():
@@ -210,21 +207,23 @@ class GNNBasedActorCritic(AbsAgent):
             weights = torch.load(fp, map_location=self._device)
         self._set_gnn_weights(weights)
 
-    def union(self, p, po, pedge, v, vo, vedge, ppedge, seq_mask):
+    def union(self, state) -> dict:
         """Union multiple graphs in CIM.
 
         Args:
-            v: Numpy array of shape (seq_len, batch, v_cnt, v_dim).
-            vo: Numpy array of shape (batch, v_cnt, p_cnt).
-            vedge: Numpy array of shape (batch, v_cnt, p_cnt, e_dim).
+            state (dict): State object. 
         Returns:
             result (dict): The dictionary that describes the graph.
         """
-        if len(p.shape) == 3:
-            p, po, pedge = np.expand_dims(p, 1), np.expand_dims(po, 0), np.expand_dims(pedge, 0)
-            v, vo, vedge = np.expand_dims(v, 1), np.expand_dims(vo, 0), np.expand_dims(vedge, 0)
-            ppedge = np.expand_dims(ppedge, 0)
-            seq_mask = np.expand_dims(seq_mask, 0)
+        single = len(state["p"].shape) == 3
+        v = np.expand_dims(state["v"], 1) if single else state["v"]
+        p = np.expand_dims(state["p"], 1) if single else state["p"]
+        vo = np.expand_dims(state["vo"], 0) if single else state["vo"]
+        po = np.expand_dims(state["po"], 0) if single else state["po"]
+        pedge = np.expand_dims(state["pedge"], 0) if single else state["pedge"]
+        vedge = np.expand_dims(state["vedge"], 0) if single else state["vedge"]
+        ppedge = np.expand_dims(state["ppedge"], 0) if single else state["ppedge"]
+        seq_mask = np.expand_dims(state["mask"], 0) if single else state["mask"]
 
         seq_len, batch, v_cnt, v_dim = v.shape
         _, _, p_cnt, p_dim = p.shape
@@ -273,17 +272,10 @@ class GNNBasedActorCritic(AbsAgent):
         }
 
     def _preprocess(self, states, actions, returns, next_states):
-        states = self.union(
-            states["p"], states["po"], states["pedge"], states["v"], states["vo"], states["vedge"],
-            states["ppedge"], states["mask"]
-        )
+        states = self.union(states)
         actions = torch.from_numpy(actions).long().to(self._device)
         returns = torch.from_numpy(returns).float().to(self._device)
-        next_states = self.union(
-            next_states["p"], next_states["po"], next_states["pedge"],
-            next_states["v"], next_states["vo"], next_states["vedge"],
-            next_states["ppedge"], next_states["mask"]
-        )
+        next_states = self.union(next_states)
         return states, actions, returns, next_states
 
     @staticmethod

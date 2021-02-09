@@ -66,9 +66,19 @@ class GNNExperienceShaper:
                 exp["R"] = self._scale_factor * R[tick]
 
         def get_state_items(exp_list, which: str):
+            """
+            "v": (seq_buffer_size, batch_size, v_cnt, v_dim)
+            "p": (seq_buffer_size, p_cnt, p_dim)
+            "vo": (batch_size, v_cnt, p_cnt)
+            "po": (batch_size, p_cnt, v_cnt)
+            "vedge": (batch_size, v_cnt, p_cnt, vedge_dim)
+            "pedge": (batch_size, p_cnt, v_cnt, vedge_dim)
+            "ppedge": (batch_size, p_cnt, p_cnt, pedge_dim)
+            "mask": (batch_size, seq_buffer_size)
+            """
             assert which in {"s", "s_"}
             return {
-                key: np.stack([e[which][key] for e in exp_list], axis=1 if key in {"v", "p"} else 0)
+                key: np.stack([exp[which][key] for exp in exp_list], axis=int(key in {"v", "p"}))
                 for key in ["v", "p", "vo", "po", "vedge", "pedge", "ppedge", "mask"]
             }
         

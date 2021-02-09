@@ -4,7 +4,7 @@
 from collections import defaultdict
 
 
-def concat_by_agent(exp_by_source: dict) -> dict:
+def concat(exp_by_source: dict) -> dict:
     """Concatenate experiences from multiple sources, by agent ID.
 
     The experience from each source is expected to be already grouped by agent ID. The result is a single dictionary
@@ -12,8 +12,8 @@ def concat_by_agent(exp_by_source: dict) -> dict:
     for each agent ID.
 
     Args:
-        exp_by_source (dict): Experiences from multiple sources. Each value should consist of experiences grouped by
-            agent ID.
+        exp_by_source (dict): Experiences from multiple sources. Each value should consist of experiences
+            grouped by agent ID.
 
     Returns:
         Merged experiences with agent IDs as keys.
@@ -29,17 +29,18 @@ def concat_by_agent(exp_by_source: dict) -> dict:
     return merged
 
 
-def stack_by_agent(trajectories_by_source) -> dict:
+def stack(exp_by_source) -> dict:
     """Collect each agent's trajectories from multiple sources.
 
     Args:
-        trajectories_by_source (dict): Agent's trajectories from multiple sources.
+        exp_by_source (dict): Experiences from multiple sources. Each value should consist of experiences
+            grouped by agent ID.
 
     Returns:
         A list of trajectories for each agent.
     """
     merged = defaultdict(list)
-    for exp_by_agent in trajectories_by_source.values():
+    for exp_by_agent in exp_by_source.values():
         for agent_id, trajectory in exp_by_agent.items():
             merged[agent_id].append(trajectory)
 

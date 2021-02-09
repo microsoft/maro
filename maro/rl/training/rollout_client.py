@@ -4,15 +4,16 @@
 from abc import abstractmethod
 
 from maro.communication import Message, Proxy
-from maro.rl.actor import AbsActor
 from maro.rl.shaping import Shaper
+
 from maro.simulator import Env
 
-from .common import MessageTag, PayloadKey, AbortRollout
+from .abs_rollout_executor import AbsRolloutExecutor
+from .message_enums import MessageTag, PayloadKey
 
 
-class ActorClient(AbsActor):
-    """Actor client class that uses a proxy to query for actions from a remote learner.
+class RolloutClient(AbsRolloutExecutor):
+    """Roll-out executor that uses a proxy to query for actions from a remote learner.
 
     Args:
         env (Env): An environment instance.
@@ -66,6 +67,7 @@ class ActorClient(AbsActor):
                 request-response matching purposes.
             agent_id (str): The name of the agent to make the action decision. Defaults to None.
         """
+        assert rollout_index is not None and time_step is not None, "rollout_index and time_step cannot be None"
         payload = {
             PayloadKey.STATE: state,
             PayloadKey.ROLLOUT_INDEX: rollout_index,
@@ -83,14 +85,11 @@ class ActorClient(AbsActor):
         attempts = self._max_receive_action_attempts
         for msg in self.agent.receive(timeout=self._receive_action_timeout):
             if msg:
-                ep = msg.payload[PayloadKey.ROLLOUT_INDEX]
-                if msg.tag == MessageTag.TERMINATE_ROLLOUT and ep == rollout_index:
-                    return AbortRollout()
-                t = msg.payload[PayloadKey.TIME_STEP]
+                ep, t = msg.payload[PayloadKey.ROLLOUT_INDEX], msg.payload[PayloadKey.TIME_STEP]
                 if msg.tag == MessageTag.ACTION and ep == rollout_index and t == time_step:
                     return msg.payload[PayloadKey.ACTION]
-
-            # Did not receive expected reply before timeout
-            attempts -= 1
+            else:
+                # Did not receive expected reply before timeout
+                attempts -= 1
             if attempts == 0:
                 return

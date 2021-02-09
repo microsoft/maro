@@ -8,7 +8,7 @@ import numpy as np
 from maro.rl import Shaper
 
 
-class TruncatedExperienceShaper(Shaper):
+class CIMExperienceShaper(Shaper):
     def __init__(self, *, time_window: int, time_decay_factor: float, fulfillment_factor: float,
                  shortage_factor: float):
         super().__init__(reward_func=None)

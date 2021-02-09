@@ -2,8 +2,6 @@ import numpy as np
 
 from maro.rl import Shaper
 
-from examples.cim.gnn.components.utils import compute_v2p_degree_matrix
-
 
 class GNNStateShaper(Shaper):
     """State shaper to extract graph information.
@@ -74,6 +72,21 @@ class GNNStateShaper(Shaper):
             # Fixed order: in the order of degree.
 
     def compute_static_graph_structure(self, env):
+        def compute_v2p_degree_matrix(env):
+            """This function compute the adjacent matrix."""
+            topo_config = env.configs
+            static_dict = env.summary["node_mapping"]["ports"]
+            dynamic_dict = env.summary["node_mapping"]["vessels"]
+            adj_matrix = np.zeros((len(dynamic_dict), len(static_dict)), dtype=np.int)
+            for v, vinfo in topo_config["vessels"].items():
+                route_name = vinfo["route"]["route_name"]
+                route = topo_config["routes"][route_name]
+                vid = dynamic_dict[v]
+                for p in route:
+                    adj_matrix[vid][static_dict[p["port_name"]]] += 1
+
+            return adj_matrix
+        
         v2p_adj_matrix = compute_v2p_degree_matrix(env)
         p2p_adj_matrix = np.dot(v2p_adj_matrix.T, v2p_adj_matrix)
         p2p_adj_matrix[p2p_adj_matrix == 0] = self.max_arrival_time

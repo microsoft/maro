@@ -10,12 +10,12 @@ env:
     fulfillment_factor: 1.0
     shortage_factor: 1.0
     time_decay_factor: 0.97
-main_loop:
-  max_episode: 200
+training:
+  max_episode: 6
   exploration:
     parameter_names:
       - "epsilon"
-    split_ep: 100
+    split_ep: 3
     start_values: 0.4
     mid_values: 0.32
     end_values: 0.0
@@ -45,3 +45,16 @@ agent:
     is_double: true
     per_sample_td_error: true
   seed: 16  # for reproducibility
+multi_process:
+  enable: true
+  redis:
+    hostname: "localhost"
+    port: 6379
+  group: qqkkrtrfv
+  num_actors: 2 
+  inference_mode: "remote"  # supported: "local", "remote"
+  receive_action_timeout: 100  # milliseconds
+  max_receive_action_attempts: 1
+  allowed_null_responses: 15
+  update_trigger: 2
+  inference_trigger: 2
