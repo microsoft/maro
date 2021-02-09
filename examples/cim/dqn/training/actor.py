@@ -40,11 +40,11 @@ class SimpleRolloutExecutor(AbsRolloutExecutor):
 
 class SimpleRolloutClient(RolloutClient):
     def __init__(
-        self, env, agent_proxy, state_shaper, action_shaper, experience_shaper,
+        self, group_name, env, state_shaper, action_shaper, experience_shaper,
         receive_action_timeout=None, max_receive_action_attempts=None, allowed_null_responses=None
     ):
         super().__init__(
-            env, agent_proxy,
+            group_name, env,
             state_shaper=state_shaper, action_shaper=action_shaper, experience_shaper=experience_shaper,
             receive_action_timeout=receive_action_timeout, max_receive_action_attempts=max_receive_action_attempts
         )
@@ -91,17 +91,9 @@ def launch(config):
     experience_shaper = CIMExperienceShaper(**config.env.experience_shaping)
     
     inference_mode = config.multi_process.inference_mode
-    redis_address = config.multi_process.redis.hostname, config.multi_process.redis.port
     if inference_mode == "remote":
-        agent_proxy = Proxy(
-            group_name=config.multi_process.group,
-            component_type="rollout_client",
-            expected_peers={"learner": 1},
-            redis_address=redis_address,
-            max_retries=20
-        )
         executor = SimpleRolloutClient(
-            env, agent_proxy, state_shaper, action_shaper, experience_shaper,
+            config.multi_process.group, env, state_shaper, action_shaper, experience_shaper,
             receive_action_timeout=config.multi_process.receive_action_timeout,
             max_receive_action_attempts=config.multi_process.max_receive_action_attempts,
             allowed_null_responses=config.multi_process.allowed_null_responses
@@ -113,16 +105,8 @@ def launch(config):
         executor = SimpleRolloutExecutor(env, agent, state_shaper, action_shaper, experience_shaper)
     else:
         raise ValueError(f'Supported distributed training modes: "local", "remote", got {inference_mode}')
-
-    proxy = Proxy(
-        group_name=config.multi_process.group,
-        component_type="actor",
-        expected_peers={"learner": 1},
-        redis_address=redis_address,
-        max_retries=20
-    )
     
-    actor = BaseActor(executor, proxy)
+    actor = BaseActor(config.multi_process.group, executor)
     actor.run()
 
 

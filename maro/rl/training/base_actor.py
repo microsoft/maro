@@ -14,16 +14,18 @@ class BaseActor(object):
     """Actor class.
 
     Args:
+        group_name (str): Identifier of the group to which the actor belongs. It must be the same group name
+            assigned to the learner (and roll-out clients, if any).
         executor (AbsRolloutExecutor): An ``AbsRolloutExecutor`` instance that performs roll-outs.
-        proxy (Proxy): A ``Proxy`` instance responsible for communication.
+        proxy_options (dict): Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
+            for details. Defaults to None.
     """
-    def __init__(self, executor: AbsRolloutExecutor, proxy: Proxy):
+    def __init__(self, group_name: str, executor: AbsRolloutExecutor, proxy_options: dict = None):
         self.executor = executor
-        self.proxy = proxy
-        self.name = self.proxy.component_name
-        self.learner_name = self.proxy.peers_name["learner"][0]
-
-        self._logger = InternalLogger(self.proxy.component_name)
+        if proxy_options is None:
+            proxy_options = {}
+        self._proxy = Proxy(group_name, "actor", {"learner": 1}, **proxy_options)
+        self._logger = InternalLogger(self._proxy.component_name)
 
     def run(self):
         """Entry point method.
@@ -31,14 +33,15 @@ class BaseActor(object):
         This enters the roll-out executor into an infinite loop of receiving roll-out requests and
         performing roll-outs.
         """
-        for msg in self.proxy.receive():
+        for msg in self._proxy.receive():
             if msg.tag == MessageTag.EXIT:
                 self.exit()
             elif msg.tag == MessageTag.ROLLOUT:
-                self.executor.update_agent(
-                    model_dict=msg.payload.get(PayloadKey.MODEL, None),
-                    exploration_params=msg.payload.get(PayloadKey.EXPLORATION_PARAMS, None)
-                )
+                if isinstance(self.executor, AbsRolloutExecutor):
+                    self.executor.update_agent(
+                        model_dict=msg.payload.get(PayloadKey.MODEL, None),
+                        exploration_params=msg.payload.get(PayloadKey.EXPLORATION_PARAMS, None)
+                    )
                 ep = msg.payload[PayloadKey.ROLLOUT_INDEX]
                 self._logger.info(f"Rolling out ({ep})...")
                 rollout_data = self.executor.roll_out(
@@ -48,12 +51,17 @@ class BaseActor(object):
                     self._logger.info(f"Roll-out {ep} aborted")
                 else:
                     self._logger.info(f"Roll-out {ep} finished")
-                    payload = {
-                        PayloadKey.ROLLOUT_INDEX: ep,
-                        PayloadKey.METRICS: self.executor.env.metrics,
-                        PayloadKey.DETAILS: rollout_data
-                    }
-                    self.proxy.isend(Message(MessageTag.FINISHED, self.name, self.learner_name, payload=payload))
+                    rollout_finish_msg = Message(
+                        MessageTag.FINISHED, 
+                        self._proxy.component_name, 
+                        self._proxy.peers_name["learner"][0],
+                        payload={
+                            PayloadKey.ROLLOUT_INDEX: ep,
+                            PayloadKey.METRICS: self.executor.env.metrics,
+                            PayloadKey.DETAILS: rollout_data
+                        }
+                    )
+                    self._proxy.isend(rollout_finish_msg)
 
     def exit(self):
         self._logger.info("Exiting...")

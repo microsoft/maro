@@ -46,10 +46,7 @@ log:
     freq: 10
 multi_process:
   enable: true
-  redis:
-    hostname: "localhost"
-    port: 6379
-  group: hwtehf
+  group: "dfwtehf"
   num_actors: 2
   inference_mode: "remote"  # supported: "local", "remote"
   receive_action_timeout: 100  # milliseconds

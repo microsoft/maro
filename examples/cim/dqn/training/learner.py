@@ -15,14 +15,15 @@ from examples.cim.dqn.components import CIMStateShaper, create_dqn_agents
 
 class SimpleLearner(AbsLearner):
     def __init__(
-        self, agent, proxy, scheduler, 
-        update_trigger=None, inference=False, inference_trigger=None, state_batching_func=np.vstack):
+        self, group_name, num_actors, agent, scheduler,
+        update_trigger=None, inference=False, inference_trigger=None, state_batching_func=np.vstack
+    ):
         super().__init__(
-            agent, proxy, 
-            scheduler=scheduler, 
-            update_trigger=update_trigger, 
-            inference=inference, 
-            inference_trigger=inference_trigger, 
+            group_name, num_actors, agent,
+            scheduler=scheduler,
+            update_trigger=update_trigger,
+            inference=inference,
+            inference_trigger=inference_trigger,
             state_batching_func=state_batching_func
         )
 
@@ -52,23 +53,10 @@ def launch(config):
     agent = MultiAgentWrapper(create_dqn_agents(config.agent))
     scheduler = TwoPhaseLinearParameterScheduler(config.training.max_episode, **config.training.exploration)
 
-    inference = config.multi_process.inference_mode == "remote"
-    expected_peers = {"actor": config.multi_process.num_actors}
-    if inference:
-        expected_peers["rollout_client"] = expected_peers["actor"]
-    proxy = Proxy(
-        group_name=config.multi_process.group,
-        component_type="learner",
-        expected_peers=expected_peers,
-        redis_address=(config.multi_process.redis.hostname, config.multi_process.redis.port),
-        max_retries=15
-    )
-    
     learner = SimpleLearner(
-        agent, proxy, 
-        scheduler=scheduler,
+        config.multi_process.group, config.multi_process.num_actors, agent, scheduler,
         update_trigger=config.multi_process.update_trigger,
-        inference=inference,
+        inference=config.multi_process.inference_mode=="remote",
         inference_trigger=config.multi_process.inference_trigger,
     )
 

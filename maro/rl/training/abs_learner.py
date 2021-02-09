@@ -18,8 +18,10 @@ class AbsLearner(ABC):
     """Learner class.
 
     Args:
+        group_name (str): Identifier of the group to which the actor belongs. It must be the same group name
+            assigned to the actors (and roll-out clients, if any).
+        num_actors (int): Expected number of actors in the group idnetified by ``group_name``.
         agent (Union[AbsAgent, MultiAgentWrapper]): Agent or ditionary of agents managed by the agent.
-        proxy: A ``Proxy`` instance responsible for communication.
         scheduler (AbsScheduler): A scheduler responsible for iterating over episodes and generating exploration
             parameters if necessary. Defaults to None.
         update_trigger (str): Number or percentage of ``MessageTag.FINISHED`` messages required to trigger
@@ -30,29 +32,39 @@ class AbsLearner(ABC):
             batch inference.
         state_batching_func (Callable): A function to batch state objects from multiple roll-out clients
             for batch inference. Ignored if ``inference`` is false.
+        proxy_options (dict): Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
+            for details. Defaults to None.
     """
     def __init__(
         self,
+        group_name: str,
+        num_actors: int,
         agent: Union[AbsAgent, MultiAgentWrapper],
-        proxy: Proxy,
         scheduler: Scheduler = None,
         update_trigger: str = None,
         inference: bool = False,
         inference_trigger: str = None,
-        state_batching_func: Callable = None
+        state_batching_func: Callable = None,
+        proxy_options: dict = None
     ):
         super().__init__()
         self.agent = agent
-        self.proxy = proxy
         self.scheduler = scheduler
-        self._actors = self.proxy.peers_name["actor"]  # remote actor ID's
-        self._registry_table = RegisterTable(self.proxy.peers_name)
+        if proxy_options is None:
+            proxy_options = {}
+        peers = {"actor": num_actors}
+        if inference:
+            peers["rollout_client"] = num_actors
+        self._proxy = Proxy(group_name, "learner", peers, **proxy_options)
+        self._actors = self._proxy.peers_name["actor"]  # remote actor ID's
+        self._registry_table = RegisterTable(self._proxy.peers_name)
         if update_trigger is None:
             update_trigger = len(self._actors)
         self._registry_table.register_event_handler(
-            f"actor:{MessageTag.FINISHED.value}:{update_trigger}", self._on_rollout_finish)
+            f"actor:{MessageTag.FINISHED.value}:{update_trigger}", self._on_rollout_finish
+        )
         if inference:
-            self._rollout_clients = self.proxy.peers_name["rollout_client"]
+            self._rollout_clients = self._proxy.peers_name["rollout_client"]
             if inference_trigger is None:
                 inference_trigger = len(self._rollout_clients)
             self._registry_table.register_event_handler(
@@ -62,7 +74,8 @@ class AbsLearner(ABC):
         else:
             self._rollout_clients = None
             self._state_batching_func = None
-        self.logger = InternalLogger(self.proxy.component_name)
+
+        self.logger = InternalLogger(self._proxy.component_name)
 
     @abstractmethod
     def run(self):
@@ -101,11 +114,11 @@ class AbsLearner(ABC):
             if exploration_params:
                 payload[PayloadKey.EXPLORATION_PARAMS] = exploration_params
             payload[PayloadKey.MODEL] = self.agent.dump_model(agent_ids=agents_to_update)
-        self.proxy.iscatter(MessageTag.ROLLOUT, SessionType.TASK, [(actor, payload) for actor in self._actors])
+        self._proxy.iscatter(MessageTag.ROLLOUT, SessionType.TASK, [(actor, payload) for actor in self._actors])
         self.logger.info(f"Sent roll-out requests to {self._actors} for ep-{rollout_index}")
 
         # Receive roll-out results from remote actors
-        for msg in self.proxy.receive():
+        for msg in self._proxy.receive():
             if msg.payload[PayloadKey.ROLLOUT_INDEX] != rollout_index:
                 self.logger.info(
                     f"Ignore a message of type {msg.tag} with ep {msg.payload[PayloadKey.ROLLOUT_INDEX]} "
@@ -150,7 +163,7 @@ class AbsLearner(ABC):
         if isinstance(action_info, tuple):
             action_info = list(zip(*action_info))
         for query, action in zip(queries, action_info):
-            self.proxy.reply(
+            self._proxy.reply(
                 query,
                 tag=MessageTag.ACTION,
                 payload={
@@ -162,7 +175,7 @@ class AbsLearner(ABC):
 
     def exit(self):
         """Tell the remote actor to exit."""
-        self.proxy.ibroadcast(
+        self._proxy.ibroadcast(
             component_type="actor", tag=MessageTag.EXIT, session_type=SessionType.NOTIFICATION
         )
         self.logger.info("Exiting...")

@@ -46,10 +46,7 @@ agent:
     per_sample_td_error: true
   seed: 16  # for reproducibility
 multi_process:
-  enable: true
-  redis:
-    hostname: "localhost"
-    port: 6379
+  enable: false
   group: "test"
   num_actors: 2 
   inference_mode: "local"  # supported: "local", "remote"

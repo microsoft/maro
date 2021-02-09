@@ -7,37 +7,45 @@ from maro.communication import Message, Proxy
 from maro.rl.shaping import Shaper
 from maro.simulator import Env
 
-from .abs_rollout_executor import AbsRolloutExecutor
 from .message_enums import MessageTag, PayloadKey
 
 
-class RolloutClient(AbsRolloutExecutor):
-    """Roll-out executor that uses a proxy to query for actions from a remote learner.
+class RolloutClient(object):
+    """A mirror of ``AbsRolloutExecutor`` that uses a proxy to query for actions from a remote learner.
 
     Args:
+        group_name (str): Identifier of the group to which it belongs. It must be the same group name
+            assigned to the learner and actors.
         env (Env): An environment instance.
-        agent_proxy (Proxy): A ``Proxy`` used to query the remote learner for action decisions.
         state_shaper (Shaper, optional): It is responsible for converting the environment observation to model
             input. Defaults to None.
         action_shaper (Shaper, optional): It is responsible for converting an agent's model output to environment
             executable action. Defaults to None.
         experience_shaper (Shaper, optional): It is responsible for processing data in the replay buffer at
             the end of an episode. Defaults to None.
+        proxy_options (dict): Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
+            for details. Defaults to None.
+        receive_action_timeout (int): Timeout for receiving an action from the inference learner. Defaults to None.
+        max_receive_action_attempts (int): Maximum number of attempts to receive an action. Defaults to None.
     """
     def __init__(
         self,
+        group_name: str,
         env: Env,
-        agent_proxy: Proxy,
         state_shaper: Shaper = None,
         action_shaper: Shaper = None,
         experience_shaper: Shaper = None,
         receive_action_timeout: int = None,
-        max_receive_action_attempts: int = None
+        max_receive_action_attempts: int = None,
+        proxy_options: dict = None
     ):
-        super().__init__(
-            env, agent_proxy,
-            state_shaper=state_shaper, action_shaper=action_shaper, experience_shaper=experience_shaper
-        )
+        self.env = env
+        self.state_shaper = state_shaper
+        self.action_shaper = action_shaper
+        self.experience_shaper = experience_shaper
+        if proxy_options is None:
+            proxy_options = {}
+        self._proxy = Proxy(group_name, "rollout_client", {"learner": 1}, **proxy_options)
         self._receive_action_timeout = receive_action_timeout
         self._max_receive_action_attempts = max_receive_action_attempts
 
@@ -73,16 +81,16 @@ class RolloutClient(AbsRolloutExecutor):
             PayloadKey.TIME_STEP: time_step,
             PayloadKey.AGENT_ID: agent_id,
         }
-        self.agent.isend(
+        self._proxy.isend(
             Message(
                 tag=MessageTag.CHOOSE_ACTION,
-                source=self.agent.component_name,
-                destination=self.agent.peers_name["learner"][0],
+                source=self._proxy.component_name,
+                destination=self._proxy.peers_name["learner"][0],
                 payload=payload
             )
         )
         attempts = self._max_receive_action_attempts
-        for msg in self.agent.receive(timeout=self._receive_action_timeout):
+        for msg in self._proxy.receive(timeout=self._receive_action_timeout):
             if msg:
                 ep, t = msg.payload[PayloadKey.ROLLOUT_INDEX], msg.payload[PayloadKey.TIME_STEP]
                 if msg.tag == MessageTag.ACTION and ep == rollout_index and t == time_step:

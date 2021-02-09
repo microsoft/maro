@@ -4,7 +4,6 @@
 from abc import ABC, abstractmethod
 from typing import Union
 
-from maro.communication import Proxy
 from maro.rl.agent import AbsAgent, MultiAgentWrapper
 from maro.rl.shaping import Shaper
 from maro.simulator import Env
@@ -15,8 +14,7 @@ class AbsRolloutExecutor(ABC):
 
     Args:
         env (Env): An environment instance.
-        agent (Union[AbsAgent, MultiAgentWrapper, Proxy]): Agent that interacts with the environment. If it is
-            ``Proxy``, the actor will query the remote learner for action decisions.
+        agent (Union[AbsAgent, MultiAgentWrapper]): Agent that interacts with the environment.
         state_shaper (Shaper, optional): It is responsible for converting the environment observation to model
             input. Defaults to None.
         action_shaper (Shaper, optional): It is responsible for converting an agent's model output to environment
@@ -27,7 +25,7 @@ class AbsRolloutExecutor(ABC):
     def __init__(
         self,
         env: Env,
-        agent: Union[AbsAgent, MultiAgentWrapper, Proxy],
+        agent: Union[AbsAgent, MultiAgentWrapper],
         state_shaper: Shaper = None,
         action_shaper: Shaper = None,
         experience_shaper: Shaper = None
