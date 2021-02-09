@@ -17,7 +17,7 @@ KILL_ALL_VMS_IF_OVERLOAD: True
 
 # Oversubscription configuration.
 # Max CPU oversubscription rate.
-MAX_CPU_OVERSUBSCRIPTION_RATE: 1
+MAX_CPU_OVERSUBSCRIPTION_RATE: 1.15
 # Max memory oversubscription rate.
 MAX_MEM_OVERSUBSCRIPTION_RATE: 1
 # Max CPU utilization rate.
