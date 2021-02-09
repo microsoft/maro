@@ -9,8 +9,8 @@ from rule_based_algorithm import RuleBasedAlgorithm
 
 class BinPacking(RuleBasedAlgorithm):
     def __init__(
-        self, 
-        pm_num: int, 
+        self,
+        pm_num: int,
         pm_cpu_core_num: int
     ):
         super().__init__()
