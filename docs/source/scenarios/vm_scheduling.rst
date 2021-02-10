@@ -323,7 +323,7 @@ the system will reuse the processed data files.
 Customize Dataset
 ~~~~~~~~~~~~~~~~~~~~
 
-If you want to use your own dataset, you need to prepare two files, ``vm_table`` and ``cpu_readings_file``.
+If you want to use your own dataset, you need to prepare two csv files, ``vm_table`` and ``cpu_readings_file``.
 Below is the data schema and the format that you need to follow.
 
 * ``vm_table``:
