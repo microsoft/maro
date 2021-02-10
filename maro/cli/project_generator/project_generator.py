@@ -102,7 +102,7 @@ def new_project(**kwargs: dict):
                         raise ValidationError(message="Topology not exist.")
 
             topology_name = prompt(
-                "New topology name to use:",
+                "Topology name to use:",
                 default=builtin_topologies[0],
                 completer=builtin_topologies_completer,
                 validator=BuiltinTopologyValidator(),
@@ -111,7 +111,7 @@ def new_project(**kwargs: dict):
             )
         else:
             topology_name = prompt(
-                "Topology name to create (content is copied from first exist one.):",
+                "Topology name to create (content is copied from built-in topology.):",
                 validator=NonEmptyStringValidator("Topology name cannot be empty."),
                 validate_while_typing=True
             )
