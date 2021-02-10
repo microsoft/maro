@@ -374,7 +374,8 @@ For example,
 
     maro data build --meta ~/.maro/data/vm_scheduling/meta/vmtable.yml  --file ~/.maro/data/vm_scheduling/.build/azure.2019.10k/vmtable.bin --output $PWD/vmtable.bin
 
-After building the files. Specify the direct path in the config.yml under the topologies directories.
+After building the binary files. Specify the direct path of ``VM_TABLE`` and ``CPU_READINGS``
+in the config.yml under the topologies directories. Then you can use your own dataset to run the simulation.
 
 Environment Interface
 ^^^^^^^^^^^^^^^^^^^^^^
