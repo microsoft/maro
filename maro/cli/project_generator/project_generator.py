@@ -102,7 +102,7 @@ def new_project(**kwargs: dict):
                         raise ValidationError(message="Topology not exist.")
 
             topology_name = prompt(
-                "New topology name (configuration) to use:",
+                "New topology name to use:",
                 default=builtin_topologies[0],
                 completer=builtin_topologies_completer,
                 validator=BuiltinTopologyValidator(),
