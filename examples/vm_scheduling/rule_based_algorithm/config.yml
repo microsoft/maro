@@ -23,11 +23,7 @@ algorithm:
   # Round Robin
   type: round_robin.RoundRobin
   args:
-    pm_num: 100
 
   # Bin packing
   # type: bin_packing.BinPacking
   # args:
-    # pm_num: 100
-    # pm_cpu_core_num: 16
-    # max_cpu_oversubscription_rate: 1.15
