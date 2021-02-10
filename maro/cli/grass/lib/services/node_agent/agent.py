@@ -421,7 +421,7 @@ class ResourceTrackingAgent(multiprocessing.Process):
         local_cluster_details: dict,
         local_master_details: dict,
         local_node_details: dict,
-        check_interval: int = 60
+        check_interval: int = 30
     ):
         super().__init__()
         self._local_cluster_details = local_cluster_details

@@ -16,26 +16,39 @@ from maro.utils.exception.cli_exception import BadRequestError
 class ResourceTrackingAgent(mp.Process):
     def __init__(
         self,
-        check_interval: int = 60
+        check_interval: int = 30
     ):
         super().__init__()
-        self.check_interval = check_interval
         self._redis_connection = redis.Redis(host="localhost", port=LocalParams.RESOURCE_REDIS_PORT)
         try:
-            self._redis_connection.hset(
-                LocalParams.RESOURCE_INFO,
-                "agent_pid",
-                os.getpid()
-            )
+            if self._redis_connection.hexists(LocalParams.RESOURCE_INFO, "check_interval"):
+                self._check_interval = int(self._redis_connection.hget(LocalParams.RESOURCE_INFO, "check_interval"))
+            else:
+                self._check_interval = check_interval
         except Exception:
             raise BadRequestError(
                 "Failure to connect to Resource Redis."
                 "Please make sure at least one cluster running."
             )
 
-        self._set_static_resource_info()
+        self._set_resource_info()
 
-    def _set_static_resource_info(self):
+    def _set_resource_info(self):
+        # Set resource agent pid.
+        self._redis_connection.hset(
+            LocalParams.RESOURCE_INFO,
+            "agent_pid",
+            os.getpid()
+        )
+
+        # Set resource agent check interval.
+        self._redis_connection.hset(
+            LocalParams.RESOURCE_INFO,
+            "check_interval",
+            json.dumps(self._check_interval)
+        )
+
+        # Push static resource information into Redis.
         resource = ResourceInfo.get_static_info()
         self._redis_connection.hset(
             LocalParams.RESOURCE_INFO,
@@ -52,10 +65,12 @@ class ResourceTrackingAgent(mp.Process):
         while True:
             start_time = time.time()
             self.push_local_resource_usage()
-            time.sleep(max(self.check_interval - (time.time() - start_time), 0))
+            time.sleep(max(self._check_interval - (time.time() - start_time), 0))
+
+            self._check_interval = int(self._redis_connection.hget(LocalParams.RESOURCE_INFO, "check_interval"))
 
     def push_local_resource_usage(self):
-        resource_usage = ResourceInfo.get_dynamic_info(self.check_interval)
+        resource_usage = ResourceInfo.get_dynamic_info(self._check_interval)
 
         self._redis_connection.rpush(
             LocalParams.CPU_USAGE,

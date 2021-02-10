@@ -79,7 +79,6 @@ class GrassLocalExecutor(AbsVisibleExecutor):
             available_resource, cluster_resource, ResourceOperation.ALLOCATION
         )
         if not is_satisfied:
-            shutil.rmtree(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}", True)
             self._resource_redis.sub_cluster()
             raise BadRequestError("No enough resource for this cluster.")
 
