@@ -9,7 +9,7 @@ from torch.nn.modules.activation import MultiheadAttention
 from torch.nn.modules.dropout import Dropout
 from torch.nn.modules.normalization import LayerNorm
 
-from maro.rl import AbsLearningModel, OptimOption
+from maro.rl import AbsCoreModel, OptimOption
 
 
 class PositionalEncoder(nn.Module):
@@ -205,7 +205,7 @@ class SimpleTransformer(nn.Module):
         return p, v
 
 
-class GNNBasedACModel(AbsLearningModel):
+class GNNBasedACModel(AbsCoreModel):
     """The actor-critic module shared with multiple agents.
 
     This module maps the input graph of the observation to the policy and value space. It first extracts the temporal

@@ -28,7 +28,7 @@ class OptimOption:
         self.scheduler_params = scheduler_params
 
 
-class AbsLearningModel(nn.Module):
+class AbsCoreModel(nn.Module):
     """Trainable model that consists of multiple network components.
 
     Args:
@@ -126,7 +126,7 @@ class AbsLearningModel(nn.Module):
         return clone(self)
 
 
-class SimpleMultiHeadModel(AbsLearningModel):
+class SimpleMultiHeadModel(AbsCoreModel):
     """A compound network structure that consists of multiple task heads and an optional shared stack.
 
     Args:

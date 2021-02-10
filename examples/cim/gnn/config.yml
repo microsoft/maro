@@ -33,7 +33,7 @@ agent:
       # temporal or random, if temporal, the edges in the graph are listed in the order of event time, else in a
       # random order.
       attention_order: temporal
-      onehot_identity: False
+      onehot_identity: false
 training:
   enable: true
   max_episode: 500

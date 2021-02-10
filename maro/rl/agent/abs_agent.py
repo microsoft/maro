@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 
 import torch
 
-from maro.rl.model.learning_model import AbsLearningModel
+from maro.rl.model.learning_model import AbsCoreModel
 
 
 class AbsAgent(ABC):
@@ -18,12 +18,12 @@ class AbsAgent(ABC):
     on interaction with the environment.
 
     Args:
-        model (AbsLearningModel): Task model or container of task models required by the algorithm.
+        model (AbsCoreModel): Task model or container of task models required by the algorithm.
         config: Settings for the algorithm.
         experience_pool: It is used to store experiences processed by the experience shaper, which will be
             used by some value-based algorithms, such as DQN. Defaults to None.
     """
-    def __init__(self, model: AbsLearningModel, config, experience_pool=None):
+    def __init__(self, model: AbsCoreModel, config, experience_pool=None):
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self._model = model.to(self._device)
         self._config = config

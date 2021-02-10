@@ -29,8 +29,13 @@ class SimpleLearner(AbsLearner):
 
     def run(self):
         for exploration_params in self.scheduler:
-            self.agent.set_exploration_params(exploration_params)
-            metrics_by_src, exp_by_src = self.collect(self.scheduler.iter, exploration_params=exploration_params)
+            if self.inference:
+                self.agent.set_exploration_params(exploration_params)
+            metrics_by_src, exp_by_src = self.collect(
+                self.scheduler.iter, 
+                model_dict=None if self.inference else self.agent.dump_model(),
+                exploration_params=None if self.inference else exploration_params
+            )
             for src, metrics in metrics_by_src.items():
                 self.logger.info(
                     f"{src}.ep-{self.scheduler.iter} - performance: {metrics}, exploration: {exploration_params}"

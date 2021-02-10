@@ -6,6 +6,8 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 from typing import Callable, List, Union
 
+import numpy as np
+
 from maro.communication import Message, Proxy, RegisterTable, SessionType
 from maro.rl.agent import AbsAgent, MultiAgentWrapper
 from maro.rl.scheduling.scheduler import Scheduler
@@ -50,6 +52,7 @@ class AbsLearner(ABC):
         super().__init__()
         self.agent = agent
         self.scheduler = scheduler
+        self.inference = inference
         if proxy_options is None:
             proxy_options = {}
         peers = {"actor": num_actors}
@@ -81,26 +84,14 @@ class AbsLearner(ABC):
     def run(self):
         raise NotADirectoryError
 
-    def collect(
-        self,
-        rollout_index: int,
-        training: bool = True,
-        agents_to_update: Union[str, List[str]] = None,
-        exploration_params=None,
-        **rollout_kwargs
-    ) -> tuple:
+    def collect(self, rollout_index: int, training: bool = True, **rollout_kwargs) -> tuple:
         """Collect roll-out performances and details from remote actors.
 
         Args:
             rollout_index (int): Index of roll-out requests.
             training (bool): If true, the roll-out request is for training purposes.
-            agents_to_update (Union[str, List[str]]): ID's of the agents whose models are to be broadcast to
-                the actors. If action decisions are made on the learner's side, this is ignored. Otherwise
-                defaults to None, in which case all agents' models will be sent.
-            exploration_params: Exploration parameters for the actors to use during roll-out. If action decisions
-                are made on the learner's side, this is ignored.
             rollout_kwargs: Keyword parameters required for roll-out. Must match the keyword parameters specified
-                for the actor class.
+                for the roll-out executor.
         """
         payload = {
             PayloadKey.ROLLOUT_INDEX: rollout_index,
@@ -110,10 +101,6 @@ class AbsLearner(ABC):
         # If no actor client is found, it is necessary to broadcast agent models to the remote actors
         # so that thay can perform inference on their own. If there exists exploration parameters, they
         # must also be sent to the remote actors.
-        if not self._rollout_clients:
-            if exploration_params:
-                payload[PayloadKey.EXPLORATION_PARAMS] = exploration_params
-            payload[PayloadKey.MODEL] = self.agent.dump_model(agent_ids=agents_to_update)
         self._proxy.iscatter(MessageTag.ROLLOUT, SessionType.TASK, [(actor, payload) for actor in self._actors])
         self.logger.info(f"Sent roll-out requests to {self._actors} for ep-{rollout_index}")
 
@@ -163,15 +150,16 @@ class AbsLearner(ABC):
         if isinstance(action_info, tuple):
             action_info = list(zip(*action_info))
         for query, action in zip(queries, action_info):
-            self._proxy.reply(
-                query,
-                tag=MessageTag.ACTION,
-                payload={
-                    PayloadKey.ACTION: action,
-                    PayloadKey.ROLLOUT_INDEX: query.payload[PayloadKey.ROLLOUT_INDEX],
-                    PayloadKey.TIME_STEP: query.payload[PayloadKey.TIME_STEP]
-                }
-            )
+            if np.random.random() < 0.99:
+                self._proxy.reply(
+                    query,
+                    tag=MessageTag.ACTION,
+                    payload={
+                        PayloadKey.ACTION: action,
+                        PayloadKey.ROLLOUT_INDEX: query.payload[PayloadKey.ROLLOUT_INDEX],
+                        PayloadKey.TIME_STEP: query.payload[PayloadKey.TIME_STEP]
+                    }
+                )
 
     def exit(self):
         """Tell the remote actor to exit."""

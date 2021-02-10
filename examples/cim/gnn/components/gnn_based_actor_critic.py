@@ -7,7 +7,7 @@ from torch import nn
 from torch.distributions import Categorical
 from torch.nn.utils import clip_grad
 
-from maro.rl import AbsAgent, AbsLearningModel
+from maro.rl import AbsAgent, AbsCoreModel
 from maro.utils import DummyLogger
 
 from examples.cim.gnn.components.numpy_store import Shuffler
@@ -56,12 +56,12 @@ class GNNBasedActorCritic(AbsAgent):
     The vanilla ac algorithm.
 
     Args:
-        model (AbsLearningModel): A actor-critic module outputing both the policy network and the value network.
+        model (AbsCoreModel): A actor-critic module outputing both the policy network and the value network.
         config (GNNBasedActorCriticConfig): Configuration for the GNN-based actor critic algorithm.
     """
 
     def __init__(
-        self, model: AbsLearningModel, config: GNNBasedActorCriticConfig, experience_pool, logger=DummyLogger()
+        self, model: AbsCoreModel, config: GNNBasedActorCriticConfig, experience_pool, logger=DummyLogger()
     ):
         super().__init__(model, config, experience_pool=experience_pool)
         self._batch_count = 0

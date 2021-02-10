@@ -2,8 +2,12 @@
 # Licensed under the MIT license.
 
 import sys
+from typing import Callable, Union
 
 from maro.communication import Message, Proxy
+from maro.rl.agent import AbsAgent, MultiAgentWrapper
+from maro.rl.shaping import Shaper
+from maro.simulator import Env
 from maro.utils import InternalLogger
 
 from .abs_rollout_executor import AbsRolloutExecutor
@@ -16,12 +20,12 @@ class BaseActor(object):
     Args:
         group_name (str): Identifier of the group to which the actor belongs. It must be the same group name
             assigned to the learner (and roll-out clients, if any).
-        executor (AbsRolloutExecutor): An ``AbsRolloutExecutor`` instance that performs roll-outs.
+        rollout_executor (AbsRolloutExecutor): Roll-out executor.
         proxy_options (dict): Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
             for details. Defaults to None.
     """
-    def __init__(self, group_name: str, executor: AbsRolloutExecutor, proxy_options: dict = None):
-        self.executor = executor
+    def __init__(self, group_name: str, rollout_executor: AbsRolloutExecutor, proxy_options: dict = None):
+        self.rollout_executor = rollout_executor
         if proxy_options is None:
             proxy_options = {}
         self._proxy = Proxy(group_name, "actor", {"learner": 1}, **proxy_options)
@@ -30,21 +34,15 @@ class BaseActor(object):
     def run(self):
         """Entry point method.
 
-        This enters the roll-out executor into an infinite loop of receiving roll-out requests and
-        performing roll-outs.
+        An infinite loop of receiving roll-out requests and performing roll-outs until and EXIT command is received.
         """
         for msg in self._proxy.receive():
             if msg.tag == MessageTag.EXIT:
                 self.exit()
             elif msg.tag == MessageTag.ROLLOUT:
-                if isinstance(self.executor, AbsRolloutExecutor):
-                    self.executor.update_agent(
-                        model_dict=msg.payload.get(PayloadKey.MODEL, None),
-                        exploration_params=msg.payload.get(PayloadKey.EXPLORATION_PARAMS, None)
-                    )
                 ep = msg.payload[PayloadKey.ROLLOUT_INDEX]
                 self._logger.info(f"Rolling out ({ep})...")
-                rollout_data = self.executor.roll_out(
+                rollout_data = self.rollout_executor.roll_out(
                     ep, training=msg.payload[PayloadKey.TRAINING], **msg.payload[PayloadKey.ROLLOUT_KWARGS]
                 )
                 if rollout_data is None:
@@ -57,7 +55,7 @@ class BaseActor(object):
                         self._proxy.peers_name["learner"][0],
                         payload={
                             PayloadKey.ROLLOUT_INDEX: ep,
-                            PayloadKey.METRICS: self.executor.env.metrics,
+                            PayloadKey.METRICS: self.rollout_executor.env.metrics,
                             PayloadKey.DETAILS: rollout_data
                         }
                     )

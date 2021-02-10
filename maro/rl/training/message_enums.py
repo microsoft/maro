@@ -15,8 +15,6 @@ class PayloadKey(Enum):
     AGENT_ID = "agent_id"
     ROLLOUT_INDEX = "rollout_index"
     TIME_STEP = "time_step"
-    MODEL = "model"
-    EXPLORATION_PARAMS = "exploration_params"
     METRICS = "metrics"
     DETAILS = "details"
     STATE = "state"

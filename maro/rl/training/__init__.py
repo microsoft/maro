@@ -4,11 +4,11 @@
 from .abs_learner import AbsLearner
 from .abs_rollout_executor import AbsRolloutExecutor
 from .base_actor import BaseActor
-from .rollout_client import RolloutClient
+from .decision_client import DecisionClient
 
 __all__ = [
     "AbsLearner",
     "AbsRolloutExecutor",
     "BaseActor",
-    "RolloutClient",
+    "DecisionClient",
 ]

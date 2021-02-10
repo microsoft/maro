@@ -6,78 +6,53 @@ import os
 import numpy as np
 
 from maro.communication import Proxy
-from maro.rl import AbsRolloutExecutor, BaseActor, MultiAgentWrapper, RolloutClient
+from maro.rl import AbsRolloutExecutor, BaseActor, DecisionClient, MultiAgentWrapper
 from maro.simulator import Env
 from maro.utils import LogFormat, Logger
 
 from examples.cim.dqn.components import CIMActionShaper, CIMStateShaper, CIMExperienceShaper, create_dqn_agents
 
 
-class SimpleRolloutExecutor(AbsRolloutExecutor):
-    def __init__(self, env, agent, state_shaper, action_shaper, experience_shaper):
+class BasicRolloutExecutor(AbsRolloutExecutor):
+    def __init__(self, env, agent, state_shaper, action_shaper, experience_shaper, max_null_decisions=None):
         super().__init__(
-            env, agent, 
-            state_shaper=state_shaper, action_shaper=action_shaper, experience_shaper=experience_shaper
+            env, agent, state_shaper=state_shaper, action_shaper=action_shaper, experience_shaper=experience_shaper
         )
-
-    def roll_out(self, index, training=True):
-        self.env.reset()
-        metrics, event, is_done = self.env.step(None)
-        while not is_done:
-            state = self.state_shaper(event, self.env.snapshot_list)
-            agent_id = str(event.port_idx)
-            action = self.agent[agent_id].choose_action(state)
-            self.experience_shaper.record(
-                {"state": state, "agent_id": agent_id, "event": event, "action": action}
-            )
-            metrics, event, is_done = self.env.step(self.action_shaper(action, event, self.env.snapshot_list))
-
-        exp = self.experience_shaper(self.env.snapshot_list) if training else None
-        self.experience_shaper.reset()
-
-        return exp
-
-
-class SimpleRolloutClient(RolloutClient):
-    def __init__(
-        self, group_name, env, state_shaper, action_shaper, experience_shaper,
-        receive_action_timeout=None, max_receive_action_attempts=None, allowed_null_responses=None
-    ):
-        super().__init__(
-            group_name, env,
-            state_shaper=state_shaper, action_shaper=action_shaper, experience_shaper=experience_shaper,
-            receive_action_timeout=receive_action_timeout, max_receive_action_attempts=max_receive_action_attempts
-        )
-        # If no response occurs this many times during a roll-out episode, roll-out is aborted.
-        self._allowed_null_responses = allowed_null_responses
+        self._max_null_decisions = max_null_decisions # max number of null decisions that can be tolerated
         self._logger = Logger("actor_client", format_=LogFormat.simple, auto_timestamp=False)
-    
-    def roll_out(self, index, training=True):
+
+    def roll_out(self, index, training=True, model_dict=None, exploration_params=None):
         self.env.reset()
-        allowed_null_responses = self._allowed_null_responses
-        time_step = 0
+        if not isinstance(self.agent, DecisionClient):
+            if model_dict:
+                self.agent.load_model(model_dict)
+            if exploration_params:
+                self.agent.set_exploration_params(exploration_params)
+        time_step, null_decisions_allowed = 0, self._max_null_decisions    
         metrics, event, is_done = self.env.step(None)
         while not is_done:
             state = self.state_shaper(event, self.env.snapshot_list)
             agent_id = str(event.port_idx)
-            action = self.get_action(state, index, time_step, agent_id=agent_id)
-
-            time_step += 1
-            if action is None:
-                metrics, event, is_done = self.env.step(None)
-                self._logger.info(f"Failed to receive an action for time step {time_step}, proceed with no action.")
-                allowed_null_responses -= 1
-                if allowed_null_responses == 0:
-                    self._logger.info(
-                        f"Received no response from learner {self._allowed_null_responses} times. Roll-out aborted."
-                    )
-                    return
+            if isinstance(self.agent, DecisionClient):
+                action = self.agent.get(state, index, time_step, agent_id=agent_id)
+                if action is None:
+                    self._logger.info(f"Failed to receive an action for time step {time_step}, proceed with no action.")
+                    if null_decisions_allowed:
+                        null_decisions_allowed -= 1
+                        if null_decisions_allowed == 0:
+                            self._logger.info(f"Roll-out aborted due to too many null decisions.")
+                            return
             else:
+                action = self.agent[agent_id].choose_action(state)
+
+            if action is not None:
                 self.experience_shaper.record(
                     {"state": state, "agent_id": agent_id, "event": event, "action": action}
                 )
-                metrics, event, is_done = self.env.step(self.action_shaper(action, event, self.env.snapshot_list))
-                
+                action = self.action_shaper(action, event, self.env.snapshot_list)
+            metrics, event, is_done = self.env.step(action)
+            time_step += 1
+
         exp = self.experience_shaper(self.env.snapshot_list) if training else None
         self.experience_shaper.reset()
 
@@ -92,20 +67,22 @@ def launch(config):
     
     inference_mode = config.multi_process.inference_mode
     if inference_mode == "remote":
-        executor = SimpleRolloutClient(
-            config.multi_process.group, env, state_shaper, action_shaper, experience_shaper,
+        agent = DecisionClient(
+            config.multi_process.group,
             receive_action_timeout=config.multi_process.receive_action_timeout,
             max_receive_action_attempts=config.multi_process.max_receive_action_attempts,
-            allowed_null_responses=config.multi_process.allowed_null_responses
         )
     elif inference_mode == "local":
         config.agent.model.input_dim = state_shaper.dim
         config.agent.names = [str(agent_id) for agent_id in env.agent_idx_list]
         agent = MultiAgentWrapper(create_dqn_agents(config.agent))
-        executor = SimpleRolloutExecutor(env, agent, state_shaper, action_shaper, experience_shaper)
     else:
         raise ValueError(f'Supported distributed training modes: "local", "remote", got {inference_mode}')
     
+    executor = BasicRolloutExecutor(
+        env, agent, state_shaper, action_shaper, experience_shaper,
+        max_null_decisions=config.multi_process.max_null_decisions
+    )
     actor = BaseActor(config.multi_process.group, executor)
     actor.run()
 
