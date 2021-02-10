@@ -17,7 +17,7 @@ KILL_ALL_VMS_IF_OVERLOAD: True
 
 # Oversubscription configuration.
 # Max CPU oversubscription rate.
-MAX_CPU_OVERSUBSCRIPTION_RATE: 1
+MAX_CPU_OVERSUBSCRIPTION_RATE: 1.15
 # Max memory oversubscription rate.
 MAX_MEM_OVERSUBSCRIPTION_RATE: 1
 # Max CPU utilization rate.
@@ -26,6 +26,13 @@ MAX_UTILIZATION_RATE: 1
 components:
   pm:
     - pm_type: 0
+      cpu: 32
+      memory: 128
+      power_curve:
+        calibration_parameter: 1.4
+        busy_power: 15
+        idle_power: 1
+    - pm_type: 1
       cpu: 16
       memory: 112
       power_curve:
@@ -37,11 +44,25 @@ components:
       pm:
         - pm_type: 0
           pm_amount: 10
+    - type: 'b'
+      pm:
+        - pm_type: 1
+          pm_amount: 10
   cluster:
-    - type: 'JP1'
+    - type: 'JP1'         # 100 pm/cluster
       rack:
         - rack_type: 'a'
-          rack_amount: 88
+          rack_amount: 10
+    - type: 'JP2'         # 100 pm/cluster
+      rack:
+        - rack_type: 'b'
+          rack_amount: 10
+    - type: 'JP3'         # 100 pm/cluster
+      rack:
+        - rack_type: 'a'
+          rack_amount: 5
+        - rack_type: 'b'
+          rack_amount: 5
 
 architecture:
   region:
@@ -52,4 +73,8 @@ architecture:
             - name: 'Japan'
               cluster:
                 - type: 'JP1'
-                  cluster_amount: 1
+                  cluster_amount: 2
+                - type: 'JP2'
+                  cluster_amount: 4
+                - type: 'JP3'
+                  cluster_amount: 2
