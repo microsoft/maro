@@ -33,7 +33,7 @@ class NonEmptyStringValidator(Validator):
             raise ValidationError(message=self._err_msg)
 
 
-class NumberValidator(Validator):
+class PositiveNumberValidator(Validator):
     """Validator used to make sure input value is a positive number."""
     def validate(self, document):
         text = document.text
@@ -136,14 +136,14 @@ def new_project(**kwargs: dict):
     durations = prompt(
         "Durations to emulate:",
         default="100",
-        validator=NumberValidator(),
+        validator=PositiveNumberValidator(),
         validate_while_typing=True
     )
 
     episodes = prompt(
         "Number of episodes to emulate:",
         default="10",
-        validator=NumberValidator(),
+        validator=PositiveNumberValidator(),
         validate_while_typing=True
     )
 
