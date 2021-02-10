@@ -332,7 +332,7 @@ Below is the data schema and the format that you need to follow.
   * sub_id: int. The subscription id of VMs.
   * deploy_id: int. The deployment id of VMs.
   * timestamp: int. The timestamp of VM's creation time.
-  * vm_lifetime: int. The life time of VMs.
+  * vm_lifetime: int. The lifetime of VMs. Lifetime equals the deletion time - creation time (timestamp) + 1.
   * vm_deleted: int. The timestamp of VM's deletion time.
   * vm_category: int. The category of VMs. Currently, we have three categories of VM:
 
@@ -358,7 +358,13 @@ After preparing two files as the above formats. You need to convert them to bina
 We provide the ``build`` command to build your own CSV dataset to binary files
 that the MARO simulator can use. Currently, there are three required arguments for the data ``build`` command:
 
-* ``--meta``: required, used to specify the path of the meta file. The source columns that to be converted and
+* ``--meta``: required, used to specify the path of the meta file. In default, the meta files are under
+
+  .. code-block:: sh
+
+     ~/.maro/data/vm_scheduling/meta/
+
+  The source columns that to be converted and
   the data type of each columns should be specified in the meta file.
 * ``--file``: required, used to specify the path of the source CSV data file(s). If multiple source CSV data files are needed,
   you can list all the full paths of the source files in a specific file and use a ``@`` symbol to specify it.
