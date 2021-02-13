@@ -2,12 +2,8 @@
 # Licensed under the MIT license.
 
 import sys
-from typing import Callable, Union
 
 from maro.communication import Message, Proxy
-from maro.rl.agent import AbsAgent, MultiAgentWrapper
-from maro.rl.shaping import Shaper
-from maro.simulator import Env
 from maro.utils import InternalLogger
 
 from .abs_rollout_executor import AbsRolloutExecutor
