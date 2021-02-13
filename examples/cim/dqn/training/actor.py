@@ -10,7 +10,7 @@ from maro.rl import AbsRolloutExecutor, BaseActor, DecisionClient, MultiAgentWra
 from maro.simulator import Env
 from maro.utils import LogFormat, Logger
 
-from examples.cim.dqn.components import CIMActionShaper, CIMStateShaper, CIMExperienceShaper, create_dqn_agents
+from examples.cim.dqn.components import CIMActionShaper, CIMStateShaper, CIMExperienceShaper, create_dqn_agent
 
 
 class BasicRolloutExecutor(AbsRolloutExecutor):
@@ -32,7 +32,7 @@ class BasicRolloutExecutor(AbsRolloutExecutor):
         metrics, event, is_done = self.env.step(None)
         while not is_done:
             state = self.state_shaper(event, self.env.snapshot_list)
-            agent_id = str(event.port_idx)
+            agent_id = event.port_idx
             if isinstance(self.agent, DecisionClient):
                 action = self.agent.get(state, index, time_step, agent_id=agent_id)
                 if action is None:
@@ -74,8 +74,7 @@ def launch(config):
         )
     elif inference_mode == "local":
         config.agent.model.input_dim = state_shaper.dim
-        config.agent.names = [str(agent_id) for agent_id in env.agent_idx_list]
-        agent = MultiAgentWrapper(create_dqn_agents(config.agent))
+        agent = MultiAgentWrapper({name: create_dqn_agent(config.agent) for name in env.agent_idx_list})
     else:
         raise ValueError(f'Supported distributed training modes: "local", "remote", got {inference_mode}')
     

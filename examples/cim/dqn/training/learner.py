@@ -10,7 +10,7 @@ from maro.communication import Proxy
 from maro.rl import AbsLearner, MultiAgentWrapper, TwoPhaseLinearParameterScheduler, concat
 from maro.simulator import Env
 
-from examples.cim.dqn.components import CIMStateShaper, create_dqn_agents
+from examples.cim.dqn.components import CIMStateShaper, create_dqn_agent
 
 
 class SimpleLearner(AbsLearner):
@@ -54,8 +54,7 @@ class SimpleLearner(AbsLearner):
 def launch(config):
     env = Env(config.env.scenario, config.env.topology, durations=config.env.durations)
     config.agent.model.input_dim = CIMStateShaper(**config.env.state_shaping).dim
-    config.agent.names = [str(agent_id) for agent_id in env.agent_idx_list]
-    agent = MultiAgentWrapper(create_dqn_agents(config.agent))
+    agent = MultiAgentWrapper({name: create_dqn_agent(config.agent) for name in env.agent_idx_list})
     scheduler = TwoPhaseLinearParameterScheduler(config.training.max_episode, **config.training.exploration)
 
     learner = SimpleLearner(

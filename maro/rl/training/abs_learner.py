@@ -57,7 +57,7 @@ class AbsLearner(ABC):
             proxy_options = {}
         peers = {"actor": num_actors}
         if inference:
-            peers["rollout_client"] = num_actors
+            peers["decision_client"] = num_actors
         self._proxy = Proxy(group_name, "learner", peers, **proxy_options)
         self._actors = self._proxy.peers_name["actor"]  # remote actor ID's
         self._registry_table = RegisterTable(self._proxy.peers_name)
@@ -67,15 +67,15 @@ class AbsLearner(ABC):
             f"actor:{MessageTag.FINISHED.value}:{update_trigger}", self._on_rollout_finish
         )
         if inference:
-            self._rollout_clients = self._proxy.peers_name["rollout_client"]
+            self._decision_clients = self._proxy.peers_name["decision_client"]
             if inference_trigger is None:
-                inference_trigger = len(self._rollout_clients)
+                inference_trigger = len(self._decision_clients)
             self._registry_table.register_event_handler(
-                f"rollout_client:{MessageTag.CHOOSE_ACTION.value}:{inference_trigger}", self._on_action_request
+                f"decision_client:{MessageTag.CHOOSE_ACTION.value}:{inference_trigger}", self._on_action_request
             )
             self._state_batching_func = state_batching_func
         else:
-            self._rollout_clients = None
+            self._decision_clients = None
             self._state_batching_func = None
 
         self.logger = InternalLogger(self._proxy.component_name)

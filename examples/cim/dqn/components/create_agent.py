@@ -5,22 +5,16 @@ import torch.nn as nn
 from torch.optim import RMSprop
 
 from maro.rl import DQN, DQNConfig, FullyConnectedBlock, OptimOption, SimpleMultiHeadModel
-from maro.utils import set_seeds
 
 
-def create_dqn_agents(config):
-    set_seeds(config.seed)
-    agent_dict = {}
-    for name in config.names:
-        q_net = FullyConnectedBlock(
-            activation=nn.LeakyReLU,
-            is_head=True,
-            **config.model
-        )            
-        learning_model = SimpleMultiHeadModel(
-            q_net,
-            optim_option=OptimOption(optim_cls=RMSprop, optim_params=config.optimizer)
-        )
-        agent_dict[name] = DQN(learning_model, DQNConfig(**config.hyper_params, loss_cls=nn.SmoothL1Loss))
-
-    return agent_dict
+def create_dqn_agent(config):
+    q_net = FullyConnectedBlock(
+        activation=nn.LeakyReLU,
+        is_head=True,
+        **config.model
+    )            
+    q_model = SimpleMultiHeadModel(
+        q_net,
+        optim_option=OptimOption(optim_cls=RMSprop, optim_params=config.optimizer)
+    )
+    return DQN(q_model, DQNConfig(**config.hyper_params, loss_cls=nn.SmoothL1Loss))

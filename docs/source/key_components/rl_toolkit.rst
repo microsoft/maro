@@ -4,9 +4,8 @@ RL Toolkit
 
 MARO provides a full-stack abstraction for reinforcement learning (RL), which enables users to
 apply predefined and customized components to various scenarios. The main abstractions include
-basic components such as `Agent <#agent>`_\ , `Core Model <#core-model>` , `Explorer <#explorer>`
-and `Shaper <#shaper>`_\ , and training routine controllers such as `Rollout Executor <# rollout-executor>`,
-`Actor <#actor>` and `Learner <#learner>`.
+fundamental components such as `Agent <#agent>`_\ and `Shaper <#shaper>`_\ , and training routine
+controllers such as `Actor <#actor>` and `Learner <#learner>`.
 
 
 Agent
@@ -95,65 +94,35 @@ Shaper
 ------
 
 Shapers are callable objects that perform translations between scenario-specific information and model
-input / output. For example, a state shaper may convert an observation of the environment to a state
-vector as input to a neural network. A action shaper may convert an integer model output to an action
-object that can be executed by the environment simulator by giving it the necessary contexts.  
+input / output. Three types of shapers are often necessary: 
+* State shaper, which serves to convert observations of an environment into model input. For example,
+  the observation may be represented by a multi-level data structure, which gets encoded by a state shaper
+  to a one-dimensional vector as input to a neural network. The state shaper usually goes hand in hand with
+  the underlying policy or value models. 
+* Action shaper, which serves to provide model output with necessary context so that it can be executed by the
+  environment simulator.
+* Experience shaper, which serves to generate experiences from a trajectory of transitions recorded during
+  roll-out for training.
 
 
-Roll-out Executor
------------------
-
-A roll-out executor consists of an environment instance, an agent (a single agent or multiple agents
-wrapped by MultiAgentWrapper) and optional shapers for necessary conversions. It implements the ``roll_out``
-method where the agent interacts with the environment for one full episode.
-
-
-Actor
------
+Tools and Controllers for Distributed Training
+----------------------------------------------
 
 .. image:: ../images/rl/overview.svg
    :target: ../images/rl/overview.svg
    :alt: RL Overview
 
-* **Learner** is the abstraction of the learnable policy. It is responsible for
-  learning a qualified policy to improve the business optimized object.
-
-  .. code-block:: python
-
-    # Train function of learner.
-    def learn(self):
-        for exploration_params in self._scheduler:
-            exp_by_agent = self._actor.roll_out(
-                self._agent_manager.dump_models(),
-                exploration_params=exploration_params
-            )
-            self._scheduler.record_performance(performance)
-            self._agent_manager.train(exp_by_agent)
-
-* **Actor** is the abstraction of experience collection. It is responsible for
-  interacting with the environment and collecting experiences. The experiences
-  collected during interaction will be used for the training of the learners.
-
-  .. code-block:: python
-
-    # Rollout function of actor.
-    def roll_out(self, models=None, epsilons=None, seed: int = None):
-        self._env.reset()
-
-        # load models
-        if model_dict is not None:
-            self._agents.load_model(model_dict)
-
-        # load exploration parameters:
-        if exploration_params is not None:
-            self._agents.set_exploration_params(exploration_params)
-
-        metrics, decision_event, is_done = self._env.step(None)
-        while not is_done:
-            action = self._agents.choose_action(decision_event, self._env.snapshot_list)
-            metrics, decision_event, is_done = self._env.step(action)
-            self._agents.on_env_feedback(metrics)
-
-        details = self._agents.post_process(self._env.snapshot_list) if return_details else None
-
-        return self._env.metrics, details
+The RL toolkit provides tools that make distributed training easy:
+* Learner, the centralized controller of the training process in a distributed setting. Its task
+  is to collect training data from remote actors and train the agents with it. There are two ways of
+  doing so: 1) sending each actor a copy of the current model so that they can make action decisions
+  on their own; 2) providing action decisions directly to actors (https://arxiv.org/pdf/1910.06591.pdf).  
+* Actor, which handles roll-out requests from the learner by executing roll-outs and sending data
+  to the learner for training. It consists of a roll-out executor and a proxy for communicating
+  with a remote learner. In distributed RL, there are typically many actor processes running
+  simultaneously to parallelize training data collection.
+* Roll-out executor, which implements the ``roll_out`` method where the agent interacts with the
+  environment for one full episode. It consists of an environment instance, an agent (a single agent or
+  multiple agents wrapped by ``MultiAgentWrapper``) and shapers for necessary conversions.
+* Decision client, which communicates with the remote learner to obtain action decisions on behalf of
+  the roll-out executor.

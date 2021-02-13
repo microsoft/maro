@@ -19,6 +19,8 @@ remaining space on vessel.
 .. code-block:: python
     PORT_ATTRIBUTES = ["empty", "full", "on_shipper", "on_consignee", "booking", "shortage", "fulfillment"]
     VESSEL_ATTRIBUTES = ["empty", "full", "remaining_space"]
+    LOOK_BACK = 7
+    MAX_PORTS_DOWNSTREAM = 2
 
     class CIMStateShaper(StateShaper):
         ...
@@ -29,7 +31,7 @@ remaining space on vessel.
             port_features = snapshot_list["ports"][ticks: [port_idx] + list(future_port_idx_list): PORT_ATTRIBUTES]
             vessel_features = snapshot_list["vessels"][tick: vessel_idx: VESSEL_ATTRIBUTES]
             state = np.concatenate((port_features, vessel_features))
-            return str(port_idx), state
+            return state
 
 
 Action Shaper
@@ -54,19 +56,20 @@ integers from -10 to 10, with -10 indicating loading 100% of the containers in t
             vessel_remaining_space = snapshot_list["vessels"][tick: vessel_idx: ["empty", "full", "remaining_space"]][2]
             early_discharge = snapshot_list["vessels"][tick:vessel_idx: "early_discharge"][0]
             assert 0 <= model_action < len(self._action_space)
+            operation_num = self._action_space[model_action]
 
             if model_action < self._zero_action_index:
-                actual_action = max(round(self._action_space[model_action] * port_empty), -vessel_remaining_space)
+                actual_action = max(round(operation_num * port_empty), -vessel_remaining_space)
+                action_type = ActionType.LOAD
             elif model_action > self._zero_action_index:
-                plan_action = self._action_space[model_action] * (scope.discharge + early_discharge) - early_discharge
-                actual_action = (
-                    round(plan_action) if plan_action > 0
-                    else round(self._action_space[model_action] * scope.discharge)
-                )
+                plan_action = operation_num * (scope.discharge + early_discharge) - early_discharge
+                actual_action = round(plan_action) if plan_action > 0 else round(operation_num * scope.discharge)
+                action_type = ActionType.DISCHARGE
             else:
                 actual_action = 0
+                action_type = None
 
-            return Action(vessel_idx, port_idx, actual_action)
+            return Action(vessel_idx, port_idx, abs(actual_action), action_type)
 
 Experience Shaper
 -----------------
@@ -79,11 +82,12 @@ combination of fulfillment and shortage in a limited time window.
     class CIMExperienceShaper(ExperienceShaper):
         ...
         def __call__(self, trajectory, snapshot_list):
+            states = self._trajectory["state"]
+            actions = self._trajectory["action"]
+            agent_ids = self._trajectory["agent_id"]
+            events = self._trajectory["event"]
+
             experiences_by_agent = defaultdict(lambda: defaultdict(list))
-            states = trajectory["state"]
-            actions = trajectory["action"]
-            agent_ids = trajectory["agent_id"]
-            events = trajectory["event"]
             for i in range(len(states) - 1):
                 experiences = experiences_by_agent[agent_ids[i]]
                 experiences["state"].append(states[i])
@@ -101,149 +105,101 @@ kernel abstraction of the RL formulation for a real-world problem. For this scen
 is the algorithmic abstraction of a port. We choose DQN as our underlying learning algorithm
 with a TD-error-based sampling mechanism.
 
-.. code-block:: python
-    NUM_ACTIONS = 21
-    def create_dqn_agents(agent_id_list):
-        set_seeds(64)  # for reproducibility
-        agent_dict = {}
-        for agent_id in agent_id_list:
-            q_net = FullyConnectedBlock(
-                input_dim=state_shaper.dim,
-                hidden_dims=[256, 128, 64],
-                output_dim=NUM_ACTIONS,
-                activation=nn.LeakyReLU,
-                is_head=True,
-                batch_norm=True, 
-                softmax=False,
-                skip_connection=False,
-                dropout_p=.0
-            )
-            
-            learning_model = SimpleMultiHeadModel(
-                q_net, optim_option=OptimOption(optim_cls=RMSprop, optim_params={"lr": 0.05})
-            )
-            agent_dict[agent_id] = DQN(
-                agent_id, 
-                learning_model, 
-                config=DQNConfig(
-                    reward_discount=.0, 
-                    min_exp_to_train=1024,
-                    num_batches=10,
-                    batch_size=128, 
-                    target_update_freq=5, 
-                    tau=0.1, 
-                    is_double=True, 
-                    per_sample_td_error=True,
-                    loss_cls=nn.SmoothL1Loss
-                )
-            )
+.. code-block:: python    
+    def create_dqn_agent():
+        q_net = FullyConnectedBlock(
+            input_dim=(LOOK_BACK + 1) * (MAX_PORTS_DOWNSTREAM + 1) * len(PORT_ATTRIBUTES) + len(VESSEL_ATTRIBUTES),
+            hidden_dims=[256, 128, 64],
+            output_dim=21,  # action space [0, 1, ..., 20]
+            activation=nn.LeakyReLU,
+            is_head=True,
+            batch_norm=True, 
+            softmax=False,
+            skip_connection=False,
+            dropout_p=.0
+        )
 
-        return agent_dict
+        return DQN( 
+            SimpleMultiHeadModel(q_net, optim_option=OptimOption(optim_cls=RMSprop, optim_params={"lr": 0.05})),
+            DQNConfig(
+                reward_discount=.0, 
+                min_exp_to_train=1024,
+                num_batches=10,
+                batch_size=128, 
+                target_update_freq=5, 
+                tau=0.1, 
+                is_double=True, 
+                per_sample_td_error=True,
+                loss_cls=nn.SmoothL1Loss
+            )
+        )
 
-Agent Manager
+Roll-out Loop
 -------------
 
-The complexities of the environment can be isolated from the learning algorithm by using an
-`Agent manager <https://maro.readthedocs.io/en/latest/key_components/rl_toolkit.html#agent-manager>`_
-to manage individual agents. We define a function to create the agents and an agent manager class
-that implements the ``train`` method where the newly obtained experiences are stored in the agents'
-experience pools before training, in accordance with the DQN algorithm.
 
 .. code-block:: python
-    class DQNAgentManager(AbsAgentManager):
-        def __init__(
-            self,
-            agent,
-            state_shaper: CIMStateShaper,
-            action_shaper: CIMActionShaper,
-            experience_shaper: CIMExperienceShaper
-        ):
-            super().__init__(
-                agent,
-                state_shaper=state_shaper,
-                action_shaper=action_shaper,
-                experience_shaper=experience_shaper
-            )
-            # Data structure to temporarily store the trajectory
-            self._trajectory = defaultdict(list)
+    class BasicRolloutExecutor(AbsRolloutExecutor):
+        ...
+        def roll_out(self, index, training=True):
+            self.env.reset()
+            metrics, event, is_done = self.env.step(None)
+            while not is_done:
+                state = self.state_shaper(event, self.env.snapshot_list)
+                agent_id = event.port_idx
+                action = self.agent[agent_id].choose_action(state)
+                self.experience_shaper.record(
+                    {"state": state, "agent_id": agent_id, "event": event, "action": action}
+                )
+                metrics, event, is_done = self.env.step(self.action_shaper(action, event, self.env.snapshot_list))
 
-        def choose_action(self, decision_event, snapshot_list):
-            agent_id, model_state = self._state_shaper(decision_event, snapshot_list)
-            action = self.agent[agent_id].choose_action(model_state)
-            self._trajectory["state"].append(model_state)
-            self._trajectory["agent_id"].append(agent_id)
-            self._trajectory["event"].append(decision_event)
-            self._trajectory["action"].append(action)
-            return self._action_shaper(action, decision_event, snapshot_list)
+            exp = self.experience_shaper(self.env.snapshot_list) if training else None
+            self.experience_shaper.reset()
 
-        def train(self, experiences_by_agent):
-            # store experiences for each agent
-            for agent_id, exp in experiences_by_agent.items():
-                exp.update({"loss": [1e8] * len(list(exp.values())[0])})
-                self.agent[agent_id].store_experiences(exp)
+            return exp
 
-            for agent in self.agent.values():
-                agent.train()
 
-        def on_env_feedback(self, metrics):
-            self._trajectory["metrics"].append(metrics)
+Single-threaded Training
+------------------------
 
-        def post_process(self, snapshot_list):
-            experiences = self._experience_shaper(self._trajectory, snapshot_list)
-            self._trajectory.clear()
-            self._state_shaper.reset()
-            self._action_shaper.reset()
-            self._experience_shaper.reset()
-            return experiences
-
-Main Loop with Actor and Learner (Single Process)
--------------------------------------------------
-
-This single-process workflow of a learning policy's interaction with a MARO environment is comprised of:
-- Initializing an environment with specific scenario and topology parameters.
-- Defining scenario-specific components, e.g. shapers.
-- Creating agents and an agent manager.
-- Creating an `actor <https://maro.readthedocs.io/en/latest/key_components/rl_toolkit.html#learner-and-actor>`_ and a
-`learner <https://maro.readthedocs.io/en/latest/key_components/rl_toolkit.html#learner-and-actor>`_ to start the
-training process in which the agent manager interacts with the environment for collecting experiences and updating
-policies.
+This single-threaded training workflow is comprised of the following steps:
+- Initialize an environment with specific scenario and topology parameters. 
+- Create agents and shapers.
+- Execute the training loop with a scheduler and a roll-out executor. 
 
 .. code-block::python
     env = Env("cim", "toy.4p_ssdd_l0.0", durations=1120)
-    agent_id_list = [str(agent_id) for agent_id in env.agent_idx_list]
-    state_shaper = CIMStateShaper(look_back=7, max_ports_downstream=2)
-    action_shaper = CIMActionShaper(action_space=list(np.linspace(-1.0, 1.0, NUM_ACTIONS)))
-    experience_shaper = CIMExperienceShaper(
-        time_window=100, fulfillment_factor=1.0, shortage_factor=1.0, time_decay_factor=0.97
-    )
-    agent_manager = DQNAgentManager(
-        create_dqn_agents(agent_id_list),
-        state_shaper=state_shaper,
-        action_shaper=action_shaper,
-        experience_shaper=experience_shaper
-    )
-
+    state_shaper = CIMStateShaper(look_back=LOOK_BACK, max_ports_downstream=MAX_PORTS_DOWNSTREAM)
+    action_shaper = CIMActionShaper(action_space=list(np.linspace(-1.0, 1.0, 21)))
+    experience_shaper = CIMExperienceShaper(time_window=100, fulfillment_factor=1.0, shortage_factor=1.0, time_decay_factor=0.97)
+    agent = MultiAgentWrapper({name: create_dqn_agent() for name in env.agent_idx_list})
     scheduler = TwoPhaseLinearParameterScheduler(
-        max_episode=100,
+        max_iter=100,
         parameter_names=["epsilon"],
         split_ep=50,
         start_values=0.4,
         mid_values=0.32,
         end_values=.0
     )
+    executor = BasicRolloutExecutor(env, agent, state_shaper, action_shaper, experience_shaper)
+    for exploration_params in scheduler:
+        agent.set_exploration_params(exploration_params)
+        exp_by_agent = executor.roll_out(scheduler.iter)
+        print(f"ep {scheduler.iter} - metrics: {env.metrics}, exploration_params: {exploration_params}")
+        for agent_id, exp in exp_by_agent.items():
+            exp.update({"loss": [1e8] * len(list(exp.values())[0])})
+            agent[agent_id].store_experiences(exp)
 
-    actor = SimpleActor(env, agent_manager)
-    learner = SimpleLearner(agent_manager, actor, scheduler)
-    learner.run()
+        for dqn in agent.agent_dict.values():
+            dqn.train()
 
 
-Main Loop with Actor and Learner (Distributed/Multi-process)
---------------------------------------------------------------
+Distributed Training
+--------------------
 
 We demonstrate a single-learner and multi-actor topology where the learner drives the program by telling remote actors
-to perform roll-out tasks and using the results they sent back to improve the policies. The workflow usually involves
-launching a learner process and an actor process separately. Because training occurs on the learner side and inference
-occurs on the actor side, we need to create appropriate agent managers on both sides.
+to perform roll-out tasks and using the results they sent back to improve policies. The workflow usually involves
+launching the learner process and actor processes separately.
 
 On the actor side, the agent manager must be equipped with all shapers as well as an explorer. Thus, The code for
 creating an environment and an agent manager on the actor side is similar to that for the single-host version. As in the
@@ -254,24 +210,14 @@ simple(local) actor wrapped inside.
 
 .. code-block:: python
     env = Env("cim", "toy.4p_ssdd_l0.0", durations=1120)
-    agent_id_list = [str(agent_id) for agent_id in env.agent_idx_list]
-    agent_manager = DQNAgentManager(
-        create_dqn_agents(agent_id_list),
-        state_shaper=state_shaper,
-        action_shaper=action_shaper,
-        experience_shaper=experience_shaper
-    )
-    proxy_params = {
-        "group_name": "distributed_cim", 
-        "expected_peers": {"learner": 1}, 
-        "redis_address": ("localhost", 6379),
-        "max_retries": 15
-    }
-    actor_worker = ActorWorker(
-        local_actor=SimpleActor(env=env, agent_manager=agent_manager),
-        proxy_params=proxy_params
-    )
-    actor_worker.launch()
+    state_shaper = CIMStateShaper(look_back=LOOK_BACK, max_ports_downstream=MAX_PORTS_DOWNSTREAM)
+    action_shaper = CIMActionShaper(action_space=list(np.linspace(-1.0, 1.0, 21)))
+    experience_shaper = CIMExperienceShaper(time_window=100, fulfillment_factor=1.0, shortage_factor=1.0, time_decay_factor=0.97)
+
+    agent = MultiAgentWrapper({name: create_dqn_agent() for name in env.agent_idx_list})
+    executor = BasicRolloutExecutor(env, agent, state_shaper, action_shaper, experience_shaper)
+    actor = BaseActor("cim-dqn", executor)
+    actor.run()
 
 On the learner side, instead of creating an actor, we create an actor proxy and wrap it inside the learner. This proxy
 serves as the communication interface for the learner and is responsible for sending roll-out requests to remote actor
@@ -280,30 +226,20 @@ roll-out is performed remotely. The code snippet below shows the creation of a l
 inside that communicates with 3 actors. 
 
 .. code-block:: python
-
-    agent_manager = DQNAgentManager(
-        create_dqn_agents(agent_id_list),
-        state_shaper=state_shaper,
-        action_shaper=action_shaper,
-        experience_shaper=experience_shaper
-    )
-    proxy_params = {
-        "group_name": "distributed_cim", 
-        "expected_peers": {"actor": 3}, 
-        "redis_address": ("localhost", 6379),
-        "max_retries": 15
-    }
-    actor=ActorProxy(proxy_params=proxy_params, experience_collecting_func=concat_experiences_by_agent),
+    env = Env("cim", "toy.4p_ssdd_l0.0", durations=1120)
+    agent = MultiAgentWrapper({name: create_dqn_agent() for name in env.agent_idx_list})
     scheduler = TwoPhaseLinearParameterScheduler(
-        max_episode=100,
+        max_iter=100,
         parameter_names=["epsilon"],
         split_ep=50,
         start_values=0.4,
         mid_values=0.32,
         end_values=.0
     )
-    learner = SimpleLearner(agent_manager, actor, scheduler)
+
+    learner = SimpleLearner(""cim-dqn"", 3, agent, scheduler)
     learner.run()
+    learner.exit()
 
 .. note::
 

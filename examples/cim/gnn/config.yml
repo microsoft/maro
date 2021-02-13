@@ -3,7 +3,7 @@ env:
   scenario: "cim"
   topology: "global_trade.22p_l0.8"
   # topology: "toy.4p_ssdd_l0.0"
-  durations: 200
+  durations: 1120
 agent:
   hyper_params:
     reward_discount: 0.99
@@ -46,7 +46,7 @@ log:
     freq: 10
 multi_process:
   enable: true
-  group: "fwtehf"
+  group: "cim-gnn"
   num_actors: 2
   inference_mode: "remote"  # supported: "local", "remote"
   update_trigger: 2
