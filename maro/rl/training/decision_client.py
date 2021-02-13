@@ -18,8 +18,8 @@ class DecisionClient(object):
             for details. Defaults to None.
     """
     def __init__(
-        self, 
-        group_name: str, 
+        self,
+        group_name: str,
         receive_action_timeout: int = None,
         max_receive_action_attempts: int = None,
         proxy_options: dict = None
