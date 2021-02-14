@@ -8,7 +8,7 @@ from maro.rl import AbsRolloutExecutor, BaseActor, DecisionClient
 from maro.simulator import Env
 from maro.utils import LogFormat, Logger
 
-from examples.cim.gnn.components import GNNStateShaper, DiscreteActionShaper, GNNExperienceShaper
+from examples.cim.gnn.components import GNNStateShaper, DiscreteActionShaper, GNNExperienceShaper, create_gnn_agent
 from examples.cim.gnn.general import simulation_logger
 from examples.cim.gnn.training.utils import fix_seed, return_scaler
 
