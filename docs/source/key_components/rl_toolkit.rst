@@ -108,8 +108,8 @@ input / output. Three types of shapers are often necessary:
 Tools and Controllers for Distributed Training
 ----------------------------------------------
 
-.. image:: ../images/rl/overview.svg
-   :target: ../images/rl/overview.svg
+.. image:: ../images/rl/learner_actor.svg
+   :target: ../images/rl/learner_actor.svg
    :alt: RL Overview
 
 The RL toolkit provides tools that make distributed training easy:
