@@ -76,7 +76,7 @@ Experience Shaper
 
 `Experience shaper <https://maro.readthedocs.io/en/latest/key_components/rl_toolkit.html#shapers>`_ is used to convert
 an episode trajectory to trainable experiences for RL agents. For this specific scenario, the reward is a linear
-combination of fulfillment and shortage in a limited time window.
+combination of fulfillment and shortage in a fixed-size time window.
 
 .. code-block:: python
     class CIMExperienceShaper(ExperienceShaper):
@@ -101,7 +101,7 @@ Agent
 -----
 
 `Agent <https://maro.readthedocs.io/en/latest/key_components/rl_toolkit.html#agent>`_ is the
-kernel abstraction of the RL formulation for a real-world problem. For this scenario, the agent
+kernel abstraction of the RL formulation for real-world problems. In this scenario, the agent
 is the algorithmic abstraction of a port. We choose DQN as our underlying learning algorithm
 with a TD-error-based sampling mechanism.
 
@@ -137,12 +137,24 @@ with a TD-error-based sampling mechanism.
 Roll-out Loop
 -------------
 
+The roll-out loop is highly customizable and usually depends on how the shapers are implemented. For
+this reason, its implementation is left to the user through the ``AbsRolloutExecutor`` interface.
+There is generally no restriction on the type of data the routine should return, so long as the user
+knows what to do with it. But if the ``training`` option is set to true. it is expected to return (or
+store in an externally accessible data structure) data needed for model training. In this example, the
+roll-out loop is implemented based on the above shapers, but should demonstrate the general roles of
+the shapers in roll-outs.
+
 
 .. code-block:: python
     class BasicRolloutExecutor(AbsRolloutExecutor):
         ...
-        def roll_out(self, index, training=True):
+        def roll_out(self, index, training=True, model_dict=None, exploration_params=None):
             self.env.reset()
+            if model_dict:
+                self.agent.load_model(model_dict)
+            if exploration_params:
+                self.agent.set_exploration_params(exploration_params)
             metrics, event, is_done = self.env.step(None)
             while not is_done:
                 state = self.state_shaper(event, self.env.snapshot_list)
@@ -151,7 +163,8 @@ Roll-out Loop
                 self.experience_shaper.record(
                     {"state": state, "agent_id": agent_id, "event": event, "action": action}
                 )
-                metrics, event, is_done = self.env.step(self.action_shaper(action, event, self.env.snapshot_list))
+                env_action = self.action_shaper(action, event, self.env.snapshot_list)
+                metrics, event, is_done = self.env.step(env_action)
 
             exp = self.experience_shaper(self.env.snapshot_list) if training else None
             self.experience_shaper.reset()
@@ -162,10 +175,11 @@ Roll-out Loop
 Single-threaded Training
 ------------------------
 
-This single-threaded training workflow is comprised of the following steps:
+Another highly customizable part of the training workflow is the main training loop. This example
+demonstrates a typical single-threaded workflow:
 - Initialize an environment with specific scenario and topology parameters. 
 - Create agents and shapers.
-- Execute the training loop with a scheduler and a roll-out executor. 
+- Implement the main training loop with a roll-out executor. 
 
 .. code-block::python
     env = Env("cim", "toy.4p_ssdd_l0.0", durations=1120)
@@ -197,16 +211,14 @@ This single-threaded training workflow is comprised of the following steps:
 Distributed Training
 --------------------
 
-We demonstrate a single-learner and multi-actor topology where the learner drives the program by telling remote actors
-to perform roll-out tasks and using the results they sent back to improve policies. The workflow usually involves
-launching the learner process and actor processes separately.
+The distributed training consists of one learner process and multiple actor processes. The learner optimizes
+the policy by collecting roll-out data from the actors to train the underlying agents.
 
-On the actor side, the agent manager must be equipped with all shapers as well as an explorer. Thus, The code for
-creating an environment and an agent manager on the actor side is similar to that for the single-host version. As in the
-single-process version, the environment and the agent manager are wrapped in a SimpleActor instance. To make the actor a
-distributed worker, we need to further wrap it in an ActorWorker instance. Finally, we launch the worker and it starts to
-listen to roll-out requests from the learner. The following code snippet shows the creation of an actor worker with a
-simple(local) actor wrapped inside.
+The actor process must create a roll-out executor for performing the requested roll-outs, which means that the
+the environment simulator and shapers should be created here. In this example, inference is performed on the
+actor's side, so a set of DQN agents must be created in order to load the models (and exploration parameters)
+from the learner (if inference were made on the learner side, then we would create a ``DecisionClient`` instead
+of the actual agents).
 
 .. code-block:: python
     env = Env("cim", "toy.4p_ssdd_l0.0", durations=1120)
@@ -219,15 +231,32 @@ simple(local) actor wrapped inside.
     actor = BaseActor("cim-dqn", executor)
     actor.run()
 
-On the learner side, instead of creating an actor, we create an actor proxy and wrap it inside the learner. This proxy
-serves as the communication interface for the learner and is responsible for sending roll-out requests to remote actor
-processes and receiving results. Calling the train method executes the usual training loop except that the actual
-roll-out is performed remotely. The code snippet below shows the creation of a learner with an actor proxy wrapped
-inside that communicates with 3 actors. 
+The learner's side requires a concrete learner class that inherits from ``AbsLearner`` and implements the ``run``
+method which contains the main training loop. Here the implementation is similar to the single-threaded version
+except that the ``collect`` method is used to obtain roll-out data from the actors (since the roll-out executors
+are located on the actors' side). The agents created here are where training occurs and hence always contains the
+latest policies. 
 
 .. code-block:: python
-    env = Env("cim", "toy.4p_ssdd_l0.0", durations=1120)
-    agent = MultiAgentWrapper({name: create_dqn_agent() for name in env.agent_idx_list})
+    class SimpleLearner(AbsLearner):
+        ...
+
+        def run(self):
+            for exploration_params in self.scheduler:
+                metrics_by_src, exp_by_src = self.collect(
+                    self.scheduler.iter, 
+                    model_dict=self.agent.dump_model(),
+                    exploration_params=exploration_params
+                )
+                for agent_id, exp in concat(exp_by_src).items():
+                    exp.update({"loss": [1e8] * len(list(exp.values())[0])})
+                    self.agent[agent_id].store_experiences(exp)
+
+                for agent in self.agent.agent_dict.values():
+                    agent.train()
+
+    agent_idx_list = Env("cim", "toy.4p_ssdd_l0.0", durations=1120).agent_idx_list
+    agent = MultiAgentWrapper({name: create_dqn_agent() for name in agent_idx_list})
     scheduler = TwoPhaseLinearParameterScheduler(
         max_iter=100,
         parameter_names=["epsilon"],
@@ -237,7 +266,7 @@ inside that communicates with 3 actors.
         end_values=.0
     )
 
-    learner = SimpleLearner(""cim-dqn"", 3, agent, scheduler)
+    learner = SimpleLearner("cim-dqn", 3, agent, scheduler)  # 3 actors
     learner.run()
     learner.exit()
 
