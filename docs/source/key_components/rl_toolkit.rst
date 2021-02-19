@@ -90,39 +90,40 @@ As an example, the exploration for DQN may be carried out with the aid of an ``E
   exploration_action = explorer(greedy_action)
 
 
-Shaper
-------
+Rollout Executor
+----------------
 
-Shapers are callable objects that perform translations between scenario-specific information and model
-input / output. Three types of shapers are often necessary: 
-* State shaper, which serves to convert observations of an environment into model input. For example,
-  the observation may be represented by a multi-level data structure, which gets encoded by a state shaper
-  to a one-dimensional vector as input to a neural network. The state shaper usually goes hand in hand with
-  the underlying policy or value models. 
-* Action shaper, which serves to provide model output with necessary context so that it can be executed by the
+A roll-out executor implements the ``roll_out`` method where the agent interacts with the environment
+for one episode. It consists of an environment instance and an agent (a single agent or multiple agents
+wrapped by ``MultiAgentWrapper``). It is usually necessary to define shaping functions that perform
+translations between scenario-specific information and model input / output. Three types of shaping
+are often necessary: 
+* State shaping, which converts observations of an environment into model input. For example, the observation
+  may be represented by a multi-level data structure, which gets encoded by a state shaper to a one-dimensional
+  vector as input to a neural network. The state shaper usually goes hand in hand with the underlying policy
+  or value models. 
+* Action shaping, which provides model output with necessary context so that it can be executed by the
   environment simulator.
-* Experience shaper, which serves to generate experiences from a trajectory of transitions recorded during
-  roll-out for training.
+* Reward shaping, which computes a reward for a given action.
+It may also be necessary to define a function that collects training data from a trajectory of transitions
+recorded during a roll-out episode.
 
 
-Tools and Controllers for Distributed Training
-----------------------------------------------
+Tools for Distributed Training
+------------------------------
 
 .. image:: ../images/rl/learner_actor.svg
    :target: ../images/rl/learner_actor.svg
    :alt: RL Overview
 
 The RL toolkit provides tools that make distributed training easy:
-* Learner, the centralized controller of the training process in a distributed setting. Its task
-  is to collect training data from remote actors and train the agents with it. There are two ways of
-  doing so: 1) sending each actor a copy of the current model so that they can make action decisions
-  on their own; 2) providing action decisions directly to actors (https://arxiv.org/pdf/1910.06591.pdf).  
+* Learner, the central controller of the training process in a distributed setting. Its task is to
+  collect training data from remote actors and train the agents with it. There are two ways of doing
+  so: 1) sending each actor a copy of the current model so that they can make action decisions on their
+  own; 2) providing action decisions directly to actors (https://arxiv.org/pdf/1910.06591.pdf).  
 * Actor, which handles roll-out requests from the learner by executing roll-outs and sending data
   to the learner for training. It consists of a roll-out executor and a proxy for communicating
   with a remote learner. In distributed RL, there are typically many actor processes running
   simultaneously to parallelize training data collection.
-* Roll-out executor, which implements the ``roll_out`` method where the agent interacts with the
-  environment for one full episode. It consists of an environment instance, an agent (a single agent or
-  multiple agents wrapped by ``MultiAgentWrapper``) and shapers for necessary conversions.
 * Decision client, which communicates with the remote learner to obtain action decisions on behalf of
   the roll-out executor.

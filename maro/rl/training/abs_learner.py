@@ -6,8 +6,6 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 from typing import Callable, List, Union
 
-import numpy as np
-
 from maro.communication import Message, Proxy, RegisterTable, SessionType
 from maro.rl.agent import AbsAgent, MultiAgentWrapper
 from maro.rl.scheduling.scheduler import Scheduler
@@ -22,7 +20,7 @@ class AbsLearner(ABC):
     Args:
         group_name (str): Identifier of the group to which the actor belongs. It must be the same group name
             assigned to the actors (and roll-out clients, if any).
-        num_actors (int): Expected number of actors in the group idnetified by ``group_name``.
+        num_actors (int): Expected number of actors in the group identified by ``group_name``.
         agent (Union[AbsAgent, MultiAgentWrapper]): Agent or ditionary of agents managed by the agent.
         scheduler (AbsScheduler): A scheduler responsible for iterating over episodes and generating exploration
             parameters if necessary. Defaults to None.
@@ -78,7 +76,7 @@ class AbsLearner(ABC):
             self._decision_clients = None
             self._state_batching_func = None
 
-        self.logger = InternalLogger(self._proxy.component_name)
+        self._logger = InternalLogger(self._proxy.component_name)
 
     @abstractmethod
     def run(self):
@@ -102,12 +100,12 @@ class AbsLearner(ABC):
         # so that thay can perform inference on their own. If there exists exploration parameters, they
         # must also be sent to the remote actors.
         self._proxy.iscatter(MessageTag.ROLLOUT, SessionType.TASK, [(actor, payload) for actor in self._actors])
-        self.logger.info(f"Sent roll-out requests to {self._actors} for ep-{rollout_index}")
+        self._logger.info(f"Sent roll-out requests to {self._actors} for ep-{rollout_index}")
 
         # Receive roll-out results from remote actors
         for msg in self._proxy.receive():
             if msg.payload[PayloadKey.ROLLOUT_INDEX] != rollout_index:
-                self.logger.info(
+                self._logger.info(
                     f"Ignore a message of type {msg.tag} with ep {msg.payload[PayloadKey.ROLLOUT_INDEX]} "
                     f"(current ep: {rollout_index})"
                 )
@@ -150,21 +148,20 @@ class AbsLearner(ABC):
         if isinstance(action_info, tuple):
             action_info = list(zip(*action_info))
         for query, action in zip(queries, action_info):
-            if np.random.random() < 0.99:
-                self._proxy.reply(
-                    query,
-                    tag=MessageTag.ACTION,
-                    payload={
-                        PayloadKey.ACTION: action,
-                        PayloadKey.ROLLOUT_INDEX: query.payload[PayloadKey.ROLLOUT_INDEX],
-                        PayloadKey.TIME_STEP: query.payload[PayloadKey.TIME_STEP]
-                    }
-                )
+            self._proxy.reply(
+                query,
+                tag=MessageTag.ACTION,
+                payload={
+                    PayloadKey.ACTION: action,
+                    PayloadKey.ROLLOUT_INDEX: query.payload[PayloadKey.ROLLOUT_INDEX],
+                    PayloadKey.TIME_STEP: query.payload[PayloadKey.TIME_STEP]
+                }
+            )
 
     def exit(self):
         """Tell the remote actor to exit."""
         self._proxy.ibroadcast(
             component_type="actor", tag=MessageTag.EXIT, session_type=SessionType.NOTIFICATION
         )
-        self.logger.info("Exiting...")
+        self._logger.info("Exiting...")
         sys.exit(0)

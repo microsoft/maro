@@ -25,7 +25,7 @@ class DQNConfig:
         epsilon (float): Exploration rate for epsilon-greedy exploration. Defaults to None.
         min_exp_to_train (int): Minimum number of experiences required for training. Defaults to 0.
         tau (float): Soft update coefficient, i.e., target_model = tau * eval_model + (1 - tau) * target_model.
-        is_double (bool): If True, the next Q values will be computed according to the double DQN algorithm,
+        double (bool): If True, the next Q values will be computed according to the double DQN algorithm,
             i.e., q_next = Q_target(s, argmax(Q_eval(s, a))). Otherwise, q_next = max(Q_target(s, a)).
             See https://arxiv.org/pdf/1509.06461.pdf for details. Defaults to False.
         advantage_mode (str): Advantage mode for the dueling architecture. Defaults to None, in which
@@ -37,7 +37,7 @@ class DQNConfig:
     """
     __slots__ = [
         "reward_discount", "min_exp_to_train", "num_batches", "batch_size", "target_update_freq",
-        "epsilon", "tau", "is_double", "advantage_mode", "per_sample_td_error", "loss_func"
+        "epsilon", "tau", "double", "advantage_mode", "per_sample_td_error", "loss_func"
     ]
 
     def __init__(
@@ -49,7 +49,7 @@ class DQNConfig:
         min_exp_to_train: int = 0,
         epsilon: float = .0,
         tau: float = 0.1,
-        is_double: bool = True,
+        double: bool = True,
         advantage_mode: str = None,
         loss_cls=torch.nn.MSELoss,
         per_sample_td_error: bool = False
@@ -61,7 +61,7 @@ class DQNConfig:
         self.target_update_freq = target_update_freq
         self.epsilon = epsilon
         self.tau = tau
-        self.is_double = is_double
+        self.double = double
         self.advantage_mode = advantage_mode
         self.per_sample_td_error = per_sample_td_error
         self.loss_func = loss_cls(reduction="none" if per_sample_td_error else "mean")
@@ -126,7 +126,7 @@ class DQN(AbsAgent):
 
     def _get_next_q_values(self, current_q_values_for_all_actions, next_states):
         next_q_values_for_all_actions = self._get_q_values(self._target_model, next_states, training=False)
-        if self._config.is_double:
+        if self._config.double:
             actions = current_q_values_for_all_actions.max(dim=1)[1].unsqueeze(1)
             return next_q_values_for_all_actions.gather(1, actions).squeeze(1)  # (N,)
         else:

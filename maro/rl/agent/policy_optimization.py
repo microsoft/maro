@@ -47,7 +47,7 @@ class PolicyGradient(AbsAgent):
         return (action[0], log_p[0]) if is_single else (action, log_p)
 
     def train(
-        self, states: np.ndarray, actions: np.ndarray, log_action_prob: np.ndarray, rewards: np.ndarray
+        self, states: np.ndarray, actions: np.ndarray, log_p: np.ndarray, rewards: np.ndarray
     ):
         states = torch.from_numpy(states).to(self._device)
         actions = torch.from_numpy(actions).to(self._device)
@@ -136,11 +136,11 @@ class ActorCritic(AbsAgent):
         return (action[0], log_p[0]) if is_single else (action, log_p)
 
     def train(
-        self, states: np.ndarray, actions: np.ndarray, log_action_prob: np.ndarray, rewards: np.ndarray
+        self, states: np.ndarray, actions: np.ndarray, log_p: np.ndarray, rewards: np.ndarray
     ):
         states = torch.from_numpy(states).to(self._device)
         actions = torch.from_numpy(actions).to(self._device)
-        log_action_prob = torch.from_numpy(log_action_prob).to(self._device)
+        log_p = torch.from_numpy(log_p).to(self._device)
         rewards = torch.from_numpy(rewards).to(self._device)
         state_values, return_est = self._get_values_and_bootstrapped_returns(states, rewards)
         advantages = return_est - state_values
@@ -149,18 +149,18 @@ class ActorCritic(AbsAgent):
                 self._model(states, task_name="critic").squeeze(), return_est
             )
             action_prob = self._model(states, task_name="actor").gather(1, actions.unsqueeze(1)).squeeze()  # (N,)
-            log_action_prob_new = torch.log(action_prob)
-            actor_loss = self._actor_loss(log_action_prob_new, log_action_prob, advantages)
+            log_p_new = torch.log(action_prob)
+            actor_loss = self._actor_loss(log_p_new, log_p, advantages)
             loss = critic_loss + self._config.actor_loss_coefficient * actor_loss
             self._model.learn(loss)
 
-    def _actor_loss(self, log_action_prob_new, log_action_prob_old, advantages):
+    def _actor_loss(self, log_p_new, log_p_old, advantages):
         if self._config.clip_ratio is not None:
-            ratio = torch.exp(log_action_prob_new - log_action_prob_old)
+            ratio = torch.exp(log_p_new - log_p_old)
             clip_ratio = torch.clamp(ratio, 1 - self._config.clip_ratio, 1 + self._config.clip_ratio)
             actor_loss = -(torch.min(ratio * advantages, clip_ratio * advantages)).mean()
         else:
-            actor_loss = -(log_action_prob_new * advantages).mean()
+            actor_loss = -(log_p_new * advantages).mean()
 
         return actor_loss
 

@@ -20,4 +20,3 @@ class PayloadKey(Enum):
     STATE = "state"
     TRAINING = "training"
     ROLLOUT_KWARGS = "rollout_kwargs"
-    ACTOR_CLIENT_ID = "actor_client_id"

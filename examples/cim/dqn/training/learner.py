@@ -1,45 +1,28 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import os
-import time
-
 import numpy as np
 
-from maro.communication import Proxy
-from maro.rl import AbsLearner, MultiAgentWrapper, TwoPhaseLinearParameterScheduler, concat
-from maro.simulator import Env
-
-from examples.cim.dqn.components import CIMStateShaper, create_dqn_agent
+from maro.rl import AbsLearner, concat
+from maro.utils import DummyLogger
 
 
-class SimpleLearner(AbsLearner):
-    def __init__(
-        self, group_name, num_actors, agent, scheduler,
-        update_trigger=None, inference=False, inference_trigger=None, state_batching_func=np.vstack
-    ):
+class BasicLearner(AbsLearner):
+    def __init__(self, group_name, num_actors, agent, scheduler, update_trigger=None, logger=None):
         super().__init__(
             group_name, num_actors, agent,
             scheduler=scheduler,
-            update_trigger=update_trigger,
-            inference=inference,
-            inference_trigger=inference_trigger,
-            state_batching_func=state_batching_func
+            update_trigger=update_trigger
         )
+        self.logger = logger if logger else DummyLogger()
 
     def run(self):
         for exploration_params in self.scheduler:
-            if self.inference:
-                self.agent.set_exploration_params(exploration_params)
             metrics_by_src, exp_by_src = self.collect(
-                self.scheduler.iter, 
-                model_dict=None if self.inference else self.agent.dump_model(),
-                exploration_params=None if self.inference else exploration_params
+                self.scheduler.iter, model_dict=self.agent.dump_model(), exploration_params=exploration_params
             )
             for src, metrics in metrics_by_src.items():
-                self.logger.info(
-                    f"{src}.ep-{self.scheduler.iter} - performance: {metrics}, exploration: {exploration_params}"
-                )
+                self.logger.info(f"{src}.ep-{self.scheduler.iter}: {metrics} ({exploration_params})")
             # Store experiences for each agent
             for agent_id, exp in concat(exp_by_src).items():
                 exp.update({"loss": [1e8] * len(list(exp.values())[0])})
@@ -49,26 +32,3 @@ class SimpleLearner(AbsLearner):
                 agent.train()
 
             self.logger.info("Training finished")
-
-
-def launch(config):
-    env = Env(config.env.scenario, config.env.topology, durations=config.env.durations)
-    config.agent.model.input_dim = CIMStateShaper(**config.env.state_shaping).dim
-    agent = MultiAgentWrapper({name: create_dqn_agent(config.agent) for name in env.agent_idx_list})
-    scheduler = TwoPhaseLinearParameterScheduler(config.training.max_episode, **config.training.exploration)
-
-    learner = SimpleLearner(
-        config.multi_process.group, config.multi_process.num_actors, agent, scheduler,
-        update_trigger=config.multi_process.update_trigger,
-        inference=config.multi_process.inference_mode=="remote",
-        inference_trigger=config.multi_process.inference_trigger,
-    )
-
-    time.sleep(5)
-    learner.run()
-    learner.exit()
-
-
-if __name__ == "__main__":
-    from examples.cim.dqn.config import config
-    launch(config)
