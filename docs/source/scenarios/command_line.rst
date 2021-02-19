@@ -42,16 +42,16 @@ If these settings correct, then this command will create a runner.py script, you
 
     python runner.py
 
-This script contains minimize code to interactive with environment without any action, you can then extend it as you wish.
+This script contains minimal code to interactive with environment without any action, you can then extend it as you wish.
 
 Also you can create you own topology (configuration) if you say "no" for options "Use built-in topology (configuration)?".
 It will ask you for a name of new topology, then copy the content from built-in one into your working folder (topologies/your_topology_name/config.yml).
 
 
-2. Create a customized scenario
+2. Customized scenario
 -------------------------------
 
-This mode is used to generate a template of customize scenario for you instead of write it from scratch.
+This mode is used to generate a template of customize scenario for you instead of writing it from scratch.
 To enable this, say "no" for option "Use built-in scenario", then provide your scenario name, default is current folder name.
 
 .. code-block:: sh
