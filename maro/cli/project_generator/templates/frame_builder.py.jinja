@@ -16,7 +16,8 @@ class {{ project.scenario_cls }}Node(NodeBase):
 
   def set_state(self, age: int, capacity: int, inventory: list):
     # This is an additional function that used to initialize attributes saved in frame.
-    # As these attributes' value will be zero at beginning.
+    # As these attributes' value will be zero at beginning, and reset after frame.reset.
+    # So we need a way to hold the initial value to reset at the beginning of each episode.
     self._age = age
     self._capacity = capacity
     self._inventory = inventory
