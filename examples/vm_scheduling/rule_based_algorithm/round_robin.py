@@ -5,15 +5,12 @@ from rule_based_algorithm import RuleBasedAlgorithm
 
 
 class RoundRobin(RuleBasedAlgorithm):
-    def __init__(self):
+    def __init__(self, **kwargs):
         super().__init__()
-        self._pm_num: int = None
         self._prev_idx: int = 0
+        self._pm_num: int = kwargs["env"].snapshot_list["pms"][kwargs["env"].frame_index::["cpu_cores_capacity"]].shape[0]
 
     def allocate_vm(self, decision_event: DecisionPayload, env: Env) -> AllocateAction:
-        # Get the number of the PM.
-        if self._pm_num is None:
-            self._pm_num = env.snapshot_list["pms"][env.frame_index::["cpu_cores_capacity"]].shape[0]
         # Choose the valid PM which index is next to the previous chose PM's index
         chosen_idx: int = (self._prev_idx + 1) % self._pm_num
         while chosen_idx not in decision_event.valid_pms:

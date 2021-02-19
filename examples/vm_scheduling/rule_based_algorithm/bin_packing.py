@@ -10,30 +10,27 @@ from rule_based_algorithm import RuleBasedAlgorithm
 
 
 class BinPacking(RuleBasedAlgorithm):
-    def __init__(self):
+    def __init__(self, **kwargs):
         super().__init__()
-        self._pm_num: int = None
-        self._pm_cpu_core_num: int = None
-        self._max_cpu_oversubscription_rate: float = None
+        self._max_cpu_oversubscription_rate: float = kwargs["env"].configs.MAX_CPU_OVERSUBSCRIPTION_RATE
+        total_pm_cpu_info = kwargs["env"].snapshot_list["pms"][
+            kwargs["env"].frame_index::["cpu_cores_capacity"]
+        ].reshape(-1)
+        self._pm_num: int = total_pm_cpu_info.shape[0]
+        self._pm_cpu_core_num: int = int(np.max(total_pm_cpu_info) * self._max_cpu_oversubscription_rate)
 
     def _init_bin(self):
         self._bins = [[] for _ in range(self._pm_cpu_core_num + 1)]
         self._bin_size = [0] * (self._pm_cpu_core_num + 1)
 
     def allocate_vm(self, decision_event: DecisionPayload, env: Env) -> AllocateAction:
-        # Get the number of PM, maximum CPU core and max cpu oversubscription rate.            
+        # Initialize the bin.
+        self._init_bin()
 
+        # Get the number of PM, maximum CPU core and max cpu oversubscription rate.
         total_pm_info = env.snapshot_list["pms"][
             env.frame_index::["cpu_cores_capacity", "cpu_cores_allocated"]
         ].reshape(-1, 2)
-
-        if self._pm_num is None:
-            self._max_cpu_oversubscription_rate = env.configs.MAX_CPU_OVERSUBSCRIPTION_RATE
-            self._pm_num = total_pm_info.shape[0]
-            self._pm_cpu_core_num = int(np.max(total_pm_info[:, 0]) * self._max_cpu_oversubscription_rate)
-
-        # Initialize the bin.
-        self._init_bin()
 
         cpu_cores_remaining = total_pm_info[:, 0] * self._max_cpu_oversubscription_rate - total_pm_info[:, 1]
 

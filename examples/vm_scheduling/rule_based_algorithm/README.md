@@ -8,7 +8,7 @@ The VM scheduling problem is one of the quintessential use cases of the data cen
 
 We offer some rule-based algorithms for VM scheduling problem, inlcuding:
 
-- **Random Pick**: When a VM request is coming, randomly choose an available PM with enough resources to place the VM. (We try different random seed (666, 123) and average the result)
+- **Random Pick**: When a VM request is coming, randomly choose an available PM with enough resources to place the VM.
 - **First Fit**: When a VM request is coming, choose the available PM with enough resources whose index is smallest to place the VM.
 - **Best Fit**: When a VM request is coming, choose the available PM with enough resources based on some rules to place the VM. There are four rules below:
   - Remaining CPU cores: Choose the available PM with minimal CPU cores.
@@ -26,6 +26,8 @@ We offer some metrics for evaluating the performance of each rule based algorith
 - **Energy Consumption**: The total energy consumption of PMs. 
 
 ## Performance
+
+We test the algorithm mentioned above on four topologies: **azure.2019.10k**, **azure.2019.10k.oversubscription**, **azure.2019.336k** and **azure.2019.336k.oversubscription**. The results are shown below (Noted that, for random pick, we try different random seed (666, 123) and average the results as the final result.)
 
 The performance on topology **azure.2019.10k**
 
