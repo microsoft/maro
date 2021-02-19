@@ -16,6 +16,6 @@ training_config = {
         "end": 0.0
     },
     "group": "cim-dqn",
-    "learner_update_trigger": 1,
+    "learner_update_trigger": 2,
     "num_actors": 2
 }

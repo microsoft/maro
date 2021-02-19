@@ -5,7 +5,7 @@ training_config = {
     "env": {
         "scenario": "cim",
         "topology": "global_trade.22p_l0.8",
-        "durations": 200,
+        "durations": 1120,
     },
     "max_episode": 500,
     "train_freq": 1,
@@ -26,6 +26,6 @@ training_config = {
         "num": 2,
         "receive_action_timeout": 100,  # in milliseconds
         "max_receive_action_attempts": 1,
-        "max_null_actions_per_rollout": 15 
+        "max_null_actions_per_rollout": 15
     }
 }

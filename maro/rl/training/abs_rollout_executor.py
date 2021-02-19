@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 from abc import ABC, abstractmethod
-from typing import Callable, Union
+from typing import Union
 
 from maro.rl.agent import AbsAgent, MultiAgentWrapper
 from maro.simulator import Env
