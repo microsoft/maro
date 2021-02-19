@@ -76,13 +76,13 @@ This will generate following files like below:
 
     -- runner.py
     -- scenario
-    -- business_engine.py
-    -- common.py
-    -- events.py
-    -- frame_builder.py
-    -- topologies
-        -- my_test
-            -- config.yml
+        -- business_engine.py
+        -- common.py
+        -- events.py
+        -- frame_builder.py
+        -- topologies
+            -- my_test
+                -- config.yml
 
 The script "runner.py" is the entry of this project, it will interactive with your scenario without action.
 Then you can fill "scenario/business_engine.py" with your own logic.
