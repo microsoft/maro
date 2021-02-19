@@ -8,14 +8,14 @@ The VM scheduling problem is one of the quintessential use cases of the data cen
 
 We offer some rule-based algorithms for VM scheduling problem, inlcuding:
 
-- **Random Pick**: When a VM request is coming, randomly choose an available PM with enough resources to place the VM.
+- **Random Pick**: When a VM request is coming, randomly choose an available PM with enough resources to place the VM. (We try different random seed (666, 123) and average the result)
 - **First Fit**: When a VM request is coming, choose the available PM with enough resources whose index is smallest to place the VM.
 - **Best Fit**: When a VM request is coming, choose the available PM with enough resources based on some rules to place the VM. There are four rules below:
   - Remaining CPU cores: Choose the available PM with minimal CPU cores.
   - Energy Consumption: Choose the available PM with maximum energy consumption. 
   - Remaining Memory: Choose the available PM with minimal memory.
   - Remaining CPU Cores and Energy Consumption: Choose the available PM with minimal CPU cores and maximum energy consumption.
-- **Bin Packing**: Divide the PMs into several bins. When a VM request is coming, allocate it to the bin, which can make the variance of the PM number in each bin as small as possible. If these are more than one PM in the chosen bin, randomly choose an available PM with enough resources.
+- **Bin Packing**: Divide the PMs into several bins based on their remaining CPU cores. When a VM request is coming, allocate it to the bin, which can make the variance of the PM number in each bin as small as possible. If there are more than one PM in the chosen bin, randomly choose an available PM with enough resources.
 - **Round Robin**: If the algorithm pick the PM $i$ at time $t−1$, then the algorithm will pick PM $i+1$ at current time $t$ for the comming VM request if PM $i+1$ is available, otherwise the algorithm will pick PM $i+2$ ... until the PM $i+k$ is available. 
 
 ## Metrics
@@ -31,7 +31,7 @@ The performance on topology **azure.2019.10k**
 
  #Algorithms  | #Failed Allocation | #Energy Consumption
 :--------------:|:--------------:|:----------------:
-Random Pick (Try different random seed)   | 135 |  2422294.29
+Random Pick   | 135 |  2422294.29
 FirstFit   | 0 |  2401318.95
 Best Fit (Remaining CPU cores) | 0 | 2399610.25
 Best Fit (Energy Consumption)  | 0 | 2398511.78
@@ -44,7 +44,7 @@ The performance on topology **azure.2019.10k.oversubscription**
 
  #Algorithms  | #Failed Allocation | #Energy Consumption
 :--------------:|:--------------:|:----------------:
-Random Pick (Try different random seed)   | 117 |  2426808.51
+Random Pick   | 117 |  2426808.51
 FirstFit   | 0 |  2388954.69
 Best Fit (Remaining CPU cores) | 0 | 2386371.94
 Best Fit (Energy Consumption)  | 0 | 2385623.77
@@ -57,7 +57,7 @@ The performance on topology **azure.2019.336k**
 
  #Algorithms  | #Failed Allocation | #Energy Consumption
 :--------------:|:--------------:|:----------------:
-Random Pick (Try different random seed)   | 225193 |  26452931.45
+Random Pick   | 225193 |  26452931.45
 FirstFit   | 224625 | 26484605.11
 Best Fit (Remaining CPU cores) | 226736 | 26425878.99
 Best Fit (Energy Consumption)  | 224362 | 26489856.17
@@ -70,7 +70,7 @@ The performance on topology **azure.2019.336k.oversubscription**
 
  #Algorithms  | #Failed Allocation | #Energy Consumption
 :--------------:|:--------------:|:----------------:
-Random Pick (Try different random seed)   | 225796 | 27449645.07
+Random Pick   | 225796 | 27449645.07
 FirstFit   | 217709 | 27475405.93
 Best Fit (Remaining CPU cores) | 220977 | 27440946.65
 Best Fit (Energy Consumption)  | 218112 | 27475119.17

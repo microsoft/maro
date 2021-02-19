@@ -28,8 +28,8 @@ class BinPacking(RuleBasedAlgorithm):
             self._pm_cpu_core_num = int(self._cal_max_pm_cpu_core(env) * self._max_cpu_oversubscription_rate)
 
         total_pm_info = env.snapshot_list["pms"][
-                        env.frame_index::["cpu_cores_capacity", "cpu_cores_allocated"]
-                        ].reshape(-1, 2)
+            env.frame_index::["cpu_cores_capacity", "cpu_cores_allocated"]
+        ].reshape(-1, 2)
 
         # Initialize the bin.
         self._init_bin()
@@ -80,7 +80,7 @@ class BinPacking(RuleBasedAlgorithm):
         for cluster_list in self._find_item(key="cluster", dictionary=env.configs.architecture):
             for cluster in cluster_list:
                 cluster_amount_dict[cluster['type']] = (
-                        cluster_amount_dict.get(cluster['type'], 0) + cluster['cluster_amount']
+                    cluster_amount_dict.get(cluster['type'], 0) + cluster['cluster_amount']
                 )
 
         # Rack amount dict.
@@ -89,16 +89,16 @@ class BinPacking(RuleBasedAlgorithm):
             for cluster in cluster_list:
                 for rack in cluster['rack']:
                     rack_amount_dict[rack['rack_type']] = (
-                            rack_amount_dict.get(rack['rack_type'], 0)
-                            + cluster_amount_dict[cluster['type']] * rack['rack_amount']
+                        rack_amount_dict.get(rack['rack_type'], 0)
+                        + cluster_amount_dict[cluster['type']] * rack['rack_amount']
                     )
         # PM amount dict.
         pm_amount_dict = {}
         for rack in env.configs.components.rack:
             for pm in rack['pm']:
                 pm_amount_dict[pm['pm_type']] = (
-                        pm_amount_dict.get(pm['pm_type'], 0)
-                        + rack_amount_dict[rack['type']] * pm['pm_amount']
+                    pm_amount_dict.get(pm['pm_type'], 0)
+                    + rack_amount_dict[rack['type']] * pm['pm_amount']
                 )
         # Summation of pm amount.
         amount: int = sum(value for value in pm_amount_dict.values())
