@@ -7,12 +7,9 @@ from rule_based_algorithm import RuleBasedAlgorithm
 
 
 class BestFit(RuleBasedAlgorithm):
-    def __init__(
-        self,
-        metric_type: str = "remaining_cpu_cores"
-    ):
+    def __init__(self, **kwargs):
         super().__init__()
-        self._metric_type: str = metric_type
+        self._metric_type: str = kwargs["metric_type"]
 
     def allocate_vm(self, decision_event: DecisionPayload, env: Env) -> AllocateAction:
         # Use a rule to choose a valid PM.
