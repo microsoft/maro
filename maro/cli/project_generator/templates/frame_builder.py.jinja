@@ -26,8 +26,8 @@ class {{ project.scenario_cls }}Node(NodeBase):
   def reset(self):
     # Reset attributes with initial value.
     self.age = self._age
-    self._capacity = self._capacity
-    self._inventory = self._inventory
+    self.capacity = self._capacity
+    self.inventory = self._inventory
 
 
 # Frame definition.
