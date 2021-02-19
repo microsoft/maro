@@ -21,15 +21,16 @@ class BinPacking(RuleBasedAlgorithm):
         self._bin_size = [0] * (self._pm_cpu_core_num + 1)
 
     def allocate_vm(self, decision_event: DecisionPayload, env: Env) -> AllocateAction:
-        # Get the number of PM, maximum CPU core and max cpu oversubscription rate.
-        if self._max_cpu_oversubscription_rate is None:
-            self._pm_num = self._cal_pm_amount(env)
-            self._max_cpu_oversubscription_rate = env.configs.MAX_CPU_OVERSUBSCRIPTION_RATE
-            self._pm_cpu_core_num = int(self._cal_max_pm_cpu_core(env) * self._max_cpu_oversubscription_rate)
+        # Get the number of PM, maximum CPU core and max cpu oversubscription rate.            
 
         total_pm_info = env.snapshot_list["pms"][
             env.frame_index::["cpu_cores_capacity", "cpu_cores_allocated"]
         ].reshape(-1, 2)
+
+        if self._pm_num is None:
+            self._max_cpu_oversubscription_rate = env.configs.MAX_CPU_OVERSUBSCRIPTION_RATE
+            self._pm_num = total_pm_info.shape[0]
+            self._pm_cpu_core_num = int(np.max(total_pm_info[:, 0]) * self._max_cpu_oversubscription_rate)
 
         # Initialize the bin.
         self._init_bin()
@@ -63,56 +64,3 @@ class BinPacking(RuleBasedAlgorithm):
         )
 
         return action
-
-    def _cal_max_pm_cpu_core(self, env: Env) -> int:
-        cpu_core: int = 0
-
-        for pm_list in self._find_item(key="pm", dictionary=env.configs.components):
-            for pm in pm_list:
-                if "cpu" in pm.keys():
-                    cpu_core = max(cpu_core, pm["cpu"])
-
-        return cpu_core
-
-    def _cal_pm_amount(self, env: Env) -> int:
-        # Cluster amount dict.
-        cluster_amount_dict = {}
-        for cluster_list in self._find_item(key="cluster", dictionary=env.configs.architecture):
-            for cluster in cluster_list:
-                cluster_amount_dict[cluster['type']] = (
-                    cluster_amount_dict.get(cluster['type'], 0) + cluster['cluster_amount']
-                )
-
-        # Rack amount dict.
-        rack_amount_dict = {}
-        for cluster_list in self._find_item(key="cluster", dictionary=env.configs.components):
-            for cluster in cluster_list:
-                for rack in cluster['rack']:
-                    rack_amount_dict[rack['rack_type']] = (
-                        rack_amount_dict.get(rack['rack_type'], 0)
-                        + cluster_amount_dict[cluster['type']] * rack['rack_amount']
-                    )
-        # PM amount dict.
-        pm_amount_dict = {}
-        for rack in env.configs.components.rack:
-            for pm in rack['pm']:
-                pm_amount_dict[pm['pm_type']] = (
-                    pm_amount_dict.get(pm['pm_type'], 0)
-                    + rack_amount_dict[rack['type']] * pm['pm_amount']
-                )
-        # Summation of pm amount.
-        amount: int = sum(value for value in pm_amount_dict.values())
-
-        return amount
-
-    def _find_item(self, key: str, dictionary: dict) -> int:
-        for k, v in dictionary.items():
-            if k == key:
-                yield v
-            elif isinstance(v, list):
-                for item in v:
-                    for result in self._find_item(key, item):
-                        yield result
-            elif isinstance(v, dict):
-                for result in self._find_item(key, v):
-                    yield result
