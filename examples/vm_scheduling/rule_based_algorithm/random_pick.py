@@ -7,6 +7,9 @@ from rule_based_algorithm import RuleBasedAlgorithm
 
 
 class RandomPick(RuleBasedAlgorithm):
+    def __init__(self, **kwargs):
+        super().__init__()
+        
     def allocate_vm(self, decision_event: DecisionPayload, env: Env) -> AllocateAction:
         valid_pm_num: int = len(decision_event.valid_pms)
         # Random choose a valid PM.
