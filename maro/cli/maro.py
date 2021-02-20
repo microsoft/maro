@@ -107,6 +107,15 @@ def main():
     parser_process.set_defaults(func=_help_func(parser=parser_process))
     load_parser_process(prev_parser=parser_process, global_parser=global_parser)
 
+    # maro project
+    parser_project = subparsers.add_parser(
+        "project",
+        help="Manage maro projects."
+    )
+
+    parser_project.set_defaults(func=_help_func(parser=load_parser_project))
+    load_parser_project(prev_parser=parser_project, global_parser=global_parser)
+
     args = None
     try:
         # Get args and parse global arguments
@@ -993,6 +1002,22 @@ def load_parser_inspector(prev_parser: ArgumentParser, global_parser: ArgumentPa
     )
 
     build_cmd_parser.set_defaults(func=start_vis)
+
+
+def load_parser_project(prev_parser: ArgumentParser, global_parser: ArgumentParser):
+    sub_parsers = prev_parser.add_subparsers()
+
+    from maro.cli.project_generator.project_generator import new_project
+
+    # maro project new
+    new_cmd_parser = sub_parsers.add_parser(
+        "new",
+        help="Generate a new project under current directory to work with MARO.",
+        parents=[global_parser]
+    )
+
+    # This command do not accept arguments as normal, instead with a simple wizard.
+    new_cmd_parser.set_defaults(func=new_project)
 
 
 def _help_func(parser):

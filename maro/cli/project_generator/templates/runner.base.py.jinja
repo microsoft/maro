@@ -1,0 +1,52 @@
+
+from maro.simulator import Env
+from maro.simulator.utils import seed as env_seed
+{% block import %}
+{% endblock %}
+
+# Durations the environment.
+durations = {{ project.durations }}
+total_episodes = {{ project.total_episodes }}
+
+# Topology (configuration) to use.
+topology = "{{ project.topology }}"
+
+{% if project.use_builtin_scenario %}
+# Name of built-in scenario.
+scenario_name = "{{ project.scenario }}"
+{% endif %}
+
+{% block create_environment %}
+def create_environment(seed=12345):
+  """Create an environment, and set a seed."""
+  # Set the seed.
+  env_seed(seed)
+
+  return Env(scenario=scenario_name, topology=topology, durations=durations)
+{% endblock %}
+
+def train():
+  # Create our training environment use built-in scenario name.
+  env = create_environment()
+
+  for episode in range(total_episodes):
+    print("Current episode:", episode)
+
+    # Action that interactive with environment.
+    action = None
+
+    # Default values that from environment step.
+    is_done, metrics, decision_event = (False, None, None)
+
+    while not is_done:
+      # NOTE: first action must be None.
+      metrics, decision_event, is_done = env.step(action)
+
+      # TODO: Generate action and interactive with environment here.
+
+    # Reset environment for next episode.
+    env.reset()
+
+if __name__ == "__main__":
+  train()
+

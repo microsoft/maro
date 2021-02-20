@@ -132,7 +132,9 @@ setup(
         "pandas==0.25.3",
         "PyYAML==5.3.1",
         "paramiko==2.7.2",
-        "kubernetes==12.0.1"
+        "kubernetes==12.0.1",
+        "prompt_toolkit==2.0.10",
+        "stringcase==1.2.0"
     ],
     entry_points={
         "console_scripts": [
@@ -146,6 +148,7 @@ setup(
         "maro.simulator.scenarios.citi_bike": ["topologies/*/*.yml", "meta/*.yml"],
         "maro.cli.k8s": ["lib/*", "lib/*/*", "lib/*/*/*", "lib/*/*/*/*"],
         "maro.cli.grass": ["lib/*", "lib/*/*", "lib/*/*/*", "lib/*/*/*/*", "lib/*/*/*/*/*"],
+        "maro.cli.project_generator/templates": ["*.jinja"],
     },
     zip_safe=False,
     ext_modules=extensions,
