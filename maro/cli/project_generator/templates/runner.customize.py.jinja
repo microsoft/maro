@@ -1,0 +1,13 @@
+{% extends "runner.base.py.jinja" %}
+
+{% block import %}
+from scenario.business_engine import {{ project.scenario_cls }}BusinessEngine
+{% endblock %}
+
+{% block create_environment %}
+def create_environment(seed=12345):
+  # Set the seed.
+  env_seed(seed)
+
+  return Env(business_engine_cls={{ project.scenario_cls }}BusinessEngine, topology=topology, durations=durations)
+{% endblock %}

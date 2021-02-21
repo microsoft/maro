@@ -5,7 +5,7 @@ from rule_based_algorithm import RuleBasedAlgorithm
 
 
 class FirstFit(RuleBasedAlgorithm):
-    def __init__(self):
+    def __init__(self, **kwargs):
         super().__init__()
 
     def allocate_vm(self, decision_event: DecisionPayload, env: Env) -> AllocateAction:
