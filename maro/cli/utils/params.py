@@ -32,12 +32,24 @@ class GlobalPaths:
     MARO_SHARED = "~/.maro-shared"
 
 
+class LocalParams:
+    RESOURCE_REDIS_PORT = 7376
+    RESOURCE_INFO = "local_resource:information"
+    CPU_USAGE = "local_resource:cpu_usage_per_core"
+    MEMORY_USAGE = "local_resource:memory_usage"
+    GPU_USAGE = "local_resource:gpu_memory_usage"
+
+
 class LocalPaths:
     """Only use by maro process cli"""
-    MARO_PROCESS = "~/.maro/process"
-    MARO_PROCESS_SETTING = "~/.maro/process/setting.yml"
+    MARO_PROCESS = "~/.maro/clusters/process"
     MARO_PROCESS_AGENT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../process/agent/job_agent.py")
+    MARO_RESOURCE_AGENT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../process/agent/resource_agent.py")
     MARO_PROCESS_DEPLOYMENT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../process/deployment")
+    MARO_GRASS_LOCAL_AGENT = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "../grass/lib/services/master_agent/local_agent.py"
+    )
 
 
 class ProcessRedisName:
@@ -45,5 +57,4 @@ class ProcessRedisName:
     PENDING_JOB_TICKETS = "process:pending_job_tickets"
     KILLED_JOB_TICKETS = "process:killed_job_tickets"
     JOB_DETAILS = "process:job_details"
-    RUNNING_JOB = "process:running_job"
     SETTING = "process:setting"

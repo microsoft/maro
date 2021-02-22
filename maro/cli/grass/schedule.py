@@ -11,6 +11,7 @@ from maro.cli.utils.operation_lock_wrapper import operation_lock
 def start_schedule(cluster_name: str, deployment_path: str, **kwargs):
     # Late import.
     from maro.cli.grass.executors.grass_azure_executor import GrassAzureExecutor
+    from maro.cli.grass.executors.grass_local_executor import GrassLocalExecutor
     from maro.cli.grass.executors.grass_on_premises_executor import GrassOnPremisesExecutor
     from maro.cli.utils.details_reader import DetailsReader
     from maro.utils.exception.cli_exception import BadRequestError
@@ -20,6 +21,9 @@ def start_schedule(cluster_name: str, deployment_path: str, **kwargs):
 
     if cluster_details["mode"] == "grass/azure":
         executor = GrassAzureExecutor(cluster_name=cluster_name)
+        executor.start_schedule(deployment_path=deployment_path)
+    elif cluster_details["mode"] == "grass/local":
+        executor = GrassLocalExecutor(cluster_name=cluster_name)
         executor.start_schedule(deployment_path=deployment_path)
     elif cluster_details["mode"] == "grass/on-premises":
         executor = GrassOnPremisesExecutor(cluster_name=cluster_name)
@@ -33,6 +37,7 @@ def start_schedule(cluster_name: str, deployment_path: str, **kwargs):
 def stop_schedule(cluster_name: str, schedule_name: str, **kwargs):
     # Late import.
     from maro.cli.grass.executors.grass_azure_executor import GrassAzureExecutor
+    from maro.cli.grass.executors.grass_local_executor import GrassLocalExecutor
     from maro.cli.grass.executors.grass_on_premises_executor import GrassOnPremisesExecutor
     from maro.cli.utils.details_reader import DetailsReader
     from maro.utils.exception.cli_exception import BadRequestError
@@ -42,6 +47,9 @@ def stop_schedule(cluster_name: str, schedule_name: str, **kwargs):
 
     if cluster_details["mode"] == "grass/azure":
         executor = GrassAzureExecutor(cluster_name=cluster_name)
+        executor.stop_schedule(schedule_name=schedule_name)
+    elif cluster_details["mode"] == "grass/local":
+        executor = GrassLocalExecutor(cluster_name=cluster_name)
         executor.stop_schedule(schedule_name=schedule_name)
     elif cluster_details["mode"] == "grass/on-premises":
         executor = GrassOnPremisesExecutor(cluster_name=cluster_name)
