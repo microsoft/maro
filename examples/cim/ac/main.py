@@ -8,9 +8,7 @@ from os.path import dirname, join, realpath
 from torch import nn
 from torch.optim import Adam, RMSprop
 
-from maro.rl import (
-    ActorCritic, ActorCriticConfig, FullyConnectedBlock, MultiAgentWrapper, OptimOption, SimpleMultiHeadModel
-)
+from maro.rl import ActorCritic, ActorCriticConfig, FullyConnectedBlock, MultiAgentWrapper, SimpleMultiHeadModel
 from maro.simulator import Env
 from maro.utils import Logger, set_seeds
 
