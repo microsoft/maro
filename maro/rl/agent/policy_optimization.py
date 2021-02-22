@@ -6,6 +6,7 @@ from typing import Callable, Tuple
 import numpy as np
 import torch
 from torch.distributions import Categorical
+from torch.nn import MSELoss
 
 from maro.rl.model import SimpleMultiHeadModel
 from maro.rl.utils.trajectory_utils import get_lambda_returns, get_truncated_cumulative_reward
@@ -82,8 +83,8 @@ class ActorCriticConfig:
     def __init__(
         self,
         reward_discount: float,
-        critic_loss_func: Callable,
         train_iters: int,
+        critic_loss_func: Callable = MSELoss(),
         actor_loss_coefficient: float = 1.0,
         k: int = -1,
         lam: float = 1.0,
