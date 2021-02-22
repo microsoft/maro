@@ -20,6 +20,14 @@ class UserRole:
     ADMIN = "admin"
 
 
+class JobStatus:
+    PENDING = "pending"
+    RUNNING = "running"
+    KILLED = "killed"
+    FINISH = "finish"
+    FAILED = "failed"
+
+
 class GrassParams:
     DEFAULT_API_SERVER_PORT = 51812
 

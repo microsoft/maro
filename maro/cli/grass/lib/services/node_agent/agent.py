@@ -14,13 +14,12 @@ import psutil
 
 from ..utils.details_reader import DetailsReader
 from ..utils.docker_controller import DockerController
-from ..utils.exception import CommandExecutionError
 from ..utils.params import NodeStatus
 from ..utils.redis_controller import RedisController
 from ..utils.resource import BasicResource
 from ..utils.subprocess import Subprocess
 
-GET_TOTAL_GPU_COUNT_COMMAND = "nvidia-smi --query-gpu=name --format=csv,noheader | wc -l"
+GET_GPU_INFO_COMMAND = "nvidia-smi --query-gpu=name,memory.total --format=csv,noheader,nounits"
 GET_UTILIZATION_GPUS_COMMAND = "nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits"
 
 logger = logging.getLogger(__name__)
@@ -48,6 +47,11 @@ class NodeAgent:
             local_master_details=local_master_details,
             local_node_details=local_node_details
         )
+        self.resource_tracking_agent = ResourceTrackingAgent(
+            local_cluster_details=local_cluster_details,
+            local_master_details=local_master_details,
+            local_node_details=local_node_details
+        )
 
         # When SIGTERM, gracefully exit.
         signal.signal(signal.SIGTERM, self.gracefully_exit)
@@ -58,10 +62,12 @@ class NodeAgent:
         # Start agents.
         self.node_tracking_agent.start()
         self.load_image_agent.start()
+        self.resource_tracking_agent.start()
 
         # Wait joins.
         self.node_tracking_agent.join()
         self.load_image_agent.join()
+        self.resource_tracking_agent.join()
 
     def gracefully_exit(self, signum, frame) -> None:
         """ Gracefully exit when SIGTERM.
@@ -110,15 +116,22 @@ class NodeAgent:
         if not isinstance(resources_details["memory"], (float, int)):
             if resources_details["memory"] != "all":
                 logger.warning("Invalid memory assignment, will use all memories in this node")
-            resources_details["memory"] = psutil.virtual_memory().total / 1024  # (float) in MByte
+            resources_details["memory"] = psutil.virtual_memory().total / (1024 ** 2)  # (float) in MByte
 
         if not isinstance(resources_details["gpu"], (float, int)):
             if resources_details["gpu"] != "all":
                 logger.warning("Invalid gpu assignment, will use all gpus in this node")
             try:
-                return_str = Subprocess.run(command=GET_TOTAL_GPU_COUNT_COMMAND)
-                resources_details["gpu"] = int(return_str)  # (int) logical number
-            except CommandExecutionError:
+                return_str = Subprocess.run(command=GET_GPU_INFO_COMMAND)
+                gpus_info = return_str.split(os.linesep)
+                resources_details["gpu"] = len(gpus_info) - 1  # (int) logical number
+                resources_details["gpu_name"] = []
+                resources_details["gpu_memory"] = []
+                for info in gpus_info:
+                    name, total_memory = info.split(", ")
+                    resources_details["gpu_name"].append(name)
+                    resources_details["gpu_memory"].append(total_memory)
+            except Exception:
                 resources_details["gpu"] = 0
 
         # Set resource details
@@ -197,7 +210,6 @@ class NodeTrackingAgent(multiprocessing.Process):
             container_name_to_inspect_details=container_name_to_inspect_details,
             resources_details=resources_details
         )
-        self._update_actual_resources(resources_details=resources_details)
 
         # State related.
         state_details = {
@@ -268,35 +280,6 @@ class NodeTrackingAgent(multiprocessing.Process):
         resources_details["target_free_cpu"] = resources_details["cpu"] - occupied_cpu_sum
         resources_details["target_free_memory"] = resources_details["memory"] - occupied_memory_sum
         resources_details["target_free_gpu"] = resources_details["gpu"] - occupied_gpu_sum
-
-    @staticmethod
-    def _update_actual_resources(resources_details: dict) -> None:
-        """Update actual resources status from operating system.
-
-        Args:
-            resources_details: Resource details of the current node.
-
-        Returns:
-            None.
-        """
-        # Update actual cpu.
-        resources_details["actual_free_cpu"] = resources_details["cpu"] - psutil.getloadavg()[0]
-
-        # Update actual memory.
-        resources_details["actual_free_memory"] = psutil.virtual_memory().free / 1024
-
-        # Update actual gpu.
-        resources_details["actual_free_gpu"] = resources_details["target_free_gpu"]
-        # Get nvidia-smi result.
-        try:
-            return_str = Subprocess.run(command=GET_UTILIZATION_GPUS_COMMAND)
-            split_str = return_str.split("\n")
-            total_usage = 0
-            for single_usage in split_str:
-                total_usage += float(single_usage)
-            resources_details["actual_gpu_usage"] = f"{float(total_usage) / len(split_str)}%"
-        except CommandExecutionError:
-            pass
 
     @staticmethod
     def _get_container_name_to_inspect_details() -> dict:
@@ -430,6 +413,63 @@ class LoadImageAgent(multiprocessing.Process):
         logger.info(f"In loading image: {image_path}")
         DockerController.load_image(image_path=image_path)
         logger.info(f"End of loading image: {image_path}")
+
+
+class ResourceTrackingAgent(multiprocessing.Process):
+    def __init__(
+        self,
+        local_cluster_details: dict,
+        local_master_details: dict,
+        local_node_details: dict,
+        check_interval: int = 30
+    ):
+        super().__init__()
+        self._local_cluster_details = local_cluster_details
+        self._local_master_details = local_master_details
+        self._local_node_details = local_node_details
+
+        self._redis_controller = RedisController(
+            host=self._local_master_details["hostname"],
+            port=self._local_master_details["redis"]["port"]
+        )
+
+        self._check_interval = check_interval
+        self._is_terminated = False
+
+    def run(self) -> None:
+        """Start tracking node status and updating details.
+
+        Returns:
+            None.
+        """
+        while not self._is_terminated:
+            start_time = time.time()
+            self.get_node_resource_usage()
+            time.sleep(max(self._check_interval - (time.time() - start_time), 0))
+
+    def get_node_resource_usage(self):
+        # Get cpu usage per core.
+        cpu_usage_per_core = psutil.cpu_percent(interval=self._check_interval, percpu=True)
+
+        # Get memory usage, unit MB
+        memory_usage = psutil.virtual_memory().percent / 100
+
+        # Get nvidia-smi result.
+        gpu_memory_usage = []
+        try:
+            return_str = Subprocess.run(command=GET_UTILIZATION_GPUS_COMMAND)
+            memory_usage_per_gpu = return_str.split("\n")
+            for single_usage in memory_usage_per_gpu:
+                gpu_memory_usage.append(float(single_usage))
+        except Exception:
+            pass
+
+        self._redis_controller.push_resource_usage(
+            node_name=self._local_node_details["name"],
+            cpu_usage=cpu_usage_per_core,
+            memory_usage=memory_usage,
+            gpu_memory_usage=gpu_memory_usage
+        )
 
 
 if __name__ == "__main__":

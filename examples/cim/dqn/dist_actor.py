@@ -10,7 +10,9 @@ from maro.rl import ActorWorker, SimpleActor
 from maro.simulator import Env
 from maro.utils import convert_dottable
 
-from components import CIMActionShaper, CIMStateShaper, DQNAgentManager, TruncatedExperienceShaper, create_dqn_agents
+from components import (
+    CIMActionShaper, CIMStateShaper, DQNAgentManager, TruncatedExperienceShaper, create_dqn_agents
+)
 
 
 def launch(config, distributed_config):

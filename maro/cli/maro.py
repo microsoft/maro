@@ -45,7 +45,7 @@ def main():
         'env',
         help=(
             'Get all environment-related information, '
-            'such as the supported scenarios, topologies. '
+            'such as the supported scenarios, topologies. \n'
             'And it is also responsible to generate data to the specific environment, '
             'which has external data dependency.'
         ),
