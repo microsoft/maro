@@ -47,9 +47,7 @@ class PolicyGradient(AbsAgent):
         action, log_p = action.cpu().numpy(), log_p.cpu().numpy()
         return (action[0], log_p[0]) if is_single else (action, log_p)
 
-    def train(
-        self, states: np.ndarray, actions: np.ndarray, log_p: np.ndarray, rewards: np.ndarray
-    ):
+    def train(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray):
         states = torch.from_numpy(states).to(self._device)
         actions = torch.from_numpy(actions).to(self._device)
         returns = get_truncated_cumulative_reward(rewards, self._config)
