@@ -10,42 +10,36 @@
     <link rel="stylesheet" href="assets/css/main/style.css">
     <link rel="stylesheet" href="assets/css/xterm.css">
     <link rel="shortcut icon" href="assets/images/favicon.ico" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/es6-promise/4.1.1/es6-promise.auto.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/1.0.0/fetch.min.js"></script>
 </head>
 
 <body>
     <style>
         .mydashboard {
-    width: 100%;
-    height: calc(100vh - 63px - 300px);
-}
-.navbar.fixed-top+.page-body-wrapper {
-    padding-top: 0px;
-}
-.page-body-wrapper{
-    min-height: calc(100vh - 63px);
-    height: calc(100vh - 63px);
-    top: 63px;
-    padding-top: 0px;
-    position: absolute;
-    display: block;
-}
+            width: 100%;
+            height: calc(100vh - 63px - 300px);
+        }
 
+        .navbar.fixed-top+.page-body-wrapper {
+            padding-top: 0px;
+        }
+
+        .page-body-wrapper {
+            min-height: calc(100vh - 63px);
+            height: calc(100vh - 63px);
+            top: 63px;
+            padding-top: 0px;
+            position: absolute;
+            display: block;
+        }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/es6-promise/4.1.1/es6-promise.auto.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/1.0.0/fetch.min.js"></script>
     <div class="container-scroller">
-        <!-- partial:partials/_navbar.html -->
         <nav class="navbar default-layout col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
             <div class="text-center navbar-brand-wrapper d-flex align-items-top justify-content-center">
                 <div class="navbar-brand" style="font-size: 2em;">
                     MARO
                 </div>
-                <!--
-                <a class="navbar-brand brand-logo" href="index.html">
-                    <img src="assets/images/logo.svg" alt="logo" /> </a>
-                <a class="navbar-brand brand-logo-mini" href="index.html">
-                    <img src="assets/images/logo-mini.svg" alt="logo" /> </a>
-              -->
             </div>
             <div class="navbar-menu-wrapper d-flex align-items-center">
                 <ul class="navbar-nav">
@@ -60,13 +54,6 @@
                         </a>
                     </li>
                 </ul>
-                <!--
-                <form class="ml-auto search-form d-none d-md-block" action="#">
-                    <div class="form-group">
-                        <input type="search" class="form-control" placeholder="Search Here">
-                    </div>
-                </form>
-                -->
                 <button class="navbar-toggler navbar-toggler-right d-lg-none align-self-center" type="button"
                     data-toggle="offcanvas">
                     <span class="mdi mdi-menu"></span>
@@ -75,53 +62,17 @@
         </nav>
         <!-- partial -->
         <div class="container-fluid page-body-wrapper">
-            <!-- <nav class="sidebar sidebar-offcanvas" id="sidebar">
-                <ul class="nav">
-                    <li class="nav-item">
-                        <a class="nav-link" href="index.html">
-                            <i class="menu-icon typcn typcn-document-text"></i>
-                            <span class="menu-title">Dashboard</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" data-toggle="collapse" href="#ui-basic" aria-expanded="false" aria-controls="ui-basic">
-                            <i class="menu-icon typcn typcn-coffee"></i>
-                            <span class="menu-title">Cluster - 1</span>
-                            <i class="menu-arrow"></i>
-                        </a>
-                        <div class="collapse" id="ui-basic">
-                            <ul class="nav flex-column sub-menu">
-                                <li class="nav-item">
-                                    <a class="nav-link" href="index.html">Nodes</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="index.html">Jobs</a>
-                                </li>
-                            </ul>
-                        </div>
-                    </li>
-                </ul>
-            </nav> -->
-            <!-- partial -->
-            <!-- <div class="main-panel"> -->
-
-            <!-- <div class="container-fluid"> -->
-                <div >
-                    <iframe class="mydashboard" src="./dashboard"></iframe>
+            <div>
+                <iframe class="mydashboard" src="./dashboard"></iframe>
+            </div>
+            <div>
+                <div id="terminal">
                 </div>
-                <!-- <div class="row">
-                    <div id="terminal-container"></div>
-                </div> -->
-                <div >
-                    <div id="terminal">
-                    </div>
-                </div>
-            <!-- </div> -->
-            <!-- </div> -->
+            </div>
             <!-- partial -->
         </div>
         <!-- main-panel ends -->
-    </div>
+
     </div>
     <script src="assets/js/jquery.3.5.1.min.js"></script>
     <script src="assets/js/shared/off-canvas.js"></script>

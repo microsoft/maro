@@ -8,9 +8,8 @@ import shlex
 import struct
 import subprocess
 import termios
-import time
 
-from flask import Flask, redirect, request, send_file, send_from_directory
+from flask import Flask, redirect, send_file, send_from_directory
 from flask_socketio import SocketIO
 
 port = 8080
