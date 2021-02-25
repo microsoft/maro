@@ -178,10 +178,10 @@ def write_job_detail(root, data):
 
     job_str = f"""<details>
 <summary>
-<span class="dot" 
+<span class="dot"
 style="background-color: {color}; border-radius: 50%; height: 1rem; width: 1rem; display: inline-block;">
 </span>
- {data['name']}    Mode: {data['mode']} </summary>
+    {data['name']}    Mode: {data['mode']} </summary>
 {component_html}
 </details>"""
     root.markdown(job_str, True)
@@ -222,11 +222,11 @@ def write_job_detail_container(root, data):
     color = job_status_to_color(data['status'])
 
     job_str = f"""<details>
-<summary> 
-<span class="dot" 
+<summary>
+<span class="dot"
 style="background-color: {color}; border-radius: 50%; height: 1rem; width: 1rem; display: inline-block;">
 </span>
-{data['name']}    Mode: {data['mode']} 
+{data['name']}    Mode: {data['mode']}
 </summary>
 {component_html}
 </details>"""
