@@ -29,6 +29,7 @@ VM scheduling metrics used provide statistics information until now.
 It contains following keys:
 
 total_vm_requests (int): Total VM requests.
+total_incomes (float): Accumulative total incomes at current tick (if there is overload phenomenon happened, return the money for each failed VM).
 total_energy_consumption (float): Accumulative total PM energy consumption.
 successful_allocation (int): Accumulative successful VM allocation until now.
 successful_completion (int): Accumulative successful completion of tasks.
@@ -116,6 +117,10 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._max_memory_oversubscription_rate: float = self._config.MAX_MEM_OVERSUBSCRIPTION_RATE
         self._max_utilization_rate: float = self._config.MAX_UTILIZATION_RATE
 
+        # Price parameters
+        self._price_parameters_cpu_cores: float = self._config.PRICE_PARAMETERS_CPU_CORES
+        self._price_parameters_memory: flaot = self._config.PRICE_PARAMETERS_MEMORY
+
         # Load PM related configs.
         self._region_amount: int = sum(
             len(item) for item in self._find_item(key="region", dictionary=self._config.architecture)
@@ -164,6 +169,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
     def _init_metrics(self):
         # Env metrics.
         self._total_vm_requests: int = 0
+        self._total_incomes: float = 0.0
         self._total_energy_consumption: float = 0.0
         self._successful_allocation: int = 0
         self._successful_completion: int = 0
@@ -442,6 +448,8 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         # All vm's cpu utilization at current tick.
         cur_tick_cpu_utilization = self._cpu_reader.items(tick=tick)
 
+        # Compute the current incomes.
+        self._get_current_incomes()
         # Process finished VMs.
         self._process_finished_vm()
         # Update all live VMs CPU utilization.
@@ -464,6 +472,12 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
             if vm.vm_id not in cur_tick_cpu_utilization:
                 raise Exception(f"The VM id: '{vm.vm_id}' does not exist at this tick.")
+
+            unit_price = self._get_unit_price(vm_info.cpu_cores_requirement, vm_info.memory_requirement)
+            if vm_info.unit_price == 0.0 and vm_info.total_price == 0.0:
+                vm_info.set_unit_price(unit_price)
+                vm_info.set_total_price()
+            vm_info.set_current_price(tick)
 
             vm_info.add_utilization(cpu_utilization=cur_tick_cpu_utilization[vm.vm_id])
             vm_req_payload: VmRequestPayload = VmRequestPayload(
@@ -531,6 +545,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         return DocableDict(
             metrics_desc,
             total_vm_requests=self._total_vm_requests,
+            total_incomes=self._total_incomes,
             total_energy_consumption=self._total_energy_consumption,
             successful_allocation=self._successful_allocation,
             successful_completion=self._successful_completion,
@@ -635,6 +650,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
         if self._kill_all_vms_if_overload:
             for vm_id in vm_ids:
+                self._total_incomes -= self._live_vms[vm_id].current_price
                 self._live_vms.pop(vm_id)
 
             pm.deallocate_vms(vm_ids=vm_ids)
@@ -856,6 +872,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                     cpu_utilization=pm.cpu_utilization
                 )
                 self._successful_allocation += 1
+
             elif type(action) == PostponeAction:
                 postpone_step = action.postpone_step
                 remaining_buffer_time = self._pending_vm_request_payload[vm_id].remaining_buffer_time
@@ -865,6 +882,13 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                     vm_id=vm_id,
                     remaining_buffer_time=remaining_buffer_time - postpone_step * self._delay_duration
                 )
+
+    def _get_current_incomes(self):
+        for vm in self._live_vms.values():
+            self._total_incomes += vm.unit_price
+
+    def _get_unit_price(self, cpu_cores, memory):
+        return (self._price_parameters_cpu_cores * cpu_cores + self._price_parameters_memory * memory) / 12.0
 
     def _download_processed_data(self):
         """Build processed data."""

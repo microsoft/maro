@@ -43,6 +43,13 @@ class VirtualMachine:
         # The category of the VM. Now includes Delay-insensitive: 0, Interactive: 1, and Unknown: 2.
         self.category: VmCategory = category
 
+        # The unit price of the VM.
+        self.unit_price: float = 0.0
+        # The total price of the VM.
+        self.total_price: float = 0.0
+        # The current price of the VM.
+        self.current_price: float = 0.0
+
         # VM utilization list with VM cpu utilization(%) in corresponding tick.
         self._utilization_series: List[float] = []
         # The physical machine Id that the VM is assigned.
@@ -50,6 +57,15 @@ class VirtualMachine:
         self._cpu_utilization: float = 0.0
         self.creation_tick: int = -1
         self.deletion_tick: int = -1
+
+    def set_unit_price(self, unit_price):
+        self.unit_price = unit_price
+
+    def set_total_price(self):
+        self.total_price = self.unit_price * self.lifetime
+
+    def set_current_price(self, cur_tick):
+        self.current_price = self.unit_price * (cur_tick - self.creation_tick + 1)
 
     @property
     def cpu_utilization(self) -> float:
