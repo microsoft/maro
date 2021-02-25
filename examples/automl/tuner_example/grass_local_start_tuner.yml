@@ -1,0 +1,14 @@
+mode: grass/local
+name: MyTunerJobName # str: name of the tuner job
+
+components: # component config
+  tuner:
+    image: msranni/nni:latest
+    resources:
+      cpu: 2 # int: cpu requirement (unit: cores)
+      memory: 1024m # str: memory requirement (unit: MB)
+      gpu: 0 # int: gpu requirement (units: cards)
+    num: 1 # int: number of this component
+    mount:
+      target: /home/ningshang/maro/examples/automl/tuner_example # str: target directory for user data, see "maro grass data push" for reference
+    command: "python3 start_tuner.py >> tuner.log 2>&1" # str: command to be executed

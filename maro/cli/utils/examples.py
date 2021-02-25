@@ -116,6 +116,18 @@ Examples:
         maro grass job stop MyClusterName MyScheduleName
 """
 
+MARO_GRASS_TUNER_START = """
+Examples:
+    Start a tuner job with a deployment
+        maro grass tuner start MyClusterName ./grass-start-tuner.yml
+"""
+
+MARO_GRASS_TUNER_STOP = """
+Examples:
+    Stop a tuner job
+        maro grass tuner stop MyClusterName MyTunerJobName
+"""
+
 MARO_GRASS_CLEAN = """
 Examples:
     Clean the cluster

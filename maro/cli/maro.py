@@ -560,6 +560,41 @@ def load_parser_grass(prev_parser: ArgumentParser, global_parser: ArgumentParser
     parser_schedule_stop.add_argument("schedule_name", help="Name of the schedule")
     parser_schedule_stop.set_defaults(func=stop_schedule)
 
+    # maro grass tuner
+    parser_tuner = subparsers.add_parser(
+        "tuner",
+        help="Manage tuners",
+        parents=[global_parser]
+    )
+    parser_tuner.set_defaults(func=_help_func(parser=parser_tuner))
+    parser_tuner_subparsers = parser_tuner.add_subparsers()
+
+    # maro grass tuner start
+
+    from maro.cli.grass.tuner import start_tuner
+    parser_tuner_start = parser_tuner_subparsers.add_parser(
+        "start",
+        help="Start a tuner job",
+        examples=CliExamples.MARO_GRASS_TUNER_START,
+        parents=[global_parser]
+    )
+    parser_tuner_start.add_argument("cluster_name", help="Name of the cluster")
+    parser_tuner_start.add_argument("deployment_path", help="Path of the tuner job deployment")
+    parser_tuner_start.set_defaults(func=start_tuner)
+
+    # maro grass tuner stop
+
+    from maro.cli.grass.tuner import stop_tuner
+    parser_tuner_stop = parser_tuner_subparsers.add_parser(
+        "stop",
+        help="Stop a tuner",
+        examples=CliExamples.MARO_GRASS_TUNER_STOP,
+        parents=[global_parser]
+    )
+    parser_tuner_stop.add_argument("cluster_name", help="Name of the cluster")
+    parser_tuner_stop.add_argument("tuner_name", help="Name of the tuner")
+    parser_tuner_stop.set_defaults(func=stop_tuner)
+
     # maro grass clean
     from maro.cli.grass.clean import clean
     parser_clean = subparsers.add_parser(

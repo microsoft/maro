@@ -112,6 +112,17 @@ class MasterApiClientV1:
     def stop_schedule(self, schedule_name: str) -> dict:
         return self._encrypted_requests.post(url=f"{self._master_api_server_url_prefix}/schedules/{schedule_name}:stop")
 
+    # Tuners related.
+
+    def create_tuner(self, tuner_details: dict) -> dict:
+        return self._encrypted_requests.post(
+            url=f"{self._master_api_server_url_prefix}/tuners",
+            json_dict=tuner_details
+        )
+
+    def stop_tuner(self, tuner_name: str) -> dict:
+        return self._encrypted_requests.post(url=f"{self._master_api_server_url_prefix}/tuners/{tuner_name}:stop")
+
     # Image files related.
 
     def list_image_files(self) -> list:
