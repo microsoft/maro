@@ -8,7 +8,7 @@ from os.path import dirname, join, realpath
 from maro.rl import AbsLearner
 from maro.utils import DummyLogger
 
-from examples.cim.gnn.utils import batch_states, combine
+from examples.cim.ac_gnn.utils import batch_states, combine
 
 
 class BasicLearner(AbsLearner):

@@ -11,11 +11,11 @@ from maro.rl import BaseActor, DecisionClient
 from maro.simulator import Env
 from maro.utils import Logger
 
-from examples.cim.gnn.agent import get_gnn_agent, get_experience_pool
-from examples.cim.gnn.config import agent_config, training_config
-from examples.cim.gnn.shaping import ExperienceShaper, StateShaper
-from examples.cim.gnn.training import BasicLearner, BasicRolloutExecutor
-from examples.cim.gnn.utils import decision_cnt_analysis, fix_seed, return_scaler
+from examples.cim.ac_gnn.agent import get_gnn_agent, get_experience_pool
+from examples.cim.ac_gnn.config import agent_config, training_config
+from examples.cim.ac_gnn.shaping import ExperienceShaper, StateShaper
+from examples.cim.ac_gnn.training import BasicLearner, BasicRolloutExecutor
+from examples.cim.ac_gnn.utils import decision_cnt_analysis, fix_seed, return_scaler
 
 
 def cim_ac_gnn_actor():

@@ -7,7 +7,7 @@ import numpy as np
 
 from maro.rl import AbsStore
 
-from examples.cim.gnn.config import agent_config
+from examples.cim.ac_gnn.config import agent_config
 
 
 def get_item(data_dict, key_tuple):

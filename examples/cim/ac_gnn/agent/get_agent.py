@@ -6,7 +6,7 @@ from torch.nn import GELU, Sequential, TransformerEncoder, TransformerEncoderLay
 from maro.rl import FullyConnectedBlock
 from maro.utils import DummyLogger
 
-from examples.cim.gnn.config import agent_config
+from examples.cim.ac_gnn.config import agent_config
 
 from .gnn_based_actor_critic import GNNBasedActorCritic, GNNBasedActorCriticConfig
 from .numpy_store import NumpyStore, get_experience_pool
