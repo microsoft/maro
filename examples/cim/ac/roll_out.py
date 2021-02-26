@@ -7,7 +7,7 @@ import numpy as np
 
 from maro.rl import AbsRolloutExecutor
 
-from examples.cim.shaping_utils import get_state, get_env_action, get_reward
+from examples.cim.common import get_state, get_env_action, get_reward
 
 
 def get_training_data(trajectory, port_snapshots):

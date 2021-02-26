@@ -7,7 +7,7 @@ from maro.rl import AbsRolloutExecutor
 from maro.simulator import Env
 from maro.utils import DummyLogger
 
-from examples.cim.shaping_utils import get_env_action
+from examples.cim.common import get_env_action
 
 
 class BasicRolloutExecutor(AbsRolloutExecutor):

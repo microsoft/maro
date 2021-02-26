@@ -1,1 +1,3 @@
-This example demonstrates the single-threaded version of the actor-critc algorithm applied to the container inventory management (CIM) scenario. The configurations are under the config folder and include agent configurations (agent_config.py) and training configurations (training_config.py). Agent configurations contain parameters for the underlying actor and critic models and optimizers, as well as general hyper-parameters for the actor-critic algorithm. Training configurations contain parameters for the environment and the main training loop, including early stopping conditions.
+# Container Inventory Management Using Actor-Critic (Single-thread)
+
+This example demonstrates the single-threaded version of the actor-critc algorithm applied to the container inventory management (CIM) scenario. The example can be run by simply executing ``main.py``. Logs generated during a run will be saved in a file named ``cim-ac.CURRENT_TIME_STAMP.log`` under the ``logs`` folder.

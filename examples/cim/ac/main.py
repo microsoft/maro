@@ -35,7 +35,7 @@ if __name__ == "__main__":
     perf_history = deque()
     log_path = join(dirname(realpath(__file__)), "logs")
     makedirs(log_path, exist_ok=True)
-    logger = Logger("cim_ac", dump_folder=log_path, auto_timestamp=True)
+    logger = Logger("cim-ac", dump_folder=log_path, auto_timestamp=True)
     for ep in range(training_config["max_episode"]):
         exp_by_agent = executor.roll_out(ep)
         logger.info(f"ep-{ep}: {env.metrics}")
