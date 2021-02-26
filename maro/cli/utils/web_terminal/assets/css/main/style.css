@@ -348,7 +348,7 @@
   -moz-transition: width 0.25s ease, background 0.25s ease;
   -ms-transition: width 0.25s ease, background 0.25s ease;
   background: #32323a;
-  width: 270px;
+  width: 340px;
   height: 63px;
 }
 
@@ -393,7 +393,7 @@
   background-color: #444451;
   padding-left: 15px;
   padding-right: 15px;
-  width: calc(100% - 270px);
+  width: calc(100% - 340px);
   height: 63px;
   box-shadow: 0 4px 16px 0 rgba(167, 175, 183, 0.33);
 }
@@ -595,7 +595,7 @@
   background: #32323a;
   font-family: 'roboto', sans-serif;
   padding: 0;
-  width: 270px;
+  width: 340px;
   z-index: 11;
   transition: width 0.25s ease, background 0.25s ease;
   -webkit-transition: width 0.25s ease, background 0.25s ease;
@@ -803,7 +803,7 @@
 }
 
 .sidebar > .nav .nav-item.nav-profile {
-  max-width: 270px;
+  max-width: 340px;
   margin-right: auto;
   margin-left: auto;
   margin-top: 30px;
@@ -919,7 +919,7 @@
     top: 63px;
     bottom: 0;
     overflow: auto;
-    right: -270px;
+    right: -340px;
     transition: all 0.25s ease-out;
   }
   .sidebar-offcanvas.active {
@@ -990,7 +990,7 @@
 
 .main-panel {
   transition: width 0.25s ease, margin 0.25s ease;
-  width: calc(100% - 270px);
+  width: calc(100% - 340px);
   min-height: calc(100vh - 63px);
   display: flex;
   flex-direction: column;

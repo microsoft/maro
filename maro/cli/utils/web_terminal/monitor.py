@@ -1,6 +1,7 @@
 import json
 import os
 import time
+import traceback
 from enum import Enum
 
 import altair as alt
@@ -44,31 +45,30 @@ def write_static_resurce(root, data, node_name, dashboard_type):
 def write_attr(root, name, data):
     data_len = len(data)
     if data_len > 0:
-        with root:
-            col1, col2 = root.beta_columns([1, 9])
-            with col1:
-                st.subheader(str.upper(name))
-            data_array = []
-            for data_byte in data:
-                data_str = data_byte.decode("utf-8")
-                data_list = pd.Series(json.loads(data_str), dtype="float64")
-                data_point = data_list.mean()
-                data_array.append(data_point)
+        col1, col2 = root.beta_columns([1, 9])
+        with col1:
+            st.subheader(str.upper(name))
+        data_array = []
+        for data_byte in data:
+            data_str = data_byte.decode("utf-8")
+            data_list = pd.Series(json.loads(data_str), dtype="float64")
+            data_point = data_list.mean()
+            data_array.append(data_point)
 
-            data_len = len(data)
+        data_len = len(data)
 
-            chart_data = pd.DataFrame(data_array)
-            chart_data['Time in minutes'] = chart_data.index
-            if name in ["cpu", "gpu"]:
-                chart_data[0] = chart_data[0] / 100
-            alt_chart = alt.Chart(chart_data).mark_area().encode(
-                x=alt.X('Time in minutes', type='quantitative'),
-                y=alt.Y('0', scale=alt.Scale(domain=(0, 1)), axis=alt.Axis(
-                    format='%', title='Usage'), type='quantitative')
-            )
-            with col2:
-                chart = st.altair_chart(alt_chart, use_container_width=True)
-            return chart, chart_data, data_len
+        chart_data = pd.DataFrame(data_array)
+        chart_data['Time in minutes'] = chart_data.index
+        if name in ["cpu", "gpu"]:
+            chart_data[0] = chart_data[0] / 100
+        alt_chart = alt.Chart(chart_data).mark_area().encode(
+            x=alt.X('Time in minutes', type='quantitative'),
+            y=alt.Y('0', scale=alt.Scale(domain=(0, 1)), axis=alt.Axis(
+                format='%', title='Usage'), type='quantitative')
+        )
+        with col2:
+            chart = st.altair_chart(alt_chart, use_container_width=True)
+        return chart, chart_data, data_len
     else:
         raise Exception("No data yet...")
 
@@ -130,17 +130,33 @@ def update_node(node_ref, new_data, dashboard_type, org_data_len):
 
 def write_job_list(root, list_name, list_data):
     root.subheader(f"{list_name}:")
+    jqe = root.empty()
+    update_job_list(jqe, list_name, list_data)
+    return jqe
+
+
+def update_job_list(root, list_name, list_data):
     if len(list_data) == 0:
         root.write(f"No job in queue \"{list_name}\" yet.")
-    for data_byte in list_data:
-        data_str = data_byte.decode("utf-8")
-        root.markdown(f" - {data_str}")
+    else:
+        list_str = ["<ul>"]
+        for data_byte in list_data:
+            data_str = data_byte.decode("utf-8")
+            list_str.append(f"<li>{data_str}</li>")
+        list_str.append("</ul>")
+        root.markdown("".join(list_str), True)
 
 
 def write_job_queue(root, data):
     root.header("Job Queues:")
-    write_job_list(root, "Pending Jobs", data["pending_jobs"])
-    write_job_list(root, "Killed Jobs", data["killed_jobs"])
+    pjqe = write_job_list(root, "Pending Jobs", data["pending_jobs"])
+    kjqe = write_job_list(root, "Killed Jobs", data["killed_jobs"])
+    return pjqe, kjqe
+
+
+def update_job_queue(pjqe, kjqe, data):
+    update_job_list(pjqe, "Pending Jobs", data["pending_jobs"])
+    update_job_list(kjqe, "Killed Jobs", data["killed_jobs"])
 
 
 def job_status_to_color(job_status):
@@ -154,25 +170,19 @@ def job_status_to_color(job_status):
     return status_to_color[job_status]
 
 
-def write_job_detail(root, data):
+def write_job_detail(data):
 
-    component_html = """
-<table style="margin: 1rem; border_width: 0rem;">
+    component_html = """<table style="margin: 1rem; border_width: 0rem;">
 <tr>
 <th>Component</th> <th>Num</td> <th>Command</td>
-</tr>
-"""
+</tr>"""
 
     for name in data['components']:
-        component_html += f"""
-<tr>
+        component_html += f"""<tr>
 <td>{name}</td> <td>{data['components'][name]['num']}</td> <td>{data['components'][name]['command']}</td>
-</tr>
-"""
+</tr>"""
 
-    component_html += """
-</table>
-"""
+    component_html += """</table>"""
 
     color = job_status_to_color(data['status'])
 
@@ -184,13 +194,13 @@ style="background-color: {color}; border-radius: 50%; height: 1rem; width: 1rem;
     {data['name']}    Mode: {data['mode']} </summary>
 {component_html}
 </details>"""
-    root.markdown(job_str, True)
+    return job_str
+    # root.markdown(job_str, True)
 
 
-def write_job_detail_container(root, data):
+def write_job_detail_container(data):
 
-    component_html = """
-<table style="margin: 1rem; border_width: 0rem;">
+    component_html = """<table style="margin: 1rem; border_width: 0rem;">
 <tr>
 <th>Component</th>
 <th>Num</td>
@@ -199,12 +209,10 @@ def write_job_detail_container(root, data):
 <th>CPU</td>
 <th>Memory</td>
 <th>GPU</th>
-</tr>
-"""
+</tr>"""
 
     for name in data['components']:
-        component_html += f"""
-<tr>
+        component_html += f"""<tr>
 <td>{name}</td>
 <td>{data['components'][name]['num']}</td>
 <td>{data['components'][name]['command']}</td>
@@ -212,12 +220,9 @@ def write_job_detail_container(root, data):
 <td>{data['components'][name]['resources']['cpu']}</td>
 <td>{data['components'][name]['resources']['memory']}</td>
 <td>{data['components'][name]['resources']['gpu']}</td>
-</tr>
-"""
+</tr>"""
 
-    component_html += """
-</table>
-"""
+    component_html += """</table>"""
 
     color = job_status_to_color(data['status'])
 
@@ -230,19 +235,30 @@ style="background-color: {color}; border-radius: 50%; height: 1rem; width: 1rem;
 </summary>
 {component_html}
 </details>"""
-    root.markdown(job_str, True)
+    return job_str
+    # root.markdown(job_str, True)
 
 
 def write_job_details(root, data, dashboard_type):
     root.header("Job Details:")
+    jde = root.empty()
+    update_job_details(jde, data, dashboard_type)
+    return jde
+
+
+def update_job_details(root, data, dashboard_type):
     if len(data) == 0:
         root.write("No job details yet.")
-    if dashboard_type is DashboardType.PROCESS:
-        for job in data:
-            write_job_detail(root, job)
     else:
-        for job in data:
-            write_job_detail_container(root, job)
+        list_str = ["<div>"]
+        if dashboard_type is DashboardType.PROCESS:
+            for job in data:
+                list_str.append(write_job_detail(job))
+        else:
+            for job in data:
+                list_str.append(write_job_detail_container(job))
+        list_str.append("</div>")
+        root.markdown("".join(list_str), True)
 
 
 def load_executor(cluster_name):
@@ -279,42 +295,45 @@ def load_clusters():
     return clusters
 
 
-def draw_dashboard(target):
+def draw_dashboard_new(target):
     if not target:
         return
+
     try:
         static_node_load = False
         dynamic_node_load = False
-        ct = st.beta_container()
-        resource_ct = ct.beta_container()
-        jce = ct.empty()
+
         while True:
 
             if not (static_node_load or dynamic_node_load):
                 local_executor, dashboard_type = load_executor(target)
 
                 resource_data = local_executor.get_resource()
-                write_static_resurce(
-                    resource_ct, resource_data, target, dashboard_type)
-                static_node_load = True
 
-                resource_ct.markdown("---")
+                # draw static content
+
+                write_static_resurce(
+                    st, resource_data, target, dashboard_type)
+
+                st.markdown("---")
+
+                static_node_load = True
 
                 node_data_dict = local_executor.get_resource_usage(0)
                 node_ref = write_resource_usage(
-                    resource_ct, target, node_data_dict, dashboard_type)
+                    st, target, node_data_dict, dashboard_type)
 
-                resource_ct.markdown("---")
+                st.markdown("---")
 
-                jct = jce.beta_container()
+                # jct = jce.beta_container()
 
                 job_queue_data = local_executor.get_job_queue()
-                write_job_queue(jct, job_queue_data)
+                pjqe, kjqe = write_job_queue(st, job_queue_data)
 
-                jct.markdown("---")
+                st.markdown("---")
 
                 job_detail_data = local_executor.get_job_details()
-                write_job_details(jct, job_detail_data, dashboard_type)
+                jde = write_job_details(st, job_detail_data, dashboard_type)
 
                 dynamic_node_load = True
 
@@ -323,18 +342,15 @@ def draw_dashboard(target):
                 new_data_dict = local_executor.get_resource_usage(data_len)
                 update_node(node_ref, new_data_dict, dashboard_type, data_len)
 
-                jct = jce.beta_container()
-
                 job_queue_data = local_executor.get_job_queue()
-
-                jct.markdown("---")
+                update_job_queue(pjqe, kjqe, job_queue_data)
 
                 job_detail_data = local_executor.get_job_details()
-                write_job_details(jct, job_detail_data, dashboard_type)
+                update_job_details(jde, job_detail_data, dashboard_type)
 
             time.sleep(5)
     except Exception as e:
-        with st.spinner(f'No data yet...{e}'):
+        with st.spinner(f'No data yet...{traceback.format_exc()}'):
             time.sleep(5)
 
 
@@ -346,8 +362,8 @@ def main():
         for cluster_name in clusters:
             if st.sidebar.button(f'{cluster_name}'):
                 target = cluster_name
-    with st.empty():
-        draw_dashboard(target)
+    # with st.empty():
+    draw_dashboard_new(target)
 
 
 if __name__ == '__main__':
