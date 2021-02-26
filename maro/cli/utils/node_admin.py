@@ -4,7 +4,7 @@
 import os
 
 
-def start_node_manager(*args, **kwargs):
+def start_admin(*args, **kwargs):
     monitor_path = os.path.expanduser("~/.maro/web_terminal/monitor.py")
     os.system(
         f"streamlit run {monitor_path} & "
@@ -17,7 +17,7 @@ def start_node_manager(*args, **kwargs):
     )
 
 
-def stop_node_manager(*args, **kwargs):
+def stop_admin(*args, **kwargs):
     monitor_path = os.path.expanduser("~/.maro/web_terminal/monitor.py")
     os.system(
         f"pkill -f '{monitor_path}' "

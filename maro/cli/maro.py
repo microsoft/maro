@@ -116,14 +116,14 @@ def main():
     parser_project.set_defaults(func=_help_func(parser=load_parser_project))
     load_parser_project(prev_parser=parser_project, global_parser=global_parser)
 
-    # maro manager
-    parser_manager = subparsers.add_parser(
-        "manager",
-        help="Manage maro manager tools."
+    # maro admin
+    parser_admin = subparsers.add_parser(
+        "admin",
+        help="Manage maro admin tools."
     )
 
-    parser_manager.set_defaults(func=_help_func(parser=parser_manager))
-    load_parser_manager(prev_parser=parser_manager, global_parser=global_parser)
+    parser_admin.set_defaults(func=_help_func(parser=parser_admin))
+    load_parser_admin(prev_parser=parser_admin, global_parser=global_parser)
 
     args = None
     try:
@@ -1029,25 +1029,25 @@ def load_parser_project(prev_parser: ArgumentParser, global_parser: ArgumentPars
     new_cmd_parser.set_defaults(func=new_project)
 
 
-def load_parser_manager(prev_parser: ArgumentParser, global_parser: ArgumentParser):
+def load_parser_admin(prev_parser: ArgumentParser, global_parser: ArgumentParser):
     sub_parsers = prev_parser.add_subparsers()
     # Start
-    from maro.cli.utils.node_manager import start_node_manager
+    from maro.cli.utils.node_admin import start_admin
     start_parser = sub_parsers.add_parser(
         "start",
-        help="Start MARO node manager web server.",
+        help="Start MARO admin web server.",
         parents=[global_parser])
 
-    start_parser.set_defaults(func=start_node_manager)
+    start_parser.set_defaults(func=start_admin)
 
     # Stop
-    from maro.cli.utils.node_manager import stop_node_manager
+    from maro.cli.utils.node_admin import stop_admin
     stop_parser = sub_parsers.add_parser(
         "stop",
-        help="Stop MARO node manager web server.",
+        help="Stop MARO admin web server.",
         parents=[global_parser])
 
-    stop_parser.set_defaults(func=stop_node_manager)
+    stop_parser.set_defaults(func=stop_admin)
 
 
 def _help_func(parser):
