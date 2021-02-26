@@ -1,82 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <!-- Required meta tags -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
     <title>MARO Admin Web UI</title>
-    <link rel="stylesheet" href="assets/css/shared/style.css">
-    <link rel="stylesheet" href="assets/css/main/style.css">
-    <link rel="stylesheet" href="assets/css/xterm.css">
+    <link rel="stylesheet" href="assets/css/xterm.css" />
     <link rel="shortcut icon" href="assets/images/favicon.ico" />
-</head>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/element-ui/lib/theme-chalk/index.css"
+    />
+  </head>
 
-<body>
+  <body>
     <style>
-        .mydashboard {
-            width: 100%;
-            height: calc(100vh - 63px - 300px);
-        }
+      .mydashboard {
+        width: 100%;
+        height: calc(100vh - 60px - 340px - 20px);
+        border-width: 0px;
+      }
 
-        .navbar.fixed-top+.page-body-wrapper {
-            padding-top: 0px;
-        }
+      .el-header {
+        color: #333;
+        line-height: 60px;
+      }
 
-        .page-body-wrapper {
-            min-height: calc(100vh - 63px);
-            height: calc(100vh - 63px);
-            top: 63px;
-            padding-top: 0px;
-            position: absolute;
-            display: block;
-        }
+      .el-main {
+        padding: 0px 20px;
+      }
+
+      body {
+        background: #eee;
+      }
     </style>
+
+    <el-container id="app">
+      <el-header>
+        <el-row>
+          <el-col :span="4">
+            MARO Admin Web UI
+          </el-col>
+          <el-col :span="20" style="text-align: right; font-size: 12px">
+            <el-link
+              type="primary"
+              href="https://www.github.com/microsoft/maro"
+              target="blank"
+            >
+              Multi-Agent Resource Optimization
+            </el-link>
+            <el-link
+              type="primary"
+              href="https://maro.readthedocs.io/en/latest/"
+              target="blank"
+            >
+              Documentation
+            </el-link>
+          </el-col>
+        </el-row>
+      </el-header>
+      <el-main>
+        <div>
+          <iframe class="mydashboard" src="./dashboard"></iframe>
+        </div>
+      </el-main>
+      <el-footer style="height:340px;">
+        <div id="terminal"></div>
+      </el-footer>
+    </el-container>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/es6-promise/4.1.1/es6-promise.auto.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/1.0.0/fetch.min.js"></script>
-    <div class="container-scroller">
-        <nav class="navbar default-layout col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
-            <div class="text-center navbar-brand-wrapper d-flex align-items-top justify-content-center">
-                <div class="navbar-brand" style="font-size: 2em;">
-                    MARO
-                </div>
-            </div>
-            <div class="navbar-menu-wrapper d-flex align-items-center">
-                <ul class="navbar-nav">
-                    <li class="nav-item font-weight-semibold d-none d-lg-block">
-                        <a href="https://www.github.com/microsoft/maro" target="blank">
-                            Multi-Agent Resource Optimization
-                        </a>
-                    </li>
-                    <li class="nav-item font-weight-semibold d-none d-lg-block">
-                        <a href="https://maro.readthedocs.io/en/latest/" target="blank">
-                            Documentation
-                        </a>
-                    </li>
-                </ul>
-                <button class="navbar-toggler navbar-toggler-right d-lg-none align-self-center" type="button"
-                    data-toggle="offcanvas">
-                    <span class="mdi mdi-menu"></span>
-                </button>
-            </div>
-        </nav>
-        <!-- partial -->
-        <div class="container-fluid page-body-wrapper">
-            <div>
-                <iframe class="mydashboard" src="./dashboard"></iframe>
-            </div>
-            <div>
-                <div id="terminal">
-                </div>
-            </div>
-            <!-- partial -->
-        </div>
-        <!-- main-panel ends -->
-
-    </div>
     <script src="assets/js/jquery.3.5.1.min.js"></script>
-    <script src="assets/js/shared/off-canvas.js"></script>
-    <!-- <script src="assets/js/main/dashboard.js"></script> -->
     <!-- Notes: Please keep all xterm.js related package version to 3.6.0 or will be connect failed.-->
     <script src="https://unpkg.com/xterm@3.6.0/dist/xterm.js"></script>
     <script src="https://unpkg.com/xterm@3.6.0/dist/addons/fit/fit.js"></script>
@@ -84,7 +81,8 @@
     <script src="https://unpkg.com/xterm@3.6.0/dist/addons/fullscreen/fullscreen.js"></script>
     <script src="https://unpkg.com/xterm@3.6.0/dist/addons/search/search.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.1/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.12/vue.js"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
     <script src="assets/js/main/index.js"></script>
-</body>
-
+  </body>
 </html>

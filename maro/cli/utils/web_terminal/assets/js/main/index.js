@@ -1,4 +1,7 @@
 $(document).ready(function () {
+  var vm = new Vue({
+    el: '#app',
+  })
   // Load terminal addons.
   Terminal.applyAddon(fullscreen)
   Terminal.applyAddon(fit)
@@ -9,7 +12,7 @@ $(document).ready(function () {
   const waitMS = 50
   const term = new Terminal({
     cols: 1,
-    rows: 15,
+    rows: 20,
     cursorBlink: true,
     macOptionIsMeta: true,
     scrollback: true

@@ -91,7 +91,7 @@ def connect():
 
         app.config["fd"] = fd
         app.config["child_pid"] = child_pid
-        set_terminal_size(fd, 16, 50)
+        set_terminal_size(fd, 20, 50)
         cmd = " ".join(shlex.quote(c) for c in app.config["cmd"])
         print("child pid is", child_pid)
         print(
