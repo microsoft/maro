@@ -111,8 +111,8 @@
         socket.emit('pty-input', { input: text })
       })
 
-      term.prompt = () => {
-        term.write('$')
+      term.prompt = (content) => {
+        socket.emit('pty-input', { input: content })
       }
 
       // Create socket.io connection.
@@ -149,7 +149,7 @@
       term.write('Welcome to MARO.\r\n')
       term.write('Repository: https://github.com/microsoft/maro\r\n')
       term.write('Documentation: https://maro.readthedocs.io/en/latest/\r\n')
-      term.prompt()
+      term.prompt('\n')
     })
   </script>
 </body>
