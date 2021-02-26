@@ -7,7 +7,7 @@ training_config = {
         "topology": "toy.4p_ssdd_l0.0",
         "durations": 1120,
     },
-    "max_episode": 200,
+    "max_episode": 100,
     "exploration": {
         "parameter_names": ["epsilon"],
         "split": 0.5,

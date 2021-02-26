@@ -12,7 +12,7 @@ from maro.rl import (
     TwoPhaseLinearParameterScheduler
 )
 from maro.simulator import Env
-from maro.utils import Logger
+from maro.utils import Logger, set_seeds
 
 from examples.cim.dqn.config import agent_config, training_config
 from examples.cim.dqn.training import BasicLearner, BasicRolloutExecutor
@@ -64,7 +64,8 @@ if __name__ == "__main__":
         actor_processes = [Process(target=cim_dqn_actor) for _ in range(training_config["num_actors"])]
         learner_process = Process(target=cim_dqn_learner)
 
-        for actor_process in actor_processes:
+        for i, actor_process in enumerate(actor_processes):
+            set_seeds(i)  # this is to ensure that the actors explore differently.
             actor_process.start()
 
         learner_process.start()

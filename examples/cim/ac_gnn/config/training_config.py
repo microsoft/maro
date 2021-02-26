@@ -5,7 +5,7 @@ training_config = {
     "env": {
         "scenario": "cim",
         "topology": "global_trade.22p_l0.8",
-        "durations": 200,
+        "durations": 1120,
     },
     "max_episode": 500,
     "train_freq": 1,
