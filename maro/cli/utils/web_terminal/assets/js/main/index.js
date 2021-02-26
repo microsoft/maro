@@ -6,7 +6,7 @@ $(document).ready(function () {
   Terminal.applyAddon(search)
 
   // Create xterms.js terminal.
-  const wait_ms = 50
+  const waitMS = 50
   const term = new Terminal({
     cols: 1,
     rows: 15,
@@ -49,16 +49,16 @@ $(document).ready(function () {
     socket.emit('resize', { cols: term.cols, rows: term.rows })
   }
 
-  function terminalResize (func, wait_ms) {
+  function terminalResize (func, waitMS) {
     let timeout
     return function (...args) {
       const context = this
       clearTimeout(timeout)
-      timeout = setTimeout(() => func.apply(context, args), wait_ms)
+      timeout = setTimeout(() => func.apply(context, args), waitMS)
     }
   }
 
-  window.onresize = terminalResize(fitToScreen, wait_ms)
+  window.onresize = terminalResize(fitToScreen, waitMS)
   term.write('Welcome to MARO.\r\n')
   term.write('Repository: https://github.com/microsoft/maro\r\n')
   term.write('Documentation: https://maro.readthedocs.io/en/latest/\r\n')

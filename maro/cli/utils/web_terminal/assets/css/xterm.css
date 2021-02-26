@@ -41,6 +41,7 @@
   user-select: none;
   -ms-user-select: none;
   -webkit-user-select: none;
+  cursor: text;
 }
 
 .xterm.focus,
@@ -51,10 +52,11 @@
 .xterm .xterm-helpers {
   position: absolute;
   top: 0;
-  /**
-     * The z-index of the helpers must be higher than the canvases in order for
-     * IMEs to appear on top.
-     */
+
+  /*
+   * The z-index of the helpers must be higher than the canvases in order for
+   * IMEs to appear on top.
+   */
   z-index: 5;
 }
 
@@ -62,6 +64,7 @@
   padding: 0;
   border: 0;
   margin: 0;
+
   /* Move textarea out of the screen to the far left, so that the cursor is not visible */
   position: absolute;
   opacity: 0;
@@ -70,7 +73,8 @@
   width: 0;
   height: 0;
   z-index: -5;
-  /** Prevent wrapping so the IME appears against the textarea at the correct position */
+
+  /* Prevent wrapping so the IME appears against the textarea at the correct position */
   white-space: nowrap;
   overflow: hidden;
   resize: none;
@@ -125,9 +129,7 @@
   line-height: normal;
 }
 
-.xterm {
-  cursor: text;
-}
+
 
 .xterm.enable-mouse-events {
   /* When mouse events are enabled (eg. tmux), revert to the standard pointer cursor */
