@@ -1,88 +1,157 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, shrink-to-fit=no"
-    />
-    <title>MARO Admin Web UI</title>
-    <link rel="stylesheet" href="assets/css/xterm.css" />
-    <link rel="shortcut icon" href="assets/images/favicon.ico" />
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/element-ui/lib/theme-chalk/index.css"
-    />
-  </head>
 
-  <body>
-    <style>
-      .mydashboard {
-        width: 100%;
-        height: calc(100vh - 60px - 340px - 20px);
-        border-width: 0px;
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <title>MARO Admin Web UI</title>
+  <link rel="stylesheet" href="assets/css/xterm.css" />
+  <link rel="shortcut icon" href="assets/images/favicon.ico" />
+  <!-- <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css"> -->
+  <link rel="stylesheet" href="assets/css/shared/element_ui.css" />
+</head>
+
+<body>
+  <style>
+    .mydashboard {
+      width: 100%;
+      height: calc(100vh - 60px - 340px - 20px);
+      border-width: 0px;
+    }
+
+    .el-header {
+      color: #333;
+      line-height: 60px;
+    }
+
+    .el-main {
+      padding: 0px 20px;
+    }
+
+    body {
+      background: #eee;
+    }
+  </style>
+
+  <el-container id="app">
+    <el-header>
+      <el-row>
+        <el-col :span="4">
+          MARO Admin Web UI
+        </el-col>
+        <el-col :span="20" style="text-align: right; font-size: 12px">
+          <el-link type="primary" href="https://www.github.com/microsoft/maro" target="blank">
+            Multi-Agent Resource Optimization
+          </el-link>
+          <el-link type="primary" href="https://maro.readthedocs.io/en/latest/" target="blank">
+            Documentation
+          </el-link>
+        </el-col>
+      </el-row>
+    </el-header>
+    <el-main>
+      <div>
+        <iframe class="mydashboard" src="./dashboard"></iframe>
+      </div>
+    </el-main>
+    <el-footer style="height:340px;">
+      <div id="terminal"></div>
+    </el-footer>
+  </el-container>
+
+  <script src="assets/js/jquery.3.5.1.min.js"></script>
+  <!-- Notes: Please keep all xterm.js related package version to 3.6.0 or will be connect failed.-->
+  <!-- <script src="https://unpkg.com/xterm@3.6.0/dist/xterm.js"></script> -->
+  <!-- <script src="https://unpkg.com/xterm@3.6.0/dist/addons/fit/fit.js"></script> -->
+  <!-- <script src="https://unpkg.com/xterm@3.6.0/dist/addons/webLinks/webLinks.js"></script> -->
+  <!-- <script src="https://unpkg.com/xterm@3.6.0/dist/addons/fullscreen/fullscreen.js"></script> -->
+  <!-- <script src="https://unpkg.com/xterm@3.6.0/dist/addons/search/search.js"></script> -->
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.1/socket.io.js"></script> -->
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.12/vue.js"></script> -->
+  <!-- <script src="https://unpkg.com/element-ui/lib/index.js"></script> -->
+
+  <script src="assets/js/shared/xterm.js"></script>
+  <script src="assets/js/shared/fit.js"></script>
+  <script src="assets/js/shared/webLinks.js"></script>
+  <script src="assets/js/shared/fullscreen.js"></script>
+  <script src="assets/js/shared/search.js"></script>
+  <script src="assets/js/shared/socket.io.js"></script>
+  <script src="assets/js/shared/vue.js"></script>
+  <script src="assets/js/shared/element_ui.js"></script>
+  <script >
+    $(document).ready(function () {
+      const vm = new Vue({
+        el: '#app',
+      })
+      // Load terminal addons.
+      Terminal.applyAddon(fullscreen)
+      Terminal.applyAddon(fit)
+      Terminal.applyAddon(webLinks)
+      Terminal.applyAddon(search)
+
+      // Create xterms.js terminal.
+      const waitMS = 50
+      const term = new Terminal({
+        cols: 1,
+        rows: 20,
+        cursorBlink: true,
+        macOptionIsMeta: true,
+        scrollback: true
+      })
+
+      term.open(document.getElementById('terminal'))
+      term.fit()
+      // term.resize(120, 20);
+      console.log(`size: ${term.cols} columns, ${term.rows} rows`)
+      term.fit()
+      term.on('key', (key, ev) => {
+        socket.emit('pty-input', { input: key })
+      })
+      term.on('paste', function (text) {
+        socket.emit('pty-input', { input: text })
+      })
+
+      term.prompt = () => {
+        term.write('$')
       }
 
-      .el-header {
-        color: #333;
-        line-height: 60px;
+      // Create socket.io connection.
+      const socket = io.connect('/pty')
+
+      socket.on('pty-output', function (data) {
+        console.log('new output', data)
+        term.write(data.output)
+      })
+
+      socket.on('connect', () => {
+        console.log('socket.io connected.')
+      })
+
+      socket.on('disconnect', () => {
+        console.log('socket.io disconnected.')
+      })
+
+      function fitToScreen() {
+        term.fit()
+        socket.emit('resize', { cols: term.cols, rows: term.rows })
       }
 
-      .el-main {
-        padding: 0px 20px;
+      function terminalResize(func, waitMS) {
+        let timeout
+        return function (...args) {
+          const context = this
+          clearTimeout(timeout)
+          timeout = setTimeout(() => func.apply(context, args), waitMS)
+        }
       }
 
-      body {
-        background: #eee;
-      }
-    </style>
+      window.onresize = terminalResize(fitToScreen, waitMS)
+      term.write('Welcome to MARO.\r\n')
+      term.write('Repository: https://github.com/microsoft/maro\r\n')
+      term.write('Documentation: https://maro.readthedocs.io/en/latest/\r\n')
+      term.prompt()
+    })
+  </script>
+</body>
 
-    <el-container id="app">
-      <el-header>
-        <el-row>
-          <el-col :span="4">
-            MARO Admin Web UI
-          </el-col>
-          <el-col :span="20" style="text-align: right; font-size: 12px">
-            <el-link
-              type="primary"
-              href="https://www.github.com/microsoft/maro"
-              target="blank"
-            >
-              Multi-Agent Resource Optimization
-            </el-link>
-            <el-link
-              type="primary"
-              href="https://maro.readthedocs.io/en/latest/"
-              target="blank"
-            >
-              Documentation
-            </el-link>
-          </el-col>
-        </el-row>
-      </el-header>
-      <el-main>
-        <div>
-          <iframe class="mydashboard" src="./dashboard"></iframe>
-        </div>
-      </el-main>
-      <el-footer style="height:340px;">
-        <div id="terminal"></div>
-      </el-footer>
-    </el-container>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/es6-promise/4.1.1/es6-promise.auto.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/1.0.0/fetch.min.js"></script>
-    <script src="assets/js/jquery.3.5.1.min.js"></script>
-    <!-- Notes: Please keep all xterm.js related package version to 3.6.0 or will be connect failed.-->
-    <script src="https://unpkg.com/xterm@3.6.0/dist/xterm.js"></script>
-    <script src="https://unpkg.com/xterm@3.6.0/dist/addons/fit/fit.js"></script>
-    <script src="https://unpkg.com/xterm@3.6.0/dist/addons/webLinks/webLinks.js"></script>
-    <script src="https://unpkg.com/xterm@3.6.0/dist/addons/fullscreen/fullscreen.js"></script>
-    <script src="https://unpkg.com/xterm@3.6.0/dist/addons/search/search.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.1/socket.io.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.12/vue.js"></script>
-    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
-    <script src="assets/js/main/index.js"></script>
-  </body>
 </html>

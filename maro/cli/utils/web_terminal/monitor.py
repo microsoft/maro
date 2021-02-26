@@ -350,7 +350,7 @@ def draw_dashboard_new(target):
 
             time.sleep(5)
     except Exception as e:
-        with st.spinner(f'No data yet...{traceback.format_exc()}'):
+        with st.spinner(f'No data yet... {e} {traceback.format_exc()}'):
             time.sleep(5)
 
 
