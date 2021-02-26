@@ -7,16 +7,17 @@ import yaml
 import importlib
 
 from maro.simulator import Env
-from maro.simulator.scenarios.vm_scheduling import AllocateAction, DecisionPayload, PostponeAction
 from maro.utils import convert_dottable
 
 from agent import VMSchedulingAgent
+
 
 def import_class(name):
     components = name.rsplit('.', 1)
     mod = importlib.import_module(components[0])
     mod = getattr(mod, components[1])
     return mod
+
 
 CONFIG_PATH = os.path.join(os.path.split(os.path.realpath(__file__))[0], "config.yml")
 with io.open(CONFIG_PATH, "r") as in_file:
@@ -39,15 +40,15 @@ if __name__ == "__main__":
         env.set_seed(config.env.seed)
         random.seed(config.env.seed)
 
+    metrics, decision_event, is_done = env.step(None)
+
     algorithm_class = import_class(config.algorithm.type)
     if config.algorithm.args is None:
-        algorithm = algorithm_class()
+        algorithm = algorithm_class(env=env)
     else:
-        algorithm = algorithm_class(**config.algorithm.args)
+        algorithm = algorithm_class(env=env, **config.algorithm.args)
 
     agent = VMSchedulingAgent(algorithm)
-
-    metrics, decision_event, is_done = env.step(None)
 
     while not is_done:
         action = agent.choose_action(decision_event, env)

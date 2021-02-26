@@ -125,3 +125,17 @@ class MasterApiClientV1:
             url=f"{self._master_api_server_url_prefix}/imageFiles",
             json_dict=image_file_details
         )
+
+    # Visible related.
+    def get_static_resource_info(self):
+        return self._encrypted_requests.get(
+            url=f"{self._master_api_server_url_prefix}/visible/static"
+        )
+
+    def get_dynamic_resource_info(self, previous_length: int):
+        return self._encrypted_requests.get(
+            url=f"{self._master_api_server_url_prefix}/visible/dynamic/{previous_length}"
+        )
+
+    def get_job_queue(self):
+        return self._encrypted_requests.get(url=f"{self._master_api_server_url_prefix}/jobs/queue")

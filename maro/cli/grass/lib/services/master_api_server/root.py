@@ -18,6 +18,7 @@ from .blueprints.master import blueprint as master_blueprint
 from .blueprints.nodes import blueprint as nodes_blueprint
 from .blueprints.schedules import blueprint as schedules_blueprint
 from .blueprints.status import blueprint as status_blueprint
+from .blueprints.visible import blueprint as visible_blueprint
 
 # App related
 
@@ -35,3 +36,4 @@ app.register_blueprint(blueprint=master_blueprint)
 app.register_blueprint(blueprint=nodes_blueprint)
 app.register_blueprint(blueprint=schedules_blueprint)
 app.register_blueprint(blueprint=status_blueprint)
+app.register_blueprint(blueprint=visible_blueprint)
