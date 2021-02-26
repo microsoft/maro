@@ -1,33 +1,21 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-class IlpPmCapacity():
-    def __init__(self, core: int, mem: int):
-        self.core = core
-        self.mem = mem
+from dataclasses import dataclass
 
-class IlpVmInfo():
-    def __init__(self, core: int, mem: int, remaining_lifetime: int=-1):
-        self.core: int = core
-        self.mem: int = mem
-        self.remaining_lifetime: int = remaining_lifetime
+@dataclass
+class IlpPmCapacity:
+    core: int
+    mem: int
 
-class IlpAllocatedVmInfo(IlpVmInfo):
-    def __init__(self, pm_idx: int, core: int, mem: int, remaining_lifetime: int=-1):
-        super().__init__(core, mem, remaining_lifetime)
-        self.pm_idx = pm_idx
+@dataclass
+class IlpVmInfo:
+    id: int=-1
+    pm_idx: int=-2
+    core: int=-1
+    mem: int=-1
+    lifetime: int=-1
+    arrival_env_tick: int=-1
 
-class IlpFutureVmInfo(IlpVmInfo):
-    def __init__(self, core: int, mem: int, remaining_lifetime: int, id: int, arrival_time: int):
-        super().__init__(core, mem, remaining_lifetime)
-        self.id = id
-        self.arrival_time = arrival_time
-
-    def __repr__(self):
-        return (
-            f"[{self.id}]: "
-            f"core: {self.core}, "
-            f"mem: {self.mem}, "
-            f"remaining_lifetime: {self.remaining_lifetime}, "
-            f"arrival_time: {self.arrival_time}"
-        )
+    def remaining_lifetime(self, env_tick: int):
+        return self.lifetime - (env_tick - self.arrival_env_tick)
