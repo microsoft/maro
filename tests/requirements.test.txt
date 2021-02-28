@@ -9,6 +9,7 @@ pyzmq
 influxdb
 requests
 psutil
+pychalk
 deepdiff
 azure-storage-blob
 azure-storage-common
@@ -19,4 +20,3 @@ termgraph
 paramiko==2.7.2
 pytz==2019.3
 aria2p==0.9.1
-kubernetes
