@@ -7,7 +7,7 @@
 import os
 
 os.environ["MARO_STREAMIT_ENABLED"] = "true"
-os.environ["MARO_STREAMIT_EXPERIMENT_NAME"] = "experiment_name"
+os.environ["MARO_STREAMIT_EXPERIMENT_NAME"] = "testit"
 
 
 from maro.simulator import Env
