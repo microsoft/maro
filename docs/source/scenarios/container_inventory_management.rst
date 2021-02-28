@@ -642,8 +642,8 @@ random mode, we hope this could help you learn how to use the environment interf
 Jump to `this notebook <https://github.com/microsoft/maro/tree/master/notebooks/container_inventory_management/interact_with_environment.ipynb>`_
 for a quick experience.
 
-Visualization
--------------
+Dashboard Visualization
+-----------------------
 
 The resource holders in this scenario is the port and vessel.
 In order to facilitate users to select specific data and 
@@ -708,3 +708,9 @@ could be viewed by snapshot. Same as ports, user could change the sampling rate 
 
 .. image:: ../images/visualization/dashboard/cim_intra_epoch_by_snapshot_detail_data.gif
    :alt: cim_intra_epoch_by_snapshot_detail_data
+
+
+Geographic Visualization
+------------------------
+
+

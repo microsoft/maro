@@ -1,0 +1,7 @@
+flask
+gunicorn
+numpy
+requests
+pandas
+flask-cors
+pyyaml

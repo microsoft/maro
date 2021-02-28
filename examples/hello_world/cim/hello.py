@@ -1,14 +1,14 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-"""
+
 # Enable realtime data streaming with following statements.
 
 import os
 
 os.environ["MARO_STREAMIT_ENABLED"] = "true"
 os.environ["MARO_STREAMIT_EXPERIMENT_NAME"] = "experiment_name"
-"""
+
 
 from maro.simulator import Env
 from maro.simulator.scenarios.cim.common import Action, ActionType

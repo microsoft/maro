@@ -93,7 +93,7 @@ def main():
     # maro inspector
     parser_inspector = subparsers.add_parser(
         'inspector',
-        help=("Display visualization of post-experiment data."),
+        help=("Display visualization of experimental data."),
         parents=[global_parser]
     )
     parser_inspector.set_defaults(func=_help_func(parser=parser_inspector))
@@ -970,21 +970,21 @@ def load_parser_inspector(prev_parser: ArgumentParser, global_parser: ArgumentPa
     inspector_cmd_sub_parsers = prev_parser.add_subparsers()
 
     from maro.cli.inspector.env_data_process import start_vis
-    build_cmd_parser = inspector_cmd_sub_parsers.add_parser(
-        "env",
+    dashboard_cmd_parser = inspector_cmd_sub_parsers.add_parser(
+        "dashboard",
         fromfile_prefix_chars="@",
         help="Dashboard of selected env displayed.",
         parents=[global_parser]
     )
 
-    build_cmd_parser.add_argument(
+    dashboard_cmd_parser.add_argument(
         "--source_path",
         type=str,
         required=True,
         help="Folder path to load data, should be root path of snapshot folders. e.g. ~/project_root/dump_files/"
     )
 
-    build_cmd_parser.add_argument(
+    dashboard_cmd_parser.add_argument(
         "--force",
         type=str,
         required=False,
@@ -992,7 +992,7 @@ def load_parser_inspector(prev_parser: ArgumentParser, global_parser: ArgumentPa
         help="Overwrite the generated summary data or not: True/False."
     )
 
-    build_cmd_parser.set_defaults(func=start_vis)
+    dashboard_cmd_parser.set_defaults(func=start_vis)
 
 
 def _help_func(parser):
