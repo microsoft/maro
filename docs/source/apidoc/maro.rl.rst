@@ -9,34 +9,6 @@ maro.rl.agent.abs\_agent
    :undoc-members:
    :show-inheritance:
 
-maro.rl.agent.dqn
---------------------------------------------------------------------------------
-
-.. automodule:: maro.rl.agent.dqn
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-maro.rl.agent.ddpg
---------------------------------------------------------------------------------
-
-.. automodule:: maro.rl.agent.ddpg
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-maro.rl.agent.policy\_optimization
---------------------------------------------------------------------------------
-
-.. automodule:: maro.rl.agent.policy_optimization
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-
-Agent Manager
-================================================================================
-
 maro.rl.agent.abs\_agent\_manager
 --------------------------------------------------------------------------------
 
@@ -46,13 +18,33 @@ maro.rl.agent.abs\_agent\_manager
    :show-inheritance:
 
 
-Model
+Algorithms
 ================================================================================
 
-maro.rl.model.learning\_model
+maro.rl.algorithms.torch.abs\_algorithm
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.model.torch.learning_model
+.. automodule:: maro.rl.algorithms.torch.abs_algorithm
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.rl.algorithms.torch.dqn
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.rl.algorithms.torch.dqn
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Models
+================================================================================
+
+maro.rl.models.torch.learning\_model
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.rl.models.torch.learning_model
    :members:
    :undoc-members:
    :show-inheritance:
@@ -61,46 +53,18 @@ maro.rl.model.learning\_model
 Explorer
 ================================================================================
 
-maro.rl.exploration.abs\_explorer
+maro.rl.explorer.abs\_explorer
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.exploration.abs_explorer
+.. automodule:: maro.rl.explorer.abs_explorer
    :members:
    :undoc-members:
    :show-inheritance:
 
-maro.rl.exploration.epsilon\_greedy\_explorer
+maro.rl.explorer.simple\_explorer
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.exploration.epsilon_greedy_explorer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-maro.rl.exploration.noise\_explorer
---------------------------------------------------------------------------------
-
-.. automodule:: maro.rl.exploration.noise_explorer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-
-Scheduler
-================================================================================
-
-maro.rl.scheduling.scheduler
---------------------------------------------------------------------------------
-
-.. automodule:: maro.rl.scheduling.scheduler
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-maro.rl.scheduling.simple\_parameter\_scheduler
---------------------------------------------------------------------------------
-
-.. automodule:: maro.rl.scheduling.simple_parameter_scheduler
+.. automodule:: maro.rl.explorer.simple_explorer
    :members:
    :undoc-members:
    :show-inheritance:
@@ -117,6 +81,38 @@ maro.rl.shaping.abs\_shaper
    :undoc-members:
    :show-inheritance:
 
+maro.rl.shaping.action\_shaper
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.rl.shaping.action_shaper
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.rl.shaping.experience\_shaper
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.rl.shaping.experience_shaper
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.rl.shaping.k\_step\_experience\_shaper
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.rl.shaping.k_step_experience_shaper
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.rl.shaping.state\_shaper
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.rl.shaping.state_shaper
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 
 Storage
 ================================================================================
@@ -129,10 +125,18 @@ maro.rl.storage.abs\_store
    :undoc-members:
    :show-inheritance:
 
-maro.rl.storage.simple\_store
+maro.rl.storage.column\_based\_store
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.storage.simple_store
+.. automodule:: maro.rl.storage.column_based_store
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.rl.storage.utils
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.rl.storage.utils
    :members:
    :undoc-members:
    :show-inheritance:

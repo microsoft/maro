@@ -23,155 +23,106 @@ Env-geographic has 3 parts: front-end, back-end and experiment database. To star
 user need to start the docker containers, then start an experiment. The experimental data would
 send to database automatically.
 
-Generate dumped data
-~~~~~~~~~~~~~~~~~~~~
-
-The dumped data from environment is the data source of visualization.
-To generate data, user needs to specify the parameter **options** when creating Env object.
-Type of value of this parameter should be Dictionary.
-
-If user does not need to dump data, then there is no need to pass value to
-this parameter. 
-If the value for key "enable-dump-snapshot" of this parameter is an empty string,
-data would be dumped to the folder which start the command.
-If user specifies the value for key "enable-dump-snapshot" of this parameter with the
-path of a local file folder, data would be dumped to this folder.
+Start service
+~~~~~~~~~~~~~
+In order to start the env-geographic service, user need to start 4 docker
+containers which are maro_vis_back_end_server, maro_vis_back_end_service,
+maro_vis_front_end, questdb/questdbwith the following command:
 
 .. code-block:: sh
 
-    opts_have_path = {"enable-dump-snapshot": "./dump_data"}
+    maro inspector geo
 
-    opts_have_no_path = {"enable-dump-snapshot": ""}
+----
 
-    # dump data to folder ./dump_data.
-    env = Env(scenario="cim", topology="toy.5p_ssddd_l0.0",
-          start_tick=0, durations=100, options=opts_have_path)
+After the command is executed successfully, user
+could view the front_end page through localhost:8080
+and local data with localhost:9000.
+
+
+Send experimental data
+~~~~~~~~~~~~~~~~~~~~~~
+
+Currently, users need to manually start the experiment to obtain
+the data required by the service.
+
+To send data to database, user need to set the value of the environment variable
+"MARO_STREAMIT_ENABLED" to "true". If user wants to specify the experiment name,
+set the environment variable "MARO_STREAMIT_EXPERIMENT_NAME". If user does not 
+set this value, a unique experiment name would be processed automatically. User
+could check the experiment name through database. It should be noted that when
+selecting a topology, user must select a topology with specific geographic
+information. The experimental data obtained by using topology files without
+geographic information cannot be used in the Env-geographic tool.
+
+.. code-block:: sh
+
+    os.environ["MARO_STREAMIT_ENABLED"] = "true"
+
+    os.environ["MARO_STREAMIT_EXPERIMENT_NAME"] = "my_maro_experiment"
 
     # dump data to the folder which run the command.
-    env = Env(scenario="cim", topology="toy.5p_ssddd_l0.0",
-          start_tick=0, durations=100, options=opts_have_no_path)
+    env = Env(scenario="cim", topology="global.22",
+          start_tick=0, durations=100)
 
 ----
 
-Data would be dumped automatically when the Env object is initialized.
-
-For more details about Environment, please refer to
-`Environment <simulation_toolkit.html>`_.
-
-Launch Visualization Tool
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-To start this visualization tool, user need to input command following the format:
-
-.. code-block:: sh
-
-    maro inspector env --source {source\_folder\_path} --force {true/false}
-
-----
-
-e.g.
-
-.. code-block:: sh
-
-    maro inspector env --source_path .\maro\dumper_files --force false
-
-----
-
-Parameter **force** refers to regenerate cross-epoch summary data or not, default value is 'true'.
-Parameter **source_path** refers to the path of dumped snapshot files.
-The expected structure of file folder should be like this:
-
-Folder Structure
-
-.. code-block:: sh
-
-    ./LOCAL_DUMPER_DATA_FOLDER
-        epoch_#                         # folders to restore data of each epoch.
-            {resource_holder}.csv       # attributes of current epoch.
-       manifest.yml                     # basic info like scenario name, number of epoches.
-       index_name_mapping file        # relationship between an index and its name of resource holders.
-       {resource_holder}_summary.csv    # cross-epoch summary information. 
-
-
-
-----
-
-If any file is missed compared with the expected folder structure
-displayed above, the command line would prompt users with an error message.
-The visualization tool looks for the free port to launch page in sequence, starting with port 8501.
-The command line would print out the selected port.
+The program will automatically determine whether to use real-time mode
+or local mode according to the data status of the current experiment.
 
 Feature List
 ------------
 
-Basically, each scenario has 2 parts of visualization: intra-epoch view
-and inter-epoch view. User could switch between them freely.
+Real-time mode and local mode
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Intra-epoch view
-~~~~~~~~~~~~~~~~
+Local mode
+^^^^^^^^^^
 
-User could view detailed information of selected resource holder or tick
-under this mode. In order for users to better understand the data, we
-separate the data into time dimension and space dimension. Users could view
-both the value of a resource holder's property over time and the state of
-all resource holders at a selected time (e.g. tick).
+In this mode, user could comprehend the experimental data through the geographic
+information and the charts on both sides. By clicking the play button in the lower
+left corner of the page, user could view the dynamic changes of the data in the
+selected time window. By hovering on geographic items and charts, more detailed information
+could be displayed.
 
-Content of intra-epoch view is varied between senarios. For example, in senario
-container_inventory_management, the attributes of resource holders are relatively
-complex. Thus, this view is divided into two parts: Accumulated Attributes and Detail Attributes.
-The former one includes the heat map of transfer volume, top-k attributes summary,
-accumulated attributes summary. The latter one includes the chart of two resource holders:
-Port and Vessel attributes in the scenario container_inventory_management. 
-Detailed introduction please refer to 
-`Container Inventory Management Visualization <../scenarios/container_inventory_management.html#Visualization>`_.
+.. image:: ../images/visualization/geographic/local_mode.gif
+   :alt: local_mode
 
-The content of senario citi_Bike is much simpler,
-mainly including top-k attributes summary and the chart of resource holder:
-Station in senario citi_bike.
-Detailed introduction please refer to 
-`Citi Bike Visualization <../scenarios/citi_bike.html#Visualization>`_.
+The chart on the right side of the page shows the changes in the data over
+a period of time from the perspectives of overall, port, and vessel.
 
-Epoch/Snapshot/Resource Holder Index Selection
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. image:: ../images/visualization/geographic/local_mode_right_chart.gif
+   :alt: local_mode_right_chart
 
-To view the details of a resource holder or a tick, user could select
-the specific index of epoch/snapshot/resource holder by sliding the slider
-on the left side of page.
+The chart on the left side of the page shows the ranking of the carrying
+capacity of each port and the change in carrying capacity between ports
+in the entire time window.
 
-.. image:: ../images/visualization/dashboard/epoch_resource_holder_index_selection.gif
-   :alt: epoch_resource_holder_index_selection
+.. image:: ../images/visualization/geographic/local_mode_left_chart.gif
+   :alt: local_mode_left_chart
 
-Snapshot/Resource Holder Sampling Ratio Selection
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Real-time mode
+^^^^^^^^^^^^^^
 
-To view trends in the data, or to weed out excess information, user could
-select the sampling ratio of snapshot/resource holder by sliding to
-change the number of data to be displayed.
+The feature of real-time mode is not much different from that of local mode.
+The particularity of real-time mode lies in the data. The automatic playback
+speed of the progress bar in the front-end page is often close to the speed
+of the experimental data. So user could not select the time window freely in
+this mode.
 
-.. image:: ../images/visualization/dashboard/snapshot_sampling_ratio_selection.gif
-   :alt: snapshot_sampling_ratio_selection
+.. image:: ../images/visualization/geographic/real_time_mode.gif
+   :alt: real_time_mode
 
-Formula Calculation
-^^^^^^^^^^^^^^^^^^^
+Geographic data display
+~~~~~~~~~~~~~~~~~~~~~~~
 
-User could generate their own attributes by using pre-defined formulas.
-The results of the formula calculation could be reused as the input
-parameter of formula.
 
-.. image:: ../images/visualization/dashboard/formula_calculation.gif
-   :alt: formula_calculation
 
-Inter-epoch view
-~~~~~~~~~~~~~~~~
+.. image:: ../images/visualization/geographic/geographic_data_display.gif
+   :alt: geographic_data_display
 
-User could view cross-epoch information in this view.
-In order to make users intuitively observe the results of the iterative
-algorithm, such as whether the results converge as expected, we extracted
-important attributes of resource holder from each epoch as a summary of
-the current epoch and display them centrally in this view.
-Users are free to choose the interval they care about and the sampling
-rate within the selected interval. Line chart and bar chart can
-effectively help users to know the results of the experiment.
+Data chart display
+~~~~~~~~~~~~~~~~~~
 
 
 Epoch Sampling Ratio Selection
@@ -184,16 +135,18 @@ change the number of data to be displayed.
 .. image:: ../images/visualization/dashboard/epoch_sampling_ratio.gif
    :alt: epoch_sampling_ratio
 
-Formula Calculation
-^^^^^^^^^^^^^^^^^^^
 
-Please refer to `Formula Calculation <#Feature List#Intra_epoch View#Formula Calculation>`_.
+Auxiliary options
+~~~~~~~~~~~~~~~~~
+
+Time window selection
+^^^^^^^^^^^^^^^^^^^^^
 
 
-Examples
---------
-Examples of each scenarios please refer to docs of each scenarios:
+Highlight route Selection
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
-* `Container Inventory Management <../scenarios/container_inventory_management.html#Visualization>`_.
 
-* `Citi Bike <../scenarios/citi_bike.html#Visualization>`_.
+Epoch Selection
+^^^^^^^^^^^^^^^
+
