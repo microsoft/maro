@@ -320,6 +320,68 @@ and process the data files. Afterwards, if you want to run multiple simulations,
 whether the processed data files exist or not. If not, it will then trigger the pipeline again. Otherwise,
 the system will reuse the processed data files.
 
+Customize Dataset
+~~~~~~~~~~~~~~~~~~~~
+
+If you want to use your own dataset, you need to prepare two csv files, ``vm_table`` and ``cpu_readings_file``.
+Below is the data schema and the format that you need to follow.
+
+* ``vm_table``:
+
+  * vm_id: int. The id number of VMs.
+  * sub_id: int. The subscription id of VMs.
+  * deploy_id: int. The deployment id of VMs.
+  * timestamp: int. The timestamp of VM's creation time.
+  * vm_lifetime: int. The lifetime of VMs. Lifetime equals the deletion time - creation time (timestamp) + 1.
+  * vm_deleted: int. The timestamp of VM's deletion time.
+  * vm_category: int. The category of VMs. Currently, we have three categories of VM:
+
+    * ``Delay-Insensitive``: The VMs workload that could be delayed, such as batch tasks or test workload.
+      This kind of VMs could be allocated to the over-subscribable PM. Store as ``0``.
+    * ``Interactive``: The VMs workload that are interactive, which need user response in time. This kind
+      of VMs could only allocated to the non-oversubscribable PMs. Store as ``1``.
+    * ``Unknown``. Unknown types. To avoid the overloading, this kind of VMs are treated as the interactive ones,
+      which could only allocated to the non-oversubscribable PMs. Store as ``2``.
+  * vm_cpu_cores: int. The CPU cores of VMs.
+  * vm_memory: int. The memory of VMs.
+
+* ``cpu_readings_file``:
+
+  * timestamp: int. The timestamp. Should be matched with the timestamp in ``vm_table``.
+  * vm_id: int. The id number of VMs. Should be matched with the ids in ``vm_table``.
+  * cpu_utilization: float. The utilization of VM CPU. Store in the unit of percentage (%).
+
+Build Command
+~~~~~~~~~~~~~~~~
+
+After preparing two files as the above formats. You need to convert them to binary files.
+We provide the ``build`` command to build your own CSV dataset to binary files
+that the MARO simulator can use. Currently, there are three required arguments for the data ``build`` command:
+
+* ``--meta``: required, used to specify the path of the meta file. In default, the meta files are under
+
+  .. code-block:: sh
+
+     ~/.maro/data/vm_scheduling/meta/
+
+  The source columns that to be converted and
+  the data type of each columns should be specified in the meta file.
+* ``--file``: required, used to specify the path of the source CSV data file(s). If multiple source CSV data files are needed,
+  you can list all the full paths of the source files in a specific file and use a ``@`` symbol to specify it.
+* ``--output``: required, used to specify the path of the target binary file.
+
+.. code-block:: sh
+
+   maro data build --meta $PATH_TO_META_FILE --file $PATH_TO_CSV_FILE  --output $PATH_TO_OUTPUT_FILE
+
+For example,
+
+.. code-block:: sh
+
+    maro data build --meta ~/.maro/data/vm_scheduling/meta/vmtable.yml  --file ~/.maro/data/vm_scheduling/.build/azure.2019.10k/vmtable.bin --output $PWD/vmtable.bin
+
+After building the binary files. Specify the direct path of ``VM_TABLE`` and ``CPU_READINGS``
+in the config.yml under the topologies directories. Then you can use your own dataset to run the simulation.
 
 Environment Interface
 ^^^^^^^^^^^^^^^^^^^^^^
