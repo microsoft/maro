@@ -102,15 +102,12 @@ different distributed components, such as inference mode in actor, training mode
 Agent
 -----
 
-The Agent is the kernel abstraction of the RL formulation for a real-world problem. 
-Our abstraction decouples agent and its underlying model so that an agent can exist 
-as an RL paradigm independent of the inner workings of the models it uses to generate 
-actions or estimate values. For example, the actor-critic algorithm does not need to 
-concern itself with the structures and optimizing schemes of the actor and critic models. 
-This decoupling is achieved by the model abstraction described below. Ideally, the
-agent is scenario agnostic because agent manager handles all scenario-specific logic.
-In reality, however, this type of separation might not be achievable. 
- 
+An agent is a combination of (RL) algorithm, experience pool, and a set of
+non-algorithm-specific parameters (algorithm-specific parameters are managed by
+the algorithm module). Non-algorithm-specific parameters are used to manage
+experience storage, sampling strategies, and training strategies. Since all kinds
+of scenario-specific stuff will be handled by the agent manager, the agent is
+scenario agnostic.
 
 .. image:: ../images/rl/agent.svg
    :target: ../images/rl/agent.svg
@@ -119,51 +116,81 @@ In reality, however, this type of separation might not be achievable.
 .. code-block:: python
 
   class AbsAgent(ABC):
-      def __init__(self, name: str, model: AbsLearningModel, config, experience_pool=None):
-          self._name = name
+      def __init__(self, name: str, algorithm: AbsAlgorithm, experience_pool: AbsStore = None):
+        self._name = name
+        self._algorithm = algorithm
+        self._experience_pool = experience_pool
+
+
+Algorithm
+---------
+
+The algorithm is the kernel abstraction of the RL formulation for a real-world problem. Our abstraction
+decouples algorithm and model so that an algorithm can exist as an RL paradigm independent of the inner
+workings of the models it uses to generate actions or estimate values. For example, the actor-critic
+algorithm does not need to concern itself with the structures and optimizing schemes of the actor and
+critic models. This decoupling is achieved by the ``LearningModel`` abstraction described below.
+
+
+.. image:: ../images/rl/algorithm.svg
+   :target: ../images/rl/algorithm.svg
+   :alt: Algorithm
+   :width: 650
+
+* ``choose_action`` is used to make a decision based on a provided model state.
+* ``train`` is used to trigger training and the policy update from external.
+
+.. code-block:: python
+
+  class AbsAlgorithm(ABC):
+      def __init__(self, model: LearningModel, config):
           self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
           self._model = model.to(self._device)
           self._config = config
-          self._experience_pool = experience_pool
 
 
-Block and LearningModel
+Block, NNStack and LearningModel
 --------------------------------
 
 MARO provides an abstraction for the underlying models used by agents to form policies and estimate values.
-The abstraction consists of ``AbsBlock`` and ``AbsLearningModel``, both of which subclass torch's nn.Module. 
-The ``AbsBlock`` represents the smallest structural unit of an NN-based model. For instance, the ``FullyConnectedBlock`` 
-provided in the toolkit is a stack of fully connected layers with features like batch normalization,
-drop-out and skip connection. The ``AbsLearningModel`` is a collection of network components with
-embedded optimizers and serves as an agent's "brain" by providing a unified interface to it. regardless of how many individual models it requires and how
+The abstraction consists of a 3-level hierachy formed by ``AbsBlock``, ``NNStack`` and ``LearningModel`` from
+the bottom up, all of which subclass torch's nn.Module. An ``AbsBlock`` is the smallest structural
+unit of an NN-based model. For instance, the ``FullyConnectedBlock`` provided in the toolkit represents a stack
+of fully connected layers with features like batch normalization, drop-out and skip connection. An ``NNStack`` is
+a composite network that consists of one or more such blocks, each with its own set of network features.
+The complete model as used directly by an ``Algorithm`` is represented by a ``LearningModel``, which consists of
+one or more task stacks as "heads" and an optional shared stack at the bottom (which serves to produce representations
+as input to all task stacks). It also contains one or more optimizers responsible for applying gradient steps to the
+trainable parameters within each stack, which is the smallest trainable unit from the perspective of a ``LearningModel``.
+The assignment of optimizers is flexible: it is possible to freeze certain stacks while optimizing others. Such an
+abstraction presents a unified interface to the algorithm, regardless of how many individual models it requires and how
 complex the model architecture might be.
+
+.. image:: ../images/rl/learning_model.svg
+   :target: ../images/rl/learning_model.svg
+   :alt: Algorithm
+   :width: 650
 
 As an example, the initialization of the actor-critic algorithm may look like this:
 
 .. code-block:: python
 
-  actor_stack = FullyConnectedBlock(...)
-  critic_stack = FullyConnectedBlock(...)
-  model = SimpleMultiHeadModel(
-      {"actor": actor_stack, "critic": critic_stack},
-      optim_option={
-        "actor": OptimizerOption(cls=Adam, params={"lr": 0.001})
-        "critic": OptimizerOption(cls=RMSprop, params={"lr": 0.0001})  
-      }
-  )
-  agent = ActorCritic("actor_critic", learning_model, config)
+  actor_stack = NNStack(name="actor", block_a1, block_a2, ...)
+  critic_stack = NNStack(name="critic", block_c1, block_c2, ...)
+  learning_model = LearningModel(actor_stack, critic_stack)
+  actor_critic = ActorCritic(learning_model, config)
 
 Choosing an action is simply:
 
 .. code-block:: python
 
-  model(state, task_name="actor", is_training=False)
+  learning_model(state, task_name="actor", is_training=False)
 
 And performing one gradient step is simply:
 
 .. code-block:: python
 
-  model.learn(critic_loss + actor_loss)
+  learning_model.learn(critic_loss + actor_loss)
 
 
 Explorer
