@@ -994,6 +994,16 @@ def load_parser_inspector(prev_parser: ArgumentParser, global_parser: ArgumentPa
 
     dashboard_cmd_parser.set_defaults(func=start_vis)
 
+    from maro.cli.maro_real_time_vis.start_maro_geo_vis import start_geo_vis
+    geo_cmd_parser = inspector_cmd_sub_parsers.add_parser(
+        "geo",
+        fromfile_prefix_chars="@",
+        help="Geographic data display.",
+        parents=[global_parser]
+    )
+
+    geo_cmd_parser.set_defaults(func=start_geo_vis)
+
 
 def _help_func(parser):
     def wrapper(*args, **kwargs):

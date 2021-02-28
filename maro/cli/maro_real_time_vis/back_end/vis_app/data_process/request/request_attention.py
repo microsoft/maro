@@ -1,21 +1,30 @@
 import pandas as pd
 import requests
 
+from .utils import get_data_in_format
 from .request_params import request_settings
 
 
-def get_attention_data(experiment_name, episode, tick):
+def get_attention_data(experiment_name: str, episode: str, tick: str) -> pd.Dataframe:
+    """Get the attention data within one tick.
+
+    Args:
+        experiment_name (str): Name of the experiment expected to be displayed.
+        episode (str) : Number of the episode of expected data.
+        tick (str): Number of tick of expected data.
+
+    Returns:
+            Dataframe: Formatted attention value of current tick.
+
+    """
     get_attention_value_params = {
         "query": f"select * from {experiment_name}.attentions where episode='{episode}' and tick='{tick}'",
         "count": "true"
     }
-    attention_value = requests.get(request_settings.request_url.value, headers=request_settings.request_header.value, params=get_attention_value_params).json()
-    if attention_value['dataset'] != []:
-        dataset = attention_value["dataset"]
-        column = attention_value["columns"]
-        dataheader = []
-        for col_index in range(0, len(column)):
-            dataheader.append(column[col_index]["name"])
-        original_attention_data = pd.DataFrame(dataset, columns=dataheader)
-        print(original_attention_data)
+    attention_value = requests.get(
+        url=request_settings.request_url.value,
+        headers=request_settings.request_header.value,
+        params=get_attention_value_params
+    ).json()
+    attention_value = get_data_in_format(attention_value)
     return attention_value

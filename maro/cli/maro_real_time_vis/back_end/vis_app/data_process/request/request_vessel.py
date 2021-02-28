@@ -1,31 +1,74 @@
 import requests
 import json
 from flask import jsonify
+import pandas as pd
 
 from .request_params import request_column, request_settings
 from .utils import get_data_in_format, get_input_range
 
 
-def get_vessel_data(experiment_name, episode, tick):
+def get_vessel_data(experiment_name: str, episode: str, tick: str) -> json:
+    """Get the vessel data within one tick.
+
+    Args:
+        experiment_name (str): Name of the experiment expected to be displayed.
+        episode (str) : Number of the episode of expected data.
+        tick (str): Number of tick of expected data.
+
+    Returns:
+            json: Jsonfied vessel value of current tick.
+
+    """
     params = {
         "query": f"select {request_column.vessel_header.value} from {experiment_name}.vessel_details where episode='{episode}' and tick='{tick}'",
         "count": "true"
     }
-    db_vessel_data = requests.get(request_settings.request_url.value, headers=request_settings.request_header.value, params=params).json()
+    db_vessel_data = requests.get(
+        url=request_settings.request_url.value,
+        headers=request_settings.request_header.value,
+        params=params
+    ).json()
     return jsonify(process_vessel_data(db_vessel_data, tick))
 
 
-def get_acc_vessel_data(experiment_name, episode, start_tick, end_tick):
+def get_acc_vessel_data(experiment_name: str, episode: str, start_tick: str, end_tick: str) -> json:
+    """Get the vessel data within a range.
+
+    Args:
+        experiment_name (str): Name of the experiment expected to be displayed.
+        episode (str) : Number of the episode of expected data.
+        start_tick (str): Number of tick to the start point of vessel data.
+        end_tick(str): Number of tick to the end point of vessel data.
+
+    Returns:
+            json: Jsonified formatted vessel value through a selected range.
+
+    """
     input_range = get_input_range(start_tick, end_tick)
     params = {
         "query": f"select {request_column.vessel_header.value} from {experiment_name}.vessel_details where episode='{episode}' and tick in {input_range}",
         "count": "true"
     }
-    db_vessel_data = requests.get(request_settings.request_url.value, headers=request_settings.request_header.value, params=params).json()
+    db_vessel_data = requests.get(
+        url=request_settings.request_url.value,
+        headers=request_settings.request_header.value,
+        params=params
+    ).json()
     return jsonify(process_vessel_data(db_vessel_data, start_tick))
 
 
-def process_vessel_data(db_vessel_data, start_tick):
+def process_vessel_data(db_vessel_data: json, start_tick: str) -> json:
+    """Process the vessel data with route information.
+
+    Args:
+        db_vessel_data(json): Original vessel data.
+            Both accumulated data and single data are possible. 
+        start_tick(str): Number of first tick of data.
+
+    Returns:
+            json: Jsonified formatted vessel value.
+
+    """
     with open(r"../nginx/static/config.json", "r")as mapping_file:
         cim_information = json.load(mapping_file)
         vessel_list = list(cim_information["vessels"].keys())
@@ -56,7 +99,23 @@ def process_vessel_data(db_vessel_data, start_tick):
         return acc_vessel_data
 
 
-def get_single_snapshot_vessel_data(original_vessel_data, vessel_list, vessel_info, route_list, cim_information):
+def get_single_snapshot_vessel_data(
+        original_vessel_data: pd.Dataframe, vessel_list: list, vessel_info: json,
+        route_list: list, cim_information: json
+    ):
+    """Generate compulsory data and change vessel data format.
+
+    Args:
+        original_vessel_data(Dataframe): Vessel data without generated columns.
+        vessel_list(list): List of vessel of current topology.
+        vessel_info(json): Vessel detailed information.
+        route_list(list): List of route of current topology.
+        cim_information(json): Topology information.
+
+    Returns:
+            json: Jsonified formatted vessel value.
+
+    """
     original_vessel_data["name"] = list(
         map(
             lambda x: vessel_list[int(x)],

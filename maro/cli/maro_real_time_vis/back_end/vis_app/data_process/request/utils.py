@@ -1,7 +1,17 @@
 import pandas as pd
+import json
 
 
-def get_data_in_format(original_data):
+def get_data_in_format(original_data: json) -> pd.DataFrame:
+    """Convert the json data into dataframe.
+
+    Args:
+        original_data (json): Json data requested from database directly.
+
+    Returns:
+        Dataframe: Formatted dataframe.
+
+    """
     dataset = original_data["dataset"]
     column = original_data["columns"]
     dataheader = []
@@ -11,7 +21,17 @@ def get_data_in_format(original_data):
     return data_in_format
 
 
-def get_input_range(start_tick, end_tick):
+def get_input_range(start_tick: str, end_tick: str) -> str:
+    """Get the tick input range in string format.
+
+    Args:
+        start_tick(str): Start point of range.
+        end_tick(str): End point of range.
+
+    Returns:
+        str: Range of tick in string format.
+
+    """
     i = start_tick
     input_range = "("
     while i < end_tick:
