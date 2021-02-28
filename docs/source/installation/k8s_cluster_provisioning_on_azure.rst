@@ -1,10 +1,8 @@
-.. _k8s-aks-cluster-provisioning:
-
 K8S Cluster Provisioning on Azure
 =================================
 
 With the following guide, you can build up a MARO cluster in
-:ref:`k8s/aks <k8s>`
+`k8s mode <../distributed_training/orchestration_with_k8s.html#orchestration-with-k8s>`_
 on Azure and run your training job in a distributed environment.
 
 Prerequisites
@@ -38,7 +36,7 @@ Prerequisites
 Cluster Management
 ------------------
 
-* Create a cluster with a :ref:`deployment <k8s-aks-create>`
+* Create a cluster with a `deployment <#k8s-azure-create>`_
 
   .. code-block:: sh
 
@@ -49,20 +47,18 @@ Cluster Management
 
   .. code-block:: sh
 
-      Check `VM Size <https://docs.microsoft.com/en-us/azure/virtual-machines/sizes>`_ to see more node specifications.
-
     # Scale nodes with 'Standard_D4s_v3' specification to 2
-    maro k8s node scale myK8sCluster Standard_D4s_v3 2
+    maro k8s node scale my_k8s_cluster Standard_D4s_v3 2
 
-    # Scale nodes with 'Standard_D2s_v3' specification to 0
-    maro k8s node scale myK8sCluster Standard_D2s_v3 0
+  Check `VM Size <https://docs.microsoft.com/en-us/azure/virtual-machines/sizes>`_
+  to see more node specifications.
 
 * Delete the cluster
 
   .. code-block:: sh
 
     # Delete a k8s cluster
-    maro k8s delete myK8sCluster
+    maro k8s delete my_k8s_cluster
 
 Run Job
 -------
@@ -71,69 +67,72 @@ Run Job
 
   .. code-block:: sh
 
-    # Push image 'myImage' to the cluster
-    maro k8s image push myK8sCluster --image-name myImage
+    # Push image 'my_image' to the cluster
+    maro k8s image push my_k8s_cluster --image-name my_image
 
 * Push your training data
 
   .. code-block:: sh
 
-    # Push dqn folder under './myTrainingData/' to a relative path '/myTrainingData' in the cluster
-    # You can then assign your mapping location in the start-job-deployment
-    maro k8s data push myGrassCluster ./myTrainingData/dqn /myTrainingData
+    # Push data under './my_training_data' to a relative path '/my_training_data' in the cluster
+    # You can then assign your mapping location in the start-job deployment
+    maro k8s data push my_k8s_cluster ./my_training_data/* /my_training_data
 
-* Start a training job with a :ref:`deployment <k8s-start-job>`
-
-  .. code-block:: sh
-
-    # Start a training job with a start-job-deployment
-    maro k8s job start myK8sCluster ./k8s-start-job.yml
-
-* Or, schedule batch jobs with a :ref:`deployment <k8s-start-schedule>`
+* Start a training job with a `deployment <#k8s-start-job>`_
 
   .. code-block:: sh
 
-    # Start a training schedule with a start-schedule-deployment
-    maro k8s schedule start myK8sCluster ./k8s-start-schedule.yml
+    # Start a training job with a start-job deployment
+    maro k8s job start my_k8s_cluster ./k8s-start-job.yml
+
+* Or, schedule batch jobs with a `deployment <#k8s-start-schedule>`_
+
+  .. code-block:: sh
+
+    # Start a training schedule with a start-schedule deployment
+    maro k8s schedule start my_k8s123_cluster ./k8s-start-schedule.yml
 
 * Get the logs of the job
 
   .. code-block:: sh
 
     # Logs will be exported to current directory
-    maro k8s job logs myK8sCluster myJob1
+    maro k8s job logs my_k8s_cluster my_job_1
 
 * List the current status of the job
 
   .. code-block:: sh
 
     # List current status of jobs
-    maro k8s job list myK8sCluster myJob1
+    maro k8s job list my_k8s_cluster my_job_1
 
 * Stop a training job
 
   .. code-block:: sh
 
     # Stop a training job
-    maro k8s job stop myK8sCluster myJob1
+    maro k8s job stop my_k8s_cluster my_job_1
 
 Sample Deployments
 ------------------
 
-k8s-aks-create
-^^^^^^^^^^^^^^
+k8s-azure-create
+^^^^^^^^^^^^^^^^
 
 .. code-block:: yaml
 
-   mode: k8s/aks
-   name: myK8sCluster
+   mode: k8s
+   name: my_k8s_cluster
 
    cloud:
-     subscription: mySubscription
-     resource_group: myResourceGroup
+     infra: azure
      location: eastus
-     default_public_key: "{ssh public key}"
-     default_username: admin
+     resource_group: my_k8s_resource_group
+     subscription: my_subscription
+
+   user:
+     admin_public_key: "{ssh public key with 'ssh-rsa' prefix}"
+     admin_username: admin
 
    master:
      node_size: Standard_D2s_v3
@@ -143,63 +142,63 @@ k8s-start-job
 
 .. code-block:: yaml
 
-   mode: k8s/aks
-   name: myJob1
+   mode: k8s
+   name: my_job_1
 
    components:
      actor:
-       command: ["python", "{project root}/myTrainingData/dqn/start_actor.py"]
-       image: myImage
+       command: ["bash", "{project root}/my_training_data/actor.sh"]
+       image: my_image
        mount:
          target: "{project root}"
        num: 5
        resources:
          cpu: 2
          gpu: 0
-         memory: 2048M
+         memory: 2048m
      learner:
-       command: ["python", "{project root}/myTrainingData/dqn/start_learner.py"]
-       image: myImage
+       command: ["bash", "{project root}/my_training_data/learner.sh"]
+       image: my_image
        mount:
          target: "{project root}"
        num: 1
        resources:
          cpu: 2
          gpu: 0
-         memory: 2048M
+         memory: 2048m
 
 k8s-start-schedule
 ^^^^^^^^^^^^^^^^^^
 
 .. code-block:: yaml
 
-   mode: k8s/aks
-   name: mySchedule1
+   mode: k8s
+   name: my_schedule_1
 
    job_names:
-     - myJob2
-     - myJob3
-     - myJob4
-     - myJob5
+     - my_job_2
+     - my_job_3
+     - my_job_4
+     - my_job_5
 
    components:
      actor:
-       command: ["python", "{project root}/myTrainingData/dqn/start_actor.py"]
-       image: myImage
+       command: ["bash", "{project root}/my_training_data/actor.sh"]
+       image: my_image
        mount:
          target: "{project root}"
        num: 5
        resources:
          cpu: 2
          gpu: 0
-         memory: 2048M
+         memory: 2048m
      learner:
-       command: ["python", "{project root}/myTrainingData/dqn/start_learner.py"]
-       image: myImage
+       command: ["bash", "{project root}/my_training_data/learner.sh"]
+       image: my_image
        mount:
          target: "{project root}"
        num: 1
        resources:
          cpu: 2
          gpu: 0
-         memory: 2048M
+         memory: 2048m
