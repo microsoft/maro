@@ -21,3 +21,4 @@ ilp:
   log:
     dump_all_solution: false
     dump_infeasible_solution: true
+    stdout_solver_message: false

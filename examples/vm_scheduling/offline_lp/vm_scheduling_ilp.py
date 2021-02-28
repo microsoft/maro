@@ -31,7 +31,8 @@ class VmSchedulingILP():
             # self._solver = GUROBI_CMD(path="/home/ham/opt/gurobi811/linux64/bin/gurobi_cl", msg=1, options=[("MIPgap", 0.9)])
             self._solver = GUROBI_CMD(path="/home/ham/opt/gurobi811/linux64/bin/gurobi_cl", msg=1)
         else:
-            self._solver = GLPK(msg=0)
+            msg = 1 if config.log.stdout_solver_message else 0
+            self._solver = GLPK(msg=msg)
 
         # For formulation and action application.
         self.plan_window_size = config.plan_window_size
@@ -151,8 +152,17 @@ class VmSchedulingILP():
             self.last_vm_idx = -1
 
         vm_idx = self.last_vm_idx + 1
-        assert future_vm_req[vm_idx].id == vm_id
-        self.last_vm_idx += 1
+        while vm_idx < len(future_vm_req) and future_vm_req[vm_idx].id != vm_id:
+            vm_idx += 1
+
+        if vm_idx > self.last_vm_idx + 1:
+            self._logger.debug(
+                f"**** Tick {self._env_tick}, get vm_id: {vm_id} -- {vm_idx - self.last_vm_idx - 1} skipped."
+            )
+
+        assert vm_idx < len(future_vm_req) and future_vm_req[vm_idx].id == vm_id, \
+        f"Tick {self._env_tick}, get vm_id {vm_id} not in solution."
+        self.last_vm_idx = vm_idx
 
         for pm_idx in range(self._pm_num):
             if self._mapping[pm_idx][vm_idx].varValue:
