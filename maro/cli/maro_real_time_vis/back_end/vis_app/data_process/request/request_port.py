@@ -1,9 +1,9 @@
-import requests
-import pandas as pd
 import json
 
-from .utils import get_data_in_format, get_input_range
+import requests
+
 from .request_params import request_column, request_settings
+from .utils import get_data_in_format, get_input_range
 
 
 def get_port_data(experiment_name: str, episode: str, tick: str) -> json:
@@ -19,9 +19,10 @@ def get_port_data(experiment_name: str, episode: str, tick: str) -> json:
 
     """
     params = {
-        "query": f"select {request_column.port_header.value} from {experiment_name}.port_details where episode='{episode}' and tick='{tick}'",
+        "query": f"select {request_column.port_header.value} from {experiment_name}.port_details"
+        f" where episode='{episode}' and tick='{tick}'",
         "count": "true"
-    }                                                                                                                                              
+    }
     db_port_data = requests.get(
         url=request_settings.request_url.value,
         headers=request_settings.request_header.value,
@@ -45,9 +46,10 @@ def get_acc_port_data(experiment_name: str, episode: str, start_tick: str, end_t
     """
     input_range = get_input_range(start_tick, end_tick)
     params = {
-        "query": f"select {request_column.port_header.value}  from {experiment_name}.port_details where episode='{episode}' and tick in {input_range}",
+        "query": f"select {request_column.port_header.value}  from {experiment_name}.port_details"
+        f" where episode='{episode}' and tick in {input_range}",
         "count": "true"
-    }                                                                                                                                    
+    }
     db_port_data = requests.get(
         url=request_settings.request_url.value,
         headers=request_settings.request_header.value,
@@ -93,4 +95,3 @@ def process_port_data(db_port_data: json) -> json:
     )
     port_data = original_port_data.to_json(orient='records')
     return port_data
-

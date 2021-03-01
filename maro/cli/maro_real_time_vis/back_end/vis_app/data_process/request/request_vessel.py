@@ -1,7 +1,8 @@
-import requests
 import json
-from flask import jsonify
+
 import pandas as pd
+import requests
+from flask import jsonify
 
 from .request_params import request_column, request_settings
 from .utils import get_data_in_format, get_input_range
@@ -20,7 +21,8 @@ def get_vessel_data(experiment_name: str, episode: str, tick: str) -> json:
 
     """
     params = {
-        "query": f"select {request_column.vessel_header.value} from {experiment_name}.vessel_details where episode='{episode}' and tick='{tick}'",
+        "query": f"select {request_column.vessel_header.value} from {experiment_name}.vessel_details"
+        f"where episode='{episode}' and tick='{tick}'",
         "count": "true"
     }
     db_vessel_data = requests.get(
@@ -46,7 +48,8 @@ def get_acc_vessel_data(experiment_name: str, episode: str, start_tick: str, end
     """
     input_range = get_input_range(start_tick, end_tick)
     params = {
-        "query": f"select {request_column.vessel_header.value} from {experiment_name}.vessel_details where episode='{episode}' and tick in {input_range}",
+        "query": f"select {request_column.vessel_header.value} from {experiment_name}.vessel_details"
+        f" where episode='{episode}' and tick in {input_range}",
         "count": "true"
     }
     db_vessel_data = requests.get(
@@ -62,7 +65,7 @@ def process_vessel_data(db_vessel_data: json, start_tick: str) -> json:
 
     Args:
         db_vessel_data(json): Original vessel data.
-            Both accumulated data and single data are possible. 
+            Both accumulated data and single data are possible.
         start_tick(str): Number of first tick of data.
 
     Returns:
@@ -92,9 +95,13 @@ def process_vessel_data(db_vessel_data: json, start_tick: str) -> json:
     else:
         acc_vessel_data = []
         for vessel_index in range(0, frame_index_num):
-            cur_vessel_data = original_vessel_data[original_vessel_data["tick"] == str(vessel_index + start_tick)].copy()
+            cur_vessel_data = original_vessel_data[
+                original_vessel_data["tick"] == str(vessel_index + start_tick)
+            ].copy()
             acc_vessel_data.append(
-                get_single_snapshot_vessel_data(cur_vessel_data, vessel_list, vessel_info, route_list, cim_information)
+                get_single_snapshot_vessel_data(
+                    cur_vessel_data, vessel_list, vessel_info, route_list, cim_information
+                )
             )
         return acc_vessel_data
 
@@ -102,7 +109,7 @@ def process_vessel_data(db_vessel_data: json, start_tick: str) -> json:
 def get_single_snapshot_vessel_data(
         original_vessel_data: pd.Dataframe, vessel_list: list, vessel_info: json,
         route_list: list, cim_information: json
-    ):
+):
     """Generate compulsory data and change vessel data format.
 
     Args:

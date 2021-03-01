@@ -1,9 +1,10 @@
-import requests
 import json
-import pandas as pd
 
-from .utils import get_input_range, get_data_in_format
+import pandas as pd
+import requests
+
 from .request_params import request_column, request_settings
+from .utils import get_data_in_format, get_input_range
 
 
 def get_decision_data(experiment_name: str, episode: str, tick: str) -> pd.Dataframe:
@@ -19,7 +20,8 @@ def get_decision_data(experiment_name: str, episode: str, tick: str) -> pd.Dataf
 
     """
     params = {
-        "query": f"select {request_column.decision_header.value} from {experiment_name}.full_on_vessels where episode='{episode}' and tick='{tick}'",
+        "query": f"select {request_column.decision_header.value} from {experiment_name}.full_on_vessels"
+        f" where episode='{episode}' and tick='{tick}'",
         "count": "true"
     }
     decision_value = requests.get(
@@ -46,7 +48,8 @@ def get_acc_decision_data(experiment_name: str, episode: str, start_tick: str, e
     """
     input_range = get_input_range(start_tick, end_tick)
     params = {
-        "query": f"select {request_column.decision_header.value} from {experiment_name}.full_on_vessels where episode='{episode}' and tick in {input_range}",
+        "query": f"select {request_column.decision_header.value} from {experiment_name}.full_on_vessels"
+        f" where episode='{episode}' and tick in {input_range}",
         "count": "true"
     }
     original_decision_data = requests.get(

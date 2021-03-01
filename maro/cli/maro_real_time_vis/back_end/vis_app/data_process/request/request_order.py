@@ -1,9 +1,10 @@
-import requests
 import json
-import pandas as pd
 
-from .utils import get_data_in_format, get_input_range
+import pandas as pd
+import requests
+
 from .request_params import request_column, request_settings
+from .utils import get_data_in_format, get_input_range
 
 
 def get_order_data(experiment_name: str, episode: str, tick: str) -> pd.Dataframe:
@@ -19,9 +20,10 @@ def get_order_data(experiment_name: str, episode: str, tick: str) -> pd.Datafram
 
     """
     params = {
-        "query": f"select {request_column.order_header.value} from {experiment_name}.full_on_ports where episode='{episode}' and tick='{tick}'",
+        "query": f"select {request_column.order_header.value} from {experiment_name}.full_on_ports"
+        f" where episode='{episode}' and tick='{tick}'",
         "count": "true"
-    }                                                                                           
+    }
     original_order_data = requests.get(
         url=request_settings.request_url.value,
         headers=request_settings.request_header.value,
@@ -46,7 +48,8 @@ def get_acc_order_data(experiment_name: str, episode: str, start_tick: str, end_
     """
     input_range = get_input_range(start_tick, end_tick)
     params = {
-        "query": f"select {request_column.order_header.value} from {experiment_name}.full_on_ports where episode='{episode}' and tick in {input_range}",
+        "query": f"select {request_column.order_header.value} from {experiment_name}.full_on_ports"
+        f" where episode='{episode}' and tick in {input_range}",
         "count": "true"
     }
     original_order_data = requests.get(
@@ -66,4 +69,3 @@ def get_acc_order_data(experiment_name: str, episode: str, start_tick: str, end_
             order_output.append(json.loads(order_in_format))
         i = i + 1
     return order_output
-

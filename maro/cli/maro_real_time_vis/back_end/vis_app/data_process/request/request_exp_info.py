@@ -1,8 +1,9 @@
-import requests
 import json
 
-from .utils import get_data_in_format
+import requests
+
 from .request_params import request_settings
+from .utils import get_data_in_format
 
 
 def get_experiment_info() -> json:
@@ -51,7 +52,8 @@ def get_experiment_info() -> json:
     data_in_format["total_episodes"] = int(total_episode["dataset"][0][0])
     data_in_format['durations'] = int(total_episode["dataset"][0][1])
     port_number_params = {
-        "query": f"select count(*) from {experiment_name}.port_details where episode='{start_episode_num}' and tick='{start_snapshot_num}'",
+        "query": f"select count(*) from {experiment_name}.port_details"
+        f" where episode='{start_episode_num}' and tick='{start_snapshot_num}'",
         "count": "true"
     }
     port_number = requests.get(
@@ -62,7 +64,8 @@ def get_experiment_info() -> json:
     end_epoch_num = start_episode_num + int(data_in_format["total_episodes"]) - 1
     end_tick_num = start_snapshot_num + int(total_episode["dataset"][0][1]) - 1
     display_type_params = {
-        "query": f"select * from {experiment_name}.port_details where episode='{end_epoch_num}' and tick='{end_tick_num}'",
+        "query": f"select * from {experiment_name}.port_details"
+        f" where episode='{end_epoch_num}' and tick='{end_tick_num}'",
         "count": "true"
     }
     display_type_response = requests.get(

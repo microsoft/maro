@@ -1,8 +1,8 @@
 import pandas as pd
 import requests
 
-from .utils import get_data_in_format
 from .request_params import request_settings
+from .utils import get_data_in_format
 
 
 def get_attention_data(experiment_name: str, episode: str, tick: str) -> pd.Dataframe:

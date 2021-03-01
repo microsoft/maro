@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 
 from maro.utils import clone
-from maro.utils.exception.rl_toolkit_exception import NNStackDimensionError, MissingOptimizer
+from maro.utils.exception.rl_toolkit_exception import MissingOptimizer, NNStackDimensionError
 
 from .abs_block import AbsBlock
 

@@ -1,5 +1,6 @@
-import pandas as pd
 import json
+
+import pandas as pd
 
 
 def get_data_in_format(original_data: json) -> pd.DataFrame:
