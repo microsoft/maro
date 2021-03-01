@@ -3,27 +3,25 @@
 
 import os
 
+MONITOR_PATH = os.path.expanduser("~/.maro/web_terminal/monitor.py")
+TERMINAL_PATH = os.path.expanduser("~/.maro/web_terminal/terminal-srv.py")
 
 def start_admin(*args, **kwargs):
-    monitor_path = os.path.expanduser("~/.maro/web_terminal/monitor.py")
     os.system(
-        f"streamlit run {monitor_path} & "
+        f"streamlit run {MONITOR_PATH} & "
     )
 
-    terminal_path = os.path.expanduser("~/.maro/web_terminal/terminal-srv.py")
     os.system(
-        f"cd {os.path.dirname(terminal_path)} ;"
-        f"python {terminal_path} &"
+        f"cd {os.path.dirname(TERMINAL_PATH)} ;"
+        f"python {TERMINAL_PATH} &"
     )
 
 
 def stop_admin(*args, **kwargs):
-    monitor_path = os.path.expanduser("~/.maro/web_terminal/monitor.py")
     os.system(
-        f"pkill -f '{monitor_path}' "
+        f"pkill -f '{MONITOR_PATH}' "
     )
 
-    terminal_path = os.path.expanduser("~/.maro/web_terminal/terminal-srv.py")
     os.system(
-        f"pkill -f '{terminal_path}' "
+        f"pkill -f '{TERMINAL_PATH}' "
     )

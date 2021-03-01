@@ -195,7 +195,6 @@ style="background-color: {color}; border-radius: 50%; height: 1rem; width: 1rem;
 {component_html}
 </details>"""
     return job_str
-    # root.markdown(job_str, True)
 
 
 def write_job_detail_container(data):
@@ -236,7 +235,6 @@ style="background-color: {color}; border-radius: 50%; height: 1rem; width: 1rem;
 {component_html}
 </details>"""
     return job_str
-    # root.markdown(job_str, True)
 
 
 def write_job_details(root, data, dashboard_type):
@@ -324,8 +322,6 @@ def draw_dashboard_new(target):
                     st, target, node_data_dict, dashboard_type)
 
                 st.markdown("---")
-
-                # jct = jce.beta_container()
 
                 job_queue_data = local_executor.get_job_queue()
                 pjqe, kjqe = write_job_queue(st, job_queue_data)
