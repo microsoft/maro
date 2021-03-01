@@ -6,9 +6,9 @@ import argparse
 import crypt
 import getpass
 import os
-import platform
 import subprocess
 import sys
+import platform
 
 """
 This file is used for deleting a specified account and related files on node.

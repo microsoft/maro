@@ -4,9 +4,9 @@
 
 import argparse
 import os
-import platform
 import subprocess
 import sys
+import platform
 
 """
 This file is used for creating a user account with SSH public key settings on node.

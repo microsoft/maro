@@ -10,7 +10,7 @@ import yaml
 
 from maro.cli.grass.executors.grass_executor import GrassExecutor
 from maro.cli.grass.utils.copy import copy_files_to_node
-from maro.cli.utils.details import load_cluster_details, save_cluster_details
+from maro.cli.utils.details import (load_cluster_details, save_cluster_details)
 from maro.cli.utils.naming import generate_cluster_id
 from maro.cli.utils.params import GlobalParams, GlobalPaths
 from maro.cli.utils.validation import validate_and_fill_dict
