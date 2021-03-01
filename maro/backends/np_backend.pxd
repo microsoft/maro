@@ -5,14 +5,11 @@
 #distutils: language = c++
 
 import numpy as np
-
-cimport cython
 cimport numpy as np
-from cpython cimport bool
+cimport cython
 
-from maro.backends.backend cimport (
-    ATTR_TYPE, NODE_INDEX, NODE_TYPE, SLOT_INDEX, UINT, ULONG, BackendAbc, SnapshotListAbc
-)
+from cpython cimport bool
+from maro.backends.backend cimport BackendAbc, SnapshotListAbc, UINT, ULONG, NODE_TYPE, ATTR_TYPE, NODE_INDEX, SLOT_INDEX
 
 
 cdef class NumpyBackend(BackendAbc):

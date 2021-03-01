@@ -6,9 +6,8 @@
 
 from cpython cimport bool
 
-from maro.backends.backend cimport (
-    ATTR_TYPE, INT, NODE_INDEX, NODE_TYPE, SLOT_INDEX, UINT, ULONG, USHORT, AttributeType, BackendAbc, SnapshotListAbc
-)
+from maro.backends.backend cimport (BackendAbc, SnapshotListAbc, AttributeType,
+    INT, USHORT, UINT, ULONG, NODE_TYPE, ATTR_TYPE, NODE_INDEX, SLOT_INDEX)
 
 
 cdef class SnapshotList:
