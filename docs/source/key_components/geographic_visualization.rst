@@ -116,37 +116,41 @@ this mode.
 Geographic data display
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-
+In the map on the page, user can view the specific status of different resource
+holders at various times. Users can further understand a specific area by zooming the map.
+Among them, the three different status of the port:
+Surplus, Deficit and Balance represent the quantitative relationship between the
+empty container volume and the received order volume of the corresponding port
+at that time.
 
 .. image:: ../images/visualization/geographic/geographic_data_display.gif
    :alt: geographic_data_display
 
 Data chart display
 ~~~~~~~~~~~~~~~~~~
+The ranking table on the right side of the page shows the throughput of routes and
+ports over a period of time. While the heat-map shows the throughput between ports
+over a period of time. User can hover to specific elements to view data information.
 
+The chart on the left shows the order volume and empty container information of each
+port and each vessel. User can view the data of different resource holders by switching options.
 
-Epoch Sampling Ratio Selection
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+In addition, user can zoom the chart to display information more clearly.
 
-To view trends in the data, or to weed out excess information, user could
-select the sampling ratio of epoch by sliding to
-change the number of data to be displayed.
-
-.. image:: ../images/visualization/dashboard/epoch_sampling_ratio.gif
-   :alt: epoch_sampling_ratio
-
-
-Auxiliary options
-~~~~~~~~~~~~~~~~~
+.. image:: ../images/visualization/geographic/data_chart_display.gif
+   :alt: data_chart_display
 
 Time window selection
-^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~
 
+This feature is only valid in local mode. User can select the starting point position by
+sliding to select the left starting point of the time window, and view the specific data at
+different time.
 
-Highlight route Selection
-^^^^^^^^^^^^^^^^^^^^^^^^^
+In addition, the user can freely choose the end of the time window. When the user plays this tool,
+it will loop in the time window selected by the user.
 
+.. image:: ../images/visualization/geographic/time_window_selection.gif
+   :alt: time_window_selection
 
-Epoch Selection
-^^^^^^^^^^^^^^^
 
