@@ -348,16 +348,14 @@ cdef class NumpyBackend(BackendAbc):
                 data_arr[0][attr_info.name] = 0
 
     cdef void dump(self, str folder) except +:
-        for node_type, data_arr in self._node_data_dict.items():
-            node = self._nodes_list[node_type]
-            node_name = node.name
+        for node_name, data_arr in self._node_data_dict.items():
             filename = os.path.join(folder, node_name + ".npy")
             descFilename = os.path.join(folder, node_name + ".meta")
             with open(filename, "wb+") as f:
                 np.save(f, data_arr)
             with open(descFilename, "wt+") as f:
-                f.write(",".join([ai.name for ai in self._node_attr_dict[node_type]]) + "\n")
-                f.write(",".join([str(ai.slot_number) for ai in self._node_attr_dict[node_type]]))
+                f.write(",".join([ai.name for ai in self._node_attr_dict[node_name]]) + "\n")
+                f.write(",".join([str(ai.slot_number) for ai in self._node_attr_dict[node_name]]))
 
     cdef list where(self, NODE_INDEX index, ATTR_TYPE attr_type, filter_func: callable) except +:
         cdef AttrInfo attr = self._attrs_list[attr_type]
