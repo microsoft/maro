@@ -2,11 +2,11 @@
 # Licensed under the MIT license.
 
 import math
-from typing import List
 
 import altair as alt
 import pandas as pd
 import streamlit as st
+from typing import List
 
 from maro.cli.inspector.params import CIMItemOption, CITIBIKEItemOption, GlobalScenarios
 

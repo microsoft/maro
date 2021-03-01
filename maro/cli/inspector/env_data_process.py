@@ -4,12 +4,12 @@
 import csv
 import json
 import os
-from typing import List
 
 import numpy as np
 import pandas as pd
 import tqdm
 import yaml
+from typing import List
 
 from maro.utils.exception.cli_exception import CliError
 from maro.utils.logger import CliLogger
