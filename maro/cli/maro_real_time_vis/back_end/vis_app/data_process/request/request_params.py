@@ -11,8 +11,8 @@ class request_column(Enum):
 class request_settings(Enum):
     request_url = "http://host.docker.internal:9000/exec"
     request_header = {
-            'content-type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'PUT,GET,POST,DELETE,OPTIONS',
-            'Cache-Control': 'no-cache, no-transform'
+        'content-type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'PUT,GET,POST,DELETE,OPTIONS',
+        'Cache-Control': 'no-cache, no-transform'
     }

@@ -37,8 +37,8 @@ def get_basic_vessel_info() -> json:
     cur_snapshot_number = data["snapshot_number"]
     cur_epoch_number = data["epoch_number"]
     vessel_data = get_vessel_data(
-            cur_experiment_name, cur_epoch_number, cur_snapshot_number
-        )
+        cur_experiment_name, cur_epoch_number, cur_snapshot_number
+    )
     return vessel_data
 
 
