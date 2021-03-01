@@ -79,11 +79,11 @@ def process_port_data(db_port_data: json) -> json:
 
     original_port_data = get_data_in_format(db_port_data)
     original_port_data["port_name"] = list(
-            map(
-                lambda x: port_json_data[int(x)]['tooltip'],
-                original_port_data["index"]
-            )
+        map(
+            lambda x: port_json_data[int(x)]['tooltip'],
+            original_port_data["index"]
         )
+    )
     original_port_data["position"] = list(
         map(
             lambda x: port_json_data[int(x)]['position'],
