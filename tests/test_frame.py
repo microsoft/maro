@@ -589,5 +589,66 @@ class TestFrame(unittest.TestCase):
         self.assertTrue(os.path.exists("snapshots_dynamic.csv"))
         self.assertTrue(os.path.exists("snapshots_static.csv"))
 
+    def test_frame_attribute_filtering(self):
+        batch_number = 100
+
+        for backend_name in backends_to_test:
+            print("current backend:", backend_name)
+
+            @node("test")
+            class TestNode(NodeBase):
+                a1 = NodeAttribute("i", batch_number)
+                a2 = NodeAttribute("i")
+
+            class TestFrame(FrameBase):
+                test_nodes = FrameNode(TestNode, 2)
+
+                def __init__(self):
+                    super().__init__(enable_snapshot=True, total_snapshot=10, backend_name=backend_name)
+
+            frame = TestFrame()
+
+            node1 = frame.test_nodes[0]
+
+            # initial value
+            node1.a1[:] = [i for i in range(batch_number)]
+
+            results = node1.a1.where(lambda x : x < 10)
+
+            # value of index 0...9 match < 10 filter
+            self.assertListEqual([i for i in range(10)], results)
+
+            # no matched one
+            results = node1.a1.where(lambda x : x > batch_number)
+
+            self.assertEqual(0, len(results))
+
+            # use basic comparison
+            results = node1.a1 < 10
+
+            self.assertListEqual([i for i in range(10)], results)
+
+            results = node1.a1 > batch_number
+
+            self.assertEqual(0, len(results))
+
+            results = node1.a1 == 10
+
+            self.assertEqual(10, results[0])
+
+            results = node1.a1 <= 10
+
+            self.assertListEqual([i for i in range(10+1)], results)
+
+            results = node1.a1 >= 99
+
+            self.assertEqual(1, len(results))
+
+            results = node1.a1 != 99
+
+            self.assertEqual(99, len(results))
+
+            self.assertListEqual([i for i in range(99)], results)
+
 if __name__ == "__main__":
     unittest.main()

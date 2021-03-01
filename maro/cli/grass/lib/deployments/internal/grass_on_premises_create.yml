@@ -1,0 +1,21 @@
+name: ""
+mode: ""
+
+user:
+  admin_id: ""
+
+master:
+  username: ""
+  hostname: ""
+  public_ip_address: ""
+  private_ip_address: ""
+  redis:
+    port: ""
+  fluentd:
+    port: ""
+  samba:
+    password: ""
+  ssh:
+    port: ""
+  api_server:
+    port: ""

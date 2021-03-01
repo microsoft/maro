@@ -7,43 +7,12 @@ from statistics import mean
 import numpy as np
 
 from maro.simulator import Env
-from maro.rl import AgentManagerMode, Scheduler, SimpleActor, SimpleLearner
+from maro.rl import Scheduler, SimpleActor, SimpleLearner
 from maro.utils import LogFormat, Logger, convert_dottable
 
-from components import CIMActionShaper, CIMStateShaper, POAgentManager, TruncatedExperienceShaper, create_po_agents
-
-
-class EarlyStoppingChecker:
-    """Callable class that checks the performance history to determine early stopping.
-
-    Args:
-        warmup_ep (int): Episode from which early stopping checking is initiated.
-        last_k (int): Number of latest performance records to check for early stopping.
-        perf_threshold (float): The mean of the ``last_k`` performance metric values must be above this value to
-            trigger early stopping.
-        perf_stability_threshold (float): The maximum one-step change over the ``last_k`` performance metrics must be
-            below this value to trigger early stopping.
-    """
-    def __init__(self, warmup_ep: int, last_k: int, perf_threshold: float, perf_stability_threshold: float):
-        self._warmup_ep = warmup_ep
-        self._last_k = last_k
-        self._perf_threshold = perf_threshold
-        self._perf_stability_threshold = perf_stability_threshold
-
-        def get_metric(record):
-            return 1 - record["container_shortage"] / record["order_requirements"]
-        self._metric_func = get_metric
-
-    def __call__(self, perf_history) -> bool:
-        if len(perf_history) < max(self._last_k, self._warmup_ep):
-            return False
-
-        metric_series = list(map(self._metric_func, perf_history[-self._last_k:]))
-        max_delta = max(
-            abs(metric_series[i] - metric_series[i - 1]) / metric_series[i - 1] for i in range(1, self._last_k)
-        )
-        print(f"mean_metric: {mean(metric_series)}, max_delta: {max_delta}")
-        return mean(metric_series) > self._perf_threshold and max_delta < self._perf_stability_threshold
+from components import (
+    CIMActionShaper, CIMStateShaper, SchedulerWithStopping, POAgentManager, TruncatedExperienceShaper, create_po_agents
+)
 
 
 def launch(config):
@@ -63,19 +32,14 @@ def launch(config):
     # Step 3: create an agent manager.
     config["agents"]["input_dim"] = state_shaper.dim
     agent_manager = POAgentManager(
-        name="cim_learner",
-        mode=AgentManagerMode.TRAIN_INFERENCE,
-        agent_dict=create_po_agents(agent_id_list, config.agents),
+        create_po_agents(agent_id_list, config.agents),
         state_shaper=state_shaper,
         action_shaper=action_shaper,
         experience_shaper=experience_shaper,
     )
 
     # Step 4: Create an actor and a learner to start the training process.
-    scheduler = Scheduler(
-        config.main_loop.max_episode,
-        early_stopping_checker=EarlyStoppingChecker(**config.main_loop.early_stopping)
-    )
+    scheduler = SchedulerWithStopping(config.main_loop.max_episode, **config.main_loop.early_stopping)
     actor = SimpleActor(env, agent_manager)
     learner = SimpleLearner(
         agent_manager, actor, scheduler,

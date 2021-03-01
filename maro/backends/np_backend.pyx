@@ -359,6 +359,55 @@ cdef class NumpyBackend(BackendAbc):
                 f.write(",".join([ai.name for ai in self._node_attr_dict[node_type]]) + "\n")
                 f.write(",".join([str(ai.slot_number) for ai in self._node_attr_dict[node_type]]))
 
+    cdef list where(self, NODE_INDEX index, ATTR_TYPE attr_type, filter_func: callable) except +:
+        cdef AttrInfo attr = self._attrs_list[attr_type]
+        cdef np.ndarray attr_array = self._node_data_dict[attr.node_type][attr.name]
+
+        cdef SLOT_INDEX slot_index = 0
+        cdef list result_list = []
+
+        for slot_index in range(attr.slot_number):
+            if filter_func(attr_array[0][index, slot_index]):
+                result_list.append(slot_index)
+
+        return result_list
+
+    cdef list slots_greater_than(self, NODE_INDEX index, ATTR_TYPE attr_type, object value) except +:
+        cdef AttrInfo attr = self._attrs_list[attr_type]
+        cdef np.ndarray attr_array = self._node_data_dict[attr.node_type][attr.name]
+
+        return np.where(attr_array[0][index] > value)[0].tolist()
+
+    cdef list slots_greater_equal(self, NODE_INDEX index, ATTR_TYPE attr_type, object value) except +:
+        cdef AttrInfo attr = self._attrs_list[attr_type]
+        cdef np.ndarray attr_array = self._node_data_dict[attr.node_type][attr.name]
+
+        return np.where(attr_array[0][index] >= value)[0].tolist()
+
+    cdef list slots_less_than(self, NODE_INDEX index, ATTR_TYPE attr_type, object value) except +:
+        cdef AttrInfo attr = self._attrs_list[attr_type]
+        cdef np.ndarray attr_array = self._node_data_dict[attr.node_type][attr.name]
+
+        return np.where(attr_array[0][index] < value)[0].tolist()
+
+    cdef list slots_less_equal(self, NODE_INDEX index, ATTR_TYPE attr_type, object value) except +:
+        cdef AttrInfo attr = self._attrs_list[attr_type]
+        cdef np.ndarray attr_array = self._node_data_dict[attr.node_type][attr.name]
+
+        return np.where(attr_array[0][index] <= value)[0].tolist()
+
+    cdef list slots_equal(self, NODE_INDEX index, ATTR_TYPE attr_type, object value) except +:
+        cdef AttrInfo attr = self._attrs_list[attr_type]
+        cdef np.ndarray attr_array = self._node_data_dict[attr.node_type][attr.name]
+
+        return np.where(attr_array[0][index] == value)[0].tolist()
+
+    cdef list slots_not_equal(self, NODE_INDEX index, ATTR_TYPE attr_type, object value) except +:
+        cdef AttrInfo attr = self._attrs_list[attr_type]
+        cdef np.ndarray attr_array = self._node_data_dict[attr.node_type][attr.name]
+
+        return np.where(attr_array[0][index] != value)[0].tolist()
+
 # TODO:
 # 1. dump as csv
 # 2. take_snapshot(self, bool overwrite_last)

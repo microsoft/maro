@@ -1,0 +1,12 @@
+mode: grass/local
+name: MyClusterName # str: name of the MARO Cluster
+
+master: # MARO Master config
+  resource:
+    cpu: 2 # int: cpu requirement (unit: cores)
+    memory: 4096 # str: memory requirement (unit: MB)
+    gpu: 0 # int: gpu requirement (units: cards)
+  redis: # [Optional]
+    port: 6379 # [Optional] str: port of the redis server, default as 6379
+  agents:
+    check_interval: 30 # s(second) unit
