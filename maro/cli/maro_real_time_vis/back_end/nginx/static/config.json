@@ -19,7 +19,6 @@
         "noise": 1
       },
       "initial_container_proportion": 0.16
-      
     },
     "durban_sau": {
       "capacity": 10000,
@@ -44,7 +43,6 @@
         "noise": 1
       },
       "initial_container_proportion": 0.01
-      
     },
     "leHavre_fra": {
       "capacity": 10000,
