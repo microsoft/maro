@@ -92,7 +92,7 @@ def process_port_data(db_port_data: json) -> json:
     )
     original_port_data["status"] = list(
         map(
-            lambda x, y: 'surplus' if (x - y*5 > 50) else ('demand' if (x - y*5 < -50) else 'balance'),
+            lambda x, y: 'surplus' if (x - y * 5 > 50) else ('demand' if (x - y * 5 < -50) else 'balance'),
             original_port_data['empty'], original_port_data['booking']
         )
     )
