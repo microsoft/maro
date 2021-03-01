@@ -1,4 +1,5 @@
-import os, inspect
+import os
+import inspect
 import subprocess
 
 
@@ -8,3 +9,4 @@ def start_geo_vis(**kwargs: dict):
         'sh run_docker.sh',
         cwd=os.path.dirname(inspect.getfile(inspect.currentframe()))
     )
+

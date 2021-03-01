@@ -4,3 +4,4 @@ build:
 clean:
 	docker-compose down
 	docker system prune -fa
+
