@@ -1,0 +1,44 @@
+
+from maro.backends.backend import AttributeType
+from maro.backends.frame import NodeAttribute, NodeBase, node
+from maro.backends.frame import FrameBase, FrameNode
+
+# Node definitions.
+@node("my_nodes")
+class {{ project.scenario_cls }}Node(NodeBase):
+  age = NodeAttribute(AttributeType.Byte)
+  capacity = NodeAttribute(AttributeType.Int)
+  inventory = NodeAttribute(AttributeType.Int, 10)
+
+  def __init__(self):
+    # Only fields wrapped with NodeAttribute will be saved in frame.
+    self.name = None
+
+  def set_state(self, age: int, capacity: int, inventory: list):
+    # This is an additional function that used to initialize attributes saved in frame.
+    # As these attributes' value will be zero at beginning, and reset after frame.reset.
+    # So we need a way to hold the initial value to reset at the beginning of each episode.
+    self._age = age
+    self._capacity = capacity
+    self._inventory = inventory
+
+    self.reset()
+
+  def reset(self):
+    # Reset attributes with initial value.
+    self.age = self._age
+    self.capacity = self._capacity
+    self.inventory = self._inventory
+
+
+# Frame definition.
+
+def build_frame(node_number: int, snapshots_number: int):
+  class {{ project.scenario_cls }}Frame(FrameBase):
+    # Add the node into frame with specified number.
+    my_nodes = FrameNode({{ project.scenario_cls }}Node, node_number)
+
+    def __init__(self):
+      super().__init__(enable_snapshot=True, total_snapshot=snapshots_number)
+
+  return {{ project.scenario_cls }}Frame()

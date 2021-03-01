@@ -12,7 +12,7 @@ import uuid
 from ..master_agent.node_api_client import NodeApiClientV1
 from ..utils.details_reader import DetailsReader
 from ..utils.exception import ResourceAllocationFailed, StartContainerError
-from ..utils.params import Paths
+from ..utils.params import JobStatus, Paths
 from ..utils.redis_controller import RedisController
 from ..utils.resource import ContainerResource, NodeResource
 
@@ -124,13 +124,24 @@ class JobTrackingAgent(multiprocessing.Process):
         # Save jobs details.
         for job_name, job_details in name_to_job_details.items():
             job_details["check_time"] = self._redis_controller.get_time()
-            self._redis_controller.set_job_details(
-                job_name=job_name,
-                job_details=job_details
-            )
+            if job_details["containers"] != {}:
+                for container_name, container_details in job_details["containers"].items():
+                    if container_details["state"]["Status"] == "running":
+                        job_state = JobStatus.RUNNING
+                        break
+                    elif container_details["state"]["ExitCode"] == 0:
+                        job_state = JobStatus.FINISH
+                    elif container_details["state"]["ExitCode"] in ERROR_CODES_FOR_NOT_RESTART_CONTAINER:
+                        job_state = JobStatus.FAILED
+                        break
+
+                job_details["status"] = job_state
+                self._redis_controller.set_job_details(
+                    job_name=job_name,
+                    job_details=job_details
+                )
 
     # Utils.
-
     @staticmethod
     def _get_job_id_to_job_name(name_to_job_details: dict) -> dict:
         """Get job_id_to_job_name mapping from name_to_job_details.
@@ -595,6 +606,8 @@ class PendingJobAgent(multiprocessing.Process):
                         job_details=job_details
                     )
                 self._redis_controller.remove_pending_job_ticket(job_name=pending_job_name)
+                job_details["status"] = JobStatus.RUNNING
+                self._redis_controller.set_job_details(job_name=pending_job_name, job_details=job_details)
             except ResourceAllocationFailed as e:
                 logger.warning(f"Allocation failed with {e}")
             except StartContainerError as e:
@@ -735,6 +748,9 @@ class KilledJobAgent(multiprocessing.Process):
             if job_details is not None:
                 # Kill job.
                 self._kill_job(job_details=job_details)
+                if job_details["status"] in [JobStatus.PENDING, JobStatus.RUNNING]:
+                    job_details["status"] = JobStatus.KILLED
+                    self._redis_controller.set_job_details(job_name=job_name, job_details=job_details)
             else:
                 logger.warning(f"{job_name} not exists, cannot be stopped")
 

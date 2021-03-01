@@ -51,8 +51,6 @@ namespace maro
         // Make sure node type correct.
         inline void ensure_node_type(NODE_TYPE node_type);
 
-        // Helper function for dump one attribute slot
-        void write_attribute(ofstream &file, NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX slot_index);
       public:
         Frame();
 
@@ -208,6 +206,9 @@ namespace maro
         /// <param name="node_type">Type of node</param>
         /// <returns>True if exist, or false.</returns>
         bool is_node_exist(NODE_TYPE node_type) const noexcept;
+
+        SLOT_INDEX get_slot_number(NODE_INDEX node_index, ATTR_TYPE attr_type);
+
       };
 
 

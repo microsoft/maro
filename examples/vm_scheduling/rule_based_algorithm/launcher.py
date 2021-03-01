@@ -4,10 +4,20 @@ import random
 import timeit
 
 import yaml
+import importlib
 
 from maro.simulator import Env
-from maro.simulator.scenarios.vm_scheduling import AllocateAction, DecisionPayload, PostponeAction
 from maro.utils import convert_dottable
+
+from agent import VMSchedulingAgent
+
+
+def import_class(name):
+    components = name.rsplit('.', 1)
+    mod = importlib.import_module(components[0])
+    mod = getattr(mod, components[1])
+    return mod
+
 
 CONFIG_PATH = os.path.join(os.path.split(os.path.realpath(__file__))[0], "config.yml")
 with io.open(CONFIG_PATH, "r") as in_file:
@@ -30,33 +40,24 @@ if __name__ == "__main__":
         env.set_seed(config.env.seed)
         random.seed(config.env.seed)
 
-    metrics: object = None
-    decision_event: DecisionPayload = None
-    is_done: bool = False
-    action: AllocateAction = None
     metrics, decision_event, is_done = env.step(None)
+
+    algorithm_class = import_class(config.algorithm.type)
+    if config.algorithm.args is None:
+        algorithm = algorithm_class(env=env)
+    else:
+        algorithm = algorithm_class(env=env, **config.algorithm.args)
+
+    agent = VMSchedulingAgent(algorithm)
+
     while not is_done:
-        valid_pm_num: int = len(decision_event.valid_pms)
-        if valid_pm_num <= 0:
-            # No valid PM now, postpone.
-            action: PostponeAction = PostponeAction(
-                vm_id=decision_event.vm_id,
-                postpone_step=1
-            )
-        else:
-            # Randomly choose an available PM.
-            random_idx = random.randint(0, valid_pm_num - 1)
-            pm_id = decision_event.valid_pms[random_idx]
-            action: AllocateAction = AllocateAction(
-                vm_id=decision_event.vm_id,
-                pm_id=pm_id
-            )
+        action = agent.choose_action(decision_event, env)
         metrics, decision_event, is_done = env.step(action)
 
     end_time = timeit.default_timer()
     print(
-        f"[Random] Topology: {config.env.topology}. Total ticks: {config.env.durations}.",
-        f" Start tick: {config.env.start_tick}"
+        f"[{config.algorithm.type.split('.')[1]}] Topology: {config.env.topology}. Total ticks: {config.env.durations}."
+        f" Start tick: {config.env.start_tick}."
     )
     print(f"[Timer] {end_time - start_time:.2f} seconds to finish the simulation.")
     print(metrics)

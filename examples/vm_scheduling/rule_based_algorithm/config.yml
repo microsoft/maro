@@ -1,0 +1,29 @@
+env:
+  scenario: vm_scheduling
+  topology: azure.2019.10k
+  start_tick: 0
+  durations: 8638
+  resolution: 1
+  seed: 666
+
+algorithm:
+  # Random
+  # type: random_pick.RandomPick
+  # args:
+
+  # FirstFit
+  # type: first_fit.FirstFit
+  # args:
+
+  # BestFit
+  # type: best_fit.BestFit
+  # args:
+    # metric_type: "remaining_cpu_cores"
+
+  # Round Robin
+  type: round_robin.RoundRobin
+  args:
+
+  # Bin packing
+  # type: bin_packing.BinPacking
+  # args:
