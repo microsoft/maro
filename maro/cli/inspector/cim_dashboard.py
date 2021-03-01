@@ -3,12 +3,12 @@
 
 import math
 import os
-from typing import List
 
 import altair as alt
 import numpy as np
 import pandas as pd
 import streamlit as st
+from typing import List
 
 import maro.cli.inspector.dashboard_helper as helper
 
