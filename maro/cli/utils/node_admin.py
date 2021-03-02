@@ -6,6 +6,7 @@ import os
 MONITOR_PATH = os.path.expanduser("~/.maro/web_terminal/monitor.py")
 TERMINAL_PATH = os.path.expanduser("~/.maro/web_terminal/terminal-srv.py")
 
+
 def start_admin(*args, **kwargs):
     os.system(
         f"streamlit run {MONITOR_PATH} & "
