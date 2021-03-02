@@ -30,7 +30,7 @@ It contains following keys:
 
 total_vm_requests (int): Total VM requests.
 total_incomes (float): Accumulative total incomes at current tick
-                       (if there is overload phenomenon happened, return the money for each failed VM).
+                        (if there is overload phenomenon happened, return the money for each failed VM).
 energy_consumption_cost (float): Accumulative energy consumption cost at current tick.
 total_profit (float): Accumulative total profit at current tick (total_incomes-energy_consumption_cost).
 total_energy_consumption (float): Accumulative total PM energy consumption.
