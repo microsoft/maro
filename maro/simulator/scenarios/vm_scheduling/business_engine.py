@@ -29,7 +29,8 @@ VM scheduling metrics used provide statistics information until now.
 It contains following keys:
 
 total_vm_requests (int): Total VM requests.
-total_incomes (float): Accumulative total incomes at current tick (if there is overload phenomenon happened, return the money for each failed VM).
+total_incomes (float): Accumulative total incomes at current tick
+                       (if there is overload phenomenon happened, return the money for each failed VM).
 energy_consumption_cost (float): Accumulative energy consumption cost at current tick.
 total_profit (float): Accumulative total profit at current tick (total_incomes-energy_consumption_cost).
 total_energy_consumption (float): Accumulative total PM energy consumption.
@@ -904,7 +905,8 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
     def _get_current_energy_consumption_cost(self):
         for pm in self._machines:
-            self._energy_consumption_cost += pm.energy_consumption * self._unit_energy_price / 1000.0 * self._power_usage_efficiency
+            pm_cost = pm.energy_consumption * (self._unit_energy_price / 1000.0) * self._power_usage_efficiency
+            self._energy_consumption_cost += pm_cost
 
     def _get_current_profit(self):
         self._total_profit = self._total_incomes - self._energy_consumption_cost
