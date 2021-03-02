@@ -77,9 +77,7 @@ class DecisionPayload:
         vm_id: int,
         vm_cpu_cores_requirement: int,
         vm_memory_requirement: int,
-        remaining_buffer_time: int,
-        vm_sub_id: int,
-        vm_category: int
+        remaining_buffer_time: int
     ):
         self.frame_index = frame_index
         self.valid_pms = valid_pms
@@ -87,8 +85,6 @@ class DecisionPayload:
         self.vm_cpu_cores_requirement = vm_cpu_cores_requirement
         self.vm_memory_requirement = vm_memory_requirement
         self.remaining_buffer_time = remaining_buffer_time
-        self.vm_sub_id = vm_sub_id
-        self.vm_category = vm_category
 
 
 class Latency:
