@@ -27,6 +27,10 @@ MAX_UTILIZATION_RATE: 1
 PRICE_PARAMETERS_CPU_CORES: 0.0698
 # Price parameter of CPU cores
 PRICE_PARAMETERS_MEMORY: 0.0078
+# Unit price of Energy
+UNIT_ENERGY_PRICE: 0.07
+# POWER USAGE EFFICIENCY, PUE=(Total Facility Power)/(IT Equipment Power)
+POWER_USAGE_EFFICIENCY: 1.7
 
 components:
   pm:
