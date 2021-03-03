@@ -121,10 +121,11 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._max_utilization_rate: float = self._config.MAX_UTILIZATION_RATE
 
         # Price parameters
-        self._price_parameters_cpu_cores: float = self._config.PRICE_PARAMETERS_CPU_CORES
-        self._price_parameters_memory: float = self._config.PRICE_PARAMETERS_MEMORY
+        self._price_per_cpu_cores: float = self._config.PRICE_PER_CPU_CORES
+        self._price_per_memory: float = self._config.PRICE_PER_MEMORY
         self._unit_energy_price: float = self._config.UNIT_ENERGY_PRICE
         self._power_usage_efficiency: float = self._config.POWER_USAGE_EFFICIENCY
+        self._tick_to_hour: float = self._config.TICK_TO_HOUR
 
         # Load PM related configs.
         self._region_amount: int = sum(
@@ -393,7 +394,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                     cluster_id=self._cluster_id,
                     rack_id=self._rack_id,
                     oversubscribable=PmState.EMPTY,
-                    energy_consumption=self._pm_config_dict[pm_type]["power_curve"]["idle_power"] / 12.0
+                    energy_consumption=self._pm_config_dict[pm_type]["power_curve"]["idle_power"] * self._tick_to_hour
                 )
 
                 pm_amount -= 1
@@ -456,12 +457,6 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         # All vm's cpu utilization at current tick.
         cur_tick_cpu_utilization = self._cpu_reader.items(tick=tick)
 
-        # Compute the current incomes.
-        self._get_current_incomes()
-        # Compute the energy consumption cost
-        self._get_current_energy_consumption_cost()
-        # Compute the profit
-        self._get_current_profit()
         # Process finished VMs.
         self._process_finished_vm()
         # Update all live VMs CPU utilization.
@@ -472,6 +467,8 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
         for vm in self._vm_item_picker.items(tick):
             # TODO: Batch request support.
+            unit_price = self._get_unit_price(vm.vm_cpu_cores, vm.vm_memory)
+
             vm_info = VirtualMachine(
                 id=vm.vm_id,
                 cpu_cores_requirement=vm.vm_cpu_cores,
@@ -479,17 +476,12 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 lifetime=vm.vm_lifetime,
                 sub_id=vm.sub_id,
                 deployment_id=vm.deploy_id,
-                category=VmCategory(vm.vm_category)
+                category=VmCategory(vm.vm_category),
+                unit_price=unit_price
             )
 
             if vm.vm_id not in cur_tick_cpu_utilization:
                 raise Exception(f"The VM id: '{vm.vm_id}' does not exist at this tick.")
-
-            unit_price = self._get_unit_price(vm_info.cpu_cores_requirement, vm_info.memory_requirement)
-            if vm_info.unit_price == 0.0 and vm_info.total_price == 0.0:
-                vm_info.set_unit_price(unit_price)
-                vm_info.set_total_price()
-            vm_info.set_current_price(tick)
 
             vm_info.add_utilization(cpu_utilization=cur_tick_cpu_utilization[vm.vm_id])
             vm_req_payload: VmRequestPayload = VmRequestPayload(
@@ -505,6 +497,13 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             self._total_vm_requests += 1
 
     def post_step(self, tick: int):
+        # Update the incomes.
+        self._update_incomes()
+        # Update the energy consumption cost
+        self._update_energy_consumption_cost()
+        # Update the profit
+        self._update_profit()
+
         # Update energy to the environment metrices.
         total_energy: float = 0.0
         for pm in self._machines:
@@ -664,7 +663,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
         if self._kill_all_vms_if_overload:
             for vm_id in vm_ids:
-                self._total_incomes -= self._live_vms[vm_id].current_price
+                self._total_incomes -= self._live_vms[vm_id].get_income_till_now(tick)
                 self._live_vms.pop(vm_id)
 
             pm.deallocate_vms(vm_ids=vm_ids)
@@ -684,7 +683,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         cpu_utilization /= 100
         cpu_utilization = min(1, cpu_utilization)
 
-        return (idle_power + (busy_power - idle_power) * (2 * cpu_utilization - pow(cpu_utilization, power))) / 12.0
+        return (idle_power + (busy_power - idle_power) * (2 * cpu_utilization - pow(cpu_utilization, power))) * self._tick_to_hour
 
     def _postpone_vm_request(self, postpone_type: PostponeType, vm_id: int, remaining_buffer_time: int):
         """Postpone VM request."""
@@ -899,20 +898,20 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                     remaining_buffer_time=remaining_buffer_time - postpone_step * self._delay_duration
                 )
 
-    def _get_current_incomes(self):
+    def _update_incomes(self):
         for vm in self._live_vms.values():
             self._total_incomes += vm.unit_price
 
-    def _get_current_energy_consumption_cost(self):
+    def _update_energy_consumption_cost(self):
         for pm in self._machines:
             pm_cost = pm.energy_consumption * (self._unit_energy_price / 1000.0) * self._power_usage_efficiency
             self._energy_consumption_cost += pm_cost
 
-    def _get_current_profit(self):
+    def _update_profit(self):
         self._total_profit = self._total_incomes - self._energy_consumption_cost
 
     def _get_unit_price(self, cpu_cores, memory):
-        return (self._price_parameters_cpu_cores * cpu_cores + self._price_parameters_memory * memory) / 12.0
+        return (self._price_per_cpu_cores * cpu_cores + self._price_per_memory * memory) * self._tick_to_hour
 
     def _download_processed_data(self):
         """Build processed data."""

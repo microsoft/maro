@@ -29,7 +29,8 @@ class VirtualMachine:
         lifetime: int,
         sub_id: int,
         deployment_id: int,
-        category: VmCategory
+        category: VmCategory,
+        unit_price: float
     ):
         # VM Requirement parameters.
         self.id: int = id
@@ -44,9 +45,7 @@ class VirtualMachine:
         self.category: VmCategory = category
 
         # The unit price of the VM.
-        self.unit_price: float = 0.0
-        # The total price of the VM.
-        self.total_price: float = 0.0
+        self.unit_price: float = unit_price
         # The current price of the VM.
         self.current_price: float = 0.0
 
@@ -58,14 +57,9 @@ class VirtualMachine:
         self.creation_tick: int = -1
         self.deletion_tick: int = -1
 
-    def set_unit_price(self, unit_price):
-        self.unit_price = unit_price
-
-    def set_total_price(self):
-        self.total_price = self.unit_price * self.lifetime
-
-    def set_current_price(self, cur_tick):
-        self.current_price = self.unit_price * (cur_tick - self.creation_tick + 1)
+    @staticmethod
+    def get_income_till_now(cur_tick: int):
+        return self.unit_price * (cur_tick - self.creation_tick + 1)
 
     @property
     def cpu_utilization(self) -> float:
