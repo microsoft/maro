@@ -2,10 +2,10 @@
 # Licensed under the MIT license.
 
 import json
+from multiprocessing import Queue
+
 import numpy
 import torch
-
-from multiprocessing import Queue
 
 from .common import MessageType
 from .sender import StreamitSender

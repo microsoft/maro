@@ -3,10 +3,9 @@
 
 
 import os
-import numpy as np
-
 from math import ceil, floor
 
+import numpy as np
 from yaml import safe_load
 
 from maro.backends.frame import FrameBase, SnapshotList

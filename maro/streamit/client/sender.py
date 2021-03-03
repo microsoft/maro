@@ -1,10 +1,9 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import os
 import asyncio
+import os
 import warnings
-
 from datetime import datetime
 from multiprocessing import Process, Queue
 
@@ -12,9 +11,8 @@ from multiprocessing import Process, Queue
 # or it will try to start the sender again.
 os.environ["MARO_STREAMIT_ENABLED"] = "false"
 
-from .metric import Metric
 from .common import MessageType
-
+from .metric import Metric
 
 MAX_DATA_CACHE_NUMBER = 5000
 NEXT_LINE = bytes("\n", "utf-8")

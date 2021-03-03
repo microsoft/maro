@@ -22,6 +22,3 @@ steps:
 
 
 """
-
-
-import docker

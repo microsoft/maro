@@ -2,9 +2,9 @@
 # Licensed under the MIT license.
 
 import json
-import numpy as np
-
 from datetime import datetime
+
+import numpy as np
 
 
 def escape(value: str, escape_quotes=False):
