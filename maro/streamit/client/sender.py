@@ -7,12 +7,13 @@ import warnings
 from datetime import datetime
 from multiprocessing import Process, Queue
 
+from .common import MessageType
+from .metric import Metric
+
 # We disable streamit here as we are in another process now,
 # or it will try to start the sender again.
 os.environ["MARO_STREAMIT_ENABLED"] = "false"
 
-from .common import MessageType
-from .metric import Metric
 
 MAX_DATA_CACHE_NUMBER = 5000
 NEXT_LINE = bytes("\n", "utf-8")

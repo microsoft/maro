@@ -3,13 +3,14 @@
 
 import json
 
+from flask import Flask, jsonify, request
+
 from data_process.request.request_attention import get_attention_data
 from data_process.request.request_decision import get_acc_decision_data, get_decision_data
 from data_process.request.request_exp_info import get_experiment_info
 from data_process.request.request_order import get_acc_order_data, get_order_data
 from data_process.request.request_port import get_acc_port_data, get_port_data
 from data_process.request.request_vessel import get_acc_vessel_data, get_vessel_data
-from flask import Flask, jsonify, request
 from flask_cors import CORS
 
 app_backend = Flask(__name__)
@@ -128,9 +129,6 @@ def get_acc_order_info() -> json:
     snapshot_start_number = data["snapshot_start_number"]
     snapshot_end_number = data["snapshot_end_number"]
     cur_epoch_number = data["epoch_number"]
-    # snapshot_start_number = 0
-    # snapshot_end_number = 50
-    # cur_epoch_number = 0
     order_data = get_acc_order_data(cur_experiment_name, cur_epoch_number, snapshot_start_number, snapshot_end_number)
     return jsonify(order_data)
 
@@ -209,6 +207,6 @@ def get_acc_attrs():
 
 # Use Only For Local Debug
 # ************************************
-# if __name__ == '__main__':
-#     app_backend.run(debug=True, port=5000)
+if __name__ == '__main__':
+    app_backend.run(debug=True, port=5000)
 # ************************************

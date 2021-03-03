@@ -10,7 +10,7 @@ from .request_params import request_column, request_settings
 from .utils import get_data_in_format, get_input_range
 
 
-def get_order_data(experiment_name: str, episode: str, tick: str) -> pd.Dataframe:
+def get_order_data(experiment_name: str, episode: str, tick: str) -> pd.DataFrame:
     """Get the order data within one tick.
 
     Args:

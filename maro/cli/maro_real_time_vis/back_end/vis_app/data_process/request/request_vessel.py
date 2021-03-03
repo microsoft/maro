@@ -1,7 +1,10 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import inspect
 import json
+import os
+import subprocess
 
 import pandas as pd
 import requests
@@ -25,7 +28,7 @@ def get_vessel_data(experiment_name: str, episode: str, tick: str) -> json:
     """
     params = {
         "query": f"select {request_column.vessel_header.value} from {experiment_name}.vessel_details"
-        f"where episode='{episode}' and tick='{tick}'",
+        f" where episode='{episode}' and tick='{tick}'",
         "count": "true"
     }
     db_vessel_data = requests.get(
@@ -75,7 +78,10 @@ def process_vessel_data(db_vessel_data: json, start_tick: str) -> json:
             json: Jsonified formatted vessel value.
 
     """
-    with open(r"../nginx/static/config.json", "r")as mapping_file:
+    pwd = os.getcwd()
+    exec_path = os.path.abspath(os.path.dirname(pwd)+os.path.sep)
+    config_file_path = f"{exec_path}\\maro\\maro\\cli\\maro_real_time_vis\\back_end\\nginx\\static\\config.json"
+    with open(config_file_path, "r")as mapping_file:
         cim_information = json.load(mapping_file)
         vessel_list = list(cim_information["vessels"].keys())
         vessel_info = cim_information["vessels"]
@@ -110,13 +116,13 @@ def process_vessel_data(db_vessel_data: json, start_tick: str) -> json:
 
 
 def get_single_snapshot_vessel_data(
-        original_vessel_data: pd.Dataframe, vessel_list: list, vessel_info: json,
+        original_vessel_data: pd.DataFrame, vessel_list: list, vessel_info: json,
         route_list: list, cim_information: json
 ):
     """Generate compulsory data and change vessel data format.
 
     Args:
-        original_vessel_data(Dataframe): Vessel data without generated columns.
+        original_vessel_data(DataFrame): Vessel data without generated columns.
         vessel_list(list): List of vessel of current topology.
         vessel_info(json): Vessel detailed information.
         route_list(list): List of route of current topology.

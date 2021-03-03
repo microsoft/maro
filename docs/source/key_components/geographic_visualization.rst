@@ -20,28 +20,49 @@ How to Use?
 -----------
 
 Env-geographic has 3 parts: front-end, back-end and experiment database. To start this tool,
-user need to start the docker containers, then start an experiment. The experimental data would
+user need to start the database and service in order. The experimental data would
 send to database automatically.
 
-Start service
+Start database
 ~~~~~~~~~~~~~
-In order to start the env-geographic service, user need to start 4 docker
-containers which are maro_vis_back_end_server, maro_vis_back_end_service,
-maro_vis_front_end, questdb/questdbwith the following command:
+Firstly, user need to start the local database with command:
 
 .. code-block:: sh
 
-    maro inspector geo
+    maro inspector geo --start database
 
 ----
 
 After the command is executed successfully, user
 could view the front_end page through localhost:8080
 and local data with localhost:9000.
+User could view all experiment information by SQL statement:
+
+.. code-block:: SQL
+
+    SELECT * FROM maro.experiments
+
+----
+Data is stored locally at the folder maro/maro/streamit/server/data.
 
 
-Send experimental data
-~~~~~~~~~~~~~~~~~~~~~~
+Specify experiment name
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To view the visualization of experimental data, user need to
+specify the name of experiment. User could choose an existing
+experiment or start an experiment either.
+
+Choose an existing experiment
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+User could select a name from local database.
+
+.. image:: ../images/visualization/geographic/database_exp.png
+   :alt: database_exp
+
+Start an experiment and send data
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Currently, users need to manually start the experiment to obtain
 the data required by the service.
@@ -55,7 +76,7 @@ selecting a topology, user must select a topology with specific geographic
 information. The experimental data obtained by using topology files without
 geographic information cannot be used in the Env-geographic tool.
 
-.. code-block:: sh
+.. code-block:: python
 
     os.environ["MARO_STREAMIT_ENABLED"] = "true"
 
@@ -64,6 +85,19 @@ geographic information cannot be used in the Env-geographic tool.
     # dump data to the folder which run the command.
     env = Env(scenario="cim", topology="global.22",
           start_tick=0, durations=100)
+
+----
+
+View the file maro/examples/hello_world/cim/hello.py to get complete reference.
+
+After starting the experiment, make sure to query its name in local database.
+
+To start the front-end and back-end service, user need to specify the experiment name
+as following command:
+
+.. code-block:: sh
+
+    maro inspector geo --start service --experiment_name experiment_name.1614768800.6074605
 
 ----
 

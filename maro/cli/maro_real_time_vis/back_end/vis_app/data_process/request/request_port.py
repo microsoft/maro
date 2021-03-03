@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 
 import json
+import os
 
 import requests
 
@@ -71,10 +72,13 @@ def process_port_data(db_port_data: json) -> json:
             json: Jsonfied port value of current tick.
 
     """
-    with open(r"../nginx/static/port_list.json", "r", encoding="utf8")as port_list_file:
+    pwd = os.getcwd()
+    exec_path = os.path.abspath(os.path.dirname(pwd)+os.path.sep)
+    config_file_path = f"{exec_path}\\maro\\maro\\cli\\maro_real_time_vis\\back_end\\nginx\\static\\"
+    with open(f"{config_file_path}port_list.json", "r", encoding="utf8")as port_list_file:
         port_list = json.load(port_list_file)
         port_list = port_list[0]["port_list"]
-    with open(r"../nginx/static/port.json", "r", encoding="utf8")as port_file:
+    with open(f"{config_file_path}port.json", "r", encoding="utf8")as port_file:
         port_json_data = json.load(port_file)
 
     original_port_data = get_data_in_format(db_port_data)

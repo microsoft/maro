@@ -2,6 +2,7 @@ version: "3.3"
 services:
   database:
     image: "questdb/questdb"
+    container_name: "maro_vis_questdb"
     ports:
       - "9000:9000" # REST API, web console
       - "8812:8812" # Postgres
@@ -29,3 +30,4 @@ services:
   #     - "9988:9988"
   #   volumes: 
   #     - ./web:/maro_vis
+

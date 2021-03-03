@@ -1011,6 +1011,20 @@ def load_parser_inspector(prev_parser: ArgumentParser, global_parser: ArgumentPa
         parents=[global_parser]
     )
 
+    geo_cmd_parser.add_argument(
+        "--start",
+        type=str,
+        help="Kind of container expected to start, Database or Service.",
+        required=True
+    )
+
+    geo_cmd_parser.add_argument(
+        "--experiment_name",
+        type=str,
+        required=False,
+        help="Name of experiment expected to be displayed."
+    )
+
     geo_cmd_parser.set_defaults(func=start_geo_vis)
 
 
