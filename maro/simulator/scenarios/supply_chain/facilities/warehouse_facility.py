@@ -1,23 +1,10 @@
 
 from typing import List
+from .base import FacilityBase
 
 
-class WarehouseFacility:
-    world = None
-
-    storage = None
-    distribution = None
-    transports = None
-
-    configs: dict = None
-
-    id: int = None
-
-    def __init__(self):
-        pass
-
+class WarehouseFacility(FacilityBase):
     def step(self, tick: int):
-
         self.storage.step(tick)
         self.distribution.step(tick)
 
