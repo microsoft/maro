@@ -1049,6 +1049,15 @@ def load_parser_admin(prev_parser: ArgumentParser, global_parser: ArgumentParser
 
     stop_parser.set_defaults(func=stop_admin)
 
+    # Requirements
+    from maro.cli.utils.node_admin import requirements_admin
+    req_parser = sub_parsers.add_parser(
+        "req",
+        help="Install requirements for MARO admin web server.",
+        parents=[global_parser])
+
+    req_parser.set_defaults(func=requirements_admin)
+
 
 def _help_func(parser):
     def wrapper(*args, **kwargs):
