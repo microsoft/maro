@@ -6,10 +6,10 @@ from .datamodels import (
     DistributionDataModel
 )
 
-from .logics import (
-    StorageLogic,
-    SimpleTransportLogic,
-    DistributionLogic
+from .unit import (
+    StorageUnit,
+    TransportUnit,
+    DistributionUnit
 )
 
 from .facilities import (
@@ -33,15 +33,15 @@ datamodel_mapping = {
 }
 
 
-logic_mapping = {
-    "StorageLogic": {
-        "class": StorageLogic
+unit_mapping = {
+    "StorageUnit": {
+        "class": StorageUnit
     },
-    "TransportLogic": {
-        "class": SimpleTransportLogic
+    "TransportUnit": {
+        "class": TransportUnit
     },
-    "DistributionLogic": {
-        "class": DistributionLogic
+    "DistributionUnit": {
+        "class": DistributionUnit
     }
 }
 

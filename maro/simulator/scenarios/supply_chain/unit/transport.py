@@ -1,8 +1,8 @@
 
-from .base import LogicBase
+from .base import UnitBase
 
 
-class SimpleTransportLogic(LogicBase):
+class TransportUnit(UnitBase):
     def __init__(self):
         super().__init__()
 

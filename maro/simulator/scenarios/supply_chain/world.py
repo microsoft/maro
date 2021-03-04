@@ -3,7 +3,7 @@ from collections import defaultdict, namedtuple
 
 from .frame_builder import build_frame
 
-from .configs import logic_mapping, datamodel_mapping
+from .configs import unit_mapping, datamodel_mapping
 
 
 Sku = namedtuple("Sku", ("name", "id"))
@@ -18,10 +18,10 @@ class World:
         self._datamodel_collection = defaultdict(int)
         self._sku_collection = {}
 
-    def build_logic(self, name: str):
-        assert name in logic_mapping
+    def build_unit(self, name: str):
+        assert name in unit_mapping
 
-        logic = logic_mapping[name]["class"]()
+        logic = unit_mapping[name]["class"]()
 
         logic.id = self._id_counter
 

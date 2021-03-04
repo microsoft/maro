@@ -1,12 +1,12 @@
 
 
-from .base import LogicBase
+from .base import UnitBase
 
 
 from typing import Dict
 
 
-class StorageLogic(LogicBase):
+class StorageUnit(UnitBase):
     def __init__(self):
         super().__init__()
 

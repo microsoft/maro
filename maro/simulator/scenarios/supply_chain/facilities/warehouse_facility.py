@@ -28,7 +28,7 @@ class WarehouseFacility:
         self.configs = configs
 
         # TODO: from config later
-        self.storage = self.world.build_logic("StorageLogic")
+        self.storage = self.world.build_unit("StorageUnit")
         self.storage.data_class = "StorageDataModel"
 
         self.storage.world = self.world
@@ -39,7 +39,7 @@ class WarehouseFacility:
         self.transports = []
 
         for facility_conf in configs["transports"]:
-            transport = self.world.build_logic("TransportLogic")
+            transport = self.world.build_unit("TransportUnit")
             transport.data_class = "TransportDataModel"
 
             transport.world = self.world
@@ -49,7 +49,7 @@ class WarehouseFacility:
             self.transports.append(transport)
 
         # construct distribution
-        self.distribution = self.world.build_logic("DistributionLogic")
+        self.distribution = self.world.build_unit("DistributionUnit")
         self.distribution.data_class = "DistributionDataModel"
 
         self.distribution.world = self.world

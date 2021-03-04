@@ -2,7 +2,7 @@
 from abc import ABC, abstractmethod
 
 
-class LogicBase(ABC):
+class UnitBase(ABC):
     # configured class name
     data_class: str = None
 

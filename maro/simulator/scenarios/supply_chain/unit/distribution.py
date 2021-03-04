@@ -1,7 +1,7 @@
 
 from collections import deque, defaultdict
 
-from .base import LogicBase
+from .base import UnitBase
 
 from typing import Dict
 
@@ -13,7 +13,7 @@ class Order:
     vlt = None
 
 
-class DistributionLogic(LogicBase):
+class DistributionUnit(UnitBase):
     def __init__(self):
         super().__init__()
 
