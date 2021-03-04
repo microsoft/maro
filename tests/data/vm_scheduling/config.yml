@@ -4,10 +4,10 @@ BUFFER_TIME_BUDGET: 0
 DELAY_DURATION: 1
 
 # Path of the vm table data.
-VM_TABLE: "tests/data/vm_scheduling/vmtable_test.bin"
+VM_TABLE: "~/.maro/data/vm_scheduling/.build/azure.2019.10k/vmtable.bin"
 
 # Path of the cpu readings file.
-CPU_READINGS: "tests/data/vm_scheduling/vm_cpu_readings-file-1-of-test.bin"
+CPU_READINGS: "~/.maro/data/vm_scheduling/.build/azure.2019.10k/vm_cpu_readings-file-1-of-195.bin"
 
 PROCESSED_DATA_URL: "https://marodatasource.blob.core.windows.net/vm-scheduling-azure/azure.2019.10k/azure.2019.10k.tar.gz"
 
@@ -17,20 +17,24 @@ KILL_ALL_VMS_IF_OVERLOAD: True
 
 # Oversubscription configuration.
 # Max CPU oversubscription rate.
-MAX_CPU_OVERSUBSCRIPTION_RATE: 1.15
+MAX_CPU_OVERSUBSCRIPTION_RATE: 1
 # Max memory oversubscription rate.
 MAX_MEM_OVERSUBSCRIPTION_RATE: 1
 # Max CPU utilization rate.
 MAX_UTILIZATION_RATE: 1
 
+# The parameters refer to https://www.azure.cn/pricing/details/virtual-machines/index.html
 # Price parameter of CPU cores
-PRICE_PARAMETERS_CPU_CORES: 0.0698
+PRICE_PER_CPU_CORES: 0.0698
 # Price parameter of CPU cores
-PRICE_PARAMETERS_MEMORY: 0.0078
+PRICE_PER_MEMORY: 0.0078
+# The parameters refer to https://www.microsoft.com/en-us/research/wp-content/uploads/2009/01/p68-v39n1o-greenberg.pdf
 # Unit price of Energy
 UNIT_ENERGY_PRICE: 0.07
 # POWER USAGE EFFICIENCY, PUE=(Total Facility Power)/(IT Equipment Power)
 POWER_USAGE_EFFICIENCY: 1.7
+# Transfer tick (5 minute) to hour
+TICK_TO_HOUR: 0.083
 
 components:
   pm:
@@ -39,39 +43,19 @@ components:
       memory: 128
       power_curve:
         calibration_parameter: 1.4
-        busy_power: 10
-        idle_power: 1
-    - pm_type: 1
-      cpu: 16
-      memory: 112
-      power_curve:
-        calibration_parameter: 1.4
-        busy_power: 10
-        idle_power: 1
+        # The parameters refer to https://link.springer.com/article/10.1007%2Fs10489-020-01633-3
+        busy_power: 185
+        idle_power: 120
   rack:
     - type: 'a'
       pm:
         - pm_type: 0
           pm_amount: 10
-        - pm_type: 1
-          pm_amount: 10
-    - type: 'b'
-      pm:
-        - pm_type: 1
-          pm_amount: 10
   cluster:
     - type: 'JP1'
       rack:
         - rack_type: 'a'
-          rack_amount: 5
-        - rack_type: 'b'
-          rack_amount: 5
-    - type: 'FN1'
-      rack:
-        - rack_type: 'a'
-          rack_amount: 3
-        - rack_type: 'b'
-          rack_amount: 2
+          rack_amount: 10
 
 architecture:
   region:
@@ -82,16 +66,4 @@ architecture:
             - name: 'Japan'
               cluster:
                 - type: 'JP1'
-                  cluster_amount: 2
-            - name: 'Korea'
-              cluster:
-                - type: 'JP1'
-                  cluster_amount: 5
-    - name: 'EU'
-      zone:
-        - name: 'eu-north1'
-          data_center:
-            - name: 'Finland'
-              cluster:
-                - type: 'FN1'
                   cluster_amount: 1

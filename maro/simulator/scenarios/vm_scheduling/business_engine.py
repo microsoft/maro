@@ -512,7 +512,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             total_energy += pm.energy_consumption
             # Overload PMs.
             if pm.cpu_utilization > 100:
-                self._overload(pm.id)
+                self._overload(pm.id, tick)
         self._total_energy_consumption += total_energy
 
         if (tick + 1) % self._snapshot_resolution == 0:
@@ -650,7 +650,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 cpu_utilization=pm.cpu_utilization
             )
 
-    def _overload(self, pm_id: int):
+    def _overload(self, pm_id: int, tick: int):
         """Overload logic.
 
         Currently only support killing all VMs on the overload PM and note them as failed allocations.
