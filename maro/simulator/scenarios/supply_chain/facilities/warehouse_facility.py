@@ -57,6 +57,7 @@ class WarehouseFacility:
         self.distribution.data_index = self.world.register_datamodel(self.distribution.data_class)
 
     def initialize(self):
+        # called after build, here we have the data model, we can initialize them.
         self.storage.initialize(self.configs.get("storage", {}))
         self.distribution.initialize(self.configs.get("distribution", {}))
 
@@ -65,3 +66,25 @@ class WarehouseFacility:
         for index, transport in enumerate(self.transports):
             transport.initialize(transports_conf[index])
 
+        self._init_by_sku(self.configs.get("skus", None))
+
+    def reset(self):
+        self.storage.reset()
+        self.distribution.reset()
+
+        for vehicle in self.transports:
+            vehicle.reset()
+
+        self._init_by_sku(self.configs.get("skus", None))
+
+    def _init_by_sku(self, sku_info: dict):
+        if sku_info is not None:
+            for sku_name, sku_config in sku_info.items():
+                sku = self.world.get_sku(sku_name)
+
+                self.storage.data.product_list.append(sku.id)
+                self.storage.data.product_number.append(sku_config["init_stock"])
+
+                self.distribution.data.product_list.append(sku.id)
+                self.distribution.data.checkin_price.append(0)
+                self.distribution.data.delay_order_penalty.append(0)

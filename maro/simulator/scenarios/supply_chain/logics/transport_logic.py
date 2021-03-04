@@ -19,6 +19,8 @@ class SimpleTransportLogic(LogicBase):
         pass
 
     def reset(self):
+        super().reset()
+
         self.destination = None
         self.max_patient = None
 

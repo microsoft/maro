@@ -40,9 +40,8 @@ class LogicBase(ABC):
     def get_metrics(self):
         pass
 
-    @abstractmethod
     def reset(self):
-        pass
+        self.data.reset()
 
     def set_action(self, action):
         pass

@@ -46,6 +46,21 @@ logic_mapping = {
 }
 
 test_world_config = {
+    # skus in this world, used to generate id
+    "skus": [
+        {
+            "id": 1,
+            "name": "sku1"
+        },
+        {
+            "id": 2,
+            "name": "sku2"
+        },
+        {
+            "id": 3,
+            "name": "sku3"
+        }
+    ],
     "facilities": {
         "warehouse1": {
             "class": WarehouseFacility,

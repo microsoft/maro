@@ -36,6 +36,11 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
             facility.step(tick)
 
     def post_step(self, tick: int):
+        # take snapshot
+        if (tick + 1) % self._snapshot_resolution == 0:
+            self._frame.take_snapshot(self.frame_index(tick))
+
+            # TODO: anything need to reset per tick?
 
         return tick+1 == self._max_tick
 
@@ -44,6 +49,8 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         self._frame.snapshots.reset()
 
         # TODO: reset frame nodes.
+        for _, facility in self.world.facilities.items():
+            facility.reset()
 
     def _register_events(self):
         self._event_buffer.register_event_handler(MaroEvents.TAKE_ACTION, self._on_action_recieved)
@@ -55,8 +62,7 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
 
         self.world = World()
 
-        self.world.build(test_world_config)
-
+        self.world.build(test_world_config, self.calc_max_snapshots())
 
     def _on_action_recieved(self, event):
         action = event.payload

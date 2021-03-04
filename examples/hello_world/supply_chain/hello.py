@@ -19,4 +19,9 @@ for ep in range(1):
     while not is_done:
         metrics, decision_event, is_done = env.step(None)
 
+    print(env.snapshot_list["storage"][0:0:"product_list"])
+
     env.reset()
+
+
+
