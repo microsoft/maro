@@ -4,7 +4,7 @@ from .base import LogicBase
 
 class SimpleTransportLogic(LogicBase):
     def __init__(self):
-        self.config: dict = None
+        super().__init__()
 
         # max patient of current one transport
         self.max_patient = None
@@ -12,8 +12,8 @@ class SimpleTransportLogic(LogicBase):
         # current products' destination
         self.destination = None
 
-    def initialize(self, config):
-        self.config = config
+    def initialize(self, configs: dict):
+        super().initialize(configs)
 
     def get_metrics(self):
         pass
@@ -41,8 +41,8 @@ class SimpleTransportLogic(LogicBase):
         if self.path is None:
             raise Exception(f"Destination {destination} is unreachable")
 
-        # Steps to destinition.
-        self.steps = len(path) // vlt
+        # Steps to destination.
+        self.data.steps = len(path) // vlt
 
         # We are waiting for product loading.
         self.data.location = 0
@@ -89,9 +89,9 @@ class SimpleTransportLogic(LogicBase):
                         self.data.location = 0
                         self.data.destination = 0
 
-            # Moving to destinition
+            # Moving to destination
             if self.data.payload > 0:
-                # Closer to destinition until 0.
+                # Closer to destination until 0.
                 self.data.location += 1
                 self.data.steps -= 1
         else:

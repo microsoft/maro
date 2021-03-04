@@ -3,20 +3,34 @@ from abc import ABC, abstractmethod
 
 
 class LogicBase(ABC):
-    # Entity of current logic.
-    entity = None
+    # configured class name
+    data_class: str = None
 
-    # Data model instance of current entity.
-    data = None
+    # index of the data model index
+    data_index: int = None
 
     # Current world.
     world = None
 
     facility = None
 
-    @abstractmethod
-    def initialize(self, config):
-        pass
+    configs: dict = None
+
+    id: int = None
+
+    def __init__(self):
+        self._data = None
+
+    @property
+    def data(self):
+        if self._data is None:
+            self._data = self.world.get_datamodel(self.data_class, self.data_index)
+
+        return self._data
+
+    def initialize(self, configs: dict):
+        self.configs = configs
+        self.data.initialize(configs.get("data", {}))
 
     @abstractmethod
     def step(self, tick: int):
@@ -28,4 +42,7 @@ class LogicBase(ABC):
 
     @abstractmethod
     def reset(self):
+        pass
+
+    def set_action(self, action):
         pass

@@ -8,12 +8,13 @@ from typing import Dict
 
 class StorageLogic(LogicBase):
     def __init__(self):
-        self.config: dict = None
+        super().__init__()
+
         # used to map from product id to slot index
         self.product_index_mapping: Dict[int, int] = {}
 
-    def initialize(self, config):
-        self.config = config
+    def initialize(self, configs):
+        super().initialize(configs)
 
         for index, product_id in self.data.product_list:
             self.product_index_mapping[product_id] = index
@@ -25,6 +26,9 @@ class StorageLogic(LogicBase):
         pass
 
     def reset(self):
+        pass
+
+    def set_action(self, action):
         pass
 
     def try_add_units(self, product_quantities: Dict[int, int], all_or_nothing=True) -> dict:

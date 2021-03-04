@@ -1,21 +1,17 @@
 
 from typing import List
 
-from ..units import (
-    StorageUnit,
-    TransportUnit,
-    DistributionUnit
-)
-
 
 class WarehouseFacility:
-    world: object
+    world = None
 
-    storage: StorageUnit
-    distribution: DistributionUnit
-    transports: List[TransportUnit]
+    storage = None
+    distribution = None
+    transports = None
 
-    configs: dict
+    configs: dict = None
+
+    id: int = None
 
     def __init__(self):
         pass
@@ -31,45 +27,34 @@ class WarehouseFacility:
     def build(self, configs: dict):
         self.configs = configs
 
-        self.storage = StorageUnit()
-
         # TODO: from config later
-        # Choose data model and logic we want to use
-
-        # construct storage
-        self.storage.datamodel_class = "StorageDataModel"
-        self.storage.logic_class = "StorageLogic"
+        self.storage = self.world.build_logic("StorageLogic")
+        self.storage.data_class = "StorageDataModel"
 
         self.storage.world = self.world
         self.storage.facility = self
-        self.storage.datamodel_index = self.world.register_datamodel("StorageDataModel")
-        self.storage.logic = self.world.build_logic("StorageLogic")
+        self.storage.data_index = self.world.register_datamodel(self.storage.data_class)
 
         # construct transport
         self.transports = []
 
         for facility_conf in configs["transports"]:
-            transport = TransportUnit()
-
-            transport.datamodel_class = "TransportDataModel"
-            transport.logic_class = "TransportLogic"
+            transport = self.world.build_logic("TransportLogic")
+            transport.data_class = "TransportDataModel"
 
             transport.world = self.world
             transport.facility = self
-            transport.datamodel_index = self.world.register_datamodel("TransportDataModel")
-            transport.logic = self.world.build_logic("TransportLogic")
+            transport.data_index = self.world.register_datamodel(transport.data_class)
 
             self.transports.append(transport)
 
         # construct distribution
-        self.distribution = DistributionUnit()
-        self.distribution.datamodel_class = "DistributionDataModel"
-        self.distribution.logic_class = "DistributionLogic"
+        self.distribution = self.world.build_logic("DistributionLogic")
+        self.distribution.data_class = "DistributionDataModel"
 
         self.distribution.world = self.world
         self.distribution.facility = self
-        self.distribution.datamodel_index = self.world.register_datamodel("DistributionDataModel")
-        self.distribution.logic = self.world.build_logic("DistributionLogic")
+        self.distribution.data_index = self.world.register_datamodel(self.distribution.data_class)
 
     def initialize(self):
         self.storage.initialize(self.configs.get("storage", {}))

@@ -15,7 +15,7 @@ class Order:
 
 class DistributionLogic(LogicBase):
     def __init__(self):
-        self.config: dict = None
+        super().__init__()
 
         # TODO: find a way to save it to snapshot
         self.order_queue = deque()
@@ -23,20 +23,24 @@ class DistributionLogic(LogicBase):
         # used to map from product id to slot index
         self.product_index_mapping: Dict[int, int] = {}
 
-    def initialize(self, config):
-        self.config = config
+    def initialize(self, configs: dict):
+        super().initialize(configs)
 
         for index, product_id in self.data.product_list:
             self.product_index_mapping[product_id] = index
 
     def step(self, tick: int):
-        for vechicle in self.facility.transports:
-            # if we have vechicle not enroute and pending order
-            if len(self.order_queue) > 0 and vechicle.datamodel.location == 0:
+        for vehicle in self.facility.transports:
+            # if we have vehicle not on the way and there is pending order
+            if len(self.order_queue) > 0 and vehicle.datamodel.location == 0:
                 order = self.order_queue.popleft()
 
-                vechicle.schedule(order.destination,
-                                  order.product_id, order.quantity, order.vlt)
+                vehicle.schedule(
+                    order.destination,
+                    order.product_id,
+                    order.quantity,
+                    order.vlt
+                )
 
         # NOTE: we moved delay_order_penalty from facility to sku, is this ok?
         for order in self.order_queue:
@@ -46,6 +50,9 @@ class DistributionLogic(LogicBase):
             self.data.delay_order_penalty[product_index] += sku.delay_order_penalty
 
     def get_metrics(self):
+        pass
+
+    def set_action(self, action):
         pass
 
     def reset(self):

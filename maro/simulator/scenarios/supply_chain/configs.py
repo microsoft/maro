@@ -12,12 +12,6 @@ from .logics import (
     DistributionLogic
 )
 
-from .units import (
-    StorageUnit,
-    TransportUnit,
-    DistributionUnit
-)
-
 from .facilities import (
     WarehouseFacility
 )
@@ -50,16 +44,6 @@ logic_mapping = {
         "class": DistributionLogic
     }
 }
-
-unit_class_mapping = {
-    "StorageUnit": {
-        "class": StorageUnit
-    },
-    "TransportUnit": {
-        "class": TransportUnit
-    }
-}
-
 
 test_world_config = {
     "facilities": {
