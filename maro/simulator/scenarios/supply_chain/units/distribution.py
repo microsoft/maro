@@ -28,7 +28,7 @@ class DistributionUnit(UnitBase):
         super(DistributionUnit, self).initialize(configs)
 
         # create a production index mapping, used to update product information
-        for index, product_id in self.data.product_list:
+        for index, product_id in enumerate(self.data.product_list[:]):
             self.product_index_mapping[product_id] = index
 
     def step(self, tick: int):

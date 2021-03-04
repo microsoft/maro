@@ -30,7 +30,7 @@ class ManufacturingUnit(UnitBase):
         # try to produce production if we have positive rate
         if self.data.production_rate > 0:
             sku_num = len(self.facility.sku_information)
-            unit_num_upper_bound = self.facility.storage.capacity // sku_num
+            unit_num_upper_bound = self.facility.storage.data.capacity // sku_num
 
             # one lot per time, until no enough space to hold output, or no enough source material
             for _ in range(self.data.production_rate):

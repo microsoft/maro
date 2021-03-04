@@ -67,6 +67,9 @@ class WarehouseFacility(FacilityBase):
             self.sku_information[sku.id] = sku_info
 
     def initialize(self):
+        # init components that related with sku number
+        self._init_by_skus()
+
         # called after build, here we have the data model, we can initialize them.
         self.storage.initialize(self.configs.get("storage", {}))
         self.distribution.initialize(self.configs.get("distribution", {}))
@@ -75,9 +78,6 @@ class WarehouseFacility(FacilityBase):
 
         for index, transport in enumerate(self.transports):
             transport.initialize(transports_conf[index])
-
-        # init components that related with sku number
-        self._init_by_skus()
 
     def reset(self):
         self.storage.reset()

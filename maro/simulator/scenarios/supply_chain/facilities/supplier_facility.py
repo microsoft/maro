@@ -10,9 +10,20 @@ class SupplierFacility(FacilityBase):
     distribution = None
     transports = None
     suppliers = None
+    consumers = None
 
     def step(self, tick: int):
-        pass
+        self.storage.step(tick)
+        self.distribution.step(tick)
+
+        for vehicle in self.transports:
+            vehicle.step(tick)
+
+        for supplier in self.suppliers.values():
+            supplier.step(tick)
+
+        for consumer in self.consumers.values():
+            consumer.step(tick)
 
     def build(self, configs: dict):
         self.configs = configs
@@ -51,6 +62,7 @@ class SupplierFacility(FacilityBase):
         # sku information
         self.sku_information = {}
         self.suppliers = {}
+        self.consumers = {}
 
         for sku_name, sku_config in configs["skus"].items():
             sku = self.world.get_sku(sku_name)
@@ -77,14 +89,17 @@ class SupplierFacility(FacilityBase):
 
                 self.suppliers[sku.id] = supplier
 
+                consumer = self.world.build_unit("ConsumerUnit")
+                consumer.data_class = "ConsumerDataModel"
+
+                consumer.world = self.world
+                consumer.facility = self
+                consumer.data_index = self.world.register_data_class(consumer.data_class)
+
+                self.consumers[sku.id] = consumer
+
     def initialize(self):
-        self.storage.initialize(self.configs.get("storage", {}))
-        self.distribution.initialize(self.configs.get("distribution", {}))
 
-        transports_conf = self.configs["transports"]
-
-        for index, transport in enumerate(self.transports):
-            transport.initialize(transports_conf[index])
 
         for _, sku in self.sku_information.items():
             if sku.id in self.suppliers:
@@ -99,6 +114,24 @@ class SupplierFacility(FacilityBase):
                     }
                 })
 
+                consumer = self.consumers[sku.id]
+
+                consumer.initialize({
+                    "data": {
+                        "order_cost": self.configs.get("order_cost", 0)
+                    }
+                })
+
+        self._init_by_skus()
+
+        self.storage.initialize(self.configs.get("storage", {}))
+        self.distribution.initialize(self.configs.get("distribution", {}))
+
+        transports_conf = self.configs["transports"]
+
+        for index, transport in enumerate(self.transports):
+            transport.initialize(transports_conf[index])
+
     def post_step(self, tick: int):
         self.storage.post_step(tick)
         self.distribution.post_step(tick)
@@ -108,6 +141,9 @@ class SupplierFacility(FacilityBase):
 
         for supplier in self.suppliers.values():
             supplier.post_step(tick)
+
+        for consumer in self.consumers.values():
+            consumer.post_step(tick)
 
     def reset(self):
         self.storage.reset()
@@ -119,5 +155,18 @@ class SupplierFacility(FacilityBase):
         for supplier in self.suppliers.values():
             supplier.reset()
 
+        for consumer in self.consumers.values():
+            consumer.reset()
 
+        self._init_by_skus()
 
+    def _init_by_skus(self):
+        for _, sku in self.sku_information.items():
+            # update storage's production info
+            self.storage.data.product_list.append(sku.id)
+            self.storage.data.product_number.append(sku.init_in_stock)
+
+            # update distribution's production info
+            self.distribution.data.product_list.append(sku.id)
+            self.distribution.data.check_in_price.append(0)
+            self.distribution.data.delay_order_penalty.append(0)

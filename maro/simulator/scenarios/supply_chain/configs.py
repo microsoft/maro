@@ -4,14 +4,16 @@ from .data import (
     StorageDataModel,
     TransportDataModel,
     DistributionDataModel,
-    ManufactureDataModel
+    ManufactureDataModel,
+    ConsumerDataModel
 )
 
 from .units import (
     StorageUnit,
     TransportUnit,
     DistributionUnit,
-    ManufacturingUnit
+    ManufacturingUnit,
+    ConsumerUnit
 )
 
 from .facilities import (
@@ -34,8 +36,12 @@ data_class_mapping = {
         "class": DistributionDataModel
     },
     "ManufactureDataModel": {
-        "alias_in_snapshot": "manufacture",
+        "alias_in_snapshot": "manufactures",
         "class": ManufactureDataModel
+    },
+    "ConsumerDataModel": {
+        "alias_in_snapshot": "consumers",
+        "class": ConsumerDataModel
     }
 }
 
@@ -52,7 +58,10 @@ unit_mapping = {
     },
     "ManufacturingUnit": {
         "class": ManufacturingUnit
-    }
+    },
+    "ConsumerUnit": {
+        "class": ConsumerUnit
+    },
 }
 
 test_world_config = {

@@ -14,7 +14,7 @@ class StorageUnit(UnitBase):
     def initialize(self, configs):
         super().initialize(configs)
 
-        for index, product_id in self.data.product_list:
+        for index, product_id in enumerate(self.data.product_list[:]):
             self.product_index_mapping[product_id] = index
 
     def try_add_units(self, product_quantities: Dict[int, int], all_or_nothing=True) -> dict:
