@@ -11,7 +11,8 @@ import requests
 from maro.utils.exception.cli_exception import CliError
 from maro.utils.logger import CliLogger
 
-from .back_end.vis_app.data_process.request.request_params import request_settings
+from .back_end.vis_app.data_process.request.request_params import \
+  request_settings
 
 logger = CliLogger(name=__name__)
 
@@ -20,7 +21,7 @@ def start_geo_vis(start: str, experiment_name: str, **kwargs: dict):
     if start == 'database':
         # Start the databse container.
         pwd = os.getcwd()
-        grader_path = os.path.abspath(os.path.dirname(pwd)+os.path.sep)
+        grader_path = os.path.abspath(os.path.dirname(pwd) + os.path.sep)
         database_start_path = f"{grader_path}\\maro\\maro\\streamit\\server"
         subprocess.check_call(
             'sh run_docker.sh',
@@ -34,10 +35,10 @@ def start_geo_vis(start: str, experiment_name: str, **kwargs: dict):
             "count": "true"
         }
         find_exp_name = requests.get(
-                url=request_settings.request_url.value,
-                headers=request_settings.request_header.value,
-                params=find_exp_name_params
-            ).json()
+            url=request_settings.request_url.value,
+            headers=request_settings.request_header.value,
+            params=find_exp_name_params
+        ).json()
         if find_exp_name["dataset"] == []:
             raise CliError("Please input a valid experiment name.")
         # Create experiment display list table.
@@ -56,7 +57,7 @@ def start_geo_vis(start: str, experiment_name: str, **kwargs: dict):
             no_table_error = True
         else:
             no_table_error = True
-        
+
         if no_table_error:
             create_params = {
                 "query": "Create table pending_experiments(name STRING, time LONG)",
@@ -69,8 +70,8 @@ def start_geo_vis(start: str, experiment_name: str, **kwargs: dict):
 
         current_time = int(time.time())
         next_exp_params = {
-                "query": f"INSERT INTO pending_experiments(name, time) VALUES('{experiment_name}', {current_time})",
-            }
+            "query": f"INSERT INTO pending_experiments(name, time) VALUES('{experiment_name}', {current_time})",
+        }
         requests.get(
             url=request_settings.request_url.value,
             headers=request_settings.request_header.value,

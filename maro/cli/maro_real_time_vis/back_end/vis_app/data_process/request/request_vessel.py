@@ -1,10 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import inspect
 import json
 import os
-import subprocess
 
 import pandas as pd
 import requests
@@ -79,7 +77,7 @@ def process_vessel_data(db_vessel_data: json, start_tick: str) -> json:
 
     """
     pwd = os.getcwd()
-    exec_path = os.path.abspath(os.path.dirname(pwd)+os.path.sep)
+    exec_path = os.path.abspath(os.path.dirname(pwd) + os.path.sep)
     config_file_path = f"{exec_path}\\maro\\maro\\cli\\maro_real_time_vis\\back_end\\nginx\\static\\config.json"
     with open(config_file_path, "r")as mapping_file:
         cim_information = json.load(mapping_file)

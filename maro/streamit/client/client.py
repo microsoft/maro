@@ -131,9 +131,9 @@ class StreamitClient:
                 for k, v in cur_item.items():
                     stack.append((cur_path + f".{k}", v))
             elif cur_item_type is list \
-                or cur_item_type is tuple \
-                or (cur_item_type is torch.Tensor and cur_item.dim() > 1) \
-                or (cur_item_type is numpy.ndarray and len(cur_item.shape) > 1):
+                    or cur_item_type is tuple \
+                    or (cur_item_type is torch.Tensor and cur_item.dim() > 1) \
+                    or (cur_item_type is numpy.ndarray and len(cur_item.shape) > 1):
 
                 for sub_index, sub_item in enumerate(cur_item):
                     stack.append((cur_path + f"[{sub_index}]", sub_item))
