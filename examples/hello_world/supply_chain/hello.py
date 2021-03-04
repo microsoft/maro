@@ -20,7 +20,7 @@ for ep in range(1):
         metrics, decision_event, is_done = env.step(None)
 
     print(len(env.snapshot_list)) #["storage"][0:0:"product_list"])
-    print(env.snapshot_list["storage"][0:0:"product_list"])
+    print(env.snapshot_list["storage"][0:0:"product_list"].flatten())
 
     env.reset()
 
