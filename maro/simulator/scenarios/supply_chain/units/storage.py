@@ -1,7 +1,5 @@
 
-
 from .base import UnitBase
-
 
 from typing import Dict
 
@@ -18,18 +16,6 @@ class StorageUnit(UnitBase):
 
         for index, product_id in self.data.product_list:
             self.product_index_mapping[product_id] = index
-
-    def step(self, tick: int):
-        pass
-
-    def get_metrics(self):
-        pass
-
-    def reset(self):
-        pass
-
-    def set_action(self, action):
-        pass
 
     def try_add_units(self, product_quantities: Dict[int, int], all_or_nothing=True) -> dict:
         if all_or_nothing and self.data.remaining_space < sum(product_quantities.values()):
@@ -61,10 +47,10 @@ class StorageUnit(UnitBase):
 
         return True
 
-    def take_avaiable(self, product_id: int, quantity: int):
+    def take_available(self, product_id: int, quantity: int):
         product_index = self.product_index_mapping[product_id]
-        avaiable = self.data.product_number[product_index]
-        actual = min(avaiable, quantity)
+        available = self.data.product_number[product_index]
+        actual = min(available, quantity)
 
         self.data.product_number[product_index] -= actual
 

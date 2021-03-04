@@ -14,7 +14,9 @@ class WarehouseFacility(FacilityBase):
     def build(self, configs: dict):
         self.configs = configs
 
-        # TODO: from config later
+        # TODO: following strings should from config later
+
+        # construct storage
         self.storage = self.world.build_unit("StorageUnit")
         self.storage.data_class = "StorageDataModel"
 
@@ -53,6 +55,7 @@ class WarehouseFacility(FacilityBase):
         for index, transport in enumerate(self.transports):
             transport.initialize(transports_conf[index])
 
+        # init components that related with sku number
         self._init_by_sku(self.configs.get("skus", None))
 
     def reset(self):
@@ -62,6 +65,8 @@ class WarehouseFacility(FacilityBase):
         for vehicle in self.transports:
             vehicle.reset()
 
+        # NOTE: as we are using list attribute now, theirs size will be reset to defined one after frame.reset,
+        # so we have to init them again.
         self._init_by_sku(self.configs.get("skus", None))
 
     def _init_by_sku(self, sku_info: dict):
@@ -69,9 +74,11 @@ class WarehouseFacility(FacilityBase):
             for sku_name, sku_config in sku_info.items():
                 sku = self.world.get_sku(sku_name)
 
+                # update storage's production info
                 self.storage.data.product_list.append(sku.id)
                 self.storage.data.product_number.append(sku_config["init_stock"])
 
+                # update distribution's production info
                 self.distribution.data.product_list.append(sku.id)
-                self.distribution.data.checkin_price.append(0)
+                self.distribution.data.check_in_price.append(0)
                 self.distribution.data.delay_order_penalty.append(0)

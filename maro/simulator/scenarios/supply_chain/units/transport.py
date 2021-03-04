@@ -15,11 +15,8 @@ class TransportUnit(UnitBase):
     def initialize(self, configs: dict):
         super().initialize(configs)
 
-    def get_metrics(self):
-        pass
-
     def reset(self):
-        super().reset()
+        super(TransportUnit, self).reset()
 
         self.destination = None
         self.max_patient = None
@@ -61,13 +58,21 @@ class TransportUnit(UnitBase):
 
     def try_unloading(self):
         unloaded = self.destination.storage.try_add_units(
-            {self.data.product_id: self.data.payload}, all_or_nothing=False)
+            {self.data.product_id: self.data.payload},
+            all_or_nothing=False
+        )
 
+        # update order if we unloaded any
         if len(unloaded) > 0:
             unloaded_units = sum(unloaded.values())
 
+            # TODO: not implemented, refactor the name
             self.destination.consumer.on_order_reception(
-                self.facility.id, self.data.product_id, unloaded_units, self.data.payload)
+                self.facility.id,
+                self.data.product_id,
+                unloaded_units,
+                self.data.payload
+            )
 
             # reset the transport's state
             self.data.payload = 0
@@ -76,13 +81,18 @@ class TransportUnit(UnitBase):
     def step(self, tick: int):
         # If we have not arrive at destination yet.
         if self.data.steps > 0:
+            # if we still not loaded enough productions yet.
             if self.data.location == 0 and self.data.payload == 0:
-                # loading will take one tick.
+                # then try to load by requested.
                 if self.try_loading(self.data.requested_quantity):
+                    # NOTE: here we return to simulate loading
                     return
                 else:
+                    self.data.patient -= 1
+
                     # Failed to load, check the patient.
                     if self.patient < 0:
+                        # TODO: not implemented, refactor the name.
                         self.destination.consumer._update_open_orders(
                             self.facility.id, self.data.product_id, -self.requested_quantity)
 

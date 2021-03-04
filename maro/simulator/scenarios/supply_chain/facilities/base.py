@@ -3,13 +3,22 @@ from abc import ABC, abstractmethod
 
 
 class FacilityBase(ABC):
+    # current world
     world = None
 
+    # storage unit
     storage = None
+
+    # distribution unit
     distribution = None
+
+    # vehicle list
     transports = None
 
+    # configuration of this facility
     configs: dict = None
+
+    # id of this facility
     id: int = None
 
     @abstractmethod
