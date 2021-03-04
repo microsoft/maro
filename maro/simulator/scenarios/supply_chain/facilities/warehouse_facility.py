@@ -20,7 +20,7 @@ class WarehouseFacility(FacilityBase):
 
         self.storage.world = self.world
         self.storage.facility = self
-        self.storage.data_index = self.world.register_datamodel(self.storage.data_class)
+        self.storage.data_index = self.world.register_data_class(self.storage.data_class)
 
         # construct transport
         self.transports = []
@@ -31,7 +31,7 @@ class WarehouseFacility(FacilityBase):
 
             transport.world = self.world
             transport.facility = self
-            transport.data_index = self.world.register_datamodel(transport.data_class)
+            transport.data_index = self.world.register_data_class(transport.data_class)
 
             self.transports.append(transport)
 
@@ -41,7 +41,7 @@ class WarehouseFacility(FacilityBase):
 
         self.distribution.world = self.world
         self.distribution.facility = self
-        self.distribution.data_index = self.world.register_datamodel(self.distribution.data_class)
+        self.distribution.data_index = self.world.register_data_class(self.distribution.data_class)
 
     def initialize(self):
         # called after build, here we have the data model, we can initialize them.

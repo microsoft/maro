@@ -1,12 +1,12 @@
 
 
-from .datamodels import (
+from .data import (
     StorageDataModel,
     TransportDataModel,
     DistributionDataModel
 )
 
-from .unit import (
+from .units import (
     StorageUnit,
     TransportUnit,
     DistributionUnit
@@ -17,7 +17,7 @@ from .facilities import (
 )
 
 
-datamodel_mapping = {
+data_class_mapping = {
     "StorageDataModel": {
         "alias_in_snapshot": "storages",
         "class": StorageDataModel

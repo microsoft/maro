@@ -24,7 +24,7 @@ class UnitBase(ABC):
     @property
     def data(self):
         if self._data is None:
-            self._data = self.world.get_datamodel(self.data_class, self.data_index)
+            self._data = self.world.get_data_instance(self.data_class, self.data_index)
 
         return self._data
 
