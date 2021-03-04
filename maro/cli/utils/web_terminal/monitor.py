@@ -130,9 +130,9 @@ def update_node(node_ref, new_data, dashboard_type, org_data_len):
 
 def write_job_list(root, list_name, list_data):
     root.subheader(f"{list_name}:")
-    jqe = root.empty()
-    update_job_list(jqe, list_name, list_data)
-    return jqe
+    job_queue_node = root.empty()
+    update_job_list(job_queue_node, list_name, list_data)
+    return job_queue_node
 
 
 def update_job_list(root, list_name, list_data):
@@ -149,14 +149,14 @@ def update_job_list(root, list_name, list_data):
 
 def write_job_queue(root, data):
     root.header("Job Queues:")
-    pjqe = write_job_list(root, "Pending Jobs", data["pending_jobs"])
-    kjqe = write_job_list(root, "Killed Jobs", data["killed_jobs"])
-    return pjqe, kjqe
+    pending_job_queue_node = write_job_list(root, "Pending Jobs", data["pending_jobs"])
+    killed_job_queue_node = write_job_list(root, "Killed Jobs", data["killed_jobs"])
+    return pending_job_queue_node, killed_job_queue_node
 
 
-def update_job_queue(pjqe, kjqe, data):
-    update_job_list(pjqe, "Pending Jobs", data["pending_jobs"])
-    update_job_list(kjqe, "Killed Jobs", data["killed_jobs"])
+def update_job_queue(pending_job_queue_node, killed_job_queue_node, data):
+    update_job_list(pending_job_queue_node, "Pending Jobs", data["pending_jobs"])
+    update_job_list(killed_job_queue_node, "Killed Jobs", data["killed_jobs"])
 
 
 def job_status_to_color(job_status):
@@ -239,9 +239,9 @@ style="background-color: {color}; border-radius: 50%; height: 1rem; width: 1rem;
 
 def write_job_details(root, data, dashboard_type):
     root.header("Job Details:")
-    jde = root.empty()
-    update_job_details(jde, data, dashboard_type)
-    return jde
+    job_detail_node = root.empty()
+    update_job_details(job_detail_node, data, dashboard_type)
+    return job_detail_node
 
 
 def update_job_details(root, data, dashboard_type):
@@ -302,7 +302,6 @@ def draw_dashboard_new(target):
         dynamic_node_load = False
 
         while True:
-
             if not (static_node_load or dynamic_node_load):
                 local_executor, dashboard_type = load_executor(target)
 
@@ -324,13 +323,12 @@ def draw_dashboard_new(target):
                 st.markdown("---")
 
                 job_queue_data = local_executor.get_job_queue()
-                pjqe, kjqe = write_job_queue(st, job_queue_data)
+                pending_job_queue_node, killed_job_queue_node = write_job_queue(st, job_queue_data)
 
                 st.markdown("---")
 
                 job_detail_data = local_executor.get_job_details()
-                jde = write_job_details(st, job_detail_data, dashboard_type)
-
+                job_detail_node = write_job_details(st, job_detail_data, dashboard_type)
                 dynamic_node_load = True
 
             elif static_node_load and dynamic_node_load:
@@ -339,10 +337,10 @@ def draw_dashboard_new(target):
                 update_node(node_ref, new_data_dict, dashboard_type, data_len)
 
                 job_queue_data = local_executor.get_job_queue()
-                update_job_queue(pjqe, kjqe, job_queue_data)
+                update_job_queue(pending_job_queue_node, killed_job_queue_node, job_queue_data)
 
                 job_detail_data = local_executor.get_job_details()
-                update_job_details(jde, job_detail_data, dashboard_type)
+                update_job_details(job_detail_node, job_detail_data, dashboard_type)
 
             time.sleep(5)
     except Exception as e:
@@ -358,7 +356,7 @@ def main():
         for cluster_name in clusters:
             if st.sidebar.button(f'{cluster_name}'):
                 target = cluster_name
-    # with st.empty():
+
     draw_dashboard_new(target)
 
 
