@@ -53,7 +53,7 @@ class World:
         # and build the frame
         self.frame = build_frame(
             True,
-            snapshot_number,
+            10,
             [(datamodel_mapping[class_name]["class"], datamodel_mapping[class_name]["alias_in_snapshot"], number) for class_name, number in self._datamodel_collection.items()])
 
         # then initialize all facilities
