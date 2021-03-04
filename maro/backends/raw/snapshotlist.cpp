@@ -115,8 +115,6 @@ namespace maro
         shape.max_node_number = node_indices == nullptr ? cur_node.get_max_number() : node_length;
         shape.tick_number = ticks == nullptr ? _snapshots.size() : tick_length;
 
-        cout << "before: " << _snapshots.size() << endl;
-
         if (!_query_parameters.is_list)
         {
           // If it is not a list attriubte, then accept all attribute except list .
@@ -140,8 +138,6 @@ namespace maro
         {
           // If it is a list attribute, then just use first one as querying attribute,
           // we only support query 1 list attribute (1st one) for 1 node at 1 tick each time to reduce too much padding.
-
-          cout << "after: " << _snapshots.size() << endl;
 
           // Make sure we have at least one tick.
           if (_snapshots.size() == 0)
