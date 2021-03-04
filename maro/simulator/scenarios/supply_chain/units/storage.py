@@ -55,3 +55,8 @@ class StorageUnit(UnitBase):
         self.data.product_number[product_index] -= actual
 
         return actual
+
+    def get_product_number(self, product_id: int) -> int:
+        product_index = self.product_index_mapping[product_id]
+
+        return self.data.product_number[product_index]

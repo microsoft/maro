@@ -17,7 +17,7 @@ class Order:
 
 class DistributionUnit(UnitBase):
     def __init__(self):
-        super().__init__()
+        super(DistributionUnit, self).__init__()
 
         self.order_queue = deque()
 
@@ -25,7 +25,7 @@ class DistributionUnit(UnitBase):
         self.product_index_mapping: Dict[int, int] = {}
 
     def initialize(self, configs: dict):
-        super().initialize(configs)
+        super(DistributionUnit, self).initialize(configs)
 
         # create a production index mapping, used to update product information
         for index, product_id in self.data.product_list:
@@ -68,7 +68,7 @@ class DistributionUnit(UnitBase):
 
     def place_order(self, order):
         if order.quantity > 0:
-            sku = self.facility.get_sku(order.product_id)
+            sku = self.facility.get_sku_by_id(order.product_id)
 
             if sku is not None:
                 self.order_queue.append(order)

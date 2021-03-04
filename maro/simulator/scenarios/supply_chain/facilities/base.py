@@ -6,24 +6,22 @@ class FacilityBase(ABC):
     # current world
     world = None
 
-    # storage unit
-    storage = None
-
-    # distribution unit
-    distribution = None
-
-    # vehicle list
-    transports = None
-
     # configuration of this facility
     configs: dict = None
 
     # id of this facility
     id: int = None
 
+    # sku information, same as original sku_in_stock
+    # different facility may contains different data
+    sku_information: dict = None
+
     @abstractmethod
     def step(self, tick: int):
         # called per tick
+        pass
+
+    def post_step(self, tick: int):
         pass
 
     @abstractmethod

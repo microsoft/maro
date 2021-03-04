@@ -40,6 +40,9 @@ class UnitBase:
         # called per tick
         pass
 
+    def post_step(self, tick: int):
+        pass
+
     def get_metrics(self):
         # called per step
         pass

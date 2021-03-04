@@ -32,10 +32,12 @@ class TransportUnit(UnitBase):
         self.max_patient = self.data.patient
 
         # Find the path from current entity to target.
-        # NOTE:
-        # destination is a StorageUnit entity.
         path = self.world.find_path(
-            self.entity.x, self.entity.y, destination.parent.x, destination.parent.y)
+            self.entity.x,
+            self.entity.y,
+            destination.parent.x,
+            destination.parent.y
+        )
 
         if self.path is None:
             raise Exception(f"Destination {destination} is unreachable")

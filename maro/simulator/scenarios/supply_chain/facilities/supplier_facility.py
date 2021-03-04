@@ -1,32 +1,23 @@
 
 from collections import namedtuple
-from typing import List
 from .base import FacilityBase
 
 
-class WarehouseFacility(FacilityBase):
-    SkuInfo = namedtuple("SkuInfo", ("name", "init_in_stock", "id"))
+class SupplierFacility(FacilityBase):
+    SkuInfo = namedtuple("SkuInfo", ("name", "id", "init_in_stock", "production_rate", "type", "cost"))
 
-    # storage unit
     storage = None
-
-    # distribution unit
     distribution = None
-
-    # vehicle list
     transports = None
+    suppliers = None
 
     def step(self, tick: int):
-        self.storage.step(tick)
-        self.distribution.step(tick)
-
-        for transport in self.transports:
-            transport.step(tick)
+        pass
 
     def build(self, configs: dict):
         self.configs = configs
 
-        # TODO: following strings should from config later
+        # TODO: dup code from facilities, refactoring later
 
         # construct storage
         self.storage = self.world.build_unit("StorageUnit")
@@ -59,15 +50,34 @@ class WarehouseFacility(FacilityBase):
 
         # sku information
         self.sku_information = {}
+        self.suppliers = {}
 
         for sku_name, sku_config in configs["skus"].items():
             sku = self.world.get_sku(sku_name)
-            sku_info = WarehouseFacility.SkuInfo(sku_name, sku_config["init_stock"], sku.id)
+            sku_info = SupplierFacility.SkuInfo(
+                sku_name,
+                sku.id,
+                sku_config["init_in_stock"],
+                sku_config.get("production_rate", 0),
+                sku_config["type"],
+                sku_config.get("cost", 0)
+            )
 
             self.sku_information[sku.id] = sku_info
 
+            # TODO: make it an enum later.
+            if sku_info.type == "production":
+                # one supplier per sku
+                supplier = self.world.build_unit("ManufacturingUnit")
+                supplier.data_class = "ManufactureDataModel"
+
+                supplier.world = self.world
+                supplier.facility = self
+                supplier.data_index = self.world.register_data_class(supplier.data_class)
+
+                self.suppliers[sku.id] = supplier
+
     def initialize(self):
-        # called after build, here we have the data model, we can initialize them.
         self.storage.initialize(self.configs.get("storage", {}))
         self.distribution.initialize(self.configs.get("distribution", {}))
 
@@ -76,19 +86,18 @@ class WarehouseFacility(FacilityBase):
         for index, transport in enumerate(self.transports):
             transport.initialize(transports_conf[index])
 
-        # init components that related with sku number
-        self._init_by_skus()
+        for _, sku in self.sku_information.items():
+            if sku.id in self.suppliers:
+                supplier = self.suppliers[sku.id]
 
-    def reset(self):
-        self.storage.reset()
-        self.distribution.reset()
-
-        for vehicle in self.transports:
-            vehicle.reset()
-
-        # NOTE: as we are using list attribute now, theirs size will be reset to defined one after frame.reset,
-        # so we have to init them again.
-        self._init_by_skus()
+                # build parameters to initialize the data model
+                supplier.initialize({
+                    "data": {
+                        "production_rate": sku.production_rate,
+                        "output_product_id": sku.id,
+                        "product_unit_cost": sku.cost
+                    }
+                })
 
     def post_step(self, tick: int):
         self.storage.post_step(tick)
@@ -97,13 +106,18 @@ class WarehouseFacility(FacilityBase):
         for vehicle in self.transports:
             vehicle.post_step(tick)
 
-    def _init_by_skus(self):
-        for _, sku in self.sku_information.items():
-            # update storage's production info
-            self.storage.data.product_list.append(sku.id)
-            self.storage.data.product_number.append(sku.init_in_stock)
+        for supplier in self.suppliers.values():
+            supplier.post_step(tick)
 
-            # update distribution's production info
-            self.distribution.data.product_list.append(sku.id)
-            self.distribution.data.check_in_price.append(0)
-            self.distribution.data.delay_order_penalty.append(0)
+    def reset(self):
+        self.storage.reset()
+        self.distribution.reset()
+
+        for vehicle in self.transports:
+            vehicle.reset()
+
+        for supplier in self.suppliers.values():
+            supplier.reset()
+
+
+

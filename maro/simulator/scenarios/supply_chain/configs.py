@@ -3,17 +3,20 @@
 from .data import (
     StorageDataModel,
     TransportDataModel,
-    DistributionDataModel
+    DistributionDataModel,
+    ManufactureDataModel
 )
 
 from .units import (
     StorageUnit,
     TransportUnit,
-    DistributionUnit
+    DistributionUnit,
+    ManufacturingUnit
 )
 
 from .facilities import (
-    WarehouseFacility
+    WarehouseFacility,
+    SupplierFacility
 )
 
 
@@ -29,6 +32,10 @@ data_class_mapping = {
     "DistributionDataModel": {
         "alias_in_snapshot": "distributions",
         "class": DistributionDataModel
+    },
+    "ManufactureDataModel": {
+        "alias_in_snapshot": "manufacture",
+        "class": ManufactureDataModel
     }
 }
 
@@ -42,6 +49,9 @@ unit_mapping = {
     },
     "DistributionUnit": {
         "class": DistributionUnit
+    },
+    "ManufacturingUnit": {
+        "class": ManufacturingUnit
     }
 }
 
@@ -50,42 +60,77 @@ test_world_config = {
     "skus": [
         {
             "id": 1,
-            "name": "sku1"
+            "name": "sku1",
+            "output_units_per_lot": 1,  # later we can support override per facility
+            "bom": {    # bill of materials to procedure this, we can support facility level override
+                "sku3": 10 # units per lot
+            }
         },
         {
             "id": 2,
+            "output_units_per_lot": 1,
             "name": "sku2"
         },
         {
             "id": 3,
+            "output_units_per_lot": 1,
             "name": "sku3"
         }
     ],
     "facilities": {
+        "Supplier1": {
+            "class": SupplierFacility,
+            "configs": {
+                "skus": {
+                    "sku1": {
+                        "init_in_stock": 100,
+                        "production_rate": 200,
+                        "type": "production",
+                        "cost": 10
+                    },
+                    # source material, do not need production rate
+                    "sku3": {
+                        "init_in_stock": 100,
+                        "type": "material"
+                    }
+                },
+                "storage": {
+                    "data": {
+                        "capacity": 20000,
+                        "unit_storage_cost": 10
+                    }
+                },
+                "distribution": {
+                    "data": {
+                        "unit_price": 10
+                    }
+                },
+                "transports": [
+                    {
+                        "data": {
+                            "patient": 100
+                        }
+                    },
+                    {
+                        "data": {
+                            "patient": 100
+                        }
+                    }
+                ]
+            }
+        },
         "warehouse1": {
             "class": WarehouseFacility,
             "configs": {
                 "skus": {
                     "sku1": {
-                        "price": 100,
-                        "cost": 100,
-                        "vlt": 5,
                         "init_stock": 1000,
-                        "production_rate": 200
                     },
                     "sku2": {
-                        "price": 100,
-                        "cost": 100,
-                        "vlt": 5,
                         "init_stock": 1000,
-                        "production_rate": 200
                     },
                     "sku3": {
-                        "price": 100,
-                        "cost": 100,
-                        "vlt": 5,
                         "init_stock": 1000,
-                        "production_rate": 200
                     },
                 },
                 "storage": {

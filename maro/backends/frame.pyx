@@ -151,6 +151,9 @@ cdef class _NodeAttributeAccessor:
 
         self._slot_number += 1
 
+        if not self._is_list and "_cb" in self.__dict__:
+            self._cb(None)
+
     def resize(self, new_size: int):
         """Resize current list attribute with specified new size.
 
@@ -167,6 +170,9 @@ cdef class _NodeAttributeAccessor:
 
         self._slot_number = new_size
 
+        if not self._is_list and "_cb" in self.__dict__:
+            self._cb(None)
+
     def clear(self):
         """Clear all items in current list attribute.
 
@@ -179,6 +185,9 @@ cdef class _NodeAttributeAccessor:
         self._backend.clear_list(self._node_index, self._attr_type)
 
         self._slot_number = 0
+
+        if not self._is_list and "_cb" in self.__dict__:
+            self._cb(None)
 
     def insert(self, slot_index: int, value: object):
         """Insert a value to specified slot.
@@ -194,6 +203,9 @@ cdef class _NodeAttributeAccessor:
 
         self._slot_number += 1
 
+        if not self._is_list and "_cb" in self.__dict__:
+            self._cb(None)
+
     def remove(self, slot_index: int):
         """Remove specified slot.
 
@@ -206,6 +218,9 @@ cdef class _NodeAttributeAccessor:
         self._backend.remove_from_list(self._node_index, self._attr_type, slot_index)
 
         self._slot_number -= 1
+
+        if not self._is_list and "_cb" in self.__dict__:
+            self._cb(None)
 
     def where(self, filter_func: callable):
         """Filter current attribute slots with input function.

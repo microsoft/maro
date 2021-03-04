@@ -7,7 +7,8 @@ from .configs import unit_mapping, data_class_mapping
 
 
 # sku definition in world level
-Sku = namedtuple("Sku", ("name", "id"))
+# bom is a dictionary, key is the material sku id, value is units per lot
+Sku = namedtuple("Sku", ("name", "id", "bom", "output_units_per_lot"))
 
 
 class World:
@@ -26,6 +27,9 @@ class World:
 
         # sku collection of this world
         self._sku_collection = {}
+
+        # sku id -> name in collection
+        self._sku_id2name_mapping = {}
 
         # configuration of current world
         self.configs: dict = None
@@ -54,9 +58,19 @@ class World:
 
         # collect sku information first
         for sku_conf in configs["skus"]:
-            sku = Sku(sku_conf["name"], sku_conf["id"])
+            sku = Sku(sku_conf["name"], sku_conf["id"], {}, sku_conf["output_units_per_lot"])
 
+            self._sku_id2name_mapping[sku.id] = sku.name
             self._sku_collection[sku.name] = sku
+
+        # collect bom
+        for sku_conf in configs["skus"]:
+            sku = self._sku_collection[sku_conf["name"]]
+
+            bom = sku_conf.get("bom", {})
+
+            for material_sku_name, units_per_lot in bom.items():
+                sku.bom[self._sku_collection[material_sku_name].id] = units_per_lot
 
         # build facilities first
         for facility_name, facility_conf in configs["facilities"].items():
@@ -72,11 +86,21 @@ class World:
             # build the facility first to create related components.
             self.facilities[facility_name].build(facility_conf["configs"])
 
-        # and build the frame
-        self.frame = build_frame(
-            True,
-            snapshot_number,
-            [(data_class_mapping[class_name]["class"], data_class_mapping[class_name]["alias_in_snapshot"], number) for class_name, number in self._data_class_collection.items()])
+        # build the frame
+        # . collect data model class
+        data_class_in_frame = []
+
+        for class_name, number in self._data_class_collection.items():
+            class_config = data_class_mapping[class_name]
+
+            data_class_in_frame.append((
+                class_config["class"],
+                class_config["alias_in_snapshot"],
+                number
+            ))
+
+        # . build the frame
+        self.frame = build_frame(True, snapshot_number, data_class_in_frame)
 
         # then initialize all facilities as we have the data instance.
         for _, facility in self.facilities.items():
@@ -98,3 +122,6 @@ class World:
 
     def get_sku(self, name: str):
         return self._sku_collection.get(name, None)
+
+    def get_sku_by_id(self, sku_id: int):
+        return self._sku_collection[self._sku_id2name_mapping[sku_id]]
