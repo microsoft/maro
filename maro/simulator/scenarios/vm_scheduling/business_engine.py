@@ -682,8 +682,11 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
         cpu_utilization /= 100
         cpu_utilization = min(1, cpu_utilization)
+        energy_consumption_per_hour = idle_power + \
+                                        (busy_power - idle_power) * \
+                                        (2 * cpu_utilization - pow(cpu_utilization, power))
 
-        return (idle_power + (busy_power - idle_power) * (2 * cpu_utilization - pow(cpu_utilization, power))) * self._tick_to_hour
+        return energy_consumption_per_hour * self._tick_to_hour
 
     def _postpone_vm_request(self, postpone_type: PostponeType, vm_id: int, remaining_buffer_time: int):
         """Postpone VM request."""
