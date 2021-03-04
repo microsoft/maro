@@ -57,8 +57,7 @@ class VirtualMachine:
         self.creation_tick: int = -1
         self.deletion_tick: int = -1
 
-    @staticmethod
-    def get_income_till_now(cur_tick: int):
+    def get_income_till_now(self, cur_tick: int):
         return self.unit_price * (cur_tick - self.creation_tick + 1)
 
     @property
