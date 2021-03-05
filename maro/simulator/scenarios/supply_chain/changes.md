@@ -14,3 +14,10 @@
         . support manufacturing without source material, like oil, just produce output production by configured rate
         . add type for sku at facility level to identify if it is an input material, or output production
         . remove output_lot_size, always be 1
+   
+3. consumer:
+    split upstreams from facility to a standalone part, so that we can override same world structure but
+   different topology.
+   
+    . there is no consumer_quantity and source by default, we use first source as source_id
+        but with quantity as 0, means we will wait for action to purchase source sku.

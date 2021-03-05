@@ -5,14 +5,7 @@ from .base import UnitBase
 
 from typing import Dict
 
-
-# TODO: original code included the order in raw state, but calculate the price in final state
-# so we do not need to put it in the frame, just calculate the total_price per tick/step.
-class Order:
-    destination = None
-    product_id = None
-    quantity = None
-    vlt = None
+from .order import Order
 
 
 class DistributionUnit(UnitBase):

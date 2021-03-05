@@ -5,7 +5,7 @@ from .base import FacilityBase
 
 
 class WarehouseFacility(FacilityBase):
-    SkuInfo = namedtuple("SkuInfo", ("name", "init_in_stock", "id"))
+    SkuInfo = namedtuple("SkuInfo", ("name", "init_in_stock", "id", "price"))
 
     # storage unit
     storage = None
@@ -70,7 +70,7 @@ class WarehouseFacility(FacilityBase):
 
         for sku_name, sku_config in configs["skus"].items():
             sku = self.world.get_sku(sku_name)
-            sku_info = WarehouseFacility.SkuInfo(sku_name, sku_config["init_stock"], sku.id)
+            sku_info = WarehouseFacility.SkuInfo(sku_name, sku_config["init_stock"], sku.id, sku_config.get("price", 0))
 
             self.sku_information[sku.id] = sku_info
 
