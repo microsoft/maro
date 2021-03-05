@@ -207,5 +207,26 @@ test_world_config = {
                 ]
             }
         }
-    ]
+    ],
+    # topology used to specify the up/downstream for facilities
+    # we split it from facility, so that we can support configuration inherit to override it
+    # for a new topology
+    "topology": {
+        # key is current facility, value if upstream facilities that will provide a certain sku
+        "Supplier1": {
+            # this config means "Supplier1" will purchase "sku3" from facility "Supplier3",
+            # or any other facility in the list
+            "sku3": [
+                "Supplier3"
+            ]
+        },
+        "warehouse1": {
+            "sku1": [
+                "Supplier1"
+            ],
+            "sku3": [
+                "Supplier3"
+            ]
+        }
+    }
 }

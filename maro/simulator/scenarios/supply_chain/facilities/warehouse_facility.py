@@ -16,12 +16,19 @@ class WarehouseFacility(FacilityBase):
     # vehicle list
     transports = None
 
+    # consumers that will generate order to purchase productions
+    # one sku one consumer
+    consumers = None
+
     def step(self, tick: int):
         self.storage.step(tick)
         self.distribution.step(tick)
 
         for transport in self.transports:
             transport.step(tick)
+
+        for consumer in self.consumers.values():
+            consumer.step(tick)
 
     def build(self, configs: dict):
         self.configs = configs
@@ -59,12 +66,22 @@ class WarehouseFacility(FacilityBase):
 
         # sku information
         self.sku_information = {}
+        self.consumers = {}
 
         for sku_name, sku_config in configs["skus"].items():
             sku = self.world.get_sku(sku_name)
             sku_info = WarehouseFacility.SkuInfo(sku_name, sku_config["init_stock"], sku.id)
 
             self.sku_information[sku.id] = sku_info
+
+            consumer = self.world.build_unit("ConsumerUnit")
+            consumer.data_class = "ConsumerDataModel"
+
+            consumer.world = self.world
+            consumer.facility = self
+            consumer.data_index = self.world.register_data_class(consumer.data_class)
+
+            self.consumers[sku.id] = consumer
 
     def initialize(self):
         # init components that related with sku number
@@ -79,12 +96,25 @@ class WarehouseFacility(FacilityBase):
         for index, transport in enumerate(self.transports):
             transport.initialize(transports_conf[index])
 
+        for _, sku in self.sku_information.items():
+            if sku.id in self.consumers:
+                consumer = self.consumers[sku.id]
+
+                consumer.initialize({
+                    "data": {
+                        "order_cost": self.configs.get("order_cost", 0)
+                    }
+                })
+
     def reset(self):
         self.storage.reset()
         self.distribution.reset()
 
         for vehicle in self.transports:
             vehicle.reset()
+
+        for consumer in self.consumers.values():
+            consumer.reset()
 
         # NOTE: as we are using list attribute now, theirs size will be reset to defined one after frame.reset,
         # so we have to init them again.
@@ -96,6 +126,9 @@ class WarehouseFacility(FacilityBase):
 
         for vehicle in self.transports:
             vehicle.post_step(tick)
+
+        for consumer in self.consumers.values():
+            consumer.post_step(tick)
 
     def _init_by_skus(self):
         for _, sku in self.sku_information.items():
