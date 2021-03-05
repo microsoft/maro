@@ -46,8 +46,6 @@ class VirtualMachine:
 
         # The unit price of the VM.
         self.unit_price: float = unit_price
-        # The current price of the VM.
-        self.current_price: float = 0.0
 
         # VM utilization list with VM cpu utilization(%) in corresponding tick.
         self._utilization_series: List[float] = []

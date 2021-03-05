@@ -2,6 +2,8 @@
 BUFFER_TIME_BUDGET: 0
 # The number of ticks to delay when agent decides not to assign VM.
 DELAY_DURATION: 1
+# The number of the ticks per hour.
+TICKS_PER_HOUR: 12
 
 # Path of the vm table data.
 VM_TABLE: "~/.maro/data/vm_scheduling/.build/azure.2019.10k/vmtable.bin"
@@ -25,16 +27,16 @@ MAX_UTILIZATION_RATE: 1
 
 # The parameters refer to https://www.azure.cn/pricing/details/virtual-machines/index.html
 # Price parameter of CPU cores
-PRICE_PER_CPU_CORES: 0.0698
+PRICE_PER_CPU_CORES_PER_HOUR: 0.0698
 # Price parameter of CPU cores
-PRICE_PER_MEMORY: 0.0078
+PRICE_PER_MEMORY_PER_HOUR: 0.0078
 # The parameters refer to https://www.microsoft.com/en-us/research/wp-content/uploads/2009/01/p68-v39n1o-greenberg.pdf
-# Unit price of Energy
-UNIT_ENERGY_PRICE: 0.07
+# Unit price of Energy per KWH
+UNIT_ENERGY_PRICE_PER_KWH: 0.07
 # POWER USAGE EFFICIENCY, PUE=(Total Facility Power)/(IT Equipment Power)
 POWER_USAGE_EFFICIENCY: 1.7
-# Transfer tick (5 minute) to hour
-TICK_TO_HOUR: 0.083
+# Watt transfer to KiloWatts
+W_PER_KW: 1000
 
 components:
   pm:

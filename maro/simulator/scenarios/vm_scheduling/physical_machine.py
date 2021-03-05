@@ -74,7 +74,7 @@ class PhysicalMachine(NodeBase):
         cluster_id: int,
         rack_id: int,
         oversubscribable: PmState = 0,
-        energy_consumption: float = 0,
+        idle_energy_consumption: float = 0,
     ):
         """Set initialize state, that will be used after frame reset.
 
@@ -105,7 +105,7 @@ class PhysicalMachine(NodeBase):
         self._cluster_id = cluster_id
         self._rack_id = rack_id
 
-        self._energy_consumption = energy_consumption
+        self._idle_energy_consumption = idle_energy_consumption
 
         self.reset()
 
@@ -135,7 +135,7 @@ class PhysicalMachine(NodeBase):
         self.memory_allocated = 0
 
         self.cpu_utilization = 0.0
-        self.energy_consumption = self._energy_consumption
+        self.energy_consumption = self._idle_energy_consumption
 
     @property
     def live_vms(self) -> Set[int]:
