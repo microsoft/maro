@@ -140,3 +140,10 @@ class WarehouseFacility(FacilityBase):
             self.distribution.data.product_list.append(sku.id)
             self.distribution.data.check_in_price.append(0)
             self.distribution.data.delay_order_penalty.append(0)
+
+        # update the source facilities for each consumer
+        for sku_id, source_facilities in self.upstreams.items():
+            consumer = self.consumers[sku_id]
+
+            for facility_id in source_facilities:
+                consumer.data.sources.append(facility_id)

@@ -16,6 +16,13 @@ class World:
         # all the facilities in this world, key: id, value: facilities
         self.facilities = {}
 
+        # mapping from facility name to id
+        self._facility_name2id_mapping = {}
+
+        # all the entities (units and facilities) in this world
+        # id -> instance
+        self._entities = {}
+
         # frame of this world, this is determined by the unit selected.
         self.frame = None
 
@@ -49,6 +56,8 @@ class World:
         logic = unit_mapping[name]["class"]()
 
         logic.id = self.gen_id()
+
+        self._entities[logic.id] = logic
 
         return logic
 
@@ -84,7 +93,9 @@ class World:
             facility.id = self.gen_id()
             facility.name = facility_name
 
+            self._facility_name2id_mapping[facility_name] = facility.id
             self.facilities[facility.id] = facility
+            self._entities[facility.id] = facility
 
             # build the facility first to create related components.
             facility.build(facility_conf["configs"])
@@ -105,9 +116,31 @@ class World:
         # . build the frame
         self.frame = build_frame(True, snapshot_number, data_class_in_frame)
 
+        # construct the upstream topology
+        topology = configs.get("topology", {})
+
+        for cur_facility_name, topology_conf in topology.items():
+            facility = self.get_facility_by_name(cur_facility_name)
+
+            facility.upstreams = {}
+
+            for sku_name, source_facilities in topology_conf.items():
+                sku = self.get_sku(sku_name)
+
+                facility.upstreams[sku.id] = [self.get_facility_by_name(source_name).id for source_name in source_facilities]
+
         # then initialize all facilities as we have the data instance.
         for _, facility in self.facilities.items():
             facility.initialize()
+
+    def get_facility_by_id(self, facility_id: int):
+        return self.facilities[facility_id]
+
+    def get_facility_by_name(self, name: str):
+        return self.facilities[self._facility_name2id_mapping[name]]
+
+    def get_entity(self, entity_id: int):
+        return self._entities[entity_id]
 
     def register_data_class(self, name: str):
         assert name in data_class_mapping

@@ -19,6 +19,11 @@ class FacilityBase(ABC):
     # different facility may contains different data
     sku_information: dict = None
 
+    # dictionary of upstreams
+    # key is the source sku id
+    # value is the list of facility id
+    upstreams: dict = None
+
     @abstractmethod
     def step(self, tick: int):
         # called per tick
