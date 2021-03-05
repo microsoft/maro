@@ -29,7 +29,10 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
 
     @property
     def configs(self):
-        pass
+        return self.world.configs
+
+    def get_node_mapping(self) -> dict:
+        return self.world.unit_id2index_mapping
 
     def step(self, tick: int):
         for _, facility in self.world.facilities.items():

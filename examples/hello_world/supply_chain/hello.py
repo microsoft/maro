@@ -13,14 +13,17 @@ opts = dict()
 env = Env(scenario="supply_chain", topology="toy.5p_ssddd_l0.0",
           start_tick=start_tick, durations=durations, options=opts)
 
+print("node info:", env.summary)
+
 for ep in range(1):
     metrics, decision_event, is_done = (None, None, False)
 
     while not is_done:
         metrics, decision_event, is_done = env.step(None)
 
-    print(len(env.snapshot_list))
-    print(env.snapshot_list["transport"][:0:"patient"].flatten())
+    print("total snapshot:", len(env.snapshot_list))
+    print("transport patient:", env.snapshot_list["transport"][:0:"patient"].flatten())
+    print("consumer source:", env.snapshot_list["consumer"][0:0:"sources"])
 
     env.reset()
 

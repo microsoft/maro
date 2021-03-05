@@ -36,7 +36,7 @@ class SupplierFacility(FacilityBase):
 
         self.storage.world = self.world
         self.storage.facility = self
-        self.storage.data_index = self.world.register_data_class(self.storage.data_class)
+        self.storage.data_index = self.world.register_data_class(self.storage.id, self.storage.data_class)
 
         # construct transport
         self.transports = []
@@ -47,7 +47,7 @@ class SupplierFacility(FacilityBase):
 
             transport.world = self.world
             transport.facility = self
-            transport.data_index = self.world.register_data_class(transport.data_class)
+            transport.data_index = self.world.register_data_class(transport.id, transport.data_class)
 
             self.transports.append(transport)
 
@@ -57,7 +57,7 @@ class SupplierFacility(FacilityBase):
 
         self.distribution.world = self.world
         self.distribution.facility = self
-        self.distribution.data_index = self.world.register_data_class(self.distribution.data_class)
+        self.distribution.data_index = self.world.register_data_class(self.distribution.id, self.distribution.data_class)
 
         # sku information
         self.sku_information = {}
@@ -85,20 +85,23 @@ class SupplierFacility(FacilityBase):
 
                 supplier.world = self.world
                 supplier.facility = self
-                supplier.data_index = self.world.register_data_class(supplier.data_class)
+                supplier.data_index = self.world.register_data_class(supplier.id, supplier.data_class)
 
                 self.suppliers[sku.id] = supplier
-
+            else:
                 consumer = self.world.build_unit("ConsumerUnit")
                 consumer.data_class = "ConsumerDataModel"
 
                 consumer.world = self.world
                 consumer.facility = self
-                consumer.data_index = self.world.register_data_class(consumer.data_class)
+                consumer.data_index = self.world.register_data_class(consumer.id, consumer.data_class)
 
                 self.consumers[sku.id] = consumer
 
     def initialize(self):
+        # DO init by skus first, as other components may depend on sku information
+        self._init_by_skus()
+
         for _, sku in self.sku_information.items():
             if sku.id in self.suppliers:
                 supplier = self.suppliers[sku.id]
@@ -112,16 +115,13 @@ class SupplierFacility(FacilityBase):
                     }
                 })
 
-                consumer = self.consumers[sku.id]
-
-                consumer.initialize({
-                    "data": {
-                        "order_cost": self.configs.get("order_cost", 0)
-                    }
-                })
-
-        # DO init by skus first, as other components may depend on sku information
-        self._init_by_skus()
+        for consumer in self.consumers.values():
+            consumer.initialize({
+                "data": {
+                    # TODO: move to config
+                    "order_cost": self.configs.get("order_cost", 0)
+                }
+            })
 
         self.storage.initialize(self.configs.get("storage", {}))
         self.distribution.initialize(self.configs.get("distribution", {}))
@@ -169,3 +169,11 @@ class SupplierFacility(FacilityBase):
             self.distribution.data.product_list.append(sku.id)
             self.distribution.data.check_in_price.append(0)
             self.distribution.data.delay_order_penalty.append(0)
+
+        if self.upstreams is not None:
+            # update the source facilities for each consumer
+            for sku_id, source_facilities in self.upstreams.items():
+                consumer = self.consumers[sku_id]
+
+                for facility_id in source_facilities:
+                    consumer.data.sources.append(facility_id)

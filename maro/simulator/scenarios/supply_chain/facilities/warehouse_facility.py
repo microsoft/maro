@@ -41,7 +41,7 @@ class WarehouseFacility(FacilityBase):
 
         self.storage.world = self.world
         self.storage.facility = self
-        self.storage.data_index = self.world.register_data_class(self.storage.data_class)
+        self.storage.data_index = self.world.register_data_class(self.storage.id, self.storage.data_class)
 
         # construct transport
         self.transports = []
@@ -52,7 +52,7 @@ class WarehouseFacility(FacilityBase):
 
             transport.world = self.world
             transport.facility = self
-            transport.data_index = self.world.register_data_class(transport.data_class)
+            transport.data_index = self.world.register_data_class(transport.id, transport.data_class)
 
             self.transports.append(transport)
 
@@ -62,7 +62,7 @@ class WarehouseFacility(FacilityBase):
 
         self.distribution.world = self.world
         self.distribution.facility = self
-        self.distribution.data_index = self.world.register_data_class(self.distribution.data_class)
+        self.distribution.data_index = self.world.register_data_class(self.distribution.id, self.distribution.data_class)
 
         # sku information
         self.sku_information = {}
@@ -79,7 +79,7 @@ class WarehouseFacility(FacilityBase):
 
             consumer.world = self.world
             consumer.facility = self
-            consumer.data_index = self.world.register_data_class(consumer.data_class)
+            consumer.data_index = self.world.register_data_class(consumer.id, consumer.data_class)
 
             self.consumers[sku.id] = consumer
 
@@ -141,9 +141,10 @@ class WarehouseFacility(FacilityBase):
             self.distribution.data.check_in_price.append(0)
             self.distribution.data.delay_order_penalty.append(0)
 
-        # update the source facilities for each consumer
-        for sku_id, source_facilities in self.upstreams.items():
-            consumer = self.consumers[sku_id]
+        if self.upstreams is not None:
+            # update the source facilities for each consumer
+            for sku_id, source_facilities in self.upstreams.items():
+                consumer = self.consumers[sku_id]
 
-            for facility_id in source_facilities:
-                consumer.data.sources.append(facility_id)
+                for facility_id in source_facilities:
+                    consumer.data.sources.append(facility_id)

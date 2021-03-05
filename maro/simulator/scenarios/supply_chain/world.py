@@ -41,6 +41,9 @@ class World:
         # configuration of current world
         self.configs: dict = None
 
+        # unit id to related data model index
+        self.unit_id2index_mapping = {}
+
     def gen_id(self):
         """Generate id for facility or unit."""
         new_id = self._id_counter
@@ -53,13 +56,13 @@ class World:
         """Build an unit instance from it name via current configuration."""
         assert name in unit_mapping
 
-        logic = unit_mapping[name]["class"]()
+        unit = unit_mapping[name]["class"]()
 
-        logic.id = self.gen_id()
+        unit.id = self.gen_id()
 
-        self._entities[logic.id] = logic
+        self._entities[unit.id] = unit
 
-        return logic
+        return unit
 
     def build(self, configs: dict, snapshot_number: int):
         """Build current world according to configurations."""
@@ -142,12 +145,13 @@ class World:
     def get_entity(self, entity_id: int):
         return self._entities[entity_id]
 
-    def register_data_class(self, name: str):
+    def register_data_class(self, unit_id: int, name: str):
         assert name in data_class_mapping
 
         node_index = self._data_class_collection[name]
 
         self._data_class_collection[name] += 1
+        self.unit_id2index_mapping[unit_id] = node_index
 
         return node_index
 
