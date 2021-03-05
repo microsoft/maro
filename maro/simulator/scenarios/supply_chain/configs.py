@@ -21,7 +21,8 @@ from .units import (
 
 from .facilities import (
     WarehouseFacility,
-    SupplierFacility
+    SupplierFacility,
+    RetailerFacility
 )
 
 
@@ -231,6 +232,38 @@ test_world_config = {
                     }
                 ]
             }
+        },
+        {
+            "name": "ChaoShiFa01",
+            "class": RetailerFacility,
+            "configs": {
+                "skus": {
+                    "sku1": {
+                        "price": 300,
+                        "cost": 10,
+                        "init_in_stock": 100,
+                        "sale_gamma": 1
+                    },
+                    "sku3": {
+                        "price": 200,
+                        "cost": 10,
+                        "init_in_stock": 100,
+                        "sale_gamma": 1
+                    },
+                    "sku2": {
+                        "price": 100,
+                        "cost": 10,
+                        "init_in_stock": 100,
+                        "sale_gamma": 1
+                    },
+                },
+                "storage": {
+                    "data": {
+                        "capacity": 1000,
+                        "unit_storage_cost": 10
+                    }
+                },
+            }
         }
     ],
     # topology used to specify the up/downstream for facilities
@@ -246,6 +279,14 @@ test_world_config = {
             ]
         },
         "warehouse1": {
+            "sku1": [
+                "Supplier1"
+            ],
+            "sku3": [
+                "Supplier3"
+            ]
+        },
+        "ChaoShiFa01": {
             "sku1": [
                 "Supplier1"
             ],

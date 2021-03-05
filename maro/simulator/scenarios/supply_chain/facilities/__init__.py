@@ -1,2 +1,3 @@
-from .warehouse_facility import WarehouseFacility
-from .supplier_facility import SupplierFacility
+from .warehouse import WarehouseFacility
+from .supplier import SupplierFacility
+from .retailer import RetailerFacility
