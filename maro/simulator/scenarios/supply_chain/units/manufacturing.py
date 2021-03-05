@@ -3,6 +3,10 @@ from .base import UnitBase
 
 
 class ManufacturingUnit(UnitBase):
+    """Unit that used to produce certain product(sku) with consume specified source skus.
+
+    One manufacture unit per sku.
+    """
     # source material sku and related number per produce cycle
     bom = None
 

@@ -5,10 +5,12 @@ from .base import UnitBase
 
 from typing import Dict
 
-from .order import Order
-
 
 class DistributionUnit(UnitBase):
+    """Unit that used to receive and execute orders from downstream facilities.
+
+    One distribution can accept all kind of sku order.
+    """
     def __init__(self):
         super(DistributionUnit, self).__init__()
 

@@ -6,6 +6,10 @@ from .order import Order
 
 # TODO: we need another consumer type that read data from file or predict from model
 class ConsumerUnit(UnitBase):
+    """Unit that used to generate orders to purchase source materials from up stream facility.
+
+    One consumer per sku.
+    """
     def __init__(self):
         super(ConsumerUnit, self).__init__()
 

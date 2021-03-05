@@ -3,6 +3,7 @@ from .base import UnitBase
 
 
 class TransportUnit(UnitBase):
+    """Unit used to move production from source to destination by order."""
     def __init__(self):
         super().__init__()
 
@@ -33,8 +34,8 @@ class TransportUnit(UnitBase):
 
         # Find the path from current entity to target.
         path = self.world.find_path(
-            self.entity.x,
-            self.entity.y,
+            self.facility.x,
+            self.facility.y,
             destination.parent.x,
             destination.parent.y
         )

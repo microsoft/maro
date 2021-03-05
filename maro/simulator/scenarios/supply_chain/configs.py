@@ -5,7 +5,8 @@ from .data import (
     TransportDataModel,
     DistributionDataModel,
     ManufactureDataModel,
-    ConsumerDataModel
+    ConsumerDataModel,
+    SellerDataModel
 )
 
 from .units import (
@@ -13,7 +14,8 @@ from .units import (
     TransportUnit,
     DistributionUnit,
     ManufacturingUnit,
-    ConsumerUnit
+    ConsumerUnit,
+    SellerUnit
 )
 
 from .facilities import (
@@ -42,6 +44,10 @@ data_class_mapping = {
     "ConsumerDataModel": {
         "alias_in_snapshot": "consumers",
         "class": ConsumerDataModel
+    },
+    "SellerDataModel": {
+        "alias_in_snapshot": "seller",
+        "class": SellerDataModel
     }
 }
 
@@ -62,6 +68,9 @@ unit_mapping = {
     "ConsumerUnit": {
         "class": ConsumerUnit
     },
+    "SellerUnit": {
+        "class": SellerUnit
+    }
 }
 
 test_world_config = {

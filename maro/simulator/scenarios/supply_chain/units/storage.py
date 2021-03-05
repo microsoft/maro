@@ -5,6 +5,8 @@ from typing import Dict
 
 
 class StorageUnit(UnitBase):
+    """Unit that used to store skus.
+    """
     def __init__(self):
         super().__init__()
 
