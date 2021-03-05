@@ -509,7 +509,12 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 self._total_oversubscriptions += 1
             total_energy += pm.energy_consumption
             # Update the energy consumption cost.
-            pm_cost = (pm.energy_consumption / self._w_per_kw) * self._unit_energy_price_per_kwh * self._power_usage_efficiency
+            pm_cost = (
+                pm.energy_consumption
+                / self._w_per_kw
+                * self._unit_energy_price_per_kwh
+                * self._power_usage_efficiency
+            )
             total_energy_cost += pm_cost
             # Overload PMs.
             if pm.cpu_utilization > 100:
@@ -917,7 +922,8 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
     def _get_unit_price(self, cpu_cores, memory):
         return (
-            self._price_per_cpu_cores_per_hour * cpu_cores + self._price_per_memory_per_hour * memory
+            self._price_per_cpu_cores_per_hour * cpu_cores
+            + self._price_per_memory_per_hour * memory
         ) / self._ticks_per_hour
 
     def _download_processed_data(self):
