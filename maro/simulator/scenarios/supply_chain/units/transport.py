@@ -95,8 +95,11 @@ class TransportUnit(UnitBase):
                     # Failed to load, check the patient.
                     if self.patient < 0:
                         # TODO: not implemented, refactor the name.
-                        self.destination.consumer._update_open_orders(
-                            self.facility.id, self.data.product_id, -self.requested_quantity)
+                        self.destination.consumer.update_open_orders(
+                            self.facility.id,
+                            self.data.product_id,
+                            -self.requested_quantity
+                        )
 
                         # reset
                         self.data.steps = 0

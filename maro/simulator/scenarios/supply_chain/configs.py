@@ -86,8 +86,47 @@ test_world_config = {
             "name": "sku3"
         }
     ],
-    "facilities": {
-        "Supplier1": {
+    "facilities": [
+        {
+            # a source material supplier without input requirement
+            "name": "Supplier3",
+            "class": SupplierFacility,
+            "configs": {
+                "skus": {
+                    "sku3": {
+                        "init_in_stock": 100,
+                        "production_rate": 200,
+                        "type": "production",
+                        "cost": 10
+                    }
+                },
+                "storage": {
+                    "data": {
+                        "capacity": 20000,
+                        "unit_storage_cost": 10
+                    }
+                },
+                "distribution": {
+                    "data": {
+                        "unit_price": 10
+                    }
+                },
+                "transports": [
+                    {
+                        "data": {
+                            "patient": 100
+                        }
+                    },
+                    {
+                        "data": {
+                            "patient": 100
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "Supplier1",
             "class": SupplierFacility,
             "configs": {
                 "skus": {
@@ -128,7 +167,8 @@ test_world_config = {
                 ]
             }
         },
-        "warehouse1": {
+        {
+            "name": "warehouse1",
             "class": WarehouseFacility,
             "configs": {
                 "skus": {
@@ -167,5 +207,5 @@ test_world_config = {
                 ]
             }
         }
-    }
+    ]
 }

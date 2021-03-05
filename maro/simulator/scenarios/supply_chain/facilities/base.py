@@ -12,6 +12,9 @@ class FacilityBase(ABC):
     # id of this facility
     id: int = None
 
+    # name of this facility
+    name: str = None
+
     # sku information, same as original sku_in_stock
     # different facility may contains different data
     sku_information: dict = None

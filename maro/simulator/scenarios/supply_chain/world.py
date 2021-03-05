@@ -73,18 +73,21 @@ class World:
                 sku.bom[self._sku_collection[material_sku_name].id] = units_per_lot
 
         # build facilities first
-        for facility_name, facility_conf in configs["facilities"].items():
+        for facility_conf in configs["facilities"]:
+            facility_name = facility_conf["name"]
+
             # create a new instance of facility
             facility = facility_conf["class"]()
 
             # NOTE: DO set these fields before other operations.
             facility.world = self
             facility.id = self.gen_id()
+            facility.name = facility_name
 
-            self.facilities[facility_name] = facility
+            self.facilities[facility.id] = facility
 
             # build the facility first to create related components.
-            self.facilities[facility_name].build(facility_conf["configs"])
+            facility.build(facility_conf["configs"])
 
         # build the frame
         # . collect data model class

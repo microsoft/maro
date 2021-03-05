@@ -41,7 +41,7 @@ class SupplierFacility(FacilityBase):
         # construct transport
         self.transports = []
 
-        for facility_conf in configs["transports"]:
+        for _ in configs["transports"]:
             transport = self.world.build_unit("TransportUnit")
             transport.data_class = "TransportDataModel"
 
@@ -99,8 +99,6 @@ class SupplierFacility(FacilityBase):
                 self.consumers[sku.id] = consumer
 
     def initialize(self):
-
-
         for _, sku in self.sku_information.items():
             if sku.id in self.suppliers:
                 supplier = self.suppliers[sku.id]
@@ -122,6 +120,7 @@ class SupplierFacility(FacilityBase):
                     }
                 })
 
+        # DO init by skus first, as other components may depend on sku information
         self._init_by_skus()
 
         self.storage.initialize(self.configs.get("storage", {}))
