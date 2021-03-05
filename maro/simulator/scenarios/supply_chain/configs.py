@@ -1,4 +1,5 @@
 
+from enum import Enum
 
 from .data import (
     StorageDataModel,
@@ -22,6 +23,13 @@ from .facilities import (
     WarehouseFacility,
     SupplierFacility
 )
+
+
+class CellType(Enum):
+    """Cell type in map grid.
+    """
+    facility = 1
+    railroad = 2  # TODO: or railway?
 
 
 data_class_mapping = {
@@ -243,6 +251,25 @@ test_world_config = {
             ],
             "sku3": [
                 "Supplier3"
+            ]
+        }
+    },
+    "grid": {
+        "size": [20, 20],
+        # facility position in grid
+        "facilities": {
+            "Supplier1": [0, 0],  # (x, y)
+            "Supplier3": [3, 3],
+            "warehouse1": [6, 6]
+        },
+        # cells that un-traversable
+        "blocks": {
+            # TODO: later we can have different cell have different travel cost
+            CellType.railroad: [
+                [10, 10],
+                [10, 11],
+                [10, 12],
+                [11, 12]
             ]
         }
     }

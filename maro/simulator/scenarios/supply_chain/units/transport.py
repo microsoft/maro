@@ -36,8 +36,8 @@ class TransportUnit(UnitBase):
         path = self.world.find_path(
             self.facility.x,
             self.facility.y,
-            destination.parent.x,
-            destination.parent.y
+            destination.facility.x,
+            destination.facility.y
         )
 
         if self.path is None:

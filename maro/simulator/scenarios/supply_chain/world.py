@@ -1,9 +1,13 @@
 
+import numpy as np
+
 from collections import defaultdict, namedtuple
 
 from .frame_builder import build_frame
 
 from .configs import unit_mapping, data_class_mapping
+
+from tcod.path import AStar
 
 
 # sku definition in world level
@@ -43,6 +47,9 @@ class World:
 
         # unit id to related data model index
         self.unit_id2index_mapping = {}
+
+        # a star path finder
+        self._path_finder: AStar = None
 
     def gen_id(self):
         """Generate id for facility or unit."""
@@ -136,6 +143,25 @@ class World:
         for _, facility in self.facilities.items():
             facility.initialize()
 
+        # construct the map grid
+        grid_config = configs["grid"]
+
+        grid_width, grid_height = grid_config["size"]
+
+        # travel cost for a star path finder, 0 means block, > 1 means the cost travel to that cell
+        # current all traversable cell's cost will be 1.
+        cost_grid = np.ones(shape=(grid_width, grid_height), dtype=np.int)
+
+        # add blocks to grid
+        for facility_pos in grid_config["facilities"].values():
+            cost_grid[facility_pos[0], facility_pos[1]] = 0
+
+        for block_pos in grid_config["blocks"].values():
+            cost_grid[block_pos[0], block_pos[1]] = 0
+
+        # 0 for 2nd parameters means disable diagonal movement, so just up, right, down or left.
+        self._path_finder = AStar(cost_grid, 0)
+
     def get_facility_by_id(self, facility_id: int):
         return self.facilities[facility_id]
 
@@ -165,3 +191,6 @@ class World:
 
     def get_sku_by_id(self, sku_id: int):
         return self._sku_collection[self._sku_id2name_mapping[sku_id]]
+
+    def find_path(self, start_x: int, start_y: int, goal_x: int, goal_y: int):
+        return self._path_finder.get_path(start_x, start_y, goal_x, goal_y)
