@@ -5,7 +5,7 @@ from .base import FacilityBase
 
 
 class RetailerFacility(FacilityBase):
-    SkuInfo = namedtuple("SkuInfo", ("name", "id", "price", "cost", "init_in_stock", "sale_gammas"))
+    SkuInfo = namedtuple("SkuInfo", ("name", "id", "price", "cost", "init_in_stock", "sale_gamma"))
 
     storage = None
     consumers: dict = None
@@ -78,6 +78,8 @@ class RetailerFacility(FacilityBase):
             seller.world = self.world
             seller.facility = self
             seller.data_index = self.world.register_data_class(seller.id, seller.data_class)
+
+            self.sellers[sku.id] = seller
 
     def initialize(self):
         self._init_by_sku()

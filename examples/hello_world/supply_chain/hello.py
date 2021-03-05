@@ -23,7 +23,11 @@ for ep in range(1):
 
     print("total snapshot:", len(env.snapshot_list))
     print("transport patient:", env.snapshot_list["transport"][:0:"patient"].flatten())
-    print("consumer source:", env.snapshot_list["consumer"][0:0:"sources"])
+    # print("consumer source:", env.snapshot_list["consumer"][0:0:"sources"])
+
+    # seller demand
+    # since the seller node number will not change, we can reshape it as below
+    print("seller demand", env.snapshot_list["seller"][::"demand"].flatten().reshape((-1, len(env.snapshot_list["seller"]))))
 
     env.reset()
 

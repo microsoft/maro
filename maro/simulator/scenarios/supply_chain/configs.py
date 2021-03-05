@@ -242,19 +242,19 @@ test_world_config = {
                         "price": 300,
                         "cost": 10,
                         "init_in_stock": 100,
-                        "sale_gamma": 1
+                        "sale_gamma": 100
                     },
                     "sku3": {
                         "price": 200,
                         "cost": 10,
                         "init_in_stock": 100,
-                        "sale_gamma": 1
+                        "sale_gamma": 100
                     },
                     "sku2": {
                         "price": 100,
                         "cost": 10,
                         "init_in_stock": 100,
-                        "sale_gamma": 1
+                        "sale_gamma": 100
                     },
                 },
                 "storage": {
