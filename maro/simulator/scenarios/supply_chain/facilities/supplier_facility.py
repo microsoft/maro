@@ -116,11 +116,12 @@ class SupplierFacility(FacilityBase):
                     }
                 })
 
-        for consumer in self.consumers.values():
+        for sku_id, consumer in self.consumers.items():
             consumer.initialize({
                 "data": {
                     # TODO: move to config
-                    "order_cost": self.configs.get("order_cost", 0)
+                    "order_cost": self.configs.get("order_cost", 0),
+                    "consumer_product_id": sku_id
                 }
             })
 
@@ -146,6 +147,8 @@ class SupplierFacility(FacilityBase):
             consumer.post_step(tick)
 
     def reset(self):
+        self._init_by_skus()
+
         self.storage.reset()
         self.distribution.reset()
 
@@ -157,8 +160,6 @@ class SupplierFacility(FacilityBase):
 
         for consumer in self.consumers.values():
             consumer.reset()
-
-        self._init_by_skus()
 
     def _init_by_skus(self):
         for _, sku in self.sku_information.items():

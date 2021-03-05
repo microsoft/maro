@@ -4,6 +4,7 @@ from .base import UnitBase
 from .order import Order
 
 
+# TODO: we need another consumer type that read data from file or predict from model
 class ConsumerUnit(UnitBase):
     def __init__(self):
         super(ConsumerUnit, self).__init__()
@@ -17,7 +18,7 @@ class ConsumerUnit(UnitBase):
 
         if len(self.data.sources) > 0:
             # we use 1st source as default one
-            self.data.product_id = self.data.sources[0]
+            self.data.consumer_source_id = self.data.sources[0]
 
     def step(self, tick: int):
         # NOTE:
@@ -56,6 +57,10 @@ class ConsumerUnit(UnitBase):
         super(ConsumerUnit, self).reset()
 
         self.open_orders.clear()
+
+        if len(self.data.sources) > 0:
+            # we use 1st source as default one
+            self.data.consumer_source_id = self.data.sources[0]
 
     def set_action(self, action):
         # called before step

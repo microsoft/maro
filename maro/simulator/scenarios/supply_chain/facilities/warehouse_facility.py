@@ -96,17 +96,19 @@ class WarehouseFacility(FacilityBase):
         for index, transport in enumerate(self.transports):
             transport.initialize(transports_conf[index])
 
-        for _, sku in self.sku_information.items():
-            if sku.id in self.consumers:
-                consumer = self.consumers[sku.id]
-
-                consumer.initialize({
-                    "data": {
-                        "order_cost": self.configs.get("order_cost", 0)
-                    }
-                })
+        for sku_id, consumer in self.consumers.items():
+            consumer.initialize({
+                "data": {
+                    "order_cost": self.configs.get("order_cost", 0),
+                    "consumer_product_id": sku_id
+                }
+            })
 
     def reset(self):
+        # NOTE: as we are using list attribute now, theirs size will be reset to defined one after frame.reset,
+        # so we have to init them again.
+        self._init_by_skus()
+
         self.storage.reset()
         self.distribution.reset()
 
@@ -115,10 +117,6 @@ class WarehouseFacility(FacilityBase):
 
         for consumer in self.consumers.values():
             consumer.reset()
-
-        # NOTE: as we are using list attribute now, theirs size will be reset to defined one after frame.reset,
-        # so we have to init them again.
-        self._init_by_skus()
 
     def post_step(self, tick: int):
         self.storage.post_step(tick)
