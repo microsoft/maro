@@ -54,3 +54,11 @@ class UnitBase:
     def set_action(self, action):
         # called after received an action.
         pass
+
+    def get_unit_info(self) -> dict:
+        return {
+            "id": self.id,
+            "node_name": type(self.data).__node_name__,
+            "node_index": self.data_index,
+            "class": type(self)
+        }

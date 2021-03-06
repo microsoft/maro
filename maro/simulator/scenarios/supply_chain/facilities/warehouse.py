@@ -128,6 +128,19 @@ class WarehouseFacility(FacilityBase):
         for consumer in self.consumers.values():
             consumer.post_step(tick)
 
+    def get_node_info(self) -> dict:
+        return {
+            "id": self.id,
+            "name": self.name,
+            "class": type(self),
+            "units": {
+                "storage": self.storage.get_unit_info(),
+                "consumers": [consumer.get_unit_info() for consumer in self.consumers.values()],
+                "transports": [vehicle.get_unit_info() for vehicle in self.transports],
+                "distribution": self.distribution.get_unit_info()
+            }
+        }
+
     def _init_by_skus(self):
         for _, sku in self.sku_information.items():
             # update storage's production info

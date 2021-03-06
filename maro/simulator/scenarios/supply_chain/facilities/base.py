@@ -46,3 +46,7 @@ class FacilityBase(ABC):
     def reset(self):
         # called per episode.
         pass
+
+    @abstractmethod
+    def get_node_info(self) -> dict:
+        pass

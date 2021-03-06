@@ -119,6 +119,18 @@ class RetailerFacility(FacilityBase):
             for seller in self.sellers.values():
                 seller.reset()
 
+    def get_node_info(self) -> dict:
+        return {
+            "id": self.id,
+            "name": self.name,
+            "class": type(self),
+            "units": {
+                "storage": self.storage.get_unit_info(),
+                "consumers": [consumer.get_unit_info() for consumer in self.consumers.values()],
+                "sellers": [seller.get_unit_info() for seller in self.sellers.values()]
+            }
+        }
+
     def _init_by_sku(self):
         for _, sku in self.sku_information.items():
             # update storage's production info

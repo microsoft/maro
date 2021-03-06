@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 
 import tcod
+import pprint
 
 from maro.simulator import Env
 from maro.simulator.scenarios.cim.common import Action
@@ -93,10 +94,16 @@ class InteractiveRenderaleEnv:
         seller_number = len(self.env.snapshot_list["seller"])
         print("seller demand:\n", self.env.snapshot_list["seller"][::"demand"].flatten().reshape((-1, seller_number)))
 
+
 def main():
     start_tick = 0
     durations = 100
     env = Env(scenario="supply_chain", topology="no", start_tick=start_tick, durations=durations)
+
+    pp = pprint.PrettyPrinter(indent=2, depth=8)
+
+    print("env summary:")
+    pp.pprint(env.summary)
 
     irenv = InteractiveRenderaleEnv(env)
 

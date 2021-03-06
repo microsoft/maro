@@ -194,3 +194,23 @@ class World:
 
     def find_path(self, start_x: int, start_y: int, goal_x: int, goal_y: int):
         return self._path_finder.get_path(start_x, start_y, goal_x, goal_y)
+
+    def get_node_mapping(self):
+        facility_info_dict = {facility_id: facility.get_node_info() for facility_id, facility in self.facilities.items()}
+
+        # pick unit id and related index and node name
+        id2index_mapping = {}
+
+        for facility in facility_info_dict.values():
+            for units in facility["units"].values():
+                if type(units) is dict:
+                    # one unit
+                    id2index_mapping[units["id"]] = (units["node_name"], units["node_index"])
+                elif type(units) is list:
+                    for unit in units:
+                        id2index_mapping[unit["id"]] = (unit["node_name"], unit["node_index"])
+
+        return {
+            "mapping": id2index_mapping,
+            "detail": facility_info_dict
+        }

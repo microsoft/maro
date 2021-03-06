@@ -17,6 +17,8 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
 
         self._build_world()
 
+        self._node_mapping = self.world.get_node_mapping()
+
         self._frame = self.world.frame
 
     @property
@@ -32,7 +34,7 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         return self.world.configs
 
     def get_node_mapping(self) -> dict:
-        return self.world.unit_id2index_mapping
+        return self._node_mapping
 
     def step(self, tick: int):
         for _, facility in self.world.facilities.items():
