@@ -22,7 +22,7 @@ class InteractiveRenderaleEnv:
         print("Press S for states!!!")
 
         # tileset from https://github.com/libtcod/python-tcod.
-        tileset = tcod.tileset.load_tilesheet("dejavu10x10_gs_tc.png", 32, TILESET_SIZE, tcod.tileset.CHARMAP_TCOD)
+        tileset = tcod.tileset.load_tilesheet("font/dejavu10x10_gs_tc.png", 32, TILESET_SIZE, tcod.tileset.CHARMAP_TCOD)
 
         grid_width, grid_height = self.env.configs["grid"]["size"]
 
