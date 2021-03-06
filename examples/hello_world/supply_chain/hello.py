@@ -64,6 +64,7 @@ class InteractiveRenderaleEnv:
             title="Supply chain environment"
         ) as ctx:
             action = None
+            is_new_step = False
 
             while True:
                 # clear
@@ -78,6 +79,9 @@ class InteractiveRenderaleEnv:
 
                 for railroad in railroads:
                     console.print(railroad[0], railroad[1], "R", (255, 0, 0))
+
+                # show vehicles that on the way
+                self.present_vehicles(console)
 
                 ctx.present(
                     console,
@@ -98,6 +102,8 @@ class InteractiveRenderaleEnv:
 
                             metrics, decision_event, is_done = self.env.step(action)
 
+                            is_new_step = True
+
                             print(f"{bcolors.OKGREEN}Current environment tick:", self.env.tick, f"{bcolors.ENDC}")
 
                             if is_done:
@@ -112,6 +118,24 @@ class InteractiveRenderaleEnv:
                             action = self.choose_action()
                         elif event.sym == tcod.event.K_ESCAPE:
                             action = None
+
+    def present_vehicles(self, console: tcod.Console):
+        vehicles = self.env.snapshot_list["transport"]
+        vehicle_number = len(vehicles)
+
+        # here we query the attributes that slot number ==1, then query position, or snapshot_list will try to padding for id
+        normal_list = vehicles[self.env.frame_index::("id", "steps", "location")].flatten().reshape(vehicle_number, -1).astype(np.int)
+        pos_list = vehicles[self.env.frame_index::"position"].flatten().reshape(vehicle_number, -1).astype(np.int)
+
+        for index, state in enumerate(normal_list):
+            location = state[2]
+            steps = state[1]
+
+            if steps > 0:
+                x, y = pos_list[index]
+
+                if x >= 0 and y >= 0:
+                    console.print(x, y, "V", (0, 255, 0), (128, 128, index))
 
     def show_summary(self):
         pp = pprint.PrettyPrinter(indent=2, depth=8)
@@ -130,7 +154,7 @@ class InteractiveRenderaleEnv:
 
         vehicle_number = len(vehicles)
 
-        vehicle_features = ("id", "facility_id", "location", "steps", "patient", "source", "destination", "payload", "product_id", )
+        vehicle_features = ("id", "facility_id", "location", "steps", "patient", "source", "destination", "payload", "product_id")
 
         vehicle_states = vehicles[self.env.frame_index::vehicle_features].flatten().reshape(vehicle_number, -1).astype(np.int)
 

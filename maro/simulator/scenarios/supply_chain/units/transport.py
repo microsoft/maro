@@ -43,8 +43,6 @@ class TransportUnit(UnitBase):
             destination.y
         )
 
-        print("path", self.path)
-
         if self.path is None:
             raise Exception(f"Destination {destination} is unreachable")
 
@@ -110,6 +108,7 @@ class TransportUnit(UnitBase):
                         self.data.steps = 0
                         self.data.location = 0
                         self.data.destination = 0
+                        self.data.position[:] = -1
 
             # Moving to destination
             if self.data.payload > 0:
@@ -135,3 +134,4 @@ class TransportUnit(UnitBase):
                     self.data.steps = 0
                     self.data.location = 0
                     self.data.destination = 0
+                    self.data.position[:] = -1
