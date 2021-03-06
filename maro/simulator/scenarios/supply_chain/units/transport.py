@@ -113,6 +113,8 @@ class TransportUnit(UnitBase):
             # Moving to destination
             if self.data.payload > 0:
                 # Closer to destination until 0.
+
+                # TODO: BUG, fix it later.
                 self.data.location += 1
                 self.data.steps -= 1
 
