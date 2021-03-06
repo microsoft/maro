@@ -132,6 +132,23 @@ class InteractiveRenderaleEnv:
         features = ("id", "facility_id", "storage_id", "output_product_id", "product_unit_cost", "production_rate", "manufacturing_number")
         states = manufactures[self.env.frame_index::features].flatten().reshape(manufacture_unit_number, -1).astype(np.int)
 
+        # show bom
+        bom_info = []
+        for state in states:
+            output_product_id = state[3]
+
+            # NOTE: we are using internal data to simplify the code
+            sku = self.env._business_engine.world.get_sku_by_id(output_product_id)
+
+            # this sku need source material
+            if len(sku.bom) > 0:
+                bom_info.append([output_product_id, [s for s in sku.bom.keys()], [s for s in sku.bom.values()]])
+            else:
+                bom_info.append([output_product_id, "None", "None"])
+
+        print(f"{bcolors.HEADER}SKU bom info:{bcolors.ENDC}")
+        print(tabulate(bom_info, ("product id", "source materials", "source material cost per lot")))
+
         # show manufacture unit data
         print(f"{bcolors.HEADER}Manufacture states:{bcolors.ENDC}")
         print(tabulate(states, headers=features))
@@ -155,10 +172,6 @@ class InteractiveRenderaleEnv:
             product_number = storages[self.env.frame_index:storage_index:"product_number"].flatten().astype(np.int)
             storage_states = storages[self.env.frame_index:storage_index:storage_features].flatten().astype(np.int)
 
-            # print(product_list)
-            # print(product_number)
-            # print(storage_states)
-
             cur_storage_states = []
             cur_storage_states.extend(storage_states)
             cur_storage_states.append(product_list)
@@ -167,7 +180,6 @@ class InteractiveRenderaleEnv:
             storage_states_summary.append(cur_storage_states)
 
         print(tabulate(storage_states_summary, headers=storage_features+["product_list", "product_number"]))
-
 
     def choose_action(self):
         # dummy actions

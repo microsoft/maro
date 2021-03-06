@@ -40,6 +40,7 @@ class ManufacturingUnit(UnitBase):
             unit_num_upper_bound = self.facility.storage.data.capacity // sku_num
 
             # one lot per time, until no enough space to hold output, or no enough source material
+            # TODO: simplify this part to make it faster
             for _ in range(self.data.production_rate):
                 storage_remaining_space = self.facility.storage.data.remaining_space
                 current_product_number = self.facility.storage.get_product_number(self.data.output_product_id)
