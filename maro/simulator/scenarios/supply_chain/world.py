@@ -150,7 +150,7 @@ class World:
 
         # travel cost for a star path finder, 0 means block, > 1 means the cost travel to that cell
         # current all traversable cell's cost will be 1.
-        cost_grid = np.ones(shape=(grid_width, grid_height), dtype=np.int)
+        cost_grid = np.ones(shape=(grid_width, grid_height), dtype=np.int8)
 
         # add blocks to grid
         for facility_name, facility_pos in grid_config["facilities"].items():
@@ -160,8 +160,9 @@ class World:
             facility.x = facility_pos[0]
             facility.y = facility_pos[1]
 
-            # facility is a block, so cost is 0
-            cost_grid[facility.x, facility.y] = 0
+            # facility cannot be a block, or we cannot find path to it,
+            # but we can give it a big cost
+            cost_grid[facility.x, facility.y] = 120
 
         for block_pos in grid_config["blocks"].values():
             cost_grid[block_pos[0], block_pos[1]] = 0

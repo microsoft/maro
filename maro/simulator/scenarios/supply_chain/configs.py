@@ -114,6 +114,7 @@ test_world_config = {
                     "sku3": {
                         "init_in_stock": 100,
                         "production_rate": 200,
+                        "delay_order_penalty": 10,
                         "type": "production",
                         "cost": 10,
                         "price": 10
@@ -152,6 +153,7 @@ test_world_config = {
                     "sku1": {
                         "init_in_stock": 100,
                         "production_rate": 200,
+                        "delay_order_penalty": 10,
                         "type": "production",
                         "cost": 10,
                         "price": 100
@@ -160,6 +162,7 @@ test_world_config = {
                     "sku3": {
                         "init_in_stock": 100,
                         "production_rate": 200,
+                        "delay_order_penalty": 10,
                         "type": "material",
                         "cost": 10,
                         "price": 100
@@ -197,14 +200,17 @@ test_world_config = {
                 "skus": {
                     "sku1": {
                         "init_stock": 1000,
+                        "delay_order_penalty": 10,
                         "price": 100
                     },
                     "sku2": {
                         "init_stock": 1000,
+                        "delay_order_penalty": 10,
                         "price": 100
                     },
                     "sku3": {
                         "init_stock": 1000,
+                        "delay_order_penalty": 10,
                         "price": 100
                     },
                 },

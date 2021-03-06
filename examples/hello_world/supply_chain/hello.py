@@ -121,14 +121,22 @@ class InteractiveRenderaleEnv:
         pp.pprint(self.env.summary)
 
     def show_states(self):
-        # print("total snapshots:\n", len(self.env.snapshot_list))
-        # print("transport patient:\n", self.env.snapshot_list["transport"][:0:"patient"].flatten())
-
-        # since the seller node number will not change, we can reshape it as below
-        # seller_number = len(self.env.snapshot_list["seller"])
-        # print("seller demand:\n", self.env.snapshot_list["seller"][::"demand"].flatten().reshape((-1, seller_number)))
-
         self.show_manufacture_states()
+
+        self.show_vehicle_states()
+
+    def show_vehicle_states(self):
+        vehicles = self.env.snapshot_list["transport"]
+
+        vehicle_number = len(vehicles)
+
+        vehicle_features = ("id", "facility_id", "location", "steps", "patient", "source", "destination", "payload", "product_id", )
+
+        vehicle_states = vehicles[self.env.frame_index::vehicle_features].flatten().reshape(vehicle_number, -1).astype(np.int)
+
+        print(f"{bcolors.HEADER}Vehicle states:{bcolors.ENDC}")
+
+        print(tabulate(vehicle_states, vehicle_features))
 
     def show_manufacture_states(self):
         # This function is used to debug manufacturing logic.

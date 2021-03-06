@@ -44,7 +44,7 @@ class DistributionUnit(UnitBase):
         # NOTE: we moved delay_order_penalty from facility to sku, is this ok?
         # update order's delay penalty per tick.
         for order in self.order_queue:
-            sku = self.facility.get_sku(order.product_id)
+            sku = self.facility.sku_information[order.product_id]
             product_index = self.product_index_mapping[order.product_id]
 
             self.data.delay_order_penalty[product_index] += sku.delay_order_penalty

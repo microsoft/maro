@@ -4,7 +4,7 @@ from .base import FacilityBase
 
 
 class SupplierFacility(FacilityBase):
-    SkuInfo = namedtuple("SkuInfo", ("name", "id", "init_in_stock", "production_rate", "type", "cost", "price"))
+    SkuInfo = namedtuple("SkuInfo", ("name", "id", "init_in_stock", "production_rate", "type", "cost", "price", "delay_order_penalty"))
 
     storage = None
     distribution = None
@@ -73,7 +73,8 @@ class SupplierFacility(FacilityBase):
                 sku_config.get("production_rate", 0),
                 sku_config["type"],
                 sku_config.get("cost", 0),
-                sku_config.get("price", 0)
+                sku_config.get("price", 0),
+                sku_config.get("delay_order_penalty", 0)
             )
 
             self.sku_information[sku.id] = sku_info
