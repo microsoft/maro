@@ -43,7 +43,6 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         for _, facility in self.world.facilities.items():
             facility.step(tick)
 
-        # TODO: debug only, ask for action per 5 ticks.
         if tick % self._action_steps == 0:
             decision_event = self._event_buffer.gen_decision_event(tick, None)
 
@@ -54,8 +53,6 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         if (tick + 1) % self._snapshot_resolution == 0:
             self._frame.take_snapshot(self.frame_index(tick))
 
-            # TODO: anything need to reset per tick?
-
         for facility in self.world.facilities.values():
             facility.post_step(tick)
 
@@ -65,7 +62,6 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         self._frame.reset()
         self._frame.snapshots.reset()
 
-        # TODO: reset frame nodes.
         for _, facility in self.world.facilities.items():
             facility.reset()
 

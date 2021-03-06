@@ -72,7 +72,6 @@ class TransportUnit(UnitBase):
         if len(unloaded) > 0:
             unloaded_units = sum(unloaded.values())
 
-            # TODO: not implemented, refactor the name
             self.destination.consumers[self.data.product_id].on_order_reception(
                 self.facility.id,
                 self.data.product_id,
