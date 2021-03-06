@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import numpy as np
 import tcod
 import pprint
 
@@ -122,11 +123,14 @@ class InteractiveRenderaleEnv:
     def show_manufacture_states(self):
         # This function is used to debug manufacturing logic.
         manufactures = self.env.snapshot_list["manufacture"]
+        storages = self.env.snapshot_list["storage"]
+
         manufacture_unit_number = len(manufactures)
+        storage_unit_number = len(storages)
 
         # manufacture number for current tick
         features = ("id", "facility_id", "storage_id", "output_product_id", "product_unit_cost", "production_rate", "manufacturing_number")
-        states = manufactures[self.env.frame_index::features].flatten().reshape(manufacture_unit_number, -1)
+        states = manufactures[self.env.frame_index::features].flatten().reshape(manufacture_unit_number, -1).astype(np.int)
 
         # show manufacture unit data
         print(f"{bcolors.HEADER}Manufacture states:{bcolors.ENDC}")
@@ -135,10 +139,34 @@ class InteractiveRenderaleEnv:
         # show storage state to see if product changed
         print(f"{bcolors.HEADER}Storage states:{bcolors.ENDC}")
 
-        for state in states:
-            facility_id = int(state[1])
+        storage_features = ["id", "remaining_space", "capacity"]
+        storage_states_summary = []
 
-            print(facility_id)
+        for state in states:
+            # DO NOTE: this is id, CANNOT be used to query
+            facility_id = state[1]
+            storage_id = state[2]
+
+            storage_node_name, storage_index = self.env.summary["node_mapping"]["mapping"][storage_id]
+
+            # NOTE: we cannot mix list and normal attribute to query state,
+            # we have to query one by one
+            product_list = storages[self.env.frame_index:storage_index:"product_list"].flatten().astype(np.int)
+            product_number = storages[self.env.frame_index:storage_index:"product_number"].flatten().astype(np.int)
+            storage_states = storages[self.env.frame_index:storage_index:storage_features].flatten().astype(np.int)
+
+            # print(product_list)
+            # print(product_number)
+            # print(storage_states)
+
+            cur_storage_states = []
+            cur_storage_states.extend(storage_states)
+            cur_storage_states.append(product_list)
+            cur_storage_states.append(product_number)
+
+            storage_states_summary.append(cur_storage_states)
+
+        print(tabulate(storage_states_summary, headers=storage_features+["product_list", "product_number"]))
 
 
     def choose_action(self):
