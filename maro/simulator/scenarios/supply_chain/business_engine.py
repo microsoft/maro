@@ -38,6 +38,12 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         for _, facility in self.world.facilities.items():
             facility.step(tick)
 
+        # TODO: debug only, ask for action per 5 ticks.
+        if tick % 5 == 0:
+            decision_event = self._event_buffer.gen_decision_event(tick, "payload")
+
+            self._event_buffer.insert_event(decision_event)
+
     def post_step(self, tick: int):
         # take snapshot
         if (tick + 1) % self._snapshot_resolution == 0:

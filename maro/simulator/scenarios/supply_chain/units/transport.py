@@ -13,6 +13,8 @@ class TransportUnit(UnitBase):
         # current products' destination
         self.destination = None
 
+        self.path = None
+
     def initialize(self, configs: dict):
         super().initialize(configs)
 
@@ -21,6 +23,7 @@ class TransportUnit(UnitBase):
 
         self.destination = None
         self.max_patient = None
+        self.path = None
 
     def schedule(self, destination, product_id: int, quantity: int, vlt):
         self.data.destination = destination.id
@@ -33,7 +36,7 @@ class TransportUnit(UnitBase):
         self.max_patient = self.data.patient
 
         # Find the path from current entity to target.
-        path = self.world.find_path(
+        self.path = self.world.find_path(
             self.facility.x,
             self.facility.y,
             destination.facility.x,
@@ -44,7 +47,7 @@ class TransportUnit(UnitBase):
             raise Exception(f"Destination {destination} is unreachable")
 
         # Steps to destination.
-        self.data.steps = len(path) // vlt
+        self.data.steps = len(self.path) // vlt
 
         # We are waiting for product loading.
         self.data.location = 0
@@ -112,6 +115,8 @@ class TransportUnit(UnitBase):
                 # Closer to destination until 0.
                 self.data.location += 1
                 self.data.steps -= 1
+
+                self.data.position[:] = self.path[self.data.location]
         else:
             # avoid update under idle state.
             if self.data.location > 0:
