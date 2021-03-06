@@ -89,3 +89,10 @@ class ConsumerUnit(UnitBase):
             # TODO: refine it later, seems like we do not need this
             # if len(self.open_orders[source_id]) == 0:
             #     del self.open_orders[source_id]
+
+    def get_unit_info(self) -> dict:
+        info = super(ConsumerUnit, self).get_unit_info()
+
+        info["sku_id"] = self.data.consumer_product_id
+
+        return info

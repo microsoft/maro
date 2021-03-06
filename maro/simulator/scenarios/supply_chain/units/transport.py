@@ -39,8 +39,8 @@ class TransportUnit(UnitBase):
         self.path = self.world.find_path(
             self.facility.x,
             self.facility.y,
-            destination.facility.x,
-            destination.facility.y
+            destination.x,
+            destination.y
         )
 
         if self.path is None:
@@ -98,7 +98,6 @@ class TransportUnit(UnitBase):
 
                     # Failed to load, check the patient.
                     if self.patient < 0:
-                        # TODO: not implemented, refactor the name.
                         self.destination.consumer.update_open_orders(
                             self.facility.id,
                             self.data.product_id,
@@ -114,9 +113,11 @@ class TransportUnit(UnitBase):
             if self.data.payload > 0:
                 # Closer to destination until 0.
 
-                # TODO: BUG, fix it later.
-                self.data.location += 1
+                self.data.location += self.data.vlt
                 self.data.steps -= 1
+
+                if self.data.location >= len(self.path):
+                    self.data.location = len(self.path) - 1
 
                 self.data.position[:] = self.path[self.data.location]
         else:

@@ -29,7 +29,7 @@ class DistributionUnit(UnitBase):
     def step(self, tick: int):
         for vehicle in self.facility.transports:
             # if we have vehicle not on the way and there is any pending order
-            if len(self.order_queue) > 0 and vehicle.datamodel.location == 0:
+            if len(self.order_queue) > 0 and vehicle.data.location == 0:
                 order = self.order_queue.popleft()
 
                 # schedule a job for vehicle
@@ -63,7 +63,7 @@ class DistributionUnit(UnitBase):
 
     def place_order(self, order):
         if order.quantity > 0:
-            sku = self.facility.get_sku_by_id(order.product_id)
+            sku = self.facility.sku_information[order.product_id]
 
             if sku is not None:
                 self.order_queue.append(order)

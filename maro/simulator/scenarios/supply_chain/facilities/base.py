@@ -6,6 +6,10 @@ class FacilityBase(ABC):
     # current world
     world = None
 
+    # position in the world
+    x: int = None
+    y: int = None
+
     # configuration of this facility
     configs: dict = None
 
@@ -17,6 +21,7 @@ class FacilityBase(ABC):
 
     # sku information, same as original sku_in_stock
     # different facility may contains different data
+    # TODO: provide sku by methods, not expose sku property
     sku_information: dict = None
 
     # dictionary of upstreams

@@ -153,8 +153,15 @@ class World:
         cost_grid = np.ones(shape=(grid_width, grid_height), dtype=np.int)
 
         # add blocks to grid
-        for facility_pos in grid_config["facilities"].values():
-            cost_grid[facility_pos[0], facility_pos[1]] = 0
+        for facility_name, facility_pos in grid_config["facilities"].items():
+            facility_id = self._facility_name2id_mapping[facility_name]
+            facility = self.facilities[facility_id]
+
+            facility.x = facility_pos[0]
+            facility.y = facility_pos[1]
+
+            # facility is a block, so cost is 0
+            cost_grid[facility.x, facility.y] = 0
 
         for block_pos in grid_config["blocks"].values():
             cost_grid[block_pos[0], block_pos[1]] = 0
