@@ -4,8 +4,9 @@
 import tcod
 import pprint
 
+from tabulate import tabulate
 from maro.simulator import Env
-from maro.simulator.scenarios.cim.common import Action
+from maro.simulator.scenarios.supply_chain import ConsumerAction
 
 
 WINDOW_SCALE_FACTOR = 2
@@ -13,14 +14,27 @@ TILESET_SIZE = 8
 
 CHAR_DEFAULT = 0x2610
 
+# https://stackoverflow.com/questions/287871/how-to-print-colored-text-to-the-terminal
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
 
 class InteractiveRenderaleEnv:
     def __init__(self, env: Env):
         self.env = env
 
     def start(self):
-        print("Press SPACE for next step!!!")
-        print("Press S for states!!!")
+        print(f"{bcolors.WARNING}Press SPACE for next step!!!{bcolors.ENDC}")
+        print(f"{bcolors.WARNING}Press S to show current debug states!!!{bcolors.ENDC}")
+        print(f"{bcolors.WARNING}Press M to show env summary!!!{bcolors.ENDC}")
 
         # tileset from https://github.com/libtcod/python-tcod.
         tileset = tcod.tileset.load_tilesheet("font/dejavu10x10_gs_tc.png", 32, TILESET_SIZE, tcod.tileset.CHARMAP_TCOD)
@@ -78,32 +92,67 @@ class InteractiveRenderaleEnv:
                             # push environment to next step
                             metrics, decision_event, is_done = self.env.step(None)
 
-                            print("Current environment tick:", self.env.tick)
+                            print(f"{bcolors.OKGREEN}Current environment tick:", self.env.tick, f"{bcolors.ENDC}")
 
                             if is_done:
                                 return
                         elif event.sym == tcod.event.K_s:
                             # show state we predefined
                             self.show_states()
+                        elif event.sym == tcod.event.K_m:
+                            self.show_summary()
+
+    def show_summary(self):
+        pp = pprint.PrettyPrinter(indent=2, depth=8)
+
+        print(f"{bcolors.HEADER}env summary:{bcolors.ENDC}")
+
+        pp.pprint(self.env.summary)
 
     def show_states(self):
-        print("total snapshots:\n", len(self.env.snapshot_list))
-        print("transport patient:\n", self.env.snapshot_list["transport"][:0:"patient"].flatten())
+        # print("total snapshots:\n", len(self.env.snapshot_list))
+        # print("transport patient:\n", self.env.snapshot_list["transport"][:0:"patient"].flatten())
 
         # since the seller node number will not change, we can reshape it as below
-        seller_number = len(self.env.snapshot_list["seller"])
-        print("seller demand:\n", self.env.snapshot_list["seller"][::"demand"].flatten().reshape((-1, seller_number)))
+        # seller_number = len(self.env.snapshot_list["seller"])
+        # print("seller demand:\n", self.env.snapshot_list["seller"][::"demand"].flatten().reshape((-1, seller_number)))
+
+        self.show_manufacture_states()
+
+    def show_manufacture_states(self):
+        # This function is used to debug manufacturing logic.
+        manufactures = self.env.snapshot_list["manufacture"]
+        manufacture_unit_number = len(manufactures)
+
+        # manufacture number for current tick
+        features = ("id", "facility_id", "storage_id", "output_product_id", "product_unit_cost", "production_rate", "manufacturing_number")
+        states = manufactures[self.env.frame_index::features].flatten().reshape(manufacture_unit_number, -1)
+
+        # show manufacture unit data
+        print(f"{bcolors.HEADER}Manufacture states:{bcolors.ENDC}")
+        print(tabulate(states, headers=features))
+
+        # show storage state to see if product changed
+        print(f"{bcolors.HEADER}Storage states:{bcolors.ENDC}")
+
+        for state in states:
+            facility_id = int(state[1])
+
+            print(facility_id)
+
+
+    def choose_action(self):
+        # dummy actions
+
+        # push consumers to generate order
+        # consumers =
+        pass
 
 
 def main():
     start_tick = 0
     durations = 100
     env = Env(scenario="supply_chain", topology="no", start_tick=start_tick, durations=durations)
-
-    pp = pprint.PrettyPrinter(indent=2, depth=8)
-
-    print("env summary:")
-    pp.pprint(env.summary)
 
     irenv = InteractiveRenderaleEnv(env)
 

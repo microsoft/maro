@@ -22,6 +22,8 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
 
         self._frame = self.world.frame
 
+        self._action_steps = self.world.configs["action_steps"]
+
     @property
     def frame(self):
         return self._frame
@@ -42,8 +44,8 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
             facility.step(tick)
 
         # TODO: debug only, ask for action per 5 ticks.
-        if tick % 5 == 0:
-            decision_event = self._event_buffer.gen_decision_event(tick, "payload")
+        if tick % self._action_steps == 0:
+            decision_event = self._event_buffer.gen_decision_event(tick, None)
 
             self._event_buffer.insert_event(decision_event)
 

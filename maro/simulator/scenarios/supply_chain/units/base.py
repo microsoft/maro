@@ -34,6 +34,7 @@ class UnitBase:
         """Initialize current unit"""
         # called after frame ready
         self.configs = configs
+        self.data.set_id(self.id, self.facility.id)
         self.data.initialize(configs.get("data", {}))
 
     def step(self, tick: int):

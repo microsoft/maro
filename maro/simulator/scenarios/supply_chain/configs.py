@@ -313,5 +313,7 @@ test_world_config = {
                 [11, 12]
             ]
         }
-    }
+    },
+    # how many ticks to ask for an action.
+    "action_steps": 1
 }

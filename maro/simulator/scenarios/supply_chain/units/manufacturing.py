@@ -20,6 +20,9 @@ class ManufacturingUnit(UnitBase):
         super(ManufacturingUnit, self).__init__()
 
     def initialize(self, configs: dict):
+        # add the storage_id
+        configs["data"]["storage_id"] = self.facility.storage.id
+
         super().initialize(configs)
 
         # grab bom of current production
@@ -46,8 +49,9 @@ class ManufacturingUnit(UnitBase):
                 if storage_remaining_space >= space_taken_per_cycle:
                     # if not reach the storage limitation of current production
                     if current_product_number < unit_num_upper_bound:
-                        # if we have enough source materials
-                        if self.facility.storage.try_take_units(self.bom):
+                        # if we do not need any material, then just generate the out product.
+                        # or if we have enough source materials
+                        if len(self.bom) == 0 or self.facility.storage.try_take_units(self.bom):
                             self.facility.storage.try_add_units({self.data.output_product_id: self.output_units_per_lot})
 
                             # update manufacturing number in state
@@ -55,7 +59,7 @@ class ManufacturingUnit(UnitBase):
 
     def post_step(self, tick: int):
         # reset the manufacture cost per tick
-        self.data.manufacturing_cost = 0
+        self.data.manufacturing_number = 0
 
     def set_action(self, action: int):
         # we expect production rate number as action
