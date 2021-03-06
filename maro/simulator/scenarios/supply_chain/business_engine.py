@@ -5,6 +5,7 @@ from maro.simulator.scenarios import AbsBusinessEngine
 
 from maro.event_buffer import MaroEvents, CascadeEvent, AtomEvent
 
+from .units import UnitBase
 from .world import World
 from .configs import test_world_config
 
@@ -53,6 +54,9 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
 
             # TODO: anything need to reset per tick?
 
+        for facility in self.world.facilities.values():
+            facility.post_step(tick)
+
         return tick+1 == self._max_tick
 
     def reset(self):
@@ -64,21 +68,29 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
             facility.reset()
 
     def _register_events(self):
-        self._event_buffer.register_event_handler(MaroEvents.TAKE_ACTION, self._on_action_recieved)
+        self._event_buffer.register_event_handler(MaroEvents.TAKE_ACTION, self._on_action_received)
 
     def _build_world(self):
         self.update_config_root_path(__file__)
 
-        config_path = os.path.join(self._config_path, "config.yml")
+        # config_path = os.path.join(self._config_path, "config.yml")
 
         self.world = World()
 
         self.world.build(test_world_config, self.calc_max_snapshots())
 
-    def _on_action_recieved(self, event):
+    def _on_action_received(self, event):
         action = event.payload
 
         if action:
-            pass
+            # NOTE:
+            # we assume that the action is a dictionary that
+            # key is the id of unit
+            # value is the action for specified unit, the type may different by different type
 
-            # TODO: how to dispatch it to units?
+            for unit_id, control_action in action.items():
+                # try to find the unit
+                unit: UnitBase = self.world.get_entity(unit_id)
+
+                # dispatch the action
+                unit.set_action(control_action)
