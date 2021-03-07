@@ -257,7 +257,7 @@ test_world_config = {
                 "storage": {
                     "data": {
                         "class": "StorageDataModel",
-                        "capacity": 200,
+                        "capacity": 20000,
                         "unit_storage_cost": 10
                     },
                     "class": "StorageUnit"
@@ -320,7 +320,7 @@ test_world_config = {
                 "storage": {
                     "data": {
                         "class": "StorageDataModel",
-                        "capacity": 1000,
+                        "capacity": 20000,
                         "unit_storage_cost": 10
                     },
                     "class": "StorageUnit"
