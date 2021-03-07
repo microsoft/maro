@@ -123,7 +123,8 @@ class InteractiveRenderaleEnv:
         vehicles = self.env.snapshot_list["transport"]
         vehicle_number = len(vehicles)
 
-        # here we query the attributes that slot number ==1, then query position, or snapshot_list will try to padding for id
+        # here we query the attributes that slot number ==1,
+        # then query position, or snapshot_list will try to padding for id
         normal_list = vehicles[self.env.frame_index::("id", "steps", "location")].flatten().reshape(vehicle_number, -1).astype(np.int)
         pos_list = vehicles[self.env.frame_index::"position"].flatten().reshape(vehicle_number, -1).astype(np.int)
 
@@ -148,6 +149,38 @@ class InteractiveRenderaleEnv:
         self.show_manufacture_states()
 
         self.show_vehicle_states()
+
+        self.show_demand_states()
+
+        self.show_storage_states()
+
+    def show_storage_states(self):
+        storages = self.env.snapshot_list["storage"]
+        storage_number = len(storages)
+
+        storage_features = ("id", "facility_id", "remaining_space", "capacity", "unit_storage_cost")
+        storage_states = storages[self.env.frame_index::storage_features].flatten().reshape(storage_number, -1).astype(np.int)
+
+        storage_all_states = []
+
+        for index, state in enumerate(storage_states):
+            product_list = storages[self.env.frame_index:index:"product_list"].flatten().astype(np.int)
+            product_number = storages[self.env.frame_index:index:"product_number"].flatten().astype(np.int)
+
+            storage_all_states.append(list(state) + [product_list, product_number])
+
+        print(f"{bcolors.HEADER}Storage states:{bcolors.ENDC}")
+        print(tabulate(storage_all_states, storage_features + ("product_list", "product_number")))
+
+    def show_demand_states(self):
+        sellers = self.env.snapshot_list["seller"]
+        seller_number = len(sellers)
+
+        seller_features = ("id", "facility_id", "product_id", "demand", "sold", "total_sold", "sale_gamma")
+        seller_states = sellers[self.env.frame_index::seller_features].flatten().reshape(seller_number, -1).astype(np.int)
+
+        print(f"{bcolors.HEADER}Demand states:{bcolors.ENDC}")
+        print(tabulate(seller_states, seller_features))
 
     def show_vehicle_states(self):
         vehicles = self.env.snapshot_list["transport"]
@@ -196,7 +229,7 @@ class InteractiveRenderaleEnv:
         print(tabulate(states, headers=features))
 
         # show storage state to see if product changed
-        print(f"{bcolors.HEADER}Storage states:{bcolors.ENDC}")
+        print(f"{bcolors.HEADER}Manufacture storage states:{bcolors.ENDC}")
 
         storage_features = ["id", "remaining_space", "capacity"]
         storage_states_summary = []
