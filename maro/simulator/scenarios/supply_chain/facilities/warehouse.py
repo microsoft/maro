@@ -33,11 +33,9 @@ class WarehouseFacility(FacilityBase):
     def build(self, configs: dict):
         self.configs = configs
 
-        # TODO: following strings should from config later
-
         # construct storage
-        self.storage = self.world.build_unit("StorageUnit")
-        self.storage.data_class = "StorageDataModel"
+        self.storage = self.world.build_unit(configs["storage"]["class"])
+        self.storage.data_class = configs["storage"]["data"]["class"]
 
         self.storage.world = self.world
         self.storage.facility = self
@@ -47,8 +45,8 @@ class WarehouseFacility(FacilityBase):
         self.transports = []
 
         for facility_conf in configs["transports"]:
-            transport = self.world.build_unit("TransportUnit")
-            transport.data_class = "TransportDataModel"
+            transport = self.world.build_unit(facility_conf["class"])
+            transport.data_class = facility_conf["data"]["class"]
 
             transport.world = self.world
             transport.facility = self
@@ -57,8 +55,8 @@ class WarehouseFacility(FacilityBase):
             self.transports.append(transport)
 
         # construct distribution
-        self.distribution = self.world.build_unit("DistributionUnit")
-        self.distribution.data_class = "DistributionDataModel"
+        self.distribution = self.world.build_unit(configs["distribution"]["class"])
+        self.distribution.data_class = configs["distribution"]["data"]["class"]
 
         self.distribution.world = self.world
         self.distribution.facility = self
@@ -80,8 +78,8 @@ class WarehouseFacility(FacilityBase):
 
             self.sku_information[sku.id] = sku_info
 
-            consumer = self.world.build_unit("ConsumerUnit")
-            consumer.data_class = "ConsumerDataModel"
+            consumer = self.world.build_unit(configs["consumers"]["class"])
+            consumer.data_class = configs["consumers"]["data"]["class"]
 
             consumer.world = self.world
             consumer.facility = self
@@ -97,7 +95,7 @@ class WarehouseFacility(FacilityBase):
         self.storage.initialize(self.configs.get("storage", {}))
         self.distribution.initialize(self.configs.get("distribution", {}))
 
-        transports_conf = self.configs["transports"]
+        transports_conf = self.configs.get("transports", [])
 
         for index, transport in enumerate(self.transports):
             transport.initialize(transports_conf[index])

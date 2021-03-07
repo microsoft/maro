@@ -122,27 +122,47 @@ test_world_config = {
                 },
                 "storage": {
                     "data": {
+                        "class": "StorageDataModel",
                         "capacity": 20000,
                         "unit_storage_cost": 10
-                    }
+                    },
+                    "class": "StorageUnit"
                 },
                 "distribution": {
                     "data": {
+                        "class": "DistributionDataModel",
                         "unit_price": 10
-                    }
+                    },
+                    "class": "DistributionUnit"
                 },
                 "transports": [
                     {
                         "data": {
+                            "class": "TransportDataModel",
                             "patient": 100
-                        }
+                        },
+                        "class": "TransportUnit"
                     },
                     {
                         "data": {
+                            "class": "TransportDataModel",
                             "patient": 100
-                        }
+                        },
+                        "class": "TransportUnit"
                     }
-                ]
+                ],
+                "consumers": {
+                    "data": {
+                        "class": "ConsumerDataModel"
+                    },
+                    "class": "ConsumerUnit"
+                },
+                "suppliers": {
+                    "data": {
+                        "class": "ManufactureDataModel"
+                    },
+                    "class": "ManufacturingUnit"
+                }
             }
         },
         {
@@ -170,27 +190,47 @@ test_world_config = {
                 },
                 "storage": {
                     "data": {
+                        "class": "StorageDataModel",
                         "capacity": 20000,
                         "unit_storage_cost": 10
-                    }
+                    },
+                    "class": "StorageUnit"
                 },
                 "distribution": {
                     "data": {
+                        "class": "DistributionDataModel",
                         "unit_price": 10
-                    }
+                    },
+                    "class": "DistributionUnit"
                 },
                 "transports": [
                     {
                         "data": {
+                            "class": "TransportDataModel",
                             "patient": 100
-                        }
+                        },
+                        "class": "TransportUnit"
                     },
                     {
                         "data": {
+                            "class": "TransportDataModel",
                             "patient": 100
-                        }
+                        },
+                        "class": "TransportUnit"
                     }
-                ]
+                ],
+                "consumers": {
+                    "data": {
+                        "class": "ConsumerDataModel"
+                    },
+                    "class": "ConsumerUnit"
+                },
+                "suppliers": {
+                    "data": {
+                        "class": "ManufactureDataModel"
+                    },
+                    "class": "ManufacturingUnit"
+                }
             }
         },
         {
@@ -216,27 +256,41 @@ test_world_config = {
                 },
                 "storage": {
                     "data": {
+                        "class": "StorageDataModel",
                         "capacity": 200,
                         "unit_storage_cost": 10
-                    }
+                    },
+                    "class": "StorageUnit"
                 },
                 "distribution": {
                     "data": {
+                        "class": "DistributionDataModel",
                         "unit_price": 10
-                    }
+                    },
+                    "class": "DistributionUnit"
                 },
                 "transports": [
                     {
                         "data": {
+                            "class": "TransportDataModel",
                             "patient": 100
-                        }
+                        },
+                        "class": "TransportUnit"
                     },
                     {
                         "data": {
+                            "class": "TransportDataModel",
                             "patient": 100
-                        }
+                        },
+                        "class": "TransportUnit"
                     }
-                ]
+                ],
+                "consumers": {
+                    "data": {
+                        "class": "ConsumerDataModel"
+                    },
+                    "class": "ConsumerUnit"
+                }
             }
         },
         {
@@ -265,10 +319,24 @@ test_world_config = {
                 },
                 "storage": {
                     "data": {
+                        "class": "StorageDataModel",
                         "capacity": 1000,
                         "unit_storage_cost": 10
-                    }
+                    },
+                    "class": "StorageUnit"
                 },
+                "consumers": {
+                    "data": {
+                        "class": "ConsumerDataModel"
+                    },
+                    "class": "ConsumerUnit"
+                },
+                "sellers": {
+                    "data": {
+                        "class": "SellerDataModel"
+                    },
+                    "class": "SellerUnit"
+                }
             }
         }
     ],

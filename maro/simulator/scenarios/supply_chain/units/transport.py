@@ -116,10 +116,10 @@ class TransportUnit(UnitBase):
                 self.data.location += self.data.vlt
                 self.data.steps -= 1
 
-                if self.data.location >= len(self.path):
+                if self.data.location > len(self.path):
                     self.data.location = len(self.path) - 1
 
-                self.data.position[:] = self.path[self.data.location]
+                self.data.position[:] = self.path[self.data.location-1]
         else:
             # avoid update under idle state.
             if self.data.location > 0:

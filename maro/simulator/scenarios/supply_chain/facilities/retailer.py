@@ -37,8 +37,8 @@ class RetailerFacility(FacilityBase):
         self.configs = configs
 
         # construct storage
-        self.storage = self.world.build_unit("StorageUnit")
-        self.storage.data_class = "StorageDataModel"
+        self.storage = self.world.build_unit(configs["storage"]["class"])
+        self.storage.data_class = configs["storage"]["data"]["class"]
 
         self.storage.world = self.world
         self.storage.facility = self
@@ -62,8 +62,8 @@ class RetailerFacility(FacilityBase):
             self.sku_information[sku.id] = sku_info
 
             # all sku in retail are final production for sale, no material
-            consumer = self.world.build_unit("ConsumerUnit")
-            consumer.data_class = "ConsumerDataModel"
+            consumer = self.world.build_unit(configs["consumers"]["class"])
+            consumer.data_class = configs["consumers"]["data"]["class"]
 
             consumer.world = self.world
             consumer.facility = self
@@ -72,8 +72,8 @@ class RetailerFacility(FacilityBase):
             self.consumers[sku.id] = consumer
 
             # seller for this sku
-            seller = self.world.build_unit("SellerUnit")
-            seller.data_class = "SellerDataModel"
+            seller = self.world.build_unit(configs["sellers"]["class"])
+            seller.data_class = configs["sellers"]["data"]["class"]
 
             seller.world = self.world
             seller.facility = self

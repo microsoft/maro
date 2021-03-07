@@ -28,11 +28,11 @@ class SupplierFacility(FacilityBase):
     def build(self, configs: dict):
         self.configs = configs
 
-        # TODO: dup code from facilities, refactoring later
+        # TODO: dup code in all facilities, refactoring later
 
         # construct storage
-        self.storage = self.world.build_unit("StorageUnit")
-        self.storage.data_class = "StorageDataModel"
+        self.storage = self.world.build_unit(configs["storage"]["class"])
+        self.storage.data_class = configs["storage"]["data"]["class"]
 
         self.storage.world = self.world
         self.storage.facility = self
@@ -41,9 +41,9 @@ class SupplierFacility(FacilityBase):
         # construct transport
         self.transports = []
 
-        for _ in configs["transports"]:
-            transport = self.world.build_unit("TransportUnit")
-            transport.data_class = "TransportDataModel"
+        for transport_conf in configs["transports"]:
+            transport = self.world.build_unit(transport_conf["class"])
+            transport.data_class = transport_conf["data"]["class"]
 
             transport.world = self.world
             transport.facility = self
@@ -52,8 +52,8 @@ class SupplierFacility(FacilityBase):
             self.transports.append(transport)
 
         # construct distribution
-        self.distribution = self.world.build_unit("DistributionUnit")
-        self.distribution.data_class = "DistributionDataModel"
+        self.distribution = self.world.build_unit(configs["distribution"]["class"])
+        self.distribution.data_class = configs["distribution"]["data"]["class"]
 
         self.distribution.world = self.world
         self.distribution.facility = self
@@ -82,8 +82,8 @@ class SupplierFacility(FacilityBase):
             # TODO: make it an enum later.
             if sku_info.type == "production":
                 # one supplier per sku
-                supplier = self.world.build_unit("ManufacturingUnit")
-                supplier.data_class = "ManufactureDataModel"
+                supplier = self.world.build_unit(configs["suppliers"]["class"])
+                supplier.data_class = configs["suppliers"]["data"]["class"]
 
                 supplier.world = self.world
                 supplier.facility = self
@@ -91,8 +91,8 @@ class SupplierFacility(FacilityBase):
 
                 self.suppliers[sku.id] = supplier
             else:
-                consumer = self.world.build_unit("ConsumerUnit")
-                consumer.data_class = "ConsumerDataModel"
+                consumer = self.world.build_unit(configs["consumers"]["class"])
+                consumer.data_class = configs["consumers"]["data"]["class"]
 
                 consumer.world = self.world
                 consumer.facility = self
