@@ -5,9 +5,9 @@ from collections import defaultdict, namedtuple
 
 from .frame_builder import build_frame
 
-from .configs import unit_mapping, data_class_mapping
-
 from tcod.path import AStar
+
+from .config_parser import SupplyChainConfiguration
 
 
 # sku definition in world level
@@ -51,6 +51,10 @@ class World:
         # a star path finder
         self._path_finder: AStar = None
 
+        self._data_model_definitions = None
+        self._facility_definitions = None
+        self._unit_definitions = None
+
     def gen_id(self):
         """Generate id for facility or unit."""
         new_id = self._id_counter
@@ -61,9 +65,9 @@ class World:
 
     def build_unit(self, name: str):
         """Build an unit instance from it name via current configuration."""
-        assert name in unit_mapping
+        assert name in self._unit_definitions
 
-        unit = unit_mapping[name]["class"]()
+        unit = self._unit_definitions[name].class_type()
 
         unit.id = self.gen_id()
 
@@ -71,9 +75,14 @@ class World:
 
         return unit
 
-    def build(self, configs: dict, snapshot_number: int):
+    def build(self, all_in_one_config: SupplyChainConfiguration, snapshot_number: int):
         """Build current world according to configurations."""
-        self.configs = configs
+        self.configs = all_in_one_config.world
+        self._facility_definitions = all_in_one_config.facilities
+        self._unit_definitions = all_in_one_config.units
+        self._data_model_definitions = all_in_one_config.data_models
+
+        configs = self.configs
 
         # collect sku information first
         for sku_conf in configs["skus"]:
@@ -96,7 +105,8 @@ class World:
             facility_name = facility_conf["name"]
 
             # create a new instance of facility
-            facility = facility_conf["class"]()
+            facility_def = self._facility_definitions[facility_conf["class"]]
+            facility = facility_def.class_type()
 
             # NOTE: DO set these fields before other operations.
             facility.world = self
@@ -115,11 +125,11 @@ class World:
         data_class_in_frame = []
 
         for class_name, number in self._data_class_collection.items():
-            class_config = data_class_mapping[class_name]
+            class_def = self._data_model_definitions[class_name]
 
             data_class_in_frame.append((
-                class_config["class"],
-                class_config["alias_in_snapshot"],
+                class_def.class_type,
+                class_def.name_in_frame,
                 number
             ))
 
@@ -180,7 +190,7 @@ class World:
         return self._entities[entity_id]
 
     def register_data_class(self, unit_id: int, name: str):
-        assert name in data_class_mapping
+        assert name in self._data_model_definitions
 
         node_index = self._data_class_collection[name]
 
@@ -190,7 +200,7 @@ class World:
         return node_index
 
     def get_data_instance(self, class_name: str, node_index: int):
-        alias = data_class_mapping[class_name]["alias_in_snapshot"]
+        alias = self._data_model_definitions[class_name].name_in_frame
 
         return getattr(self.frame, alias)[node_index]
 
@@ -222,3 +232,19 @@ class World:
             "mapping": id2index_mapping,
             "detail": facility_info_dict
         }
+
+    def _build_facility(self, conf: dict):
+        name = conf["name"]
+        class_alias = conf["class"]
+
+        facility_def = self.configs.facilities[class_alias]
+
+        facility = facility_def.class_type()
+
+        facility.id = self.gen_id()
+        facility.world = self
+        facility.name = name
+
+        facility.build(conf["configs"])
+
+        return facility

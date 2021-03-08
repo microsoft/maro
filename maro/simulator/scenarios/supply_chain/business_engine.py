@@ -7,7 +7,8 @@ from maro.event_buffer import MaroEvents, CascadeEvent, AtomEvent
 
 from .units import UnitBase
 from .world import World
-from .configs import test_world_config
+
+from .config_parser import ConfigParser
 
 
 class SupplyChainBusinessEngine(AbsBusinessEngine):
@@ -71,11 +72,14 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
     def _build_world(self):
         self.update_config_root_path(__file__)
 
-        # config_path = os.path.join(self._config_path, "config.yml")
+        core_config = os.path.join(self._config_path, "..", "core.yml")
+        config_path = os.path.join(self._config_path, "config.yml")
+
+        parser = ConfigParser(core_config, config_path)
 
         self.world = World()
 
-        self.world.build(test_world_config, self.calc_max_snapshots())
+        self.world.build(parser.parse(), self.calc_max_snapshots())
 
     def _on_action_received(self, event):
         action = event.payload

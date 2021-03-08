@@ -5,8 +5,9 @@ from yaml import safe_load
 
 from collections import namedtuple
 
+# TODO: ugly implementation, refactoring later.
 
-DataModelItem = namedtuple("DataModelItem", ("alias", "module_path", "class_name", "class_type"))
+DataModelItem = namedtuple("DataModelItem", ("alias", "module_path", "class_name", "class_type", "name_in_frame"))
 UnitItem = namedtuple("UnitItem", ("alias", "module_path", "class_name", "class_type", "configs"))
 FacilityItem = namedtuple("FacilityItem", ("alias", "module_path", "class_name", "class_type", "configs"))
 
@@ -15,6 +16,17 @@ def find_class_type(module_path: str, class_name: str):
     target_module = import_module(module_path)
 
     return getattr(target_module, class_name)
+
+
+def copy_dict(dest:dict, source: dict):
+    for k, v in source.items():
+        if type(v) != dict:
+            dest[k] = v
+        else:
+            if k not in dest:
+                dest[k] = {}
+
+                copy_dict(dest[k], v)
 
 
 class SupplyChainConfiguration:
@@ -29,11 +41,17 @@ class SupplyChainConfiguration:
         self.facilities = {}
         self.world = {}
 
-    def add_data_definition(self, alias: str, class_name: str, module_path: str):
+    def add_data_definition(self, alias: str, class_name: str, module_path: str, name_in_frame: str):
         # check conflict
         assert alias not in self.data_models
 
-        self.data_models[alias] = DataModelItem(alias, module_path, class_name, find_class_type(module_path, class_name))
+        self.data_models[alias] = DataModelItem(
+            alias,
+            module_path,
+            class_name,
+            find_class_type(module_path, class_name),
+            name_in_frame
+        )
 
     def add_unit_definition(self, alias: str, class_name: str, module_path: str, configs: dict):
         assert alias not in self.units
@@ -44,7 +62,6 @@ class SupplyChainConfiguration:
         assert alias not in self.facilities
 
         self.facilities[alias] = FacilityItem(alias, module_path, class_name, find_class_type(module_path, class_name), configs)
-
 
 
 class ConfigParser:
@@ -73,7 +90,7 @@ class ConfigParser:
                 module_path = module_conf["path"]
 
                 for class_alias, class_def in module_conf["definitions"].items():
-                    self._result.add_data_definition(class_alias, class_def["class"], module_path)
+                    self._result.add_data_definition(class_alias, class_def["class"], module_path, class_def["name_in_frame"])
 
         # units
         if "units" in core_config:
@@ -109,19 +126,61 @@ class ConfigParser:
 
                 facility_def = self._result.facilities[facility_class_alias]
 
+                configs = facility_conf["configs"]
+
+                # components
                 for property_name, property_conf in facility_def.configs.items():
                     if property_name == "class":
                         continue
 
-                    if property_name not in facility_conf:
-                        facility_conf["configs"][property_name] = property_conf
+                    # if the config not exist, then copy it
+                    if property_name not in configs:
+                        configs[property_name] = {}
+                        #copy_dict(configs[property_name], property_conf)
+                        configs[property_name] = property_conf
                     else:
-                        pass
+                        # TODO: support more than 1 depth checking
+                        # configurations for components
+                        if type(property_conf) == dict:
+                            #copy_dict(configs[property_name], property_conf)
+                            for sub_key, sub_value in property_conf.items():
+                                if sub_key not in configs[property_name]:
+                                    configs[property_name][sub_key] = sub_value
+
+                    # check data field of units
+                    for unit_name, unit_conf in configs.items():
+                        if type(unit_conf) == dict:
+                            if "class" not in unit_conf:
+                                continue
+
+                            unit = self._result.units[unit_conf["class"]]
+
+                            if "data" not in unit_conf:
+                                # copy from definition
+                                unit_conf["data"] = unit.configs["data"]
+                            else:
+                                # copy missing fields
+                                for k, v in unit.configs["data"].items():
+                                    if k not in unit_conf["data"]:
+                                        unit_conf["data"][k] = v
+                        elif type(unit_conf) == list:
+                            # list is a placeholder, we just need copy the class alias for data
+                            for unit_item in unit_conf:
+                                unit = self._result.units[unit_item["class"]]
+
+                                if "data" not in unit_item:
+                                    unit_item["data"]["class"] = unit.configs["data"]["class"]
+                                else:
+                                    unit_item["data"]["class"] = unit.configs["data"]["class"]
 
 
 if __name__ == "__main__":
-    parser = ConfigParser("maro/simulator/scenarios/supply_chain/topologies/core.yaml", "maro/simulator/scenarios/supply_chain/topologies/sample1/config.yml")
+    parser = ConfigParser("maro/simulator/scenarios/supply_chain/topologies/core.yml", "maro/simulator/scenarios/supply_chain/topologies/sample1/config.yml")
 
     result = parser.parse()
 
-    print(result.world)
+    import pprint
+
+    pp = pprint.PrettyPrinter(indent=2, depth=8)
+
+    pp.pprint(result.world)

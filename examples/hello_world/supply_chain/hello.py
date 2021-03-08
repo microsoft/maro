@@ -293,7 +293,7 @@ class InteractiveRenderaleEnv:
 def main():
     start_tick = 0
     durations = 100
-    env = Env(scenario="supply_chain", topology="no", start_tick=start_tick, durations=durations)
+    env = Env(scenario="supply_chain", topology="sample1", start_tick=start_tick, durations=durations)
 
     irenv = InteractiveRenderaleEnv(env)
 
