@@ -14,6 +14,7 @@ Dependency
 
 Env-geographic's startup depends on docker. 
 Therefore, users need to install docker on the machine and ensure that it can run normally.
+User could get docker through `Docker installation <https://docs.docker.com/get-docker/>`_.
 
 
 How to Use?
@@ -35,7 +36,16 @@ Firstly, user need to start the local database with command:
 
 After the command is executed successfully, user
 could view the front_end page through localhost:8080
-and local data with localhost:9000.
+and local data with localhost:9000 by default.
+If the default port is occupied, user could obtain the access port of each container
+through the following command:
+
+.. code-block:: sh
+
+    docker container ls
+
+----
+
 User could view all experiment information by SQL statement:
 
 .. code-block:: SQL
@@ -43,6 +53,7 @@ User could view all experiment information by SQL statement:
     SELECT * FROM maro.experiments
 
 ----
+
 Data is stored locally at the folder maro/maro/streamit/server/data.
 
 
