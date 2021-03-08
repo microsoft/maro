@@ -157,7 +157,7 @@ test_world_config = {
                     },
                     "class": "ConsumerUnit"
                 },
-                "suppliers": {
+                "manufactures": {
                     "data": {
                         "class": "ManufactureDataModel"
                     },
@@ -225,7 +225,7 @@ test_world_config = {
                     },
                     "class": "ConsumerUnit"
                 },
-                "suppliers": {
+                "manufactures": {
                     "data": {
                         "class": "ManufactureDataModel"
                     },

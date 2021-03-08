@@ -9,7 +9,7 @@ class SupplierFacility(FacilityBase):
     storage = None
     distribution = None
     transports = None
-    suppliers = None
+    manufactures = None
     consumers = None
 
     def step(self, tick: int):
@@ -19,7 +19,7 @@ class SupplierFacility(FacilityBase):
         for vehicle in self.transports:
             vehicle.step(tick)
 
-        for supplier in self.suppliers.values():
+        for supplier in self.manufactures.values():
             supplier.step(tick)
 
         for consumer in self.consumers.values():
@@ -61,7 +61,7 @@ class SupplierFacility(FacilityBase):
 
         # sku information
         self.sku_information = {}
-        self.suppliers = {}
+        self.manufactures = {}
         self.consumers = {}
 
         for sku_name, sku_config in configs["skus"].items():
@@ -82,14 +82,14 @@ class SupplierFacility(FacilityBase):
             # TODO: make it an enum later.
             if sku_info.type == "production":
                 # one supplier per sku
-                supplier = self.world.build_unit(configs["suppliers"]["class"])
-                supplier.data_class = configs["suppliers"]["data"]["class"]
+                supplier = self.world.build_unit(configs["manufactures"]["class"])
+                supplier.data_class = configs["manufactures"]["data"]["class"]
 
                 supplier.world = self.world
                 supplier.facility = self
                 supplier.data_index = self.world.register_data_class(supplier.id, supplier.data_class)
 
-                self.suppliers[sku.id] = supplier
+                self.manufactures[sku.id] = supplier
             else:
                 consumer = self.world.build_unit(configs["consumers"]["class"])
                 consumer.data_class = configs["consumers"]["data"]["class"]
@@ -105,8 +105,8 @@ class SupplierFacility(FacilityBase):
         self._init_by_skus()
 
         for _, sku in self.sku_information.items():
-            if sku.id in self.suppliers:
-                supplier = self.suppliers[sku.id]
+            if sku.id in self.manufactures:
+                supplier = self.manufactures[sku.id]
 
                 # build parameters to initialize the data model
                 supplier.initialize({
@@ -141,7 +141,7 @@ class SupplierFacility(FacilityBase):
         for vehicle in self.transports:
             vehicle.post_step(tick)
 
-        for supplier in self.suppliers.values():
+        for supplier in self.manufactures.values():
             supplier.post_step(tick)
 
         for consumer in self.consumers.values():
@@ -156,7 +156,7 @@ class SupplierFacility(FacilityBase):
         for vehicle in self.transports:
             vehicle.reset()
 
-        for supplier in self.suppliers.values():
+        for supplier in self.manufactures.values():
             supplier.reset()
 
         for consumer in self.consumers.values():
@@ -172,7 +172,7 @@ class SupplierFacility(FacilityBase):
                 "consumers": [consumer.get_unit_info() for consumer in self.consumers.values()],
                 "transports": [vehicle.get_unit_info() for vehicle in self.transports],
                 "distribution": self.distribution.get_unit_info(),
-                "suppliers": [supplier.get_unit_info() for supplier in self.suppliers.values()]
+                "suppliers": [supplier.get_unit_info() for supplier in self.manufactures.values()]
             }
         }
 
