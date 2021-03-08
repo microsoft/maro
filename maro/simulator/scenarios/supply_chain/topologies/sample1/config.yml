@@ -13,6 +13,12 @@ world:
   # how many ticks to ask for an action.
   action_steps: 1
 
+  # how the simulator update the world
+  # available values:
+  # facility: update facilities (internal units) one by one
+  # random: random update units
+  step_mode: "facility"
+
   # sku list in this world
   # this list do not contains price, cost or other facility related attributes,
   # but just base info, like name, id, bom

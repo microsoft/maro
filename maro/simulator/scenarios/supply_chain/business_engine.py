@@ -1,5 +1,6 @@
 
 import os
+import random
 
 from maro.simulator.scenarios import AbsBusinessEngine
 
@@ -25,6 +26,9 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
 
         self._action_steps = self.world.configs["action_steps"]
 
+        # for update by unit
+        self._unit_id_list = None
+
     @property
     def frame(self):
         return self._frame
@@ -41,13 +45,27 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         return self._node_mapping
 
     def step(self, tick: int):
-        for _, facility in self.world.facilities.items():
-            facility.step(tick)
+        self._step_by_facility(tick)
 
         if tick % self._action_steps == 0:
             decision_event = self._event_buffer.gen_decision_event(tick, None)
 
             self._event_buffer.insert_event(decision_event)
+
+    def _step_by_facility(self, tick: int):
+        for _, facility in self.world.facilities.items():
+            facility.step(tick)
+
+    def _step_by_units(self, tick: int):
+        if self._unit_id_list is None:
+            self._unit_id_list = [i for i in self.world.unit_id2index_mapping.keys()]
+
+        random.shuffle(self._unit_id_list)
+
+        for unit_id in self._unit_id_list:
+            unit = self.world.get_entity(unit_id)
+
+            unit.step(tick)
 
     def post_step(self, tick: int):
         # take snapshot
