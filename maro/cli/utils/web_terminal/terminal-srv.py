@@ -8,9 +8,10 @@ import shlex
 import struct
 import subprocess
 import termios
+import json
 
 from flask import Flask, redirect, send_file, send_from_directory
-from flask_socketio import SocketIO
+from flask_socketio import SocketIO, send
 
 port = 8080
 
@@ -18,6 +19,7 @@ app = Flask("Terminal-Service")
 app.config["fd"] = None
 app.config["pid"] = None
 app.config["child_pid"] = None
+app.config["cluster_list"] = []
 socketio = SocketIO(app)
 
 
@@ -99,7 +101,30 @@ def connect():
             "and forward pty output to client"
         )
         socketio.start_background_task(target=read_and_forward_pty_output)
+        socketio.start_background_task(target=update_cluster_list)
         print("task started")
+
+
+# Admin data support
+
+def update_cluster_list():
+    while True:
+        socketio.sleep(1)
+        clusters = []
+        from maro.cli.utils.params import GlobalPaths
+        for root, _, files in os.walk(GlobalPaths.ABS_MARO_CLUSTERS, topdown=False):
+            for name in files:
+                if os.path.basename(name) == "cluster_details.yml":
+                    clusters.append(os.path.basename(root))
+        app.config["cluster_list"] = clusters
+        print(f"{app.config['cluster_list']}")
+
+
+@socketio.on("cluster_list", namespace="/pty")
+def cluster_list():
+    print("cluster request received")
+    print(f"{app.config['cluster_list']}")
+    socketio.emit("cluster_list", app.config["cluster_list"], namespace="/pty")
 
 
 def os_is_windows() -> bool:

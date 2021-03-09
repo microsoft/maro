@@ -52,6 +52,19 @@
       <div>
         <iframe class="mydashboard" src="./dashboard"></iframe>
       </div>
+
+      <!-- <el-container class="mydashboard">
+        <el-main>
+          <ul>
+            <li v-for="item in cluster_list" :key="item">
+              <el-button type="primary" plain v-on:click="show_cluster(item)">{{ item }}</el-button>
+            </li>
+          </ul>
+        </el-main>
+        <el-main></el-main>
+        <el-main></el-main>
+      </el-container> -->
+
     </el-main>
     <el-footer style="height:340px;">
       <div id="terminal"></div>
@@ -70,9 +83,26 @@
   <script src="https://unpkg.com/element-ui@2.15.1/lib/index.js"></script>
   <script>
     $(document).ready(function () {
+      let connected = false
+
       const vm = new Vue({
         el: '#app',
+        data: function () {
+          return {
+            cluster_list: new Array(),
+          }
+        },
+        methods: {
+          show_cluster: function (message) {
+            alert(message)
+          }
+        }
       })
+      setInterval(() => {
+        if (connected) {
+          socket.emit("cluster_list")
+        }
+      }, 1000)
       // Load terminal addons.
       Terminal.applyAddon(fullscreen)
       Terminal.applyAddon(fit)
@@ -88,6 +118,8 @@
         macOptionIsMeta: true,
         scrollback: true
       })
+
+
 
       term.open(document.getElementById('terminal'))
       term.fit()
@@ -113,10 +145,17 @@
 
       socket.on('connect', () => {
         console.log('socket.io connected.')
+        connected = true
       })
 
       socket.on('disconnect', () => {
         console.log('socket.io disconnected.')
+        connected = false
+      })
+
+      socket.on("cluster_list", (data) => {
+        console.log(data)
+        vm.cluster_list = data
       })
 
       function fitToScreen() {
