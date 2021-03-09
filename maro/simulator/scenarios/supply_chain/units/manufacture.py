@@ -1,6 +1,8 @@
 
 from .base import UnitBase
 
+from .actions import ManufactureAction
+
 
 class ManufactureUnit(UnitBase):
     """Unit that used to produce certain product(sku) with consume specified source skus.
@@ -62,8 +64,8 @@ class ManufactureUnit(UnitBase):
         # reset the manufacture cost per tick
         self.data.manufacturing_number = 0
 
-    def set_action(self, action: int):
+    def set_action(self, action: ManufactureAction):
         # we expect production rate number as action
         # production_rate <= 0 will stop manufacturing
-        self.data.production_rate = action
+        self.data.production_rate = action.production_rate
 

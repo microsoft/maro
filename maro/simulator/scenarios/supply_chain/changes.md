@@ -10,7 +10,7 @@
    
     changed:
         . bom configured in configuration file at world level. later we can support override this at each manufacture unit.
-        . remove output_lot_size from bom, # use sku.production_rate at facility level, then action can change this
+        . remove output_lot_size from bom, use sku.production_rate at facility level, then action can change this
         . support manufacturing without source material, like oil, just produce output production by configured rate
         . add type for sku at facility level to identify if it is an input material, or output production
         . remove output_lot_size, always be 1
