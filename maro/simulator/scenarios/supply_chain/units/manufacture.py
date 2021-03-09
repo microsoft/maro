@@ -2,7 +2,7 @@
 from .base import UnitBase
 
 
-class ManufacturingUnit(UnitBase):
+class ManufactureUnit(UnitBase):
     """Unit that used to produce certain product(sku) with consume specified source skus.
 
     One manufacture unit per sku.
@@ -17,7 +17,7 @@ class ManufacturingUnit(UnitBase):
     input_units_per_lot = 0
 
     def __init__(self):
-        super(ManufacturingUnit, self).__init__()
+        super(ManufactureUnit, self).__init__()
 
     def initialize(self, configs: dict):
         # add the storage_id

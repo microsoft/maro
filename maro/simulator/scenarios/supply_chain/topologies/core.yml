@@ -47,7 +47,7 @@ units:
           data:
             class: "SellerDataModel"
         ManufactureUnit:
-          class: "ManufacturingUnit"
+          class: "ManufactureUnit"
           data:
             class: "ManufactureDataModel"
 
