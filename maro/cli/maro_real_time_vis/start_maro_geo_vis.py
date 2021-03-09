@@ -11,8 +11,7 @@ import requests
 from maro.utils.exception.cli_exception import CliError
 from maro.utils.logger import CliLogger
 
-from .back_end.vis_app.data_process.request.request_params import \
-  request_settings
+from .back_end.vis_app.data_process.request.request_params import request_settings
 
 logger = CliLogger(name=__name__)
 
