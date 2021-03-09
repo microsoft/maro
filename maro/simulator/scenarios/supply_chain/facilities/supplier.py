@@ -4,7 +4,10 @@ from .base import FacilityBase
 
 
 class SupplierFacility(FacilityBase):
-    SkuInfo = namedtuple("SkuInfo", ("name", "id", "init_in_stock", "production_rate", "type", "cost", "price", "delay_order_penalty"))
+    SkuInfo = namedtuple(
+        "SkuInfo",
+        ("name", "id", "init_in_stock", "production_rate", "type", "cost", "price", "delay_order_penalty", "product_unit_cost")
+    )
 
     storage = None
     distribution = None
@@ -14,7 +17,9 @@ class SupplierFacility(FacilityBase):
 
     def step(self, tick: int):
         self.storage.step(tick)
-        self.distribution.step(tick)
+
+        self.data.balance_sheet_profit += self.storage.data.balance_sheet_profit
+        self.data.balance_sheet_loss += self.storage.data.balance_sheet_loss
 
         for vehicle in self.transports:
             vehicle.step(tick)
@@ -22,8 +27,51 @@ class SupplierFacility(FacilityBase):
         for supplier in self.manufactures.values():
             supplier.step(tick)
 
+            self.data.balance_sheet_profit += supplier.data.balance_sheet_profit
+            self.data.balance_sheet_loss += supplier.data.balance_sheet_loss
+
         for consumer in self.consumers.values():
             consumer.step(tick)
+
+            self.data.balance_sheet_profit += consumer.data.balance_sheet_profit
+            self.data.balance_sheet_loss += consumer.data.balance_sheet_loss
+
+        # to make sure the distribution get correct balance sheet, we should update transports first.
+        self.distribution.step(tick)
+
+        self.data.balance_sheet_profit += self.distribution.data.balance_sheet_profit
+        self.data.balance_sheet_loss += self.distribution.data.balance_sheet_loss
+
+    def post_step(self, tick: int):
+        self.storage.post_step(tick)
+        self.distribution.post_step(tick)
+
+        for vehicle in self.transports:
+            vehicle.post_step(tick)
+
+        for supplier in self.manufactures.values():
+            supplier.post_step(tick)
+
+        for consumer in self.consumers.values():
+            consumer.post_step(tick)
+
+        self.data.balance_sheet_profit = 0
+        self.data.balance_sheet_loss = 0
+
+    def reset(self):
+        self._init_by_skus()
+
+        self.storage.reset()
+        self.distribution.reset()
+
+        for vehicle in self.transports:
+            vehicle.reset()
+
+        for supplier in self.manufactures.values():
+            supplier.reset()
+
+        for consumer in self.consumers.values():
+            consumer.reset()
 
     def build(self, configs: dict):
         self.configs = configs
@@ -74,7 +122,8 @@ class SupplierFacility(FacilityBase):
                 sku_config["type"],
                 sku_config.get("cost", 0),
                 sku_config.get("price", 0),
-                sku_config.get("delay_order_penalty", 0)
+                sku_config.get("delay_order_penalty", 0),
+                sku_config.get("product_unit_cost", 1)
             )
 
             self.sku_information[sku.id] = sku_info
@@ -101,6 +150,9 @@ class SupplierFacility(FacilityBase):
                 self.consumers[sku.id] = consumer
 
     def initialize(self):
+        self.data.set_id(self.id, self.id)
+        self.data.initialize({})
+
         # DO init by skus first, as other components may depend on sku information
         self._init_by_skus()
 
@@ -113,7 +165,8 @@ class SupplierFacility(FacilityBase):
                     "data": {
                         "production_rate": sku.production_rate,
                         "output_product_id": sku.id,
-                        "product_unit_cost": sku.cost
+                        "product_unit_cost": sku.cost,
+                        "product_unit_cost": sku.product_unit_cost
                     }
                 })
 
@@ -133,34 +186,6 @@ class SupplierFacility(FacilityBase):
 
         for index, transport in enumerate(self.transports):
             transport.initialize(transports_conf[index])
-
-    def post_step(self, tick: int):
-        self.storage.post_step(tick)
-        self.distribution.post_step(tick)
-
-        for vehicle in self.transports:
-            vehicle.post_step(tick)
-
-        for supplier in self.manufactures.values():
-            supplier.post_step(tick)
-
-        for consumer in self.consumers.values():
-            consumer.post_step(tick)
-
-    def reset(self):
-        self._init_by_skus()
-
-        self.storage.reset()
-        self.distribution.reset()
-
-        for vehicle in self.transports:
-            vehicle.reset()
-
-        for supplier in self.manufactures.values():
-            supplier.reset()
-
-        for consumer in self.consumers.values():
-            consumer.reset()
 
     def get_node_info(self) -> dict:
         return {

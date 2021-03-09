@@ -27,12 +27,14 @@ class ManufactureDataModel(DataModelBase):
         self._output_product_id = 0
         self._production_rate = 0
         self._storage_id = 0
+        self._product_unit_cost = 0
 
     def initialize(self, configs: dict):
         if configs is not None:
             self._output_product_id = configs["output_product_id"]
             self._production_rate = configs.get("production_rate", 1)
             self._storage_id = configs["storage_id"]
+            self.product_unit_cost = configs.get("product_unit_cost", 1)
 
             self.reset()
 

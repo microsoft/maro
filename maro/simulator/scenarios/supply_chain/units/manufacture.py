@@ -37,15 +37,17 @@ class ManufactureUnit(UnitBase):
 
     def step(self, tick: int):
         # try to produce production if we have positive rate
-        if self.data.production_rate > 0:
+        data = self.data
+
+        if data.production_rate > 0:
             sku_num = len(self.facility.sku_information)
             unit_num_upper_bound = self.facility.storage.data.capacity // sku_num
 
             # one lot per time, until no enough space to hold output, or no enough source material
             # TODO: simplify this part to make it faster
-            for _ in range(self.data.production_rate):
+            for _ in range(data.production_rate):
                 storage_remaining_space = self.facility.storage.data.remaining_space
-                current_product_number = self.facility.storage.get_product_number(self.data.output_product_id)
+                current_product_number = self.facility.storage.get_product_number(data.output_product_id)
                 space_taken_per_cycle = self.output_units_per_lot - self.input_units_per_lot
 
                 # if remaining space enough to hold output production
@@ -55,12 +57,16 @@ class ManufactureUnit(UnitBase):
                         # if we do not need any material, then just generate the out product.
                         # or if we have enough source materials
                         if len(self.bom) == 0 or self.facility.storage.try_take_units(self.bom):
-                            self.facility.storage.try_add_units({self.data.output_product_id: self.output_units_per_lot})
+                            self.facility.storage.try_add_units({data.output_product_id: self.output_units_per_lot})
 
                             # update manufacturing number in state
-                            self.data.manufacturing_number += 1
+                            data.manufacturing_number += 1
+
+        data.balance_sheet_loss = data.manufacturing_number * data.product_unit_cost
 
     def post_step(self, tick: int):
+        super(ManufactureUnit, self).post_step(tick)
+
         # reset the manufacture cost per tick
         self.data.manufacturing_number = 0
 

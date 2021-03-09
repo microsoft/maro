@@ -27,6 +27,8 @@ class DistributionUnit(UnitBase):
             self.product_index_mapping[product_id] = index
 
     def step(self, tick: int):
+        data = self.data
+
         for vehicle in self.facility.transports:
             # if we have vehicle not on the way and there is any pending order
             if len(self.order_queue) > 0 and vehicle.data.location == 0:
@@ -47,7 +49,12 @@ class DistributionUnit(UnitBase):
             sku = self.facility.sku_information[order.product_id]
             product_index = self.product_index_mapping[order.product_id]
 
-            self.data.delay_order_penalty[product_index] += sku.delay_order_penalty
+            data.delay_order_penalty[product_index] += sku.delay_order_penalty
+
+        # update balance sheet, sum of transport balance sheet
+        if self.facility.transports is not None:
+            for vehicle in self.facility.transports:
+                data.balance_sheet_loss += vehicle.data.balance_sheet_loss
 
     def reset(self):
         super(DistributionUnit, self).reset()

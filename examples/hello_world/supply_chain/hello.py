@@ -8,12 +8,14 @@ import pprint
 from tabulate import tabulate
 from maro.simulator import Env
 from maro.simulator.scenarios.supply_chain import ConsumerAction
+from state_shaping import SupplyChainStateShaping
 
 
 WINDOW_SCALE_FACTOR = 2
 TILESET_SIZE = 8
 
 CHAR_DEFAULT = 0x2610
+
 
 # https://stackoverflow.com/questions/287871/how-to-print-colored-text-to-the-terminal
 class bcolors:
@@ -31,6 +33,8 @@ class bcolors:
 class InteractiveRenderaleEnv:
     def __init__(self, env: Env):
         self.env = env
+
+        self._state_shaping = SupplyChainStateShaping(env)
 
     def start(self):
         print(f"{bcolors.WARNING}Press SPACE for next step!!!{bcolors.ENDC}")
@@ -104,6 +108,8 @@ class InteractiveRenderaleEnv:
 
                             is_new_step = True
 
+                            self.state_shaping()
+
                             print(f"{bcolors.OKGREEN}Current environment tick:", self.env.tick, f"{bcolors.ENDC}")
 
                             if is_done:
@@ -137,6 +143,9 @@ class InteractiveRenderaleEnv:
 
                 if x >= 0 and y >= 0:
                     console.print(x, y, "V", (0, 255, 0), (128, 128, index))
+
+    def state_shaping(self):
+        print(self._state_shaping.shape())
 
     def show_summary(self):
         pp = pprint.PrettyPrinter(indent=2, depth=8)
@@ -259,11 +268,12 @@ class InteractiveRenderaleEnv:
     def choose_action(self):
         action = {}
 
-        consumer_action = self.choose_consumer_action()
+        consumer_actions = self.choose_consumer_action()
 
-        action[consumer_action.id] = consumer_action
+        for consumer_action in consumer_actions:
+            action[consumer_action.id] = consumer_action
 
-        print(action)
+        print(consumer_actions)
 
         return action
 
@@ -271,6 +281,8 @@ class InteractiveRenderaleEnv:
         # dummy actions
 
         # push consumers to generate order
+
+        actions = []
 
         # check if lack of any source material
         storages = self.env.snapshot_list["storage"]
@@ -285,9 +297,14 @@ class InteractiveRenderaleEnv:
 
                     for consumer in self.env.summary["node_mapping"]["detail"][facility_id]["units"]["consumers"]:
                         if consumer["sku_id"] == product_id:
-                            upstreams = self.env.snapshot_list["consumer"][self.env.frame_index:consumer["node_index"]:"sources"].flatten().astype(np.int)
+                            sources = self.env.snapshot_list["consumer"][self.env.frame_index:consumer["node_index"]:"sources"]
 
-                            return ConsumerAction(consumer["id"], upstreams[0], 30, 1)
+                            if sources is not None:
+                                upstreams = sources.flatten().astype(np.int)
+
+                                actions.append(ConsumerAction(consumer["id"], upstreams[0], 30, 1))
+
+        return actions
 
 
 def main():

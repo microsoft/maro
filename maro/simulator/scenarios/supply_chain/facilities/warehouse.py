@@ -22,13 +22,23 @@ class WarehouseFacility(FacilityBase):
 
     def step(self, tick: int):
         self.storage.step(tick)
-        self.distribution.step(tick)
+
+        self.data.balance_sheet_profit += self.storage.data.balance_sheet_profit
+        self.data.balance_sheet_loss += self.storage.data.balance_sheet_loss
 
         for transport in self.transports:
             transport.step(tick)
 
         for consumer in self.consumers.values():
             consumer.step(tick)
+
+            self.data.balance_sheet_profit += consumer.data.balance_sheet_profit
+            self.data.balance_sheet_loss += consumer.data.balance_sheet_loss
+
+        self.distribution.step(tick)
+
+        self.data.balance_sheet_profit += self.distribution.data.balance_sheet_profit
+        self.data.balance_sheet_loss += self.distribution.data.balance_sheet_loss
 
     def build(self, configs: dict):
         self.configs = configs
@@ -88,6 +98,9 @@ class WarehouseFacility(FacilityBase):
             self.consumers[sku.id] = consumer
 
     def initialize(self):
+        self.data.set_id(self.id, self.id)
+        self.data.initialize({})
+
         # init components that related with sku number
         self._init_by_skus()
 
@@ -124,6 +137,7 @@ class WarehouseFacility(FacilityBase):
 
     def post_step(self, tick: int):
         self.storage.post_step(tick)
+
         self.distribution.post_step(tick)
 
         for vehicle in self.transports:
@@ -131,6 +145,9 @@ class WarehouseFacility(FacilityBase):
 
         for consumer in self.consumers.values():
             consumer.post_step(tick)
+
+        self.data.balance_sheet_profit = 0
+        self.data.balance_sheet_loss = 0
 
     def get_node_info(self) -> dict:
         return {

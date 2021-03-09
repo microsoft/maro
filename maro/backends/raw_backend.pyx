@@ -291,7 +291,7 @@ cdef class RawSnapshotList(SnapshotListAbc):
         cdef QUERY_FLOAT[:, :, :, :] result = view.array(shape=(shape.tick_number, shape.max_node_number, shape.attr_number, shape.max_slot_number), itemsize=sizeof(QUERY_FLOAT), format="f")
 
         # Default result value
-        result[:, :, :, :] = np.nan
+        result[:, :, :, :] = 0
 
         # Do query
         self._snapshots.query(&result[0][0][0][0])

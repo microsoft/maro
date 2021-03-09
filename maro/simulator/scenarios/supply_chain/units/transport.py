@@ -58,7 +58,7 @@ class TransportUnit(UnitBase):
 
             return True
         else:
-            self.patient -= 1
+            self.data.patient -= 1
 
             return False
 
@@ -84,53 +84,57 @@ class TransportUnit(UnitBase):
             self.data.patient = self.max_patient
 
     def step(self, tick: int):
+        data = self.data
+
         # If we have not arrive at destination yet.
-        if self.data.steps > 0:
+        if data.steps > 0:
             # if we still not loaded enough productions yet.
-            if self.data.location == 0 and self.data.payload == 0:
+            if data.location == 0 and data.payload == 0:
                 # then try to load by requested.
-                if self.try_loading(self.data.requested_quantity):
+                if self.try_loading(data.requested_quantity):
                     # NOTE: here we return to simulate loading
                     return
                 else:
-                    self.data.patient -= 1
+                    data.patient -= 1
 
                     # Failed to load, check the patient.
-                    if self.patient < 0:
-                        self.destination.consumer.update_open_orders(
+                    if data.patient < 0:
+                        self.destination.consumers[data.product_id].update_open_orders(
                             self.facility.id,
-                            self.data.product_id,
-                            -self.requested_quantity
+                            data.product_id,
+                            -data.requested_quantity
                         )
 
                         # reset
-                        self.data.steps = 0
-                        self.data.location = 0
-                        self.data.destination = 0
-                        self.data.position[:] = -1
+                        data.steps = 0
+                        data.location = 0
+                        data.destination = 0
+                        data.position[:] = -1
 
             # Moving to destination
-            if self.data.payload > 0:
+            if data.payload > 0:
                 # Closer to destination until 0.
 
-                self.data.location += self.data.vlt
-                self.data.steps -= 1
+                data.location += data.vlt
+                data.steps -= 1
 
-                if self.data.location > len(self.path):
-                    self.data.location = len(self.path) - 1
+                if data.location > len(self.path):
+                    data.location = len(self.path) - 1
 
-                self.data.position[:] = self.path[self.data.location-1]
+                data.position[:] = self.path[data.location-1]
         else:
             # avoid update under idle state.
-            if self.data.location > 0:
+            if data.location > 0:
                 # try to unload
-                if self.data.payload > 0:
+                if data.payload > 0:
                     self.try_unloading()
 
                 # back to source if we unload all
-                if self.data.payload == 0:
+                if data.payload == 0:
                     self.destination = 0
-                    self.data.steps = 0
-                    self.data.location = 0
-                    self.data.destination = 0
-                    self.data.position[:] = -1
+                    data.steps = 0
+                    data.location = 0
+                    data.destination = 0
+                    data.position[:] = -1
+
+        data.balance_sheet_loss = -1 * data.payload * data.unit_transport_cost

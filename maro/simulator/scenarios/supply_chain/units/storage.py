@@ -19,6 +19,12 @@ class StorageUnit(UnitBase):
         for index, product_id in enumerate(self.data.product_list[:]):
             self.product_index_mapping[product_id] = index
 
+    def step(self, tick: int):
+        super(StorageUnit, self).step(tick)
+
+        data = self.data
+        data.balance_sheet_loss = -(data.capacity - data.remaining_space) * data.unit_storage_cost
+
     def try_add_units(self, product_quantities: Dict[int, int], all_or_nothing=True) -> dict:
         if all_or_nothing and self.data.remaining_space < sum(product_quantities.values()):
             return {}

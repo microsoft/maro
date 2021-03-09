@@ -49,6 +49,7 @@ world:
             init_in_stock: 100
             production_rate: 200
             delay_order_penalty: 10
+            product_unit_cost: 1
             type: "production" # production means this is the output production of this facility
             cost": 10
             price": 10
@@ -79,6 +80,7 @@ world:
             init_in_stock: 100
             production_rate: 200
             delay_order_penalty: 10
+            product_unit_cost: 1
             type: "production"
             cost: 10
             price: 100
@@ -192,6 +194,7 @@ world:
       Supplier1: [ 0, 0 ]  # (x, y)
       Supplier3: [ 3, 3 ]
       Warehouse1: [ 6, 6 ]
+      ChaoShiFa01: [10, 18]
     # cells that un-traversable
     blocks:
       # TODO: later we can have different cell have different travel cost

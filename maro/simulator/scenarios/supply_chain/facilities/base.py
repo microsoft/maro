@@ -3,6 +3,9 @@ from abc import ABC, abstractmethod
 
 
 class FacilityBase(ABC):
+    # data model of this facility
+    data = None
+
     # current world
     world = None
 

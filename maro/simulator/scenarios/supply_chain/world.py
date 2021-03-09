@@ -9,6 +9,8 @@ from tcod.path import AStar
 
 from .config_parser import SupplyChainConfiguration
 
+from .data import FacilityDataModel
+
 
 # sku definition in world level
 # bom is a dictionary, key is the material sku id, value is units per lot
@@ -133,6 +135,13 @@ class World:
                 number
             ))
 
+        # add facility data model to frame
+        data_class_in_frame.append((
+            FacilityDataModel,
+            "facilities",
+            len(self.facilities),
+        ))
+
         # . build the frame
         self.frame = build_frame(True, snapshot_number, data_class_in_frame)
 
@@ -150,7 +159,12 @@ class World:
                 facility.upstreams[sku.id] = [self.get_facility_by_name(source_name).id for source_name in source_facilities]
 
         # then initialize all facilities as we have the data instance.
+        facility_node_index = 0
+
         for _, facility in self.facilities.items():
+            facility.data = self.frame.facilities[facility_node_index]
+            facility_node_index += 1
+
             facility.initialize()
 
         # construct the map grid
@@ -211,7 +225,7 @@ class World:
         return self._sku_collection[self._sku_id2name_mapping[sku_id]]
 
     def find_path(self, start_x: int, start_y: int, goal_x: int, goal_y: int):
-        return self._path_finder.get_path(start_x, start_y, goal_x, goal_y)
+        return self._path_finder.get_path(int(start_x), int(start_y), int(goal_x), int(goal_y))
 
     def get_node_mapping(self):
         facility_info_dict = {facility_id: facility.get_node_info() for facility_id, facility in self.facilities.items()}
