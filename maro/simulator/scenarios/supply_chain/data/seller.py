@@ -10,6 +10,9 @@ class SellerDataModel(DataModelBase):
     # reward states
     total_sold = NodeAttribute(AttributeType.Int)
 
+    # from config
+    backlog_ratio = NodeAttribute(AttributeType.Float)
+
     # action states
     unit_price = NodeAttribute(AttributeType.Int)
 
@@ -30,12 +33,14 @@ class SellerDataModel(DataModelBase):
         self._unit_price = 0
         self._sale_gamma = 0
         self._product_id = 0
+        self._backlog_ratio = 0
 
     def initialize(self, configs: dict):
         if configs is not None:
             self._unit_price = configs.get("unit_price", 0)
             self._sale_gamma = configs.get("sale_gamma", 0)
             self._product_id = configs.get("product_id", 0)
+            self._backlog_ratio = configs.get("backlog_ratio", 0.1)
 
             self.reset()
 
@@ -45,3 +50,4 @@ class SellerDataModel(DataModelBase):
         self.unit_price = self._unit_price
         self.product_id = self._product_id
         self.sale_gamma = self._sale_gamma
+        self.backlog_ratio = self._backlog_ratio

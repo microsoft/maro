@@ -12,7 +12,7 @@ class ManufactureDataModel(DataModelBase):
     # cost to produce one output production
     product_unit_cost = NodeAttribute(AttributeType.Int)
 
-    # cost per tick, different with original manufacturing cost, we just provide number, and cost
+    # number per tick, different with original manufacturing cost, we just provide number, and cost
     # user can determine how to calculate the cost
     manufacturing_number = NodeAttribute(AttributeType.Int)
 

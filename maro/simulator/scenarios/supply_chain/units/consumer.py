@@ -49,13 +49,14 @@ class ConsumerUnit(UnitBase):
 
         source_facility = self.world.get_facility_by_id(source_id)
 
-        source_facility.distribution.place_order(order)
+        self.data.order_product_cost = source_facility.distribution.place_order(order)
 
         self.data.total_purchased += quantity
 
     def post_step(self, tick: int):
         self.data.received = 0
         self.data.purchased = 0
+        self.data.order_product_cost = 0
 
     def reset(self):
         super(ConsumerUnit, self).reset()

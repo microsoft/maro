@@ -8,6 +8,7 @@ from maro.backends.backend import AttributeType
 @node("consumer")
 class ConsumerDataModel(DataModelBase):
     # reward states
+    # from config
     order_cost = NodeAttribute(AttributeType.Int)
     total_purchased = NodeAttribute(AttributeType.Int)
     total_received = NodeAttribute(AttributeType.Int)
@@ -26,6 +27,7 @@ class ConsumerDataModel(DataModelBase):
     # snapshots["consumer"][hist_len::"purchased"] equals to original latest_consumptions
     purchased = NodeAttribute(AttributeType.Int)
     received = NodeAttribute(AttributeType.Int)
+    order_product_cost = NodeAttribute(AttributeType.Int)
 
     def __init__(self):
         super(ConsumerDataModel, self).__init__()

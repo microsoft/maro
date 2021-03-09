@@ -130,9 +130,11 @@ world:
           - class: "TransportUnit"
             data:
               patient: 100
+              unit_transport_cost: 1 # optional, default is 1
           - class: "TransportUnit"
             data:
               patient: 100
+              unit_transport_cost: 1
     - name: "ChaoShiFa01"
       class: "RetailerFacility"
       configs:
@@ -142,16 +144,19 @@ world:
             cost: 10
             init_in_stock: 100
             sale_gamma: 100
+            backlog_ratio: 0.1 # optional
           sku3:
             price: 200
             cost: 10
             init_in_stock: 100
             sale_gamma: 100
+            backlog_ratio: 0.1
           sku2:
             price: 100
             cost: 10
             init_in_stock: 100
             sale_gamma: 100
+            backlog_ratio: 0.1
         storage:
           data:
             capacity: 20000
