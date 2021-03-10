@@ -17,7 +17,7 @@ class ManufactureDataModel(DataModelBase):
     manufacturing_number = NodeAttribute(AttributeType.Int)
 
     # what we will produce
-    output_product_id = NodeAttribute(AttributeType.Int)
+    product_id = NodeAttribute(AttributeType.Int)
 
     # original from config, then updated by action
     production_rate = NodeAttribute(AttributeType.Int)
@@ -41,6 +41,6 @@ class ManufactureDataModel(DataModelBase):
     def reset(self):
         super(ManufactureDataModel, self).reset()
 
-        self.output_product_id = self._output_product_id
+        self.product_id = self._output_product_id
         self.production_rate = self._production_rate
         self.storage_id = self._storage_id

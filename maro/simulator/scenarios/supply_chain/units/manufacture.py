@@ -28,7 +28,7 @@ class ManufactureUnit(UnitBase):
         super().initialize(configs)
 
         # grab bom of current production
-        sku = self.world.get_sku_by_id(self.data.output_product_id)
+        sku = self.world.get_sku_by_id(self.data.product_id)
         self.bom = sku.bom
         self.output_units_per_lot = sku.output_units_per_lot
 
@@ -47,7 +47,7 @@ class ManufactureUnit(UnitBase):
             # TODO: simplify this part to make it faster
             for _ in range(data.production_rate):
                 storage_remaining_space = self.facility.storage.data.remaining_space
-                current_product_number = self.facility.storage.get_product_number(data.output_product_id)
+                current_product_number = self.facility.storage.get_product_number(data.product_id)
                 space_taken_per_cycle = self.output_units_per_lot - self.input_units_per_lot
 
                 # if remaining space enough to hold output production
@@ -57,7 +57,7 @@ class ManufactureUnit(UnitBase):
                         # if we do not need any material, then just generate the out product.
                         # or if we have enough source materials
                         if len(self.bom) == 0 or self.facility.storage.try_take_units(self.bom):
-                            self.facility.storage.try_add_units({data.output_product_id: self.output_units_per_lot})
+                            self.facility.storage.try_add_units({data.product_id: self.output_units_per_lot})
 
                             # update manufacturing number in state
                             data.manufacturing_number += 1

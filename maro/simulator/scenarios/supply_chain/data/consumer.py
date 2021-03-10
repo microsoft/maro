@@ -14,10 +14,10 @@ class ConsumerDataModel(DataModelBase):
     total_received = NodeAttribute(AttributeType.Int)
 
     # action states
-    consumer_product_id = NodeAttribute(AttributeType.Int)
-    consumer_source_id = NodeAttribute(AttributeType.Int)
-    consumer_quantity = NodeAttribute(AttributeType.Int)
-    consumer_vlt = NodeAttribute(AttributeType.Int)
+    product_id = NodeAttribute(AttributeType.Int)
+    source_id = NodeAttribute(AttributeType.Int)
+    quantity = NodeAttribute(AttributeType.Int)
+    vlt = NodeAttribute(AttributeType.Int)
 
     # id of upstream facilities.
     sources = NodeAttribute(AttributeType.Int, 1, is_list=True)
@@ -46,4 +46,4 @@ class ConsumerDataModel(DataModelBase):
         super(ConsumerDataModel, self).reset()
 
         self.order_cost = self._order_cost
-        self.consumer_product_id = self._consumer_product_id
+        self.product_id = self._consumer_product_id
