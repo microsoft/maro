@@ -10,6 +10,7 @@ import subprocess
 import termios
 import json
 
+from enum import Enum
 from flask import Flask, redirect, send_file, send_from_directory
 from flask_socketio import SocketIO, send
 
@@ -20,7 +21,15 @@ app.config["fd"] = None
 app.config["pid"] = None
 app.config["child_pid"] = None
 app.config["cluster_list"] = []
+app.config["cluster_status"] = {}
+app.config["local_executor"] = {}
 socketio = SocketIO(app)
+
+class DashboardType(Enum):
+    PROCESS = "process"
+    LOCAL = "local"
+    AZURE = "azure"
+    ONPREMISES = "on-premises"
 
 
 def set_terminal_size(fd, row, col, xpix=0, ypix=0):
@@ -107,6 +116,40 @@ def connect():
 
 # Admin data support
 
+def load_executor(cluster_name):
+    if cluster_name == "process":
+        from maro.cli.process.executor import ProcessExecutor
+        executor = ProcessExecutor()
+        cluster_type = DashboardType.PROCESS
+    else:
+        from maro.cli.utils.details_reader import DetailsReader
+        cluster_details = DetailsReader.load_cluster_details(
+            cluster_name=cluster_name)
+        if cluster_details["mode"] == "grass/azure":
+            from maro.cli.grass.executors.grass_azure_executor import GrassAzureExecutor
+            executor = GrassAzureExecutor(cluster_name=cluster_name)
+            cluster_type = DashboardType.AZURE
+        elif cluster_details["mode"] == "grass/on-premises":
+            from maro.cli.grass.executors.grass_on_premises_executor import GrassOnPremisesExecutor
+            executor = GrassOnPremisesExecutor(cluster_name=cluster_name)
+            cluster_type = DashboardType.ONPREMISES
+        elif cluster_details["mode"] == "grass/local":
+            from maro.cli.grass.executors.grass_local_executor import GrassLocalExecutor
+            executor = GrassLocalExecutor(cluster_name=cluster_name)
+            cluster_type = DashboardType.LOCAL
+    return executor, cluster_type
+
+def update_resource_dynamic(org_data, local_executor, dashboard_type):
+    if dashboard_type != DashboardType.LOCAL.value:
+        data_len = len(org_data['cpu'])
+        new_data = local_executor.get_resource_usage(data_len)
+        for data_key in org_data.keys():
+            org_data[data_key].extend(new_data[data_key])
+    else:
+        new_data = local_executor.get_resource_usage(0)
+        for data_key in org_data.keys():
+            org_data[data_key]=new_data[data_key]
+
 def update_cluster_list():
     while True:
         socketio.sleep(1)
@@ -117,15 +160,46 @@ def update_cluster_list():
                 if os.path.basename(name) == "cluster_details.yml":
                     clusters.append(os.path.basename(root))
         app.config["cluster_list"] = clusters
+        for cluster_name in app.config["cluster_status"]:
+            if cluster_name not in clusters:
+                del app.config["cluster_status"][cluster_name]
+        for cluster_name in clusters:
+            if cluster_name not in app.config["cluster_status"].keys():
+                try:
+                    app.config["cluster_status"][cluster_name] = {}
+                    app.config["local_executor"][cluster_name],  dashboard_type = load_executor(cluster_name)
+                    app.config["cluster_status"][cluster_name]["dashboard_type"] = dashboard_type.value
+                    local_executor = app.config["local_executor"][cluster_name]
+                    app.config["cluster_status"][cluster_name]["resource_static"] = local_executor.get_resource()
+                    app.config["cluster_status"][cluster_name]["resource_dynamic"] = local_executor.get_resource_usage(0)
+                    #app.config["cluster_status"][cluster_name]["job_queue_data"] = local_executor.get_job_queue()
+                    app.config["cluster_status"][cluster_name]["job_detail_data"] = local_executor.get_job_details()
+                except Exception as e:
+                    print(f"Failed to collect status for cluster {cluster_name}, error:{e}")
+                    if cluster_name in app.config["cluster_status"].keys():
+                        del app.config["cluster_status"][cluster_name]
+            else:
+                local_executor = app.config["local_executor"][cluster_name]
+                update_resource_dynamic(app.config["cluster_status"][cluster_name]["resource_dynamic"], local_executor, app.config["cluster_status"][cluster_name]["dashboard_type"])
+                #app.config["cluster_status"][cluster_name]["job_queue_data"] = local_executor.get_job_queue()
+                app.config["cluster_status"][cluster_name]["job_detail_data"] = local_executor.get_job_details()
         print(f"{app.config['cluster_list']}")
 
 
 @socketio.on("cluster_list", namespace="/pty")
 def cluster_list():
-    print("cluster request received")
+    print("cluster list request received")
     print(f"{app.config['cluster_list']}")
     socketio.emit("cluster_list", app.config["cluster_list"], namespace="/pty")
 
+@socketio.on("cluster_status", namespace="/pty")
+def cluster_status(data):
+    print("cluster status request received")
+    print(f"{app.config['cluster_status']}")
+    if data["cluster_name"] in app.config["cluster_status"].keys():
+        socketio.emit("cluster_status", app.config["cluster_status"][data["cluster_name"]], namespace="/pty")
+    else:
+        socketio.emit("cluster_status", None, namespace="/pty")
 
 def os_is_windows() -> bool:
     info = platform.platform()

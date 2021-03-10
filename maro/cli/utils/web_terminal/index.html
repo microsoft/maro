@@ -49,11 +49,11 @@
       </el-row>
     </el-header>
     <el-main>
-      <div>
+      <!-- <div>
         <iframe class="mydashboard" src="./dashboard"></iframe>
-      </div>
+      </div> -->
 
-      <!-- <el-container class="mydashboard">
+      <el-container class="mydashboard">
         <el-main>
           <ul>
             <li v-for="item in cluster_list" :key="item">
@@ -63,7 +63,7 @@
         </el-main>
         <el-main></el-main>
         <el-main></el-main>
-      </el-container> -->
+      </el-container>
 
     </el-main>
     <el-footer style="height:340px;">
@@ -95,6 +95,7 @@
         methods: {
           show_cluster: function (message) {
             alert(message)
+            socket.emit('cluster_status', {cluster_name: message})
           }
         }
       })
@@ -156,6 +157,10 @@
       socket.on("cluster_list", (data) => {
         console.log(data)
         vm.cluster_list = data
+      })
+
+      socket.on("cluster_status", (data) => {
+        console.log(data)
       })
 
       function fitToScreen() {
