@@ -1,16 +1,20 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import io
+import yaml
 import unittest
 
+from maro.simulator import Env
+from maro.utils import convert_dottable
 from maro.data_lib import BinaryConverter
 from maro.event_buffer import EventBuffer
 from maro.simulator.scenarios.vm_scheduling import CpuReader
+from maro.simulator.scenarios.vm_scheduling import AllocateAction
 from maro.simulator.scenarios.vm_scheduling.business_engine import VmSchedulingBusinessEngine
 
 
 class TestCpuReader(unittest.TestCase):
-
     for i in range(1, 4):
         meta_file = "tests/data/vm_scheduling/cpu_readings.yml"
         bin_file_name = f"tests/data/vm_scheduling/vm_cpu_readings-file-{i}-of-test.bin"
@@ -122,6 +126,47 @@ class TestRegion(unittest.TestCase):
         pm_amount = self.be._pm_amount
         expected = 1130
         self.assertEqual(expected, pm_amount)
+
+
+class TestPriceModel(unittest.TestCase):
+
+    def setUp(self):
+        config_path = "tests/vm_scheduling/env_config.yml"
+        with io.open(config_path, "r") as in_file:
+            raw_config = yaml.safe_load(in_file)
+            config = convert_dottable(raw_config)
+        env = Env(
+            scenario=config.env.scenario,
+            topology=config.env.topology,
+            start_tick=config.env.start_tick,
+            durations=config.env.durations,
+            snapshot_resolution=config.env.resolution
+        )
+        metrics, decision_event, is_done = env.step(None)
+        idx = 0
+        while not is_done:
+            if idx == 1000:
+                break
+            idx += 1
+            action = AllocateAction(
+                vm_id=decision_event.vm_id,
+                pm_id=decision_event.valid_pms[0]
+            )
+            self.metrics, decision_event, is_done = env.step(action)
+
+    def test_price(self):
+        total_incomes = self.metrics['total_incomes']
+        expected = 2747.57
+        self.assertLess(abs(expected - total_incomes), 0.01)
+
+        total_profit = self.metrics['total_profit']
+        expected = 2726.67
+        self.assertLess(abs(expected - total_profit), 0.01)
+
+        energy_consumption_cost = self.metrics['energy_consumption_cost']
+        expected = 20.89
+        self.assertLess(abs(expected - energy_consumption_cost), 0.01)
+
 
 if __name__ == "__main__":
     unittest.main()
