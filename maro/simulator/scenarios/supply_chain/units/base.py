@@ -1,0 +1,68 @@
+
+class UnitBase:
+    # class name of data model
+    data_class: str = None
+
+    # index of the data model instance in frame
+    data_index: int = None
+
+    # current world.
+    world = None
+
+    # which facility belongs to
+    facility = None
+
+    # configurations of this unit
+    configs: dict = None
+
+    # id of this unit
+    id: int = None
+
+    def __init__(self):
+        # data model instance, it is None until the initialize function called.
+        self._data = None
+
+    @property
+    def data(self):
+        """Data model install related to this unit, available after initialized function called."""
+        if self._data is None:
+            self._data = self.world.get_data_instance(self.data_class, self.data_index)
+
+        return self._data
+
+    def initialize(self, configs: dict):
+        """Initialize current unit"""
+        # called after frame ready
+        self.configs = configs
+        self.data.set_id(self.id, self.facility.id)
+        self.data.initialize(configs.get("data", {}))
+
+    def step(self, tick: int):
+        # called per tick
+        pass
+
+    def post_step(self, tick: int):
+        # clear the per tick attributes that all nodes have
+        if self.data is not None:
+            self.data.balance_sheet_profit = 0
+            self.data.balance_sheet_loss = 0
+
+    def get_metrics(self):
+        # called per step
+        pass
+
+    def reset(self):
+        # called per episode
+        self.data.reset()
+
+    def set_action(self, action):
+        # called after received an action.
+        pass
+
+    def get_unit_info(self) -> dict:
+        return {
+            "id": self.id,
+            "node_name": type(self.data).__node_name__,
+            "node_index": self.data_index,
+            "class": type(self)
+        }

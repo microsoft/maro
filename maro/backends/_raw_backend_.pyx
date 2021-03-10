@@ -233,6 +233,8 @@ cdef class RawBackend(BackendAbc):
     cdef list slots_not_equal(self, NODE_INDEX index, ATTR_TYPE attr_type, object value) except +:
         return self.where(index, attr_type, lambda x : x != value)
 
+    cdef SLOT_INDEX get_slot_number(self, NODE_INDEX index, ATTR_TYPE attr_type) except +:
+        return self._frame.get_slot_number(index, attr_type)
 
 cdef class RawSnapshotList(SnapshotListAbc):
     def __cinit__(self, RawBackend backend, USHORT total_snapshots):
