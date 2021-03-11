@@ -43,24 +43,55 @@ class ManufactureUnit(UnitBase):
             sku_num = len(self.facility.sku_information)
             unit_num_upper_bound = self.facility.storage.data.capacity // sku_num
 
-            # one lot per time, until no enough space to hold output, or no enough source material
-            # TODO: simplify this part to make it faster
-            for _ in range(data.production_rate):
-                storage_remaining_space = self.facility.storage.data.remaining_space
-                current_product_number = self.facility.storage.get_product_number(data.product_id)
+            # compare with avg storage number
+            current_product_number = self.facility.storage.get_product_number(data.product_id)
+            max_number_to_procedure = min(
+                unit_num_upper_bound - current_product_number,
+                data.production_rate * self.output_units_per_lot,
+                self.facility.storage.data.remaining_space
+            )
+
+            if max_number_to_procedure > 0:
                 space_taken_per_cycle = self.output_units_per_lot - self.input_units_per_lot
 
-                # if remaining space enough to hold output production
-                if storage_remaining_space >= space_taken_per_cycle:
-                    # if not reach the storage limitation of current production
-                    if current_product_number < unit_num_upper_bound:
-                        # if we do not need any material, then just generate the out product.
-                        # or if we have enough source materials
-                        if len(self.bom) == 0 or self.facility.storage.try_take_units(self.bom):
-                            self.facility.storage.try_add_units({data.product_id: self.output_units_per_lot})
+                # consider about the volume, we can produce all if space take per cycle <=1
+                if space_taken_per_cycle > 1:
+                    max_number_to_procedure = max_number_to_procedure // space_taken_per_cycle
 
-                            # update manufacturing number in state
-                            data.manufacturing_number += 1
+                source_sku_to_take = {}
+                # do we have enough source material?
+                for source_sku_id, source_sku_cost_number in self.bom.items():
+                    source_sku_available_number = self.facility.storage.get_product_number(source_sku_id)
+
+                    max_number_to_procedure = min(source_sku_available_number // source_sku_cost_number, max_number_to_procedure)
+
+                    if max_number_to_procedure <= 0:
+                        break
+
+                    source_sku_to_take[source_sku_id] = max_number_to_procedure * source_sku_cost_number
+
+                if max_number_to_procedure > 0:
+                    data.manufacturing_number += max_number_to_procedure
+                    self.facility.storage.try_take_units(source_sku_to_take)
+
+            # one lot per time, until no enough space to hold output, or no enough source material
+            # TODO: simplify this part to make it faster
+            # for _ in range(data.production_rate):
+            #     storage_remaining_space = self.facility.storage.data.remaining_space
+            #     current_product_number = self.facility.storage.get_product_number(data.product_id)
+            #     space_taken_per_cycle = self.output_units_per_lot - self.input_units_per_lot
+
+            #     # if remaining space enough to hold output production
+            #     if storage_remaining_space >= space_taken_per_cycle:
+            #         # if not reach the storage limitation of current production
+            #         if current_product_number < unit_num_upper_bound:
+            #             # if we do not need any material, then just generate the out product.
+            #             # or if we have enough source materials
+            #             if len(self.bom) == 0 or self.facility.storage.try_take_units(self.bom):
+            #                 self.facility.storage.try_add_units({data.product_id: self.output_units_per_lot})
+
+            #                 # update manufacturing number in state
+            #                 data.manufacturing_number += 1
 
         data.balance_sheet_loss = data.manufacturing_number * data.product_unit_cost
 

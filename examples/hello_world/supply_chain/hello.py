@@ -213,7 +213,7 @@ class InteractiveRenderaleEnv:
         storage_unit_number = len(storages)
 
         # manufacture number for current tick
-        features = ("id", "facility_id", "storage_id", "output_product_id", "product_unit_cost", "production_rate", "manufacturing_number")
+        features = ("id", "facility_id", "storage_id", "product_id", "product_unit_cost", "production_rate", "manufacturing_number")
         states = manufactures[self.env.frame_index::features].flatten().reshape(manufacture_unit_number, -1).astype(np.int)
 
         # show bom

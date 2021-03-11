@@ -4,8 +4,9 @@ NOTE: this is used as a state shaping example, without maro.rl
 
 states we used:
 
-. is_positive_balance
+facility + sku:
 
+is_positive_balance
 
 is_over_stock
 is_out_of_stock
@@ -34,42 +35,27 @@ import numpy as np
 from maro.simulator import Env
 
 
-# NOTE: copied from original code
-class BalanceSheet:
-    profit: int = 0
-    loss: int = 0
-
-    def __init__(self, profit:int, loss:int):
-        self.profit = profit
-        self.loss = loss
-
-    def total(self) -> int:
-        return self.profit + self.loss
-
-    def __add__(self, other):
-        return BalanceSheet(self.profit + other.profit, self.loss + other.loss)
-
-    def __sub__(self, other):
-        return BalanceSheet(self.profit - other.profit, self.loss - other.loss)
-
-    def __repr__(self):
-        return f"{round(self.profit + self.loss, 0)} ({round(self.profit, 0)} {round(self.loss, 0)})"
-
-    def __radd__(self, other):
-        if other == 0:
-            return self
-        else:
-            return self.__add__(other)
-
-
 class SupplyChainStateShaping:
     def __init__(self, env: Env):
         self._env = env
 
     def shape(self):
-        is_positive_balance = self._origin_group_by_sku_is_positive_balance()
+        """
+        result is a dictionary contains agent type and states of each unit(agent):
+        {
+            "producer": {
+                "manufacture id" : [long list of states]
+            },
+            "consumer": {
+                "consumer id": [long list of states]
+            }
+        }
 
-        print(is_positive_balance)
+        """
+
+        is_positive_balance = self._origin_group_by_sku_is_positive_balance()
+        #
+        return is_positive_balance
 
     def _origin_group_by_sku_is_positive_balance(self):
         # original code collect states of facilities and sku related units (manufacture, seller, consumer),
@@ -128,6 +114,8 @@ class SupplyChainStateShaping:
 
             sku_is_positive_balance = list(map(filter, sku_balance_sheet_total))
 
-            result.extend(sku_is_positive_balance)
+            # np.stack()
+
+            result.append(sku_is_positive_balance)
 
         return result
