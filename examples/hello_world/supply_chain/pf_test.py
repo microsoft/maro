@@ -22,7 +22,7 @@ def go(env: Env):
 
 if __name__ == "__main__":
     topology = sys.argv[1]
-    durations = sys.argv[2] if len(sys.argv) > 2 else 100
+    durations = int(sys.argv[2] if len(sys.argv) > 2 else 100)
 
     env = Env(scenario="supply_chain", topology=topology, durations=durations)
 
