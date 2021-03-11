@@ -51,9 +51,8 @@ if __name__ == "__main__":
     cluster_name = tuner_config['cluster_name']
     job_temp = tuner_config['job_temp']
 
-    # FIXME
-    # local_master_details = DetailsReader.load_local_master_details()
-    local_cluster_details = DetailsReader.load_cluster_details(cluster_name)
+    redis_host = tuner_config['redis_host']
+    redis_port = tuner_config['redis_port']
 
     print('starting tuner...')
     tuner = choose_tuner(tuner_name, tuner_args)
@@ -63,9 +62,6 @@ if __name__ == "__main__":
 
     tuner.update_search_space(search_space=search_space)
 
-    redis_connection = Redis(host='127.0.0.1', port=local_cluster_details['master']['redis']['port'],
-                             charset='utf-8', decode_responses=True)
-
-    dispatcher = Dispatcher(tuner, redis_connection, tuner_job_name, cluster_name, job_temp)
+    dispatcher = Dispatcher(tuner, redis_host, redis_port, tuner_job_name, cluster_name, job_temp)
     print('starting dispatcher...')
     dispatcher.run()

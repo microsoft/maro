@@ -7,28 +7,31 @@ search_space: search_space.json
 tuner_job_name: MyTunerJobName
 cluster_name: MyClusterName
 
+redis_host: 127.0.0.1
+redis_port: 6379
+
 job_temp:
   mode: grass/local
   name: MyJobName # str: name of the training job
 
   components: # component config
     actor:
-      image: MyImageName # str: name of the training image
+      image: msranni/nni:latest # str: name of the training image
       resources:
         cpu: 1 # int: cpu requirement (unit: cores)
         memory: 128m # str: memory requirement (unit: MB)
         gpu: 0 # int: gpu requirement (units: cards)
-      num: 5 # int: number of this component
+      num: 2 # int: number of this component
       mount:
-        target: /mnt/data # str: target directory for user data, see "maro grass data push" for reference
-      command: "python /mnt/data/job_metadata/run_actor.py --external_params {}" # str: command to be executed
+        target: /home/ningshang/maro/examples/automl/tuner_example:/mnt/data # str: target directory for user data, see "maro grass data push" for reference
+      command: "python3 /mnt/data/job_metadata/run_actor.py"
     learner:
-      image: MyImageName
+      image: msranni/nni:latest
       resources:
         cpu: 1
         memory: 128m
         gpu: 0
       num: 1
       mount:
-        target: /mnt/data
-      command: "python /mnt/data/job_metadata/run_learner.py --external_params {}"
+        target: /home/ningshang/maro/examples/automl/tuner_example:/mnt/data
+      command: "python3 /mnt/data/job_metadata/run_learner.py"

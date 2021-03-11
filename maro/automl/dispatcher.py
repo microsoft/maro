@@ -27,13 +27,16 @@ def _back_parameter_id(back_num: int):
 
 
 class Dispatcher():
-    def __init__(self, tuner: Tuner, redis_connection: Redis, tuner_job_name: str, cluster_name: str, job_temp: dict):
+    def __init__(self, tuner: Tuner, redis_host: str, redis_port: int, tuner_job_name: str, cluster_name: str, job_temp: dict):
         self.tuner = tuner
-        self.redis_connection = redis_connection
+        self.redis_host = redis_host
+        self.redis_port = redis_port
         self.tuner_job_name = tuner_job_name
         self.cluster_name = cluster_name
         self.job_temp = job_temp
 
+        self.redis_connection = Redis(host=redis_host, port=redis_port,
+                             charset='utf-8', decode_responses=True)
         self.remaining_budget = 1
 
         self.stopping = False
@@ -58,8 +61,8 @@ class Dispatcher():
                     job_detail['name'] = 'tuner-{}-job-{}'.format(self.tuner_job_name, parameter_ids[i])
                     param = json.dumps(parameters[i])
                     for key, value in job_detail['components'].items():
-                        value['command'] = 'export FINAL_RESULT_KEY={} && export JOB_NAME={} && export CLUSTER_NAME={} && {}'.format(
-                                            self.redis_key_final_metric, job_detail['name'], self.cluster_name, value['command'].format(param))
+                        value['command'] = 'export FINAL_RESULT_KEY={} && export JOB_NAME={} && export REDIS_HOST={} && export REDIS_PORT= {} && {}'.format(
+                                            self.redis_key_final_metric, job_detail['name'], self.redis_host, self.redis_port, value['command'].format(param))
                     self._tuner_push_pending_job(job_detail)
             sleep(5)
 
