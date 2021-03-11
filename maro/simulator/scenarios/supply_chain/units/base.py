@@ -20,15 +20,12 @@ class UnitBase:
 
     def __init__(self):
         # data model instance, it is None until the initialize function called.
-        self._data = None
+        self.data = None
 
-    @property
-    def data(self):
+    def prepare_data(self):
         """Data model install related to this unit, available after initialized function called."""
-        if self._data is None:
-            self._data = self.world.get_data_instance(self.data_class, self.data_index)
-
-        return self._data
+        if self.data is None:
+            self.data = self.world.get_data_instance(self.data_class, self.data_index)
 
     def initialize(self, configs: dict):
         """Initialize current unit"""

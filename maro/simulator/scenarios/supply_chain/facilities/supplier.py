@@ -153,6 +153,18 @@ class SupplierFacility(FacilityBase):
         self.data.set_id(self.id, self.id)
         self.data.initialize({})
 
+        self.storage.prepare_data()
+        self.distribution.prepare_data()
+
+        for transport in self.transports:
+            transport.prepare_data()
+
+        for manufacture in self.manufactures.values():
+            manufacture.prepare_data()
+
+        for consumer in self.consumers.values():
+            consumer.prepare_data()
+
         # DO init by skus first, as other components may depend on sku information
         self._init_by_skus()
 

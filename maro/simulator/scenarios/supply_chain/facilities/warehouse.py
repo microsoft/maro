@@ -100,6 +100,15 @@ class WarehouseFacility(FacilityBase):
     def initialize(self):
         self.data.set_id(self.id, self.id)
         self.data.initialize({})
+        
+        self.storage.prepare_data()
+        self.distribution.prepare_data()
+
+        for transport in self.transports:
+            transport.prepare_data()
+        
+        for consumer in self.consumers.values():
+            consumer.prepare_data()
 
         # init components that related with sku number
         self._init_by_skus()

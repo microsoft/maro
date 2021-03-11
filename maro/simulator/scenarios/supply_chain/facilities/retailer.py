@@ -97,6 +97,15 @@ class RetailerFacility(FacilityBase):
         self.data.set_id(self.id, self.id)
         self.data.initialize({})
 
+        self.storage.prepare_data()
+
+        # prepare data for units
+        for consumer in self.consumers.values():
+            consumer.prepare_data()
+
+        for seller in self.sellers.values():
+            seller.prepare_data()
+
         self._init_by_sku()
 
         self.storage.initialize(self.configs.get("storage", {}))

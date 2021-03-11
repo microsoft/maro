@@ -79,7 +79,9 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
 
     def reset(self):
         self._frame.reset()
-        self._frame.snapshots.reset()
+
+        if self._frame.snapshots:
+            self._frame.snapshots.reset()
 
         for _, facility in self.world.facilities.items():
             facility.reset()

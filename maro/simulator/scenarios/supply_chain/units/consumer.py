@@ -44,8 +44,6 @@ class ConsumerUnit(UnitBase):
         # we are using facility as source id, not the storage
         self.update_open_orders(source_id, product_id, quantity)
 
-        sku = self.facility.sku_information[data.product_id]
-
         order = Order(self.facility, product_id, quantity, vlt)
 
         source_facility = self.world.get_facility_by_id(source_id)
