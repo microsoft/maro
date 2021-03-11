@@ -18,7 +18,7 @@ class ConsumerUnit(UnitBase):
         self.open_orders = defaultdict(Counter)
 
     def initialize(self, configs: dict):
-        super(ConsumerUnit, self).initialize(configs)
+        #super(ConsumerUnit, self).initialize(configs)
 
         if len(self.data.sources) > 0:
             # we use 1st source as default one
@@ -52,11 +52,8 @@ class ConsumerUnit(UnitBase):
 
         data.total_purchased += quantity
 
-        # update balance sheet
-        data.balance_sheet_loss = -(data.order_product_cost + data.order_cost)
-
     def post_step(self, tick: int):
-        super(ConsumerUnit, self).post_step(tick)
+        # super(ConsumerUnit, self).post_step(tick)
 
         data = self.data
 

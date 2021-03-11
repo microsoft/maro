@@ -51,11 +51,6 @@ class DistributionUnit(UnitBase):
 
             data.delay_order_penalty[product_index] += sku.delay_order_penalty
 
-        # update balance sheet, sum of transport balance sheet
-        if self.facility.transports is not None:
-            for vehicle in self.facility.transports:
-                data.balance_sheet_loss += vehicle.data.balance_sheet_loss
-
     def reset(self):
         super(DistributionUnit, self).reset()
         self.order_queue.clear()

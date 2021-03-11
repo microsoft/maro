@@ -18,29 +18,17 @@ class SupplierFacility(FacilityBase):
     def step(self, tick: int):
         self.storage.step(tick)
 
-        self.data.balance_sheet_profit += self.storage.data.balance_sheet_profit
-        self.data.balance_sheet_loss += self.storage.data.balance_sheet_loss
-
         for vehicle in self.transports:
             vehicle.step(tick)
 
         for supplier in self.manufactures.values():
             supplier.step(tick)
 
-            self.data.balance_sheet_profit += supplier.data.balance_sheet_profit
-            self.data.balance_sheet_loss += supplier.data.balance_sheet_loss
-
         for consumer in self.consumers.values():
             consumer.step(tick)
 
-            self.data.balance_sheet_profit += consumer.data.balance_sheet_profit
-            self.data.balance_sheet_loss += consumer.data.balance_sheet_loss
-
         # to make sure the distribution get correct balance sheet, we should update transports first.
         self.distribution.step(tick)
-
-        self.data.balance_sheet_profit += self.distribution.data.balance_sheet_profit
-        self.data.balance_sheet_loss += self.distribution.data.balance_sheet_loss
 
     def post_step(self, tick: int):
         self.storage.post_step(tick)

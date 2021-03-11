@@ -23,22 +23,13 @@ class WarehouseFacility(FacilityBase):
     def step(self, tick: int):
         self.storage.step(tick)
 
-        self.data.balance_sheet_profit += self.storage.data.balance_sheet_profit
-        self.data.balance_sheet_loss += self.storage.data.balance_sheet_loss
-
         for transport in self.transports:
             transport.step(tick)
 
         for consumer in self.consumers.values():
             consumer.step(tick)
 
-            self.data.balance_sheet_profit += consumer.data.balance_sheet_profit
-            self.data.balance_sheet_loss += consumer.data.balance_sheet_loss
-
         self.distribution.step(tick)
-
-        self.data.balance_sheet_profit += self.distribution.data.balance_sheet_profit
-        self.data.balance_sheet_loss += self.distribution.data.balance_sheet_loss
 
     def build(self, configs: dict):
         self.configs = configs

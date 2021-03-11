@@ -14,22 +14,13 @@ class RetailerFacility(FacilityBase):
     def step(self, tick: int):
         self.storage.step(tick)
 
-        self.data.balance_sheet_profit += self.storage.data.balance_sheet_profit
-        self.data.balance_sheet_loss += self.storage.data.balance_sheet_loss
-
         if self.consumers is not None:
             for consumer in self.consumers.values():
                 consumer.step(tick)
 
-                self.data.balance_sheet_profit += consumer.data.balance_sheet_profit
-                self.data.balance_sheet_loss += consumer.data.balance_sheet_loss
-
         if self.sellers is not None:
             for seller in self.sellers.values():
                 seller.step(tick)
-
-                self.data.balance_sheet_profit += seller.data.balance_sheet_profit
-                self.data.balance_sheet_loss += seller.data.balance_sheet_loss
 
     def post_step(self, tick: int):
         self.storage.post_step(tick)

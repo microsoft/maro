@@ -12,10 +12,6 @@ class DataModelBase(NodeBase):
     # id of facility this unit belongs to
     facility_id = NodeAttribute(AttributeType.Int)
 
-    # per tick states
-    balance_sheet_profit = NodeAttribute(AttributeType.Float)
-    balance_sheet_loss = NodeAttribute(AttributeType.Float)
-
     def __init__(self):
         self._unit_id = 0
         self._facility_id = 0

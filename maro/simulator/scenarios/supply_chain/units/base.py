@@ -39,10 +39,7 @@ class UnitBase:
         pass
 
     def post_step(self, tick: int):
-        # clear the per tick attributes that all nodes have
-        if self.data is not None:
-            self.data.balance_sheet_profit = 0
-            self.data.balance_sheet_loss = 0
+        pass
 
     def get_metrics(self):
         # called per step
