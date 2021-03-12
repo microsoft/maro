@@ -13,12 +13,13 @@ class SellerUnit(UnitBase):
         super(SellerUnit, self).__init__()
 
         self.gamma = 0
-
+        self.durations = 0
         self.demand_distribution = []
 
     def initialize(self, configs: dict, durations: int):
         super(SellerUnit, self).initialize(configs, durations)
 
+        self.durations = durations
         self.gamma = self.data.sale_gamma
 
         for _ in range(durations):
@@ -44,6 +45,12 @@ class SellerUnit(UnitBase):
 
     def reset(self):
         super(SellerUnit, self).reset()
+
+        # regenerate the demand distribution
+        self.demand_distribution.clear()
+
+        for _ in range(self.durations):
+            self.demand_distribution.append(np.random.gamma(self.gamma))
 
     def market_demand(self, tick:int):
         return int(self.demand_distribution[tick])
