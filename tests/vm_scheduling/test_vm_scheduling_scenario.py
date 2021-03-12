@@ -10,7 +10,7 @@ from maro.utils import convert_dottable
 from maro.data_lib import BinaryConverter
 from maro.event_buffer import EventBuffer
 from maro.simulator.scenarios.vm_scheduling import CpuReader
-from maro.simulator.scenarios.vm_scheduling import AllocateAction
+from maro.simulator.scenarios.vm_scheduling import AllocateAction, PostponeAction
 from maro.simulator.scenarios.vm_scheduling.business_engine import VmSchedulingBusinessEngine
 
 
@@ -143,14 +143,19 @@ class TestPriceModel(unittest.TestCase):
             snapshot_resolution=config.env.resolution
         )
         metrics, decision_event, is_done = env.step(None)
+        action = AllocateAction(
+            vm_id=decision_event.vm_id,
+            pm_id=decision_event.valid_pms[0]
+        )
+        self.metrics, decision_event, is_done = env.step(action)
         idx = 0
         while not is_done:
             if idx == 1000:
                 break
             idx += 1
-            action = AllocateAction(
+            action = PostponeAction(
                 vm_id=decision_event.vm_id,
-                pm_id=decision_event.valid_pms[0]
+                postpone_step=1
             )
             self.metrics, decision_event, is_done = env.step(action)
 

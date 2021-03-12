@@ -35,8 +35,6 @@ PRICE_PER_MEMORY_PER_HOUR: 0.0078
 UNIT_ENERGY_PRICE_PER_KWH: 0.07
 # POWER USAGE EFFICIENCY, PUE=(Total Facility Power)/(IT Equipment Power)
 POWER_USAGE_EFFICIENCY: 1.7
-# Watt transfer to KiloWatts
-W_PER_KW: 1000
 
 components:
   pm:

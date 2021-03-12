@@ -56,7 +56,7 @@ class VirtualMachine:
         self.deletion_tick: int = -1
 
     def get_income_till_now(self, cur_tick: int):
-        return self.unit_price * (cur_tick - self.creation_tick + 1)
+        return self.unit_price * (cur_tick - self.creation_tick)
 
     @property
     def cpu_utilization(self) -> float:

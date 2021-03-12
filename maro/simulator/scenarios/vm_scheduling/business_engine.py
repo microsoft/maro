@@ -126,7 +126,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._price_per_memory_per_hour: float = self._config.PRICE_PER_MEMORY_PER_HOUR
         self._unit_energy_price_per_kwh: float = self._config.UNIT_ENERGY_PRICE_PER_KWH
         self._power_usage_efficiency: float = self._config.POWER_USAGE_EFFICIENCY
-        self._w_per_kw: int = self._config.W_PER_KW
+        self._w_per_kw: int = 1000
 
         # Load PM related configs.
         self._region_amount: int = sum(
