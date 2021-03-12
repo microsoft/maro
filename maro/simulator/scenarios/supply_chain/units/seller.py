@@ -16,41 +16,53 @@ class SellerUnit(UnitBase):
         self.durations = 0
         self.demand_distribution = []
 
+        # attribute cache
+        self.sold = 0
+        self.demand = 0
+        self.total_sold = 0
+        self.product_id = 0
+
     def initialize(self, configs: dict, durations: int):
         super(SellerUnit, self).initialize(configs, durations)
 
         self.durations = durations
         self.gamma = self.data.sale_gamma
+        self.product_id = self.data.product_id
 
         for _ in range(durations):
             self.demand_distribution.append(np.random.gamma(self.gamma))
 
     def step(self, tick: int):
-        data = self.data
-
-        product_id = data.product_id
         demand = self.market_demand(tick)
 
-        sold_qty = self.facility.storage.take_available(product_id, demand)
+        # what seller does is just count down the product number.
+        sold_qty = self.facility.storage.take_available(self.product_id, demand)
 
-        data.total_sold += sold_qty
-        data.sold = sold_qty
-        data.demand = demand
+        self.total_sold += sold_qty
+        self.sold = sold_qty
+        self.demand = demand
+
+    def begin_post_step(self, tick: int):
+        self.data.sold = self.sold
+        self.demand = self.demand
+        self.data.total_sold = self.total_sold
 
     def end_post_step(self, tick: int):
         # super(SellerUnit, self).post_step(tick)
+        if self.sold > 0:
+            self.data.sold = 0
 
-        self.data.sold = 0
-        self.data.demand = 0
+        if self.demand > 0:
+            self.data.demand = 0
 
     def reset(self):
         super(SellerUnit, self).reset()
 
-        # regenerate the demand distribution
-        self.demand_distribution.clear()
+        # TODO: regenerate the demand distribution?
+        # self.demand_distribution.clear()
 
-        for _ in range(self.durations):
-            self.demand_distribution.append(np.random.gamma(self.gamma))
+        # for _ in range(self.durations):
+        #     self.demand_distribution.append(np.random.gamma(self.gamma))
 
-    def market_demand(self, tick:int):
+    def market_demand(self, tick: int):
         return int(self.demand_distribution[tick])

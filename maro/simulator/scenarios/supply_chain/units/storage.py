@@ -82,7 +82,7 @@ class StorageUnit(UnitBase):
         for i, number in enumerate(self.product_number):
             self.data.product_number[i] = self.product_number[i]
 
-        self.data.remaining_space = self.capacity - sum(self.product_number)
+        self.data.remaining_space = self.remaining_space
 
     def reset(self):
         super().reset()
