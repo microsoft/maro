@@ -53,8 +53,15 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
             self._event_buffer.insert_event(decision_event)
 
     def _step_by_facility(self, tick: int):
+        # go though all the facilities
         for _, facility in self.world.facilities.items():
             facility.step(tick)
+
+        # NOTE: different with other scenarios, we only ask for action at the end ot each step,
+        # so do not need to take snapshot at post step,
+        # we we need at post step is check the tick, and clear per tick attributes
+        for _, facility in self.world.facilities.items():
+            facility.begin_post_step(tick)
 
     def _step_by_units(self, tick: int):
         if self._unit_id_list is None:
@@ -69,12 +76,12 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
 
     def post_step(self, tick: int):
         # before taking snapshot
-        for facility in self.world.facilities.values():
-            facility.begin_post_step(tick)
+        # for facility in self.world.facilities.values():
+        #     facility.begin_post_step(tick)
 
         # take snapshot
-        if (tick + 1) % self._snapshot_resolution == 0:
-            self._frame.take_snapshot(self.frame_index(tick))
+        # if (tick + 1) % self._snapshot_resolution == 0:
+        #     self._frame.take_snapshot(self.frame_index(tick))
 
         for facility in self.world.facilities.values():
             facility.end_post_step(tick)
