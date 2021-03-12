@@ -24,9 +24,9 @@ class BasicLearner(AbsLearner):
         )
         self._max_ep = max_ep
         self._train_freq = train_freq
-        self._model_save_freq = model_save_freq
-        self._model_save_dir = join(dirname(dirname(realpath(__file__))), "model")
-        makedirs(self._model_save_dir, exist_ok=True)
+        self.model_save_freq = model_save_freq
+        self.model_save_dir = join(dirname(dirname(realpath(__file__))), "model")
+        makedirs(self.model_save_dir, exist_ok=True)
         self.logger = logger if logger else DummyLogger()
 
     def run(self):
@@ -41,11 +41,11 @@ class BasicLearner(AbsLearner):
             train_start = time.time()
             self.agent.store_experiences(combine(exp_by_src))
             if ep % self._train_freq == self._train_freq - 1:
-                self.agent.train()
+                self.agent.learn()
                 self.logger.info("Training finished")
             training_time += time.time() - train_start
-            if (ep + 1) % self._model_save_freq == 0:
-                self.agent.dump_model_to_file(join(self._model_save_dir, str(ep)))
+            if (ep + 1) % self.model_save_freq == 0:
+                self.agent.dump_model_to_file(join(self.model_save_dir, str(ep)))
 
             self.logger.debug(f"rollout time: {int(rollout_time)}")
             self.logger.debug(f"training time: {int(training_time)}")

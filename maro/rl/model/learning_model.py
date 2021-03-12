@@ -82,7 +82,7 @@ class AbsCoreModel(nn.Module):
     def forward(self, *args, **kwargs):
         raise NotImplementedError
 
-    def learn(self, loss):
+    def step(self, loss):
         """Use the loss to back-propagate gradients and apply them to the underlying parameters."""
         if self._optimizer is None:
             raise MissingOptimizer("No optimizer registered to the model")

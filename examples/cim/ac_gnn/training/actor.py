@@ -3,20 +3,20 @@
 
 import os
 
-from maro.rl import AbsRolloutExecutor
+from maro.rl import AbsActor
 from maro.simulator import Env
 from maro.utils import DummyLogger
 
 from examples.cim.common import get_env_action
 
 
-class BasicRolloutExecutor(AbsRolloutExecutor):
+class BasicActor(AbsActor):
     def __init__(self, env, agent, state_shaper, experience_shaper, max_null_actions=None, logger=None):
         super().__init__(env, agent)
         self.state_shaper = state_shaper
         self.experience_shaper = experience_shaper
+        self.logger = logger if logger else DummyLogger()
         self._max_null_actions = max_null_actions
-        self._logger = logger if logger else DummyLogger()
 
     def roll_out(self, index, training=True):
         self.env.reset()
@@ -26,11 +26,11 @@ class BasicRolloutExecutor(AbsRolloutExecutor):
             state = self.state_shaper(event, self.env.snapshot_list)
             action_info = self.agent.get(state, index, time_step)
             if action_info is None:
-                self._logger.info(f"Failed to receive an action for time step {time_step}, proceed with no action.")
+                self.logger.info(f"Failed to receive an action for time step {time_step}, proceed with no action.")
                 if null_decisions_allowed:
                     null_decisions_allowed -= 1
                     if null_decisions_allowed == 0:
-                        self._logger.info(f"Roll-out aborted due to too many null decisions.")
+                        self.logger.info(f"Roll-out aborted due to too many null decisions.")
                         return
                 env_action = None
             else:

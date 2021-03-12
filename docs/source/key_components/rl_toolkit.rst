@@ -28,8 +28,8 @@ This decoupling is achieved by the Core Model abstraction described below.
   class AbsAgent(ABC):
       def __init__(self, model: AbsCoreModel, config, experience_pool=None):
           self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-          self._model = model.to(self._device)
-          self._config = config
+          self.model = model.to(self._device)
+          self.config = config
           self._experience_pool = experience_pool
 
 

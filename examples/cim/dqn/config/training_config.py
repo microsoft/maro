@@ -15,6 +15,11 @@ training_config = {
         "mid": 0.32,
         "end": 0.0
     },
+    "training": {
+        "min_exp_to_train": 1024,
+        "train_iter": 10,
+        "batch_size": 128
+    },
     "group": "cim-dqn",
     "learner_update_trigger": 2,
     "num_actors": 2

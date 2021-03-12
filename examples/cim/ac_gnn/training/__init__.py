@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from .actor import BasicActor
 from .learner import BasicLearner
-from .roll_out import BasicRolloutExecutor
 
-__all__ = ["BasicLearner", "BasicRolloutExecutor"]
+__all__ = ["BasicActor", "BasicLearner"]

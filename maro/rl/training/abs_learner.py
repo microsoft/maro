@@ -76,11 +76,11 @@ class AbsLearner(ABC):
             self._decision_clients = None
             self._state_batching_func = None
 
-        self._logger = InternalLogger(self._proxy.component_name)
+        self._logger = InternalLogger(self._proxy.name)   
 
     @abstractmethod
     def run(self):
-        raise NotADirectoryError
+        raise NotImplementedError
 
     def collect(self, rollout_index: int, training: bool = True, **rollout_kwargs) -> tuple:
         """Collect roll-out performances and details from remote actors.
@@ -121,7 +121,7 @@ class AbsLearner(ABC):
                 self._registry_table.push(msg)
 
         return env_metrics, details
-
+    
     def _on_rollout_finish(self, messages: List[Message]):
         metrics = {msg.source: msg.payload[PayloadKey.METRICS] for msg in messages}
         details = {msg.source: msg.payload[PayloadKey.DETAILS] for msg in messages}

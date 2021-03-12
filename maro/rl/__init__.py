@@ -10,8 +10,11 @@ from maro.rl.exploration import (
 from maro.rl.model import AbsBlock, AbsCoreModel, FullyConnectedBlock, OptimOption, SimpleMultiHeadModel
 from maro.rl.scheduling import LinearParameterScheduler, Scheduler, TwoPhaseLinearParameterScheduler
 from maro.rl.storage import AbsStore, OverwriteType, SimpleStore
-from maro.rl.training import AbsLearner, AbsRolloutExecutor, BaseActor, DecisionClient
-from maro.rl.utils import concat, get_k_step_returns, get_lambda_returns, get_truncated_cumulative_reward, stack
+from maro.rl.training import AbsActor, AbsLearner, DecisionClient, TrainingProxy, trainer
+from maro.rl.utils import (
+    concat, get_k_step_returns, get_lambda_returns, get_log_prob, get_max, get_truncated_cumulative_reward,
+    select_by_actions, stack
+)
 
 __all__ = [
     "AbsAgent", "ActorCritic", "ActorCriticConfig", "DDPG", "DDPGConfig", "DQN", "DQNConfig", "MultiAgentWrapper",
@@ -20,6 +23,7 @@ __all__ = [
     "AbsBlock", "AbsCoreModel", "FullyConnectedBlock", "OptimOption", "SimpleMultiHeadModel",
     "LinearParameterScheduler", "Scheduler", "TwoPhaseLinearParameterScheduler",
     "AbsStore", "OverwriteType", "SimpleStore",
-    "AbsLearner", "AbsRolloutExecutor", "BaseActor", "DecisionClient",
-    "concat", "get_k_step_returns", "get_lambda_returns", "get_truncated_cumulative_reward", "stack"
+    "AbsActor", "AbsLearner", "DecisionClient", "TrainingProxy", "trainer",
+    "concat", "get_k_step_returns", "get_lambda_returns", "get_log_prob", "get_max", "get_truncated_cumulative_reward",
+    "select_by_actions", "stack"
 ]

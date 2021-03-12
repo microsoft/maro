@@ -9,53 +9,10 @@ from torch.distributions import Categorical
 from torch.nn import MSELoss
 
 from maro.rl.model import SimpleMultiHeadModel
-from maro.rl.utils.trajectory_utils import get_lambda_returns, get_truncated_cumulative_reward
+from maro.rl.utils import get_lambda_returns, get_log_prob
 from maro.utils.exception.rl_toolkit_exception import UnrecognizedTask
 
 from .abs_agent import AbsAgent
-
-
-class PolicyGradient(AbsAgent):
-    """The vanilla Policy Gradient (VPG) algorithm, a.k.a., REINFORCE.
-
-    Reference: https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch.
-
-    Args:
-        model (SimpleMultiHeadModel): Model that computes action distributions.
-        reward_discount (float): Reward decay as defined in standard RL terminology.
-    """
-    def __init__(self, model: SimpleMultiHeadModel, reward_discount: float):
-        super().__init__(model, reward_discount)
-
-    def choose_action(self, state: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
-        """Use the actor (policy) model to generate stochastic actions.
-
-        Args:
-            state: Input to the actor model.
-
-        Returns:
-            Actions and corresponding log probabilities.
-        """
-        state = torch.from_numpy(state).to(self._device)
-        is_single = len(state.shape) == 1
-        if is_single:
-            state = state.unsqueeze(dim=0)
-
-        action_prob = Categorical(self._model(state, training=False))
-        action = action_prob.sample()
-        log_p = action_prob.log_prob(action)
-        action, log_p = action.cpu().numpy(), log_p.cpu().numpy()
-        return (action[0], log_p[0]) if is_single else (action, log_p)
-
-    def train(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray):
-        states = torch.from_numpy(states).to(self._device)
-        actions = torch.from_numpy(actions).to(self._device)
-        returns = get_truncated_cumulative_reward(rewards, self._config)
-        returns = torch.from_numpy(returns).to(self._device)
-        action_distributions = self._model(states)
-        action_prob = action_distributions.gather(1, actions.unsqueeze(1)).squeeze()   # (N, 1)
-        loss = -(torch.log(action_prob) * returns).mean()
-        self._model.learn(loss)
 
 
 class ActorCriticConfig:
@@ -128,44 +85,38 @@ class ActorCritic(AbsAgent):
         if is_single:
             state = state.unsqueeze(dim=0)
 
-        action_prob = Categorical(self._model(state, task_name="actor", training=False))
+        action_prob = Categorical(self.model(state, task_name="actor", training=False))
         action = action_prob.sample()
         log_p = action_prob.log_prob(action)
         action, log_p = action.cpu().numpy(), log_p.cpu().numpy()
         return (action[0], log_p[0]) if is_single else (action, log_p)
 
-    def train(
+    def learn(
         self, states: np.ndarray, actions: np.ndarray, log_p: np.ndarray, rewards: np.ndarray
     ):
         states = torch.from_numpy(states).to(self._device)
         actions = torch.from_numpy(actions).to(self._device)
         log_p = torch.from_numpy(log_p).to(self._device)
         rewards = torch.from_numpy(rewards).to(self._device)
-        state_values, return_est = self._get_values_and_bootstrapped_returns(states, rewards)
-        advantages = return_est - state_values
-        for _ in range(self._config.train_iters):
-            critic_loss = self._config.critic_loss_func(
-                self._model(states, task_name="critic").squeeze(), return_est
-            )
-            action_prob = self._model(states, task_name="actor").gather(1, actions.unsqueeze(1)).squeeze()  # (N,)
-            log_p_new = torch.log(action_prob)
-            actor_loss = self._actor_loss(log_p_new, log_p, advantages)
-            loss = critic_loss + self._config.actor_loss_coefficient * actor_loss
-            self._model.learn(loss)
 
-    def _actor_loss(self, log_p_new, log_p_old, advantages):
-        if self._config.clip_ratio is not None:
-            ratio = torch.exp(log_p_new - log_p_old)
-            clip_ratio = torch.clamp(ratio, 1 - self._config.clip_ratio, 1 + self._config.clip_ratio)
-            actor_loss = -(torch.min(ratio * advantages, clip_ratio * advantages)).mean()
-        else:
-            actor_loss = -(log_p_new * advantages).mean()
-
-        return actor_loss
-
-    def _get_values_and_bootstrapped_returns(self, state_sequence, reward_sequence):
-        state_values = self._model(state_sequence, task_name="critic").detach().squeeze()
+        state_values = self.model(states, task_name="critic").detach().squeeze()
         return_est = get_lambda_returns(
-            reward_sequence, state_values, self._config.reward_discount, self._config.lam, k=self._config.k
+            rewards, state_values, self.config.reward_discount, self.config.lam, k=self.config.k
         )
-        return state_values, return_est
+        advantages = return_est - state_values
+
+        for _ in range(self.config.train_iters):
+            # actor loss
+            log_p_new = get_log_prob(self.model(states, task_name="actor"), actions)
+            if self.config.clip_ratio is not None:
+                ratio = torch.exp(log_p_new - log_p)
+                clip_ratio = torch.clamp(ratio, 1 - self.config.clip_ratio, 1 + self.config.clip_ratio)
+                actor_loss = -(torch.min(ratio * advantages, clip_ratio * advantages)).mean()
+            else:
+                actor_loss = -(log_p_new * advantages).mean()
+
+            # critic_loss
+            state_values = self.model(states, task_name="critic").squeeze()
+            critic_loss = self.config.critic_loss_func(state_values, return_est)
+            loss = critic_loss + self.config.actor_loss_coefficient * actor_loss
+            self.model.step(loss)

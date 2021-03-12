@@ -6,6 +6,7 @@ class MessageTag(Enum):
     CHOOSE_ACTION = "choose_action"
     ACTION = "action"
     ABORT_ROLLOUT = "abort_rollout"
+    TRAIN = "train"
     FINISHED = "finished"
     EXIT = "exit"
 

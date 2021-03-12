@@ -2,13 +2,9 @@
 # Licensed under the MIT license.
 
 from .abs_learner import AbsLearner
-from .abs_rollout_executor import AbsRolloutExecutor
-from .base_actor import BaseActor
+from .abs_actor import AbsActor
 from .decision_client import DecisionClient
+from .trainer import trainer
+from .training_proxy import TrainingProxy
 
-__all__ = [
-    "AbsLearner",
-    "AbsRolloutExecutor",
-    "BaseActor",
-    "DecisionClient",
-]
+__all__ = ["AbsActor", "AbsLearner", "DecisionClient", "TrainingProxy", "trainer"]

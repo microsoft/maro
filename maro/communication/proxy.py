@@ -278,7 +278,7 @@ class Proxy:
         return self._group_name
 
     @property
-    def component_name(self) -> str:
+    def name(self) -> str:
         """str: Unique identifier in the current group."""
         return self._name
 

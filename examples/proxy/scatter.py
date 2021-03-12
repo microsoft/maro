@@ -22,7 +22,7 @@ def summation_worker(group_name):
 
     # Nonrecurring receive the message from the proxy.
     for msg in proxy.receive(is_continuous=False):
-        print(f"{proxy.component_name} receive message from {msg.source}. the payload is {msg.payload}.")
+        print(f"{proxy.name} receive message from {msg.source}. the payload is {msg.payload}.")
 
         if msg.tag == "job":
             replied_payload = sum(msg.payload)
@@ -42,7 +42,7 @@ def multiplication_worker(group_name):
 
     # Nonrecurring receive the message from the proxy.
     for msg in proxy.receive(is_continuous=False):
-        print(f"{proxy.component_name} receive message from {msg.source}. the payload is {msg.payload}.")
+        print(f"{proxy.name} receive message from {msg.source}. the payload is {msg.payload}.")
 
         if msg.tag == "job":
             replied_payload = np.prod(msg.payload)
@@ -98,10 +98,10 @@ def master(group_name: str, sum_worker_number: int, multiply_worker_number: int,
     sum_result, multiply_result = 0, 1
     for msg in replied_msgs:
         if msg.tag == "sum":
-            print(f"{proxy.component_name} receive message from {msg.source} with the sum result {msg.payload}.")
+            print(f"{proxy.name} receive message from {msg.source} with the sum result {msg.payload}.")
             sum_result += msg.payload
         elif msg.tag == "multiply":
-            print(f"{proxy.component_name} receive message from {msg.source} with the multiply result {msg.payload}.")
+            print(f"{proxy.name} receive message from {msg.source} with the multiply result {msg.payload}.")
             multiply_result *= msg.payload
 
     # Check task result correction.

@@ -14,7 +14,7 @@ from maro.utils import Logger
 from examples.cim.ac_gnn.agent import get_gnn_agent, get_experience_pool
 from examples.cim.ac_gnn.config import agent_config, training_config
 from examples.cim.ac_gnn.shaping import ExperienceShaper, StateShaper
-from examples.cim.ac_gnn.training import BasicLearner, BasicRolloutExecutor
+from examples.cim.ac_gnn.training import BasicActor, BasicLearner
 from examples.cim.ac_gnn.utils import decision_cnt_analysis, fix_seed, return_scaler
 
 
@@ -51,12 +51,11 @@ def cim_ac_gnn_actor():
         receive_action_timeout=training_config["actor"]["receive_action_timeout"],
         max_receive_action_attempts=training_config["actor"]["max_receive_action_attempts"],
     )
-    executor = BasicRolloutExecutor(
+    actor = BasicActor(
         env, agent, state_shaper, experience_shaper,
         max_null_actions=training_config["actor"]["max_null_actions_per_rollout"], logger=logger
     )
-    actor = BaseActor(training_config["group"], executor)
-    actor.run()
+    actor.as_worker(training_config["group"])
 
 
 def cim_ac_gnn_learner():

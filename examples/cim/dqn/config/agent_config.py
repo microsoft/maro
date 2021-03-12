@@ -23,13 +23,9 @@ agent_config = {
     "optimization": OptimOption(optim_cls=RMSprop, optim_params={"lr": 0.05}),
     "hyper_params": {
         "reward_discount": .0,
-        "min_exp_to_train": 1024,
-        "num_batches": 10,
-        "batch_size": 128,
         "loss_cls": nn.SmoothL1Loss,
         "target_update_freq": 5,
         "tau": 0.1,
-        "double": False,
-        "per_sample_td_error": True
+        "double": False
     }
 }

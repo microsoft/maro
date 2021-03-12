@@ -1,11 +1,12 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import pickle
 from abc import ABC, abstractmethod
 
 import torch
 
-from maro.rl.model.learning_model import AbsCoreModel
+from maro.rl.model import AbsCoreModel
 
 
 class AbsAgent(ABC):
@@ -13,30 +14,18 @@ class AbsAgent(ABC):
 
     It's a sandbox for the RL algorithm. Scenario-specific details will be excluded.
     We focus on the abstraction algorithm development here. Environment observation and decision events will
-    be converted to a uniform format before calling in. And the output will be converted to an environment
+    be converted to a uniform format before calling in. The output will be converted to an environment
     executable format before return back to the environment. Its key responsibility is optimizing policy based
     on interaction with the environment.
 
     Args:
         model (AbsCoreModel): Task model or container of task models required by the algorithm.
         config: Settings for the algorithm.
-        experience_pool: It is used to store experiences processed by the experience shaper, which will be
-            used by some value-based algorithms, such as DQN. Defaults to None.
     """
-    def __init__(self, model: AbsCoreModel, config, experience_pool=None):
+    def __init__(self, model: AbsCoreModel, config):
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self._model = model.to(self._device)
-        self._config = config
-        self._experience_pool = experience_pool
-
-    @property
-    def model(self):
-        return self._model
-
-    @property
-    def experience_pool(self):
-        """Underlying experience pool where the agent stores experiences."""
-        return self._experience_pool
+        self.model = model.to(self._device)
+        self.config = config
 
     @abstractmethod
     def choose_action(self, state):
@@ -55,21 +44,34 @@ class AbsAgent(ABC):
         pass
 
     @abstractmethod
-    def train(self, *args, **kwargs):
-        """Training logic to be implemented by the user.
-
-        For example, this may include drawing samples from the experience pool and the algorithm training on
-        these samples.
+    def learn(self, *args, **kwargs):
+        """Algorithm-specific training logic.
+        
+        The parameters are data to train the underlying model on. Algorithm-specific loss and optimization
+        should be reflected here. 
         """
         return NotImplementedError
 
+    def remote_learn(self, proxy, iter_index: int = None, *args, **kwargs):
+        """Execute learning remotely using a task dispatcher to achieve parallelism.  
+
+        It is necessary that args and kwargs be exactly the same as those for learn().
+
+        Args:
+            proxy: Training proxy for executing parallellized model training on remote trainers.
+                Defaults to None, in which case training will be performed locally.   
+            iter_index (int): Training iteration.
+        """
+        task = pickle.loads({"agent": self, "iter_index": iter_index, "args": args, "kwargs": kwargs})
+        proxy.dispatch(task)
+
     def load_model(self, model):
         """Load models from memory."""
-        self._model.load_state_dict(model)
+        self.model.load_state_dict(model)
 
     def dump_model(self):
         """Return the algorithm's trainable models."""
-        return self._model.state_dict()
+        return self.model.state_dict()
 
     def load_model_from_file(self, path: str):
         """Load trainable models from disk.
@@ -79,7 +81,7 @@ class AbsAgent(ABC):
         Args:
             path (str): path to the directory where the models are saved.
         """
-        self._model.load_state_dict(torch.load(path))
+        self.model.load_state_dict(torch.load(path))
 
     def dump_model_to_file(self, path: str):
         """Dump the algorithm's trainable models to disk.
@@ -89,4 +91,4 @@ class AbsAgent(ABC):
         Args:
             path (str): path to the directory where the models are saved.
         """
-        torch.save(self._model.state_dict(), path)
+        torch.save(self.model.state_dict(), path)

@@ -18,9 +18,6 @@ class DDPGConfig:
     """Configuration for the DDPG algorithm.
     Args:
         reward_discount (float): Reward decay as defined in standard RL terminology.
-        min_exp_to_train (int): minimum number of experiences required for training.
-        num_batches (int): number of batches to train the DQN model on per call to ``train``.
-        batch_size (int): mini-batch size.
         q_value_loss_func (Callable): Loss function for the Q-value estimator.
         target_update_freq (int): Number of training rounds between policy target model updates.
         actor_loss_coefficient (float): The coefficient for policy loss in the total loss function, e.g.,
@@ -28,26 +25,17 @@ class DDPGConfig:
         tau (float): Soft update coefficient, e.g., target_model = tau * eval_model + (1-tau) * target_model.
             Defaults to 1.0.
     """
-    __slots__ = [
-        "reward_discount", "min_exp_to_train", "num_batches", "batch_size", "q_value_loss_func",
-        "target_update_freq", "policy_loss_coefficient", "tau"
-    ]
+    __slots__ = ["reward_discount", "q_value_loss_func", "target_update_freq", "policy_loss_coefficient", "tau"]
 
     def __init__(
         self,
         reward_discount: float,
-        min_exp_to_train: int,
-        num_batches: int,
-        batch_size: int,
         q_value_loss_func: Callable,
         target_update_freq: int,
         policy_loss_coefficient: float = 1.0,
         tau: float = 1.0,
     ):
         self.reward_discount = reward_discount
-        self.min_exp_to_train = min_exp_to_train
-        self.num_batches = num_batches
-        self.batch_size = batch_size
         self.q_value_loss_func = q_value_loss_func
         self.target_update_freq = target_update_freq
         self.policy_loss_coefficient = policy_loss_coefficient
@@ -66,13 +54,7 @@ class DDPG(AbsAgent):
         config: Configuration for DDPG algorithm.
         explorer (NoiseExplorer): An NoiseExplorer instance for generating exploratory actions. Defaults to None.
     """
-    def __init__(
-        self,
-        model: SimpleMultiHeadModel,
-        config: DDPGConfig,
-        experience_pool=SimpleStore(["state", "action", "reward", "next_state"]),
-        explorer: NoiseExplorer = None
-    ):
+    def __init__(self, model: SimpleMultiHeadModel, config: DDPGConfig, explorer: NoiseExplorer = None):
         if model.task_names is None or set(model.task_names) != {"policy", "q_value"}:
             raise UnrecognizedTask(f"Expected model task names 'policy' and 'q_value', but got {model.task_names}")
         super().__init__(model, config)
@@ -96,19 +78,7 @@ class DDPG(AbsAgent):
 
         return action[0] if is_single else action
 
-    def train(self):
-        if len(self._experience_pool) < self._config.min_exp_to_train:
-            return
-
-        for _ in range(self._config.num_batches):
-            indexes, sample = self._experience_pool.sample(self._config.batch_size)
-            state = np.asarray(sample["state"])
-            action = np.asarray(sample["action"])
-            reward = np.asarray(sample["reward"])
-            next_state = np.asarray(sample["next_state"])
-            self._train_on_batch(state, action, reward, next_state)
-
-    def _train_on_batch(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray, next_states: np.ndarray):
+    def learn(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray, next_states: np.ndarray):
         states = torch.from_numpy(states).to(self._device)
         actual_actions = torch.from_numpy(actions).to(self._device)
         rewards = torch.from_numpy(rewards).to(self._device)
@@ -116,17 +86,17 @@ class DDPG(AbsAgent):
         if len(actual_actions.shape) == 1:
             actual_actions = actual_actions.unsqueeze(dim=1)  # (N, 1)
 
-        current_q_values = self._model(torch.cat([states, actual_actions], dim=1), task_name="q_value")
+        current_q_values = self.model(torch.cat([states, actual_actions], dim=1), task_name="q_value")
         current_q_values = current_q_values.squeeze(dim=1)  # (N,)
         next_actions = self._target_model(states, task_name="policy", training=False)
         next_q_values = self._target_model(
             torch.cat([next_states, next_actions], dim=1), task_name="q_value", training=False
         ).squeeze(1)  # (N,)
-        target_q_values = (rewards + self._config.reward_discount * next_q_values).detach()  # (N,)
-        q_value_loss = self._config.q_value_loss_func(current_q_values, target_q_values)
-        actions_from_model = self._model(states, task_name="policy")
-        policy_loss = -self._model(torch.cat([states, actions_from_model], dim=1), task_name="q_value").mean()
-        self._model.learn(q_value_loss + self._config.policy_loss_coefficient * policy_loss)
+        target_q_values = (rewards + self.config.reward_discount * next_q_values).detach()  # (N,)
+        q_value_loss = self.config.q_value_loss_func(current_q_values, target_q_values)
+        actions_from_model = self.model(states, task_name="policy")
+        policy_loss = -self.model(torch.cat([states, actions_from_model], dim=1), task_name="q_value").mean()
+        self.model.learn(q_value_loss + self.config.policy_loss_coefficient * policy_loss)
         self._train_cnt += 1
-        if self._train_cnt % self._config.target_update_freq == 0:
-            self._target_model.soft_update(self._model, self._config.tau)
+        if self._train_cnt % self.config.target_update_freq == 0:
+            self._target_model.soft_update(self.model, self.config.tau)

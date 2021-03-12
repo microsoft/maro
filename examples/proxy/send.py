@@ -22,7 +22,7 @@ def worker(group_name):
 
     # Nonrecurring receive the message from the proxy.
     for msg in proxy.receive(is_continuous=False):
-        print(f"{proxy.component_name} receive message from {msg.source}. the payload is {msg.payload}.")
+        print(f"{proxy.name} receive message from {msg.source}. the payload is {msg.payload}.")
 
         if msg.tag == "sum":
             replied_payload = sum(msg.payload)
@@ -49,7 +49,7 @@ def master(group_name: str, is_immediate: bool = False):
 
     for peer in proxy.peers_name["worker"]:
         message = SessionMessage(tag="sum",
-                                 source=proxy.component_name,
+                                 source=proxy.name,
                                  destination=peer,
                                  payload=random_integer_list,
                                  session_type=SessionType.TASK)
@@ -61,7 +61,7 @@ def master(group_name: str, is_immediate: bool = False):
             replied_msgs = proxy.send(message, timeout=-1)
 
         for msg in replied_msgs:
-            print(f"{proxy.component_name} receive {msg.source}, replied payload is {msg.payload}.")
+            print(f"{proxy.name} receive {msg.source}, replied payload is {msg.payload}.")
 
 
 if __name__ == "__main__":

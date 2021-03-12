@@ -51,7 +51,7 @@ class DecisionClient(object):
         self._proxy.isend(
             Message(
                 tag=MessageTag.CHOOSE_ACTION,
-                source=self._proxy.component_name,
+                source=self._proxy.name,
                 destination=self._proxy.peers_name["learner"][0],
                 payload=payload
             )

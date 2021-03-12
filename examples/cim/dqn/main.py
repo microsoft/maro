@@ -8,14 +8,13 @@ from os import makedirs
 from os.path import dirname, join, realpath
 
 from maro.rl import (
-    BaseActor, DQN, DQNConfig, FullyConnectedBlock, MultiAgentWrapper, SimpleMultiHeadModel,
-    TwoPhaseLinearParameterScheduler
+    DQN, DQNConfig, FullyConnectedBlock, MultiAgentWrapper, SimpleMultiHeadModel, TwoPhaseLinearParameterScheduler
 )
 from maro.simulator import Env
 from maro.utils import Logger, set_seeds
 
 from examples.cim.dqn.config import agent_config, training_config
-from examples.cim.dqn.training import BasicLearner, BasicRolloutExecutor
+from examples.cim.dqn.training import BasicLearner, BasicActor
 
 
 
@@ -34,7 +33,7 @@ def cim_dqn_learner():
     log_path = join(dirname(realpath(__file__)), "logs")
     makedirs(log_path, exist_ok=True)
     learner = BasicLearner(
-        training_config["group"], training_config["num_actors"], agent, scheduler,
+        training_config["group"], training_config["num_actors"], agent, scheduler, **training_config["training"],
         update_trigger=training_config["learner_update_trigger"],
         logger=Logger(training_config["group"], dump_folder=log_path)
     )
@@ -46,10 +45,8 @@ def cim_dqn_learner():
 
 def cim_dqn_actor():
     env = Env(**training_config["env"])
-    agent = MultiAgentWrapper({name: get_dqn_agent() for name in env.agent_idx_list})
-    executor = BasicRolloutExecutor(env, agent)
-    actor = BaseActor(training_config["group"], executor)
-    actor.run()
+    actor = BasicActor(env, MultiAgentWrapper({name: get_dqn_agent() for name in env.agent_idx_list}))
+    actor.as_worker(training_config["group"])
 
 
 if __name__ == "__main__":

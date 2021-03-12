@@ -5,7 +5,7 @@ from collections import defaultdict
 
 import numpy as np
 
-from maro.rl import AbsRolloutExecutor
+from maro.rl import AbsActor
 
 from examples.cim.common import get_state, get_env_action, get_reward
 
@@ -32,7 +32,7 @@ def get_training_data(trajectory, port_snapshots):
     return training_data
 
 
-class BasicRolloutExecutor(AbsRolloutExecutor):
+class BasicActor(AbsActor):
     def roll_out(self, index, training=True):
         self.env.reset()
         trajectory = {key: [] for key in ["state", "action", "agent_id", "event", "log_p"]}

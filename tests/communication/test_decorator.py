@@ -60,7 +60,7 @@ class TestDecorator(unittest.TestCase):
     def test_decorator(self):
         message = SessionMessage(
             tag="unittest",
-            source=TestDecorator.sender_proxy.component_name,
+            source=TestDecorator.sender_proxy.name,
             destination=TestDecorator.sender_proxy.peers_name["receiver"][0],
             payload={"counter": 0}
         )

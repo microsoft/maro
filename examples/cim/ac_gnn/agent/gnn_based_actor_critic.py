@@ -100,7 +100,7 @@ class GNNBasedActorCritic(AbsAgent):
             model_action (numpy.int64): The action returned from the module.
         """
         single = len(state["p"].shape) == 3
-        action_prob, _ = self._model(
+        action_prob, _ = self.model(
             self.union(state), p_idx=state["p_idx"], v_idx=state["v_idx"], use_actor=True, training=False
         )
         action_prob = Categorical(action_prob)
@@ -109,11 +109,11 @@ class GNNBasedActorCritic(AbsAgent):
         action, log_p = action.cpu().numpy(), log_p.cpu().numpy()
         return (action[0], log_p[0]) if single else (action, log_p)
 
-    def train(self):
+    def learn(self):
         for (p_idx, v_idx), exp_pool in self._experience_pool.items():
             loss_dict = defaultdict(list)
-            for _ in range(self._config.num_batches):
-                shuffler = Shuffler(exp_pool, batch_size=self._config.batch_size)
+            for _ in range(self.config.num_batches):
+                shuffler = Shuffler(exp_pool, batch_size=self.config.batch_size)
                 while shuffler.has_next():
                     batch = shuffler.next()
                     actor_loss, critic_loss, entropy_loss, tot_loss = self._train_on_batch(
@@ -159,24 +159,24 @@ class GNNBasedActorCritic(AbsAgent):
         states, actions, returns, next_states = self._preprocess(states, actions, returns, next_states)
         # Every port has a value.
         # values.shape: (batch, p_cnt)
-        probs, values = self._model(states, p_idx=p_idx, v_idx=v_idx, use_actor=True, use_critic=True)
+        probs, values = self.model(states, p_idx=p_idx, v_idx=v_idx, use_actor=True, use_critic=True)
         distribution = Categorical(probs)
         log_prob = distribution.log_prob(actions)
         entropy_loss = distribution.entropy()
 
-        _, values_ = self._model(next_states, use_critic=True)
-        advantage = returns + self._config.value_discount * values_.detach() - values
+        _, values_ = self.model(next_states, use_critic=True)
+        advantage = returns + self.config.value_discount * values_.detach() - values
 
-        if self._config.entropy_factor != 0:
+        if self.config.entropy_factor != 0:
             # actor_loss = actor_loss* torch.log(entropy_loss + np.e)
-            advantage[:, p_idx] += self._config.entropy_factor * entropy_loss.detach()
+            advantage[:, p_idx] += self.config.entropy_factor * entropy_loss.detach()
 
         actor_loss = -(log_prob * torch.sum(advantage, axis=-1).detach()).mean()
         critic_loss = torch.sum(advantage.pow(2), axis=1).mean()
         # torch.nn.utils.clip_grad_norm_(self._critic_model.parameters(),0.5)
-        tot_loss = self._config.actor_loss_coefficient * actor_loss + critic_loss
-        self._model.learn(tot_loss)
-        tot_norm = clip_grad.clip_grad_norm_(self._model.parameters(), 1)
+        tot_loss = self.config.actor_loss_coefficient * actor_loss + critic_loss
+        self.model.learn(tot_loss)
+        tot_norm = clip_grad.clip_grad_norm_(self.model.parameters(), 1)
         return actor_loss.item(), critic_loss.item(), entropy_loss.mean().item(), float(tot_norm)
 
     def _get_save_idx(self, fp_str):
@@ -186,12 +186,12 @@ class GNNBasedActorCritic(AbsAgent):
         if not os.path.exists(pth):
             os.makedirs(pth)
         pth = os.path.join(pth, f"{id}_ac.pkl")
-        torch.save(self._model.state_dict(), pth)
+        torch.save(self.model.state_dict(), pth)
 
     def _set_gnn_weights(self, weights):
         for key in weights:
-            if key in self._model.state_dict().keys():
-                self._model.state_dict()[key].copy_(weights[key])
+            if key in self.model.state_dict().keys():
+                self.model.state_dict()[key].copy_(weights[key])
 
     def store_experiences(self, experiences):
         for code, exp_list in experiences.items():
@@ -237,7 +237,7 @@ class GNNBasedActorCritic(AbsAgent):
         v = torch.from_numpy(v).float().to(self._device)
         vo = torch.from_numpy(vo).long().to(self._device)
         vedge = torch.from_numpy(vedge).float().to(self._device)
-        p2p = torch.from_numpy(self._config.p2p_adj).to(self._device)
+        p2p = torch.from_numpy(self.config.p2p_adj).to(self._device)
         ppedge = torch.from_numpy(ppedge).float().to(self._device)
         seq_mask = torch.from_numpy(seq_mask).bool().to(self._device)
 
