@@ -108,7 +108,7 @@ class InteractiveRenderaleEnv:
 
                             is_new_step = True
 
-                            self.state_shaping()
+                            # self.state_shaping()
 
                             print(f"{bcolors.OKGREEN}Current environment tick:", self.env.tick, f"{bcolors.ENDC}")
 
