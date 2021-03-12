@@ -131,7 +131,7 @@ class TestRegion(unittest.TestCase):
 class TestPriceModel(unittest.TestCase):
 
     def setUp(self):
-        config_path = "tests/data/vm_scheduling/env_config.yml"
+        config_path = "tests/vm_scheduling/env_config.yml"
         with io.open(config_path, "r") as in_file:
             raw_config = yaml.safe_load(in_file)
             config = convert_dottable(raw_config)
