@@ -7,27 +7,34 @@ from typing import Dict
 class StorageUnit(UnitBase):
     """Unit that used to store skus.
     """
+
     def __init__(self):
         super().__init__()
 
         # used to map from product id to slot index
 
-        # we use this to hold changes at python side, flash to frame before taking snapshot
+        # we use these variables to hold changes at python side, flash to frame before taking snapshot
         self.product_number = []
         self.product_index_mapping: Dict[int, int] = {}
         self.capacity = 0
+        self.remaining_space = 0
 
     def initialize(self, configs: dict, durations: int):
         super().initialize(configs, durations)
 
         self.capacity = self.data.capacity
+        self.remaining_space = self.capacity
 
         for index, product_id in enumerate(self.data.product_list[:]):
-            self.product_number.append(product_id)
+            product_number = self.data.product_number[index]
+
+            self.product_number.append(product_number)
             self.product_index_mapping[product_id] = index
 
+            self.remaining_space -= product_number
+
     def try_add_units(self, product_quantities: Dict[int, int], all_or_nothing=True) -> dict:
-        if all_or_nothing and self.data.remaining_space < sum(product_quantities.values()):
+        if all_or_nothing and self.remaining_space < sum(product_quantities.values()):
             return {}
 
         unloaded_quantities = {}
@@ -72,5 +79,21 @@ class StorageUnit(UnitBase):
 
     def begin_post_step(self, tick: int):
         # write the changes to frame
-        self.data.product_number[:] = self.product_number
+        for i, number in enumerate(self.product_number):
+            self.data.product_number[i] = self.product_number[i]
+
         self.data.remaining_space = self.capacity - sum(self.product_number)
+
+    def reset(self):
+        super().reset()
+
+        self.remaining_space = self.capacity
+
+        # TODO: dup code
+        for index, product_id in enumerate(self.data.product_list[:]):
+            product_number = self.data.product_number[index]
+
+            self.product_number.append(product_number)
+            self.product_index_mapping[product_id] = index
+
+            self.remaining_space -= product_number
