@@ -27,7 +27,7 @@ class UnitBase:
         if self.data is None:
             self.data = self.world.get_data_instance(self.data_class, self.data_index)
 
-    def initialize(self, configs: dict):
+    def initialize(self, configs: dict, durations: int):
         """Initialize current unit"""
         # called after frame ready
         self.configs = configs
@@ -38,7 +38,10 @@ class UnitBase:
         # called per tick
         pass
 
-    def post_step(self, tick: int):
+    def begin_post_step(self, tick: int):
+        pass
+
+    def end_post_step(self, tick: int):
         pass
 
     def get_metrics(self):

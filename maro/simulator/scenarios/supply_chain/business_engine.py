@@ -68,12 +68,16 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
             unit.step(tick)
 
     def post_step(self, tick: int):
+        # before taking snapshot
+        for facility in self.world.facilities.values():
+            facility.begin_post_step(tick)
+
         # take snapshot
         if (tick + 1) % self._snapshot_resolution == 0:
             self._frame.take_snapshot(self.frame_index(tick))
 
         for facility in self.world.facilities.values():
-            facility.post_step(tick)
+            facility.end_post_step(tick)
 
         return tick+1 == self._max_tick
 
@@ -99,7 +103,7 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
 
         self.world = World()
 
-        self.world.build(parser.parse(), self.calc_max_snapshots())
+        self.world.build(parser.parse(), self.calc_max_snapshots(), self._max_tick)
 
     def _on_action_received(self, event):
         action = event.payload

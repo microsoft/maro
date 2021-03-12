@@ -77,7 +77,7 @@ class World:
 
         return unit
 
-    def build(self, all_in_one_config: SupplyChainConfiguration, snapshot_number: int):
+    def build(self, all_in_one_config: SupplyChainConfiguration, snapshot_number: int, durations: int):
         """Build current world according to configurations."""
         self.configs = all_in_one_config.world
         self._facility_definitions = all_in_one_config.facilities
@@ -165,7 +165,7 @@ class World:
             facility.data = self.frame.facilities[facility_node_index]
             facility_node_index += 1
 
-            facility.initialize()
+            facility.initialize(durations)
 
         # construct the map grid
         grid_config = configs["grid"]

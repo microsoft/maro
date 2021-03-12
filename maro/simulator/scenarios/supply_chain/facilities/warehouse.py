@@ -88,16 +88,16 @@ class WarehouseFacility(FacilityBase):
 
             self.consumers[sku.id] = consumer
 
-    def initialize(self):
+    def initialize(self, durations: int):
         self.data.set_id(self.id, self.id)
         self.data.initialize({})
-        
+
         self.storage.prepare_data()
         self.distribution.prepare_data()
 
         for transport in self.transports:
             transport.prepare_data()
-        
+
         for consumer in self.consumers.values():
             consumer.prepare_data()
 
@@ -105,13 +105,13 @@ class WarehouseFacility(FacilityBase):
         self._init_by_skus()
 
         # called after build, here we have the data model, we can initialize them.
-        self.storage.initialize(self.configs.get("storage", {}))
-        self.distribution.initialize(self.configs.get("distribution", {}))
+        self.storage.initialize(self.configs.get("storage", {}), durations)
+        self.distribution.initialize(self.configs.get("distribution", {}), durations)
 
         transports_conf = self.configs.get("transports", [])
 
         for index, transport in enumerate(self.transports):
-            transport.initialize(transports_conf[index])
+            transport.initialize(transports_conf[index], durations)
 
         for sku_id, consumer in self.consumers.items():
             consumer.initialize({
@@ -119,7 +119,7 @@ class WarehouseFacility(FacilityBase):
                     "order_cost": self.configs.get("order_cost", 0),
                     "consumer_product_id": sku_id
                 }
-            })
+            }, durations)
 
     def reset(self):
         # NOTE: as we are using list attribute now, theirs size will be reset to defined one after frame.reset,
@@ -135,19 +135,28 @@ class WarehouseFacility(FacilityBase):
         for consumer in self.consumers.values():
             consumer.reset()
 
-    def post_step(self, tick: int):
-        self.storage.post_step(tick)
+    def begin_post_step(self, tick: int):
+        self.storage.begin_post_step(tick)
 
-        self.distribution.post_step(tick)
+        self.distribution.begin_post_step(tick)
 
         for vehicle in self.transports:
-            vehicle.post_step(tick)
+            vehicle.begin_post_step(tick)
 
         for consumer in self.consumers.values():
-            consumer.post_step(tick)
+            consumer.begin_post_step(tick)
 
-        self.data.balance_sheet_profit = 0
-        self.data.balance_sheet_loss = 0
+
+    def end_post_step(self, tick: int):
+        self.storage.end_post_step(tick)
+
+        self.distribution.end_post_step(tick)
+
+        for vehicle in self.transports:
+            vehicle.end_post_step(tick)
+
+        for consumer in self.consumers.values():
+            consumer.end_post_step(tick)
 
     def get_node_info(self) -> dict:
         return {

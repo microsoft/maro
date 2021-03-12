@@ -1,5 +1,6 @@
 
 import numpy as np
+import random
 
 from .base import UnitBase
 
@@ -11,14 +12,23 @@ class SellerUnit(UnitBase):
     def __init__(self):
         super(SellerUnit, self).__init__()
 
-    def initialize(self, configs: dict):
-        super(SellerUnit, self).initialize(configs)
+        self.gamma = 0
+
+        self.demand_distribution = []
+
+    def initialize(self, configs: dict, durations: int):
+        super(SellerUnit, self).initialize(configs, durations)
+
+        self.gamma = self.data.sale_gamma
+
+        for _ in range(durations):
+            self.demand_distribution.append(np.random.gamma(self.gamma))
 
     def step(self, tick: int):
         data = self.data
 
         product_id = data.product_id
-        demand = self.market_demand()
+        demand = self.market_demand(tick)
 
         sold_qty = self.facility.storage.take_available(product_id, demand)
 
@@ -26,7 +36,7 @@ class SellerUnit(UnitBase):
         data.sold = sold_qty
         data.demand = demand
 
-    def post_step(self, tick: int):
+    def end_post_step(self, tick: int):
         # super(SellerUnit, self).post_step(tick)
 
         self.data.sold = 0
@@ -35,5 +45,5 @@ class SellerUnit(UnitBase):
     def reset(self):
         super(SellerUnit, self).reset()
 
-    def market_demand(self):
-        return int(np.random.gamma(self.data.sale_gamma))
+    def market_demand(self, tick:int):
+        return int(self.demand_distribution[tick])

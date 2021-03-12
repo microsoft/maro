@@ -17,9 +17,7 @@ class ConsumerUnit(UnitBase):
         # and fill the field in the post_step method.
         self.open_orders = defaultdict(Counter)
 
-    def initialize(self, configs: dict):
-        #super(ConsumerUnit, self).initialize(configs)
-
+    def initialize(self, configs: dict, durations: int):
         if len(self.data.sources) > 0:
             # we use 1st source as default one
             self.data.source_id = self.data.sources[0]
@@ -52,14 +50,10 @@ class ConsumerUnit(UnitBase):
 
         data.total_purchased += quantity
 
-    def post_step(self, tick: int):
-        # super(ConsumerUnit, self).post_step(tick)
-
-        data = self.data
-
-        data.received = 0
-        data.purchased = 0
-        data.order_product_cost = 0
+    def end_post_step(self, tick: int):
+        self.data.received = 0
+        self.data.purchased = 0
+        self.data.order_product_cost = 0
 
     def reset(self):
         super(ConsumerUnit, self).reset()

@@ -21,11 +21,11 @@ class ManufactureUnit(UnitBase):
     def __init__(self):
         super(ManufactureUnit, self).__init__()
 
-    def initialize(self, configs: dict):
+    def initialize(self, configs: dict, durations: int):
         # add the storage_id
         configs["data"]["storage_id"] = self.facility.storage.id
-
-        super().initialize(configs)
+        
+        super().initialize(configs, durations)
 
         # grab bom of current production
         sku = self.world.get_sku_by_id(self.data.product_id)
@@ -74,7 +74,7 @@ class ManufactureUnit(UnitBase):
                     data.manufacturing_number += max_number_to_procedure
                     self.facility.storage.try_take_units(source_sku_to_take)
 
-    def post_step(self, tick: int):
+    def end_post_step(self, tick: int):
         # super(ManufactureUnit, self).post_step(tick)
 
         # reset the manufacture cost per tick

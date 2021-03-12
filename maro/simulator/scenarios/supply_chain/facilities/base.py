@@ -37,7 +37,10 @@ class FacilityBase(ABC):
         # called per tick
         pass
 
-    def post_step(self, tick: int):
+    def begin_post_step(self, tick: int):
+        pass
+
+    def end_post_step(self, tick: int):
         pass
 
     @abstractmethod
@@ -46,7 +49,7 @@ class FacilityBase(ABC):
         pass
 
     @abstractmethod
-    def initialize(self):
+    def initialize(self, durations: int):
         # called after data model instance is ready.
         pass
 

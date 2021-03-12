@@ -19,8 +19,8 @@ class DistributionUnit(UnitBase):
         # used to map from product id to slot index
         self.product_index_mapping: Dict[int, int] = {}
 
-    def initialize(self, configs: dict):
-        super(DistributionUnit, self).initialize(configs)
+    def initialize(self, configs: dict, durations: int):
+        super(DistributionUnit, self).initialize(configs, durations)
 
         # create a production index mapping, used to update product information
         for index, product_id in enumerate(self.data.product_list[:]):

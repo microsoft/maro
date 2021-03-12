@@ -22,19 +22,27 @@ class RetailerFacility(FacilityBase):
             for seller in self.sellers.values():
                 seller.step(tick)
 
-    def post_step(self, tick: int):
-        self.storage.post_step(tick)
+    def begin_post_step(self, tick: int):
+        self.storage.begin_post_step(tick)
 
         if self.consumers is not None:
             for consumer in self.consumers.values():
-                consumer.post_step(tick)
+                consumer.begin_post_step(tick)
 
         if self.sellers is not None:
             for seller in self.sellers.values():
-                seller.post_step(tick)
+                seller.begin_post_step(tick)
 
-        self.data.balance_sheet_profit = 0
-        self.data.balance_sheet_loss = 0
+    def end_post_step(self, tick: int):
+        self.storage.end_post_step(tick)
+
+        if self.consumers is not None:
+            for consumer in self.consumers.values():
+                consumer.end_post_step(tick)
+
+        if self.sellers is not None:
+            for seller in self.sellers.values():
+                seller.end_post_step(tick)
 
     def build(self, configs: dict):
         self.configs = configs
@@ -84,7 +92,7 @@ class RetailerFacility(FacilityBase):
 
             self.sellers[sku.id] = seller
 
-    def initialize(self):
+    def initialize(self, durations: int):
         self.data.set_id(self.id, self.id)
         self.data.initialize({})
 
@@ -99,7 +107,7 @@ class RetailerFacility(FacilityBase):
 
         self._init_by_sku()
 
-        self.storage.initialize(self.configs.get("storage", {}))
+        self.storage.initialize(self.configs.get("storage", {}), durations)
 
         for sku_id, consumer in self.consumers.items():
             consumer.initialize({
@@ -108,7 +116,7 @@ class RetailerFacility(FacilityBase):
                     "order_cost": self.configs.get("order_cost", 0),
                     "consumer_product_id": sku_id
                 }
-            })
+            }, durations)
 
         for sku_id, seller in self.sellers.items():
             sku = self.sku_information[sku_id]
@@ -119,7 +127,7 @@ class RetailerFacility(FacilityBase):
                     "sale_gamma": sku.sale_gamma,
                     "product_id": sku_id
                 }
-            })
+            }, durations)
 
     def reset(self):
         self._init_by_sku()

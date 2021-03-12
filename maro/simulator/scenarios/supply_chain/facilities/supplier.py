@@ -30,21 +30,31 @@ class SupplierFacility(FacilityBase):
         # to make sure the distribution get correct balance sheet, we should update transports first.
         self.distribution.step(tick)
 
-    def post_step(self, tick: int):
-        self.storage.post_step(tick)
-        self.distribution.post_step(tick)
+    def begin_post_step(self, tick: int):
+        self.storage.begin_post_step(tick)
+        self.distribution.begin_post_step(tick)
 
         for vehicle in self.transports:
-            vehicle.post_step(tick)
+            vehicle.begin_post_step(tick)
 
         for supplier in self.manufactures.values():
-            supplier.post_step(tick)
+            supplier.begin_post_step(tick)
 
         for consumer in self.consumers.values():
-            consumer.post_step(tick)
+            consumer.begin_post_step(tick)
 
-        self.data.balance_sheet_profit = 0
-        self.data.balance_sheet_loss = 0
+    def end_post_step(self, tick: int):
+        self.storage.end_post_step(tick)
+        self.distribution.end_post_step(tick)
+
+        for vehicle in self.transports:
+            vehicle.end_post_step(tick)
+
+        for supplier in self.manufactures.values():
+            supplier.end_post_step(tick)
+
+        for consumer in self.consumers.values():
+            consumer.end_post_step(tick)
 
     def reset(self):
         self._init_by_skus()
@@ -137,7 +147,7 @@ class SupplierFacility(FacilityBase):
 
                 self.consumers[sku.id] = consumer
 
-    def initialize(self):
+    def initialize(self, durations: int):
         self.data.set_id(self.id, self.id)
         self.data.initialize({})
 
@@ -168,7 +178,7 @@ class SupplierFacility(FacilityBase):
                         "product_unit_cost": sku.cost,
                         "product_unit_cost": sku.product_unit_cost
                     }
-                })
+                }, durations)
 
         for sku_id, consumer in self.consumers.items():
             consumer.initialize({
@@ -177,15 +187,15 @@ class SupplierFacility(FacilityBase):
                     "order_cost": self.configs.get("order_cost", 0),
                     "consumer_product_id": sku_id
                 }
-            })
+            }, durations)
 
-        self.storage.initialize(self.configs.get("storage", {}))
-        self.distribution.initialize(self.configs.get("distribution", {}))
+        self.storage.initialize(self.configs.get("storage", {}), durations)
+        self.distribution.initialize(self.configs.get("distribution", {}), durations)
 
         transports_conf = self.configs["transports"]
 
         for index, transport in enumerate(self.transports):
-            transport.initialize(transports_conf[index])
+            transport.initialize(transports_conf[index], durations)
 
     def get_node_info(self) -> dict:
         return {

@@ -35,8 +35,8 @@ class StorageDataModel(DataModelBase):
 
         self.remaining_space = self._capacity
 
-    def _on_product_number_changed(self, value):
-        if len(self.product_number) > 0:
-            taken_number = sum(self.product_number[:])
+    # def _on_product_number_changed(self, value):
+    #     if len(self.product_number) > 0:
+    #         taken_number = sum(self.product_number[:])
 
-            self.remaining_space = self.capacity - taken_number
+    #         self.remaining_space = self.capacity - taken_number

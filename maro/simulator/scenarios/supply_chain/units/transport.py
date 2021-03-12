@@ -15,9 +15,6 @@ class TransportUnit(UnitBase):
 
         self.path = None
 
-    def initialize(self, configs: dict):
-        super().initialize(configs)
-
     def reset(self):
         super(TransportUnit, self).reset()
 
@@ -136,5 +133,3 @@ class TransportUnit(UnitBase):
                     data.location = 0
                     data.destination = 0
                     data.position[:] = -1
-
-        data.balance_sheet_loss = -1 * data.payload * data.unit_transport_cost
