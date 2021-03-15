@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import Callable, Tuple
+from typing import Tuple
 
 import numpy as np
 import torch

@@ -1,15 +1,12 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import os
-import pickle
-from typing import List, Union
+from typing import Union
 
 import numpy as np
 import torch
 
-from maro.rl.model import AbsCoreModel, SimpleMultiHeadModel
-from maro.rl.storage import SimpleStore
+from maro.rl.model import SimpleMultiHeadModel
 from maro.rl.utils import get_max, get_td_errors, select_by_actions
 from maro.utils.exception.rl_toolkit_exception import UnrecognizedTask
 
@@ -105,7 +102,7 @@ class DQN(AbsAgent):
         next_states = torch.from_numpy(next_states)
 
         if self.device:
-            state = state.to(self.device)
+            states = states.to(self.device)
             actions = actions.to(self.device)
             rewards = rewards.to(self.device)
             next_states = next_states.to(self.device)
@@ -138,5 +135,5 @@ class DQN(AbsAgent):
             state_values = output["state_value"]
             advantages = output["advantage"]
             # Use mean or max correction to address the identifiability issue
-            corrections = advantages.mean(1) if advantage_type == "mean" else advantages.max(1)[0]
+            corrections = advantages.mean(1) if self.config.advantage_type == "mean" else advantages.max(1)[0]
             return state_values + advantages - corrections.unsqueeze(1)

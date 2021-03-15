@@ -22,7 +22,6 @@ class AbsActor(ABC):
         agent (Union[AbsAgent, MultiAgentWrapper, DecisionClient]): Agent that interacts with the environment.
             If it is a ``DecisionClient``, action decisions will be obtained from a remote inference learner.
         mode (str): One of "local" and "distributed". Defaults to "local".
-        
     """
     def __init__(self, env: Env, agent: Union[AbsAgent, MultiAgentWrapper, DecisionClient]):
         super().__init__()
@@ -46,7 +45,7 @@ class AbsActor(ABC):
 
         Args:
             group (str): Identifier of the group to which the actor belongs. It must be the same group name
-                assigned to the learner (and decision clients, if any). If 
+                assigned to the learner (and decision clients, if any).
             proxy_options (dict): Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
                 for details. Defaults to None.
         """
@@ -69,7 +68,7 @@ class AbsActor(ABC):
                 else:
                     logger.info(f"Roll-out {ep} finished")
                     rollout_finish_msg = Message(
-                        MessageTag.FINISHED, 
+                        MessageTag.FINISHED,
                         proxy.name,
                         proxy.peers_name["learner"][0],
                         payload={

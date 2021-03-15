@@ -28,7 +28,7 @@ class AbsAgent(ABC):
 
     def to_device(self, device):
         self.device = device
-        self.model = model.to(device)
+        self.model = self.model.to(device)
 
     @abstractmethod
     def choose_action(self, state):
@@ -49,9 +49,9 @@ class AbsAgent(ABC):
     @abstractmethod
     def learn(self, *args, **kwargs):
         """Algorithm-specific training logic.
-        
+
         The parameters are data to train the underlying model on. Algorithm-specific loss and optimization
-        should be reflected here. 
+        should be reflected here.
         """
         return NotImplementedError
 

@@ -15,7 +15,7 @@ def select_by_actions(q_values: torch.Tensor, actions: torch.Tensor):
 def get_max(q_values: torch.Tensor, expand_action_dim: bool = True):
     """
     Given Q-values for a batch of states and all actions, return the maximum Q-value and
-    the corresponding action index for each state.  
+    the corresponding action index for each state.
     """
     greedy_q, actions = q_values.max(dim=1)
     if expand_action_dim:
