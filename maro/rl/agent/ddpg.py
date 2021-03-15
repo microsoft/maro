@@ -8,7 +8,6 @@ import torch
 
 from maro.rl.exploration import NoiseExplorer
 from maro.rl.model import SimpleMultiHeadModel
-from maro.rl.storage import SimpleStore
 from maro.utils.exception.rl_toolkit_exception import UnrecognizedTask
 
 from .abs_agent import AbsAgent
