@@ -9,8 +9,8 @@ import struct
 import subprocess
 import termios
 import json
+import pandas as pd
 
-from enum import Enum
 from flask import Flask, redirect, send_file, send_from_directory
 from flask_socketio import SocketIO, send
 
@@ -25,7 +25,8 @@ app.config["cluster_status"] = {}
 app.config["local_executor"] = {}
 socketio = SocketIO(app)
 
-class DashboardType(Enum):
+
+class DashboardType():
     PROCESS = "process"
     LOCAL = "local"
     AZURE = "azure"
@@ -139,16 +140,30 @@ def load_executor(cluster_name):
             cluster_type = DashboardType.LOCAL
     return executor, cluster_type
 
+
 def update_resource_dynamic(org_data, local_executor, dashboard_type):
-    if dashboard_type != DashboardType.LOCAL.value:
-        data_len = len(org_data['cpu'])
-        new_data = local_executor.get_resource_usage(data_len)
+    if dashboard_type != DashboardType.PROCESS:
+        new_data = local_executor.get_resource_usage(0)
         for data_key in org_data.keys():
             org_data[data_key].extend(new_data[data_key])
     else:
-        new_data = local_executor.get_resource_usage(0)
+        data_len = len(org_data['cpu'])
+        new_data = local_executor.get_resource_usage(data_len)
         for data_key in org_data.keys():
-            org_data[data_key]=new_data[data_key]
+            attr_data = new_data[data_key]
+            data_array = []
+            for data_byte in attr_data:
+                data_str = data_byte.decode("utf-8")
+                data_list = pd.Series(json.loads(data_str), dtype="float64")
+                data_point = data_list.mean()
+                if pd.isna(data_point):
+                    data_point = None
+                # else:
+                #     if data_key in ["cpu", "gpu"]:
+                #         data_point /= 100
+                data_array.append(data_point)
+            org_data[data_key].extend(data_array)
+
 
 def update_cluster_list():
     while True:
@@ -160,18 +175,29 @@ def update_cluster_list():
                 if os.path.basename(name) == "cluster_details.yml":
                     clusters.append(os.path.basename(root))
         app.config["cluster_list"] = clusters
-        for cluster_name in app.config["cluster_status"]:
+        clusters_removed = []
+        for cluster_name in app.config["cluster_status"].keys():
             if cluster_name not in clusters:
-                del app.config["cluster_status"][cluster_name]
+                clusters_removed.append(cluster_name)
+        for cluster_name in clusters_removed:
+            del app.config["cluster_status"][cluster_name]
         for cluster_name in clusters:
             if cluster_name not in app.config["cluster_status"].keys():
                 try:
                     app.config["cluster_status"][cluster_name] = {}
-                    app.config["local_executor"][cluster_name],  dashboard_type = load_executor(cluster_name)
-                    app.config["cluster_status"][cluster_name]["dashboard_type"] = dashboard_type.value
+                    app.config["local_executor"][cluster_name], app.config["cluster_status"][cluster_name]["dashboard_type"] = load_executor(
+                        cluster_name)
+                    app.config["cluster_status"][cluster_name]["cluster_name"] = cluster_name
                     local_executor = app.config["local_executor"][cluster_name]
                     app.config["cluster_status"][cluster_name]["resource_static"] = local_executor.get_resource()
-                    app.config["cluster_status"][cluster_name]["resource_dynamic"] = local_executor.get_resource_usage(0)
+                    app.config["cluster_status"][cluster_name]["resource_dynamic"] = {
+                        "cpu": [],
+                        "memory": [],
+                        "gpu": []
+                    }
+                    update_resource_dynamic(app.config["cluster_status"][cluster_name]["resource_dynamic"],
+                                            local_executor, app.config["cluster_status"][cluster_name]["dashboard_type"])
+                    #app.config["cluster_status"][cluster_name]["resource_dynamic"] = local_executor.get_resource_usage(0)
                     #app.config["cluster_status"][cluster_name]["job_queue_data"] = local_executor.get_job_queue()
                     app.config["cluster_status"][cluster_name]["job_detail_data"] = local_executor.get_job_details()
                 except Exception as e:
@@ -180,7 +206,8 @@ def update_cluster_list():
                         del app.config["cluster_status"][cluster_name]
             else:
                 local_executor = app.config["local_executor"][cluster_name]
-                update_resource_dynamic(app.config["cluster_status"][cluster_name]["resource_dynamic"], local_executor, app.config["cluster_status"][cluster_name]["dashboard_type"])
+                update_resource_dynamic(app.config["cluster_status"][cluster_name]["resource_dynamic"],
+                                        local_executor, app.config["cluster_status"][cluster_name]["dashboard_type"])
                 #app.config["cluster_status"][cluster_name]["job_queue_data"] = local_executor.get_job_queue()
                 app.config["cluster_status"][cluster_name]["job_detail_data"] = local_executor.get_job_details()
         print(f"{app.config['cluster_list']}")
@@ -192,6 +219,7 @@ def cluster_list():
     print(f"{app.config['cluster_list']}")
     socketio.emit("cluster_list", app.config["cluster_list"], namespace="/pty")
 
+
 @socketio.on("cluster_status", namespace="/pty")
 def cluster_status(data):
     print("cluster status request received")
@@ -200,6 +228,7 @@ def cluster_status(data):
         socketio.emit("cluster_status", app.config["cluster_status"][data["cluster_name"]], namespace="/pty")
     else:
         socketio.emit("cluster_status", None, namespace="/pty")
+
 
 def os_is_windows() -> bool:
     info = platform.platform()

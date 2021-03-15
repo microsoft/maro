@@ -54,14 +54,25 @@
       </div> -->
 
       <el-container class="mydashboard">
-        <el-main>
-          <ul>
-            <li v-for="item in cluster_list" :key="item">
-              <el-button type="primary" plain v-on:click="show_cluster(item)">{{ item }}</el-button>
-            </li>
-          </ul>
+        <el-main style="width: max-content;">
+          <div v-for="item in cluster_list" :key="item" style="width: max-content;">
+            <el-button type="primary" plain v-on:click="show_cluster(item)">{{ item }}</el-button>
+          </div>
         </el-main>
-        <el-main></el-main>
+        <el-main>
+          <el-container v-if="connected">
+            <el-header>
+              static resource
+            </el-header>
+            <el-main>
+              <el-container>
+                <el-main>CPU:{{resource_static["cpu"]}}</el-main>
+                <el-main>memory:{{resource_static["memory"]}}</el-main>
+                <el-main>GPU:{{resource_static["gpu"]}}</el-main>
+              </el-container>
+            </el-main>
+          </el-container>
+        </el-main>
         <el-main></el-main>
       </el-container>
 
@@ -90,12 +101,29 @@
         data: function () {
           return {
             cluster_list: new Array(),
+            cluster_name: undefined,
+            dashboard_type: "",
+            connected: false,
+            resource_static: {
+              "cpu": NaN,
+              "memory": NaN,
+              "gpu": NaN
+            },
+            resource_dynamic: {
+              "cpu": new Array(),
+              "memory": new Array(),
+              "gpu": new Array()
+            },
+            job_running: new Array(),
+            job_pending: new Array(),
+            job_killed: new Array(),
+            job_finish: new Array(),
+            job_failed: new Array(),
           }
         },
         methods: {
           show_cluster: function (message) {
-            alert(message)
-            socket.emit('cluster_status', {cluster_name: message})
+            socket.emit('cluster_status', { cluster_name: message })
           }
         }
       })
@@ -155,12 +183,43 @@
       })
 
       socket.on("cluster_list", (data) => {
-        console.log(data)
+        // console.log(data)
         vm.cluster_list = data
       })
 
       socket.on("cluster_status", (data) => {
         console.log(data)
+        if (data != undefined) {
+          vm.connected = true
+          vm.cluster_name = data["cluster_name"]
+          vm.dashboard_type = data["dashboard_type"]
+          vm.resource_static = data["resource_static"]
+          vm.resource_dynamic = data["resource_dynamic"]
+          job_running = new Array()
+          job_pending = new Array()
+          job_killed = new Array()
+          job_finish = new Array()
+          job_failed = new Array()
+          data["job_detail_data"].forEach(job_detail => {
+            switch (job_detail["status"]) {
+              case "running": job_running.push(job_detail); break;
+              case "pending": job_pending.push(job_detail); break;
+              case "killed": job_killed.push(job_detail); break;
+              case "finish": job_finish.push(job_detail); break;
+              case "failed": job_failed.push(job_detail); break;
+              default: break;
+            }
+          });
+          vm.job_running = job_running
+          vm.job_pending = job_pending
+          vm.job_killed = job_killed
+          vm.job_finish = job_finish
+          vm.job_failed = job_failed
+        }
+        else {
+          console.log("Can not get cluster status form server. Maybe cluster name issue or cluster shut down")
+          vm.connected = false
+        }
       })
 
       function fitToScreen() {
