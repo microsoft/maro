@@ -34,7 +34,7 @@ class PolicyGradient(AbsAgent):
         Returns:
             Actions and corresponding log probabilities.
         """
-        state = torch.from_numpy(state).to(self._device)
+        state = torch.from_numpy(state).to(self.device)
         is_single = len(state.shape) == 1
         if is_single:
             state = state.unsqueeze(dim=0)
@@ -46,10 +46,10 @@ class PolicyGradient(AbsAgent):
         return (action[0], log_p[0]) if is_single else (action, log_p)
 
     def learn(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray):
-        states = torch.from_numpy(states).to(self._device)
-        actions = torch.from_numpy(actions).to(self._device)
+        states = torch.from_numpy(states).to(self.device)
+        actions = torch.from_numpy(actions).to(self.device)
         returns = get_truncated_cumulative_reward(rewards, self.config)
-        returns = torch.from_numpy(returns).to(self._device)
+        returns = torch.from_numpy(returns).to(self.device)
         action_distributions = self.model(states)
         action_prob = action_distributions.gather(1, actions.unsqueeze(1)).squeeze()   # (N, 1)
         loss = -(torch.log(action_prob) * returns).mean()

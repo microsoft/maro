@@ -7,14 +7,14 @@ from multiprocessing import Process
 from os import makedirs
 from os.path import dirname, join, realpath
 
-from maro.rl import BaseActor, DecisionClient
+from maro.rl import DecisionClient
 from maro.simulator import Env
 from maro.utils import Logger
 
-from examples.cim.ac_gnn.agent import get_gnn_agent, get_experience_pool
+from examples.cim.ac_gnn.agent import get_gnn_agent
 from examples.cim.ac_gnn.config import agent_config, training_config
 from examples.cim.ac_gnn.shaping import ExperienceShaper, StateShaper
-from examples.cim.ac_gnn.training import BasicActor, BasicLearner
+from examples.cim.ac_gnn.training import BasicActor, BasicLearner, get_experience_pool
 from examples.cim.ac_gnn.utils import decision_cnt_analysis, fix_seed, return_scaler
 
 
@@ -63,7 +63,7 @@ def cim_ac_gnn_learner():
     makedirs(log_path, exist_ok=True)
     logger = Logger(training_config["group"], dump_folder=log_path)
     
-    # Create a demo environment to retrieve environment information.
+    # Create a demo environment to obtain experience quantity estimates.
     logger.info("Getting experience quantity estimates for each (port, vessel) pair...")
     env = Env(**training_config["env"])
     exp_per_ep = {
@@ -83,10 +83,11 @@ def cim_ac_gnn_learner():
     )
     state_shaper.compute_static_graph_structure(env)
     p_dim, v_dim = state_shaper.get_input_dim("p"), state_shaper.get_input_dim("v")
+    agent = get_gnn_agent(p_dim, v_dim, state_shaper.p2p_static_graph)
     exp_pool = get_experience_pool(len(static_nodes), len(dynamic_nodes), exp_per_ep, p_dim, v_dim)
-    agent = get_gnn_agent(p_dim, v_dim, state_shaper.p2p_static_graph, exp_pool, logger=logger)
     learner = BasicLearner(
         training_config["group"], training_config["actor"]["num"], training_config["max_episode"], agent,
+        exp_pool, training_config["train_iter"], training_config["batch_size"],
         update_trigger=training_config["learner"]["update_trigger"],
         inference_trigger=training_config["learner"]["inference_trigger"],
         logger=logger

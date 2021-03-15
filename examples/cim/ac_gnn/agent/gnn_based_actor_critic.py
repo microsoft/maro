@@ -10,10 +10,7 @@ from torch import nn
 from torch.distributions import Categorical
 from torch.nn.utils import clip_grad
 
-from maro.rl import AbsAgent, AbsCoreModel
-from maro.utils import DummyLogger
-
-from .numpy_store import Shuffler
+from maro.rl import AbsAgent
 
 
 class GNNBasedActorCriticConfig:
@@ -21,31 +18,24 @@ class GNNBasedActorCriticConfig:
     
     Args:
         p2p_adj (numpy.array): Adjencency matrix for static nodes.
-        num_batches (int): number of batches to train the DQN model on per call to ``train``.
-        batch_size (int): mini-batch size.
         td_steps (int): The value "n" in the n-step TD algorithm.
         gamma (float): The time decay.
         actor_loss_coefficient (float): Coefficient for actor loss in total loss.
         entropy_factor (float): The weight of the policy"s entropy to boost exploration.
     """
     __slots__ = [
-        "p2p_adj", "num_batches", "batch_size", "td_steps", "reward_discount", "value_discount", 
-        "actor_loss_coefficient", "entropy_factor"
+        "p2p_adj", "td_steps", "reward_discount", "value_discount", "actor_loss_coefficient", "entropy_factor"
     ]
 
     def __init__(
         self,
         p2p_adj: np.ndarray,
-        num_batches: int,
-        batch_size: int,
         td_steps: int = 100, 
         reward_discount: float = 0.97,
         actor_loss_coefficient: float = 0.1,
         entropy_factor: float = 0.1
     ):
         self.p2p_adj = p2p_adj
-        self.num_batches = num_batches
-        self.batch_size = batch_size
         self.td_steps = td_steps
         self.reward_discount = reward_discount
         self.value_discount = reward_discount ** 100
@@ -54,22 +44,7 @@ class GNNBasedActorCriticConfig:
 
 
 class GNNBasedActorCritic(AbsAgent):
-    """Actor-Critic algorithm in CIM problem.
-
-    The vanilla ac algorithm.
-
-    Args:
-        model (AbsCoreModel): A actor-critic module outputing both the policy network and the value network.
-        config (GNNBasedActorCriticConfig): Configuration for the GNN-based actor critic algorithm.
-    """
-
-    def __init__(
-        self, model: AbsCoreModel, config: GNNBasedActorCriticConfig, experience_pool, logger=DummyLogger()
-    ):
-        super().__init__(model, config, experience_pool=experience_pool)
-        self._batch_count = 0
-        self._logger = logger
-
+    """GNN-based Actor-Critic."""
     def choose_action(self, state: dict):
         """Get action from the AC model.
 
@@ -108,34 +83,8 @@ class GNNBasedActorCritic(AbsAgent):
         log_p = action_prob.log_prob(action)
         action, log_p = action.cpu().numpy(), log_p.cpu().numpy()
         return (action[0], log_p[0]) if single else (action, log_p)
-
-    def learn(self):
-        for (p_idx, v_idx), exp_pool in self._experience_pool.items():
-            loss_dict = defaultdict(list)
-            for _ in range(self.config.num_batches):
-                shuffler = Shuffler(exp_pool, batch_size=self.config.batch_size)
-                while shuffler.has_next():
-                    batch = shuffler.next()
-                    actor_loss, critic_loss, entropy_loss, tot_loss = self._train_on_batch(
-                        batch["s"], batch["a"], batch["R"], batch["s_"], p_idx, v_idx
-                    )
-                    loss_dict["actor"].append(actor_loss)
-                    loss_dict["critic"].append(critic_loss)
-                    loss_dict["entropy"].append(entropy_loss)
-                    loss_dict["tot"].append(tot_loss)
-
-            if loss_dict:
-                a_loss = np.mean(loss_dict["actor"])
-                c_loss = np.mean(loss_dict["critic"])
-                e_loss = np.mean(loss_dict["entropy"])
-                tot_loss = np.mean(loss_dict["tot"])
-                self._logger.debug(
-                    f"code: {p_idx}-{v_idx} \t actor: {float(a_loss)} \t critic: {float(c_loss)} \t entropy: {float(e_loss)} \
-                    \t tot: {float(tot_loss)}")
-
-            exp_pool.clear()
     
-    def _train_on_batch(self, states, actions, returns, next_states, p_idx, v_idx):
+    def learn(self, states, actions, returns, next_states, p_idx, v_idx):
         """Model training.
 
         Args:
@@ -155,7 +104,6 @@ class GNNBasedActorCritic(AbsAgent):
             e_loss (float): entropy loss.
             tot_norm (float): the L2 norm of the gradient.
         """
-        self._batch_count += 1
         states, actions, returns, next_states = self._preprocess(states, actions, returns, next_states)
         # Every port has a value.
         # values.shape: (batch, p_cnt)
@@ -175,7 +123,7 @@ class GNNBasedActorCritic(AbsAgent):
         critic_loss = torch.sum(advantage.pow(2), axis=1).mean()
         # torch.nn.utils.clip_grad_norm_(self._critic_model.parameters(),0.5)
         tot_loss = self.config.actor_loss_coefficient * actor_loss + critic_loss
-        self.model.learn(tot_loss)
+        self.model.step(tot_loss)
         tot_norm = clip_grad.clip_grad_norm_(self.model.parameters(), 1)
         return actor_loss.item(), critic_loss.item(), entropy_loss.mean().item(), float(tot_norm)
 
@@ -192,10 +140,6 @@ class GNNBasedActorCritic(AbsAgent):
         for key in weights:
             if key in self.model.state_dict().keys():
                 self.model.state_dict()[key].copy_(weights[key])
-
-    def store_experiences(self, experiences):
-        for code, exp_list in experiences.items():
-            self._experience_pool[code].put(exp_list)
     
     def load_model(self, folder_pth, idx=-1):
         if idx == -1:
@@ -207,7 +151,7 @@ class GNNBasedActorCritic(AbsAgent):
             ac_pth = f"{idx}_ac.pkl"
         pth = os.path.join(folder_pth, ac_pth)
         with open(pth, "rb") as fp:
-            weights = torch.load(fp, map_location=self._device)
+            weights = torch.load(fp, map_location=self.device)
         self._set_gnn_weights(weights)
 
     def union(self, state) -> dict:
@@ -231,17 +175,17 @@ class GNNBasedActorCritic(AbsAgent):
         seq_len, batch, v_cnt, v_dim = v.shape
         _, _, p_cnt, p_dim = p.shape
 
-        p = torch.from_numpy(p).float().to(self._device)
-        po = torch.from_numpy(po).long().to(self._device)
-        pedge = torch.from_numpy(pedge).float().to(self._device)
-        v = torch.from_numpy(v).float().to(self._device)
-        vo = torch.from_numpy(vo).long().to(self._device)
-        vedge = torch.from_numpy(vedge).float().to(self._device)
-        p2p = torch.from_numpy(self.config.p2p_adj).to(self._device)
-        ppedge = torch.from_numpy(ppedge).float().to(self._device)
-        seq_mask = torch.from_numpy(seq_mask).bool().to(self._device)
+        p = torch.from_numpy(p).float().to(self.device)
+        po = torch.from_numpy(po).long().to(self.device)
+        pedge = torch.from_numpy(pedge).float().to(self.device)
+        v = torch.from_numpy(v).float().to(self.device)
+        vo = torch.from_numpy(vo).long().to(self.device)
+        vedge = torch.from_numpy(vedge).float().to(self.device)
+        p2p = torch.from_numpy(self.config.p2p_adj).to(self.device)
+        ppedge = torch.from_numpy(ppedge).float().to(self.device)
+        seq_mask = torch.from_numpy(seq_mask).bool().to(self.device)
 
-        batch_range = torch.arange(batch, dtype=torch.long).to(self._device)
+        batch_range = torch.arange(batch, dtype=torch.long).to(self.device)
         # vadj.shape: (batch*v_cnt, p_cnt*)
         vadj, vedge = self.flatten_embedding(vo, batch_range, vedge)
         # vmask.shape: (batch*v_cnt, p_cnt*)
@@ -276,8 +220,8 @@ class GNNBasedActorCritic(AbsAgent):
 
     def _preprocess(self, states, actions, returns, next_states):
         states = self.union(states)
-        actions = torch.from_numpy(actions).long().to(self._device)
-        returns = torch.from_numpy(returns).float().to(self._device)
+        actions = torch.from_numpy(actions).long().to(self.device)
+        returns = torch.from_numpy(returns).float().to(self.device)
         next_states = self.union(next_states)
         return states, actions, returns, next_states
 

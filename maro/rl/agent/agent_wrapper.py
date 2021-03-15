@@ -1,6 +1,9 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from collections import defaultdict
+
+import asyncio
 import os
 from typing import List, Union
 
@@ -38,7 +41,7 @@ class MultiAgentWrapper:
         elif isinstance(agent_ids, str):
             return self.agent_dict[agent_ids].dump_model()
         else:
-            return {agent_id: self.agent_dict[agent_id].dump_model for agent_id in self.agent_dict}
+            return {agent_id: self.agent_dict[agent_id].dump_model() for agent_id in self.agent_dict}
 
     def load_model_from_file(self, dir_path):
         """Load models from disk for each agent."""

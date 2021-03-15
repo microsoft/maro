@@ -10,8 +10,6 @@ from examples.cim.common import ACTION_SPACE
 agent_config = {
     "hyper_params": {
         "reward_discount": 0.99,
-        "num_batches": 1,
-        "batch_size": 16,
         "td_steps": 100,
         "actor_loss_coefficient": 0.1,
         "entropy_factor": 0.1

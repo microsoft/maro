@@ -72,10 +72,12 @@ class DQN(AbsAgent):
             )
         super().__init__(model, config)
         self._training_counter = 0
-        self._target_model = model.copy() if model.is_trainable else None
+        self._target_model = model.copy() if model.trainable else None
 
     def choose_action(self, state: np.ndarray) -> Union[int, np.ndarray]:
-        state = torch.from_numpy(state).to(self._device)
+        state = torch.from_numpy(state)
+        if self.device:
+            state = state.to(self.device)
         is_single = len(state.shape) == 1
         if is_single:
             state = state.unsqueeze(dim=0)
@@ -97,10 +99,16 @@ class DQN(AbsAgent):
         ])
 
     def learn(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray, next_states: np.ndarray):
-        states = torch.from_numpy(states).to(self._device)
-        actions = torch.from_numpy(actions).to(self._device)
-        rewards = torch.from_numpy(rewards).to(self._device)
-        next_states = torch.from_numpy(next_states).to(self._device)
+        states = torch.from_numpy(states)
+        actions = torch.from_numpy(actions)
+        rewards = torch.from_numpy(rewards)
+        next_states = torch.from_numpy(next_states)
+
+        if self.device:
+            state = state.to(self.device)
+            actions = actions.to(self.device)
+            rewards = rewards.to(self.device)
+            next_states = next_states.to(self.device)
 
         q_all = self._get_q_values(states)
         q = select_by_actions(q_all, actions)
@@ -116,6 +124,7 @@ class DQN(AbsAgent):
         if self._training_counter % self.config.target_update_freq == 0:
             self._target_model.soft_update(self.model, self.config.tau)
 
+        print("training complete")
         return loss.detach().numpy()
 
     def set_exploration_params(self, epsilon):

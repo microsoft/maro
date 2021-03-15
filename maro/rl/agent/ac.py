@@ -80,7 +80,7 @@ class ActorCritic(AbsAgent):
         Returns:
             Actions and corresponding log probabilities.
         """
-        state = torch.from_numpy(state).to(self._device)
+        state = torch.from_numpy(state).to(self.device)
         is_single = len(state.shape) == 1
         if is_single:
             state = state.unsqueeze(dim=0)
@@ -94,10 +94,10 @@ class ActorCritic(AbsAgent):
     def learn(
         self, states: np.ndarray, actions: np.ndarray, log_p: np.ndarray, rewards: np.ndarray
     ):
-        states = torch.from_numpy(states).to(self._device)
-        actions = torch.from_numpy(actions).to(self._device)
-        log_p = torch.from_numpy(log_p).to(self._device)
-        rewards = torch.from_numpy(rewards).to(self._device)
+        states = torch.from_numpy(states).to(self.device)
+        actions = torch.from_numpy(actions).to(self.device)
+        log_p = torch.from_numpy(log_p).to(self.device)
+        rewards = torch.from_numpy(rewards).to(self.device)
 
         state_values = self.model(states, task_name="critic").detach().squeeze()
         return_est = get_lambda_returns(

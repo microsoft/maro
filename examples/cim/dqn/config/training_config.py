@@ -22,5 +22,7 @@ training_config = {
     },
     "group": "cim-dqn",
     "learner_update_trigger": 2,
-    "num_actors": 2
+    "num_actors": 2,
+    "num_trainers": 4,
+    "trainer_id": 0
 }

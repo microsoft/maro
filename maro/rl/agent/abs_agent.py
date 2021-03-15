@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import pickle
 from abc import ABC, abstractmethod
 
 import torch
@@ -23,9 +22,13 @@ class AbsAgent(ABC):
         config: Settings for the algorithm.
     """
     def __init__(self, model: AbsCoreModel, config):
-        self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.model = model.to(self._device)
+        self.model = model
         self.config = config
+        self.device = None
+
+    def to_device(self, device):
+        self.device = device
+        self.model = model.to(device)
 
     @abstractmethod
     def choose_action(self, state):
@@ -51,19 +54,6 @@ class AbsAgent(ABC):
         should be reflected here. 
         """
         return NotImplementedError
-
-    def remote_learn(self, proxy, iter_index: int = None, *args, **kwargs):
-        """Execute learning remotely using a task dispatcher to achieve parallelism.  
-
-        It is necessary that args and kwargs be exactly the same as those for learn().
-
-        Args:
-            proxy: Training proxy for executing parallellized model training on remote trainers.
-                Defaults to None, in which case training will be performed locally.   
-            iter_index (int): Training iteration.
-        """
-        task = pickle.loads({"agent": self, "iter_index": iter_index, "args": args, "kwargs": kwargs})
-        proxy.dispatch(task)
 
     def load_model(self, model):
         """Load models from memory."""

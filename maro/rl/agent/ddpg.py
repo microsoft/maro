@@ -59,11 +59,11 @@ class DDPG(AbsAgent):
             raise UnrecognizedTask(f"Expected model task names 'policy' and 'q_value', but got {model.task_names}")
         super().__init__(model, config)
         self._explorer = explorer
-        self._target_model = model.copy() if model.is_trainable else None
+        self._target_model = model.copy() if model.trainable else None
         self._train_cnt = 0
 
     def choose_action(self, state) -> Union[float, np.ndarray]:
-        state = torch.from_numpy(state).to(self._device)
+        state = torch.from_numpy(state).to(self.device)
         is_single = len(state.shape) == 1
         if is_single:
             state = state.unsqueeze(dim=0)
@@ -79,10 +79,10 @@ class DDPG(AbsAgent):
         return action[0] if is_single else action
 
     def learn(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray, next_states: np.ndarray):
-        states = torch.from_numpy(states).to(self._device)
-        actual_actions = torch.from_numpy(actions).to(self._device)
-        rewards = torch.from_numpy(rewards).to(self._device)
-        next_states = torch.from_numpy(next_states).to(self._device)
+        states = torch.from_numpy(states).to(self.device)
+        actual_actions = torch.from_numpy(actions).to(self.device)
+        rewards = torch.from_numpy(rewards).to(self.device)
+        next_states = torch.from_numpy(next_states).to(self.device)
         if len(actual_actions.shape) == 1:
             actual_actions = actual_actions.unsqueeze(dim=1)  # (N, 1)
 

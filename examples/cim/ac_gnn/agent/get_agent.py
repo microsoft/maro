@@ -9,11 +9,10 @@ from maro.utils import DummyLogger
 from examples.cim.ac_gnn.config import agent_config
 
 from .gnn_based_actor_critic import GNNBasedActorCritic, GNNBasedActorCriticConfig
-from .numpy_store import NumpyStore, get_experience_pool
 from .model import GNNBasedACModel, PositionalEncoder, SimpleTransformer
 
 
-def get_gnn_agent(p_dim, v_dim, p2p_adj, experience_pool, logger=None):
+def get_gnn_agent(p_dim, v_dim, p2p_adj):
     scale = agent_config["model"]["scale"]
     pedge_dim = agent_config["model"]["port_edge_feature_dim"]
     p_pre_dim = agent_config["model"]["port_pre_dim"] * scale
@@ -74,7 +73,4 @@ def get_gnn_agent(p_dim, v_dim, p2p_adj, experience_pool, logger=None):
         optim_option=agent_config["optimization"]
     )
 
-    return GNNBasedActorCritic(
-        model, GNNBasedActorCriticConfig(p2p_adj=p2p_adj, **agent_config["hyper_params"]),
-        experience_pool=experience_pool, logger=logger
-    )
+    return GNNBasedActorCritic(model, GNNBasedActorCriticConfig(p2p_adj=p2p_adj, **agent_config["hyper_params"]))

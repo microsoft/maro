@@ -8,6 +8,8 @@ training_config = {
         "durations": 1120,
     },
     "max_episode": 500,
+    "train_iter": 1,
+    "batch_size": 16,
     "train_freq": 1,
     "model_save_freq": 1,
     "exploration": {

@@ -17,10 +17,10 @@ def get_training_data(trajectory, port_snapshots):
     exp_by_agent = defaultdict(lambda: defaultdict(list))
     for i in range(len(states) - 1):
         exp = exp_by_agent[agent_ids[i]]
-        exp["state"].append(states[i])
-        exp["action"].append(actions[i])
-        exp["reward"].append(get_reward(events[i], port_snapshots))
-        exp["next_state"].append(states[i + 1])
+        exp["S"].append(states[i])
+        exp["A"].append(actions[i])
+        exp["R"].append(get_reward(events[i], port_snapshots))
+        exp["S_"].append(states[i + 1])
 
     return dict(exp_by_agent)
 

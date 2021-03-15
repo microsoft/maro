@@ -38,7 +38,6 @@ def cim_dqn_learner():
         logger=Logger(training_config["group"], dump_folder=log_path)
     )
 
-    time.sleep(5)
     learner.run()
     learner.exit()
 
@@ -73,5 +72,5 @@ if __name__ == "__main__":
         learner_process.join()
     elif args.whoami == 1:
         cim_dqn_learner()
-    else:
+    elif args.whoami == 2:
         cim_dqn_actor()
