@@ -8,14 +8,14 @@ from os import makedirs
 from os.path import dirname, join, realpath
 
 from maro.rl import (
-    DQN, DQNConfig, FullyConnectedBlock, MultiAgentWrapper, SimpleMultiHeadModel, TwoPhaseLinearParameterScheduler
+    Actor, Learner, DQN, DQNConfig, FullyConnectedBlock, MultiAgentWrapper, SimpleMultiHeadModel, TwoPhaseLinearParameterScheduler
 )
 from maro.simulator import Env
 from maro.utils import Logger, set_seeds
 
+from examples.cim.common import common_config
 from examples.cim.dqn.config import agent_config, training_config
-from examples.cim.dqn.training import BasicLearner, BasicActor
-
+from examples.cim.dqn.training import CIMTrajectoryForDQN
 
 
 def get_dqn_agent():
@@ -44,7 +44,8 @@ def cim_dqn_learner():
 
 def cim_dqn_actor():
     env = Env(**training_config["env"])
-    actor = BasicActor(env, MultiAgentWrapper({name: get_dqn_agent() for name in env.agent_idx_list}))
+    agent = MultiAgentWrapper({name: get_dqn_agent() for name in env.agent_idx_list})
+    actor = Actor(env, agent, CIMTrajectoryForDQN, trajectory_kwargs=common_config)
     actor.as_worker(training_config["group"])
 
 

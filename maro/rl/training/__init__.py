@@ -1,8 +1,10 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from .abs_actor import AbsActor
-from .abs_learner import AbsLearner
+from .actor import Actor
 from .decision_client import DecisionClient
+from .learner import Learner
+from .trajectory import Trajectory
 
-__all__ = ["AbsActor", "AbsLearner", "DecisionClient"]
+
+__all__ = ["Actor", "Learner", "DecisionClient", "Trajectory"]

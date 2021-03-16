@@ -13,6 +13,9 @@ class MultiAgentWrapper:
     def __getitem__(self, agent_id: str):
         return self.agent_dict[agent_id]
 
+    def choose_action(self, state_by_agent: dict):
+        return {agent_id: self.agent_dict[agent_id].choose_action(state) for agent_id, state in state_by_agent.items()}
+
     def set_exploration_params(self, params):
         # Per-agent exploration parameters
         if isinstance(params, dict) and params.keys() <= self.agent_dict.keys():

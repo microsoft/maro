@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 import sys
-from abc import ABC, abstractmethod
 from collections import defaultdict
 from typing import Callable, List, Union
 
@@ -14,7 +13,7 @@ from maro.utils import InternalLogger
 from .message_enums import MessageTag, PayloadKey
 
 
-class AbsLearner(ABC):
+class Learner(object):
     """Learner class.
 
     Args:
@@ -23,7 +22,7 @@ class AbsLearner(ABC):
         num_actors (int): Expected number of actors in the group identified by ``group_name``.
         agent (Union[AbsAgent, MultiAgentWrapper]): Agent or ditionary of agents managed by the agent.
         scheduler (AbsScheduler): A scheduler responsible for iterating over episodes and generating exploration
-            parameters if necessary. Defaults to None.
+            parameters if necessary.
         update_trigger (str): Number or percentage of ``MessageTag.FINISHED`` messages required to trigger
             learner updates, i.e., model training.
         inference (bool): If true, inference (i.e., action decisions) will be performed on the learner side.
@@ -40,7 +39,10 @@ class AbsLearner(ABC):
         group_name: str,
         num_actors: int,
         agent: Union[AbsAgent, MultiAgentWrapper],
-        scheduler: Scheduler = None,
+        scheduler: Scheduler,
+        experience_pool,
+        *,
+        post_collect_callback: Callable,
         update_trigger: str = None,
         inference: bool = False,
         inference_trigger: str = None,
@@ -50,12 +52,14 @@ class AbsLearner(ABC):
         super().__init__()
         self.agent = agent
         self.scheduler = scheduler
+        self.experience_pool = experience_pool
+        self.post_collect_callback = post_collect_callback
         self.inference = inference
-        if proxy_options is None:
-            proxy_options = {}
         peers = {"actor": num_actors}
         if inference:
             peers["decision_client"] = num_actors
+        if proxy_options is None:
+            proxy_options = {}
         self._proxy = Proxy(group_name, "learner", peers, **proxy_options)
         self._actors = self._proxy.peers_name["actor"]  # remote actor ID's
         self._registry_table = RegisterTable(self._proxy.peers_name)
@@ -78,9 +82,17 @@ class AbsLearner(ABC):
 
         self._logger = InternalLogger(self._proxy.name)
 
-    @abstractmethod
     def run(self):
-        raise NotImplementedError
+        for exploration_params in self.scheduler:
+            metrics_by_src, exp_by_src = self.collect(
+                self.scheduler.iter,
+                model_dict=None if self.inference else self.agent.dump_model(),
+                exploration_params=None if self.inference else exploration_params
+            )
+            self.on_collect(metrics_by_src, exp_by_src, self.experience_pool)
+            self.agent.learn()
+
+            self._logger.info("Training finished")
 
     def collect(self, rollout_index: int, training: bool = True, **rollout_kwargs) -> tuple:
         """Collect roll-out performances and details from remote actors.
@@ -129,32 +141,33 @@ class AbsLearner(ABC):
 
     def _on_action_request(self, messages: List[Message]):
         # group messages from different actors by the AGENT_ID field
-        if isinstance(self.agent, MultiAgentWrapper):
-            queries_by_agent_id = defaultdict(list)
-            for msg in messages:
-                queries_by_agent_id[msg.payload[PayloadKey.AGENT_ID]].append(msg)
+        states_by_agent, msg_indexes_by_agent = defaultdict(list), defaultdict(list)
+        for i, msg in enumerate(messages):
+            for agent_id, state in msg.payload[PayloadKey.STATE].items():
+                states_by_agent[agent_id].append(state)
+                msg_indexes_by_agent[agent_id].append(i)
 
-            # batch inference for each agent_id
-            for agent_id, queries in queries_by_agent_id.items():
-                state_batch = self._state_batching_func([query.payload[PayloadKey.STATE] for query in queries])
-                action_info = self.agent[agent_id].choose_action(state_batch)
-                self._serve(queries, action_info)
-        else:
-            state_batch = self._state_batching_func([msg.payload[PayloadKey.STATE] for msg in messages])
-            action_info = self.agent.choose_action(state_batch)
-            self._serve(messages, action_info)
-
-    def _serve(self, queries, action_info):
-        if isinstance(action_info, tuple):
-            action_info = list(zip(*action_info))
-        for query, action in zip(queries, action_info):
+        # batch inference for each agent_id
+        states_by_agent = {
+            agent_id: self._state_batching_func(states) for agent_id, states in states_by_agent.items()
+        }
+        action_info_by_agent = self.agent.choose_action(states_by_agent)
+        replies = [{} for _ in range(len(messages))]
+        for agent_id, action_info in action_info_by_agent.items():
+            if isinstance(action_info, tuple):
+                action_info = list(zip(*action_info))
+            assert len(msg_indexes_by_agent[agent_id]) == len(action_info)
+            for idx, act in zip(msg_indexes_by_agent[agent_id], action_info):
+                replies[idx][agent_id] = act
+        
+        for msg, rep in zip(messages, replies):
             self._proxy.reply(
-                query,
+                msg,
                 tag=MessageTag.ACTION,
                 payload={
-                    PayloadKey.ACTION: action,
-                    PayloadKey.ROLLOUT_INDEX: query.payload[PayloadKey.ROLLOUT_INDEX],
-                    PayloadKey.TIME_STEP: query.payload[PayloadKey.TIME_STEP]
+                    PayloadKey.ACTION: rep,
+                    PayloadKey.ROLLOUT_INDEX: msg.payload[PayloadKey.ROLLOUT_INDEX],
+                    PayloadKey.TIME_STEP: msg.payload[PayloadKey.TIME_STEP]
                 }
             )
 

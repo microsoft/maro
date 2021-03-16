@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from .actor import BasicActor
 from .learner import BasicLearner
+from .trajectory import CIMTrajectoryForDQN
 
-__all__ = ["BasicActor", "BasicLearner"]
+__all__ = ["BasicLearner", "CIMTrajectoryForDQN"]

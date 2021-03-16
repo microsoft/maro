@@ -5,7 +5,7 @@ import pickle
 
 from numpy import asarray
 
-from maro.rl import AbsLearner, SimpleStore, concat
+from maro.rl import Learner, SimpleStore, concat
 from maro.utils import DummyLogger
 
 

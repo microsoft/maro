@@ -29,24 +29,31 @@ class DecisionClient(object):
         self._proxy = Proxy(group_name, "decision_client", {"learner": 1}, **proxy_options)
         self._receive_action_timeout = receive_action_timeout
         self._max_receive_action_attempts = max_receive_action_attempts
+        self._rollout_index = None  # used for request-response matching purposes.
+        self._time_step = 0  # used for request-response matching purposes.
 
-    def get(self, state, rollout_index: int, time_step: int, agent_id: str = None):
+    def __getitem__(self, agent_id: str):
+        return self
+
+    @property
+    def rollout_index(self):
+        return self._rollout_index
+
+    @rollout_index.setter
+    def rollout_index(self, index):
+        self._rollout_index = index
+        self._time_step = 0
+
+    def choose_action(self, state_by_agent: dict):
         """Get an action decision from a remote learner.
 
         Args:
-            state: Environment state based on which the actin decision is to be made.
-            rollout_index (int): The roll-out index to which the current action decision belongs to.
-                This is used for request-response matching purposes.
-            time_step (int): The time step index at which the action decision occurs. This is used for
-                request-response matching purposes.
-            agent_id (str): The name of the agent to make the action decision. Defaults to None.
+            state_by_agent: Environment state based on which the action decision is to be made.
         """
-        assert rollout_index is not None and time_step is not None, "rollout_index and time_step cannot be None"
         payload = {
-            PayloadKey.STATE: state,
-            PayloadKey.ROLLOUT_INDEX: rollout_index,
-            PayloadKey.TIME_STEP: time_step,
-            PayloadKey.AGENT_ID: agent_id,
+            PayloadKey.STATE: state_by_agent,
+            PayloadKey.ROLLOUT_INDEX: self._rollout_index,
+            PayloadKey.TIME_STEP: self._time_step,
         }
         self._proxy.isend(
             Message(
@@ -67,3 +74,5 @@ class DecisionClient(object):
                 attempts -= 1
                 if attempts == 0:
                     return
+
+        self._time_step += 1

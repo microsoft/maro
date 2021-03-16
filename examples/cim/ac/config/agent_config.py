@@ -6,14 +6,20 @@ from torch.optim import Adam, RMSprop
 
 from maro.rl import OptimOption
 
-from examples.cim.common import PORT_ATTRIBUTES, VESSEL_ATTRIBUTES, ACTION_SPACE, LOOK_BACK, MAX_PORTS_DOWNSTREAM
+from examples.cim.common import common_config
 
-input_dim = (LOOK_BACK + 1) * (MAX_PORTS_DOWNSTREAM + 1) * len(PORT_ATTRIBUTES) + len(VESSEL_ATTRIBUTES)
+input_dim = (
+    (common_config["look_back"] + 1) *
+    (common_config["max_ports_downstream"] + 1) *
+    len(common_config["port_attributes"]) +
+    len(common_config["vessel_attributes"])
+)
+
 agent_config = {
     "model": {
         "actor": {
             "input_dim": input_dim,
-            "output_dim": len(ACTION_SPACE),
+            "output_dim": len(common_config["action_space"]),
             "hidden_dims": [256, 128, 64],
             "activation": nn.Tanh,
             "softmax": True,

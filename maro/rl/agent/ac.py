@@ -105,7 +105,7 @@ class ActorCritic(AbsAgent):
         )
         advantages = return_est - state_values
 
-        for _ in range(self.config.train_iters):
+        for i in range(self.config.train_iters):
             # actor loss
             log_p_new = get_log_prob(self.model(states, task_name="actor"), actions)
             if self.config.clip_ratio is not None:
