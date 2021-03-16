@@ -1,15 +1,14 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 
 import os
-import random
 
+from maro.event_buffer import MaroEvents
 from maro.simulator.scenarios import AbsBusinessEngine
-
-from maro.event_buffer import MaroEvents, CascadeEvent, AtomEvent
-
+from .parser import ConfigParser, SupplyChainConfiguration
 from .units import UnitBase
 from .world import World
-
-from .config_parser import ConfigParser
 
 
 class SupplyChainBusinessEngine(AbsBusinessEngine):
@@ -20,14 +19,9 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
 
         self._build_world()
 
-        self._node_mapping = self.world.get_node_mapping()
-
         self._frame = self.world.frame
 
-        self._action_steps = self.world.configs["action_steps"]
-
-        # for update by unit
-        self._unit_id_list = None
+        self._node_mapping = self.world.get_node_mapping()
 
     @property
     def frame(self):
@@ -38,55 +32,21 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         return self._frame.snapshots
 
     @property
-    def configs(self):
+    def configs(self) -> SupplyChainConfiguration:
         return self.world.configs
-
-    def get_node_mapping(self) -> dict:
-        return self._node_mapping
 
     def step(self, tick: int):
         self._step_by_facility(tick)
 
-        if tick % self._action_steps == 0:
-            decision_event = self._event_buffer.gen_decision_event(tick, None)
+        # We do not have payload here.
+        decision_event = self._event_buffer.gen_decision_event(tick, None)
 
-            self._event_buffer.insert_event(decision_event)
-
-    def _step_by_facility(self, tick: int):
-        # go though all the facilities
-        for _, facility in self.world.facilities.items():
-            facility.step(tick)
-
-        # NOTE: different with other scenarios, we only ask for action at the end ot each step,
-        # so do not need to take snapshot at post step,
-        # we we need at post step is check the tick, and clear per tick attributes
-        for _, facility in self.world.facilities.items():
-            facility.begin_post_step(tick)
-
-    def _step_by_units(self, tick: int):
-        if self._unit_id_list is None:
-            self._unit_id_list = [i for i in self.world.unit_id2index_mapping.keys()]
-
-        random.shuffle(self._unit_id_list)
-
-        for unit_id in self._unit_id_list:
-            unit = self.world.get_entity(unit_id)
-
-            unit.step(tick)
+        self._event_buffer.insert_event(decision_event)
 
     def post_step(self, tick: int):
-        # before taking snapshot
-        # for facility in self.world.facilities.values():
-        #     facility.begin_post_step(tick)
+        self._post_step_by_facility(tick)
 
-        # take snapshot
-        # if (tick + 1) % self._snapshot_resolution == 0:
-        #     self._frame.take_snapshot(self.frame_index(tick))
-
-        for facility in self.world.facilities.values():
-            facility.end_post_step(tick)
-
-        return tick+1 == self._max_tick
+        return tick + 1 == self._max_tick
 
     def reset(self):
         self._frame.reset()
@@ -94,7 +54,33 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         if self._frame.snapshots:
             self._frame.snapshots.reset()
 
-        for _, facility in self.world.facilities.items():
+        self._reset_by_facility()
+
+    def get_node_mapping(self) -> dict:
+        return self._node_mapping
+
+    def _step_by_facility(self, tick: int):
+        """Call step functions by facility.
+
+        Args:
+            tick (int): Current tick.
+        """
+        # Step first.
+        for facility in self.world.facilities.values():
+            facility.step(tick)
+
+        # Then flush states to frame before generate decision event.
+        for facility in self.world.facilities.values():
+            facility.flush_states()
+
+    def _post_step_by_facility(self, tick: int):
+        """Call post_step functions by facility."""
+        for facility in self.world.facilities.values():
+            facility.post_step(tick)
+
+    def _reset_by_facility(self):
+        """Call reset functions by facility."""
+        for facility in self.world.facilities.values():
             facility.reset()
 
     def _register_events(self):
@@ -108,22 +94,19 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
 
         parser = ConfigParser(core_config, config_path)
 
+        conf = parser.parse()
+
         self.world = World()
 
-        self.world.build(parser.parse(), self.calc_max_snapshots(), self._max_tick)
+        self.world.build(conf, self.calc_max_snapshots(), self._max_tick)
 
     def _on_action_received(self, event):
         action = event.payload
 
-        if action:
-            # NOTE:
-            # we assume that the action is a dictionary that
-            # key is the id of unit
-            # value is the action for specified unit, the type may different by different type
+        if action is not None and len(action) > 0:
+            # NOTE: we assume that the action is dictionary that key is the unit(agent) id, value is the real action.
+            for unit_id, action_obj in action[0].items():
+                entity = self.world.get_entity(unit_id)
 
-            for unit_id, control_action in action.items():
-                # try to find the unit
-                unit: UnitBase = self.world.get_entity(unit_id)
-
-                # dispatch the action
-                unit.set_action(control_action)
+                if entity is not None and type(entity) == UnitBase:
+                    entity.set_action(action_obj)

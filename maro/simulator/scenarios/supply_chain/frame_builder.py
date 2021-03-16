@@ -1,4 +1,8 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 from typing import List, Tuple
+
 from maro.backends.frame import NodeBase, FrameBase, FrameNode
 
 

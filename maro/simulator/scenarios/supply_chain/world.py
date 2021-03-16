@@ -1,100 +1,150 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
+
+from collections import namedtuple
+from typing import List, Union, Tuple
 
 import numpy as np
-
-from collections import defaultdict, namedtuple
-
-from .frame_builder import build_frame
-
+from maro.backends.frame import FrameBase
 from tcod.path import AStar
 
-from .config_parser import SupplyChainConfiguration
+from .facilities import FacilityBase
+from .frame_builder import build_frame
+from .parser import SupplyChainConfiguration, DataModelDef, UnitDef, FacilityDef
+from .units import UnitBase
 
-from .data import FacilityDataModel
-
-
-# sku definition in world level
-# bom is a dictionary, key is the material sku id, value is units per lot
-Sku = namedtuple("Sku", ("name", "id", "bom", "output_units_per_lot"))
+SkuInfo = namedtuple("SkuInfo", ("name", "id", "bom", "output_units_per_lot"))
 
 
 class World:
+    """Supply chain world contains facilities and grid base map."""
+
     def __init__(self):
-        # all the facilities in this world, key: id, value: facilities
+        # Frame for current world configuration.
+        self.frame: FrameBase = None
+
+        # Current configuration.
+        self.configs: SupplyChainConfiguration = None
+
+        # Durations of current simulation.
+        self.durations = 0
+
+        # All the entities in the world, include unit and facility.
+        self.entities = {}
+
+        # All the facilities in this world.
         self.facilities = {}
 
-        # mapping from facility name to id
-        self._facility_name2id_mapping = {}
-
-        # all the entities (units and facilities) in this world
-        # id -> instance
-        self._entities = {}
-
-        # frame of this world, this is determined by the unit selected.
-        self.frame = None
-
-        # id counter for all units and facilities in this world
+        # Entity id counter, every unit and facility have unique id.
         self._id_counter = 1
 
-        # collection of data model class used in this world.
-        self._data_class_collection = defaultdict(int)
-
-        # sku collection of this world
-        self._sku_collection = {}
-
-        # sku id -> name in collection
-        self._sku_id2name_mapping = {}
-
-        # configuration of current world
-        self.configs: dict = None
-
-        # unit id to related data model index
-        self.unit_id2index_mapping = {}
-
-        # a star path finder
+        # Path finder for production transport.
         self._path_finder: AStar = None
 
-        self._data_model_definitions = None
-        self._facility_definitions = None
-        self._unit_definitions = None
+        # Sku id to name mapping, used for querying.
+        self._sku_id2name_mapping = {}
 
-    def gen_id(self):
-        """Generate id for facility or unit."""
-        new_id = self._id_counter
+        # All the sku in this world.
+        self._sku_collection = {}
 
-        self._id_counter += 1
+        # Facility name to id mapping, used for querying.
+        self._facility_name2id_mapping = {}
 
-        return new_id
+        # Data model class collection, used to collection data model class and their number in frame.
+        self._data_class_collection = {}
 
-    def build_unit(self, name: str):
-        """Build an unit instance from it name via current configuration."""
-        assert name in self._unit_definitions
+    def get_sku_by_name(self, name: str) -> SkuInfo:
+        """Get sku information by name.
 
-        unit = self._unit_definitions[name].class_type()
+        Args:
+            name (str): Sku name to query.
 
-        unit.id = self.gen_id()
+        Returns:
+            SkuInfo: General information for sku.
+        """
+        return self._sku_collection.get(name, None)
 
-        self._entities[unit.id] = unit
+    def get_sku_by_id(self, sku_id: int) -> SkuInfo:
+        """Get sku information by sku id.
 
-        return unit
+        Args:
+            sku_id (int): Id of sku to query.
 
-    def build(self, all_in_one_config: SupplyChainConfiguration, snapshot_number: int, durations: int):
-        """Build current world according to configurations."""
-        self.configs = all_in_one_config.world
-        self._facility_definitions = all_in_one_config.facilities
-        self._unit_definitions = all_in_one_config.units
-        self._data_model_definitions = all_in_one_config.data_models
+        Returns:
+            SkuInfo: General information for sku.
+        """
+        return self._sku_collection[self._sku_id2name_mapping[sku_id]]
 
-        configs = self.configs
+    def get_facility_by_id(self, facility_id: int) -> FacilityBase:
+        """Get facility by id.
 
-        # collect sku information first
-        for sku_conf in configs["skus"]:
-            sku = Sku(sku_conf["name"], sku_conf["id"], {}, sku_conf["output_units_per_lot"])
+        Args:
+            facility_id (int): Facility id to query.
+
+        Returns:
+            FacilityBase: Facility instance.
+        """
+        return self.facilities[facility_id]
+
+    def get_facility_by_name(self, name: str):
+        """Get facility by name.
+
+        Args:
+            name (str): Facility name to query.
+
+        Returns:
+            FacilityBase: Facility instance.
+        """
+        return self.facilities[self._facility_name2id_mapping[name]]
+
+    def get_entity(self, entity_id: int) -> Union[FacilityBase, UnitBase]:
+        """Get an entity (facility or unit) by id.
+
+        Args:
+            entity_id (int): Id to query.
+
+        Returns:
+            Union[FacilityBase, UnitBase]: Entity instance.
+        """
+        return self._entities[entity_id]
+
+    def find_path(self, start_x: int, start_y: int, goal_x: int, goal_y: int) -> List[Tuple[int, int]]:
+        """Find path to specified cell.
+
+        Args:
+            start_x (int): Start cell position x.
+            start_y (int): Start cell position y.
+            goal_x (int): Destination cell position x.
+            goal_y (int): Destination cell position y.
+
+        Returns:
+            List[Tuple[int, int]]: List of (x, y) position to target.
+        """
+        return self._path_finder.get_path(int(start_x), int(start_y), int(goal_x), int(goal_y))
+
+    def build(self, configs: SupplyChainConfiguration, snapshot_number: int, durations: int):
+        """Build world with configurations.
+
+        Args:
+            configs (SupplyChainConfiguration): Configuration of current world.
+            snapshot_number (int): Number of snapshots to keep in memory.
+            durations (int): Durations of current simulation.
+        """
+        self.durations = durations
+        self.configs = configs
+
+        world_config = configs.world
+
+        # Grab sku information for this world.
+        for sku_conf in world_config["skus"]:
+            sku = SkuInfo(sku_conf["name"], sku_conf["id"], {}, sku_conf["output_units_per_lot"])
 
             self._sku_id2name_mapping[sku.id] = sku.name
             self._sku_collection[sku.name] = sku
 
-        # collect bom
-        for sku_conf in configs["skus"]:
+        # Collect bom info.
+        for sku_conf in world_config["skus"]:
             sku = self._sku_collection[sku_conf["name"]]
 
             bom = sku_conf.get("bom", {})
@@ -102,51 +152,44 @@ class World:
             for material_sku_name, units_per_lot in bom.items():
                 sku.bom[self._sku_collection[material_sku_name].id] = units_per_lot
 
-        # build facilities first
-        for facility_conf in configs["facilities"]:
-            facility_name = facility_conf["name"]
+        # Construct facilities.
+        for facility_conf in world_config["facilities"]:
+            facility_class_alias = facility_conf["class"]
+            facility_def: FacilityDef = self.configs.facilities[facility_class_alias]
+            facility_class_type = facility_def.class_type
 
-            # create a new instance of facility
-            facility_def = self._facility_definitions[facility_conf["class"]]
-            facility = facility_def.class_type()
+            # Instance of facility.
+            facility = facility_class_type()
 
-            # NOTE: DO set these fields before other operations.
+            # Normal properties.
+            facility.id = self._gen_id()
+            facility.name = facility_conf["name"]
             facility.world = self
-            facility.id = self.gen_id()
-            facility.name = facility_name
 
-            self._facility_name2id_mapping[facility_name] = facility.id
+            # Parse sku info.
+            facility.parse_skus(facility_conf["skus"])
+
+            # Parse config for facility.
+            facility.parse_configs(facility_conf.get("config", {}))
+
+            # Build children (units).
+            for child_name, child_conf in facility_conf["children"].items():
+                setattr(facility, child_name, self.build_unit(facility, facility, child_conf))
+
             self.facilities[facility.id] = facility
-            self._entities[facility.id] = facility
 
-            # build the facility first to create related components.
-            facility.build(facility_conf["configs"])
+            self._facility_name2id_mapping[facility.name] = facility.id
 
-        # build the frame
-        # . collect data model class
-        data_class_in_frame = []
+        # Build frame.
+        self.frame = self._build_frame(snapshot_number)
 
-        for class_name, number in self._data_class_collection.items():
-            class_def = self._data_model_definitions[class_name]
+        # Assign data model instance.
+        for agent in self.entities.values():
+            if agent.data_model_name is not None:
+                agent.data_model = getattr(self.frame, agent.data_model_name)[agent.data_model_index]
 
-            data_class_in_frame.append((
-                class_def.class_type,
-                class_def.name_in_frame,
-                number
-            ))
-
-        # add facility data model to frame
-        data_class_in_frame.append((
-            FacilityDataModel,
-            "facilities",
-            len(self.facilities),
-        ))
-
-        # . build the frame
-        self.frame = build_frame(True, snapshot_number, data_class_in_frame)
-
-        # construct the upstream topology
-        topology = configs.get("topology", {})
+        # Construct the upstream topology.
+        topology = world_config["topology"]
 
         for cur_facility_name, topology_conf in topology.items():
             facility = self.get_facility_by_name(cur_facility_name)
@@ -154,29 +197,31 @@ class World:
             facility.upstreams = {}
 
             for sku_name, source_facilities in topology_conf.items():
-                sku = self.get_sku(sku_name)
+                sku = self.get_sku_by_name(sku_name)
 
-                facility.upstreams[sku.id] = [self.get_facility_by_name(source_name).id for source_name in source_facilities]
+                facility.upstreams[sku.id] = [
+                    self.get_facility_by_name(source_name).id for source_name in source_facilities
+                ]
 
-        # then initialize all facilities as we have the data instance.
-        facility_node_index = 0
+        # Call initialize method for facilities.
+        for facility in self.facilities.values():
+            facility.initialize()
 
-        for _, facility in self.facilities.items():
-            facility.data = self.frame.facilities[facility_node_index]
-            facility_node_index += 1
+        # Call initialize method for units.
+        for agent in self.entities.values():
+            agent.initialize()
 
-            facility.initialize(durations)
-
-        # construct the map grid
-        grid_config = configs["grid"]
+        # TODO: replace tcod with other lib.
+        # Construct the map grid.
+        grid_config = world_config["grid"]
 
         grid_width, grid_height = grid_config["size"]
 
-        # travel cost for a star path finder, 0 means block, > 1 means the cost travel to that cell
+        # Travel cost for a star path finder, 0 means block, > 1 means the cost travel to that cell
         # current all traversable cell's cost will be 1.
         cost_grid = np.ones(shape=(grid_width, grid_height), dtype=np.int8)
 
-        # add blocks to grid
+        # Add blocks to grid.
         for facility_name, facility_pos in grid_config["facilities"].items():
             facility_id = self._facility_name2id_mapping[facility_name]
             facility = self.facilities[facility_id]
@@ -184,7 +229,7 @@ class World:
             facility.x = facility_pos[0]
             facility.y = facility_pos[1]
 
-            # facility cannot be a block, or we cannot find path to it,
+            # Facility cannot be a block, or we cannot find path to it,
             # but we can give it a big cost
             cost_grid[facility.x, facility.y] = 120
 
@@ -194,49 +239,96 @@ class World:
         # 0 for 2nd parameters means disable diagonal movement, so just up, right, down or left.
         self._path_finder = AStar(cost_grid, 0)
 
-    def get_facility_by_id(self, facility_id: int):
-        return self.facilities[facility_id]
+    def build_unit(self, facility: FacilityBase, parent: Union[FacilityBase, UnitBase], config: dict) -> UnitBase:
+        """Build an unit by its configuration.
 
-    def get_facility_by_name(self, name: str):
-        return self.facilities[self._facility_name2id_mapping[name]]
+        Args:
+            facility (FacilityBase): Facility of this unit belongs to.
+            parent (Union[FacilityBase, UnitBase]): Parent of this unit belongs to, this may be same with facility, if
+                this unit is attached to a facility.
+            config (dict): Configuration of this unit.
 
-    def get_entity(self, entity_id: int):
-        return self._entities[entity_id]
+        Returns:
+            UnitBase: Unit instance.
+        """
+        unit_class_alias = config["class"]
+        unit_def: UnitDef = self.configs.units[unit_class_alias]
 
-    def register_data_class(self, unit_id: int, name: str):
-        assert name in self._data_model_definitions
+        is_template = config.get("is_template", False)
 
-        node_index = self._data_class_collection[name]
+        # If it is not a template, then just use current configuration to generate unit.
+        if not is_template:
+            unit_instance = unit_def.class_type()
 
-        self._data_class_collection[name] += 1
-        self.unit_id2index_mapping[unit_id] = node_index
+            # Assign normal properties.
+            unit_instance.id = self._gen_id()
+            unit_instance.world = self
+            unit_instance.facility = facility
+            unit_instance.parent = parent
 
-        return node_index
+            # Record the id.
+            self.entities[unit_instance.id] = unit_instance
 
-    def get_data_instance(self, class_name: str, node_index: int):
-        alias = self._data_model_definitions[class_name].name_in_frame
+            # Due with data model.
+            data_model_def: DataModelDef = self.configs.data_models[unit_def.data_model_alias]
 
-        return getattr(self.frame, alias)[node_index]
+            # Register the data model, so that it will help to generate related instance index.
+            unit_instance.data_model_index = self._register_data_model(data_model_def.alias)
+            unit_instance.data_model_name = data_model_def.name_in_frame
 
-    def get_sku(self, name: str):
-        return self._sku_collection.get(name, None)
+            # Parse the config is there is any.
+            unit_instance.parse_configs(config.get("config", {}))
 
-    def get_sku_by_id(self, sku_id: int):
-        return self._sku_collection[self._sku_id2name_mapping[sku_id]]
+            # Prepare children.
+            children_conf = config.get("children", None)
 
-    def find_path(self, start_x: int, start_y: int, goal_x: int, goal_y: int):
-        return self._path_finder.get_path(int(start_x), int(start_y), int(goal_x), int(goal_y))
+            if children_conf:
+                for child_name, child_conf in children_conf.items():
+                    # If child configuration is a dict, then we add it as a property by name (key).
+                    if type(child_conf) == dict:
+                        setattr(unit_instance, child_name, self.build_unit(facility, unit_instance, child_conf))
+                    elif type(child_conf) == list:
+                        # If child configuration is a list, then will treat it as list property, named same as key.
+                        child_list = []
+                        for conf in child_conf:
+                            child_list.append(self.build_unit(facility, unit_instance, conf))
+
+                        setattr(unit_instance, child_name, child_list)
+
+            return unit_instance
+        else:
+            # If this is template unit, then will use the class' static method 'generate' to generate sub-units.
+            children = unit_def.class_type.generate(facility, config.get("config"))
+
+            for child in children.values():
+                child.id = self._gen_id()
+                child.world = self
+                child.facility = facility
+                child.parent = parent
+
+                # Pass the config if there is any.
+                child.parse_configs(config.get("config", {}))
+
+                self.entities[child.id] = child
+
+            return children
 
     def get_node_mapping(self):
-        facility_info_dict = {facility_id: facility.get_node_info() for facility_id, facility in self.facilities.items()}
+        """Collect all the entities information.
 
-        # pick unit id and related index and node name
+        Returns:
+            dict: A dictionary contains 'mapping' for id to data model index mapping,
+                'detail' for detail of units and facilities.
+        """
+        facility_info_dict = {
+            facility_id: facility.get_node_info() for facility_id, facility in self.facilities.items()
+        }
+
         id2index_mapping = {}
 
         for facility in facility_info_dict.values():
             for units in facility["units"].values():
                 if type(units) is dict:
-                    # one unit
                     id2index_mapping[units["id"]] = (units["node_name"], units["node_index"])
                 elif type(units) is list:
                     for unit in units:
@@ -247,18 +339,51 @@ class World:
             "detail": facility_info_dict
         }
 
-    def _build_facility(self, conf: dict):
-        name = conf["name"]
-        class_alias = conf["class"]
+    def _register_data_model(self, alias: str) -> int:
+        """Register a data model alias, used to collect data model used in frame.
 
-        facility_def = self.configs.facilities[class_alias]
+        Args:
+            alias (str): Class alias defined in core.yml.
 
-        facility = facility_def.class_type()
+        Returns:
+            int: Specified data model instance index after frame is built.
+        """
+        if alias not in self._data_class_collection:
+            self._data_class_collection[alias] = 0
 
-        facility.id = self.gen_id()
-        facility.world = self
-        facility.name = name
+        node_index = self._data_class_collection[alias]
 
-        facility.build(conf["configs"])
+        self._data_class_collection[alias] += 1
 
-        return facility
+        return node_index
+
+    def _build_frame(self, snapshot_number: int) -> FrameBase:
+        """Build frame by current world definitions.
+
+        Args:
+            snapshot_number (int): Number of snapshots to keep in memory.
+
+        Returns:
+            FrameBase: Frame instance with data model in current configuration.
+        """
+        data_class_in_frame = []
+
+        for alias, number in self._data_class_collection.items():
+            data_model_def: DataModelDef = self.configs.data_models[alias]
+            data_class_in_frame.append((
+                data_model_def.class_type,
+                data_model_def.name_in_frame,
+                number
+            ))
+
+        frame = build_frame(True, snapshot_number, data_class_in_frame)
+
+        return frame
+
+    def _gen_id(self):
+        """Generate id for entities."""
+        nid = self._id_counter
+
+        self._id_counter += 1
+
+        return nid

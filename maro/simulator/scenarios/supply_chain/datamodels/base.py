@@ -1,6 +1,9 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
 
 
 from abc import abstractmethod
+
 from maro.backends.backend import AttributeType
 from maro.backends.frame import NodeBase, NodeAttribute
 

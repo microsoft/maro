@@ -1,31 +1,35 @@
-from .base import DataModelBase
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
 
-from maro.backends.frame import node, NodeBase, NodeAttribute
+
 from maro.backends.backend import AttributeType
+from maro.backends.frame import node, NodeAttribute
+
+from .base import DataModelBase
 
 
 # NOTE: one sku one seller
 @node("seller")
 class SellerDataModel(DataModelBase):
     # reward states
-    total_sold = NodeAttribute(AttributeType.Int)
+    total_sold = NodeAttribute(AttributeType.UInt)
 
     # from config
     backlog_ratio = NodeAttribute(AttributeType.Float)
 
     # action states
-    unit_price = NodeAttribute(AttributeType.Int)
+    unit_price = NodeAttribute(AttributeType.UInt)
 
     #
-    sale_gamma = NodeAttribute(AttributeType.Int)
+    sale_gamma = NodeAttribute(AttributeType.UInt)
 
     # what we will sell
-    product_id = NodeAttribute(AttributeType.Int)
+    product_id = NodeAttribute(AttributeType.UInt)
 
     # per tick state, we can use this to support "sale hist" feature in original code.
     # original there is only sold state, we add a demand here
-    demand = NodeAttribute(AttributeType.Int)
-    sold = NodeAttribute(AttributeType.Int)
+    demand = NodeAttribute(AttributeType.UInt)
+    sold = NodeAttribute(AttributeType.UInt)
 
     def __init__(self):
         super(SellerDataModel, self).__init__()
@@ -35,14 +39,13 @@ class SellerDataModel(DataModelBase):
         self._product_id = 0
         self._backlog_ratio = 0
 
-    def initialize(self, configs: dict):
-        if configs is not None:
-            self._unit_price = configs.get("unit_price", 0)
-            self._sale_gamma = configs.get("sale_gamma", 0)
-            self._product_id = configs.get("product_id", 0)
-            self._backlog_ratio = configs.get("backlog_ratio", 0.1)
+    def initialize(self, unit_price: int = 0, sale_gamma: int = 0, product_id: int = 0, backlog_ratio: int = 0):
+        self._unit_price = unit_price
+        self._sale_gamma = sale_gamma
+        self._product_id = product_id
+        self._backlog_ratio = backlog_ratio
 
-            self.reset()
+        self.reset()
 
     def reset(self):
         super(SellerDataModel, self).reset()

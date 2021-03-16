@@ -1,9 +1,12 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 
 from collections import deque, defaultdict
-
-from .base import UnitBase
-
 from typing import Dict
+
+from .order import Order
+from .unitbase import UnitBase
 
 
 class DistributionUnit(UnitBase):
@@ -11,27 +14,71 @@ class DistributionUnit(UnitBase):
 
     One distribution can accept all kind of sku order.
     """
-    def __init__(self):
-        super(DistributionUnit, self).__init__()
+    # Transport unit list of this distribution unit.
+    transports = None
 
+    def __init__(self):
         self.order_queue = deque()
 
-        # used to map from product id to slot index
+        # Used to map from product id to slot index.
         self.product_index_mapping: Dict[int, int] = {}
 
-    def initialize(self, configs: dict, durations: int):
-        super(DistributionUnit, self).initialize(configs, durations)
+        self.product_list = []
 
-        # create a production index mapping, used to update product information
-        for index, product_id in enumerate(self.data.product_list[:]):
-            self.product_index_mapping[product_id] = index
+    def get_pending_order(self):
+        """Get orders that states is pending.
+
+        Returns:
+            dict: Dictionary of order that key is product id, value is quantity.
+        """
+        counter = defaultdict(int)
+
+        for order in self.order_queue:
+            counter[order.product_id] += order.quantity
+
+        return counter
+
+    def place_order(self, order: Order):
+        """Place an order in the pending queue.
+
+        Args:
+            order (Order): Order to insert.
+        """
+        if order.quantity > 0:
+            sku = self.facility.skus[order.product_id]
+
+            if sku is not None:
+                self.order_queue.append(order)
+
+                order_total_price = sku.price * order.quantity
+
+                # TODO: states related, enable it later if needed.
+                # product_index = self.product_index_mapping[order.product_id]
+                # self.data.check_in_price[product_index] += order_total_price
+
+                return order_total_price
+
+        return 0
+
+    def initialize(self):
+        index = 0
+
+        # Init product list in data model.
+        for sku_id, sku in self.facility.skus.items():
+            self.product_list.append(sku_id)
+
+            self.data_model.product_list.append(sku_id)
+            self.data_model.delay_order_penalty.append(0)
+            self.data_model.check_in_price.append(0)
+
+            self.product_index_mapping[sku_id] = index
+
+            index += 1
 
     def step(self, tick: int):
-        data = self.data
-
-        for vehicle in self.facility.transports:
-            # if we have vehicle not on the way and there is any pending order
-            if len(self.order_queue) > 0 and vehicle.data.location == 0:
+        for vehicle in self.transports:
+            # If we have vehicle not on the way and there is any pending order
+            if len(self.order_queue) > 0 and vehicle.location == 0:
                 order = self.order_queue.popleft()
 
                 # schedule a job for vehicle
@@ -43,38 +90,23 @@ class DistributionUnit(UnitBase):
                     order.vlt
                 )
 
+            # Push vehicle.
+            vehicle.step(tick)
+
         # NOTE: we moved delay_order_penalty from facility to sku, is this ok?
         # update order's delay penalty per tick.
         for order in self.order_queue:
-            sku = self.facility.sku_information[order.product_id]
+            sku = self.facility.skus[order.product_id]
             product_index = self.product_index_mapping[order.product_id]
 
-            data.delay_order_penalty[product_index] += sku.delay_order_penalty
+            self.data_model.delay_order_penalty[product_index] += sku.delay_order_penalty
 
     def reset(self):
         super(DistributionUnit, self).reset()
+
         self.order_queue.clear()
 
-    def get_pending_order(self):
-        counter = defaultdict(int)
-
-        for order in self.order_queue:
-            counter[order.product_id] += order.quantity
-
-        return counter
-
-    def place_order(self, order):
-        if order.quantity > 0:
-            sku = self.facility.sku_information[order.product_id]
-
-            if sku is not None:
-                self.order_queue.append(order)
-
-                product_index = self.product_index_mapping[order.product_id]
-                order_total_price = sku.price * order.quantity
-
-                self.data.check_in_price[product_index] += order_total_price
-
-                return order_total_price
-
-        return 0
+        for product_id in self.product_list:
+            self.data_model.product_list.append(product_id)
+            self.data_model.delay_order_penalty.append(0)
+            self.data_model.check_in_price.append(0)

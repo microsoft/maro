@@ -1,13 +1,16 @@
-from .base import DataModelBase
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
 
-from maro.backends.frame import node, NodeBase, NodeAttribute
+
 from maro.backends.backend import AttributeType
+from maro.backends.frame import node, NodeAttribute
+
+from .base import DataModelBase
 
 
 @node("facility")
 class FacilityDataModel(DataModelBase):
-
-    test = NodeAttribute(AttributeType.Int)
+    test = NodeAttribute(AttributeType.UInt)
 
     def __init__(self):
         super(FacilityDataModel, self).__init__()

@@ -1,14 +1,14 @@
 
-data:
+datamodels:
   modules:
-    - path: "maro.simulator.scenarios.supply_chain.data"
+    - path: "maro.simulator.scenarios.supply_chain.datamodels"
       definitions:
         StorageDataModel:
           class: "StorageDataModel"
           name_in_frame: "storage"
-        TransportDataModel:
-          class: "TransportDataModel"
-          name_in_frame: "transport"
+        VehicleDataModel:
+          class: "VehicleDataModel"
+          name_in_frame: "vehicle"
         DistributionDataModel:
           class: "DistributionDataModel"
           name_in_frame: "distribution"
@@ -28,28 +28,24 @@ units:
       definitions:
         StorageUnit:
           class: "StorageUnit"
-          data:
-            class: "StorageDataModel"
-        TransportUnit:
-          class: "TransportUnit"
-          data:
-            class: "TransportDataModel"
+          datamodel: "StorageDataModel"
+        VehicleUnit:
+          class: "VehicleUnit"
+          datamodel: "VehicleDataModel"
         DistributionUnit:
           class: "DistributionUnit"
-          data:
-            class: "DistributionDataModel"
+          datamodel: "DistributionDataModel"
         ConsumerUnit:
           class: "ConsumerUnit"
-          data:
-            class: "ConsumerDataModel"
+          datamodel: "ConsumerDataModel"
         SellerUnit:
           class: "SellerUnit"
-          data:
-            class: "SellerDataModel"
+          datamodel: "SellerDataModel"
         ManufactureUnit:
           class: "ManufactureUnit"
-          data:
-            class: "ManufactureDataModel"
+          datamodel: "ManufactureDataModel"
+        ProductUnit:
+          class: "ProductUnit"
 
 facilities:
   modules:
@@ -57,30 +53,7 @@ facilities:
       definitions:
         WarehouseFacility:
           class: "WarehouseFacility"
-          storage:
-            class: "StorageUnit"
-          distribution:
-            class: "DistributionUnit"
-          consumers:
-            class: "ConsumerUnit"
-          transports: []
         SupplierFacility:
           class: "SupplierFacility"
-          distribution:
-            class: "DistributionUnit"
-          storage:
-            class: "StorageUnit"
-          consumers:
-            class: "ConsumerUnit"
-          manufactures:
-            class: "ManufactureUnit"
-          # transports should be defined by user, so here is just a empty list
-          transports: []
         RetailerFacility:
           class: "RetailerFacility"
-          storage:
-            class: "StorageUnit"
-          consumers:
-            class: "ConsumerUnit"
-          sellers:
-            class: "SellerUnit"
