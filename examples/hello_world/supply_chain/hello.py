@@ -46,16 +46,16 @@ class InteractiveRenderaleEnv:
         # tileset from https://github.com/libtcod/python-tcod.
         tileset = tcod.tileset.load_tilesheet("font/dejavu10x10_gs_tc.png", 32, TILESET_SIZE, tcod.tileset.CHARMAP_TCOD)
 
-        grid_width, grid_height = self.env.configs["grid"]["size"]
+        grid_width, grid_height = (20, 20) # self.env.configs["grid"]["size"]
 
         # blocks
         facilities = []
         railroads = []
 
-        for facility, pos in self.env.configs["grid"]["facilities"].items():
+        for facility, pos in self.env.configs.world["grid"]["facilities"].items():
             facilities.append(pos)
 
-        for pos_list in self.env.configs["grid"]["blocks"].values():
+        for pos_list in self.env.configs.world["grid"]["blocks"].values():
             railroads.extend(pos_list)
 
         console = tcod.Console(grid_width, grid_height)
@@ -126,16 +126,15 @@ class InteractiveRenderaleEnv:
                             action = None
 
     def present_vehicles(self, console: tcod.Console):
-        vehicles = self.env.snapshot_list["transport"]
+        vehicles = self.env.snapshot_list["vehicle"]
         vehicle_number = len(vehicles)
 
         # here we query the attributes that slot number ==1,
         # then query position, or snapshot_list will try to padding for id
-        normal_list = vehicles[self.env.frame_index::("id", "steps", "location")].flatten().reshape(vehicle_number, -1).astype(np.int)
+        normal_list = vehicles[self.env.frame_index::("id", "steps")].flatten().reshape(vehicle_number, -1).astype(np.int)
         pos_list = vehicles[self.env.frame_index::"position"].flatten().reshape(vehicle_number, -1).astype(np.int)
 
         for index, state in enumerate(normal_list):
-            location = state[2]
             steps = state[1]
 
             if steps > 0:
@@ -192,11 +191,11 @@ class InteractiveRenderaleEnv:
         print(tabulate(seller_states, seller_features))
 
     def show_vehicle_states(self):
-        vehicles = self.env.snapshot_list["transport"]
+        vehicles = self.env.snapshot_list["vehicle"]
 
         vehicle_number = len(vehicles)
 
-        vehicle_features = ("id", "facility_id", "location", "steps", "patient", "source", "destination", "payload", "product_id")
+        vehicle_features = ("id", "facility_id", "steps", "patient", "source", "destination", "payload", "product_id")
 
         vehicle_states = vehicles[self.env.frame_index::vehicle_features].flatten().reshape(vehicle_number, -1).astype(np.int)
 
