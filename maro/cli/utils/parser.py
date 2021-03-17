@@ -10,8 +10,9 @@ from maro.utils.exception.cli_exception import CommandNotFoundError
 
 class ArgumentParser(argparse.ArgumentParser):
     def __init__(self, examples=None, **kwargs):
+        
         self.examples = examples
-
+        
         super().__init__(add_help=False, **kwargs)
 
         self.formatter_class = HelpFormatter

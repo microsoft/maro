@@ -10,6 +10,28 @@ from .request_params import request_column, request_settings
 from .utils import get_data_in_format, get_input_range
 
 
+def get_new_port_number(experiment_name: str) -> json:
+    """Get the latest episode number of real-time episode.
+
+    Args:
+        experiment_name (str): Name of the experiment.
+
+    Returns:
+            json: Number of episodes.
+
+    """
+    params = {
+        "query": f"select count(episode) from {experiment_name}.port_details",
+        "count": "true"
+    }
+    episode_number_data = requests.get(
+        url=request_settings.request_url.value,
+        headers=request_settings.request_header.value,
+        params=params
+    ).json()
+    return episode_number_data
+
+
 def get_port_data(experiment_name: str, episode: str, tick: str) -> json:
     """Get the port data within one tick.
 
@@ -72,9 +94,8 @@ def process_port_data(db_port_data: json) -> json:
             json: Jsonfied port value of current tick.
 
     """
-    pwd = os.getcwd()
-    exec_path = os.path.abspath(os.path.dirname(pwd) + os.path.sep)
-    config_file_path = f"{exec_path}\\maro\\maro\\cli\\maro_real_time_vis\\back_end\\nginx\\static\\"
+    exec_path = exec_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(os.path.dirname(__file__)))))
+    config_file_path = f"{exec_path}\\nginx\\static\\"
     with open(f"{config_file_path}port_list.json", "r", encoding="utf8")as port_list_file:
         port_list = json.load(port_list_file)
         port_list = port_list[0]["port_list"]

@@ -1,14 +1,14 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-"""
+
 # Enable realtime data streaming with following statements.
 
 import os
 
 os.environ["MARO_STREAMIT_ENABLED"] = "true"
-os.environ["MARO_STREAMIT_EXPERIMENT_NAME"] = "experiment_name"
-"""
+os.environ["MARO_STREAMIT_EXPERIMENT_NAME"] = "test_vessel"
+
 
 from maro.simulator import Env
 from maro.simulator.scenarios.cim.common import Action, ActionType
@@ -28,7 +28,7 @@ if __name__ == "__main__":
         # opts['enable-dump-snapshot'] = ''
 
         # Initialize an environment with a specific scenario, related topology.
-        env = Env(scenario="cim", topology="toy.5p_ssddd_l0.0",
+        env = Env(scenario="cim", topology="global_trade.22p_l0.1",
                   start_tick=start_tick, durations=durations, options=opts)
 
         # Query environment summary, which includes business instances, intra-instance attributes, etc.
@@ -43,7 +43,7 @@ if __name__ == "__main__":
 
             while not is_done:
                 past_week_ticks = [x for x in range(
-                    decision_event.tick - 7, decision_event.tick)]
+                    max(decision_event.tick - 7, 0), decision_event.tick)]
                 decision_port_idx = decision_event.port_idx
                 intr_port_infos = ["booking", "empty", "shortage"]
 

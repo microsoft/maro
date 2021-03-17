@@ -32,6 +32,7 @@ def get_decision_data(experiment_name: str, episode: str, tick: str) -> pd.DataF
         headers=request_settings.request_header.value,
         params=params
     ).json()
+    print(decision_value)
     decision_data = get_data_in_format(decision_value).to_json(orient='records')
     return decision_data
 
@@ -60,6 +61,7 @@ def get_acc_decision_data(experiment_name: str, episode: str, start_tick: str, e
         headers=request_settings.request_header.value,
         params=params
     ).json()
+    print(original_decision_data)
     decision_data = get_data_in_format(original_decision_data)
     decision_output = []
     i = start_tick

@@ -1,12 +1,12 @@
 Geographic Visualization
 =======================
 
-Env-geographic tool aims to provide users with an intuitive understanding
-of Maro's experimental data and help users better understand Maro's scenarios and working processes.
-Currently, Env-geographic supports two modes, which are real-time mode and local mode.
-The former mode shows users real-time experimental data and helps users judge the effectiveness of the model.
-The latter mode allows users to freely view the data after the experiment,
-helping users to view the effect of the experiment and make subsequent decisions.
+We can use Env-geographic for both finished experiments and running experiments.
+For finished experiments, the local mode is enabled for users to view experimental data
+in order to help users to make subsequent decisions. If a running experiment is selected,
+the real-time mode will be launched by default, it is used to view real-time experimental
+data  and judge the effectiveness of the model. You can also freely change to
+local mode for the finished epoch under real-time mode.
 
 
 Dependency
@@ -25,7 +25,7 @@ user need to start the database and service in order. The experimental data woul
 send to database automatically.
 
 Start database
-~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
 Firstly, user need to start the local database with command:
 
 .. code-block:: sh
@@ -35,8 +35,7 @@ Firstly, user need to start the local database with command:
 ----
 
 After the command is executed successfully, user
-could view the front_end page through localhost:8080
-and local data with localhost:9000 by default.
+could view the local data with localhost:9000 by default. 
 If the default port is occupied, user could obtain the access port of each container
 through the following command:
 
@@ -57,23 +56,21 @@ User could view all experiment information by SQL statement:
 Data is stored locally at the folder maro/maro/streamit/server/data.
 
 
-Specify experiment name
-~~~~~~~~~~~~~~~~~~~~~~~
+Choose an existing experiment
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To view the visualization of experimental data, user need to
 specify the name of experiment. User could choose an existing
 experiment or start an experiment either.
-
-Choose an existing experiment
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 User could select a name from local database.
 
 .. image:: ../images/visualization/geographic/database_exp.png
    :alt: database_exp
 
-Start an experiment and send data
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Create a new experiment
+^^^^^^^^^^^^^^^^^^^^^^^
 
 Currently, users need to manually start the experiment to obtain
 the data required by the service.
@@ -103,12 +100,16 @@ View the file maro/examples/hello_world/cim/hello.py to get complete reference.
 
 After starting the experiment, make sure to query its name in local database.
 
-To start the front-end and back-end service, user need to specify the experiment name
-as following command:
 
+Start service
+~~~~~~~~~~~~~
+
+To start the front-end and back-end service, user need to specify the experiment name.
+User could specify the port by adding the parameter "front_end_port" as following
+command:
 .. code-block:: sh
 
-    maro inspector geo --start service --experiment_name experiment_name.1614768800.6074605
+    maro inspector geo --start service --experiment_name YOUR_EXPERIMENT_NAME --front_end_port 8080
 
 ----
 
@@ -197,5 +198,3 @@ it will loop in the time window selected by the user.
 
 .. image:: ../images/visualization/geographic/time_window_selection.gif
    :alt: time_window_selection
-
-

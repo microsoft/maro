@@ -12,7 +12,6 @@ class request_column(Enum):
 
 
 class request_settings(Enum):
-    # request_url = "http://host.docker.internal:9000/exec"
     request_url = "http://127.0.0.1:9000/exec"
     request_header = {
         'content-type': 'application/json',

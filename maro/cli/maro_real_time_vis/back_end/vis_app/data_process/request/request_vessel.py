@@ -76,9 +76,8 @@ def process_vessel_data(db_vessel_data: json, start_tick: str) -> json:
             json: Jsonified formatted vessel value.
 
     """
-    pwd = os.getcwd()
-    exec_path = os.path.abspath(os.path.dirname(pwd) + os.path.sep)
-    config_file_path = f"{exec_path}\\maro\\maro\\cli\\maro_real_time_vis\\back_end\\nginx\\static\\config.json"
+    exec_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(os.path.dirname(__file__)))))
+    config_file_path = f"{exec_path}\\nginx\\static\\config.json"
     with open(config_file_path, "r")as mapping_file:
         cim_information = json.load(mapping_file)
         vessel_list = list(cim_information["vessels"].keys())

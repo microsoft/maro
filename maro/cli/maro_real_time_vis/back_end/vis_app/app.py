@@ -7,13 +7,26 @@ from data_process.request.request_attention import get_attention_data
 from data_process.request.request_decision import get_acc_decision_data, get_decision_data
 from data_process.request.request_exp_info import get_experiment_info
 from data_process.request.request_order import get_acc_order_data, get_order_data
-from data_process.request.request_port import get_acc_port_data, get_port_data
+from data_process.request.request_port import get_acc_port_data, get_port_data, get_new_port_number
 from data_process.request.request_vessel import get_acc_vessel_data, get_vessel_data
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 
 app_backend = Flask(__name__)
 CORS(app_backend, supports_credentials=True)
+
+
+@app_backend.route('/get_latest_epoch', methods=['GET', 'POST'])
+def get_new_epoch() -> json:
+    """Get the latest epoch number.
+
+    Returns:
+        json: Epoch number.
+
+    """
+    data = request.get_json(silent=True)
+    cur_experiment_name = data["experiment_name"]
+    return get_new_port_number(cur_experiment_name)
 
 
 @app_backend.route('/experiment_info', methods=['GET', 'POST'])

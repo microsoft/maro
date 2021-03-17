@@ -25,7 +25,7 @@ services:
   maro_vis_front_end:
     build: ./front_end
     ports:
-      - "8080:8080"
+      - "${front_end_port}:${front_end_port}"
     image: maro_vis_front_end
     container_name: maro_vis_front_end
 

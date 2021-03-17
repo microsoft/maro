@@ -1025,6 +1025,13 @@ def load_parser_inspector(prev_parser: ArgumentParser, global_parser: ArgumentPa
         help="Name of experiment expected to be displayed."
     )
 
+    geo_cmd_parser.add_argument(
+        "--front_end_port",
+        type=int,
+        required=False,
+        help="Specified port of front_end."
+    )
+
     geo_cmd_parser.set_defaults(func=start_geo_vis)
 
 
