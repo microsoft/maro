@@ -4,44 +4,59 @@
 from collections import defaultdict
 
 
-def concat(exp_by_source: dict) -> dict:
-    """Concatenate experiences from multiple sources, by agent ID.
+class ExperienceCollectionUtils:
+    @staticmethod
+    def concat(exp, is_single_source: bool = False, is_single_agent: bool = False) -> dict:
+        """Concatenate experiences from multiple sources, by agent ID.
 
-    The experience from each source is expected to be already grouped by agent ID. The result is a single dictionary
-    of experiences with keys being agent IDs and values being the concatenation of experiences from all sources
-    for each agent ID.
+        The experience from each source is expected to be already grouped by agent ID. The result is a single dictionary
+        of experiences with keys being agent IDs and values being the concatenation of experiences from all sources
+        for each agent ID.
 
-    Args:
-        exp_by_source (dict): Experiences from multiple sources. Each value should consist of experiences
-            grouped by agent ID.
+        Args:
+            exp: Experiences from one or more sources.
+            is_single_source (bool): If True, experiences are from a single (actor) source. Defaults to False.
+            is_single_agent (bool): If True, experiences are from a single agent. Defaults to False.
 
-    Returns:
-        Merged experiences with agent IDs as keys.
-    """
-    merged = {}
-    for exp_by_agent in exp_by_source.values():
-        for agent_id, exp in exp_by_agent.items():
-            if agent_id not in merged:
-                merged[agent_id] = defaultdict(list)
-            for k, v in exp.items():
-                merged[agent_id][k].extend(v)
+        Returns:
+            Concatenated experiences for each agent.
+        """
+        if is_single_source:
+            return exp
 
-    return merged
+        merged = defaultdict(list) if is_single_agent else defaultdict(lambda: defaultdict(list))
+        for ex in exp.values():
+            if is_single_agent:
+                for k, v in ex.items():
+                    merged[k].extend[v]
+            else:
+                for agent_id, e in ex.items():
+                    for k, v in e.items():
+                        merged[agent_id][k].extend(v)
 
+        return merged
 
-def stack(exp_by_source) -> dict:
-    """Collect each agent's trajectories from multiple sources.
+    @staticmethod
+    def stack(exp, is_single_source: bool = False, is_single_agent: bool = False) -> dict:
+        """Collect each agent's trajectories from multiple sources.
 
-    Args:
-        exp_by_source (dict): Experiences from multiple sources. Each value should consist of experiences
-            grouped by agent ID.
+        Args:
+            exp: Experiences from one or more sources.
+            is_single_source (bool): If True, experiences are from a single (actor) source. Defaults to False.
+            is_single_agent (bool): If True, the experiences are from a single agent. Defaults to False.
 
-    Returns:
-        A list of trajectories for each agent.
-    """
-    merged = defaultdict(list)
-    for exp_by_agent in exp_by_source.values():
-        for agent_id, trajectory in exp_by_agent.items():
-            merged[agent_id].append(trajectory)
+        Returns:
+            A list of trajectories for each agent.
+        """
+        if is_single_source:
+            return [exp] if is_single_agent else {agent_id: [ex] for agent_id, ex in exp.items()}
+        
+        if is_single_agent:
+            return list(exp.values())
 
-    return merged
+        ret = defaultdict(list)
+        for ex in exp.values():
+            for agent_id, e in ex.items():
+                ret[agent_id].append(e)
+
+        return ret

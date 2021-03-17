@@ -20,4 +20,5 @@ class PayloadKey(Enum):
     DETAILS = "details"
     STATE = "state"
     TRAINING = "training"
-    ROLLOUT_KWARGS = "rollout_kwargs"
+    MODEL = "model"
+    EXPLORATION_PARAMS = "exploration_params"

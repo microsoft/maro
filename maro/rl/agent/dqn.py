@@ -121,7 +121,6 @@ class DQN(AbsAgent):
         if self._training_counter % self.config.target_update_freq == 0:
             self._target_model.soft_update(self.model, self.config.tau)
 
-        print("training complete")
         return loss.detach().numpy()
 
     def set_exploration_params(self, epsilon):

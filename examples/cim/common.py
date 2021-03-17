@@ -56,7 +56,8 @@ class CIMTrajectory(Trajectory):
 
     def get_action(self, action_by_agent, event):
         vessel_snapshots = self.env.snapshot_list["vessels"]
-        model_action = list(action_by_agent.values())[0][0]
+        action_info = list(action_by_agent.values())[0]
+        model_action = action_info[0] if isinstance(action_info, tuple) else action_info
         scope, tick, port, vessel = event.action_scope, event.tick, event.port_idx, event.vessel_idx
         zero_action_idx = len(self.action_space) / 2  # index corresponding to value zero.
         vessel_space = vessel_snapshots[tick:vessel:self.vessel_attributes][2] if self.finite_vessel_space else float("inf")

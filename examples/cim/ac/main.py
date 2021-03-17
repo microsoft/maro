@@ -9,7 +9,10 @@ import numpy as np
 from torch import nn
 from torch.optim import Adam, RMSprop
 
-from maro.rl import Actor, ActorCritic, ActorCriticConfig, FullyConnectedBlock, MultiAgentWrapper, SimpleMultiHeadModel
+from maro.rl import (
+    Actor, ActorCritic, ActorCriticConfig, FullyConnectedBlock, MultiAgentWrapper, SimpleMultiHeadModel,
+    Scheduler, OnPolicyLearner
+)
 from maro.simulator import Env
 from maro.utils import Logger, set_seeds
 
@@ -28,20 +31,21 @@ def get_ac_agent():
 
 class CIMTrajectoryForAC(CIMTrajectory):
     def on_finish(self):
-        training_data = defaultdict(lambda: defaultdict(list))
+        training_data = {}
         for event, state, action in zip(self.trajectory["event"], self.trajectory["state"], self.trajectory["action"]):
             agent_id = list(state.keys())[0]
-            data = training_data[agent_id]
-            data["state"].append(state[agent_id])
-            data["action"].append(action[agent_id][0])
-            data["log_p"].append(action[agent_id][1])
-            data["reward"].append(self.get_offline_reward(event))
+            data = training_data.setdefault(agent_id, {"args": [[] for _ in range(4)]})
+            data["args"][0].append(state[agent_id])  # state
+            data["args"][1].append(action[agent_id][0])  # action
+            data["args"][2].append(action[agent_id][1])  # log_p
+            data["args"][3].append(self.get_offline_reward(event))  # reward
 
         for agent_id in training_data:
-            for key, vals in training_data[agent_id].items():
-                training_data[agent_id][key] = np.asarray(vals, dtype=np.float32 if key == "reward" else None)
+            training_data[agent_id]["args"] = [
+                np.asarray(vals, dtype=np.float32 if i == 3 else None)
+                for i, vals in enumerate(training_data[agent_id]["args"])
+            ]
 
-        self.trajectory = defaultdict(list)
         return training_data
 
 
@@ -51,21 +55,5 @@ if __name__ == "__main__":
     env = Env(**training_config["env"])
     agent = MultiAgentWrapper({name: get_ac_agent() for name in env.agent_idx_list})
     actor = Actor(env, agent, CIMTrajectoryForAC, trajectory_kwargs=common_config)  # local actor
-    k, warmup_ep, perf_thresh = training_config["k"], training_config["warmup_ep"], training_config["perf_thresh"]
-    perf_history = deque()
-    log_path = join(dirname(realpath(__file__)), "logs")
-    makedirs(log_path, exist_ok=True)
-    logger = Logger("cim-ac", dump_folder=log_path, auto_timestamp=True)
-    for ep in range(training_config["max_episode"]):
-        exp_by_agent = actor.roll_out(ep)
-        logger.info(f"ep-{ep}: {env.metrics}")
-        fulfillment = 1 - env.metrics["container_shortage"] / env.metrics["order_requirements"]
-        perf_history.append(fulfillment)
-        if len(perf_history) > k:
-            perf_history.popleft()
-        if ep >= warmup_ep and min(perf_history) >= perf_thresh:
-            logger.info(f"{k} consecutive fulfillment rates above threshold {perf_thresh}. Training complete")
-            break
-        # training
-        for agent_id, exp in exp_by_agent.items():
-            agent[agent_id].learn(exp["state"], exp["action"], exp["log_p"], exp["reward"])
+    learner = OnPolicyLearner(actor, training_config["max_episode"])
+    learner.run()

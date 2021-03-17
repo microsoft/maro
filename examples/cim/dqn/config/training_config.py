@@ -16,9 +16,10 @@ training_config = {
         "end": 0.0
     },
     "training": {
-        "min_exp_to_train": 1024,
+        "min_experiences_to_train": 1024,
         "train_iter": 10,
-        "batch_size": 128
+        "batch_size": 128,
+        "prioritized_sampling_by_loss": True
     },
     "group": "cim-dqn",
     "learner_update_trigger": 2,

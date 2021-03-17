@@ -168,8 +168,7 @@ the policy by collecting roll-out data from the actors to train the underlying a
 The actor process must create a roll-out executor for performing the requested roll-outs, which means that the
 the environment simulator and shapers should be created here. In this example, inference is performed on the
 actor's side, so a set of DQN agents must be created in order to load the models (and exploration parameters)
-from the learner (if inference were made on the learner side, then we would create a ``DecisionClient`` instead
-of the actual agents).
+from the learner.
 
 .. code-block:: python
     def cim_dqn_actor():

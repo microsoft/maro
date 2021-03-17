@@ -3,19 +3,20 @@
 
 import argparse
 import time
+from collections import defaultdict
 from multiprocessing import Process
 from os import makedirs
 from os.path import dirname, join, realpath
 
 from maro.rl import (
-    Actor, Learner, DQN, DQNConfig, FullyConnectedBlock, MultiAgentWrapper, SimpleMultiHeadModel, TwoPhaseLinearParameterScheduler
+    Actor, ActorProxy, DQN, DQNConfig, FullyConnectedBlock, MultiAgentWrapper, OffPolicyLearner,
+    SimpleMultiHeadModel, TwoPhaseLinearParameterScheduler
 )
 from maro.simulator import Env
 from maro.utils import Logger, set_seeds
 
-from examples.cim.common import common_config
+from examples.cim.common import CIMTrajectory, common_config
 from examples.cim.dqn.config import agent_config, training_config
-from examples.cim.dqn.training import CIMTrajectoryForDQN
 
 
 def get_dqn_agent():
@@ -25,21 +26,30 @@ def get_dqn_agent():
     return DQN(q_model, DQNConfig(**agent_config["hyper_params"]))
 
 
+class CIMTrajectoryForDQN(CIMTrajectory):
+    def on_finish(self):
+        exp_by_agent = defaultdict(lambda: defaultdict(list))
+        for i in range(len(self.trajectory["state"]) - 1):
+            agent_id = list(self.trajectory["state"][i].keys())[0]
+            exp = exp_by_agent[agent_id]
+            exp["S"].append(self.trajectory["state"][i][agent_id])
+            exp["A"].append(self.trajectory["action"][i][agent_id])
+            exp["R"].append(self.get_offline_reward(self.trajectory["event"][i]))
+            exp["S_"].append(list(self.trajectory["state"][i + 1].values())[0])
+
+        return dict(exp_by_agent)
+
+
 def cim_dqn_learner():
     env = Env(**training_config["env"])
     agent = MultiAgentWrapper({name: get_dqn_agent() for name in env.agent_idx_list})
     scheduler = TwoPhaseLinearParameterScheduler(training_config["max_episode"], **training_config["exploration"])
-
-    log_path = join(dirname(realpath(__file__)), "logs")
-    makedirs(log_path, exist_ok=True)
-    learner = BasicLearner(
-        training_config["group"], training_config["num_actors"], agent, scheduler, **training_config["training"],
-        update_trigger=training_config["learner_update_trigger"],
-        logger=Logger(training_config["group"], dump_folder=log_path)
+    actor = ActorProxy(
+        training_config["group"], training_config["num_actors"],
+        update_trigger=training_config["learner_update_trigger"]
     )
-
+    learner = OffPolicyLearner(actor, scheduler, agent, **training_config["training"])
     learner.run()
-    learner.exit()
 
 
 def cim_dqn_actor():
