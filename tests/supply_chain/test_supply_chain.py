@@ -1,10 +1,20 @@
+import os
 import unittest
+
+from maro.simulator import Env
+
+
+def build_env(case_name: str, durations: int):
+    case_folder = os.path.join("tests", "data", "supply_chain", case_name)
+
+    # config_path = os.path.join(case_folder, "config.yml")
+
+    env = Env(scenario="supply_chain", topology=case_folder, durations=durations)
+
+    return env
 
 
 class MyTestCase(unittest.TestCase):
-    def test_something(self):
-        self.assertEqual(True, False)
-
     def test_manufacture_unit_only(self):
         """
         Test if manufacture unit works as expect, like:
@@ -24,7 +34,12 @@ class MyTestCase(unittest.TestCase):
 
         """
 
-        pass
+        env = build_env("case_01", 100)
+
+        is_done = False
+
+        while not is_done:
+            _, _, is_done = env.step(None)
 
 
 if __name__ == '__main__':
