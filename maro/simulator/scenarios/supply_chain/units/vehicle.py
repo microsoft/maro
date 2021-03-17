@@ -124,6 +124,8 @@ class VehicleUnit(UnitBase):
             self.data_model.position[:] = -1
 
     def initialize(self):
+        super(VehicleUnit, self).initialize()
+
         patient = self.config.get("patient", 100)
         unit_transport_cost = self.config.get("unit_transport_cost", 1)
 

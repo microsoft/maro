@@ -104,6 +104,8 @@ class StorageUnit(UnitBase):
         return self.product_number[product_index]
 
     def initialize(self):
+        super(StorageUnit, self).initialize()
+
         self.capacity = self.config.get("capacity", 100)
         self.unit_storage_cost = self.config.get("unit_storage_cost", 1)
 

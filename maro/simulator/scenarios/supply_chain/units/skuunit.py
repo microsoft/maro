@@ -12,5 +12,7 @@ class SkuUnit(UnitBase):
     product_id: int = 0
 
     def initialize(self):
+        super(SkuUnit, self).initialize()
+
         if self.data_model is not None:
             self.data_model.set_product_id(self.product_id, self.parent.id)

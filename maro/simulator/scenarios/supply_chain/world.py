@@ -107,7 +107,7 @@ class World:
         Returns:
             Union[FacilityBase, UnitBase]: Entity instance.
         """
-        return self._entities[entity_id]
+        return self.entities[entity_id]
 
     def find_path(self, start_x: int, start_y: int, goal_x: int, goal_y: int) -> List[Tuple[int, int]]:
         """Find path to specified cell.

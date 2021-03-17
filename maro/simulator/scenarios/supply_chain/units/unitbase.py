@@ -89,7 +89,8 @@ class UnitBase:
 
         NOTE: unit.data_model is available from this step.
         """
-        pass
+        if self.data_model is not None:
+            self.data_model.set_id(self.id, self.facility.id)
 
     def set_action(self, action: object):
         """Set action for this agent.

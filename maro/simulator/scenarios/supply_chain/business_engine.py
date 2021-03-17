@@ -109,7 +109,7 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
 
         if action is not None and len(action) > 0:
             # NOTE: we assume that the action is dictionary that key is the unit(agent) id, value is the real action.
-            for unit_id, action_obj in action[0].items():
+            for unit_id, action_obj in action.items():
                 entity = self.world.get_entity(unit_id)
 
                 if entity is not None and type(entity) == UnitBase:
