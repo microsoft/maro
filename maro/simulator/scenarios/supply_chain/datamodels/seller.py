@@ -5,12 +5,12 @@
 from maro.backends.backend import AttributeType
 from maro.backends.frame import node, NodeAttribute
 
-from .base import DataModelBase
+from .skumodel import SkuDataModel
 
 
 # NOTE: one sku one seller
 @node("seller")
-class SellerDataModel(DataModelBase):
+class SellerDataModel(SkuDataModel):
     # reward states
     total_sold = NodeAttribute(AttributeType.UInt)
 
@@ -22,9 +22,6 @@ class SellerDataModel(DataModelBase):
 
     #
     sale_gamma = NodeAttribute(AttributeType.UInt)
-
-    # what we will sell
-    product_id = NodeAttribute(AttributeType.UInt)
 
     # per tick state, we can use this to support "sale hist" feature in original code.
     # original there is only sold state, we add a demand here

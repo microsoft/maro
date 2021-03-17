@@ -94,18 +94,19 @@ class ProductUnit(SkuUnit):
             world = facility.world
 
             for sku_id, sku in facility.skus.items():
-                product = ProductUnit()
+                product: ProductUnit = world.build_unit_by_type(ProductUnit, facility, facility)
 
                 for child_name in ("consumer", "manufacture", "seller"):
                     conf = config.get(child_name, None)
 
                     if conf is not None:
-                        sub_agent = world.build_unit(facility, None, conf)
-                        sub_agent.product_id = sku_id
+                        child_unit = world.build_unit(facility, product, conf)
+                        child_unit.product_id = sku_id
 
-                        setattr(product, child_name, sub_agent)
+                        setattr(product, child_name, child_unit)
 
-                        sub_agent.parse_configs(conf)
+                        # Parse config for unit.
+                        child_unit.parse_configs(conf)
 
                 instance_list[sku_id] = product
 

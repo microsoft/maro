@@ -184,9 +184,9 @@ class World:
         self.frame = self._build_frame(snapshot_number)
 
         # Assign data model instance.
-        for agent in self.entities.values():
-            if agent.data_model_name is not None:
-                agent.data_model = getattr(self.frame, agent.data_model_name)[agent.data_model_index]
+        for unit in self.entities.values():
+            if unit.data_model_name is not None:
+                unit.data_model = getattr(self.frame, unit.data_model_name)[unit.data_model_index]
 
         # Construct the upstream topology.
         topology = world_config["topology"]
@@ -208,8 +208,8 @@ class World:
             facility.initialize()
 
         # Call initialize method for units.
-        for agent in self.entities.values():
-            agent.initialize()
+        for unit in self.entities.values():
+            unit.initialize()
 
         # TODO: replace tcod with other lib.
         # Construct the map grid.
@@ -238,6 +238,16 @@ class World:
 
         # 0 for 2nd parameters means disable diagonal movement, so just up, right, down or left.
         self._path_finder = AStar(cost_grid, 0)
+
+    def build_unit_by_type(self, unit_type: type, parent: Union[FacilityBase, UnitBase], facility: FacilityBase) -> UnitBase:
+        unit = unit_type()
+
+        unit.id = self._gen_id()
+        unit.parent = parent
+        unit.facility = facility
+        unit.world = self
+
+        return unit
 
     def build_unit(self, facility: FacilityBase, parent: Union[FacilityBase, UnitBase], config: dict) -> UnitBase:
         """Build an unit by its configuration.

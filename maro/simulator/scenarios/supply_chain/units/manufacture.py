@@ -25,6 +25,8 @@ class ManufactureUnit(SkuUnit):
     manufacture_number = 0
 
     def initialize(self):
+        super(ManufactureUnit, self).initialize()
+
         # TODO: add storage id to data model.
         product_unit_cost = self.config.get("product_unit_cost", 0)
 

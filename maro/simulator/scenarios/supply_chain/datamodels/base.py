@@ -19,8 +19,7 @@ class DataModelBase(NodeBase):
         self._unit_id = 0
         self._facility_id = 0
 
-    @abstractmethod
-    def initialize(self, configs):
+    def initialize(self, configs: dict):
         """Initialize the fields with configs, the config should be a dict."""
         # called from unit after frame is ready.
         pass

@@ -37,6 +37,8 @@ class SellerUnit(SkuUnit):
         return int(self.demand_distribution[tick])
 
     def initialize(self):
+        super(SellerUnit, self).initialize()
+
         unit_price = self.config.get("unit_price", 0)
         self.gamma = self.config.get("sale_gamma", 0)
         backlog_ratio = self.config.get("backlog_ratio", 1)

@@ -5,12 +5,12 @@
 from maro.backends.backend import AttributeType
 from maro.backends.frame import node, NodeAttribute
 
-from .base import DataModelBase
+from .skumodel import SkuDataModel
 
 
 # NOTE: one sku one consumer
 @node("consumer")
-class ConsumerDataModel(DataModelBase):
+class ConsumerDataModel(SkuDataModel):
     # reward states
     # from config
     order_cost = NodeAttribute(AttributeType.UInt)
@@ -18,7 +18,7 @@ class ConsumerDataModel(DataModelBase):
     total_received = NodeAttribute(AttributeType.UInt)
 
     # action states
-    product_id = NodeAttribute(AttributeType.UInt)
+    consumer_product_id = NodeAttribute(AttributeType.UInt)
     source_id = NodeAttribute(AttributeType.UInt)
     quantity = NodeAttribute(AttributeType.UInt)
     vlt = NodeAttribute(AttributeType.UShort)
@@ -37,11 +37,9 @@ class ConsumerDataModel(DataModelBase):
         super(ConsumerDataModel, self).__init__()
 
         self._order_cost = 0
-        self._product_id = 0
 
-    def initialize(self, order_cost=0, product_id=0):
+    def initialize(self, order_cost=0):
         self._order_cost = order_cost
-        self._product_id = product_id
 
         self.reset()
 
@@ -49,4 +47,3 @@ class ConsumerDataModel(DataModelBase):
         super(ConsumerDataModel, self).reset()
 
         self.order_cost = self._order_cost
-        self.product_id = self._product_id

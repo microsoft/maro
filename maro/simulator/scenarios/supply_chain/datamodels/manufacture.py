@@ -5,11 +5,11 @@
 from maro.backends.backend import AttributeType
 from maro.backends.frame import node, NodeAttribute
 
-from .base import DataModelBase
+from .skumodel import SkuDataModel
 
 
 @node("manufacture")
-class ManufactureDataModel(DataModelBase):
+class ManufactureDataModel(SkuDataModel):
     # storage related to this manufacture unit, for easy state retrieving.
     storage_id = NodeAttribute(AttributeType.UInt)
 
@@ -19,9 +19,6 @@ class ManufactureDataModel(DataModelBase):
     # number per tick, different with original manufacturing cost, we just provide number, and cost
     # user can determine how to calculate the cost
     manufacturing_number = NodeAttribute(AttributeType.UInt)
-
-    # what we will produce
-    product_id = NodeAttribute(AttributeType.UInt)
 
     # original from config, then updated by action
     production_rate = NodeAttribute(AttributeType.UInt)
