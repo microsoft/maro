@@ -171,7 +171,6 @@ a period of time from the perspectives of overall, port, and vessel.
 .. image:: ../images/visualization/geographic/local_mode_right_chart.gif
    :alt: local_mode_right_chart
 
-
 The chart on the left side of the page shows the ranking of the carrying
 capacity of each port and the change in carrying capacity between ports
 in the entire time window.
