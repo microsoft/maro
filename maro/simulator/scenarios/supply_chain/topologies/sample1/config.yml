@@ -67,7 +67,7 @@ normal_vehicle: &normal_vehicle
 normal_distribution: &normal_distribution
   class: "DistributionUnit"
   children:
-    transports:
+    vehicles:
       - *normal_vehicle
       - *normal_vehicle
 

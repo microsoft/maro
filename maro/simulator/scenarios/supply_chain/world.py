@@ -200,7 +200,7 @@ class World:
                 sku = self.get_sku_by_name(sku_name)
 
                 facility.upstreams[sku.id] = [
-                    self.get_facility_by_name(source_name).id for source_name in source_facilities
+                    self.get_facility_by_name(source_name) for source_name in source_facilities
                 ]
 
         # Call initialize method for facilities.

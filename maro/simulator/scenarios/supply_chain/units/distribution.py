@@ -15,7 +15,7 @@ class DistributionUnit(UnitBase):
     One distribution can accept all kind of sku order.
     """
     # Transport unit list of this distribution unit.
-    transports = None
+    vehicles = None
 
     def __init__(self):
         self.order_queue = deque()
@@ -76,7 +76,7 @@ class DistributionUnit(UnitBase):
             index += 1
 
     def step(self, tick: int):
-        for vehicle in self.transports:
+        for vehicle in self.vehicles:
             # If we have vehicle not on the way and there is any pending order
             if len(self.order_queue) > 0 and vehicle.location == 0:
                 order = self.order_queue.popleft()
