@@ -83,7 +83,7 @@ def start_geo_vis(start: str, experiment_name: str, front_end_port: int, **kwarg
             change_file_content(
                 f"{exec_path}\\.env",
                 "FRONT_END_PORT",
-                f"FRONT_END_PORT = {front_end_port}"
+                f"FRONT_END_PORT={front_end_port}"
             )
             change_file_content(
                 f"{exec_path}\\front_end\\nginx.conf",
@@ -111,7 +111,6 @@ def change_file_content(file_path: str, key_words: str, dest_words: str):
     with open(file_path, 'w', encoding='utf-8') as f:
         for line in lines:
             if key_words in line:
-                print(line)
                 line = dest_words
                 f.write('%s\n' % line)
             else:
