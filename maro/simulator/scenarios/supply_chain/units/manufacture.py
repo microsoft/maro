@@ -81,6 +81,7 @@ class ManufactureUnit(SkuUnit):
                 if max_number_to_procedure > 0:
                     self.manufacture_number = max_number_to_procedure
                     self.facility.storage.try_take_products(source_sku_to_take)
+                    self.facility.storage.try_add_products({self.product_id: self.manufacture_number})
         else:
             self.manufacture_number = 0
 

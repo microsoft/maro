@@ -45,6 +45,8 @@ class StorageUnit(UnitBase):
             self.product_number[product_index] += unload_quantity
             unloaded_quantities[product_id] = unload_quantity
 
+            self.remaining_space -= unload_quantity
+
         return unloaded_quantities
 
     def try_take_products(self, product_quantities: Dict[int, int]) -> bool:
@@ -70,6 +72,8 @@ class StorageUnit(UnitBase):
 
             self.product_number[product_index] -= quantity
 
+            self.remaining_space += quantity
+
         return True
 
     def take_available(self, product_id: int, quantity: int) -> int:
@@ -87,6 +91,8 @@ class StorageUnit(UnitBase):
         actual = min(available, quantity)
 
         self.product_number[product_index] -= actual
+
+        self.remaining_space += actual
 
         return actual
 
