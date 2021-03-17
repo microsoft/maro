@@ -4,10 +4,10 @@
 
 # Enable realtime data streaming with following statements.
 
-import os
+# import os
 
-os.environ["MARO_STREAMIT_ENABLED"] = "true"
-os.environ["MARO_STREAMIT_EXPERIMENT_NAME"] = "test_vessel"
+# os.environ["MARO_STREAMIT_ENABLED"] = "true"
+# os.environ["MARO_STREAMIT_EXPERIMENT_NAME"] = "test_317"
 
 
 from maro.simulator import Env
@@ -34,7 +34,7 @@ if __name__ == "__main__":
         # Query environment summary, which includes business instances, intra-instance attributes, etc.
         print(env.summary)
 
-        for ep in range(2):
+        for ep in range(100):
             # Tell streamit we are in a new episode.
             streamit.episode(ep)
 
