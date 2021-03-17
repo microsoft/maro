@@ -94,7 +94,7 @@ class ManufactureUnit(SkuUnit):
             self.data_model.production_rate = 0
 
         # NOTE: call super at last, since it will clear the action.
-        super(ManufactureUnit, self).post_step()
+        super(ManufactureUnit, self).post_step(tick)
 
     def set_action(self, action: ManufactureAction):
         super(ManufactureUnit, self).set_action(action)
