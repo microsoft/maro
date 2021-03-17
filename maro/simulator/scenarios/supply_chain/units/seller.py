@@ -46,19 +46,19 @@ class SellerUnit(SkuUnit):
         self.data_model.initialize(
             unit_price=unit_price,
             sale_gamma=self.gamma,
-            product_id=self.product_id,
             backlog_ratio=backlog_ratio
         )
 
         self.durations = self.world.durations
 
+        # Generate demand distribution of this episode.
         for _ in range(self.durations):
             self.demand_distribution.append(np.random.gamma(self.gamma))
 
     def step(self, tick: int):
         demand = self.market_demand(tick)
 
-        # what seller does is just count down the product number.
+        # What seller does is just count down the product number.
         sold_qty = self.facility.storage.take_available(self.product_id, demand)
 
         self.total_sold += sold_qty

@@ -40,11 +40,11 @@ class VehicleUnit(UnitBase):
         # Velocity.
         self.velocity = 0
 
-    def schedule(self, destination: ProductUnit, product_id: int, quantity: int, vlt: int):
+    def schedule(self, destination: object, product_id: int, quantity: int, vlt: int):
         """Schedule a job for this vehicle.
 
         Args:
-            destination (ProductUnit): Destination product unit.
+            destination (FacilityBase): Destination facility.
             product_id (int): What load from storage.
             quantity (int): How many to load.
             vlt (int): Velocity of vehicle.
@@ -59,11 +59,6 @@ class VehicleUnit(UnitBase):
         self.product_id = product_id
         self.destination = destination
 
-        # Find product related in our facility.
-        for product in self.facility.products:
-            if product.product_id == product_id:
-                self.product = product
-
         # Keep the patient, reset it after product unloaded.
         self.max_patient = self.data_model.patient
 
@@ -71,8 +66,8 @@ class VehicleUnit(UnitBase):
         self.path = self.world.find_path(
             self.facility.x,
             self.facility.y,
-            destination.facility.x,
-            destination.facility.y
+            destination.x,
+            destination.y
         )
 
         if self.path is None:
@@ -115,8 +110,8 @@ class VehicleUnit(UnitBase):
         if len(unloaded) > 0:
             unloaded_units = sum(unloaded.values())
 
-            self.destination.consumer.on_order_reception(
-                self.product.id,
+            self.destination.products[self.product_id].consumer.on_order_reception(
+                self.facility.id,
                 self.product_id,
                 unloaded_units,
                 self.payload
@@ -152,8 +147,8 @@ class VehicleUnit(UnitBase):
 
                     # Failed to load, check the patient.
                     if self.data_model.patient < 0:
-                        self.destination.consumer.update_open_orders(
-                            self.product.id,
+                        self.destination.products[self.product_id].consumer.update_open_orders(
+                            self.facility.id,
                             self.product_id,
                             -request_quantity
                         )
@@ -209,7 +204,6 @@ class VehicleUnit(UnitBase):
         self.destination_id = 0
         self.max_patient = None
         self.path = None
-        self.product = None
         self.payload = 0
         self.product_id = 0
         self.steps = 0

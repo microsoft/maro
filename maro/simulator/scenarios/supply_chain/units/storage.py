@@ -144,8 +144,12 @@ class StorageUnit(UnitBase):
         for sku in self.facility.skus.values():
             self.product_number.append(sku.init_in_stock)
 
+        self.remaining_space = self.capacity
+
         for index, product_id in enumerate(self.product_list):
             product_number = self.product_number[index]
 
             self.data_model.product_list.append(product_id)
             self.data_model.product_number.append(product_number)
+
+            self.remaining_space -= product_number

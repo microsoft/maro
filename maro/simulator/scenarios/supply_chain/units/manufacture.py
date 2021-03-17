@@ -31,7 +31,6 @@ class ManufactureUnit(SkuUnit):
         product_unit_cost = self.config.get("product_unit_cost", 0)
 
         self.data_model.initialize(
-            output_product_id=self.product_id,
             product_unit_cost=product_unit_cost,
             storage_id=self.facility.storage.id
         )
@@ -93,6 +92,9 @@ class ManufactureUnit(SkuUnit):
 
         if self.action is not None:
             self.data_model.production_rate = 0
+
+        # NOTE: call super at last, since it will clear the action.
+        super(ManufactureUnit, self).post_step()
 
     def set_action(self, action: ManufactureAction):
         super(ManufactureUnit, self).set_action(action)

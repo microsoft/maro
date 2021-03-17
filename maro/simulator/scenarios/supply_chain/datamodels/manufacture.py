@@ -25,12 +25,10 @@ class ManufactureDataModel(SkuDataModel):
 
     def __init__(self):
         super(ManufactureDataModel, self).__init__()
-        self._output_product_id = 0
         self._product_unit_cost = 0
         self._storage_id = 0
 
-    def initialize(self, output_product_id: int = 0, product_unit_cost: int = 1, storage_id: int = 0):
-        self._output_product_id = output_product_id
+    def initialize(self, product_unit_cost: int = 1, storage_id: int = 0):
         self._product_unit_cost = product_unit_cost
         self._storage_id = storage_id
 
@@ -39,6 +37,5 @@ class ManufactureDataModel(SkuDataModel):
     def reset(self):
         super(ManufactureDataModel, self).reset()
 
-        self.product_id = self._output_product_id
         self.product_unit_cost = self._product_unit_cost
         self.storage_id = self._storage_id

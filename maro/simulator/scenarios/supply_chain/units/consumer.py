@@ -97,7 +97,7 @@ class ConsumerUnit(SkuUnit):
         # so we expect the action.source_id is and id of product unit
         self.update_open_orders(self.action.source_id, self.action.consumer_product_id, self.action.quantity)
 
-        order = Order(self.parent, self.action.consumer_product_id, self.action.quantity, self.action.vlt)
+        order = Order(self.facility, self.action.consumer_product_id, self.action.quantity, self.action.vlt)
 
         source_facility = self.world.get_facility_by_id(self.action.source_id)
 

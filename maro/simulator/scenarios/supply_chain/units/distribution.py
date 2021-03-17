@@ -23,6 +23,7 @@ class DistributionUnit(UnitBase):
         # Used to map from product id to slot index.
         self.product_index_mapping: Dict[int, int] = {}
 
+        # What product we will carry.
         self.product_list = []
 
     def get_pending_order(self):
@@ -61,19 +62,18 @@ class DistributionUnit(UnitBase):
         return 0
 
     def initialize(self):
-        index = 0
+        super(DistributionUnit, self).initialize()
 
         # Init product list in data model.
+        index = 0
         for sku_id, sku in self.facility.skus.items():
             self.product_list.append(sku_id)
-
-            self.data_model.product_list.append(sku_id)
-            self.data_model.delay_order_penalty.append(0)
-            self.data_model.check_in_price.append(0)
 
             self.product_index_mapping[sku_id] = index
 
             index += 1
+
+        self._init_data_model()
 
     def step(self, tick: int):
         for vehicle in self.vehicles:
@@ -81,7 +81,7 @@ class DistributionUnit(UnitBase):
             if len(self.order_queue) > 0 and vehicle.location == 0:
                 order = self.order_queue.popleft()
 
-                # schedule a job for vehicle
+                # Schedule a job for available vehicle.
                 # TODO: why vlt is determined by order?
                 vehicle.schedule(
                     order.destination,
@@ -105,7 +105,9 @@ class DistributionUnit(UnitBase):
         super(DistributionUnit, self).reset()
 
         self.order_queue.clear()
+        self._init_data_model()
 
+    def _init_data_model(self):
         for product_id in self.product_list:
             self.data_model.product_list.append(product_id)
             self.data_model.delay_order_penalty.append(0)
