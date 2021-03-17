@@ -94,20 +94,29 @@ class ProductUnit(SkuUnit):
             world = facility.world
 
             for sku_id, sku in facility.skus.items():
-                product: ProductUnit = world.build_unit_by_type(ProductUnit, facility, facility)
+                sku_type = getattr(sku, "type", None)
 
-                for child_name in ("consumer", "manufacture", "seller"):
+                product_unit: ProductUnit = world.build_unit_by_type(ProductUnit, facility, facility)
+
+                for child_name in ("manufacture", "consumer", "seller"):
                     conf = config.get(child_name, None)
 
                     if conf is not None:
-                        child_unit = world.build_unit(facility, product, conf)
+                        # Ignore manufacture unit if it is not for a production, even it is configured in config.
+                        if sku_type != "production" and child_name == "manufacture":
+                            continue
+                            
+                        if sku_type == "production" and child_name == "consumer":
+                            continue
+
+                        child_unit = world.build_unit(facility, product_unit, conf)
                         child_unit.product_id = sku_id
 
-                        setattr(product, child_name, child_unit)
+                        setattr(product_unit, child_name, child_unit)
 
                         # Parse config for unit.
                         child_unit.parse_configs(conf)
 
-                instance_list[sku_id] = product
+                instance_list[sku_id] = product_unit
 
         return instance_list

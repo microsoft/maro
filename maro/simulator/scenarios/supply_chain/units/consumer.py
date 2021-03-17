@@ -70,8 +70,6 @@ class ConsumerUnit(SkuUnit):
                     # Try to find who will provide this kind of material.
                     if is_supplier:
                         if source_facility.products is not None:
-                            warnings.warn(f"Invalid upstream configuration for sku: {sku.id}.")
-
                             for source_sku_id in sku.bom.keys():
                                 if source_sku_id in source_facility.products:
                                     # This is a valid source facility.
@@ -81,14 +79,14 @@ class ConsumerUnit(SkuUnit):
                         if sku.id in source_facility.skus:
                             self.sources.append(source_facility.id)
 
+            if len(self.sources) == 0:
+                warnings.warn(
+                    f"No sources for consumer: {self.id}, sku: {self.product_id} in facility: {self.facility.name}.")
+                return
+
             self._init_data_model()
 
     def step(self, tick: int):
-        # We must have a source to purchase.
-        if len(self.sources) == 0:
-            warnings.warn(f"No sources for consumer: {self.id}, sku: {self.product_id} in facility: {self.facility.id}")
-            return
-
         # NOTE: id == 0 means invalid,as our id is 1 based.
         if self.action is None or self.action.quantity <= 0 or self.action.consumer_product_id <= 0 or self.action.source_id == 0:
             return

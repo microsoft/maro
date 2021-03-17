@@ -3,6 +3,7 @@
 
 
 import os
+from pathlib import Path
 
 from maro.event_buffer import MaroEvents
 from maro.simulator.scenarios import AbsBusinessEngine
@@ -89,7 +90,10 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
     def _build_world(self):
         self.update_config_root_path(__file__)
 
-        core_config = os.path.join(self._config_path, "..", "core.yml")
+        # Core configuration always in topologies folder.
+        be_root = os.path.split(os.path.realpath(__file__))[0]
+        core_config = os.path.join(be_root, "topologies", "core.yml")
+
         config_path = os.path.join(self._config_path, "config.yml")
 
         parser = ConfigParser(core_config, config_path)
