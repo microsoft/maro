@@ -24,6 +24,9 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
 
         self._node_mapping = self.world.get_node_mapping()
 
+        # Used to cache the action from outside, then dispatch to units at the beginning of step.
+        self._action_cache = None
+
     @property
     def frame(self):
         return self._frame
@@ -37,6 +40,8 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         return self.world.configs
 
     def step(self, tick: int):
+        # NOTE: we have to dispatch the action here.
+        self._dispatch_action()
         self._step_by_facility(tick)
 
         # We do not have payload here.
@@ -108,9 +113,15 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         action = event.payload
 
         if action is not None and len(action) > 0:
+            self._action_cache = action
+
+    def _dispatch_action(self):
+        if self._action_cache is not None:
             # NOTE: we assume that the action is dictionary that key is the unit(agent) id, value is the real action.
-            for unit_id, action_obj in action.items():
+            for unit_id, action_obj in self._action_cache.items():
                 entity = self.world.get_entity(unit_id)
 
-                if entity is not None and type(entity) == UnitBase:
+                if entity is not None and issubclass(type(entity), UnitBase):
                     entity.set_action(action_obj)
+
+            self._action_cache = None

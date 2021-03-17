@@ -81,6 +81,8 @@ class ManufactureUnit(SkuUnit):
                 if max_number_to_procedure > 0:
                     self.manufacture_number = max_number_to_procedure
                     self.facility.storage.try_take_products(source_sku_to_take)
+        else:
+            self.manufacture_number = 0
 
     def flush_states(self):
         if self.manufacture_number > 0:
