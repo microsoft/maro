@@ -20,9 +20,12 @@ User could get docker through `Docker installation <https://docs.docker.com/get-
 How to Use?
 -----------
 
-Env-geographic has 3 parts: front-end, back-end and experiment database. To start this tool,
-user need to start the database and service in order. The experimental data would
-send to database automatically.
+Env-geographic has 3 parts: front-end, back-end and database. Users need 2 steps
+to start this tool:
+
+1. Start the database and choose an experiment to be displayed.
+2. Start the front-end and back-end service with specified experiment name.
+
 
 Start database
 ~~~~~~~~~~~~~~
@@ -75,7 +78,12 @@ Create a new experiment
 Currently, users need to manually start the experiment to obtain
 the data required by the service.
 
-To send data to database, user need to set the value of the environment variable
+To send data to database, there are 2 compulsory steps:
+
+1. Set the environmental variable to enable data transmission.
+2. Import relevant package and modify the code of environmental initialization to send data.
+
+User needs to set the value of the environment variable
 "MARO_STREAMIT_ENABLED" to "true". If user wants to specify the experiment name,
 set the environment variable "MARO_STREAMIT_EXPERIMENT_NAME". If user does not 
 set this value, a unique experiment name would be processed automatically. User
@@ -84,21 +92,37 @@ selecting a topology, user must select a topology with specific geographic
 information. The experimental data obtained by using topology files without
 geographic information cannot be used in the Env-geographic tool.
 
+User could set the environmental variable as following example:
+
 .. code-block:: python
 
     os.environ["MARO_STREAMIT_ENABLED"] = "true"
 
     os.environ["MARO_STREAMIT_EXPERIMENT_NAME"] = "my_maro_experiment"
 
-    # dump data to the folder which run the command.
-    env = Env(scenario="cim", topology="global.22",
-          start_tick=0, durations=100)
+----
+
+To send the experimental data by episode while the experiment is running, user needs to import the
+package **streamit** with following code before environment initialization:
+
+.. code-block:: python
+
+      # Import package streamit
+      from maro.streamit import streamit
+      # Initialize environment and send basic information of experiment to database.
+      env = Env(scenario="cim", topology="global_trade.22p_l0.1",
+               start_tick=0, durations=100)
+      
+      for ep in range(EPISODE_NUMBER):
+            # Send experimental data to database by episode.
+            streamit.episode(ep)
 
 ----
 
-View the file maro/examples/hello_world/cim/hello.py to get complete reference.
+To get the complete reference, please view the file maro/examples/hello_world/cim/hello.py.
 
-After starting the experiment, make sure to query its name in local database.
+After starting the experiment, user needs to query its name in local database to make sure
+the experimental data is sent successfully.
 
 
 Start service
