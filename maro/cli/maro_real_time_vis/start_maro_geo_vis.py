@@ -82,15 +82,15 @@ def start_geo_vis(start: str, experiment_name: str, front_end_port: int, **kwarg
         if front_end_port is not None:
             change_file_content(
                 f"{exec_path}\\.env",
-                "front_end_port",
-                f"front_end_port = {front_end_port}"
+                "FRONT_END_PORT",
+                f"FRONT_END_PORT = {front_end_port}"
             )
             change_file_content(
                 f"{exec_path}\\front_end\\nginx.conf",
                 "listen",
                 f"\t\tlisten\t\t{front_end_port};"
             )
-   
+
         subprocess.check_call(
             'sh run_docker.sh',
             cwd=exec_path

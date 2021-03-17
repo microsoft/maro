@@ -4,7 +4,7 @@ services:
     image: "questdb/questdb"
     container_name: "maro_vis_questdb"
     ports:
-      - "${db_port}:${db_port}" # REST API, web console
+      - "${DB_PORT}:${DB_PORT}" # REST API, web console
       - "8812:8812" # Postgres
       - "9009:9009" # influxdb line protocol
     volumes:
