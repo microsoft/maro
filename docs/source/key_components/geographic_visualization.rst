@@ -131,6 +131,7 @@ Start service
 To start the front-end and back-end service, user need to specify the experiment name.
 User could specify the port by adding the parameter "front_end_port" as following
 command:
+
 .. code-block:: sh
 
     maro inspector geo --start service --experiment_name YOUR_EXPERIMENT_NAME --front_end_port 8080
@@ -142,6 +143,10 @@ or local mode according to the data status of the current experiment.
 
 Feature List
 ------------
+
+For the convenience of users, Env-geographic tool implemented some features
+so that users can freely view experimental data.
+
 
 Real-time mode and local mode
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -155,8 +160,10 @@ left corner of the page, user could view the dynamic changes of the data in the
 selected time window. By hovering on geographic items and charts, more detailed information
 could be displayed.
 
+
 .. image:: ../images/visualization/geographic/local_mode.gif
    :alt: local_mode
+
 
 The chart on the right side of the page shows the changes in the data over
 a period of time from the perspectives of overall, port, and vessel.
@@ -179,6 +186,10 @@ The particularity of real-time mode lies in the data. The automatic playback
 speed of the progress bar in the front-end page is often close to the speed
 of the experimental data. So user could not select the time window freely in
 this mode.
+
+Besides, user could change the mode by clicking. If user choose to view the
+local data under real-time mode, the experimental data generated so far could
+be displayed.
 
 .. image:: ../images/visualization/geographic/real_time_mode.gif
    :alt: real_time_mode
