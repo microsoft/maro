@@ -10,15 +10,15 @@ env:
 
 ilp:
   solver: GLPK  # GLPK, GUROBI
-  plan_window_size: 10
+  plan_window_size: 3
   # apply_buffer_size: 5
   performance:
     core_safety_remaining_ratio: 0
     mem_safety_remaining_ratio: 0
   objective:
-    successful_allocation_decay: 1
+    successful_allocation_decay: 0.99
     allocation_multiple_core_num: false
   log:
     dump_all_solution: false
     dump_infeasible_solution: true
-    stdout_solver_message: false
+    stdout_solver_message: true

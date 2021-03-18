@@ -85,6 +85,10 @@ class IlpAgent():
                     if tick == env_tick:
                         self.refreshed_allocated_vm_dict[vm.vm_id] = vmInfo
                     self.future_vm_req.append(vmInfo)
+                    # self._simulation_logger.debug(
+                    #     f"[LP Agent] future_vm_req -- Tick {env_tick}, "
+                    #     f"vm id: {vm.vm_id}, core_req: {vm.vm_cpu_cores}, mem_req: {vm.vm_memory}"
+                    # )
 
             # Build the allocated_vm list for ILP.
             for pm_idx in range(len(live_vm_set_list)):
@@ -99,9 +103,11 @@ class IlpAgent():
             self.allocated_vm_dict = self.refreshed_allocated_vm_dict
             self.refreshed_allocated_vm_dict = {}
 
-
         chosen_pm_idx = self.ilp.choose_pm(env_tick, cur_vm_id, self.allocated_vm, self.future_vm_req)
         self._simulation_logger.info(f"tick: {env_tick}, vm: {cur_vm_id} -> pm: {chosen_pm_idx}")
+
+        # chosen_pm_idx = NOT_ALLOCATE_NOW
+        # self._simulation_logger.info(f"tick: {env_tick}, vm: {cur_vm_id}")
 
         if chosen_pm_idx == NOT_ALLOCATE_NOW:
             return PostponeAction(vm_id=cur_vm_id, postpone_step=1)
