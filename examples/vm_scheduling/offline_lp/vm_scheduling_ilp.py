@@ -108,8 +108,14 @@ class VmSchedulingILP():
 
     def _set_objective(self, problem: LpProblem):
         # Reward for successful allocation.
+        # allocation_reward = lpSum(
+        #     math.pow(self.successful_allocation_decay, self._future_vm_req[vm_idx].arrival_env_tick - self._env_tick)
+        #     * lpSum(self._mapping[pm_idx][vm_idx] for pm_idx in range(self._pm_num))
+        #     * (self._future_vm_req[vm_idx].core if self.allocation_multiple_core_num else 1)
+        #     for vm_idx in range(self._vm_num)
+        # )
         allocation_reward = lpSum(
-            math.pow(self.successful_allocation_decay, self._future_vm_req[vm_idx].arrival_env_tick - self._env_tick)
+            math.pow(self.successful_allocation_decay, vm_idx)
             * lpSum(self._mapping[pm_idx][vm_idx] for pm_idx in range(self._pm_num))
             * (self._future_vm_req[vm_idx].core if self.allocation_multiple_core_num else 1)
             for vm_idx in range(self._vm_num)
@@ -134,6 +140,15 @@ class VmSchedulingILP():
         self._logger.info(f"Status: {LpStatus[problem.status]}")
         if self.dump_all_solution or (self.dump_infeasible_solution and problem.status != 1):
             problem.writeLP(os.path.join(self._log_path, f"solution_{self._env_tick}_{LpStatus[problem.status]}.lp"))
+
+        for vm_idx, vm_req in enumerate(self._future_vm_req):
+            chosen_pm_idx = -1
+            for pm_idx in range(self._pm_num):
+                if self._mapping[pm_idx][vm_idx].varValue:
+                    chosen_pm_idx = pm_idx
+                    break
+            self._logger.info(f"Solution tick: {self._env_tick}, vm: {self._future_vm_req[vm_idx].id} -> pm: {chosen_pm_idx}")
+
 
     def choose_pm(
         self,
