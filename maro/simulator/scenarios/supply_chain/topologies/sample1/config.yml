@@ -2,7 +2,6 @@
 # TODO: which config to inherit
 # base: ""
 
-# TODO: add customized data model, unit or facility definitions, will be combined with builtin ones.
 #core:
 #  datamodels: "xxx"
 #  units: "xxx"
