@@ -233,8 +233,6 @@ cdef class RawBackend(BackendAbc):
     cdef list slots_not_equal(self, NODE_INDEX index, ATTR_TYPE attr_type, object value) except +:
         return self.where(index, attr_type, lambda x : x != value)
 
-    cdef SLOT_INDEX get_slot_number(self, NODE_INDEX index, ATTR_TYPE attr_type) except +:
-        return self._frame.get_slot_number(index, attr_type)
 
 cdef class RawSnapshotList(SnapshotListAbc):
     def __cinit__(self, RawBackend backend, USHORT total_snapshots):
@@ -291,7 +289,7 @@ cdef class RawSnapshotList(SnapshotListAbc):
         cdef QUERY_FLOAT[:, :, :, :] result = view.array(shape=(shape.tick_number, shape.max_node_number, shape.attr_number, shape.max_slot_number), itemsize=sizeof(QUERY_FLOAT), format="f")
 
         # Default result value
-        result[:, :, :, :] = 0
+        result[:, :, :, :] = np.nan
 
         # Do query
         self._snapshots.query(&result[0][0][0][0])

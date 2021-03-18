@@ -74,15 +74,6 @@ def node(name: str):
     return node_dec
 
 
-def try_get_attribute(target, name, default=None):
-    try:
-        attr = object.__getattribute__(target, name)
-
-        return attr
-    except:
-        return default
-
-
 cdef class NodeAttribute:
     def __cinit__(self, object dtype = None, SLOT_INDEX slot_num = 1, is_const = False, is_list = False):
         # Check the type of dtype, used to compact with old version
@@ -151,17 +142,14 @@ cdef class _NodeAttributeAccessor:
             Current attribute must be a list.
 
         Args:
-            value(object): Value to append, the data type must fit the declared one.
+            value(object): Value to append, the data type must fit the decleared one.
         """
         if not self._is_list:
             raise BackendsAppendToNonListAttributeException()
 
         self._backend.append_to_list(self._node_index, self._attr_type, value)
 
-        self._slot_number = self._backend.get_slot_number(self._node_index, self._attr_type)
-
-        if "_cb" in self.__dict__:
-            self._cb(None)
+        self._slot_number += 1
 
     def resize(self, new_size: int):
         """Resize current list attribute with specified new size.
@@ -177,10 +165,7 @@ cdef class _NodeAttributeAccessor:
 
         self._backend.resize_list(self._node_index, self._attr_type, new_size)
 
-        self._slot_number = self._backend.get_slot_number(self._node_index, self._attr_type)
-
-        if "_cb" in self.__dict__:
-            self._cb(None)
+        self._slot_number = new_size
 
     def clear(self):
         """Clear all items in current list attribute.
@@ -195,9 +180,6 @@ cdef class _NodeAttributeAccessor:
 
         self._slot_number = 0
 
-        if "_cb" in self.__dict__:
-            self._cb(None)
-
     def insert(self, slot_index: int, value: object):
         """Insert a value to specified slot.
 
@@ -210,10 +192,7 @@ cdef class _NodeAttributeAccessor:
 
         self._backend.insert_to_list(self._node_index, self._attr_type, slot_index, value)
 
-        self._slot_number = self._backend.get_slot_number(self._node_index, self._attr_type)
-
-        if "_cb" in self.__dict__:
-            self._cb(None)
+        self._slot_number += 1
 
     def remove(self, slot_index: int):
         """Remove specified slot.
@@ -226,10 +205,7 @@ cdef class _NodeAttributeAccessor:
 
         self._backend.remove_from_list(self._node_index, self._attr_type, slot_index)
 
-        self._slot_number = self._backend.get_slot_number(self._node_index, self._attr_type)
-
-        if "_cb" in self.__dict__:
-            self._cb(None)
+        self._slot_number -= 1
 
     def where(self, filter_func: callable):
         """Filter current attribute slots with input function.
@@ -238,7 +214,7 @@ cdef class _NodeAttributeAccessor:
             filter_func (callable): Function to filter slot value.
 
         Returns:
-            List[int]: List of slot index whose value match the filter function.
+            List[int]: List of slot index whoes value match the filter function.
         """
         return self._backend.where(self._node_index, self._attr_type, filter_func)
 
@@ -369,8 +345,8 @@ cdef class _NodeAttributeAccessor:
         else:
             raise BackendsSetItemInvalidException()
 
-        # Check and invoke value changed callback.
-        if "_cb" in self.__dict__:
+        # Check and invoke value changed callback, except list attribute.
+        if not self._is_list and "_cb" in self.__dict__:
             self._cb(value)
 
     def __len__(self):
@@ -410,9 +386,7 @@ cdef class NodeBase:
         cdef str cb_name
         cdef _NodeAttributeAccessor attr_acc
 
-        for name in dir(type(self)):
-            attr = getattr(self, name)
-
+        for name, attr in type(self).__dict__.items():
             # Append an attribute access wrapper to current instance.
             if isinstance(attr, NodeAttribute):
                 # Register attribute.
@@ -425,12 +399,12 @@ cdef class NodeBase:
 
                 # Bind a value changed callback if available, named as _on_<attr name>_changed.
                 # Except list attribute.
-                # if not attr_acc._is_list:
-                cb_name = f"_on_{name}_changed"
-                cb_func = getattr(self, cb_name, None)
+                if not attr_acc._is_list:
+                    cb_name = f"_on_{name}_changed"
+                    cb_func = getattr(self, cb_name, None)
 
-                if cb_func is not None:
-                    attr_acc.on_value_changed(cb_func)
+                    if cb_func is not None:
+                        attr_acc.on_value_changed(cb_func)
 
     def __setattr__(self, name, value):
         """Used to avoid attribute overriding, and an easy way to set for 1 slot attribute."""
@@ -540,8 +514,6 @@ cdef class FrameBase:
                         del node_list[i]
                     else:
                         node._is_deleted = False
-
-            # Also
 
     cpdef void take_snapshot(self, INT tick) except *:
         """Take snapshot for specified point (tick) for current frame.
@@ -661,9 +633,7 @@ cdef class FrameBase:
         cdef NODE_INDEX i
 
         # Register node and attribute in backend.
-        for frame_attr_name in dir(type(self)):
-            frame_attr = getattr(self, frame_attr_name)
-
+        for frame_attr_name, frame_attr in type(self).__dict__.items():
             # We only care about FrameNode instance.
             if isinstance(frame_attr, FrameNode):
                 node_cls = frame_attr._node_cls
@@ -686,10 +656,8 @@ cdef class FrameBase:
                 attr_name_type_dict = {}
 
                 # Register attributes.
-                for node_attr_name in dir(node_cls):
-                    node_attr = getattr(node_cls, node_attr_name)
-
-                    if node_attr and isinstance(node_attr, NodeAttribute):
+                for node_attr_name, node_attr in node_cls.__dict__.items():
+                    if isinstance(node_attr, NodeAttribute):
                         attr_type = self._backend.add_attr(node_type, node_attr_name, node_attr._dtype, node_attr._slot_number, node_attr._is_const, node_attr._is_list)
 
                         attr_name_type_dict[node_attr_name] = attr_type
