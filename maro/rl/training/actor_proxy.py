@@ -1,8 +1,7 @@
 # Copyright (c) Microsoft Corporation.
-# Licensed under the MIT license.    
+# Licensed under the MIT license.
 
-from collections import defaultdict
-from typing import Callable, List, Union
+from typing import List
 
 from maro.communication import Message, Proxy, RegisterTable, SessionType
 from maro.utils import InternalLogger
@@ -42,7 +41,7 @@ class ActorProxy(object):
             f"actor:{MessageTag.FINISHED.value}:{update_trigger}", self._on_rollout_finish
         )
         self.logger = InternalLogger("ACTOR_PROXY")
-    
+
     def roll_out(self, index: int, training: bool = True, model_by_agent: dict = None, exploration_params=None):
         """Collect roll-out data from remote actors.
 
@@ -78,16 +77,15 @@ class ActorProxy(object):
                     break
 
         return env_metrics, details
-    
+
     def _on_rollout_finish(self, messages: List[Message]):
         metrics = {msg.source: msg.payload[PayloadKey.METRICS] for msg in messages}
         details = {msg.source: msg.payload[PayloadKey.DETAILS] for msg in messages}
         return metrics, details
-    
+
     def terminate(self):
         """Tell the remote actors to exit."""
         self._proxy.ibroadcast(
             component_type="actor", tag=MessageTag.EXIT, session_type=SessionType.NOTIFICATION
         )
         self.logger.info("Exiting...")
-        sys.exit(0)

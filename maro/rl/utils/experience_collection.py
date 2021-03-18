@@ -50,7 +50,7 @@ class ExperienceCollectionUtils:
         """
         if is_single_source:
             return [exp] if is_single_agent else {agent_id: [ex] for agent_id, ex in exp.items()}
-        
+
         if is_single_agent:
             return list(exp.values())
 

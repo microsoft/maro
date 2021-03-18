@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 import sys
-from typing import Callable, Union
+from typing import Union
 
 from maro.communication import Message, Proxy
 from maro.rl.agent import AbsAgent, MultiAgentWrapper
@@ -48,7 +48,7 @@ class Actor(object):
         self.env.reset()
         self.trajectory.reset()
         if model_by_agent:
-            self.agent.load_model(model_by_agent)  
+            self.agent.load_model(model_by_agent)
         if exploration_params:
             self.agent.set_exploration_params(exploration_params)
 

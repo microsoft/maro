@@ -90,32 +90,32 @@ As an example, the exploration for DQN may be carried out with the aid of an ``E
   exploration_action = explorer(greedy_action)
 
 
-Tools for Distributed Training
+Tools for Training
 ------------------------------
 
 .. image:: ../images/rl/learner_actor.svg
    :target: ../images/rl/learner_actor.svg
    :alt: RL Overview
 
-The RL toolkit provides tools that make distributed training easy:
-* Learner, the central controller of the training process in a distributed setting. Its task is to
-  collect training data from remote actors and train the agents with it. There are two ways of doing
-  so: 1) sending each actor a copy of the current model so that they can make action decisions on their
-  own; 2) providing action decisions directly to actors (https://arxiv.org/pdf/1910.06591.pdf).  
-* Actor, which implements the ``roll_out`` method where the agent interacts with the environment
-  for one episode. It consists of an environment instance and an agent (a single agent or multiple agents
-  wrapped by ``MultiAgentWrapper``). It is usually necessary to define shaping functions that perform
-  translations between scenario-specific information and model input / output. Three types of shaping
-  are often necessary: 
-  * State shaping, which converts observations of an environment into model input. For example, the observation
+The RL toolkit provides tools that make local and distributed training easy:
+* Learner, the central controller of the learning process, which consists of collecting simulation data from
+  remote actors and training the agents with them. The training data collection can be done in local or
+  distributed fashion by loading an ``Actor`` or ``ActorProxy`` instance, respectively.  
+* Actor, which implements the ``roll_out`` method where the agent interacts with the environment for one
+  episode. It consists of an environment instance and an agent (a single agent or multiple agents wrapped by
+  ``MultiAgentWrapper``). The class provides the as_worker() method which turns it to an event loop where roll-outs
+  are performed on the learner's demand. In distributed RL, there are typically many actor processes running
+  simultaneously to parallelize training data collection.
+* Actor proxy, which also implements the ``roll_out`` method with the same signature, but manages a set of remote
+  actors for parallel data collection.
+* Trajectory, which is primarily responsible for translating between scenario-specific information and model
+  input / output. It implements the following methods which are used as callbacks in the actor's roll-out loop: 
+  * ``get_state``, which converts observations of an environment into model input. For example, the observation
     may be represented by a multi-level data structure, which gets encoded by a state shaper to a one-dimensional
     vector as input to a neural network. The state shaper usually goes hand in hand with the underlying policy
     or value models. 
-  * Action shaping, which provides model output with necessary context so that it can be executed by the
+  * ``get_action``, which provides model output with necessary context so that it can be executed by the
     environment simulator.
-  * Reward shaping, which computes a reward for a given action.
-  The class provides the as_worker() method which turns it to an event loop where roll-outs are performed
-  on the learner's demand. In distributed RL, there are typically many actor processes running
-  simultaneously to parallelize training data collection.
-* Decision client, which communicates with the remote learner to obtain action decisions on behalf of
-  the actor.
+  * ``get_reward``, which computes a reward for a given action.
+  * ``on_env_feedback``, which defines things to do upon getting feedback from the environment.  
+  * ``on_finish``, which defines things to do upon completion of a roll-out episode.

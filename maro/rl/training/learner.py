@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 from abc import ABC, abstractmethod
-from typing import Callable, Union
+from typing import Union
 
 from numpy import asarray
 
@@ -24,7 +24,7 @@ class AbsLearner(ABC):
             data for learning purposes. If it is an ``Actor``, it will perform roll-outs locally. If it is an
             ``ActorProxy``, it will coordinate a set of remote actors to perform roll-outs in parallel.
         agent (Union[AbsAgent, MultiAgentWrapper]): Learning agents. If None, the actor must be an ``Actor`` that
-            contains actual agents, rather than an ``ActorProxy``. Defaults to None. 
+            contains actual agents, rather than an ``ActorProxy``. Defaults to None.
     """
     def __init__(self, actor: Union[Actor, ActorProxy], agent: Union[AbsAgent, MultiAgentWrapper] = None):
         super().__init__()
@@ -40,7 +40,7 @@ class AbsLearner(ABC):
     @abstractmethod
     def run(self):
         """Main learning loop is implemented here."""
-        return NotImplementedError        
+        return NotImplementedError
 
 
 class OnPolicyLearner(AbsLearner):
@@ -75,7 +75,7 @@ class OnPolicyLearner(AbsLearner):
             self.logger.info("Agent learning finished")
 
         # Signal remote actors to quit
-        if isinstance(actor, ActorProxy):
+        if isinstance(self.actor, ActorProxy):
             self.actor.terminate()
 
 
@@ -116,7 +116,7 @@ class OffPolicyLearner(AbsLearner):
             )
             self.logger.info(f"ep-{rollout_index}: {env_metrics} ({exploration_params})")
 
-            #Store experiences in the experience pool.
+            # store experiences in the experience pool.
             exp = ExperienceCollectionUtils.concat(
                 exp,
                 is_single_source=isinstance(self.actor, Actor),
@@ -131,7 +131,7 @@ class OffPolicyLearner(AbsLearner):
                     self.experience_pool.update(idx, {"loss": list(loss)})
             else:
                 for agent_id, ex in exp.items():
-                    # ensure new experiences are sampled with the highest priority 
+                    # ensure new experiences are sampled with the highest priority
                     ex.update({"loss": [MAX_LOSS] * len(list(ex.values())[0])})
                     self.experience_pool[agent_id].put(ex)
 
@@ -168,7 +168,9 @@ class OffPolicyLearner(AbsLearner):
                     indexes, sample = self.experience_pool[agent_id].sample_by_key("loss", self.batch_size)
                 else:
                     indexes, sample = self.experience_pool[agent_id].sample(self.batch_size)
-                batch[agent_id] = asarray(sample["S"]), asarray(sample["A"]), asarray(sample["R"]), asarray(sample["S_"])
+                batch[agent_id] = (
+                    asarray(sample["S"]), asarray(sample["A"]), asarray(sample["R"]), asarray(sample["S_"])
+                )
                 idx[agent_id] = indexes
 
             return batch, idx

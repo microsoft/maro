@@ -4,7 +4,7 @@ Container inventory management (CIM) is a scenario where reinforcement learning 
 
 In the ``ac`` folder, , the policy is trained using the Actor-Critc algorithm in single-threaded fashion. The example can be run by simply executing ``python3 main.py``. Logs will be saved in a file named ``cim-ac.CURRENT_TIME_STAMP.log`` under the ``ac/logs`` folder, where ``CURRENT_TIME_STAMP`` is the time of executing the script. 
 
-In the ``dqn`` folder, the policy is trained using the DQN algorithm in multi-process / distributed mode, where inference is performed by actors (local inference). In the ``ac_gnn`` folder, the policy is trained using a combination of Actor-Critic and graph neural network (GNN) in multi-process / distributed mode, where inference is performend by the learner (remote inference). These examples can be run in three ways. 
+In the ``dqn`` folder, the policy is trained using the DQN algorithm in multi-process / distributed mode. This example can be run in three ways. 
 * ``python3 main.py`` or ``python3 main.py -w 0`` runs the example in multi-process mode, in which a main process spawns one learner process and a number of actor processes as specified in ``config/training_config.py``.
 * ``python3 main.py -w 1`` launches the learner process only. This is for distributed training and expects a number of actor processes (as specified in ``config/training_config.py``) running on some other node(s).
 * ``python3 main.py -w 2`` launches the actor process only. This is for distributed training and expects a learner process running on some other node.
