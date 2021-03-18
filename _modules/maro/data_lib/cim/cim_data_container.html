@@ -1,0 +1,656 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maro.data_lib.cim.cim_data_container &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../../../../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../../../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/sphinx-book-theme.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/language_data.js"></script>
+    <script src="../../../../_static/clipboard.min.js"></script>
+    <script src="../../../../_static/copybutton.js"></script>
+    <script src="../../../../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../../../../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../../../../index.html">
+  
+  <img src="../../../../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../scenarios/container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../scenarios/citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../scenarios/vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../apidoc/maro.html">
+   maro package
+  </a>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2F_modules/maro/data_lib/cim/cim_data_container.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <nav id="bd-toc-nav">
+            
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <h1>Source code for maro.data_lib.cim.cim_data_container</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) Microsoft Corporation.</span>
+<span class="c1"># Licensed under the MIT license.</span>
+
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">ceil</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span>
+
+<span class="kn">from</span> <span class="nn">.entities</span> <span class="kn">import</span> <span class="n">CimDataCollection</span><span class="p">,</span> <span class="n">NoisedItem</span><span class="p">,</span> <span class="n">Order</span><span class="p">,</span> <span class="n">OrderGenerateMode</span><span class="p">,</span> <span class="n">PortSetting</span><span class="p">,</span> <span class="n">VesselSetting</span>
+<span class="kn">from</span> <span class="nn">.port_buffer_tick_wrapper</span> <span class="kn">import</span> <span class="n">PortBufferTickWrapper</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">apply_noise</span><span class="p">,</span> <span class="n">buffer_tick_rand</span><span class="p">,</span> <span class="n">get_buffer_tick_seed</span><span class="p">,</span> <span class="n">get_order_num_seed</span><span class="p">,</span> <span class="n">list_sum_normalize</span><span class="p">,</span> <span class="n">order_num_rand</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">.vessel_future_stops_prediction</span> <span class="kn">import</span> <span class="n">VesselFutureStopsPrediction</span>
+<span class="kn">from</span> <span class="nn">.vessel_past_stops_wrapper</span> <span class="kn">import</span> <span class="n">VesselPastStopsWrapper</span>
+<span class="kn">from</span> <span class="nn">.vessel_reachable_stops_wrapper</span> <span class="kn">import</span> <span class="n">VesselReachableStopsWrapper</span>
+<span class="kn">from</span> <span class="nn">.vessel_sailing_plan_wrapper</span> <span class="kn">import</span> <span class="n">VesselSailingPlanWrapper</span>
+<span class="kn">from</span> <span class="nn">.vessel_stop_wrapper</span> <span class="kn">import</span> <span class="n">VesselStopsWrapper</span>
+
+
+<div class="viewcode-block" id="CimDataContainer"><a class="viewcode-back" href="../../../../apidoc/maro.data_lib.cim.html#maro.data_lib.cim.cim_data_container.CimDataContainer">[docs]</a><span class="k">class</span> <span class="nc">CimDataContainer</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Data container for cim scenario, used to provide interfaces for business engine,</span>
+<span class="sd">    and hide the details about data source, currently we support data from generator and dump files.</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">            # Get data from generator.</span>
+<span class="sd">            data_cntr = data_from_generator(config_file, max_tick)</span>
+
+<span class="sd">            # Get data from dumps folder (which contains several dumped files).</span>
+<span class="sd">            data_cntr = data_from_dumps(dump_folder)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        data_collection (CimDataCollection): Data collection from data source.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_collection</span><span class="p">:</span> <span class="n">CimDataCollection</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data_collection</span> <span class="o">=</span> <span class="n">data_collection</span>
+
+        <span class="c1"># wrapper for interfaces, to make it easy to use</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stops_wrapper</span> <span class="o">=</span> <span class="n">VesselStopsWrapper</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data_collection</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_full_return_buffer_wrapper</span> <span class="o">=</span> \
+            <span class="n">PortBufferTickWrapper</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data_collection</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">full_return_buffer</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_empty_return_buffer_wrapper</span> <span class="o">=</span> \
+            <span class="n">PortBufferTickWrapper</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data_collection</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">empty_return_buffer</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_future_stop_prediction</span> <span class="o">=</span> <span class="n">VesselFutureStopsPrediction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data_collection</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_past_stop_wrapper</span> <span class="o">=</span> <span class="n">VesselPastStopsWrapper</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data_collection</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_vessel_plan_wrapper</span> <span class="o">=</span> <span class="n">VesselSailingPlanWrapper</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data_collection</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reachable_stops_wrapper</span> <span class="o">=</span> <span class="n">VesselReachableStopsWrapper</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data_collection</span><span class="p">)</span>
+
+        <span class="c1"># keep the seed so we can reproduce the sequence after reset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_buffer_tick_seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">get_buffer_tick_seed</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_order_num_seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">get_order_num_seed</span><span class="p">()</span>
+
+        <span class="c1"># flag to tell if we need to reset seed, we need this flag as outside may set the seed after env.reset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_need_reset_seed</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">past_stop_number</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;int: Number of past stops to store in snapshot.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_collection</span><span class="o">.</span><span class="n">past_stop_number</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">future_stop_number</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;int: Number of future stops to predict to store in snapshot.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_collection</span><span class="o">.</span><span class="n">future_stop_number</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ports</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">PortSetting</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;List[PortSetting]: List of port initial settings.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_collection</span><span class="o">.</span><span class="n">ports_settings</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">port_number</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;int: Number of ports.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data_collection</span><span class="o">.</span><span class="n">ports_settings</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">vessels</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">VesselSetting</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;List[VesselSetting]: List of vessel initial settings.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_collection</span><span class="o">.</span><span class="n">vessels_settings</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">vessel_number</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;int: Number of vessels.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data_collection</span><span class="o">.</span><span class="n">vessels_settings</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">container_volume</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;int: Volume of a container.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># NOTE: we only support 1 type container</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_collection</span><span class="o">.</span><span class="n">cntr_volume</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">vessel_stops</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VesselStopsWrapper</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Accessor for vessel stops.</span>
+
+<span class="sd">        Examples:</span>
+
+<span class="sd">            .. code-block:: python</span>
+
+<span class="sd">                # Get a stop detail by vessel and location (stop) index.</span>
+<span class="sd">                stop = data_cntr.vessel_stops[vessel_idx, loc_idx]</span>
+
+<span class="sd">                # Get stop list of a vessel.</span>
+<span class="sd">                stop_list = data_cntr.vessel_stops[vessel_idx]</span>
+
+<span class="sd">                # Get all stops, NOTE: slice without parameters.</span>
+<span class="sd">                stops = data_cntr.vessel_stops[:]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stops_wrapper</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">empty_return_buffers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PortBufferTickWrapper</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Accessor to get empty return buffer tick for specified port (with noise).</span>
+
+<span class="sd">        Examples:</span>
+
+<span class="sd">            .. code-block:: python</span>
+
+<span class="sd">                # Get empty return buffer tick of port 0.</span>
+<span class="sd">                buffer_tick = data_cntr.empty_return_buffers[0]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_empty_return_buffer_wrapper</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">full_return_buffers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PortBufferTickWrapper</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Accessor to get full return buffer tick for specified port (with noise).</span>
+
+<span class="sd">        Examples:</span>
+
+<span class="sd">            .. code-block:: python</span>
+
+<span class="sd">                # Get full return buffer tick of port 0.</span>
+<span class="sd">                buffer_tick = data_cnr.full_return_buffers[0]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_full_return_buffer_wrapper</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">vessel_past_stops</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VesselPastStopsWrapper</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Wrapper to get vessel past stops, it will be padding with None if stops number less than configured one.</span>
+
+<span class="sd">        Examples:</span>
+
+<span class="sd">            .. code-block:: python</span>
+
+<span class="sd">                # Get past stops of vessel 0.</span>
+<span class="sd">                stops = data_cntr.vessel_past_stops[0]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_past_stop_wrapper</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">vessel_future_stops</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VesselFutureStopsPrediction</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Wrapper to get (predict, without noise) vessel future stops, the number of stops is limited by configuration.</span>
+
+<span class="sd">        Examples:</span>
+
+<span class="sd">            .. code-block:: python</span>
+
+<span class="sd">                # Get future stops of vessel 0.</span>
+<span class="sd">                stops = data_cntr.vessel_future_stops[0]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_future_stop_prediction</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">vessel_planned_stops</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VesselSailingPlanWrapper</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Wrapper to get vessel sailing plan, this method will return a stop list that</span>
+<span class="sd">        within configured time period (means no same port in list)</span>
+
+<span class="sd">        Examples:</span>
+
+<span class="sd">            .. code-block:: python</span>
+
+<span class="sd">                # Get sailing plan for vessel 0.</span>
+<span class="sd">                stops = data_cntr.vessel_planned_stops[0]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vessel_plan_wrapper</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">reachable_stops</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VesselReachableStopsWrapper</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Wrapper to get a list of tuple which contains port index and arrive tick in vessel&#39;s route.</span>
+
+<span class="sd">        Examples:</span>
+
+<span class="sd">            .. code-block:: python</span>
+
+<span class="sd">                # Get reachable_stops for vessel 0.</span>
+<span class="sd">                stop_list = data_cntr.reachable_stops[0]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reachable_stops_wrapper</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">vessel_period</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Wrapper to get vessel&#39;s planed sailing period (without noise to complete a whole route).</span>
+
+<span class="sd">        Examples:</span>
+
+<span class="sd">            .. code-block:: python</span>
+
+<span class="sd">                # Get planed sailing for vessel 0.</span>
+<span class="sd">                period = data_cntr.vessel_period[0]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_collection</span><span class="o">.</span><span class="n">vessel_period_no_noise</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">route_mapping</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Dict[str, int]: Name to index mapping for routes.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_collection</span><span class="o">.</span><span class="n">route_mapping</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">vessel_mapping</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Dict[str, int]: Name to index mapping for vessels.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_collection</span><span class="o">.</span><span class="n">vessel_mapping</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">port_mapping</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Dict[str, int]: Name to index mapping for ports.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_collection</span><span class="o">.</span><span class="n">port_mapping</span>
+
+    <span class="c1"># TODO: get_events which composed with arrive, departure and order</span>
+
+<div class="viewcode-block" id="CimDataContainer.get_orders"><a class="viewcode-back" href="../../../../apidoc/maro.data_lib.cim.html#maro.data_lib.cim.cim_data_container.CimDataContainer.get_orders">[docs]</a>    <span class="k">def</span> <span class="nf">get_orders</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tick</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">total_empty_container</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Order</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Get order list by specified tick.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            tick (int): Tick of order.</span>
+<span class="sd">            total_empty_container (int): Empty container at tick.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Order]: A list of order.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># reset seed if needed</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_need_reset_seed</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_reset_seed</span><span class="p">()</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_is_need_reset_seed</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="n">tick</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_collection</span><span class="o">.</span><span class="n">max_tick</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">tick</span><span class="si">}</span><span class="s2"> out of max tick </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_data_collection</span><span class="o">.</span><span class="n">max_tick</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">[]</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gen_orders</span><span class="p">(</span><span class="n">tick</span><span class="p">,</span> <span class="n">total_empty_container</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CimDataContainer.reset"><a class="viewcode-back" href="../../../../apidoc/maro.data_lib.cim.html#maro.data_lib.cim.cim_data_container.CimDataContainer.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Reset data container internal state.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_need_reset_seed</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+    <span class="k">def</span> <span class="nf">_reset_seed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Reset internal seed for generate reproduceable data&quot;&quot;&quot;</span>
+        <span class="n">buffer_tick_rand</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_buffer_tick_seed</span><span class="p">)</span>
+        <span class="n">order_num_rand</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_order_num_seed</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_gen_orders</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tick</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">total_empty_container</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Order</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Generate order for specified tick.</span>
+
+<span class="sd">        NOTE:</span>
+<span class="sd">            Currently we will not dump orders into file even for fixed mode.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># result</span>
+        <span class="n">order_list</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Order</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">order_proportion</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_collection</span><span class="o">.</span><span class="n">order_proportion</span>
+        <span class="n">order_mode</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_collection</span><span class="o">.</span><span class="n">order_mode</span>
+        <span class="n">total_containers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_collection</span><span class="o">.</span><span class="n">total_containers</span>
+
+        <span class="c1"># max order to gen according to configuration</span>
+        <span class="n">orders_to_gen</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">order_proportion</span><span class="p">[</span><span class="n">tick</span><span class="p">])</span>
+
+        <span class="c1"># if under unfixed mode, we will consider current empty container as factor</span>
+        <span class="k">if</span> <span class="n">order_mode</span> <span class="o">==</span> <span class="n">OrderGenerateMode</span><span class="o">.</span><span class="n">UNFIXED</span><span class="p">:</span>
+            <span class="n">delta</span> <span class="o">=</span> <span class="n">total_containers</span> <span class="o">-</span> <span class="n">total_empty_container</span>
+
+            <span class="k">if</span> <span class="n">orders_to_gen</span> <span class="o">&lt;=</span> <span class="n">delta</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">order_list</span>
+
+            <span class="n">orders_to_gen</span> <span class="o">-=</span> <span class="n">delta</span>
+
+        <span class="n">remaining_orders</span> <span class="o">=</span> <span class="n">orders_to_gen</span>  <span class="c1"># used to make sure all the order generated</span>
+
+        <span class="c1"># collect and apply noise on the source distribution, then normalized it, to make sure our total number is same</span>
+        <span class="n">noised_source_order_dist</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># calculate orders distribution for each port as source</span>
+        <span class="k">for</span> <span class="n">port_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">port_number</span><span class="p">):</span>
+            <span class="n">source_dist</span><span class="p">:</span> <span class="n">NoisedItem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ports</span><span class="p">[</span><span class="n">port_idx</span><span class="p">]</span><span class="o">.</span><span class="n">source_proportion</span>
+
+            <span class="n">noised_source_order_number</span> <span class="o">=</span> <span class="n">apply_noise</span><span class="p">(</span><span class="n">source_dist</span><span class="o">.</span><span class="n">base</span><span class="p">,</span> <span class="n">source_dist</span><span class="o">.</span><span class="n">noise</span><span class="p">,</span> <span class="n">order_num_rand</span><span class="p">)</span>
+
+            <span class="n">noised_source_order_dist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">noised_source_order_number</span><span class="p">)</span>
+
+        <span class="c1"># normalize it</span>
+        <span class="n">noised_source_order_dist</span> <span class="o">=</span> <span class="n">list_sum_normalize</span><span class="p">(</span><span class="n">noised_source_order_dist</span><span class="p">)</span>
+
+        <span class="c1"># generate order for each target port</span>
+        <span class="k">for</span> <span class="n">port_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">port_number</span><span class="p">):</span>
+            <span class="c1"># stop generating if no orders to gen</span>
+            <span class="k">if</span> <span class="n">remaining_orders</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">break</span>
+
+            <span class="n">targets_dist</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">NoisedItem</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ports</span><span class="p">[</span><span class="n">port_idx</span><span class="p">]</span><span class="o">.</span><span class="n">target_proportions</span>
+
+            <span class="c1"># apply noise and normalize</span>
+            <span class="n">noised_targets_dist</span> <span class="o">=</span> <span class="n">list_sum_normalize</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">apply_noise</span><span class="p">(</span><span class="n">target</span><span class="o">.</span><span class="n">base</span><span class="p">,</span> <span class="n">target</span><span class="o">.</span><span class="n">noise</span><span class="p">,</span> <span class="n">order_num_rand</span><span class="p">)</span> <span class="k">for</span> <span class="n">target</span> <span class="ow">in</span> <span class="n">targets_dist</span><span class="p">])</span>
+
+            <span class="c1"># order for current ports</span>
+            <span class="n">cur_port_order_num</span> <span class="o">=</span> <span class="n">ceil</span><span class="p">(</span><span class="n">orders_to_gen</span> <span class="o">*</span> <span class="n">noised_source_order_dist</span><span class="p">[</span><span class="n">port_idx</span><span class="p">])</span>
+
+            <span class="c1"># make sure the total number is correct</span>
+            <span class="n">cur_port_order_num</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">cur_port_order_num</span><span class="p">,</span> <span class="n">remaining_orders</span><span class="p">)</span>
+
+            <span class="c1"># remaining orders for next port</span>
+            <span class="n">remaining_orders</span> <span class="o">-=</span> <span class="n">cur_port_order_num</span>
+
+            <span class="c1"># dispatch order to targets</span>
+            <span class="k">if</span> <span class="n">cur_port_order_num</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">target_remaining_orders</span> <span class="o">=</span> <span class="n">cur_port_order_num</span>
+
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">target</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">targets_dist</span><span class="p">):</span>
+                    <span class="c1"># generate and correct order number for each target</span>
+                    <span class="n">cur_num</span> <span class="o">=</span> <span class="n">ceil</span><span class="p">(</span><span class="n">cur_port_order_num</span> <span class="o">*</span> <span class="n">noised_targets_dist</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                    <span class="n">cur_num</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">cur_num</span><span class="p">,</span> <span class="n">target_remaining_orders</span><span class="p">)</span>
+
+                    <span class="c1"># remaining orders for next target</span>
+                    <span class="n">target_remaining_orders</span> <span class="o">-=</span> <span class="n">cur_num</span>
+
+                    <span class="c1"># insert into result list</span>
+                    <span class="k">if</span> <span class="n">cur_num</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">order</span> <span class="o">=</span> <span class="n">Order</span><span class="p">(</span><span class="n">tick</span><span class="p">,</span> <span class="n">port_idx</span><span class="p">,</span> <span class="n">target</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cur_num</span><span class="p">)</span>
+
+                        <span class="n">order_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
+
+        <span class="c1"># TODO: remove later</span>
+        <span class="k">assert</span> <span class="nb">sum</span><span class="p">([</span><span class="n">o</span><span class="o">.</span><span class="n">quantity</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">order_list</span><span class="p">])</span> <span class="o">==</span> <span class="n">orders_to_gen</span>
+
+        <span class="k">return</span> <span class="n">order_list</span></div>
+</pre></div>
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../../../../_static/js/index.js"></script>
+    
+  </body>
+</html>

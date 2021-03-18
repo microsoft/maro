@@ -1,0 +1,1114 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maro.cli.data_pipeline package &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="maro.cli.envs package" href="maro.cli.envs.html" />
+    <link rel="prev" title="maro.cli package" href="maro.cli.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../index.html">
+  
+  <img src="../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="current nav sidenav_l1">
+ <li class="toctree-l1 current active">
+  <a class="reference internal" href="maro.html">
+   maro package
+  </a>
+  <ul class="current">
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.backends.html">
+     maro.backends package
+    </a>
+   </li>
+   <li class="toctree-l2 current active">
+    <a class="reference internal" href="maro.cli.html">
+     maro.cli package
+    </a>
+    <ul class="current">
+     <li class="toctree-l3 current active">
+      <a class="current reference internal" href="#">
+       maro.cli.data_pipeline package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.envs.html">
+       maro.cli.envs package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.grass.html">
+       maro.cli.grass package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.grass.executors.html">
+         maro.cli.grass.executors package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.grass.utils.html">
+         maro.cli.grass.utils package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.inspector.html">
+       maro.cli.inspector package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.k8s.html">
+       maro.cli.k8s package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.k8s.executors.html">
+         maro.cli.k8s.executors package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.process.html">
+       maro.cli.process package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.process.utils.html">
+         maro.cli.process.utils package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.utils.html">
+       maro.cli.utils package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.utils.executors.html">
+         maro.cli.utils.executors package
+        </a>
+       </li>
+      </ul>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.communication.html">
+     maro.communication package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.communication.driver.html">
+       maro.communication.driver package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.communication.utils.html">
+       maro.communication.utils package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.data_lib.html">
+     maro.data_lib package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.data_lib.cim.html">
+       maro.data_lib.cim package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.event_buffer.html">
+     maro.event_buffer package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.forecasting.html">
+     maro.forecasting package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.rl.html">
+     maro.rl package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.actor.html">
+       maro.rl.actor package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.agent.html">
+       maro.rl.agent package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.algorithms.html">
+       maro.rl.algorithms package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.dist_topologies.html">
+       maro.rl.dist_topologies package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.exploration.html">
+       maro.rl.exploration package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.learner.html">
+       maro.rl.learner package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.models.html">
+       maro.rl.models package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.scheduling.html">
+       maro.rl.scheduling package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.shaping.html">
+       maro.rl.shaping package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.storage.html">
+       maro.rl.storage package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.simulator.html">
+     maro.simulator package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.simulator.scenarios.html">
+       maro.simulator.scenarios package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.cim.html">
+         maro.simulator.scenarios.cim package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.citi_bike.html">
+         maro.simulator.scenarios.citi_bike package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.vm_scheduling.html">
+         maro.simulator.scenarios.vm_scheduling package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.simulator.utils.html">
+       maro.simulator.utils package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.utils.html">
+     maro.utils package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.utils.exception.html">
+       maro.utils.exception package
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+        
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="../_sources/apidoc/maro.cli.data_pipeline.rst.txt"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.rst</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2Fapidoc/maro.cli.data_pipeline.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        <a class="edit-button" href="https://github.com/microsoft/maro/edit/master/doc/source/apidoc/maro.cli.data_pipeline.rst"><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Edit this page"><i class="fas fa-pencil-alt"></i>suggest edit</button></a>
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <div class="tocsection onthispage pt-5 pb-3">
+            <i class="fas fa-list"></i> Contents
+        </div>
+        <nav id="bd-toc-nav">
+            <ul class="nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#submodules">
+   Submodules
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.cli.data_pipeline.base">
+   maro.cli.data_pipeline.base module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.cli.data_pipeline.citi_bike">
+   maro.cli.data_pipeline.citi_bike module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#maro-cli-data-pipeline-data-process-module">
+   maro.cli.data_pipeline.data_process module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.cli.data_pipeline.utils">
+   maro.cli.data_pipeline.utils module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#maro-cli-data-pipeline-vm-scheduling-module">
+   maro.cli.data_pipeline.vm_scheduling module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.cli.data_pipeline">
+   Module contents
+  </a>
+ </li>
+</ul>
+
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <div class="section" id="maro-cli-data-pipeline-package">
+<h1>maro.cli.data_pipeline package<a class="headerlink" href="#maro-cli-data-pipeline-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-maro.cli.data_pipeline.base">
+<span id="maro-cli-data-pipeline-base-module"></span><h2>maro.cli.data_pipeline.base module<a class="headerlink" href="#module-maro.cli.data_pipeline.base" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.cli.data_pipeline.base.DataPipeline">
+<em class="property">class </em><code class="sig-prename descclassname">maro.cli.data_pipeline.base.</code><code class="sig-name descname">DataPipeline</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">scenario</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">topology</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">source</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">is_temp</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/data_pipeline/base.html#DataPipeline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.data_pipeline.base.DataPipeline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<p>Base class of data pipeline.</p>
+<p>Generate scenario/topology specific data for the business engine.
+General workflow:
+Step 1: Download the original data file from the source to download folder.
+Step 2: Generate the clean data in clean folder.
+Step 3: Build a binary data file in build folder.
+The folder structure is:
+~/.maro</p>
+<blockquote>
+<div><dl>
+<dt>/data/[scenario]/[topology]</dt><dd><blockquote>
+<div><p>/_download original data file
+/_clean cleaned data file
+/_build bin data file and other necessory files</p>
+</div></blockquote>
+<p>/meta meta files for data pipeline</p>
+</dd>
+</dl>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scenario</strong> (<em>str</em>) – The scenario of the data.</p></li>
+<li><p><strong>topology</strong> (<em>str</em>) – The topology of the scenario.</p></li>
+<li><p><strong>source</strong> (<em>str</em>) – The original source of data file.</p></li>
+<li><p><strong>is_temp</strong> (<em>bool</em>) – (optional) If the data file is temporary.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.cli.data_pipeline.base.DataPipeline.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/data_pipeline/base.html#DataPipeline.build"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.data_pipeline.base.DataPipeline.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build the cleaned data file to binary data file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.data_pipeline.base.DataPipeline.build_folder">
+<em class="property">property </em><code class="sig-name descname">build_folder</code><a class="headerlink" href="#maro.cli.data_pipeline.base.DataPipeline.build_folder" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.data_pipeline.base.DataPipeline.clean">
+<code class="sig-name descname">clean</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/data_pipeline/base.html#DataPipeline.clean"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.data_pipeline.base.DataPipeline.clean" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clean the original data file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.data_pipeline.base.DataPipeline.download">
+<code class="sig-name descname">download</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">is_force</span><span class="p">:</span> <span class="n">bool</span></em>, <em class="sig-param"><span class="n">fall_back</span><span class="p">:</span> <span class="n">callable</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/data_pipeline/base.html#DataPipeline.download"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.data_pipeline.base.DataPipeline.download" title="Permalink to this definition">¶</a></dt>
+<dd><p>Download the original data file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>is_force</strong> (<em>bool</em>) – If forced re-download the data file.</p></li>
+<li><p><strong>fall_back</strong> (<em>callable</em>) – (optional) Fallback function to execute when download failed.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.data_pipeline.base.DataPipeline.remove_file">
+<code class="sig-name descname">remove_file</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/data_pipeline/base.html#DataPipeline.remove_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.data_pipeline.base.DataPipeline.remove_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove the temporary files.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.data_pipeline.base.DataPipeline.remove_folder">
+<code class="sig-name descname">remove_folder</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/data_pipeline/base.html#DataPipeline.remove_folder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.data_pipeline.base.DataPipeline.remove_folder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove the temporary folders.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.cli.data_pipeline.base.DataTopology">
+<em class="property">class </em><code class="sig-prename descclassname">maro.cli.data_pipeline.base.</code><code class="sig-name descname">DataTopology</code><a class="reference internal" href="../_modules/maro/cli/data_pipeline/base.html#DataTopology"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.data_pipeline.base.DataTopology" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<p>Data topology manage multi data pipelines for a specified topology of a research scenario.</p>
+<dl class="py method">
+<dt id="maro.cli.data_pipeline.base.DataTopology.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/data_pipeline/base.html#DataTopology.build"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.data_pipeline.base.DataTopology.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build the cleaned data files of all data pipelines to binary data file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.data_pipeline.base.DataTopology.clean">
+<code class="sig-name descname">clean</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/data_pipeline/base.html#DataTopology.clean"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.data_pipeline.base.DataTopology.clean" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clean the original data files of all data pipelines.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.data_pipeline.base.DataTopology.download">
+<code class="sig-name descname">download</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">is_force</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/data_pipeline/base.html#DataTopology.download"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.data_pipeline.base.DataTopology.download" title="Permalink to this definition">¶</a></dt>
+<dd><p>Download the original data files of all data pipelines.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>is_force</strong> (<em>bool</em>) – If forced re-download the data file.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.data_pipeline.base.DataTopology.get_build_folders">
+<code class="sig-name descname">get_build_folders</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; dict<a class="reference internal" href="../_modules/maro/cli/data_pipeline/base.html#DataTopology.get_build_folders"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.data_pipeline.base.DataTopology.get_build_folders" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the build file folders of all data pipelines for the topology.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><dl class="simple">
+<dt>Dictionary of build folders, keys are data pipeline names, values</dt><dd><p>are paths of the build folders.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.data_pipeline.base.DataTopology.remove">
+<code class="sig-name descname">remove</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/data_pipeline/base.html#DataTopology.remove"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.data_pipeline.base.DataTopology.remove" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove the temporary files and folders of all data pipelines.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.cli.data_pipeline.citi_bike">
+<span id="maro-cli-data-pipeline-citi-bike-module"></span><h2>maro.cli.data_pipeline.citi_bike module<a class="headerlink" href="#module-maro.cli.data_pipeline.citi_bike" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.cli.data_pipeline.citi_bike.CitiBikePipeline">
+<em class="property">class </em><code class="sig-prename descclassname">maro.cli.data_pipeline.citi_bike.</code><code class="sig-name descname">CitiBikePipeline</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">topology</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">source</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">station_info</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">is_temp</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/data_pipeline/citi_bike.html#CitiBikePipeline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.data_pipeline.citi_bike.CitiBikePipeline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.cli.data_pipeline.base.DataPipeline" title="maro.cli.data_pipeline.base.DataPipeline"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.cli.data_pipeline.base.DataPipeline</span></code></a></p>
+<p>Generate citi_bike data bin and other necessary files for the specified topology from specified source.</p>
+<p>They will be generated in ~/.maro/data/citi_bike/[topology]/_build.
+Folder structure:
+~/.maro</p>
+<blockquote>
+<div><dl>
+<dt>/data/citi_bike/[topology]</dt><dd><p>/_build bin data file and other necessory files
+/source</p>
+<blockquote>
+<div><p>/_download original data files
+/_clean cleaned data files</p>
+</div></blockquote>
+</dd>
+</dl>
+<p>/temp download temp files</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>topology</strong> (<em>str</em>) – Topology name of the data files.</p></li>
+<li><p><strong>source</strong> (<em>str</em>) – Source url of original data file.</p></li>
+<li><p><strong>station_info</strong> (<em>str</em>) – Source url of station info file.</p></li>
+<li><p><strong>is_temp</strong> (<em>bool</em>) – (optional) If the data file is temporary.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.cli.data_pipeline.citi_bike.CitiBikePipeline.clean">
+<code class="sig-name descname">clean</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/data_pipeline/citi_bike.html#CitiBikePipeline.clean"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.data_pipeline.citi_bike.CitiBikePipeline.clean" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unzip the csv file and process it for building binary file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.data_pipeline.citi_bike.CitiBikePipeline.download">
+<code class="sig-name descname">download</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">is_force</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/data_pipeline/citi_bike.html#CitiBikePipeline.download"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.data_pipeline.citi_bike.CitiBikePipeline.download" title="Permalink to this definition">¶</a></dt>
+<dd><p>Download the zip file.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.cli.data_pipeline.citi_bike.CitiBikeProcess">
+<em class="property">class </em><code class="sig-prename descclassname">maro.cli.data_pipeline.citi_bike.</code><code class="sig-name descname">CitiBikeProcess</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">is_temp</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/data_pipeline/citi_bike.html#CitiBikeProcess"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.data_pipeline.citi_bike.CitiBikeProcess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Contains all predefined data topologies of citi_bike scenario.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>is_temp</strong> (<em>bool</em>) – (optional) If the data file is temporary.</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="maro.cli.data_pipeline.citi_bike.CitiBikeProcess.meta_file_name">
+<code class="sig-name descname">meta_file_name</code><em class="property"> = 'source_urls.yml'</em><a class="headerlink" href="#maro.cli.data_pipeline.citi_bike.CitiBikeProcess.meta_file_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.cli.data_pipeline.citi_bike.CitiBikeProcess.meta_root">
+<code class="sig-name descname">meta_root</code><em class="property"> = '/home/runner/.maro/data/citi_bike/meta'</em><a class="headerlink" href="#maro.cli.data_pipeline.citi_bike.CitiBikeProcess.meta_root" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.cli.data_pipeline.citi_bike.CitiBikeTopology">
+<em class="property">class </em><code class="sig-prename descclassname">maro.cli.data_pipeline.citi_bike.</code><code class="sig-name descname">CitiBikeTopology</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">topology</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">trip_source</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">station_info</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">weather_source</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">is_temp</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/data_pipeline/citi_bike.html#CitiBikeTopology"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.data_pipeline.citi_bike.CitiBikeTopology" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.cli.data_pipeline.base.DataTopology" title="maro.cli.data_pipeline.base.DataTopology"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.cli.data_pipeline.base.DataTopology</span></code></a></p>
+<p>Data topology for a predefined topology of citi_bike scenario.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>topology</strong> (<em>str</em>) – Topology name of the data file.</p></li>
+<li><p><strong>trip_source</strong> (<em>str</em>) – Original source url of citi_bike data.</p></li>
+<li><p><strong>station_info</strong> (<em>str</em>) – Current status station info of the stations.</p></li>
+<li><p><strong>weather_source</strong> (<em>str</em>) – Original source url of weather data.</p></li>
+<li><p><strong>is_temp</strong> (<em>bool</em>) – (optional) If the data file is temporary.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.cli.data_pipeline.citi_bike.CitiBikeToyPipeline">
+<em class="property">class </em><code class="sig-prename descclassname">maro.cli.data_pipeline.citi_bike.</code><code class="sig-name descname">CitiBikeToyPipeline</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">start_time</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">end_time</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">stations</span><span class="p">:</span> <span class="n">list</span></em>, <em class="sig-param"><span class="n">trips</span><span class="p">:</span> <span class="n">list</span></em>, <em class="sig-param"><span class="n">topology</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">is_temp</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/data_pipeline/citi_bike.html#CitiBikeToyPipeline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.data_pipeline.citi_bike.CitiBikeToyPipeline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.cli.data_pipeline.base.DataPipeline" title="maro.cli.data_pipeline.base.DataPipeline"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.cli.data_pipeline.base.DataPipeline</span></code></a></p>
+<p>Generate synthetic business events and station initialization distribution for Citi Bike scenario,
+from the predefined toy topologies.</p>
+<p>Folder structure:
+~/.maro</p>
+<blockquote>
+<div><dl class="simple">
+<dt>/data/citi_bike/[topology]</dt><dd><p>/_build bin data file and other necessory files</p>
+</dd>
+</dl>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>start_time</strong> (<em>str</em>) – Start time of the toy data.</p></li>
+<li><p><strong>end_time</strong> (<em>str</em>) – End time of the toy data.</p></li>
+<li><p><strong>stations</strong> (<em>list</em>) – List of stations info.</p></li>
+<li><p><strong>trips</strong> (<em>list</em>) – List of trips probability.</p></li>
+<li><p><strong>topology</strong> (<em>str</em>) – Topology name of the data files.</p></li>
+<li><p><strong>is_temp</strong> (<em>bool</em>) – (optional) If the data file is temporary.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.cli.data_pipeline.citi_bike.CitiBikeToyPipeline.clean">
+<code class="sig-name descname">clean</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/data_pipeline/citi_bike.html#CitiBikeToyPipeline.clean"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.data_pipeline.citi_bike.CitiBikeToyPipeline.clean" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clean the original data file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.data_pipeline.citi_bike.CitiBikeToyPipeline.download">
+<code class="sig-name descname">download</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">is_force</span><span class="p">:</span> <span class="n">bool</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/data_pipeline/citi_bike.html#CitiBikeToyPipeline.download"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.data_pipeline.citi_bike.CitiBikeToyPipeline.download" title="Permalink to this definition">¶</a></dt>
+<dd><p>Toy datapipeline not need download process.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.cli.data_pipeline.citi_bike.CitiBikeToyTopology">
+<em class="property">class </em><code class="sig-prename descclassname">maro.cli.data_pipeline.citi_bike.</code><code class="sig-name descname">CitiBikeToyTopology</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">topology</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">config_path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">is_temp</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/data_pipeline/citi_bike.html#CitiBikeToyTopology"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.data_pipeline.citi_bike.CitiBikeToyTopology" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.cli.data_pipeline.base.DataTopology" title="maro.cli.data_pipeline.base.DataTopology"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.cli.data_pipeline.base.DataTopology</span></code></a></p>
+<p>Data topology for a predefined toy topology of citi_bike scenario.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>topology</strong> (<em>str</em>) – Topology name of the data file.</p></li>
+<li><p><strong>config_path</strong> (<em>str</em>) – Config file path of the topology.</p></li>
+<li><p><strong>is_temp</strong> (<em>bool</em>) – (optional) If the data file is temporary.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.cli.data_pipeline.citi_bike.CitiBikeToyTopology.download">
+<code class="sig-name descname">download</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">is_force</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/data_pipeline/citi_bike.html#CitiBikeToyTopology.download"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.data_pipeline.citi_bike.CitiBikeToyTopology.download" title="Permalink to this definition">¶</a></dt>
+<dd><p>Download the original data files of all data pipelines.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>is_force</strong> (<em>bool</em>) – If forced re-download the data file.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.cli.data_pipeline.citi_bike.NOAAWeatherPipeline">
+<em class="property">class </em><code class="sig-prename descclassname">maro.cli.data_pipeline.citi_bike.</code><code class="sig-name descname">NOAAWeatherPipeline</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">topology</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">source</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">is_temp</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/data_pipeline/citi_bike.html#NOAAWeatherPipeline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.data_pipeline.citi_bike.NOAAWeatherPipeline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.cli.data_pipeline.citi_bike.WeatherPipeline" title="maro.cli.data_pipeline.citi_bike.WeatherPipeline"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.cli.data_pipeline.citi_bike.WeatherPipeline</span></code></a></p>
+<p>Generate weather data bin for the specified topology from ncei.noaa.gov.</p>
+<p>Generated files will be generated in ~/.maro/data/citi_bike/[topology]/_build.
+Folder structure:
+~/.maro</p>
+<blockquote>
+<div><dl>
+<dt>/data/citi_bike/[topology]</dt><dd><p>/_build bin data file
+/source</p>
+<blockquote>
+<div><p>/_download original data file
+/_clean cleaned data file</p>
+</div></blockquote>
+</dd>
+</dl>
+<p>/temp download temp file</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>topology</strong> (<em>str</em>) – Topology name of the data file.</p></li>
+<li><p><strong>source</strong> (<em>str</em>) – Source url of original data file.</p></li>
+<li><p><strong>is_temp</strong> (<em>bool</em>) – (optional) If the data file is temporary.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.cli.data_pipeline.citi_bike.NOAAWeatherPipeline.clean">
+<code class="sig-name descname">clean</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/data_pipeline/citi_bike.html#NOAAWeatherPipeline.clean"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.data_pipeline.citi_bike.NOAAWeatherPipeline.clean" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clean the original data file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.data_pipeline.citi_bike.NOAAWeatherPipeline.download">
+<code class="sig-name descname">download</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">is_force</span><span class="p">:</span> <span class="n">bool</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/data_pipeline/citi_bike.html#NOAAWeatherPipeline.download"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.data_pipeline.citi_bike.NOAAWeatherPipeline.download" title="Permalink to this definition">¶</a></dt>
+<dd><p>Download the original data file.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.cli.data_pipeline.citi_bike.WeatherPipeline">
+<em class="property">class </em><code class="sig-prename descclassname">maro.cli.data_pipeline.citi_bike.</code><code class="sig-name descname">WeatherPipeline</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">topology</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">source</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">is_temp</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/data_pipeline/citi_bike.html#WeatherPipeline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.data_pipeline.citi_bike.WeatherPipeline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.cli.data_pipeline.base.DataPipeline" title="maro.cli.data_pipeline.base.DataPipeline"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.cli.data_pipeline.base.DataPipeline</span></code></a></p>
+<p>Generate weather data bin for the specified topology from frontierweather.com.</p>
+<p>Generated files will be generated in ~/.maro/data/citi_bike/[topology]/_build.
+Folder structure:
+~/.maro</p>
+<blockquote>
+<div><dl>
+<dt>/data/citi_bike/[topology]</dt><dd><p>/_build bin data file
+/source</p>
+<blockquote>
+<div><p>/_download original data file
+/_clean cleaned data file</p>
+</div></blockquote>
+</dd>
+</dl>
+<p>/temp download temp file</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>topology</strong> (<em>str</em>) – Topology name of the data file.</p></li>
+<li><p><strong>source</strong> (<em>str</em>) – Source url of original data file.</p></li>
+<li><p><strong>is_temp</strong> (<em>bool</em>) – (optional) If the data file is temporary.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py class">
+<dt id="maro.cli.data_pipeline.citi_bike.WeatherPipeline.WeatherEnum">
+<em class="property">class </em><code class="sig-name descname">WeatherEnum</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/data_pipeline/citi_bike.html#WeatherPipeline.WeatherEnum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.data_pipeline.citi_bike.WeatherPipeline.WeatherEnum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt id="maro.cli.data_pipeline.citi_bike.WeatherPipeline.WeatherEnum.RAINY">
+<code class="sig-name descname">RAINY</code><em class="property"> = 1</em><a class="headerlink" href="#maro.cli.data_pipeline.citi_bike.WeatherPipeline.WeatherEnum.RAINY" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.cli.data_pipeline.citi_bike.WeatherPipeline.WeatherEnum.SLEET">
+<code class="sig-name descname">SLEET</code><em class="property"> = 3</em><a class="headerlink" href="#maro.cli.data_pipeline.citi_bike.WeatherPipeline.WeatherEnum.SLEET" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.cli.data_pipeline.citi_bike.WeatherPipeline.WeatherEnum.SNOWY">
+<code class="sig-name descname">SNOWY</code><em class="property"> = 2</em><a class="headerlink" href="#maro.cli.data_pipeline.citi_bike.WeatherPipeline.WeatherEnum.SNOWY" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.cli.data_pipeline.citi_bike.WeatherPipeline.WeatherEnum.SUNNY">
+<code class="sig-name descname">SUNNY</code><em class="property"> = 0</em><a class="headerlink" href="#maro.cli.data_pipeline.citi_bike.WeatherPipeline.WeatherEnum.SUNNY" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.data_pipeline.citi_bike.WeatherPipeline.clean">
+<code class="sig-name descname">clean</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/data_pipeline/citi_bike.html#WeatherPipeline.clean"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.data_pipeline.citi_bike.WeatherPipeline.clean" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clean the original data file.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.cli.data_pipeline.citi_bike.WeatherToyPipeline">
+<em class="property">class </em><code class="sig-prename descclassname">maro.cli.data_pipeline.citi_bike.</code><code class="sig-name descname">WeatherToyPipeline</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">topology</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">start_time</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">end_time</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">is_temp</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/data_pipeline/citi_bike.html#WeatherToyPipeline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.data_pipeline.citi_bike.WeatherToyPipeline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.cli.data_pipeline.citi_bike.WeatherPipeline" title="maro.cli.data_pipeline.citi_bike.WeatherPipeline"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.cli.data_pipeline.citi_bike.WeatherPipeline</span></code></a></p>
+<p>Generate weather data bin for the specified topology from frontierweather.com.</p>
+<p>It will be generated in ~/.maro/data/citi_bike/[topology]/_build.
+Folder structure:
+~/.maro</p>
+<blockquote>
+<div><dl>
+<dt>/data/citi_bike/[topology]</dt><dd><p>/_build bin data file
+/source</p>
+<blockquote>
+<div><p>/_download original data file
+/_clean cleaned data file</p>
+</div></blockquote>
+</dd>
+</dl>
+<p>/temp download temp file</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>topology</strong> (<em>str</em>) – Topology name of the data file.</p></li>
+<li><p><strong>start_time</strong> (<em>str</em>) – Start time of the toy data.</p></li>
+<li><p><strong>end_time</strong> (<em>str</em>) – End time of the toy data.</p></li>
+<li><p><strong>is_temp</strong> (<em>bool</em>) – (optional) If the data file is temporary.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.cli.data_pipeline.citi_bike.WeatherToyPipeline.clean">
+<code class="sig-name descname">clean</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/data_pipeline/citi_bike.html#WeatherToyPipeline.clean"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.data_pipeline.citi_bike.WeatherToyPipeline.clean" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clean the original data file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.data_pipeline.citi_bike.WeatherToyPipeline.download">
+<code class="sig-name descname">download</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">is_force</span><span class="p">:</span> <span class="n">bool</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/data_pipeline/citi_bike.html#WeatherToyPipeline.download"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.data_pipeline.citi_bike.WeatherToyPipeline.download" title="Permalink to this definition">¶</a></dt>
+<dd><p>Toy datapipeline not need download process.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="maro-cli-data-pipeline-data-process-module">
+<h2>maro.cli.data_pipeline.data_process module<a class="headerlink" href="#maro-cli-data-pipeline-data-process-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-maro.cli.data_pipeline.utils">
+<span id="maro-cli-data-pipeline-utils-module"></span><h2>maro.cli.data_pipeline.utils module<a class="headerlink" href="#module-maro.cli.data_pipeline.utils" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.cli.data_pipeline.utils.NpEncoder">
+<em class="property">class </em><code class="sig-prename descclassname">maro.cli.data_pipeline.utils.</code><code class="sig-name descname">NpEncoder</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span></em>, <em class="sig-param"><span class="n">skipkeys</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">ensure_ascii</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">check_circular</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">allow_nan</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">sort_keys</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">indent</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">separators</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">default</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/data_pipeline/utils.html#NpEncoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.data_pipeline.utils.NpEncoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">json.encoder.JSONEncoder</span></code></p>
+<dl class="py method">
+<dt id="maro.cli.data_pipeline.utils.NpEncoder.default">
+<code class="sig-name descname">default</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obj</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/data_pipeline/utils.html#NpEncoder.default"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.data_pipeline.utils.NpEncoder.default" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implement this method in a subclass such that it returns
+a serializable object for <code class="docutils literal notranslate"><span class="pre">o</span></code>, or calls the base implementation
+(to raise a <code class="docutils literal notranslate"><span class="pre">TypeError</span></code>).</p>
+<p>For example, to support arbitrary iterators, you could
+implement default like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">o</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">iterable</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">o</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">iterable</span><span class="p">)</span>
+    <span class="c1"># Let the base class default method raise the TypeError</span>
+    <span class="k">return</span> <span class="n">JSONEncoder</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">o</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.cli.data_pipeline.utils.StaticParameter">
+<em class="property">class </em><code class="sig-prename descclassname">maro.cli.data_pipeline.utils.</code><code class="sig-name descname">StaticParameter</code><a class="reference internal" href="../_modules/maro/cli/data_pipeline/utils.html#StaticParameter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.data_pipeline.utils.StaticParameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt id="maro.cli.data_pipeline.utils.StaticParameter.data_root">
+<code class="sig-name descname">data_root</code><em class="property"> = '/home/runner/.maro/data'</em><a class="headerlink" href="#maro.cli.data_pipeline.utils.StaticParameter.data_root" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.cli.data_pipeline.utils.chagne_file_path">
+<code class="sig-prename descclassname">maro.cli.data_pipeline.utils.</code><code class="sig-name descname">chagne_file_path</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source_file_path</span></em>, <em class="sig-param"><span class="n">target_dir</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/data_pipeline/utils.html#chagne_file_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.data_pipeline.utils.chagne_file_path" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="maro.cli.data_pipeline.utils.convert">
+<code class="sig-prename descclassname">maro.cli.data_pipeline.utils.</code><code class="sig-name descname">convert</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">meta</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">file</span><span class="p">:</span> <span class="n">list</span></em>, <em class="sig-param"><span class="n">output</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">start_timestamp</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/data_pipeline/utils.html#convert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.data_pipeline.utils.convert" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="maro.cli.data_pipeline.utils.download_file">
+<code class="sig-prename descclassname">maro.cli.data_pipeline.utils.</code><code class="sig-name descname">download_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">destination</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/data_pipeline/utils.html#download_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.data_pipeline.utils.download_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="maro.cli.data_pipeline.utils.generate_name_with_uuid">
+<code class="sig-prename descclassname">maro.cli.data_pipeline.utils.</code><code class="sig-name descname">generate_name_with_uuid</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">uuid_len</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">16</span></em><span class="sig-paren">)</span> &#x2192; str<a class="reference internal" href="../_modules/maro/cli/data_pipeline/utils.html#generate_name_with_uuid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.data_pipeline.utils.generate_name_with_uuid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="maro-cli-data-pipeline-vm-scheduling-module">
+<h2>maro.cli.data_pipeline.vm_scheduling module<a class="headerlink" href="#maro-cli-data-pipeline-vm-scheduling-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-maro.cli.data_pipeline">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-maro.cli.data_pipeline" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+    <a class='left-prev' id="prev-link" href="maro.cli.html" title="previous page">maro.cli package</a>
+    <a class='right-next' id="next-link" href="maro.cli.envs.html" title="next page">maro.cli.envs package</a>
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../_static/js/index.js"></script>
+    
+  </body>
+</html>

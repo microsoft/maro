@@ -1,0 +1,402 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maro.simulator.scenarios.vm_scheduling.virtual_machine &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../../../../../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../../../../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../../../../../" src="../../../../../_static/documentation_options.js"></script>
+    <script src="../../../../../_static/sphinx-book-theme.js"></script>
+    <script src="../../../../../_static/jquery.js"></script>
+    <script src="../../../../../_static/underscore.js"></script>
+    <script src="../../../../../_static/doctools.js"></script>
+    <script src="../../../../../_static/language_data.js"></script>
+    <script src="../../../../../_static/clipboard.min.js"></script>
+    <script src="../../../../../_static/copybutton.js"></script>
+    <script src="../../../../../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../../../../../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../../../../../index.html">
+  
+  <img src="../../../../../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../../../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../scenarios/container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../scenarios/citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../scenarios/vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../apidoc/maro.html">
+   maro package
+  </a>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2F_modules/maro/simulator/scenarios/vm_scheduling/virtual_machine.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <nav id="bd-toc-nav">
+            
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <h1>Source code for maro.simulator.scenarios.vm_scheduling.virtual_machine</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) Microsoft Corporation.</span>
+<span class="c1"># Licensed under the MIT license.</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+
+<span class="kn">from</span> <span class="nn">.enums</span> <span class="kn">import</span> <span class="n">VmCategory</span>
+
+
+<div class="viewcode-block" id="VirtualMachine"><a class="viewcode-back" href="../../../../../apidoc/maro.simulator.scenarios.vm_scheduling.html#maro.simulator.scenarios.vm_scheduling.virtual_machine.VirtualMachine">[docs]</a><span class="k">class</span> <span class="nc">VirtualMachine</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;VM object.</span>
+
+<span class="sd">    The VM lifetime equals to the deletion tick - creation tick.</span>
+<span class="sd">    For example:</span>
+<span class="sd">        A VM&#39;s cpu utilization is {tick: cpu_utilization} = {0: 0.1, 1: 0.4, 2: 0.2}.</span>
+<span class="sd">        In our scenario, we define vm&#39;s creation tick as 0, and deletion tick as 3.</span>
+<span class="sd">        Its lifetime will be deletion tick - creation tick = 3 - 0 = 3</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        id (int): The VM id.</span>
+<span class="sd">        cpu_cores_requirement (int): The amount of virtual cores requested by VM.</span>
+<span class="sd">        memory_requirement (int): The memory requested by VM. The unit is (GBs).</span>
+<span class="sd">        lifetime (int): The lifetime of the VM, that is, deletion tick - creation tick.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="nb">id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">cpu_cores_requirement</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">memory_requirement</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">lifetime</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">sub_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">deployment_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">category</span><span class="p">:</span> <span class="n">VmCategory</span>
+    <span class="p">):</span>
+        <span class="c1"># VM Requirement parameters.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cpu_cores_requirement</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">cpu_cores_requirement</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">memory_requirement</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">memory_requirement</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lifetime</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">lifetime</span>
+        <span class="c1"># The VM belong to a subscription.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sub_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">sub_id</span>
+        <span class="c1"># The region of PM that VM allocated (under a subscription) called a deployment group.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">deployment_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">deployment_id</span>
+        <span class="c1"># The category of the VM. Now includes Delay-insensitive: 0, Interactive: 1, and Unknown: 2.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">category</span><span class="p">:</span> <span class="n">VmCategory</span> <span class="o">=</span> <span class="n">category</span>
+
+        <span class="c1"># VM utilization list with VM cpu utilization(%) in corresponding tick.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_utilization_series</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># The physical machine Id that the VM is assigned.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pm_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cpu_utilization</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">creation_tick</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">deletion_tick</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">cpu_utilization</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cpu_utilization</span>
+
+    <span class="nd">@cpu_utilization</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">cpu_utilization</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cpu_utilization</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cpu_utilization</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">cpu_utilization</span><span class="p">),</span> <span class="mi">100</span><span class="p">)</span>
+
+<div class="viewcode-block" id="VirtualMachine.get_utilization"><a class="viewcode-back" href="../../../../../apidoc/maro.simulator.scenarios.vm_scheduling.html#maro.simulator.scenarios.vm_scheduling.virtual_machine.VirtualMachine.get_utilization">[docs]</a>    <span class="k">def</span> <span class="nf">get_utilization</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cur_tick</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">cur_tick</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">creation_tick</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_utilization_series</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The tick </span><span class="si">{</span><span class="n">cur_tick</span><span class="si">}</span><span class="s2"> is invalid for the VM </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_utilization_series</span><span class="p">[</span><span class="n">cur_tick</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">creation_tick</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="VirtualMachine.add_utilization"><a class="viewcode-back" href="../../../../../apidoc/maro.simulator.scenarios.vm_scheduling.html#maro.simulator.scenarios.vm_scheduling.virtual_machine.VirtualMachine.add_utilization">[docs]</a>    <span class="k">def</span> <span class="nf">add_utilization</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cpu_utilization</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;VM CPU utilization list.</span>
+
+<span class="sd">        In the cpu_readings_file, all CPU utilization of all VMs are sorted by the timestamp, indexed by the VM ID.</span>
+<span class="sd">        At each tick, we only read the CPU utilization at specific timestamp (tick).</span>
+<span class="sd">        Hence, this function is designed to append the CPU utilization to the end of the corresponding</span>
+<span class="sd">        VM utilization series one by one.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># If cpu_utilization is smaller than 0, it means the missing data in the cpu readings file.</span>
+        <span class="c1"># TODO: We use the last utilization, it could be further refined to use average or others.</span>
+        <span class="k">if</span> <span class="n">cpu_utilization</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_utilization_series</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_utilization_series</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_utilization_series</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cpu_utilization</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="VirtualMachine.get_historical_utilization_series"><a class="viewcode-back" href="../../../../../apidoc/maro.simulator.scenarios.vm_scheduling.html#maro.simulator.scenarios.vm_scheduling.virtual_machine.VirtualMachine.get_historical_utilization_series">[docs]</a>    <span class="k">def</span> <span class="nf">get_historical_utilization_series</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cur_tick</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;&quot;Only expose the CPU utilization series before the current tick.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_utilization_series</span><span class="p">[:</span><span class="n">cur_tick</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">creation_tick</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span></div></div>
+</pre></div>
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../../../../../_static/js/index.js"></script>
+    
+  </body>
+</html>

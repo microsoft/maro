@@ -1,0 +1,670 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maro.data_lib.binary_reader &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../../../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/sphinx-book-theme.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../_static/clipboard.min.js"></script>
+    <script src="../../../_static/copybutton.js"></script>
+    <script src="../../../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../../../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../../../index.html">
+  
+  <img src="../../../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../scenarios/container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../scenarios/citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../scenarios/vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../apidoc/maro.html">
+   maro package
+  </a>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2F_modules/maro/data_lib/binary_reader.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <nav id="bd-toc-nav">
+            
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <h1>Source code for maro.data_lib.binary_reader</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) Microsoft Corporation.</span>
+<span class="c1"># Licensed under the MIT license.</span>
+
+<span class="kn">import</span> <span class="nn">mmap</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
+
+<span class="kn">from</span> <span class="nn">dateutil.relativedelta</span> <span class="kn">import</span> <span class="n">relativedelta</span>
+<span class="kn">from</span> <span class="nn">dateutil.tz</span> <span class="kn">import</span> <span class="n">UTC</span>
+
+<span class="kn">from</span> <span class="nn">maro.data_lib.common</span> <span class="kn">import</span> <span class="n">VERSION</span><span class="p">,</span> <span class="n">FileHeader</span><span class="p">,</span> <span class="n">header_struct</span>
+<span class="kn">from</span> <span class="nn">maro.data_lib.item_meta</span> <span class="kn">import</span> <span class="n">BinaryMeta</span>
+
+<span class="c1"># used to get correct datetime with negative timestamp on Windows</span>
+<span class="n">timestamp_start</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">1970</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">tzinfo</span><span class="o">=</span><span class="n">UTC</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">unit_seconds</span><span class="p">(</span><span class="n">unit</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="c1"># default for second</span>
+    <span class="n">seconds</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="k">if</span> <span class="n">unit</span> <span class="o">==</span> <span class="s2">&quot;m&quot;</span><span class="p">:</span>
+        <span class="n">seconds</span> <span class="o">=</span> <span class="mi">60</span>
+    <span class="k">elif</span> <span class="n">unit</span> <span class="o">==</span> <span class="s2">&quot;h&quot;</span><span class="p">:</span>
+        <span class="n">seconds</span> <span class="o">=</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span>
+    <span class="k">elif</span> <span class="n">unit</span> <span class="o">==</span> <span class="s2">&quot;d&quot;</span><span class="p">:</span>
+        <span class="n">seconds</span> <span class="o">=</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">24</span>
+
+    <span class="k">return</span> <span class="n">seconds</span>
+
+
+<span class="k">def</span> <span class="nf">calc_time_offset</span><span class="p">(</span><span class="n">start_time</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">offset</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">unit</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate time by offset and time unit.&quot;&quot;&quot;</span>
+    <span class="n">seconds_per_unit</span> <span class="o">=</span> <span class="n">unit_seconds</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">offset</span> <span class="o">*</span> <span class="n">seconds_per_unit</span> <span class="o">+</span> <span class="n">start_time</span>
+
+
+<span class="k">class</span> <span class="nc">ItemBuffer</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;In-memory buffer for binary data.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">number_of_item</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">meta</span><span class="p">:</span> <span class="n">BinaryMeta</span><span class="p">,</span> <span class="n">enable_adjust_ratio</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_meta</span> <span class="o">=</span> <span class="n">meta</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_enable_adjust_ratio</span> <span class="o">=</span> <span class="n">enable_adjust_ratio</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bytes</span> <span class="o">=</span> <span class="nb">memoryview</span><span class="p">(</span><span class="nb">bytearray</span><span class="p">(</span><span class="n">number_of_item</span> <span class="o">*</span> <span class="n">meta</span><span class="o">.</span><span class="n">item_size</span><span class="p">))</span>
+        <span class="c1"># valid items in buffer</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">item_number</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="nf">items</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">while</span> <span class="n">index</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">item_number</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">_meta</span><span class="o">.</span><span class="n">item_from_bytes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bytes</span><span class="p">[</span><span class="n">index</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_meta</span><span class="o">.</span><span class="n">item_size</span><span class="p">:],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_enable_adjust_ratio</span><span class="p">)</span>
+
+            <span class="n">index</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">contents</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">bytearray</span><span class="p">,</span> <span class="nb">memoryview</span><span class="p">]):</span>
+        <span class="k">if</span> <span class="n">contents</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">item_number</span> <span class="o">=</span> <span class="mi">0</span>
+
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bytes</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="nb">len</span><span class="p">(</span><span class="n">contents</span><span class="p">)]</span> <span class="o">=</span> <span class="n">contents</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">item_number</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">contents</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_meta</span><span class="o">.</span><span class="n">item_size</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="ItemTickPicker"><a class="viewcode-back" href="../../../apidoc/maro.data_lib.html#maro.data_lib.binary_reader.ItemTickPicker">[docs]</a><span class="k">class</span> <span class="nc">ItemTickPicker</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Wrapper to support get items by tick.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item_generaotr</span><span class="p">,</span> <span class="n">starttime</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">time_unit</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_item_generaotr</span> <span class="o">=</span> <span class="n">item_generaotr</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_starttime</span> <span class="o">=</span> <span class="n">starttime</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_time_unit</span> <span class="o">=</span> <span class="n">time_unit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cached_item</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="ItemTickPicker.items"><a class="viewcode-back" href="../../../apidoc/maro.data_lib.html#maro.data_lib.binary_reader.ItemTickPicker.items">[docs]</a>    <span class="k">def</span> <span class="nf">items</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tick</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get items for specified ticks.</span>
+
+<span class="sd">        NOTE:</span>
+<span class="sd">            This method will compare timestamp of item to pick.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">seconds_per_unit</span> <span class="o">=</span> <span class="n">unit_seconds</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_unit</span><span class="p">)</span>
+        <span class="n">ticks_in_seconds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_starttime</span> <span class="o">+</span> <span class="n">tick</span> <span class="o">*</span> <span class="n">seconds_per_unit</span>
+
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">item</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached_item</span>
+            <span class="c1"># clear the cache</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cached_item</span> <span class="o">=</span> <span class="kc">None</span>
+
+            <span class="k">if</span> <span class="n">item</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">item</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_item_generaotr</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
+                    <span class="k">break</span>
+
+            <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">timestamp</span> <span class="o">&gt;=</span> <span class="n">ticks_in_seconds</span><span class="p">:</span>
+                <span class="n">delta</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">timestamp</span> <span class="o">-</span> <span class="n">ticks_in_seconds</span>
+
+                <span class="c1"># with in one unit</span>
+                <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">delta</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">seconds_per_unit</span><span class="p">:</span>
+                    <span class="k">yield</span> <span class="n">item</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># or keep it for next time</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_cached_item</span> <span class="o">=</span> <span class="n">item</span>
+                    <span class="k">break</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># here we can log items that not sorted</span>
+                <span class="k">pass</span></div></div>
+
+
+<div class="viewcode-block" id="BinaryReader"><a class="viewcode-back" href="../../../apidoc/maro.data_lib.html#maro.data_lib.binary_reader.BinaryReader">[docs]</a><span class="k">class</span> <span class="nc">BinaryReader</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Read binary file converted by csv converter.</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">            reader = BinaryReader(bin_file)</span>
+
+<span class="sd">            # Read items in between 0-10 minute (relative to binary start time).</span>
+<span class="sd">            for item in reader.items(0, 10, time_unit=&quot;m&quot;):</span>
+<span class="sd">                print(item)</span>
+
+<span class="sd">            # Or get a picker that support query by tick sequentially.</span>
+<span class="sd">            picker = reader.items_tick_picker(0, 10, time_unit=&quot;m&quot;):</span>
+
+<span class="sd">            for tick in range(0, 10):</span>
+<span class="sd">                for item in picker.items(tick):</span>
+<span class="sd">                    print(item)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        file_path(str): Binary file path to read.</span>
+<span class="sd">        enable_value_adjust(bool): If reader should adjust the value of fields that enabled</span>
+<span class="sd">            &#39;value_adjust&#39; feature in meta randomly.</span>
+<span class="sd">        buffer_size(int): Size of in-memory buffer.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">enable_value_adjust</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">buffer_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_enable_value_adjust</span> <span class="o">=</span> <span class="n">enable_value_adjust</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">header</span><span class="p">:</span> <span class="n">FileHeader</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_meta</span> <span class="o">=</span> <span class="n">BinaryMeta</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_buffer_size</span> <span class="o">=</span> <span class="n">buffer_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file_fp</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mmap</span><span class="p">:</span> <span class="n">mmap</span><span class="o">.</span><span class="n">mmap</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">file_path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;~&quot;</span><span class="p">):</span>
+            <span class="n">file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file_fp</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;win32&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_mmap</span> <span class="o">=</span> <span class="n">mmap</span><span class="o">.</span><span class="n">mmap</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_file_fp</span><span class="o">.</span><span class="n">fileno</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">access</span><span class="o">=</span><span class="n">mmap</span><span class="o">.</span><span class="n">ACCESS_READ</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_mmap</span> <span class="o">=</span> <span class="n">mmap</span><span class="o">.</span><span class="n">mmap</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_file_fp</span><span class="o">.</span><span class="n">fileno</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">prot</span><span class="o">=</span><span class="n">mmap</span><span class="o">.</span><span class="n">PROT_READ</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_read_header</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_read_meta</span><span class="p">()</span>
+
+        <span class="c1"># double buffer to read data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_item_buffer</span> <span class="o">=</span> <span class="n">ItemBuffer</span><span class="p">(</span>
+            <span class="n">buffer_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_meta</span><span class="p">,</span> <span class="n">enable_value_adjust</span><span class="p">)</span>
+
+        <span class="c1"># contains starttime offset related file offset, used in items() method</span>
+        <span class="c1"># use this to speedup the querying</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_starttime_offset_history</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># move the pointer to data area</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mmap</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">data_offset</span><span class="p">)</span>
+
+        <span class="c1"># data length (in byte) we already loaded, used to check data boundary</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_readed_data_size</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">meta</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BinaryMeta</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;BinaryMeta: Meta data in binary file.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_meta</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">start_datetime</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">datetime</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;datetime: Start datetime of this file (UTC).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_utc_datetime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">starttime</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">end_datetime</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">datetime</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;datetime: End datetime of this file (UTC).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_utc_datetime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">endtime</span><span class="p">)</span>
+
+<div class="viewcode-block" id="BinaryReader.items_tick_picker"><a class="viewcode-back" href="../../../apidoc/maro.data_lib.html#maro.data_lib.binary_reader.BinaryReader.items_tick_picker">[docs]</a>    <span class="k">def</span> <span class="nf">items_tick_picker</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_time_offset</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">end_time_offset</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">time_unit</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;s&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Filter items by specified time range, and then pick by tick sequentially.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            start_time_offset(int): Specified the which tick (in seconds) to start.</span>
+<span class="sd">            end_time_offset(int): Specified the end tick (in seconds) to start.</span>
+<span class="sd">            time_unit (str): Unit of time used to calculate offset, &#39;s&#39;: seconds, &#39;m&#39;: minute, &#39;h&#39;: hour, &#39;d&#39;: day.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            ItemTickPicker: A picker object that support get items by tick in specified range.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">item_filter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">(</span><span class="n">start_time_offset</span><span class="p">,</span> <span class="n">end_time_offset</span><span class="p">,</span> <span class="n">time_unit</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">ItemTickPicker</span><span class="p">(</span><span class="n">item_filter</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">starttime</span><span class="p">,</span> <span class="n">time_unit</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BinaryReader.items"><a class="viewcode-back" href="../../../apidoc/maro.data_lib.html#maro.data_lib.binary_reader.BinaryReader.items">[docs]</a>    <span class="k">def</span> <span class="nf">items</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_time_offset</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">end_time_offset</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">time_unit</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;s&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get all items in specified time range.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            start_time_offset(int): Specified the which tick (in seconds) to start.</span>
+<span class="sd">            end_time_offset(int): Specified the end tick (in seconds) to start.</span>
+<span class="sd">            time_unit (str): Unit of time used to calculate offset, &#39;s&#39;: seconds, &#39;m&#39;: minute, &#39;h&#39;: hour, &#39;d&#39;: day.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">            interable: Items in specified range.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># reset to read from beginning</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+        <span class="c1"># default offset</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">data_offset</span>
+
+        <span class="c1"># time range to filter</span>
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">calc_time_offset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">starttime</span><span class="p">,</span> <span class="n">start_time_offset</span><span class="p">,</span> <span class="n">time_unit</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">end_time_offset</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">end_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">endtime</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">end_time</span> <span class="o">=</span> <span class="n">calc_time_offset</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">starttime</span><span class="p">,</span> <span class="n">end_time_offset</span><span class="p">,</span> <span class="n">time_unit</span><span class="p">)</span>
+
+        <span class="c1"># check if we have used this filter</span>
+        <span class="n">has_filter_history</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="n">start_time_offset</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_starttime_offset_history</span><span class="p">:</span>
+            <span class="n">has_filter_history</span> <span class="o">=</span> <span class="kc">True</span>
+
+            <span class="n">offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_starttime_offset_history</span><span class="p">[</span><span class="n">start_time_offset</span><span class="p">]</span>
+
+        <span class="c1"># fulfill buffer for first time using</span>
+        <span class="c1"># seek to the data part to go through all the items</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mmap</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="n">offset</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fulfill_buffer</span><span class="p">()</span>
+
+        <span class="n">pre_mmap_offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mmap</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span>
+
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="c1"># read and return an item from buffer</span>
+            <span class="n">buffer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_item_buffer</span>
+
+            <span class="k">if</span> <span class="n">buffer</span><span class="o">.</span><span class="n">item_number</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">break</span>
+
+            <span class="n">is_finished</span> <span class="o">=</span> <span class="kc">False</span>
+
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">buffer</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">start_time</span> <span class="o">&lt;=</span> <span class="n">item</span><span class="o">.</span><span class="n">timestamp</span> <span class="o">&lt;=</span> <span class="n">end_time</span><span class="p">:</span>
+                    <span class="c1"># record the filter history</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">has_filter_history</span><span class="p">:</span>
+                        <span class="n">has_filter_history</span> <span class="o">=</span> <span class="kc">True</span>
+
+                        <span class="c1"># return to the start of the buffer</span>
+                        <span class="n">pos</span> <span class="o">=</span> <span class="n">pre_mmap_offset</span> <span class="o">-</span> <span class="n">buffer</span><span class="o">.</span><span class="n">item_number</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_meta</span><span class="o">.</span><span class="n">item_size</span>
+
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_starttime_offset_history</span><span class="p">[</span><span class="n">start_time_offset</span><span class="p">]</span> <span class="o">=</span> <span class="n">pos</span>
+
+                    <span class="k">yield</span> <span class="n">item</span>
+
+                <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">timestamp</span> <span class="o">&gt;</span> <span class="n">end_time</span><span class="p">:</span>
+                    <span class="n">is_finished</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">return</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">is_finished</span><span class="p">:</span>
+                <span class="c1"># then start another one</span>
+                <span class="n">pre_mmap_offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mmap</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">_fulfill_buffer</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">break</span></div>
+
+<div class="viewcode-block" id="BinaryReader.reset"><a class="viewcode-back" href="../../../apidoc/maro.data_lib.html#maro.data_lib.binary_reader.BinaryReader.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Reset binary reader.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_readed_data_size</span> <span class="o">=</span> <span class="mi">0</span></div>
+
+    <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Clear resources.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+<div class="viewcode-block" id="BinaryReader.close"><a class="viewcode-back" href="../../../apidoc/maro.data_lib.html#maro.data_lib.binary_reader.BinaryReader.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Close file.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mmap</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mmap</span><span class="o">.</span><span class="n">closed</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_mmap</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_mmap</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file_fp</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file_fp</span><span class="o">.</span><span class="n">closed</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_file_fp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_file_fp</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+    <span class="k">def</span> <span class="nf">_to_utc_datetime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Convert timestamp into datetime.&quot;&quot;&quot;</span>
+
+        <span class="c1"># TODO: make it as a common method</span>
+        <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;win32&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">timestamp_start</span> <span class="o">+</span> <span class="n">relativedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="n">timestamp</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcfromtimestamp</span><span class="p">(</span><span class="n">timestamp</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">tzinfo</span><span class="o">=</span><span class="n">UTC</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_read_header</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Read header part.&quot;&quot;&quot;</span>
+        <span class="n">header_bytes</span> <span class="o">=</span> <span class="nb">memoryview</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mmap</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">header_struct</span><span class="o">.</span><span class="n">size</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">header</span> <span class="o">=</span> <span class="n">FileHeader</span><span class="o">.</span><span class="n">_make</span><span class="p">(</span><span class="n">header_struct</span><span class="o">.</span><span class="n">unpack_from</span><span class="p">(</span><span class="n">header_bytes</span><span class="p">))</span>
+
+        <span class="c1"># validate header</span>
+        <span class="c1"># if current version less than file, then a warning</span>
+        <span class="k">if</span> <span class="n">VERSION</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">version</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;File version is greater than current reader version, may cause unknown behavior!.&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_read_meta</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Read meta part.&quot;&quot;&quot;</span>
+        <span class="n">meta_bytes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mmap</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">meta_offset</span><span class="p">:</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">meta_offset</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">meta_size</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_meta</span><span class="o">.</span><span class="n">from_bytes</span><span class="p">(</span><span class="n">meta_bytes</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_fulfill_buffer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Fulfill buffer from file.&quot;&quot;&quot;</span>
+
+        <span class="n">buffer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_item_buffer</span>
+
+        <span class="n">size_to_read</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_meta</span><span class="o">.</span><span class="n">item_size</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffer_size</span>
+        <span class="n">remaining_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">data_size</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_readed_data_size</span>
+
+        <span class="n">size_to_read</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">size_to_read</span><span class="p">,</span> <span class="n">remaining_size</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">size_to_read</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">buffer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">item_bytes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mmap</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">size_to_read</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_readed_data_size</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">item_bytes</span><span class="p">)</span>
+
+            <span class="n">buffer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">item_bytes</span><span class="p">)</span></div>
+
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;BinaryReader&#39;</span><span class="p">]</span>
+</pre></div>
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../../../_static/js/index.js"></script>
+    
+  </body>
+</html>

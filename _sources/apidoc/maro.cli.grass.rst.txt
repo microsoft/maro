@@ -1,0 +1,103 @@
+maro.cli.grass package
+======================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   maro.cli.grass.executors
+   maro.cli.grass.utils
+
+Submodules
+----------
+
+maro.cli.grass.clean module
+---------------------------
+
+.. automodule:: maro.cli.grass.clean
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.cli.grass.create module
+----------------------------
+
+.. automodule:: maro.cli.grass.create
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.cli.grass.data module
+--------------------------
+
+.. automodule:: maro.cli.grass.data
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.cli.grass.delete module
+----------------------------
+
+.. automodule:: maro.cli.grass.delete
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.cli.grass.image module
+---------------------------
+
+.. automodule:: maro.cli.grass.image
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.cli.grass.job module
+-------------------------
+
+.. automodule:: maro.cli.grass.job
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.cli.grass.node module
+--------------------------
+
+.. automodule:: maro.cli.grass.node
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.cli.grass.schedule module
+------------------------------
+
+.. automodule:: maro.cli.grass.schedule
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.cli.grass.status module
+----------------------------
+
+.. automodule:: maro.cli.grass.status
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.cli.grass.template module
+------------------------------
+
+.. automodule:: maro.cli.grass.template
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: maro.cli.grass
+   :members:
+   :undoc-members:
+   :show-inheritance:

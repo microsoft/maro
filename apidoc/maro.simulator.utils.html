@@ -1,0 +1,1060 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maro.simulator.utils package &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="maro.utils package" href="maro.utils.html" />
+    <link rel="prev" title="maro.simulator.scenarios.vm_scheduling package" href="maro.simulator.scenarios.vm_scheduling.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../index.html">
+  
+  <img src="../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="current nav sidenav_l1">
+ <li class="toctree-l1 current active">
+  <a class="reference internal" href="maro.html">
+   maro package
+  </a>
+  <ul class="current">
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.backends.html">
+     maro.backends package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.cli.html">
+     maro.cli package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.data_pipeline.html">
+       maro.cli.data_pipeline package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.envs.html">
+       maro.cli.envs package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.grass.html">
+       maro.cli.grass package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.grass.executors.html">
+         maro.cli.grass.executors package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.grass.utils.html">
+         maro.cli.grass.utils package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.inspector.html">
+       maro.cli.inspector package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.k8s.html">
+       maro.cli.k8s package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.k8s.executors.html">
+         maro.cli.k8s.executors package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.process.html">
+       maro.cli.process package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.process.utils.html">
+         maro.cli.process.utils package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.utils.html">
+       maro.cli.utils package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.utils.executors.html">
+         maro.cli.utils.executors package
+        </a>
+       </li>
+      </ul>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.communication.html">
+     maro.communication package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.communication.driver.html">
+       maro.communication.driver package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.communication.utils.html">
+       maro.communication.utils package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.data_lib.html">
+     maro.data_lib package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.data_lib.cim.html">
+       maro.data_lib.cim package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.event_buffer.html">
+     maro.event_buffer package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.forecasting.html">
+     maro.forecasting package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.rl.html">
+     maro.rl package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.actor.html">
+       maro.rl.actor package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.agent.html">
+       maro.rl.agent package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.algorithms.html">
+       maro.rl.algorithms package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.dist_topologies.html">
+       maro.rl.dist_topologies package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.exploration.html">
+       maro.rl.exploration package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.learner.html">
+       maro.rl.learner package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.models.html">
+       maro.rl.models package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.scheduling.html">
+       maro.rl.scheduling package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.shaping.html">
+       maro.rl.shaping package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.storage.html">
+       maro.rl.storage package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 current active">
+    <a class="reference internal" href="maro.simulator.html">
+     maro.simulator package
+    </a>
+    <ul class="current">
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.simulator.scenarios.html">
+       maro.simulator.scenarios package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.cim.html">
+         maro.simulator.scenarios.cim package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.citi_bike.html">
+         maro.simulator.scenarios.citi_bike package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.vm_scheduling.html">
+         maro.simulator.scenarios.vm_scheduling package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3 current active">
+      <a class="current reference internal" href="#">
+       maro.simulator.utils package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.utils.html">
+     maro.utils package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.utils.exception.html">
+       maro.utils.exception package
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+        
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="../_sources/apidoc/maro.simulator.utils.rst.txt"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.rst</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2Fapidoc/maro.simulator.utils.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        <a class="edit-button" href="https://github.com/microsoft/maro/edit/master/doc/source/apidoc/maro.simulator.utils.rst"><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Edit this page"><i class="fas fa-pencil-alt"></i>suggest edit</button></a>
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <div class="tocsection onthispage pt-5 pb-3">
+            <i class="fas fa-list"></i> Contents
+        </div>
+        <nav id="bd-toc-nav">
+            <ul class="nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#submodules">
+   Submodules
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.simulator.utils.common">
+   maro.simulator.utils.common module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.simulator.utils.event_bind_binreader">
+   maro.simulator.utils.event_bind_binreader module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.simulator.utils.sim_random">
+   maro.simulator.utils.sim_random module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.simulator.utils">
+   Module contents
+  </a>
+ </li>
+</ul>
+
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <div class="section" id="maro-simulator-utils-package">
+<h1>maro.simulator.utils package<a class="headerlink" href="#maro-simulator-utils-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-maro.simulator.utils.common">
+<span id="maro-simulator-utils-common-module"></span><h2>maro.simulator.utils.common module<a class="headerlink" href="#module-maro.simulator.utils.common" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="maro.simulator.utils.common.frame_index_to_ticks">
+<code class="sig-prename descclassname">maro.simulator.utils.common.</code><code class="sig-name descname">frame_index_to_ticks</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">start_tick</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">max_tick</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">resolution</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; dict<a class="reference internal" href="../_modules/maro/simulator/utils/common.html#frame_index_to_ticks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.utils.common.frame_index_to_ticks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate a dictionary that key is frame index, value is ticks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>start_tick</strong> (<em>int</em>) – Start tick of current simulation.</p></li>
+<li><p><strong>max_tick</strong> (<em>int</em>) – Max tick of current simulation.</p></li>
+<li><p><strong>resolution</strong> (<em>int</em>) – Current snapshot resolution.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Key is the frame index in snapshot list, value is tick list for current frame index.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.simulator.utils.common.get_available_envs">
+<code class="sig-prename descclassname">maro.simulator.utils.common.</code><code class="sig-name descname">get_available_envs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/utils/common.html#get_available_envs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.utils.common.get_available_envs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get available built-in scenarios and their topologies.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>List of environment settings like [{“scenario”: “cim”, “topology”: “toy.5p_ssddd_l0.1”}].</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>List[dict]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.simulator.utils.common.get_scenarios">
+<code class="sig-prename descclassname">maro.simulator.utils.common.</code><code class="sig-name descname">get_scenarios</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>str<span class="p">]</span><a class="reference internal" href="../_modules/maro/simulator/utils/common.html#get_scenarios"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.utils.common.get_scenarios" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get built-in scenario name list.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>List of scenario name.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>List[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.simulator.utils.common.get_topologies">
+<code class="sig-prename descclassname">maro.simulator.utils.common.</code><code class="sig-name descname">get_topologies</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">scenario</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>str<span class="p">]</span><a class="reference internal" href="../_modules/maro/simulator/utils/common.html#get_topologies"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.utils.common.get_topologies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get topology list of specified built-in scenario name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>scenario</strong> (<em>str</em>) – Built-in scenario name.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List of topology name.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.simulator.utils.common.tick_to_frame_index">
+<code class="sig-prename descclassname">maro.simulator.utils.common.</code><code class="sig-name descname">tick_to_frame_index</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">start_tick</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">cur_tick</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">resolution</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; int<a class="reference internal" href="../_modules/maro/simulator/utils/common.html#tick_to_frame_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.utils.common.tick_to_frame_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate frame index in snapshot list of specified configurations, usually is used
+when taking snapshot.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>start_tick</strong> (<em>int</em>) – Start tick of current simulation.</p></li>
+<li><p><strong>cur_tick</strong> (<em>int</em>) – Current tick in simulator.</p></li>
+<li><p><strong>resolution</strong> (<em>int</em>) – Snapshot resolution.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Frame index in snapshot list of current tick.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.simulator.utils.common.total_frames">
+<code class="sig-prename descclassname">maro.simulator.utils.common.</code><code class="sig-name descname">total_frames</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">start_tick</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">max_tick</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">resolution</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; int<a class="reference internal" href="../_modules/maro/simulator/utils/common.html#total_frames"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.utils.common.total_frames" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate total frame snapshot in snapshot list.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This method return the max snapshot number,
+but you can use small value to reduce memory using your own one.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>start_tick</strong> (<em>int</em>) – Start tick of current simulation.</p></li>
+<li><p><strong>max_tick</strong> (<em>int</em>) – Max tick of current simulation.</p></li>
+<li><p><strong>resolution</strong> (<em>int</em>) – Snapshot resolution.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Max snapshots will be generated.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.simulator.utils.event_bind_binreader">
+<span id="maro-simulator-utils-event-bind-binreader-module"></span><h2>maro.simulator.utils.event_bind_binreader module<a class="headerlink" href="#module-maro.simulator.utils.event_bind_binreader" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.simulator.utils.event_bind_binreader.EventBindBinaryReader">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.utils.event_bind_binreader.</code><code class="sig-name descname">EventBindBinaryReader</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event_cls</span><span class="p">:</span> <span class="n">type</span></em>, <em class="sig-param"><span class="n">event_buffer</span><span class="p">:</span> <span class="n"><a class="reference internal" href="maro.event_buffer.html#maro.event_buffer.event_buffer.EventBuffer" title="maro.event_buffer.event_buffer.EventBuffer">maro.event_buffer.event_buffer.EventBuffer</a></span></em>, <em class="sig-param"><span class="n">binary_file_path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">start_tick</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">0</span></em>, <em class="sig-param"><span class="n">end_tick</span><span class="o">=</span><span class="default_value">100</span></em>, <em class="sig-param"><span class="n">time_unit</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'s'</span></em>, <em class="sig-param"><span class="n">buffer_size</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">100</span></em>, <em class="sig-param"><span class="n">enable_value_adjust</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/utils/event_bind_binreader.html#EventBindBinaryReader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.utils.event_bind_binreader.EventBindBinaryReader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Binary reader that will generate and insert event that defined in meta into event buffer.
+If items that not match any event type, then they will bind to a predefined event UNPROECESSED_EVENT,
+you can handle this by register an event handler.</p>
+<p class="rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MyEvents</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="n">Event1</span> <span class="o">=</span> <span class="s1">&#39;event1&#39;</span>
+    <span class="n">Event2</span> <span class="o">=</span> <span class="s1">&#39;event2&#39;</span>
+
+<span class="n">event_buffer</span> <span class="o">=</span> <span class="n">EventBuffer</span><span class="p">()</span>
+
+<span class="c1"># Handle events we defined.</span>
+<span class="n">event_buffer</span><span class="o">.</span><span class="n">register_event_handler</span><span class="p">(</span><span class="n">MyEvents</span><span class="o">.</span><span class="n">Event1</span><span class="p">,</span> <span class="n">on_event1_occur</span><span class="p">)</span>
+<span class="n">event_buffer</span><span class="o">.</span><span class="n">register_event_handler</span><span class="p">(</span><span class="n">MyEvents</span><span class="o">.</span><span class="n">Event2</span><span class="p">,</span> <span class="n">on_event1_occur</span><span class="p">)</span>
+
+<span class="c1"># Handle item that cannot map to event.</span>
+<span class="n">event_buffer</span><span class="o">.</span><span class="n">register_event_handler</span><span class="p">(</span><span class="n">UNPROECESSED_EVENT</span><span class="p">,</span> <span class="n">on_unprocessed_item</span><span class="p">)</span>
+
+<span class="c1"># Create reader within tick (0, 1000), and events will be mapped to MyEvents type.</span>
+<span class="n">reader</span> <span class="o">=</span> <span class="n">EventBindBinaryReader</span><span class="p">(</span><span class="n">MyEvents</span><span class="p">,</span> <span class="n">event_buffer</span><span class="p">,</span> <span class="n">path_to_bin</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+
+<span class="c1"># Read and gen event at tick 0.</span>
+<span class="n">reader</span><span class="o">.</span><span class="n">read_items</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">on_event1_occur</span><span class="p">(</span><span class="n">evt</span><span class="p">:</span> <span class="n">Event</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+<span class="k">def</span> <span class="nf">on_event1_occur</span><span class="p">(</span><span class="n">evt</span><span class="p">:</span> <span class="n">Event</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+<span class="k">def</span> <span class="nf">on_unprocessed_item</span><span class="p">(</span><span class="n">evt</span><span class="p">:</span> <span class="n">Event</span><span class="p">):</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>event_cls</strong> (<em>type</em>) – Event class that will be mapped to.</p></li>
+<li><p><strong>event_buffer</strong> (<em>EventBuffer</em>) – Event buffer that used to generate and insert events.</p></li>
+<li><p><strong>binary_file_path</strong> (<em>str</em>) – Path to binary file to read.</p></li>
+<li><p><strong>start_tick</strong> (<em>int</em>) – Start tick to filter, default is 0.</p></li>
+<li><p><strong>end_tick</strong> (<em>int</em>) – End tick to filter, de fault is 100.</p></li>
+<li><p><strong>time_unit</strong> (<em>str</em>) – Unit of tick, available units are “d”, “h”, “m”, “s”.
+different unit will affect the reading result.</p></li>
+<li><p><strong>buffer_size</strong> (<em>int</em>) – In memory buffer size.</p></li>
+<li><p><strong>enable_value_adjust</strong> (<em>bool</em>) – If reader should adjust the value of the fields that marked as adjust-able.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.simulator.utils.event_bind_binreader.EventBindBinaryReader.end_datetime">
+<em class="property">property </em><code class="sig-name descname">end_datetime</code><a class="headerlink" href="#maro.simulator.utils.event_bind_binreader.EventBindBinaryReader.end_datetime" title="Permalink to this definition">¶</a></dt>
+<dd><p>End datetime of this binary file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>datetime</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.utils.event_bind_binreader.EventBindBinaryReader.header">
+<em class="property">property </em><code class="sig-name descname">header</code><a class="headerlink" href="#maro.simulator.utils.event_bind_binreader.EventBindBinaryReader.header" title="Permalink to this definition">¶</a></dt>
+<dd><p>Header in binary file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.utils.event_bind_binreader.EventBindBinaryReader.read_items">
+<code class="sig-name descname">read_items</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tick</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/utils/event_bind_binreader.html#EventBindBinaryReader.read_items"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.utils.event_bind_binreader.EventBindBinaryReader.read_items" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read items by tick and generate related events, then insert them into EventBuffer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>tick</strong> (<em>int</em>) – Tick to get items, NOTE: the tick must specified sequentially.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.utils.event_bind_binreader.EventBindBinaryReader.reset">
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/utils/event_bind_binreader.html#EventBindBinaryReader.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.utils.event_bind_binreader.EventBindBinaryReader.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset states of reader.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.utils.event_bind_binreader.EventBindBinaryReader.start_datetime">
+<em class="property">property </em><code class="sig-name descname">start_datetime</code><a class="headerlink" href="#maro.simulator.utils.event_bind_binreader.EventBindBinaryReader.start_datetime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start datetime of this binary file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>datetime</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.simulator.utils.sim_random">
+<span id="maro-simulator-utils-sim-random-module"></span><h2>maro.simulator.utils.sim_random module<a class="headerlink" href="#module-maro.simulator.utils.sim_random" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.simulator.utils.sim_random.SimRandom">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.utils.sim_random.</code><code class="sig-name descname">SimRandom</code><a class="reference internal" href="../_modules/maro/simulator/utils/sim_random.html#SimRandom"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.utils.sim_random.SimRandom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Simulator random object that will keep a module level random.Random object to keep its internal random sequence,
+it will not be affected by outside, and outside can set seed with seed function as normal.</p>
+<p>Use it as a dict to get another random object with a name, all the random objects from this way will be
+affect the seed method.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">maro.simulator.utils</span> <span class="kn">import</span> <span class="n">random</span><span class="p">,</span> <span class="n">seed</span>
+
+<span class="c1"># This will create 2 random object, each has different sequence.</span>
+<span class="n">r1</span> <span class="o">=</span> <span class="n">random</span><span class="p">[</span><span class="s2">&quot;r1&quot;</span><span class="p">]</span>
+<span class="n">r2</span> <span class="o">=</span> <span class="n">random</span><span class="p">[</span><span class="s2">&quot;r2&quot;</span><span class="p">]</span>
+
+<span class="c1"># Seed will reset above random sequence.</span>
+<span class="n">seed</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt id="maro.simulator.utils.sim_random.SimRandom.get_seed">
+<code class="sig-name descname">get_seed</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; int<a class="reference internal" href="../_modules/maro/simulator/utils/sim_random.html#SimRandom.get_seed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.utils.sim_random.SimRandom.get_seed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get seed of current random generator.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This will only return the seed of first random object that specified by user (or default).</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>key</strong> (<em>str</em>) – Key of item to get.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>If key is None return seed for 1st instance (same as what passed to seed function),</dt><dd><p>else return seed for specified generator.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.utils.sim_random.SimRandom.seed">
+<code class="sig-name descname">seed</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">seed_num</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/utils/sim_random.html#SimRandom.seed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.utils.sim_random.SimRandom.seed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set seed for simulator random objects.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This method will affect all the random object that get from this class.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>seed_num</strong> (<em>int</em>) – Seed to set, must be an integer.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py data">
+<dt id="maro.simulator.utils.sim_random.random">
+<code class="sig-prename descclassname">maro.simulator.utils.sim_random.</code><code class="sig-name descname">random</code><em class="property"> = &lt;maro.simulator.utils.sim_random.SimRandom object&gt;</em><a class="headerlink" href="#maro.simulator.utils.sim_random.random" title="Permalink to this definition">¶</a></dt>
+<dd><p>Random utility for simulator, same with original random module.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.simulator.utils.sim_random.seed">
+<code class="sig-prename descclassname">maro.simulator.utils.sim_random.</code><code class="sig-name descname">seed</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">seed_num</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="headerlink" href="#maro.simulator.utils.sim_random.seed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set seed for simulator.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.simulator.utils">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-maro.simulator.utils" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.simulator.utils.EventBindBinaryReader">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.utils.</code><code class="sig-name descname">EventBindBinaryReader</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event_cls</span><span class="p">:</span> <span class="n">type</span></em>, <em class="sig-param"><span class="n">event_buffer</span><span class="p">:</span> <span class="n"><a class="reference internal" href="maro.event_buffer.html#maro.event_buffer.event_buffer.EventBuffer" title="maro.event_buffer.event_buffer.EventBuffer">maro.event_buffer.event_buffer.EventBuffer</a></span></em>, <em class="sig-param"><span class="n">binary_file_path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">start_tick</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">0</span></em>, <em class="sig-param"><span class="n">end_tick</span><span class="o">=</span><span class="default_value">100</span></em>, <em class="sig-param"><span class="n">time_unit</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'s'</span></em>, <em class="sig-param"><span class="n">buffer_size</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">100</span></em>, <em class="sig-param"><span class="n">enable_value_adjust</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/utils/event_bind_binreader.html#EventBindBinaryReader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.utils.EventBindBinaryReader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Binary reader that will generate and insert event that defined in meta into event buffer.
+If items that not match any event type, then they will bind to a predefined event UNPROECESSED_EVENT,
+you can handle this by register an event handler.</p>
+<p class="rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MyEvents</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="n">Event1</span> <span class="o">=</span> <span class="s1">&#39;event1&#39;</span>
+    <span class="n">Event2</span> <span class="o">=</span> <span class="s1">&#39;event2&#39;</span>
+
+<span class="n">event_buffer</span> <span class="o">=</span> <span class="n">EventBuffer</span><span class="p">()</span>
+
+<span class="c1"># Handle events we defined.</span>
+<span class="n">event_buffer</span><span class="o">.</span><span class="n">register_event_handler</span><span class="p">(</span><span class="n">MyEvents</span><span class="o">.</span><span class="n">Event1</span><span class="p">,</span> <span class="n">on_event1_occur</span><span class="p">)</span>
+<span class="n">event_buffer</span><span class="o">.</span><span class="n">register_event_handler</span><span class="p">(</span><span class="n">MyEvents</span><span class="o">.</span><span class="n">Event2</span><span class="p">,</span> <span class="n">on_event1_occur</span><span class="p">)</span>
+
+<span class="c1"># Handle item that cannot map to event.</span>
+<span class="n">event_buffer</span><span class="o">.</span><span class="n">register_event_handler</span><span class="p">(</span><span class="n">UNPROECESSED_EVENT</span><span class="p">,</span> <span class="n">on_unprocessed_item</span><span class="p">)</span>
+
+<span class="c1"># Create reader within tick (0, 1000), and events will be mapped to MyEvents type.</span>
+<span class="n">reader</span> <span class="o">=</span> <span class="n">EventBindBinaryReader</span><span class="p">(</span><span class="n">MyEvents</span><span class="p">,</span> <span class="n">event_buffer</span><span class="p">,</span> <span class="n">path_to_bin</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+
+<span class="c1"># Read and gen event at tick 0.</span>
+<span class="n">reader</span><span class="o">.</span><span class="n">read_items</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">on_event1_occur</span><span class="p">(</span><span class="n">evt</span><span class="p">:</span> <span class="n">Event</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+<span class="k">def</span> <span class="nf">on_event1_occur</span><span class="p">(</span><span class="n">evt</span><span class="p">:</span> <span class="n">Event</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+<span class="k">def</span> <span class="nf">on_unprocessed_item</span><span class="p">(</span><span class="n">evt</span><span class="p">:</span> <span class="n">Event</span><span class="p">):</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>event_cls</strong> (<em>type</em>) – Event class that will be mapped to.</p></li>
+<li><p><strong>event_buffer</strong> (<em>EventBuffer</em>) – Event buffer that used to generate and insert events.</p></li>
+<li><p><strong>binary_file_path</strong> (<em>str</em>) – Path to binary file to read.</p></li>
+<li><p><strong>start_tick</strong> (<em>int</em>) – Start tick to filter, default is 0.</p></li>
+<li><p><strong>end_tick</strong> (<em>int</em>) – End tick to filter, de fault is 100.</p></li>
+<li><p><strong>time_unit</strong> (<em>str</em>) – Unit of tick, available units are “d”, “h”, “m”, “s”.
+different unit will affect the reading result.</p></li>
+<li><p><strong>buffer_size</strong> (<em>int</em>) – In memory buffer size.</p></li>
+<li><p><strong>enable_value_adjust</strong> (<em>bool</em>) – If reader should adjust the value of the fields that marked as adjust-able.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.simulator.utils.EventBindBinaryReader.end_datetime">
+<em class="property">property </em><code class="sig-name descname">end_datetime</code><a class="headerlink" href="#maro.simulator.utils.EventBindBinaryReader.end_datetime" title="Permalink to this definition">¶</a></dt>
+<dd><p>End datetime of this binary file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>datetime</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.utils.EventBindBinaryReader.header">
+<em class="property">property </em><code class="sig-name descname">header</code><a class="headerlink" href="#maro.simulator.utils.EventBindBinaryReader.header" title="Permalink to this definition">¶</a></dt>
+<dd><p>Header in binary file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.utils.EventBindBinaryReader.read_items">
+<code class="sig-name descname">read_items</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tick</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/utils/event_bind_binreader.html#EventBindBinaryReader.read_items"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.utils.EventBindBinaryReader.read_items" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read items by tick and generate related events, then insert them into EventBuffer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>tick</strong> (<em>int</em>) – Tick to get items, NOTE: the tick must specified sequentially.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.utils.EventBindBinaryReader.reset">
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/utils/event_bind_binreader.html#EventBindBinaryReader.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.utils.EventBindBinaryReader.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset states of reader.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.utils.EventBindBinaryReader.start_datetime">
+<em class="property">property </em><code class="sig-name descname">start_datetime</code><a class="headerlink" href="#maro.simulator.utils.EventBindBinaryReader.start_datetime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start datetime of this binary file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>datetime</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.simulator.utils.get_available_envs">
+<code class="sig-prename descclassname">maro.simulator.utils.</code><code class="sig-name descname">get_available_envs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/utils/common.html#get_available_envs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.utils.get_available_envs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get available built-in scenarios and their topologies.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>List of environment settings like [{“scenario”: “cim”, “topology”: “toy.5p_ssddd_l0.1”}].</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>List[dict]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.simulator.utils.get_scenarios">
+<code class="sig-prename descclassname">maro.simulator.utils.</code><code class="sig-name descname">get_scenarios</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>str<span class="p">]</span><a class="reference internal" href="../_modules/maro/simulator/utils/common.html#get_scenarios"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.utils.get_scenarios" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get built-in scenario name list.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>List of scenario name.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>List[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.simulator.utils.get_topologies">
+<code class="sig-prename descclassname">maro.simulator.utils.</code><code class="sig-name descname">get_topologies</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">scenario</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>str<span class="p">]</span><a class="reference internal" href="../_modules/maro/simulator/utils/common.html#get_topologies"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.utils.get_topologies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get topology list of specified built-in scenario name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>scenario</strong> (<em>str</em>) – Built-in scenario name.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List of topology name.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.simulator.utils.seed">
+<code class="sig-prename descclassname">maro.simulator.utils.</code><code class="sig-name descname">seed</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">seed_num</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="headerlink" href="#maro.simulator.utils.seed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set seed for simulator random objects.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This method will affect all the random object that get from this class.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>seed_num</strong> (<em>int</em>) – Seed to set, must be an integer.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+    <a class='left-prev' id="prev-link" href="maro.simulator.scenarios.vm_scheduling.html" title="previous page">maro.simulator.scenarios.vm_scheduling package</a>
+    <a class='right-next' id="next-link" href="maro.utils.html" title="next page">maro.utils package</a>
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../_static/js/index.js"></script>
+    
+  </body>
+</html>

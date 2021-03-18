@@ -1,0 +1,38 @@
+maro.rl.algorithms package
+==========================
+
+Submodules
+----------
+
+maro.rl.algorithms.abs\_algorithm module
+----------------------------------------
+
+.. automodule:: maro.rl.algorithms.abs_algorithm
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.rl.algorithms.dqn module
+-----------------------------
+
+.. automodule:: maro.rl.algorithms.dqn
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.rl.algorithms.policy\_optimization module
+----------------------------------------------
+
+.. automodule:: maro.rl.algorithms.policy_optimization
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: maro.rl.algorithms
+   :members:
+   :undoc-members:
+   :show-inheritance:

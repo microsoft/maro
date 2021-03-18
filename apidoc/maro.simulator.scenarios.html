@@ -1,0 +1,976 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maro.simulator.scenarios package &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="maro.simulator.scenarios.cim package" href="maro.simulator.scenarios.cim.html" />
+    <link rel="prev" title="maro.simulator package" href="maro.simulator.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../index.html">
+  
+  <img src="../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="current nav sidenav_l1">
+ <li class="toctree-l1 current active">
+  <a class="reference internal" href="maro.html">
+   maro package
+  </a>
+  <ul class="current">
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.backends.html">
+     maro.backends package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.cli.html">
+     maro.cli package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.data_pipeline.html">
+       maro.cli.data_pipeline package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.envs.html">
+       maro.cli.envs package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.grass.html">
+       maro.cli.grass package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.grass.executors.html">
+         maro.cli.grass.executors package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.grass.utils.html">
+         maro.cli.grass.utils package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.inspector.html">
+       maro.cli.inspector package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.k8s.html">
+       maro.cli.k8s package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.k8s.executors.html">
+         maro.cli.k8s.executors package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.process.html">
+       maro.cli.process package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.process.utils.html">
+         maro.cli.process.utils package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.utils.html">
+       maro.cli.utils package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.utils.executors.html">
+         maro.cli.utils.executors package
+        </a>
+       </li>
+      </ul>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.communication.html">
+     maro.communication package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.communication.driver.html">
+       maro.communication.driver package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.communication.utils.html">
+       maro.communication.utils package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.data_lib.html">
+     maro.data_lib package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.data_lib.cim.html">
+       maro.data_lib.cim package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.event_buffer.html">
+     maro.event_buffer package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.forecasting.html">
+     maro.forecasting package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.rl.html">
+     maro.rl package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.actor.html">
+       maro.rl.actor package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.agent.html">
+       maro.rl.agent package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.algorithms.html">
+       maro.rl.algorithms package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.dist_topologies.html">
+       maro.rl.dist_topologies package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.exploration.html">
+       maro.rl.exploration package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.learner.html">
+       maro.rl.learner package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.models.html">
+       maro.rl.models package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.scheduling.html">
+       maro.rl.scheduling package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.shaping.html">
+       maro.rl.shaping package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.storage.html">
+       maro.rl.storage package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 current active">
+    <a class="reference internal" href="maro.simulator.html">
+     maro.simulator package
+    </a>
+    <ul class="current">
+     <li class="toctree-l3 current active">
+      <a class="current reference internal" href="#">
+       maro.simulator.scenarios package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.cim.html">
+         maro.simulator.scenarios.cim package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.citi_bike.html">
+         maro.simulator.scenarios.citi_bike package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.vm_scheduling.html">
+         maro.simulator.scenarios.vm_scheduling package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.simulator.utils.html">
+       maro.simulator.utils package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.utils.html">
+     maro.utils package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.utils.exception.html">
+       maro.utils.exception package
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+        
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="../_sources/apidoc/maro.simulator.scenarios.rst.txt"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.rst</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2Fapidoc/maro.simulator.scenarios.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        <a class="edit-button" href="https://github.com/microsoft/maro/edit/master/doc/source/apidoc/maro.simulator.scenarios.rst"><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Edit this page"><i class="fas fa-pencil-alt"></i>suggest edit</button></a>
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <div class="tocsection onthispage pt-5 pb-3">
+            <i class="fas fa-list"></i> Contents
+        </div>
+        <nav id="bd-toc-nav">
+            <ul class="nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#subpackages">
+   Subpackages
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#submodules">
+   Submodules
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.simulator.scenarios.abs_business_engine">
+   maro.simulator.scenarios.abs_business_engine module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.simulator.scenarios.helpers">
+   maro.simulator.scenarios.helpers module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.simulator.scenarios.matrix_accessor">
+   maro.simulator.scenarios.matrix_accessor module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.simulator.scenarios">
+   Module contents
+  </a>
+ </li>
+</ul>
+
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <div class="section" id="maro-simulator-scenarios-package">
+<h1>maro.simulator.scenarios package<a class="headerlink" href="#maro-simulator-scenarios-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="maro.simulator.scenarios.cim.html">maro.simulator.scenarios.cim package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="maro.simulator.scenarios.cim.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.simulator.scenarios.cim.html#module-maro.simulator.scenarios.cim.business_engine">maro.simulator.scenarios.cim.business_engine module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.simulator.scenarios.cim.html#module-maro.simulator.scenarios.cim.common">maro.simulator.scenarios.cim.common module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.simulator.scenarios.cim.html#module-maro.simulator.scenarios.cim.event_payload">maro.simulator.scenarios.cim.event_payload module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.simulator.scenarios.cim.html#module-maro.simulator.scenarios.cim.events">maro.simulator.scenarios.cim.events module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.simulator.scenarios.cim.html#module-maro.simulator.scenarios.cim.frame_builder">maro.simulator.scenarios.cim.frame_builder module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.simulator.scenarios.cim.html#module-maro.simulator.scenarios.cim.matrix">maro.simulator.scenarios.cim.matrix module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.simulator.scenarios.cim.html#module-maro.simulator.scenarios.cim.port">maro.simulator.scenarios.cim.port module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.simulator.scenarios.cim.html#module-maro.simulator.scenarios.cim.ports_order_export">maro.simulator.scenarios.cim.ports_order_export module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.simulator.scenarios.cim.html#module-maro.simulator.scenarios.cim.vessel">maro.simulator.scenarios.cim.vessel module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.simulator.scenarios.cim.html#module-maro.simulator.scenarios.cim">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="maro.simulator.scenarios.citi_bike.html">maro.simulator.scenarios.citi_bike package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="maro.simulator.scenarios.citi_bike.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.simulator.scenarios.citi_bike.html#module-maro.simulator.scenarios.citi_bike.adj_loader">maro.simulator.scenarios.citi_bike.adj_loader module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.simulator.scenarios.citi_bike.html#module-maro.simulator.scenarios.citi_bike.business_engine">maro.simulator.scenarios.citi_bike.business_engine module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.simulator.scenarios.citi_bike.html#module-maro.simulator.scenarios.citi_bike.common">maro.simulator.scenarios.citi_bike.common module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.simulator.scenarios.citi_bike.html#module-maro.simulator.scenarios.citi_bike.decision_strategy">maro.simulator.scenarios.citi_bike.decision_strategy module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.simulator.scenarios.citi_bike.html#module-maro.simulator.scenarios.citi_bike.events">maro.simulator.scenarios.citi_bike.events module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.simulator.scenarios.citi_bike.html#module-maro.simulator.scenarios.citi_bike.frame_builder">maro.simulator.scenarios.citi_bike.frame_builder module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.simulator.scenarios.citi_bike.html#module-maro.simulator.scenarios.citi_bike.station">maro.simulator.scenarios.citi_bike.station module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.simulator.scenarios.citi_bike.html#module-maro.simulator.scenarios.citi_bike.stations_info">maro.simulator.scenarios.citi_bike.stations_info module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.simulator.scenarios.citi_bike.html#module-maro.simulator.scenarios.citi_bike.weather_table">maro.simulator.scenarios.citi_bike.weather_table module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.simulator.scenarios.citi_bike.html#module-maro.simulator.scenarios.citi_bike">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="maro.simulator.scenarios.vm_scheduling.html">maro.simulator.scenarios.vm_scheduling package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="maro.simulator.scenarios.vm_scheduling.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.simulator.scenarios.vm_scheduling.html#module-maro.simulator.scenarios.vm_scheduling.business_engine">maro.simulator.scenarios.vm_scheduling.business_engine module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.simulator.scenarios.vm_scheduling.html#module-maro.simulator.scenarios.vm_scheduling.common">maro.simulator.scenarios.vm_scheduling.common module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.simulator.scenarios.vm_scheduling.html#module-maro.simulator.scenarios.vm_scheduling.cpu_reader">maro.simulator.scenarios.vm_scheduling.cpu_reader module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.simulator.scenarios.vm_scheduling.html#module-maro.simulator.scenarios.vm_scheduling.enums">maro.simulator.scenarios.vm_scheduling.enums module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.simulator.scenarios.vm_scheduling.html#module-maro.simulator.scenarios.vm_scheduling.frame_builder">maro.simulator.scenarios.vm_scheduling.frame_builder module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.simulator.scenarios.vm_scheduling.html#module-maro.simulator.scenarios.vm_scheduling.physical_machine">maro.simulator.scenarios.vm_scheduling.physical_machine module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.simulator.scenarios.vm_scheduling.html#module-maro.simulator.scenarios.vm_scheduling.virtual_machine">maro.simulator.scenarios.vm_scheduling.virtual_machine module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.simulator.scenarios.vm_scheduling.html#module-maro.simulator.scenarios.vm_scheduling">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-maro.simulator.scenarios.abs_business_engine">
+<span id="maro-simulator-scenarios-abs-business-engine-module"></span><h2>maro.simulator.scenarios.abs_business_engine module<a class="headerlink" href="#module-maro.simulator.scenarios.abs_business_engine" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.abs_business_engine.</code><code class="sig-name descname">AbsBusinessEngine</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">scenario_name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">event_buffer</span><span class="p">:</span> <span class="n"><a class="reference internal" href="maro.event_buffer.html#maro.event_buffer.event_buffer.EventBuffer" title="maro.event_buffer.event_buffer.EventBuffer">maro.event_buffer.event_buffer.EventBuffer</a></span></em>, <em class="sig-param"><span class="n">topology</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">start_tick</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">max_tick</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">snapshot_resolution</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">max_snapshots</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">additional_options</span><span class="p">:</span> <span class="n">dict</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/abs_business_engine.html#AbsBusinessEngine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<p>Abstract class for all the business engine, a business engine is the core part of a scenario,
+used to hold all related logics.</p>
+<p>A business engine should have a name that used to identify it, built-in scenarios also use it to
+find built-in topologies.</p>
+<p>The core part of business engine is the step and post_step methods:</p>
+<ol class="arabic simple">
+<li><p>step: Will be called one time at each tick.</p></li>
+<li><p>post_step: Will be called at the end of each tick after all the events being processed,     simulator use the return value of this method (bool), to decide if it should stop simulation.     This is also a good place to check business final state of current tick if you follow event-driven pattern.</p></li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>event_buffer</strong> (<em>EventBuffer</em>) – Used to process events.</p></li>
+<li><p><strong>topology</strong> (<em>str</em>) – Config name.</p></li>
+<li><p><strong>start_tick</strong> (<em>int</em>) – Start tick of this business engine.</p></li>
+<li><p><strong>max_tick</strong> (<em>int</em>) – Max tick of this business engine.</p></li>
+<li><p><strong>snapshot_resolution</strong> (<em>int</em>) – Frequency to take a snapshot.</p></li>
+<li><p><strong>max_snapshots</strong> (<em>int</em>) – Max number of in-memory snapshots, default is None that means max number of snapshots.</p></li>
+<li><p><strong>addition_options</strong> (<em>dict</em>) – Additional options for this business engine from outside.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine.calc_max_snapshots">
+<code class="sig-name descname">calc_max_snapshots</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; int<a class="reference internal" href="../_modules/maro/simulator/scenarios/abs_business_engine.html#AbsBusinessEngine.calc_max_snapshots"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine.calc_max_snapshots" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper method to calculate total snapshot should be in snapshot list with parameters passed via constructor.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This method will return max number that can contains all the frame state to the end.
+You can use a small size to hold states, when hit the limitation, oldest one will be overwrote.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Max snapshot number for current configuration.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine.configs">
+<em class="property">property </em><code class="sig-name descname">configs</code><a class="headerlink" href="#maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine.configs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configurations of this business engine.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine.dump">
+<code class="sig-name descname">dump</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">folder</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/abs_business_engine.html#AbsBusinessEngine.dump"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine.dump" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dump something from business engine.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>folder</strong> (<em>str</em>) – Folder to place dumped files.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine.frame">
+<em class="property">abstract property </em><code class="sig-name descname">frame</code><a class="headerlink" href="#maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine.frame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Frame instance of current business engine.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="maro.backends.html#id16" title="maro.backends.frame.FrameBase">FrameBase</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine.frame_index">
+<code class="sig-name descname">frame_index</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tick</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; int<a class="reference internal" href="../_modules/maro/simulator/scenarios/abs_business_engine.html#AbsBusinessEngine.frame_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine.frame_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper method for child class, used to get index of frame in snapshot list for specified tick.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>tick</strong> (<em>int</em>) – Tick to calculate frame index.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Frame index in snapshot list of specified tick.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine.get_event_payload_detail">
+<code class="sig-name descname">get_event_payload_detail</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; dict<a class="reference internal" href="../_modules/maro/simulator/scenarios/abs_business_engine.html#AbsBusinessEngine.get_event_payload_detail"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine.get_event_payload_detail" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get payload keys for all kinds of event.</p>
+<p>For the performance of the simulator, some event payload has no corresponding Python object.
+This mapping is provided for your convenience in such case.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Key is the event type in string format, value is a list of available keys.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine.get_metrics">
+<code class="sig-name descname">get_metrics</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; dict<a class="reference internal" href="../_modules/maro/simulator/scenarios/abs_business_engine.html#AbsBusinessEngine.get_metrics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine.get_metrics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get statistics information, may different for scenarios.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Dictionary about metrics, content and format determined by business engine.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine.get_node_mapping">
+<code class="sig-name descname">get_node_mapping</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; dict<a class="reference internal" href="../_modules/maro/simulator/scenarios/abs_business_engine.html#AbsBusinessEngine.get_node_mapping"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine.get_node_mapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get mapping for nodes, like index-&gt;name or index-&gt;id, may different for scenarios.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Key is node index, value is decided by scenario, usually is name or id.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine.post_step">
+<code class="sig-name descname">post_step</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tick</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/maro/simulator/scenarios/abs_business_engine.html#AbsBusinessEngine.post_step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine.post_step" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method will be called at the end of each tick, used to post-process for each tick,
+for complex business logic with many events, it maybe not easy to determine
+if stop the scenario at the middle of tick, so this method is used to avoid this.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>tick</strong> (<em>int</em>) – Current tick.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>If simulator should stop simulation at current tick.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine.reset">
+<em class="property">abstract </em><code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/abs_business_engine.html#AbsBusinessEngine.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset states business engine.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine.snapshots">
+<em class="property">abstract property </em><code class="sig-name descname">snapshots</code><a class="headerlink" href="#maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine.snapshots" title="Permalink to this definition">¶</a></dt>
+<dd><p>Snapshot list of current frame, this is used to expose querying interface for outside.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="maro.backends.html#id32" title="maro.backends.frame.SnapshotList">SnapshotList</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine.step">
+<em class="property">abstract </em><code class="sig-name descname">step</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tick</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/abs_business_engine.html#AbsBusinessEngine.step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine.step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method that is called at each tick, usually used to trigger business logic at current tick.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>tick</strong> (<em>int</em>) – Current tick from simulator.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine.update_config_root_path">
+<code class="sig-name descname">update_config_root_path</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">business_engine_file_path</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/abs_business_engine.html#AbsBusinessEngine.update_config_root_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine.update_config_root_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper method used to update the config path with business engine path if you
+follow the way to load configuration file as built-in scenarios.</p>
+<p>This method assuming that all the configuration (topologies) is under their scenario folder,
+and named as topologies, each topology is one folder.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You can use your own way to place the configuration files, and ignore this.</p>
+</div>
+<p class="rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Define a business engine.</span>
+<span class="k">class</span> <span class="nc">MyBusinessEngine</span><span class="p">(</span><span class="n">AbsBusinessEngine</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s2">&quot;my_be&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="c1"># Use __file__ as parameter.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_config_root_path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>business_engine_file_path</strong> (<em>str</em>) – Full path of real business engine file.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.simulator.scenarios.helpers">
+<span id="maro-simulator-scenarios-helpers-module"></span><h2>maro.simulator.scenarios.helpers module<a class="headerlink" href="#module-maro.simulator.scenarios.helpers" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.simulator.scenarios.helpers.DocableDict">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.helpers.</code><code class="sig-name descname">DocableDict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">doc</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/helpers.html#DocableDict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.helpers.DocableDict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A thin wrapper that provide a read-only dictionary with customized doc.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>doc</strong> (<em>str</em>) – Customized doc of the dict.</p></li>
+<li><p><strong>kwargs</strong> (<em>dict</em>) – Dictionary items to store.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.simulator.scenarios.helpers.utc_timestamp_to_timezone">
+<code class="sig-prename descclassname">maro.simulator.scenarios.helpers.</code><code class="sig-name descname">utc_timestamp_to_timezone</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">timestamp</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">timezone</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/helpers.html#utc_timestamp_to_timezone"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.helpers.utc_timestamp_to_timezone" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert utc timestamp into specified tiemzone datetime.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>timestamp</strong> (<em>int</em>) – UTC timestamp to convert.</p></li>
+<li><p><strong>timezone</strong> – Target timezone.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.simulator.scenarios.matrix_accessor">
+<span id="maro-simulator-scenarios-matrix-accessor-module"></span><h2>maro.simulator.scenarios.matrix_accessor module<a class="headerlink" href="#module-maro.simulator.scenarios.matrix_accessor" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.simulator.scenarios.matrix_accessor.MatrixAttributeAccessor">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.matrix_accessor.</code><code class="sig-name descname">MatrixAttributeAccessor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node</span><span class="p">:</span> <span class="n"><a class="reference internal" href="maro.backends.html#id29" title="maro.backends.frame.NodeBase">maro.backends.frame.NodeBase</a></span></em>, <em class="sig-param"><span class="n">attribute</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">row_num</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">col_num</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/matrix_accessor.html#MatrixAttributeAccessor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.matrix_accessor.MatrixAttributeAccessor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Wrapper for each attribute with matrix like interface.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node</strong> (<em>NodeBase</em>) – Node instance the attribute belongs to.</p></li>
+<li><p><strong>attribute</strong> (<em>str</em>) – Attribute name to wrap.</p></li>
+<li><p><strong>row_num</strong> (<em>int</em>) – Result matrix row number.</p></li>
+<li><p><strong>col_num</strong> (<em>int</em>) – Result matrix column number.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.simulator.scenarios.matrix_accessor.MatrixAttributeAccessor.columns">
+<em class="property">property </em><code class="sig-name descname">columns</code><a class="headerlink" href="#maro.simulator.scenarios.matrix_accessor.MatrixAttributeAccessor.columns" title="Permalink to this definition">¶</a></dt>
+<dd><p>Column number.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.matrix_accessor.MatrixAttributeAccessor.get_column">
+<code class="sig-name descname">get_column</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">column_idx</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/matrix_accessor.html#MatrixAttributeAccessor.get_column"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.matrix_accessor.MatrixAttributeAccessor.get_column" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get values of a column.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>column_idx</strong> (<em>int</em>) – Index of target column.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List of value for that column.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.matrix_accessor.MatrixAttributeAccessor.get_row">
+<code class="sig-name descname">get_row</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">row_idx</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; list<a class="reference internal" href="../_modules/maro/simulator/scenarios/matrix_accessor.html#MatrixAttributeAccessor.get_row"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.matrix_accessor.MatrixAttributeAccessor.get_row" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get values of a row.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>row_idx</strong> (<em>int</em>) – Index of target row.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List of value for that row.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.matrix_accessor.MatrixAttributeAccessor.rows">
+<em class="property">property </em><code class="sig-name descname">rows</code><a class="headerlink" href="#maro.simulator.scenarios.matrix_accessor.MatrixAttributeAccessor.rows" title="Permalink to this definition">¶</a></dt>
+<dd><p>Row number.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.simulator.scenarios">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-maro.simulator.scenarios" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+    <a class='left-prev' id="prev-link" href="maro.simulator.html" title="previous page">maro.simulator package</a>
+    <a class='right-next' id="next-link" href="maro.simulator.scenarios.cim.html" title="next page">maro.simulator.scenarios.cim package</a>
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../_static/js/index.js"></script>
+    
+  </body>
+</html>

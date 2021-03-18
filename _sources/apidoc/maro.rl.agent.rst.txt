@@ -1,0 +1,38 @@
+maro.rl.agent package
+=====================
+
+Submodules
+----------
+
+maro.rl.agent.abs\_agent module
+-------------------------------
+
+.. automodule:: maro.rl.agent.abs_agent
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.rl.agent.abs\_agent\_manager module
+----------------------------------------
+
+.. automodule:: maro.rl.agent.abs_agent_manager
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.rl.agent.simple\_agent\_manager module
+-------------------------------------------
+
+.. automodule:: maro.rl.agent.simple_agent_manager
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: maro.rl.agent
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,0 +1,544 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maro.cli.inspector.env_data_process &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../../../../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../../../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/sphinx-book-theme.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/language_data.js"></script>
+    <script src="../../../../_static/clipboard.min.js"></script>
+    <script src="../../../../_static/copybutton.js"></script>
+    <script src="../../../../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../../../../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../../../../index.html">
+  
+  <img src="../../../../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../scenarios/container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../scenarios/citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../scenarios/vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../apidoc/maro.html">
+   maro package
+  </a>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2F_modules/maro/cli/inspector/env_data_process.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <nav id="bd-toc-nav">
+            
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <h1>Source code for maro.cli.inspector.env_data_process</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) Microsoft Corporation.</span>
+<span class="c1"># Licensed under the MIT license.</span>
+
+<span class="kn">import</span> <span class="nn">csv</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">tqdm</span>
+<span class="kn">import</span> <span class="nn">yaml</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+
+<span class="kn">from</span> <span class="nn">maro.utils.exception.cli_exception</span> <span class="kn">import</span> <span class="n">CliError</span>
+<span class="kn">from</span> <span class="nn">maro.utils.logger</span> <span class="kn">import</span> <span class="n">CliLogger</span>
+
+<span class="kn">from</span> <span class="nn">.launch_env_dashboard</span> <span class="kn">import</span> <span class="n">launch_dashboard</span>
+<span class="kn">from</span> <span class="nn">.params</span> <span class="kn">import</span> <span class="n">GlobalFileNames</span><span class="p">,</span> <span class="n">GlobalScenarios</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">CliLogger</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="start_vis"><a class="viewcode-back" href="../../../../apidoc/maro.cli.inspector.html#maro.cli.inspector.env_data_process.start_vis">[docs]</a><span class="k">def</span> <span class="nf">start_vis</span><span class="p">(</span><span class="n">source_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">force</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Entrance of data pre-processing.</span>
+
+<span class="sd">    Generate index_name_conversion CSV file and summary file.</span>
+
+<span class="sd">    Expected File Structure:</span>
+<span class="sd">    -input_file_folder_path</span>
+<span class="sd">        --epoch_0 : Data of current epoch.</span>
+<span class="sd">            --holder_info.csv: Attributes of current epoch.</span>
+<span class="sd">        ………………</span>
+<span class="sd">        --epoch_{epoch_num-1}</span>
+<span class="sd">        --manifest.yml: Record basic info like scenario name, name of index_name_mapping file.</span>
+<span class="sd">        --index_name_mapping file: Record the relationship between an index and its name.</span>
+<span class="sd">        Type of this file varied between scenario.</span>
+
+<span class="sd">        Summary file would be generated after data processing.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        source_path (str): Data folder path.</span>
+<span class="sd">        force (str): Indicates whether regenerate data. Expected input is True/False.</span>
+<span class="sd">        **kwargs (dict): The irrelevant variable length key-value pair.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">source_path</span><span class="p">,</span> <span class="s2">&quot;manifest.yml&quot;</span><span class="p">)):</span>
+        <span class="k">raise</span> <span class="n">CliError</span><span class="p">(</span><span class="s2">&quot;Manifest file missed.&quot;</span><span class="p">)</span>
+    <span class="n">settings</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span>
+        <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">source_path</span><span class="p">,</span> <span class="s2">&quot;manifest.yml&quot;</span><span class="p">),</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">(),</span>
+        <span class="n">Loader</span><span class="o">=</span><span class="n">yaml</span><span class="o">.</span><span class="n">FullLoader</span>
+    <span class="p">)</span>
+    <span class="n">scenario</span> <span class="o">=</span> <span class="n">GlobalScenarios</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">settings</span><span class="p">[</span><span class="s2">&quot;scenario&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">upper</span><span class="p">()]</span>
+    <span class="n">conversion_path</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">settings</span><span class="p">[</span><span class="s2">&quot;mappings&quot;</span><span class="p">])</span>
+    <span class="n">epoch_num</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">settings</span><span class="p">[</span><span class="s2">&quot;dump_details&quot;</span><span class="p">][</span><span class="s2">&quot;epoch_num&quot;</span><span class="p">])</span>
+    <span class="n">prefix</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;dump_details&quot;</span><span class="p">][</span><span class="s2">&quot;prefix&quot;</span><span class="p">]</span>
+    <span class="n">force</span> <span class="o">=</span> <span class="n">str2bool</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">force</span><span class="p">))</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">source_path</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">CliError</span><span class="p">(</span><span class="s2">&quot;Input path is not correct.&quot;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">source_path</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">0&quot;</span><span class="p">)):</span>
+        <span class="k">raise</span> <span class="n">CliError</span><span class="p">(</span><span class="s2">&quot;No data under input folder path.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">force</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Generating Dashboard Data.&quot;</span><span class="p">)</span>
+        <span class="n">_get_index_index_name_conversion</span><span class="p">(</span><span class="n">scenario</span><span class="p">,</span> <span class="n">source_path</span><span class="p">,</span> <span class="n">conversion_path</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info_green</span><span class="p">(</span><span class="s2">&quot;[1/2]:Generate Name Conversion File Done.&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info_green</span><span class="p">(</span><span class="s2">&quot;[2/2]:Generating Summary.&quot;</span><span class="p">)</span>
+        <span class="n">_generate_summary</span><span class="p">(</span><span class="n">scenario</span><span class="p">,</span> <span class="n">source_path</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">epoch_num</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info_green</span><span class="p">(</span><span class="s2">&quot;[2/2]:Generate Summary Done.&quot;</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info_green</span><span class="p">(</span><span class="s2">&quot;Skip Data Generation&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">source_path</span><span class="p">,</span> <span class="n">GlobalFileNames</span><span class="o">.</span><span class="n">name_convert</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="n">CliError</span><span class="p">(</span><span class="s2">&quot;Have to regenerate data. Name Conversion File is missed.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">scenario</span> <span class="o">==</span> <span class="n">GlobalScenarios</span><span class="o">.</span><span class="n">CIM</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">source_path</span><span class="p">,</span> <span class="n">GlobalFileNames</span><span class="o">.</span><span class="n">ports_sum</span><span class="p">)):</span>
+                <span class="k">raise</span> <span class="n">CliError</span><span class="p">(</span><span class="s2">&quot;Have to regenerate data. Summary File is missed.&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">scenario</span> <span class="o">==</span> <span class="n">GlobalScenarios</span><span class="o">.</span><span class="n">CITI_BIKE</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">source_path</span><span class="p">,</span> <span class="n">GlobalFileNames</span><span class="o">.</span><span class="n">stations_sum</span><span class="p">)):</span>
+                <span class="k">raise</span> <span class="n">CliError</span><span class="p">(</span><span class="s2">&quot;Have to regenerate data. Summary File is missed.&quot;</span><span class="p">)</span>
+
+    <span class="n">launch_dashboard</span><span class="p">(</span><span class="n">source_path</span><span class="p">,</span> <span class="n">scenario</span><span class="p">,</span> <span class="n">epoch_num</span><span class="p">,</span> <span class="n">prefix</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="str2bool"><a class="viewcode-back" href="../../../../apidoc/maro.cli.inspector.html#maro.cli.inspector.env_data_process.str2bool">[docs]</a><span class="k">def</span> <span class="nf">str2bool</span><span class="p">(</span><span class="n">force_type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Convert the parameter &quot;force&quot; from string to bool.</span>
+
+<span class="sd">    Argsparse could not identify bool type automatically.</span>
+<span class="sd">    Manually conversion is compulsory.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        force_type (str): The parameter input by user.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        bool: Converted parameter.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">force_type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;yes&#39;</span><span class="p">,</span> <span class="s1">&#39;true&#39;</span><span class="p">,</span> <span class="s1">&#39;t&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;1&#39;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">elif</span> <span class="n">force_type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;no&#39;</span><span class="p">,</span> <span class="s1">&#39;false&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="s1">&#39;0&#39;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<span class="k">def</span> <span class="nf">_init_csv</span><span class="p">(</span><span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">header</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]):</span>
+    <span class="sd">&quot;&quot;&quot;Clean and initiate summary csv file.</span>
+
+<span class="sd">    This summary file record cross-epoch data.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        file_path (str): Path of the summary file.</span>
+<span class="sd">        header (List[str]): Expected header of summary file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">file_path</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">csvfile</span><span class="p">:</span>
+        <span class="n">writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">DictWriter</span><span class="p">(</span><span class="n">csvfile</span><span class="p">,</span> <span class="n">fieldnames</span><span class="o">=</span><span class="n">header</span><span class="p">)</span>
+        <span class="n">writer</span><span class="o">.</span><span class="n">writeheader</span><span class="p">()</span>
+
+
+<span class="k">def</span> <span class="nf">_summary_append</span><span class="p">(</span>
+    <span class="n">scenario</span><span class="p">:</span> <span class="n">GlobalScenarios</span><span class="p">,</span> <span class="n">input_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">header_list</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">sum_dataframe</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">epoch_index</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">output_path</span><span class="p">:</span> <span class="nb">str</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate summary info and generate corresponding csv file.</span>
+
+<span class="sd">    To accelerate, change each column into numpy.array.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        scenario (GlobalScenarios): Current scenario.</span>
+<span class="sd">        input_path (str): Path of file needed to be summarized.</span>
+<span class="sd">        header_list (List[str]): List of columns needed to be summarized.</span>
+<span class="sd">        sum_dataframe (pd.Dataframe): Temporary dataframe to restore results.</span>
+<span class="sd">        epoch_index (int): The epoch index of data being processing.</span>
+<span class="sd">        output_path (str): Path of output CSV file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">input_path</span><span class="p">)</span>
+    <span class="n">data_summary</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">header</span> <span class="ow">in</span> <span class="n">header_list</span><span class="p">:</span>
+        <span class="n">data_summary</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">header</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+    <span class="n">sum_dataframe</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">epoch_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_summary</span>
+    <span class="n">sum_dataframe</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_generate_summary</span><span class="p">(</span><span class="n">scenario</span><span class="p">:</span> <span class="n">GlobalScenarios</span><span class="p">,</span> <span class="n">source_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">epoch_num</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Generate summary info of current scenario.</span>
+
+<span class="sd">    Different scenario has different data features.</span>
+<span class="sd">    Each scenario should be treated respectively.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        scenario (GlobalScenarios): Current scenario.</span>
+<span class="sd">        source_path (str): The root path of the dumped snapshots data for the corresponding experiment.</span>
+<span class="sd">        prefix (str): Prefix of data folders.</span>
+<span class="sd">        epoch_num (int): Total number of epoches,</span>
+<span class="sd">            i.e. the total number of data folders since there is a folder per epoch.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ports_header</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;capacity&quot;</span><span class="p">,</span> <span class="s2">&quot;empty&quot;</span><span class="p">,</span> <span class="s2">&quot;full&quot;</span><span class="p">,</span> <span class="s2">&quot;on_shipper&quot;</span><span class="p">,</span> <span class="s2">&quot;on_consignee&quot;</span><span class="p">,</span> <span class="s2">&quot;shortage&quot;</span><span class="p">,</span> <span class="s2">&quot;booking&quot;</span><span class="p">,</span> <span class="s2">&quot;fulfillment&quot;</span><span class="p">]</span>
+    <span class="n">stations_header</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;bikes&quot;</span><span class="p">,</span> <span class="s2">&quot;shortage&quot;</span><span class="p">,</span> <span class="s2">&quot;trip_requirement&quot;</span><span class="p">,</span> <span class="s2">&quot;fulfillment&quot;</span><span class="p">,</span> <span class="s2">&quot;capacity&quot;</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">scenario</span> <span class="o">==</span> <span class="n">GlobalScenarios</span><span class="o">.</span><span class="n">CIM</span><span class="p">:</span>
+        <span class="n">_init_csv</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">source_path</span><span class="p">,</span> <span class="n">GlobalFileNames</span><span class="o">.</span><span class="n">ports_sum</span><span class="p">),</span> <span class="n">ports_header</span><span class="p">)</span>
+        <span class="n">ports_sum_dataframe</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">source_path</span><span class="p">,</span> <span class="n">GlobalFileNames</span><span class="o">.</span><span class="n">ports_sum</span><span class="p">),</span>
+            <span class="n">names</span><span class="o">=</span><span class="n">ports_header</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">epoch_index</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="o">.</span><span class="n">tqdm</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">epoch_num</span><span class="p">)):</span>
+            <span class="n">input_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">source_path</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}{</span><span class="n">epoch_index</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;ports.csv&quot;</span><span class="p">)</span>
+            <span class="n">_summary_append</span><span class="p">(</span>
+                <span class="n">scenario</span><span class="p">,</span> <span class="n">input_path</span><span class="p">,</span> <span class="n">ports_header</span><span class="p">,</span>
+                <span class="n">ports_sum_dataframe</span><span class="p">,</span> <span class="n">epoch_index</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">source_path</span><span class="p">,</span> <span class="n">GlobalFileNames</span><span class="o">.</span><span class="n">ports_sum</span><span class="p">)</span>
+            <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">scenario</span> <span class="o">==</span> <span class="n">GlobalScenarios</span><span class="o">.</span><span class="n">CITI_BIKE</span><span class="p">:</span>
+        <span class="n">_init_csv</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">source_path</span><span class="p">,</span> <span class="n">GlobalFileNames</span><span class="o">.</span><span class="n">stations_sum</span><span class="p">),</span> <span class="n">stations_header</span><span class="p">)</span>
+        <span class="n">stations_sum_dataframe</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">source_path</span><span class="p">,</span> <span class="n">GlobalFileNames</span><span class="o">.</span><span class="n">stations_sum</span><span class="p">),</span>
+            <span class="n">names</span><span class="o">=</span><span class="n">stations_header</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">epoch_index</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="o">.</span><span class="n">tqdm</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">epoch_num</span><span class="p">)):</span>
+            <span class="n">_init_csv</span><span class="p">(</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                    <span class="n">source_path</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}{</span><span class="n">epoch_index</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">GlobalFileNames</span><span class="o">.</span><span class="n">stations_sum</span>
+                <span class="p">),</span>
+                <span class="n">stations_header</span>
+            <span class="p">)</span>
+            <span class="n">input_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">source_path</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}{</span><span class="n">epoch_index</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;stations.csv&quot;</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">input_path</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[[</span><span class="s2">&quot;bikes&quot;</span><span class="p">,</span> <span class="s2">&quot;trip_requirement&quot;</span><span class="p">,</span> <span class="s2">&quot;fulfillment&quot;</span><span class="p">,</span> <span class="s2">&quot;capacity&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;fulfillment_ratio&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+                <span class="nb">map</span><span class="p">(</span>
+                    <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">x</span> <span class="o">/</span> <span class="p">(</span><span class="n">y</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">),</span> <span class="mi">4</span><span class="p">),</span>
+                    <span class="n">data</span><span class="p">[</span><span class="s2">&quot;fulfillment&quot;</span><span class="p">],</span>
+                    <span class="n">data</span><span class="p">[</span><span class="s2">&quot;trip_requirement&quot;</span><span class="p">]</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">source_path</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}{</span><span class="n">epoch_index</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">GlobalFileNames</span><span class="o">.</span><span class="n">stations_sum</span><span class="p">))</span>
+            <span class="n">_summary_append</span><span class="p">(</span>
+                <span class="n">scenario</span><span class="p">,</span> <span class="n">input_path</span><span class="p">,</span> <span class="n">stations_header</span><span class="p">,</span> <span class="n">stations_sum_dataframe</span><span class="p">,</span>
+                <span class="n">epoch_index</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">source_path</span><span class="p">,</span> <span class="n">GlobalFileNames</span><span class="o">.</span><span class="n">stations_sum</span><span class="p">)</span>
+            <span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_get_index_index_name_conversion</span><span class="p">(</span><span class="n">scenario</span><span class="p">:</span> <span class="n">GlobalScenarios</span><span class="p">,</span> <span class="n">source_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">conversion_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Generate a CSV File which indicates the relationship between resource holder&#39;s index and name.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        scenario (GlobalScenarios): Current scenario. Different scenario has different type of mapping file.</span>
+<span class="sd">        source_path (str): The root path of the dumped snapshots data for the corresponding experiment.</span>
+<span class="sd">        conversion_path (str): Path of original mapping file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">conversion_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">source_path</span><span class="p">,</span> <span class="n">conversion_path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">source_path</span><span class="p">,</span> <span class="n">GlobalFileNames</span><span class="o">.</span><span class="n">name_convert</span><span class="p">)):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">source_path</span><span class="p">,</span> <span class="n">GlobalFileNames</span><span class="o">.</span><span class="n">name_convert</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">scenario</span> <span class="o">==</span> <span class="n">GlobalScenarios</span><span class="o">.</span><span class="n">CITI_BIKE</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">conversion_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf8&quot;</span><span class="p">)</span><span class="k">as</span> <span class="n">mapping_file</span><span class="p">:</span>
+            <span class="n">mapping_json_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">mapping_file</span><span class="p">)</span>
+            <span class="n">name_list</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">mapping_json_data</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">][</span><span class="s2">&quot;stations&quot;</span><span class="p">]:</span>
+                <span class="n">name_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">])</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">name_list</span><span class="p">})</span>
+            <span class="n">df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">source_path</span><span class="p">,</span> <span class="n">GlobalFileNames</span><span class="o">.</span><span class="n">name_convert</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">scenario</span> <span class="o">==</span> <span class="n">GlobalScenarios</span><span class="o">.</span><span class="n">CIM</span><span class="p">:</span>
+        <span class="n">cim_information</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span>
+            <span class="nb">open</span><span class="p">(</span><span class="n">conversion_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">(),</span>
+            <span class="n">Loader</span><span class="o">=</span><span class="n">yaml</span><span class="o">.</span><span class="n">FullLoader</span>
+        <span class="p">)</span>
+        <span class="n">conversion</span> <span class="o">=</span> <span class="n">cim_information</span><span class="p">[</span><span class="s2">&quot;ports&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">conversion</span><span class="p">))</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">source_path</span><span class="p">,</span> <span class="n">GlobalFileNames</span><span class="o">.</span><span class="n">name_convert</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../../../../_static/js/index.js"></script>
+    
+  </body>
+</html>

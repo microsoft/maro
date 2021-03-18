@@ -1,0 +1,22 @@
+maro.forecasting package
+========================
+
+Submodules
+----------
+
+maro.forecasting.moving\_average module
+---------------------------------------
+
+.. automodule:: maro.forecasting.moving_average
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: maro.forecasting
+   :members:
+   :undoc-members:
+   :show-inheritance:

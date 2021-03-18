@@ -1,0 +1,54 @@
+maro.rl.shaping package
+=======================
+
+Submodules
+----------
+
+maro.rl.shaping.abs\_shaper module
+----------------------------------
+
+.. automodule:: maro.rl.shaping.abs_shaper
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.rl.shaping.action\_shaper module
+-------------------------------------
+
+.. automodule:: maro.rl.shaping.action_shaper
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.rl.shaping.experience\_shaper module
+-----------------------------------------
+
+.. automodule:: maro.rl.shaping.experience_shaper
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.rl.shaping.k\_step\_experience\_shaper module
+--------------------------------------------------
+
+.. automodule:: maro.rl.shaping.k_step_experience_shaper
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.rl.shaping.state\_shaper module
+------------------------------------
+
+.. automodule:: maro.rl.shaping.state_shaper
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: maro.rl.shaping
+   :members:
+   :undoc-members:
+   :show-inheritance:

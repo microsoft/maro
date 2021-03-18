@@ -1,0 +1,546 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maro.data_lib.binary_converter &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../../../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/sphinx-book-theme.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../_static/clipboard.min.js"></script>
+    <script src="../../../_static/copybutton.js"></script>
+    <script src="../../../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../../../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../../../index.html">
+  
+  <img src="../../../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../scenarios/container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../scenarios/citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../scenarios/vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../apidoc/maro.html">
+   maro package
+  </a>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2F_modules/maro/data_lib/binary_converter.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <nav id="bd-toc-nav">
+            
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <h1>Source code for maro.data_lib.binary_converter</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) Microsoft Corporation.</span>
+<span class="c1"># Licensed under the MIT license.</span>
+
+<span class="kn">import</span> <span class="nn">calendar</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">csv</span> <span class="kn">import</span> <span class="n">DictReader</span>
+
+<span class="kn">from</span> <span class="nn">dateutil.parser</span> <span class="kn">import</span> <span class="n">parse</span> <span class="k">as</span> <span class="n">parse_dt</span>
+<span class="kn">from</span> <span class="nn">dateutil.tz</span> <span class="kn">import</span> <span class="n">UTC</span><span class="p">,</span> <span class="n">gettz</span>
+
+<span class="kn">from</span> <span class="nn">maro.data_lib.common</span> <span class="kn">import</span> <span class="n">SINGLE_BIN_FILE_TYPE</span><span class="p">,</span> <span class="n">VERSION</span><span class="p">,</span> <span class="n">dtype_convert_map</span><span class="p">,</span> <span class="n">header_struct</span>
+<span class="kn">from</span> <span class="nn">maro.data_lib.item_meta</span> <span class="kn">import</span> <span class="n">BinaryMeta</span>
+
+
+<span class="k">def</span> <span class="nf">is_datetime</span><span class="p">(</span><span class="n">val</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tzone</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Check if a string is datetime, return the datetime if yes.&quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># default time zone</span>
+        <span class="k">if</span> <span class="n">tzone</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">tzone</span> <span class="o">=</span> <span class="n">UTC</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">tzone</span> <span class="o">=</span> <span class="n">gettz</span><span class="p">(</span><span class="n">tzone</span><span class="p">)</span>
+
+        <span class="n">dt</span> <span class="o">=</span> <span class="n">parse_dt</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+
+        <span class="n">dt</span> <span class="o">=</span> <span class="n">dt</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">tzinfo</span><span class="o">=</span><span class="n">tzone</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="n">dt</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span>
+
+
+<span class="k">def</span> <span class="nf">convert_val</span><span class="p">(</span><span class="n">val</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">dtype</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tzone</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A simple function to convert str value into specified data type.&quot;&quot;&quot;</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># process the value first</span>
+    <span class="c1"># clear</span>
+    <span class="n">val</span> <span class="o">=</span> <span class="n">val</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\&quot;\&#39;</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="c1"># clear space at 2 side</span>
+    <span class="n">val</span> <span class="o">=</span> <span class="n">val</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+    <span class="c1"># NOTE: we only support numeric value for now</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">dtype_convert_map</span><span class="p">[</span><span class="n">dtype</span><span class="p">]</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># convert to float first, to avoid int(&quot;1.111&quot;) error</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="n">t</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="c1"># is it a datetime?</span>
+        <span class="n">is_dt</span><span class="p">,</span> <span class="n">dt</span> <span class="o">=</span> <span class="n">is_datetime</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">tzone</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">is_dt</span><span class="p">:</span>
+            <span class="c1"># convert into UTC, then utc timestamp</span>
+            <span class="n">dt</span> <span class="o">=</span> <span class="n">dt</span><span class="o">.</span><span class="n">astimezone</span><span class="p">(</span><span class="n">UTC</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">calendar</span><span class="o">.</span><span class="n">timegm</span><span class="p">(</span><span class="n">dt</span><span class="o">.</span><span class="n">timetuple</span><span class="p">())</span>
+
+    <span class="k">if</span> <span class="n">result</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cannot parse value &#39;</span><span class="si">{</span><span class="n">val</span><span class="si">}</span><span class="s2">&#39; into type &#39;</span><span class="si">{</span><span class="n">dtype</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">result</span>
+
+
+<div class="viewcode-block" id="BinaryConverter"><a class="viewcode-back" href="../../../apidoc/maro.data_lib.html#maro.data_lib.binary_converter.BinaryConverter">[docs]</a><span class="k">class</span> <span class="nc">BinaryConverter</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Convert csv file into binary with specified meta.</span>
+
+<span class="sd">    The output binary file composed with:</span>
+
+<span class="sd">    1. header: file type, start/end time etc.</span>
+<span class="sd">    2. meta: meta content after validation.</span>
+<span class="sd">    3. items.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        output_file(str): Output binary file full path.</span>
+<span class="sd">        meta_file(str): Path to the meta file (yaml).</span>
+<span class="sd">        utc_start_timestamp(int): Start timestamp in UTC which will be considered as tick 0,</span>
+<span class="sd">            used to adjust the data reader pipeline.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">meta_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">utc_start_timestamp</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_output_fp</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_meta</span> <span class="o">=</span> <span class="n">BinaryMeta</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_meta</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">meta_file</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_output_fp</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="s2">&quot;wb+&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_item_count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_item_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_meta</span><span class="o">.</span><span class="n">item_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_meta_offset</span> <span class="o">=</span> <span class="n">header_struct</span><span class="o">.</span><span class="n">size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_meta_size</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data_offset</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data_size</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_starttime</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_endtime</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># is starttime changed for 1st time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_starttime_changed</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># if we have a start timestamp, then use it in binary</span>
+        <span class="k">if</span> <span class="n">utc_start_timestamp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_starttime</span> <span class="o">=</span> <span class="n">utc_start_timestamp</span>
+
+            <span class="c1"># set it to True so that following logic will not change start time again</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_is_starttime_changed</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="c1"># write header for 1st time, and meta</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_header</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_write_meta</span><span class="p">()</span>
+
+<div class="viewcode-block" id="BinaryConverter.add_csv"><a class="viewcode-back" href="../../../apidoc/maro.data_lib.html#maro.data_lib.binary_converter.BinaryConverter.add_csv">[docs]</a>    <span class="k">def</span> <span class="nf">add_csv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">csv_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Convert specified csv file into current binary file, this converter will not sort the item.</span>
+<span class="sd">        This method can be called several times to convert multiple csv file into one binary,</span>
+<span class="sd">        the order will be same as calling sequence.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            csv_file(str): Csv to convert.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">csv_file</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">csv_fp</span><span class="p">:</span>
+            <span class="n">reader</span> <span class="o">=</span> <span class="n">DictReader</span><span class="p">(</span><span class="n">csv_fp</span><span class="p">)</span>
+
+            <span class="c1"># write items</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_write_items</span><span class="p">(</span><span class="n">reader</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BinaryConverter.flush"><a class="viewcode-back" href="../../../apidoc/maro.data_lib.html#maro.data_lib.binary_converter.BinaryConverter.flush">[docs]</a>    <span class="k">def</span> <span class="nf">flush</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Flush the result into output file.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_header</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># resource collecting</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_fp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_fp</span><span class="o">.</span><span class="n">closed</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_output_fp</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_output_fp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_update_header</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update file header.&quot;&quot;&quot;</span>
+        <span class="n">header_bytes</span> <span class="o">=</span> <span class="n">header_struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span>
+            <span class="sa">b</span><span class="s2">&quot;MARO&quot;</span><span class="p">,</span>
+            <span class="n">SINGLE_BIN_FILE_TYPE</span><span class="p">,</span>
+            <span class="n">VERSION</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_item_count</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_item_size</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_meta_offset</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_meta_size</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_data_offset</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_data_size</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_starttime</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_endtime</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_meta_offset</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">header_bytes</span><span class="p">)</span>
+        <span class="c1"># seek the output file beginning</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_output_fp</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_output_fp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">header_bytes</span><span class="p">)</span>
+        <span class="c1"># seek to the file end</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_output_fp</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_write_meta</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Write file meta.&quot;&quot;&quot;</span>
+        <span class="n">meta_bytes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_meta</span><span class="o">.</span><span class="n">to_bytes</span><span class="p">()</span>
+
+        <span class="c1"># update header info</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data_offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_meta_offset</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">meta_bytes</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_meta_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">meta_bytes</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_output_fp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">meta_bytes</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_write_items</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reader</span><span class="p">:</span> <span class="n">DictReader</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Write items into binary.&quot;&quot;&quot;</span>
+        <span class="c1"># columns need to convert</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_meta</span><span class="o">.</span><span class="n">columns</span>
+        <span class="c1"># values buffer from each row, used to pack into binary</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">columns</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="c1"># item binary buffer</span>
+        <span class="n">buffer</span> <span class="o">=</span> <span class="nb">memoryview</span><span class="p">(</span><span class="nb">bytearray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_meta</span><span class="o">.</span><span class="n">item_size</span><span class="p">))</span>
+        <span class="c1"># field -&gt; data type</span>
+        <span class="n">field_type_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_meta</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="c1"># some column&#39;s value may cannot be parse, will skip it</span>
+        <span class="n">has_invalid_column</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">reader</span><span class="p">:</span>
+            <span class="n">field_index</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">has_invalid_column</span> <span class="o">=</span> <span class="kc">False</span>
+
+            <span class="c1"># clear the values</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)):</span>
+                <span class="n">values</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+            <span class="c1"># read from current row</span>
+            <span class="k">for</span> <span class="n">field</span><span class="p">,</span> <span class="n">dtype</span> <span class="ow">in</span> <span class="n">field_type_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">column_name</span> <span class="o">=</span> <span class="n">columns</span><span class="p">[</span><span class="n">field</span><span class="p">]</span>
+
+                <span class="c1"># NOTE: we allow field not exist in csv file, the value will be zero</span>
+                <span class="k">if</span> <span class="n">column_name</span> <span class="ow">in</span> <span class="n">row</span><span class="p">:</span>
+                    <span class="n">val</span> <span class="o">=</span> <span class="n">convert_val</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">column_name</span><span class="p">],</span> <span class="n">dtype</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_meta</span><span class="o">.</span><span class="n">time_zone</span><span class="p">)</span>
+                    <span class="n">values</span><span class="p">[</span><span class="n">field_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+
+                    <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">has_invalid_column</span> <span class="o">=</span> <span class="kc">True</span>
+                        <span class="k">break</span>
+
+                    <span class="c1"># keep the start and end tick</span>
+                    <span class="k">if</span> <span class="n">field</span> <span class="o">==</span> <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_starttime_changed</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_is_starttime_changed</span> <span class="o">=</span> <span class="kc">True</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_starttime</span> <span class="o">=</span> <span class="n">val</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_starttime</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_starttime</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_endtime</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_endtime</span><span class="p">)</span>
+
+                <span class="n">field_index</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">has_invalid_column</span><span class="p">:</span>
+                <span class="c1"># convert item into bytes buffer, and write to file</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_meta</span><span class="o">.</span><span class="n">item_to_bytes</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">buffer</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_output_fp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">buffer</span><span class="p">)</span>
+
+                <span class="c1"># update header fields for final update</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_item_count</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_data_size</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_item_size</span></div>
+
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;BinaryConverter&#39;</span><span class="p">]</span>
+</pre></div>
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../../../_static/js/index.js"></script>
+    
+  </body>
+</html>

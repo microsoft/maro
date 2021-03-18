@@ -1,0 +1,2069 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maro.data_lib.cim package &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="maro.event_buffer package" href="maro.event_buffer.html" />
+    <link rel="prev" title="maro.data_lib package" href="maro.data_lib.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../index.html">
+  
+  <img src="../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="current nav sidenav_l1">
+ <li class="toctree-l1 current active">
+  <a class="reference internal" href="maro.html">
+   maro package
+  </a>
+  <ul class="current">
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.backends.html">
+     maro.backends package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.cli.html">
+     maro.cli package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.data_pipeline.html">
+       maro.cli.data_pipeline package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.envs.html">
+       maro.cli.envs package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.grass.html">
+       maro.cli.grass package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.grass.executors.html">
+         maro.cli.grass.executors package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.grass.utils.html">
+         maro.cli.grass.utils package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.inspector.html">
+       maro.cli.inspector package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.k8s.html">
+       maro.cli.k8s package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.k8s.executors.html">
+         maro.cli.k8s.executors package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.process.html">
+       maro.cli.process package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.process.utils.html">
+         maro.cli.process.utils package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.utils.html">
+       maro.cli.utils package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.utils.executors.html">
+         maro.cli.utils.executors package
+        </a>
+       </li>
+      </ul>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.communication.html">
+     maro.communication package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.communication.driver.html">
+       maro.communication.driver package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.communication.utils.html">
+       maro.communication.utils package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 current active">
+    <a class="reference internal" href="maro.data_lib.html">
+     maro.data_lib package
+    </a>
+    <ul class="current">
+     <li class="toctree-l3 current active">
+      <a class="current reference internal" href="#">
+       maro.data_lib.cim package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.event_buffer.html">
+     maro.event_buffer package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.forecasting.html">
+     maro.forecasting package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.rl.html">
+     maro.rl package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.actor.html">
+       maro.rl.actor package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.agent.html">
+       maro.rl.agent package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.algorithms.html">
+       maro.rl.algorithms package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.dist_topologies.html">
+       maro.rl.dist_topologies package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.exploration.html">
+       maro.rl.exploration package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.learner.html">
+       maro.rl.learner package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.models.html">
+       maro.rl.models package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.scheduling.html">
+       maro.rl.scheduling package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.shaping.html">
+       maro.rl.shaping package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.storage.html">
+       maro.rl.storage package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.simulator.html">
+     maro.simulator package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.simulator.scenarios.html">
+       maro.simulator.scenarios package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.cim.html">
+         maro.simulator.scenarios.cim package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.citi_bike.html">
+         maro.simulator.scenarios.citi_bike package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.vm_scheduling.html">
+         maro.simulator.scenarios.vm_scheduling package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.simulator.utils.html">
+       maro.simulator.utils package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.utils.html">
+     maro.utils package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.utils.exception.html">
+       maro.utils.exception package
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+        
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="../_sources/apidoc/maro.data_lib.cim.rst.txt"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.rst</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2Fapidoc/maro.data_lib.cim.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        <a class="edit-button" href="https://github.com/microsoft/maro/edit/master/doc/source/apidoc/maro.data_lib.cim.rst"><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Edit this page"><i class="fas fa-pencil-alt"></i>suggest edit</button></a>
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <div class="tocsection onthispage pt-5 pb-3">
+            <i class="fas fa-list"></i> Contents
+        </div>
+        <nav id="bd-toc-nav">
+            <ul class="nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#submodules">
+   Submodules
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.data_lib.cim.cim_data_container">
+   maro.data_lib.cim.cim_data_container module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.data_lib.cim.cim_data_container_helpers">
+   maro.data_lib.cim.cim_data_container_helpers module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.data_lib.cim.cim_data_dump">
+   maro.data_lib.cim.cim_data_dump module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.data_lib.cim.cim_data_generator">
+   maro.data_lib.cim.cim_data_generator module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.data_lib.cim.cim_data_loader">
+   maro.data_lib.cim.cim_data_loader module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.data_lib.cim.entities">
+   maro.data_lib.cim.entities module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.data_lib.cim.global_order_proportion">
+   maro.data_lib.cim.global_order_proportion module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.data_lib.cim.port_buffer_tick_wrapper">
+   maro.data_lib.cim.port_buffer_tick_wrapper module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.data_lib.cim.port_parser">
+   maro.data_lib.cim.port_parser module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.data_lib.cim.route_parser">
+   maro.data_lib.cim.route_parser module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.data_lib.cim.utils">
+   maro.data_lib.cim.utils module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.data_lib.cim.vessel_future_stops_prediction">
+   maro.data_lib.cim.vessel_future_stops_prediction module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.data_lib.cim.vessel_parser">
+   maro.data_lib.cim.vessel_parser module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.data_lib.cim.vessel_past_stops_wrapper">
+   maro.data_lib.cim.vessel_past_stops_wrapper module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.data_lib.cim.vessel_reachable_stops_wrapper">
+   maro.data_lib.cim.vessel_reachable_stops_wrapper module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.data_lib.cim.vessel_sailing_plan_wrapper">
+   maro.data_lib.cim.vessel_sailing_plan_wrapper module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.data_lib.cim.vessel_stop_wrapper">
+   maro.data_lib.cim.vessel_stop_wrapper module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.data_lib.cim">
+   Module contents
+  </a>
+ </li>
+</ul>
+
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <div class="section" id="maro-data-lib-cim-package">
+<h1>maro.data_lib.cim package<a class="headerlink" href="#maro-data-lib-cim-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-maro.data_lib.cim.cim_data_container">
+<span id="maro-data-lib-cim-cim-data-container-module"></span><h2>maro.data_lib.cim.cim_data_container module<a class="headerlink" href="#module-maro.data_lib.cim.cim_data_container" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.data_lib.cim.cim_data_container.CimDataContainer">
+<em class="property">class </em><code class="sig-prename descclassname">maro.data_lib.cim.cim_data_container.</code><code class="sig-name descname">CimDataContainer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_collection</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.data_lib.cim.entities.CimDataCollection" title="maro.data_lib.cim.entities.CimDataCollection">maro.data_lib.cim.entities.CimDataCollection</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/cim/cim_data_container.html#CimDataContainer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.cim.cim_data_container.CimDataContainer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Data container for cim scenario, used to provide interfaces for business engine,
+and hide the details about data source, currently we support data from generator and dump files.</p>
+<p class="rubric">Example</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get data from generator.</span>
+<span class="n">data_cntr</span> <span class="o">=</span> <span class="n">data_from_generator</span><span class="p">(</span><span class="n">config_file</span><span class="p">,</span> <span class="n">max_tick</span><span class="p">)</span>
+
+<span class="c1"># Get data from dumps folder (which contains several dumped files).</span>
+<span class="n">data_cntr</span> <span class="o">=</span> <span class="n">data_from_dumps</span><span class="p">(</span><span class="n">dump_folder</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>data_collection</strong> (<em>CimDataCollection</em>) – Data collection from data source.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.data_lib.cim.cim_data_container.CimDataContainer.container_volume">
+<em class="property">property </em><code class="sig-name descname">container_volume</code><a class="headerlink" href="#maro.data_lib.cim.cim_data_container.CimDataContainer.container_volume" title="Permalink to this definition">¶</a></dt>
+<dd><p>Volume of a container.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.cim_data_container.CimDataContainer.empty_return_buffers">
+<em class="property">property </em><code class="sig-name descname">empty_return_buffers</code><a class="headerlink" href="#maro.data_lib.cim.cim_data_container.CimDataContainer.empty_return_buffers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Accessor to get empty return buffer tick for specified port (with noise).</p>
+<p class="rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get empty return buffer tick of port 0.</span>
+<span class="n">buffer_tick</span> <span class="o">=</span> <span class="n">data_cntr</span><span class="o">.</span><span class="n">empty_return_buffers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.cim_data_container.CimDataContainer.full_return_buffers">
+<em class="property">property </em><code class="sig-name descname">full_return_buffers</code><a class="headerlink" href="#maro.data_lib.cim.cim_data_container.CimDataContainer.full_return_buffers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Accessor to get full return buffer tick for specified port (with noise).</p>
+<p class="rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get full return buffer tick of port 0.</span>
+<span class="n">buffer_tick</span> <span class="o">=</span> <span class="n">data_cnr</span><span class="o">.</span><span class="n">full_return_buffers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.cim_data_container.CimDataContainer.future_stop_number">
+<em class="property">property </em><code class="sig-name descname">future_stop_number</code><a class="headerlink" href="#maro.data_lib.cim.cim_data_container.CimDataContainer.future_stop_number" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of future stops to predict to store in snapshot.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.cim_data_container.CimDataContainer.get_orders">
+<code class="sig-name descname">get_orders</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tick</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">total_empty_container</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span><a class="reference internal" href="#maro.data_lib.cim.entities.Order" title="maro.data_lib.cim.entities.Order">maro.data_lib.cim.entities.Order</a><span class="p">]</span><a class="reference internal" href="../_modules/maro/data_lib/cim/cim_data_container.html#CimDataContainer.get_orders"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.cim.cim_data_container.CimDataContainer.get_orders" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get order list by specified tick.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tick</strong> (<em>int</em>) – Tick of order.</p></li>
+<li><p><strong>total_empty_container</strong> (<em>int</em>) – Empty container at tick.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A list of order.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List[<a class="reference internal" href="#maro.data_lib.cim.entities.Order" title="maro.data_lib.cim.entities.Order">Order</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.cim_data_container.CimDataContainer.past_stop_number">
+<em class="property">property </em><code class="sig-name descname">past_stop_number</code><a class="headerlink" href="#maro.data_lib.cim.cim_data_container.CimDataContainer.past_stop_number" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of past stops to store in snapshot.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.cim_data_container.CimDataContainer.port_mapping">
+<em class="property">property </em><code class="sig-name descname">port_mapping</code><a class="headerlink" href="#maro.data_lib.cim.cim_data_container.CimDataContainer.port_mapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Name to index mapping for ports.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Dict[str, int]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.cim_data_container.CimDataContainer.port_number">
+<em class="property">property </em><code class="sig-name descname">port_number</code><a class="headerlink" href="#maro.data_lib.cim.cim_data_container.CimDataContainer.port_number" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of ports.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.cim_data_container.CimDataContainer.ports">
+<em class="property">property </em><code class="sig-name descname">ports</code><a class="headerlink" href="#maro.data_lib.cim.cim_data_container.CimDataContainer.ports" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of port initial settings.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>List[<a class="reference internal" href="#maro.data_lib.cim.entities.PortSetting" title="maro.data_lib.cim.entities.PortSetting">PortSetting</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.cim_data_container.CimDataContainer.reachable_stops">
+<em class="property">property </em><code class="sig-name descname">reachable_stops</code><a class="headerlink" href="#maro.data_lib.cim.cim_data_container.CimDataContainer.reachable_stops" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper to get a list of tuple which contains port index and arrive tick in vessel’s route.</p>
+<p class="rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get reachable_stops for vessel 0.</span>
+<span class="n">stop_list</span> <span class="o">=</span> <span class="n">data_cntr</span><span class="o">.</span><span class="n">reachable_stops</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.cim_data_container.CimDataContainer.reset">
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/cim/cim_data_container.html#CimDataContainer.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.cim.cim_data_container.CimDataContainer.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset data container internal state.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.cim_data_container.CimDataContainer.route_mapping">
+<em class="property">property </em><code class="sig-name descname">route_mapping</code><a class="headerlink" href="#maro.data_lib.cim.cim_data_container.CimDataContainer.route_mapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Name to index mapping for routes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Dict[str, int]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.cim_data_container.CimDataContainer.vessel_future_stops">
+<em class="property">property </em><code class="sig-name descname">vessel_future_stops</code><a class="headerlink" href="#maro.data_lib.cim.cim_data_container.CimDataContainer.vessel_future_stops" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper to get (predict, without noise) vessel future stops, the number of stops is limited by configuration.</p>
+<p class="rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get future stops of vessel 0.</span>
+<span class="n">stops</span> <span class="o">=</span> <span class="n">data_cntr</span><span class="o">.</span><span class="n">vessel_future_stops</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.cim_data_container.CimDataContainer.vessel_mapping">
+<em class="property">property </em><code class="sig-name descname">vessel_mapping</code><a class="headerlink" href="#maro.data_lib.cim.cim_data_container.CimDataContainer.vessel_mapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Name to index mapping for vessels.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Dict[str, int]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.cim_data_container.CimDataContainer.vessel_number">
+<em class="property">property </em><code class="sig-name descname">vessel_number</code><a class="headerlink" href="#maro.data_lib.cim.cim_data_container.CimDataContainer.vessel_number" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of vessels.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.cim_data_container.CimDataContainer.vessel_past_stops">
+<em class="property">property </em><code class="sig-name descname">vessel_past_stops</code><a class="headerlink" href="#maro.data_lib.cim.cim_data_container.CimDataContainer.vessel_past_stops" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper to get vessel past stops, it will be padding with None if stops number less than configured one.</p>
+<p class="rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get past stops of vessel 0.</span>
+<span class="n">stops</span> <span class="o">=</span> <span class="n">data_cntr</span><span class="o">.</span><span class="n">vessel_past_stops</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.cim_data_container.CimDataContainer.vessel_period">
+<em class="property">property </em><code class="sig-name descname">vessel_period</code><a class="headerlink" href="#maro.data_lib.cim.cim_data_container.CimDataContainer.vessel_period" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper to get vessel’s planed sailing period (without noise to complete a whole route).</p>
+<p class="rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get planed sailing for vessel 0.</span>
+<span class="n">period</span> <span class="o">=</span> <span class="n">data_cntr</span><span class="o">.</span><span class="n">vessel_period</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.cim_data_container.CimDataContainer.vessel_planned_stops">
+<em class="property">property </em><code class="sig-name descname">vessel_planned_stops</code><a class="headerlink" href="#maro.data_lib.cim.cim_data_container.CimDataContainer.vessel_planned_stops" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper to get vessel sailing plan, this method will return a stop list that
+within configured time period (means no same port in list)</p>
+<p class="rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get sailing plan for vessel 0.</span>
+<span class="n">stops</span> <span class="o">=</span> <span class="n">data_cntr</span><span class="o">.</span><span class="n">vessel_planned_stops</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.cim_data_container.CimDataContainer.vessel_stops">
+<em class="property">property </em><code class="sig-name descname">vessel_stops</code><a class="headerlink" href="#maro.data_lib.cim.cim_data_container.CimDataContainer.vessel_stops" title="Permalink to this definition">¶</a></dt>
+<dd><p>Accessor for vessel stops.</p>
+<p class="rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get a stop detail by vessel and location (stop) index.</span>
+<span class="n">stop</span> <span class="o">=</span> <span class="n">data_cntr</span><span class="o">.</span><span class="n">vessel_stops</span><span class="p">[</span><span class="n">vessel_idx</span><span class="p">,</span> <span class="n">loc_idx</span><span class="p">]</span>
+
+<span class="c1"># Get stop list of a vessel.</span>
+<span class="n">stop_list</span> <span class="o">=</span> <span class="n">data_cntr</span><span class="o">.</span><span class="n">vessel_stops</span><span class="p">[</span><span class="n">vessel_idx</span><span class="p">]</span>
+
+<span class="c1"># Get all stops, NOTE: slice without parameters.</span>
+<span class="n">stops</span> <span class="o">=</span> <span class="n">data_cntr</span><span class="o">.</span><span class="n">vessel_stops</span><span class="p">[:]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.cim_data_container.CimDataContainer.vessels">
+<em class="property">property </em><code class="sig-name descname">vessels</code><a class="headerlink" href="#maro.data_lib.cim.cim_data_container.CimDataContainer.vessels" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of vessel initial settings.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>List[VesselSetting]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.data_lib.cim.cim_data_container_helpers">
+<span id="maro-data-lib-cim-cim-data-container-helpers-module"></span><h2>maro.data_lib.cim.cim_data_container_helpers module<a class="headerlink" href="#module-maro.data_lib.cim.cim_data_container_helpers" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="maro.data_lib.cim.cim_data_container_helpers.data_from_dumps">
+<code class="sig-prename descclassname">maro.data_lib.cim.cim_data_container_helpers.</code><code class="sig-name descname">data_from_dumps</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dumps_folder</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#maro.data_lib.cim.cim_data_container.CimDataContainer" title="maro.data_lib.cim.cim_data_container.CimDataContainer">maro.data_lib.cim.cim_data_container.CimDataContainer</a><a class="reference internal" href="../_modules/maro/data_lib/cim/cim_data_container_helpers.html#data_from_dumps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.cim.cim_data_container_helpers.data_from_dumps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collect data from dump folder which contains following files:
+ports.csv, vessels.csv, routes.csv, order_proportion.csv, global_order_proportion.txt, misc.yml, stops.bin</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>dumps_folder</strong> (<em>str</em>) – Folder contains dumped files.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Data container used to provide cim data related interfaces.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#maro.data_lib.cim.cim_data_container.CimDataContainer" title="maro.data_lib.cim.cim_data_container.CimDataContainer">CimDataContainer</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.data_lib.cim.cim_data_container_helpers.data_from_generator">
+<code class="sig-prename descclassname">maro.data_lib.cim.cim_data_container_helpers.</code><code class="sig-name descname">data_from_generator</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config_path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">max_tick</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">start_tick</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">0</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#maro.data_lib.cim.cim_data_container.CimDataContainer" title="maro.data_lib.cim.cim_data_container.CimDataContainer">maro.data_lib.cim.cim_data_container.CimDataContainer</a><a class="reference internal" href="../_modules/maro/data_lib/cim/cim_data_container_helpers.html#data_from_generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.cim.cim_data_container_helpers.data_from_generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collect data from data generator with configurations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config_path</strong> (<em>str</em>) – Path of configuration file (yaml).</p></li>
+<li><p><strong>max_tick</strong> (<em>int</em>) – Max tick to generate data.</p></li>
+<li><p><strong>start_tick</strong> (<em>int</em>) – Start tick to generate data.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Data container used to provide cim data related interfaces.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#maro.data_lib.cim.cim_data_container.CimDataContainer" title="maro.data_lib.cim.cim_data_container.CimDataContainer">CimDataContainer</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.data_lib.cim.cim_data_dump">
+<span id="maro-data-lib-cim-cim-data-dump-module"></span><h2>maro.data_lib.cim.cim_data_dump module<a class="headerlink" href="#module-maro.data_lib.cim.cim_data_dump" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.data_lib.cim.cim_data_dump.CimDataDumpUtil">
+<em class="property">class </em><code class="sig-prename descclassname">maro.data_lib.cim.cim_data_dump.</code><code class="sig-name descname">CimDataDumpUtil</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_collection</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.data_lib.cim.entities.CimDataCollection" title="maro.data_lib.cim.entities.CimDataCollection">maro.data_lib.cim.entities.CimDataCollection</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/cim/cim_data_dump.html#CimDataDumpUtil"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.cim.cim_data_dump.CimDataDumpUtil" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Utilities to dump cim data from data collection, it will generate following files in specified folder:
+ports.csv, vessels.csv, stops.csv, routes.csv, order_proportion.csv, global_order_proportion.txt, misc.yml</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>data_collection</strong> (<em>CimDataCollection</em>) – Data collection to dump.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.data_lib.cim.cim_data_dump.CimDataDumpUtil.dump">
+<code class="sig-name descname">dump</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">output_folder</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/cim/cim_data_dump.html#CimDataDumpUtil.dump"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.cim.cim_data_dump.CimDataDumpUtil.dump" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dump cim data into specified folder.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>output_folder</strong> (<em>str</em>) – Folder to save dumped files.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.data_lib.cim.cim_data_dump.dump_from_config">
+<code class="sig-prename descclassname">maro.data_lib.cim.cim_data_dump.</code><code class="sig-name descname">dump_from_config</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config_file</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">output_folder</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">max_tick</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/cim/cim_data_dump.html#dump_from_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.cim.cim_data_dump.dump_from_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dump cim data from config, this will call data generator to generate data , and dump it.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This function will not convert csv files into binary.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config_file</strong> (<em>str</em>) – Configuration path.</p></li>
+<li><p><strong>output_folder</strong> (<em>str</em>) – Output folder to save files.</p></li>
+<li><p><strong>max_tick</strong> (<em>int</em>) – Max tick to gen.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.data_lib.cim.cim_data_generator">
+<span id="maro-data-lib-cim-cim-data-generator-module"></span><h2>maro.data_lib.cim.cim_data_generator module<a class="headerlink" href="#module-maro.data_lib.cim.cim_data_generator" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.data_lib.cim.cim_data_generator.CimDataGenerator">
+<em class="property">class </em><code class="sig-prename descclassname">maro.data_lib.cim.cim_data_generator.</code><code class="sig-name descname">CimDataGenerator</code><a class="reference internal" href="../_modules/maro/data_lib/cim/cim_data_generator.html#CimDataGenerator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.cim.cim_data_generator.CimDataGenerator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Utility to generate cim data from configuration file.</p>
+<dl class="py method">
+<dt id="maro.data_lib.cim.cim_data_generator.CimDataGenerator.gen_data">
+<code class="sig-name descname">gen_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config_file</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">max_tick</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">start_tick</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">0</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#maro.data_lib.cim.entities.CimDataCollection" title="maro.data_lib.cim.entities.CimDataCollection">maro.data_lib.cim.entities.CimDataCollection</a><a class="reference internal" href="../_modules/maro/data_lib/cim/cim_data_generator.html#CimDataGenerator.gen_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.cim.cim_data_generator.CimDataGenerator.gen_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate data with specified configurations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config_file</strong> (<em>str</em>) – File of configuration (yaml).</p></li>
+<li><p><strong>max_tick</strong> (<em>int</em>) – Max tick to generate.</p></li>
+<li><p><strong>start_tick</strong> (<em>int</em>) – Start tick to generate.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Data collection contains all cim data.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#maro.data_lib.cim.entities.CimDataCollection" title="maro.data_lib.cim.entities.CimDataCollection">CimDataCollection</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.data_lib.cim.cim_data_loader">
+<span id="maro-data-lib-cim-cim-data-loader-module"></span><h2>maro.data_lib.cim.cim_data_loader module<a class="headerlink" href="#module-maro.data_lib.cim.cim_data_loader" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.data_lib.cim.cim_data_loader.CimDumpDataLoader">
+<em class="property">class </em><code class="sig-prename descclassname">maro.data_lib.cim.cim_data_loader.</code><code class="sig-name descname">CimDumpDataLoader</code><a class="reference internal" href="../_modules/maro/data_lib/cim/cim_data_loader.html#CimDumpDataLoader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.cim.cim_data_loader.CimDumpDataLoader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Utility to load data from dump folder</p>
+<dl class="py method">
+<dt id="maro.data_lib.cim.cim_data_loader.CimDumpDataLoader.load">
+<code class="sig-name descname">load</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dumps_folder</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#maro.data_lib.cim.entities.CimDataCollection" title="maro.data_lib.cim.entities.CimDataCollection">maro.data_lib.cim.entities.CimDataCollection</a><a class="reference internal" href="../_modules/maro/data_lib/cim/cim_data_loader.html#CimDumpDataLoader.load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.cim.cim_data_loader.CimDumpDataLoader.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load data from dump folder</p>
+<p>NOTE:
+dumps folder should contains following files.
+ports.csv, vessels.csv, routes.csv, order_proportion.csv,
+global_order_proportion.txt, misc.yml, stops.bin</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>dumps_folders</strong> (<em>str</em>) – folder that contains dumped files</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>data collection for data container</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#maro.data_lib.cim.entities.CimDataCollection" title="maro.data_lib.cim.entities.CimDataCollection">CimDataCollection</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.data_lib.cim.cim_data_loader.load_from_folder">
+<code class="sig-prename descclassname">maro.data_lib.cim.cim_data_loader.</code><code class="sig-name descname">load_from_folder</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source_folder</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#maro.data_lib.cim.entities.CimDataCollection" title="maro.data_lib.cim.entities.CimDataCollection">maro.data_lib.cim.entities.CimDataCollection</a><a class="reference internal" href="../_modules/maro/data_lib/cim/cim_data_loader.html#load_from_folder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.cim.cim_data_loader.load_from_folder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load data from dump folder.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Dumps folder should contains following files:</p>
+</div>
+<p>ports.csv, vessels.csv, routes.csv, order_proportion.csv,
+global_order_proportion.txt, misc.yml, stops.bin.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>source_folder</strong> (<em>str</em>) – Source folder container dumped files.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Data collection for cim data container.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#maro.data_lib.cim.entities.CimDataCollection" title="maro.data_lib.cim.entities.CimDataCollection">CimDataCollection</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.data_lib.cim.entities">
+<span id="maro-data-lib-cim-entities-module"></span><h2>maro.data_lib.cim.entities module<a class="headerlink" href="#module-maro.data_lib.cim.entities" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.data_lib.cim.entities.CimDataCollection">
+<em class="property">class </em><code class="sig-prename descclassname">maro.data_lib.cim.entities.</code><code class="sig-name descname">CimDataCollection</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">total_containers</span></em>, <em class="sig-param"><span class="n">past_stop_number</span></em>, <em class="sig-param"><span class="n">future_stop_number</span></em>, <em class="sig-param"><span class="n">cntr_volume</span></em>, <em class="sig-param"><span class="n">order_mode</span></em>, <em class="sig-param"><span class="n">ports_settings</span></em>, <em class="sig-param"><span class="n">port_mapping</span></em>, <em class="sig-param"><span class="n">vessels_settings</span></em>, <em class="sig-param"><span class="n">vessel_mapping</span></em>, <em class="sig-param"><span class="n">vessels_stops</span></em>, <em class="sig-param"><span class="n">order_proportion</span></em>, <em class="sig-param"><span class="n">routes</span></em>, <em class="sig-param"><span class="n">route_mapping</span></em>, <em class="sig-param"><span class="n">vessel_period_no_noise</span></em>, <em class="sig-param"><span class="n">max_tick</span></em>, <em class="sig-param"><span class="n">seed</span></em>, <em class="sig-param"><span class="n">version</span></em><span class="sig-paren">)</span><a class="headerlink" href="#maro.data_lib.cim.entities.CimDataCollection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="py method">
+<dt id="maro.data_lib.cim.entities.CimDataCollection.cntr_volume">
+<em class="property">property </em><code class="sig-name descname">cntr_volume</code><a class="headerlink" href="#maro.data_lib.cim.entities.CimDataCollection.cntr_volume" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.entities.CimDataCollection.future_stop_number">
+<em class="property">property </em><code class="sig-name descname">future_stop_number</code><a class="headerlink" href="#maro.data_lib.cim.entities.CimDataCollection.future_stop_number" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.entities.CimDataCollection.max_tick">
+<em class="property">property </em><code class="sig-name descname">max_tick</code><a class="headerlink" href="#maro.data_lib.cim.entities.CimDataCollection.max_tick" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 14</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.entities.CimDataCollection.order_mode">
+<em class="property">property </em><code class="sig-name descname">order_mode</code><a class="headerlink" href="#maro.data_lib.cim.entities.CimDataCollection.order_mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 4</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.entities.CimDataCollection.order_proportion">
+<em class="property">property </em><code class="sig-name descname">order_proportion</code><a class="headerlink" href="#maro.data_lib.cim.entities.CimDataCollection.order_proportion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 10</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.entities.CimDataCollection.past_stop_number">
+<em class="property">property </em><code class="sig-name descname">past_stop_number</code><a class="headerlink" href="#maro.data_lib.cim.entities.CimDataCollection.past_stop_number" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.entities.CimDataCollection.port_mapping">
+<em class="property">property </em><code class="sig-name descname">port_mapping</code><a class="headerlink" href="#maro.data_lib.cim.entities.CimDataCollection.port_mapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 6</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.entities.CimDataCollection.ports_settings">
+<em class="property">property </em><code class="sig-name descname">ports_settings</code><a class="headerlink" href="#maro.data_lib.cim.entities.CimDataCollection.ports_settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 5</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.entities.CimDataCollection.route_mapping">
+<em class="property">property </em><code class="sig-name descname">route_mapping</code><a class="headerlink" href="#maro.data_lib.cim.entities.CimDataCollection.route_mapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 12</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.entities.CimDataCollection.routes">
+<em class="property">property </em><code class="sig-name descname">routes</code><a class="headerlink" href="#maro.data_lib.cim.entities.CimDataCollection.routes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 11</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.entities.CimDataCollection.seed">
+<em class="property">property </em><code class="sig-name descname">seed</code><a class="headerlink" href="#maro.data_lib.cim.entities.CimDataCollection.seed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 15</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.entities.CimDataCollection.total_containers">
+<em class="property">property </em><code class="sig-name descname">total_containers</code><a class="headerlink" href="#maro.data_lib.cim.entities.CimDataCollection.total_containers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.entities.CimDataCollection.version">
+<em class="property">property </em><code class="sig-name descname">version</code><a class="headerlink" href="#maro.data_lib.cim.entities.CimDataCollection.version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 16</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.entities.CimDataCollection.vessel_mapping">
+<em class="property">property </em><code class="sig-name descname">vessel_mapping</code><a class="headerlink" href="#maro.data_lib.cim.entities.CimDataCollection.vessel_mapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 8</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.entities.CimDataCollection.vessel_period_no_noise">
+<em class="property">property </em><code class="sig-name descname">vessel_period_no_noise</code><a class="headerlink" href="#maro.data_lib.cim.entities.CimDataCollection.vessel_period_no_noise" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 13</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.entities.CimDataCollection.vessels_settings">
+<em class="property">property </em><code class="sig-name descname">vessels_settings</code><a class="headerlink" href="#maro.data_lib.cim.entities.CimDataCollection.vessels_settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 7</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.entities.CimDataCollection.vessels_stops">
+<em class="property">property </em><code class="sig-name descname">vessels_stops</code><a class="headerlink" href="#maro.data_lib.cim.entities.CimDataCollection.vessels_stops" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 9</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.data_lib.cim.entities.NoisedItem">
+<em class="property">class </em><code class="sig-prename descclassname">maro.data_lib.cim.entities.</code><code class="sig-name descname">NoisedItem</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">index</span></em>, <em class="sig-param"><span class="n">base</span></em>, <em class="sig-param"><span class="n">noise</span></em><span class="sig-paren">)</span><a class="headerlink" href="#maro.data_lib.cim.entities.NoisedItem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="py method">
+<dt id="maro.data_lib.cim.entities.NoisedItem.base">
+<em class="property">property </em><code class="sig-name descname">base</code><a class="headerlink" href="#maro.data_lib.cim.entities.NoisedItem.base" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.entities.NoisedItem.index">
+<em class="property">property </em><code class="sig-name descname">index</code><a class="headerlink" href="#maro.data_lib.cim.entities.NoisedItem.index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.entities.NoisedItem.noise">
+<em class="property">property </em><code class="sig-name descname">noise</code><a class="headerlink" href="#maro.data_lib.cim.entities.NoisedItem.noise" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.data_lib.cim.entities.Order">
+<em class="property">class </em><code class="sig-prename descclassname">maro.data_lib.cim.entities.</code><code class="sig-name descname">Order</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tick</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">src_port_idx</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">dest_port_idx</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">quantity</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/cim/entities.html#Order"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.cim.entities.Order" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Used to hold order information, this is for order generation.</p>
+<dl class="py attribute">
+<dt id="maro.data_lib.cim.entities.Order.summary_key">
+<code class="sig-name descname">summary_key</code><em class="property"> = ['tick', 'src_port_idx', 'dest_port_idx', 'quantity']</em><a class="headerlink" href="#maro.data_lib.cim.entities.Order.summary_key" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.data_lib.cim.entities.OrderGenerateMode">
+<em class="property">class </em><code class="sig-prename descclassname">maro.data_lib.cim.entities.</code><code class="sig-name descname">OrderGenerateMode</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/cim/entities.html#OrderGenerateMode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.cim.entities.OrderGenerateMode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>Mode to generate orders from configuration.</p>
+<p>There are 2 modes for now:
+1. fixed: order is generated base on total containers, do not care about available empty container
+2. unfixed: order is generated with configured ratio, and considering available empty containers</p>
+<dl class="py attribute">
+<dt id="maro.data_lib.cim.entities.OrderGenerateMode.FIXED">
+<code class="sig-name descname">FIXED</code><em class="property"> = 'fixed'</em><a class="headerlink" href="#maro.data_lib.cim.entities.OrderGenerateMode.FIXED" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.data_lib.cim.entities.OrderGenerateMode.UNFIXED">
+<code class="sig-name descname">UNFIXED</code><em class="property"> = 'unfixed'</em><a class="headerlink" href="#maro.data_lib.cim.entities.OrderGenerateMode.UNFIXED" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.data_lib.cim.entities.PortSetting">
+<em class="property">class </em><code class="sig-prename descclassname">maro.data_lib.cim.entities.</code><code class="sig-name descname">PortSetting</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">index</span></em>, <em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">capacity</span></em>, <em class="sig-param"><span class="n">empty</span></em>, <em class="sig-param"><span class="n">source_proportion</span></em>, <em class="sig-param"><span class="n">target_proportions</span></em>, <em class="sig-param"><span class="n">empty_return_buffer</span></em>, <em class="sig-param"><span class="n">full_return_buffer</span></em><span class="sig-paren">)</span><a class="headerlink" href="#maro.data_lib.cim.entities.PortSetting" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="py method">
+<dt id="maro.data_lib.cim.entities.PortSetting.capacity">
+<em class="property">property </em><code class="sig-name descname">capacity</code><a class="headerlink" href="#maro.data_lib.cim.entities.PortSetting.capacity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.entities.PortSetting.empty">
+<em class="property">property </em><code class="sig-name descname">empty</code><a class="headerlink" href="#maro.data_lib.cim.entities.PortSetting.empty" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.entities.PortSetting.empty_return_buffer">
+<em class="property">property </em><code class="sig-name descname">empty_return_buffer</code><a class="headerlink" href="#maro.data_lib.cim.entities.PortSetting.empty_return_buffer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 6</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.entities.PortSetting.full_return_buffer">
+<em class="property">property </em><code class="sig-name descname">full_return_buffer</code><a class="headerlink" href="#maro.data_lib.cim.entities.PortSetting.full_return_buffer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 7</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.entities.PortSetting.index">
+<em class="property">property </em><code class="sig-name descname">index</code><a class="headerlink" href="#maro.data_lib.cim.entities.PortSetting.index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.entities.PortSetting.name">
+<em class="property">property </em><code class="sig-name descname">name</code><a class="headerlink" href="#maro.data_lib.cim.entities.PortSetting.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.entities.PortSetting.source_proportion">
+<em class="property">property </em><code class="sig-name descname">source_proportion</code><a class="headerlink" href="#maro.data_lib.cim.entities.PortSetting.source_proportion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 4</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.entities.PortSetting.target_proportions">
+<em class="property">property </em><code class="sig-name descname">target_proportions</code><a class="headerlink" href="#maro.data_lib.cim.entities.PortSetting.target_proportions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 5</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.data_lib.cim.entities.RoutePoint">
+<em class="property">class </em><code class="sig-prename descclassname">maro.data_lib.cim.entities.</code><code class="sig-name descname">RoutePoint</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">index</span></em>, <em class="sig-param"><span class="n">port_name</span></em>, <em class="sig-param"><span class="n">distance</span></em><span class="sig-paren">)</span><a class="headerlink" href="#maro.data_lib.cim.entities.RoutePoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="py method">
+<dt id="maro.data_lib.cim.entities.RoutePoint.distance">
+<em class="property">property </em><code class="sig-name descname">distance</code><a class="headerlink" href="#maro.data_lib.cim.entities.RoutePoint.distance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.entities.RoutePoint.index">
+<em class="property">property </em><code class="sig-name descname">index</code><a class="headerlink" href="#maro.data_lib.cim.entities.RoutePoint.index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.entities.RoutePoint.port_name">
+<em class="property">property </em><code class="sig-name descname">port_name</code><a class="headerlink" href="#maro.data_lib.cim.entities.RoutePoint.port_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.data_lib.cim.entities.Stop">
+<em class="property">class </em><code class="sig-prename descclassname">maro.data_lib.cim.entities.</code><code class="sig-name descname">Stop</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">index</span></em>, <em class="sig-param"><span class="n">arrive_tick</span></em>, <em class="sig-param"><span class="n">leave_tick</span></em>, <em class="sig-param"><span class="n">port_idx</span></em>, <em class="sig-param"><span class="n">vessel_idx</span></em><span class="sig-paren">)</span><a class="headerlink" href="#maro.data_lib.cim.entities.Stop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="py method">
+<dt id="maro.data_lib.cim.entities.Stop.arrive_tick">
+<em class="property">property </em><code class="sig-name descname">arrive_tick</code><a class="headerlink" href="#maro.data_lib.cim.entities.Stop.arrive_tick" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.entities.Stop.index">
+<em class="property">property </em><code class="sig-name descname">index</code><a class="headerlink" href="#maro.data_lib.cim.entities.Stop.index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.entities.Stop.leave_tick">
+<em class="property">property </em><code class="sig-name descname">leave_tick</code><a class="headerlink" href="#maro.data_lib.cim.entities.Stop.leave_tick" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.entities.Stop.port_idx">
+<em class="property">property </em><code class="sig-name descname">port_idx</code><a class="headerlink" href="#maro.data_lib.cim.entities.Stop.port_idx" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.entities.Stop.vessel_idx">
+<em class="property">property </em><code class="sig-name descname">vessel_idx</code><a class="headerlink" href="#maro.data_lib.cim.entities.Stop.vessel_idx" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 4</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.data_lib.cim.entities.VesselSetting">
+<code class="sig-prename descclassname">maro.data_lib.cim.entities.</code><code class="sig-name descname">VesselSetting</code><a class="headerlink" href="#maro.data_lib.cim.entities.VesselSetting" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">maro.data_lib.cim.entities.VesselSettings</span></code></p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.data_lib.cim.global_order_proportion">
+<span id="maro-data-lib-cim-global-order-proportion-module"></span><h2>maro.data_lib.cim.global_order_proportion module<a class="headerlink" href="#module-maro.data_lib.cim.global_order_proportion" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.data_lib.cim.global_order_proportion.GlobalOrderProportion">
+<em class="property">class </em><code class="sig-prename descclassname">maro.data_lib.cim.global_order_proportion.</code><code class="sig-name descname">GlobalOrderProportion</code><a class="reference internal" href="../_modules/maro/data_lib/cim/global_order_proportion.html#GlobalOrderProportion"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.cim.global_order_proportion.GlobalOrderProportion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Helper used to generate order proportion at specified tick range.</p>
+<dl class="py method">
+<dt id="maro.data_lib.cim.global_order_proportion.GlobalOrderProportion.parse">
+<code class="sig-name descname">parse</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">conf</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">total_container</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">max_tick</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">start_tick</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">0</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../_modules/maro/data_lib/cim/global_order_proportion.html#GlobalOrderProportion.parse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.cim.global_order_proportion.GlobalOrderProportion.parse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse specified configuration, and generate order proportion.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>conf</strong> (<em>dict</em>) – Configuration to parse.</p></li>
+<li><p><strong>total_container</strong> (<em>int</em>) – Total containers in this environment.</p></li>
+<li><p><strong>max_tick</strong> (<em>int</em>) – Max tick to generate.</p></li>
+<li><p><strong>start_tick</strong> (<em>int</em>) – Start tick to generate.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>1-dim numpy array for specified range.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.data_lib.cim.port_buffer_tick_wrapper">
+<span id="maro-data-lib-cim-port-buffer-tick-wrapper-module"></span><h2>maro.data_lib.cim.port_buffer_tick_wrapper module<a class="headerlink" href="#module-maro.data_lib.cim.port_buffer_tick_wrapper" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.data_lib.cim.port_buffer_tick_wrapper.PortBufferTickWrapper">
+<em class="property">class </em><code class="sig-prename descclassname">maro.data_lib.cim.port_buffer_tick_wrapper.</code><code class="sig-name descname">PortBufferTickWrapper</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.data_lib.cim.entities.CimDataCollection" title="maro.data_lib.cim.entities.CimDataCollection">maro.data_lib.cim.entities.CimDataCollection</a></span></em>, <em class="sig-param"><span class="n">attribute_func</span><span class="p">:</span> <span class="n">callable</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/cim/port_buffer_tick_wrapper.html#PortBufferTickWrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.cim.port_buffer_tick_wrapper.PortBufferTickWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Used to generate buffer ticks when empty/full become available.</p>
+<p class="rubric">Examples</p>
+<p>ticks = data_cntr.empty_return_buffers[port_index]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>CimDataCollection</em>) – Cim data collection.</p></li>
+<li><p><strong>attribute_func</strong> (<em>callable</em>) – Function to get attribute, used to switch between empty and full.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.data_lib.cim.port_parser">
+<span id="maro-data-lib-cim-port-parser-module"></span><h2>maro.data_lib.cim.port_parser module<a class="headerlink" href="#module-maro.data_lib.cim.port_parser" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.data_lib.cim.port_parser.PortsParser">
+<em class="property">class </em><code class="sig-prename descclassname">maro.data_lib.cim.port_parser.</code><code class="sig-name descname">PortsParser</code><a class="reference internal" href="../_modules/maro/data_lib/cim/port_parser.html#PortsParser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.cim.port_parser.PortsParser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Parser used to parse port information from configurations</p>
+<dl class="py method">
+<dt id="maro.data_lib.cim.port_parser.PortsParser.parse">
+<code class="sig-name descname">parse</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">conf</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">total_container</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/cim/port_parser.html#PortsParser.parse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.cim.port_parser.PortsParser.parse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse specified port configurations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>conf</strong> (<em>dict</em>) – Configuration to parse.</p></li>
+<li><p><strong>total_container</strong> (<em>int</em>) – Total container in current environment, used to calculate initial empty.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Port mapping (name to index), list of port settings.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(Dict[str, int], List[<a class="reference internal" href="#maro.data_lib.cim.entities.PortSetting" title="maro.data_lib.cim.entities.PortSetting">PortSetting</a>])</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.data_lib.cim.route_parser">
+<span id="maro-data-lib-cim-route-parser-module"></span><h2>maro.data_lib.cim.route_parser module<a class="headerlink" href="#module-maro.data_lib.cim.route_parser" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.data_lib.cim.route_parser.RoutesParser">
+<em class="property">class </em><code class="sig-prename descclassname">maro.data_lib.cim.route_parser.</code><code class="sig-name descname">RoutesParser</code><a class="reference internal" href="../_modules/maro/data_lib/cim/route_parser.html#RoutesParser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.cim.route_parser.RoutesParser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Parser used to parse route information from configurations.</p>
+<dl class="py method">
+<dt id="maro.data_lib.cim.route_parser.RoutesParser.parse">
+<code class="sig-name descname">parse</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">conf</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/cim/route_parser.html#RoutesParser.parse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.cim.route_parser.RoutesParser.parse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse specified route configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>conf</strong> (<em>dict</em>) – Configuration to parse.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>Route mapping (name to index),</dt><dd><p>and list of route point list (index is route index).</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(Dict[str, int], List[List[<a class="reference internal" href="#maro.data_lib.cim.entities.RoutePoint" title="maro.data_lib.cim.entities.RoutePoint">RoutePoint</a>]])</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.data_lib.cim.utils">
+<span id="maro-data-lib-cim-utils-module"></span><h2>maro.data_lib.cim.utils module<a class="headerlink" href="#module-maro.data_lib.cim.utils" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="maro.data_lib.cim.utils.apply_noise">
+<code class="sig-prename descclassname">maro.data_lib.cim.utils.</code><code class="sig-name descname">apply_noise</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>int<span class="p">, </span>float<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">noise</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>int<span class="p">, </span>float<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">rand</span><span class="p">:</span> <span class="n"><a class="reference internal" href="maro.simulator.utils.html#maro.simulator.utils.sim_random.SimRandom" title="maro.simulator.utils.sim_random.SimRandom">maro.simulator.utils.sim_random.SimRandom</a></span></em><span class="sig-paren">)</span> &#x2192; float<a class="reference internal" href="../_modules/maro/data_lib/cim/utils.html#apply_noise"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.cim.utils.apply_noise" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply noise with specified random generator</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> (<em>int</em>) – number to apply noise</p></li>
+<li><p><strong>noise</strong> (<em>int</em>) – noise range</p></li>
+<li><p><strong>rand</strong> (<em>SimRandom</em>) – random generator</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>final value after apply noise</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.data_lib.cim.utils.clip">
+<code class="sig-prename descclassname">maro.data_lib.cim.utils.</code><code class="sig-name descname">clip</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">min_val</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>int<span class="p">, </span>float<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">max_val</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>int<span class="p">, </span>float<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">value</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>int<span class="p">, </span>float<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; Union<span class="p">[</span>int<span class="p">, </span>float<span class="p">]</span><a class="reference internal" href="../_modules/maro/data_lib/cim/utils.html#clip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.cim.utils.clip" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clip value between specified range</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>min_val</strong> (<em>Union[int, float]</em>) – min value to clip</p></li>
+<li><p><strong>max_val</strong> (<em>Union[int, float]</em>) – max value to clip</p></li>
+<li><p><strong>value</strong> (<em>Union[int, float]</em>) – value to clip</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>clipped value</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Union[int, float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.data_lib.cim.utils.get_buffer_tick_seed">
+<code class="sig-prename descclassname">maro.data_lib.cim.utils.</code><code class="sig-name descname">get_buffer_tick_seed</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/cim/utils.html#get_buffer_tick_seed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.cim.utils.get_buffer_tick_seed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="maro.data_lib.cim.utils.get_order_num_seed">
+<code class="sig-prename descclassname">maro.data_lib.cim.utils.</code><code class="sig-name descname">get_order_num_seed</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/cim/utils.html#get_order_num_seed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.cim.utils.get_order_num_seed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="maro.data_lib.cim.utils.list_sum_normalize">
+<code class="sig-prename descclassname">maro.data_lib.cim.utils.</code><code class="sig-name descname">list_sum_normalize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">num_list</span><span class="p">:</span> <span class="n">List<span class="p">[</span>Union<span class="p">[</span>int<span class="p">, </span>float<span class="p">]</span><span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>float<span class="p">]</span><a class="reference internal" href="../_modules/maro/data_lib/cim/utils.html#list_sum_normalize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.cim.utils.list_sum_normalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Normalize with sum.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>num_list</strong> (<em>list</em>) – List of number to normalize.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List of normalized number.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.data_lib.cim.vessel_future_stops_prediction">
+<span id="maro-data-lib-cim-vessel-future-stops-prediction-module"></span><h2>maro.data_lib.cim.vessel_future_stops_prediction module<a class="headerlink" href="#module-maro.data_lib.cim.vessel_future_stops_prediction" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.data_lib.cim.vessel_future_stops_prediction.VesselFutureStopsPrediction">
+<em class="property">class </em><code class="sig-prename descclassname">maro.data_lib.cim.vessel_future_stops_prediction.</code><code class="sig-name descname">VesselFutureStopsPrediction</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.data_lib.cim.entities.CimDataCollection" title="maro.data_lib.cim.entities.CimDataCollection">maro.data_lib.cim.entities.CimDataCollection</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/cim/vessel_future_stops_prediction.html#VesselFutureStopsPrediction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.cim.vessel_future_stops_prediction.VesselFutureStopsPrediction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Wrapper to get (predict, without noise) vessel future stops, the number of stops is limited by configuration.</p>
+<p class="rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get future stops of vessel 0.</span>
+<span class="n">stops</span> <span class="o">=</span> <span class="n">data_cntr</span><span class="o">.</span><span class="n">vessel_future_stops</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.data_lib.cim.vessel_parser">
+<span id="maro-data-lib-cim-vessel-parser-module"></span><h2>maro.data_lib.cim.vessel_parser module<a class="headerlink" href="#module-maro.data_lib.cim.vessel_parser" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.data_lib.cim.vessel_parser.VesselsParser">
+<em class="property">class </em><code class="sig-prename descclassname">maro.data_lib.cim.vessel_parser.</code><code class="sig-name descname">VesselsParser</code><a class="reference internal" href="../_modules/maro/data_lib/cim/vessel_parser.html#VesselsParser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.cim.vessel_parser.VesselsParser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Parser used to parse vessel configurations.</p>
+<dl class="py method">
+<dt id="maro.data_lib.cim.vessel_parser.VesselsParser.parse">
+<code class="sig-name descname">parse</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">conf</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/cim/vessel_parser.html#VesselsParser.parse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.cim.vessel_parser.VesselsParser.parse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse specified vessel configurations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>conf</strong> (<em>dict</em>) – Configurations to parse.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Vessel mappings (name to index), and settings list for all vessels.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(Dict[str, int], List[VesselSetting])</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.data_lib.cim.vessel_past_stops_wrapper">
+<span id="maro-data-lib-cim-vessel-past-stops-wrapper-module"></span><h2>maro.data_lib.cim.vessel_past_stops_wrapper module<a class="headerlink" href="#module-maro.data_lib.cim.vessel_past_stops_wrapper" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.data_lib.cim.vessel_past_stops_wrapper.VesselPastStopsWrapper">
+<em class="property">class </em><code class="sig-prename descclassname">maro.data_lib.cim.vessel_past_stops_wrapper.</code><code class="sig-name descname">VesselPastStopsWrapper</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.data_lib.cim.entities.CimDataCollection" title="maro.data_lib.cim.entities.CimDataCollection">maro.data_lib.cim.entities.CimDataCollection</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/cim/vessel_past_stops_wrapper.html#VesselPastStopsWrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.cim.vessel_past_stops_wrapper.VesselPastStopsWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Wrapper to get vessel past stops, it will be padding with None if stops number less than configured one.</p>
+<p class="rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get past stops of vessel 0.</span>
+<span class="n">stops</span> <span class="o">=</span> <span class="n">data_cntr</span><span class="o">.</span><span class="n">vessel_past_stops</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.data_lib.cim.vessel_reachable_stops_wrapper">
+<span id="maro-data-lib-cim-vessel-reachable-stops-wrapper-module"></span><h2>maro.data_lib.cim.vessel_reachable_stops_wrapper module<a class="headerlink" href="#module-maro.data_lib.cim.vessel_reachable_stops_wrapper" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.data_lib.cim.vessel_reachable_stops_wrapper.VesselReachableStopsWrapper">
+<em class="property">class </em><code class="sig-prename descclassname">maro.data_lib.cim.vessel_reachable_stops_wrapper.</code><code class="sig-name descname">VesselReachableStopsWrapper</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.data_lib.cim.entities.CimDataCollection" title="maro.data_lib.cim.entities.CimDataCollection">maro.data_lib.cim.entities.CimDataCollection</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/cim/vessel_reachable_stops_wrapper.html#VesselReachableStopsWrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.cim.vessel_reachable_stops_wrapper.VesselReachableStopsWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Wrapper to get a list of tuple which contains port index and arrive tick in vessel’s route.</p>
+<p class="rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get reachable_stops for vessel 0.</span>
+<span class="n">stop_list</span> <span class="o">=</span> <span class="n">data_cntr</span><span class="o">.</span><span class="n">reachable_stops</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.data_lib.cim.vessel_sailing_plan_wrapper">
+<span id="maro-data-lib-cim-vessel-sailing-plan-wrapper-module"></span><h2>maro.data_lib.cim.vessel_sailing_plan_wrapper module<a class="headerlink" href="#module-maro.data_lib.cim.vessel_sailing_plan_wrapper" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.data_lib.cim.vessel_sailing_plan_wrapper.VesselSailingPlanWrapper">
+<em class="property">class </em><code class="sig-prename descclassname">maro.data_lib.cim.vessel_sailing_plan_wrapper.</code><code class="sig-name descname">VesselSailingPlanWrapper</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.data_lib.cim.entities.CimDataCollection" title="maro.data_lib.cim.entities.CimDataCollection">maro.data_lib.cim.entities.CimDataCollection</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/cim/vessel_sailing_plan_wrapper.html#VesselSailingPlanWrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.cim.vessel_sailing_plan_wrapper.VesselSailingPlanWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.data_lib.cim.vessel_future_stops_prediction.VesselFutureStopsPrediction" title="maro.data_lib.cim.vessel_future_stops_prediction.VesselFutureStopsPrediction"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.data_lib.cim.vessel_future_stops_prediction.VesselFutureStopsPrediction</span></code></a></p>
+<p>Wrapper to get vessel sailing plan, this method will return a stop
+list that within configured time peroid (means no same port in list).</p>
+<p class="rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get sailing plan for vessel 0.</span>
+<span class="n">stops</span> <span class="o">=</span> <span class="n">data_cntr</span><span class="o">.</span><span class="n">vessel_planned_stops</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.data_lib.cim.vessel_stop_wrapper">
+<span id="maro-data-lib-cim-vessel-stop-wrapper-module"></span><h2>maro.data_lib.cim.vessel_stop_wrapper module<a class="headerlink" href="#module-maro.data_lib.cim.vessel_stop_wrapper" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.data_lib.cim.vessel_stop_wrapper.VesselStopsWrapper">
+<em class="property">class </em><code class="sig-prename descclassname">maro.data_lib.cim.vessel_stop_wrapper.</code><code class="sig-name descname">VesselStopsWrapper</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.data_lib.cim.entities.CimDataCollection" title="maro.data_lib.cim.entities.CimDataCollection">maro.data_lib.cim.entities.CimDataCollection</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/cim/vessel_stop_wrapper.html#VesselStopsWrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.cim.vessel_stop_wrapper.VesselStopsWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Accessor for vessel stops.</p>
+<p class="rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get a stop detail by vessel and location (stop) index.</span>
+<span class="n">stop</span> <span class="o">=</span> <span class="n">data_cntr</span><span class="o">.</span><span class="n">vessel_stops</span><span class="p">[</span><span class="n">vessel_idx</span><span class="p">,</span> <span class="n">loc_idx</span><span class="p">]</span>
+
+<span class="c1"># Get stop list of a vessel.</span>
+<span class="n">stop_list</span> <span class="o">=</span> <span class="n">data_cntr</span><span class="o">.</span><span class="n">vessel_stops</span><span class="p">[</span><span class="n">vessel_idx</span><span class="p">]</span>
+
+<span class="c1"># Get all stops, NOTE: slice without parameters.</span>
+<span class="n">stops</span> <span class="o">=</span> <span class="n">data_cntr</span><span class="o">.</span><span class="n">vessel_stops</span><span class="p">[:]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.data_lib.cim">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-maro.data_lib.cim" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.data_lib.cim.CimDataContainer">
+<em class="property">class </em><code class="sig-prename descclassname">maro.data_lib.cim.</code><code class="sig-name descname">CimDataContainer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_collection</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.data_lib.cim.entities.CimDataCollection" title="maro.data_lib.cim.entities.CimDataCollection">maro.data_lib.cim.entities.CimDataCollection</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/cim/cim_data_container.html#CimDataContainer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.cim.CimDataContainer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Data container for cim scenario, used to provide interfaces for business engine,
+and hide the details about data source, currently we support data from generator and dump files.</p>
+<p class="rubric">Example</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get data from generator.</span>
+<span class="n">data_cntr</span> <span class="o">=</span> <span class="n">data_from_generator</span><span class="p">(</span><span class="n">config_file</span><span class="p">,</span> <span class="n">max_tick</span><span class="p">)</span>
+
+<span class="c1"># Get data from dumps folder (which contains several dumped files).</span>
+<span class="n">data_cntr</span> <span class="o">=</span> <span class="n">data_from_dumps</span><span class="p">(</span><span class="n">dump_folder</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>data_collection</strong> (<em>CimDataCollection</em>) – Data collection from data source.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.data_lib.cim.CimDataContainer.container_volume">
+<em class="property">property </em><code class="sig-name descname">container_volume</code><a class="headerlink" href="#maro.data_lib.cim.CimDataContainer.container_volume" title="Permalink to this definition">¶</a></dt>
+<dd><p>Volume of a container.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.CimDataContainer.empty_return_buffers">
+<em class="property">property </em><code class="sig-name descname">empty_return_buffers</code><a class="headerlink" href="#maro.data_lib.cim.CimDataContainer.empty_return_buffers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Accessor to get empty return buffer tick for specified port (with noise).</p>
+<p class="rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get empty return buffer tick of port 0.</span>
+<span class="n">buffer_tick</span> <span class="o">=</span> <span class="n">data_cntr</span><span class="o">.</span><span class="n">empty_return_buffers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.CimDataContainer.full_return_buffers">
+<em class="property">property </em><code class="sig-name descname">full_return_buffers</code><a class="headerlink" href="#maro.data_lib.cim.CimDataContainer.full_return_buffers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Accessor to get full return buffer tick for specified port (with noise).</p>
+<p class="rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get full return buffer tick of port 0.</span>
+<span class="n">buffer_tick</span> <span class="o">=</span> <span class="n">data_cnr</span><span class="o">.</span><span class="n">full_return_buffers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.CimDataContainer.future_stop_number">
+<em class="property">property </em><code class="sig-name descname">future_stop_number</code><a class="headerlink" href="#maro.data_lib.cim.CimDataContainer.future_stop_number" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of future stops to predict to store in snapshot.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.CimDataContainer.get_orders">
+<code class="sig-name descname">get_orders</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tick</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">total_empty_container</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span><a class="reference internal" href="#maro.data_lib.cim.entities.Order" title="maro.data_lib.cim.entities.Order">maro.data_lib.cim.entities.Order</a><span class="p">]</span><a class="reference internal" href="../_modules/maro/data_lib/cim/cim_data_container.html#CimDataContainer.get_orders"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.cim.CimDataContainer.get_orders" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get order list by specified tick.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tick</strong> (<em>int</em>) – Tick of order.</p></li>
+<li><p><strong>total_empty_container</strong> (<em>int</em>) – Empty container at tick.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A list of order.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List[<a class="reference internal" href="#maro.data_lib.cim.entities.Order" title="maro.data_lib.cim.entities.Order">Order</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.CimDataContainer.past_stop_number">
+<em class="property">property </em><code class="sig-name descname">past_stop_number</code><a class="headerlink" href="#maro.data_lib.cim.CimDataContainer.past_stop_number" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of past stops to store in snapshot.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.CimDataContainer.port_mapping">
+<em class="property">property </em><code class="sig-name descname">port_mapping</code><a class="headerlink" href="#maro.data_lib.cim.CimDataContainer.port_mapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Name to index mapping for ports.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Dict[str, int]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.CimDataContainer.port_number">
+<em class="property">property </em><code class="sig-name descname">port_number</code><a class="headerlink" href="#maro.data_lib.cim.CimDataContainer.port_number" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of ports.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.CimDataContainer.ports">
+<em class="property">property </em><code class="sig-name descname">ports</code><a class="headerlink" href="#maro.data_lib.cim.CimDataContainer.ports" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of port initial settings.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>List[<a class="reference internal" href="#maro.data_lib.cim.entities.PortSetting" title="maro.data_lib.cim.entities.PortSetting">PortSetting</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.CimDataContainer.reachable_stops">
+<em class="property">property </em><code class="sig-name descname">reachable_stops</code><a class="headerlink" href="#maro.data_lib.cim.CimDataContainer.reachable_stops" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper to get a list of tuple which contains port index and arrive tick in vessel’s route.</p>
+<p class="rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get reachable_stops for vessel 0.</span>
+<span class="n">stop_list</span> <span class="o">=</span> <span class="n">data_cntr</span><span class="o">.</span><span class="n">reachable_stops</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.CimDataContainer.reset">
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/cim/cim_data_container.html#CimDataContainer.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.cim.CimDataContainer.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset data container internal state.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.CimDataContainer.route_mapping">
+<em class="property">property </em><code class="sig-name descname">route_mapping</code><a class="headerlink" href="#maro.data_lib.cim.CimDataContainer.route_mapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Name to index mapping for routes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Dict[str, int]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.CimDataContainer.vessel_future_stops">
+<em class="property">property </em><code class="sig-name descname">vessel_future_stops</code><a class="headerlink" href="#maro.data_lib.cim.CimDataContainer.vessel_future_stops" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper to get (predict, without noise) vessel future stops, the number of stops is limited by configuration.</p>
+<p class="rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get future stops of vessel 0.</span>
+<span class="n">stops</span> <span class="o">=</span> <span class="n">data_cntr</span><span class="o">.</span><span class="n">vessel_future_stops</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.CimDataContainer.vessel_mapping">
+<em class="property">property </em><code class="sig-name descname">vessel_mapping</code><a class="headerlink" href="#maro.data_lib.cim.CimDataContainer.vessel_mapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Name to index mapping for vessels.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Dict[str, int]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.CimDataContainer.vessel_number">
+<em class="property">property </em><code class="sig-name descname">vessel_number</code><a class="headerlink" href="#maro.data_lib.cim.CimDataContainer.vessel_number" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of vessels.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.CimDataContainer.vessel_past_stops">
+<em class="property">property </em><code class="sig-name descname">vessel_past_stops</code><a class="headerlink" href="#maro.data_lib.cim.CimDataContainer.vessel_past_stops" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper to get vessel past stops, it will be padding with None if stops number less than configured one.</p>
+<p class="rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get past stops of vessel 0.</span>
+<span class="n">stops</span> <span class="o">=</span> <span class="n">data_cntr</span><span class="o">.</span><span class="n">vessel_past_stops</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.CimDataContainer.vessel_period">
+<em class="property">property </em><code class="sig-name descname">vessel_period</code><a class="headerlink" href="#maro.data_lib.cim.CimDataContainer.vessel_period" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper to get vessel’s planed sailing period (without noise to complete a whole route).</p>
+<p class="rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get planed sailing for vessel 0.</span>
+<span class="n">period</span> <span class="o">=</span> <span class="n">data_cntr</span><span class="o">.</span><span class="n">vessel_period</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.CimDataContainer.vessel_planned_stops">
+<em class="property">property </em><code class="sig-name descname">vessel_planned_stops</code><a class="headerlink" href="#maro.data_lib.cim.CimDataContainer.vessel_planned_stops" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper to get vessel sailing plan, this method will return a stop list that
+within configured time period (means no same port in list)</p>
+<p class="rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get sailing plan for vessel 0.</span>
+<span class="n">stops</span> <span class="o">=</span> <span class="n">data_cntr</span><span class="o">.</span><span class="n">vessel_planned_stops</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.CimDataContainer.vessel_stops">
+<em class="property">property </em><code class="sig-name descname">vessel_stops</code><a class="headerlink" href="#maro.data_lib.cim.CimDataContainer.vessel_stops" title="Permalink to this definition">¶</a></dt>
+<dd><p>Accessor for vessel stops.</p>
+<p class="rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get a stop detail by vessel and location (stop) index.</span>
+<span class="n">stop</span> <span class="o">=</span> <span class="n">data_cntr</span><span class="o">.</span><span class="n">vessel_stops</span><span class="p">[</span><span class="n">vessel_idx</span><span class="p">,</span> <span class="n">loc_idx</span><span class="p">]</span>
+
+<span class="c1"># Get stop list of a vessel.</span>
+<span class="n">stop_list</span> <span class="o">=</span> <span class="n">data_cntr</span><span class="o">.</span><span class="n">vessel_stops</span><span class="p">[</span><span class="n">vessel_idx</span><span class="p">]</span>
+
+<span class="c1"># Get all stops, NOTE: slice without parameters.</span>
+<span class="n">stops</span> <span class="o">=</span> <span class="n">data_cntr</span><span class="o">.</span><span class="n">vessel_stops</span><span class="p">[:]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.CimDataContainer.vessels">
+<em class="property">property </em><code class="sig-name descname">vessels</code><a class="headerlink" href="#maro.data_lib.cim.CimDataContainer.vessels" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of vessel initial settings.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>List[VesselSetting]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.data_lib.cim.CimDataContainerWrapper">
+<em class="property">class </em><code class="sig-prename descclassname">maro.data_lib.cim.</code><code class="sig-name descname">CimDataContainerWrapper</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config_path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">max_tick</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">topology</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/cim/cim_data_container_helpers.html#CimDataContainerWrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.cim.CimDataContainerWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt id="maro.data_lib.cim.CimDataContainerWrapper.reset">
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/cim/cim_data_container_helpers.html#CimDataContainerWrapper.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.cim.CimDataContainerWrapper.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset data container internal state</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.data_lib.cim.Order">
+<em class="property">class </em><code class="sig-prename descclassname">maro.data_lib.cim.</code><code class="sig-name descname">Order</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tick</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">src_port_idx</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">dest_port_idx</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">quantity</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/cim/entities.html#Order"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.cim.Order" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Used to hold order information, this is for order generation.</p>
+<dl class="py attribute">
+<dt id="maro.data_lib.cim.Order.summary_key">
+<code class="sig-name descname">summary_key</code><em class="property"> = ['tick', 'src_port_idx', 'dest_port_idx', 'quantity']</em><a class="headerlink" href="#maro.data_lib.cim.Order.summary_key" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.data_lib.cim.Stop">
+<em class="property">class </em><code class="sig-prename descclassname">maro.data_lib.cim.</code><code class="sig-name descname">Stop</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">index</span></em>, <em class="sig-param"><span class="n">arrive_tick</span></em>, <em class="sig-param"><span class="n">leave_tick</span></em>, <em class="sig-param"><span class="n">port_idx</span></em>, <em class="sig-param"><span class="n">vessel_idx</span></em><span class="sig-paren">)</span><a class="headerlink" href="#maro.data_lib.cim.Stop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="py method">
+<dt id="maro.data_lib.cim.Stop.arrive_tick">
+<em class="property">property </em><code class="sig-name descname">arrive_tick</code><a class="headerlink" href="#maro.data_lib.cim.Stop.arrive_tick" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.Stop.index">
+<em class="property">property </em><code class="sig-name descname">index</code><a class="headerlink" href="#maro.data_lib.cim.Stop.index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.Stop.leave_tick">
+<em class="property">property </em><code class="sig-name descname">leave_tick</code><a class="headerlink" href="#maro.data_lib.cim.Stop.leave_tick" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.Stop.port_idx">
+<em class="property">property </em><code class="sig-name descname">port_idx</code><a class="headerlink" href="#maro.data_lib.cim.Stop.port_idx" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.cim.Stop.vessel_idx">
+<em class="property">property </em><code class="sig-name descname">vessel_idx</code><a class="headerlink" href="#maro.data_lib.cim.Stop.vessel_idx" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 4</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.data_lib.cim.data_from_dumps">
+<code class="sig-prename descclassname">maro.data_lib.cim.</code><code class="sig-name descname">data_from_dumps</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dumps_folder</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#maro.data_lib.cim.cim_data_container.CimDataContainer" title="maro.data_lib.cim.cim_data_container.CimDataContainer">maro.data_lib.cim.cim_data_container.CimDataContainer</a><a class="reference internal" href="../_modules/maro/data_lib/cim/cim_data_container_helpers.html#data_from_dumps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.cim.data_from_dumps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collect data from dump folder which contains following files:
+ports.csv, vessels.csv, routes.csv, order_proportion.csv, global_order_proportion.txt, misc.yml, stops.bin</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>dumps_folder</strong> (<em>str</em>) – Folder contains dumped files.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Data container used to provide cim data related interfaces.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#maro.data_lib.cim.cim_data_container.CimDataContainer" title="maro.data_lib.cim.cim_data_container.CimDataContainer">CimDataContainer</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.data_lib.cim.data_from_generator">
+<code class="sig-prename descclassname">maro.data_lib.cim.</code><code class="sig-name descname">data_from_generator</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config_path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">max_tick</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">start_tick</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">0</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#maro.data_lib.cim.cim_data_container.CimDataContainer" title="maro.data_lib.cim.cim_data_container.CimDataContainer">maro.data_lib.cim.cim_data_container.CimDataContainer</a><a class="reference internal" href="../_modules/maro/data_lib/cim/cim_data_container_helpers.html#data_from_generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.cim.data_from_generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collect data from data generator with configurations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config_path</strong> (<em>str</em>) – Path of configuration file (yaml).</p></li>
+<li><p><strong>max_tick</strong> (<em>int</em>) – Max tick to generate data.</p></li>
+<li><p><strong>start_tick</strong> (<em>int</em>) – Start tick to generate data.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Data container used to provide cim data related interfaces.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#maro.data_lib.cim.cim_data_container.CimDataContainer" title="maro.data_lib.cim.cim_data_container.CimDataContainer">CimDataContainer</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.data_lib.cim.dump_from_config">
+<code class="sig-prename descclassname">maro.data_lib.cim.</code><code class="sig-name descname">dump_from_config</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config_file</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">output_folder</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">max_tick</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/cim/cim_data_dump.html#dump_from_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.cim.dump_from_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dump cim data from config, this will call data generator to generate data , and dump it.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This function will not convert csv files into binary.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config_file</strong> (<em>str</em>) – Configuration path.</p></li>
+<li><p><strong>output_folder</strong> (<em>str</em>) – Output folder to save files.</p></li>
+<li><p><strong>max_tick</strong> (<em>int</em>) – Max tick to gen.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.data_lib.cim.load_from_folder">
+<code class="sig-prename descclassname">maro.data_lib.cim.</code><code class="sig-name descname">load_from_folder</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source_folder</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#maro.data_lib.cim.entities.CimDataCollection" title="maro.data_lib.cim.entities.CimDataCollection">maro.data_lib.cim.entities.CimDataCollection</a><a class="reference internal" href="../_modules/maro/data_lib/cim/cim_data_loader.html#load_from_folder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.cim.load_from_folder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load data from dump folder.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Dumps folder should contains following files:</p>
+</div>
+<p>ports.csv, vessels.csv, routes.csv, order_proportion.csv,
+global_order_proportion.txt, misc.yml, stops.bin.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>source_folder</strong> (<em>str</em>) – Source folder container dumped files.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Data collection for cim data container.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#maro.data_lib.cim.entities.CimDataCollection" title="maro.data_lib.cim.entities.CimDataCollection">CimDataCollection</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+    <a class='left-prev' id="prev-link" href="maro.data_lib.html" title="previous page">maro.data_lib package</a>
+    <a class='right-next' id="next-link" href="maro.event_buffer.html" title="next page">maro.event_buffer package</a>
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../_static/js/index.js"></script>
+    
+  </body>
+</html>

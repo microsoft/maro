@@ -1,0 +1,568 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>K8S Cluster Provisioning on Azure &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Grass Cluster Provisioning in On-Premises Environment" href="grass_cluster_provisioning_on_premises.html" />
+    <link rel="prev" title="Grass Cluster Provisioning on Azure" href="grass_cluster_provisioning_on_azure.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../index.html">
+  
+  <img src="../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="current nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1 current active">
+  <a class="current reference internal" href="#">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../apidoc/maro.html">
+   maro package
+  </a>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+        
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="../_sources/installation/k8s_cluster_provisioning_on_azure.rst.txt"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.rst</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2Finstallation/k8s_cluster_provisioning_on_azure.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        <a class="edit-button" href="https://github.com/microsoft/maro/edit/master/doc/source/installation/k8s_cluster_provisioning_on_azure.rst"><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Edit this page"><i class="fas fa-pencil-alt"></i>suggest edit</button></a>
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <div class="tocsection onthispage pt-5 pb-3">
+            <i class="fas fa-list"></i> Contents
+        </div>
+        <nav id="bd-toc-nav">
+            <ul class="nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#prerequisites">
+   Prerequisites
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#cluster-management">
+   Cluster Management
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#run-job">
+   Run Job
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#sample-deployments">
+   Sample Deployments
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#k8s-azure-create">
+     k8s-azure-create
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#k8s-start-job">
+     k8s-start-job
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#k8s-start-schedule">
+     k8s-start-schedule
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <div class="section" id="k8s-cluster-provisioning-on-azure">
+<h1>K8S Cluster Provisioning on Azure<a class="headerlink" href="#k8s-cluster-provisioning-on-azure" title="Permalink to this headline">¶</a></h1>
+<p>With the following guide, you can build up a MARO cluster in
+<a class="reference external" href="../distributed_training/orchestration_with_k8s.html#orchestration-with-k8s">k8s mode</a>
+on Azure and run your training job in a distributed environment.</p>
+<div class="section" id="prerequisites">
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest">Install the Azure CLI and login</a></p></li>
+<li><p><a class="reference external" href="https://kubernetes.io/docs/tasks/tools/install-kubectl/">Install and set up kubectl</a></p></li>
+<li><p><a class="reference external" href="https://docs.docker.com/engine/install/">Install docker</a> and
+<a class="reference external" href="https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user">Configure docker to make sure it can be managed as a non-root user</a></p></li>
+<li><p><a class="reference external" href="https://docs.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-v10">Download AzCopy</a>,
+then move the AzCopy executable to /bin folder or
+add the directory location of the AzCopy executable to your system path:</p></li>
+</ul>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="c1"># Take AzCopy version 10.6.0 as an example</span>
+
+<span class="c1"># Linux</span>
+tar xvf ./azcopy_linux_amd64_10.6.0.tar.gz<span class="p">;</span> cp ./azcopy_linux_amd64_10.6.0/azcopy /usr/local/bin
+
+<span class="c1"># MacOS (may required MacOS Security &amp; Privacy setting)</span>
+unzip ./azcopy_darwin_amd64_10.6.0.zip<span class="p">;</span> cp ./azcopy_darwin_amd64_10.6.0/azcopy /usr/local/bin
+
+<span class="c1"># Windows</span>
+<span class="c1"># 1. Unzip ./azcopy_windows_amd64_10.6.0.zip</span>
+<span class="c1"># 2. Add the path of ./azcopy_windows_amd64_10.6.0 folder to your Environment Variables</span>
+<span class="c1"># Ref: https://superuser.com/questions/949560/how-do-i-set-system-environment-variables-in-windows-10</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="cluster-management">
+<h2>Cluster Management<a class="headerlink" href="#cluster-management" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p>Create a cluster with a <a class="reference external" href="#k8s-azure-create">deployment</a></p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create a k8s cluster</span>
+maro k8s create ./k8s-azure-create.yml
+</pre></div>
+</div>
+</li>
+<li><p>Scale the cluster</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="c1"># Scale nodes with &#39;Standard_D4s_v3&#39; specification to 2</span>
+maro k8s node scale my_k8s_cluster Standard_D4s_v3 <span class="m">2</span>
+</pre></div>
+</div>
+<p>Check <a class="reference external" href="https://docs.microsoft.com/en-us/azure/virtual-machines/sizes">VM Size</a>
+to see more node specifications.</p>
+</li>
+<li><p>Delete the cluster</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="c1"># Delete a k8s cluster</span>
+maro k8s delete my_k8s_cluster
+</pre></div>
+</div>
+</li>
+</ul>
+</div>
+<div class="section" id="run-job">
+<h2>Run Job<a class="headerlink" href="#run-job" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p>Push your training image</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="c1"># Push image &#39;my_image&#39; to the cluster</span>
+maro k8s image push my_k8s_cluster --image-name my_image
+</pre></div>
+</div>
+</li>
+<li><p>Push your training data</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="c1"># Push data under &#39;./my_training_data&#39; to a relative path &#39;/my_training_data&#39; in the cluster</span>
+<span class="c1"># You can then assign your mapping location in the start-job deployment</span>
+maro k8s data push my_k8s_cluster ./my_training_data/* /my_training_data
+</pre></div>
+</div>
+</li>
+<li><p>Start a training job with a <a class="reference external" href="#k8s-start-job">deployment</a></p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="c1"># Start a training job with a start-job deployment</span>
+maro k8s job start my_k8s_cluster ./k8s-start-job.yml
+</pre></div>
+</div>
+</li>
+<li><p>Or, schedule batch jobs with a <a class="reference external" href="#k8s-start-schedule">deployment</a></p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="c1"># Start a training schedule with a start-schedule deployment</span>
+maro k8s schedule start my_k8s123_cluster ./k8s-start-schedule.yml
+</pre></div>
+</div>
+</li>
+<li><p>Get the logs of the job</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="c1"># Logs will be exported to current directory</span>
+maro k8s job logs my_k8s_cluster my_job_1
+</pre></div>
+</div>
+</li>
+<li><p>List the current status of the job</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="c1"># List current status of jobs</span>
+maro k8s job list my_k8s_cluster my_job_1
+</pre></div>
+</div>
+</li>
+<li><p>Stop a training job</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="c1"># Stop a training job</span>
+maro k8s job stop my_k8s_cluster my_job_1
+</pre></div>
+</div>
+</li>
+</ul>
+</div>
+<div class="section" id="sample-deployments">
+<h2>Sample Deployments<a class="headerlink" href="#sample-deployments" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="k8s-azure-create">
+<h3>k8s-azure-create<a class="headerlink" href="#k8s-azure-create" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">mode</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">k8s</span>
+<span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">my_k8s_cluster</span>
+
+<span class="nt">cloud</span><span class="p">:</span>
+  <span class="nt">infra</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">azure</span>
+  <span class="nt">location</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">eastus</span>
+  <span class="nt">resource_group</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">my_k8s_resource_group</span>
+  <span class="nt">subscription</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">my_subscription</span>
+
+<span class="nt">user</span><span class="p">:</span>
+  <span class="nt">admin_public_key</span><span class="p">:</span> <span class="s">&quot;{ssh</span><span class="nv"> </span><span class="s">public</span><span class="nv"> </span><span class="s">key</span><span class="nv"> </span><span class="s">with</span><span class="nv"> </span><span class="s">&#39;ssh-rsa&#39;</span><span class="nv"> </span><span class="s">prefix}&quot;</span>
+  <span class="nt">admin_username</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">admin</span>
+
+<span class="nt">master</span><span class="p">:</span>
+  <span class="nt">node_size</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Standard_D2s_v3</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="k8s-start-job">
+<h3>k8s-start-job<a class="headerlink" href="#k8s-start-job" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">mode</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">k8s</span>
+<span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">my_job_1</span>
+
+<span class="nt">components</span><span class="p">:</span>
+  <span class="nt">actor</span><span class="p">:</span>
+    <span class="nt">command</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="s">&quot;bash&quot;</span><span class="p p-Indicator">,</span> <span class="s">&quot;{project</span><span class="nv"> </span><span class="s">root}/my_training_data/actor.sh&quot;</span><span class="p p-Indicator">]</span>
+    <span class="nt">image</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">my_image</span>
+    <span class="nt">mount</span><span class="p">:</span>
+      <span class="nt">target</span><span class="p">:</span> <span class="s">&quot;{project</span><span class="nv"> </span><span class="s">root}&quot;</span>
+    <span class="nt">num</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">5</span>
+    <span class="nt">resources</span><span class="p">:</span>
+      <span class="nt">cpu</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
+      <span class="nt">gpu</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0</span>
+      <span class="nt">memory</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2048m</span>
+  <span class="nt">learner</span><span class="p">:</span>
+    <span class="nt">command</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="s">&quot;bash&quot;</span><span class="p p-Indicator">,</span> <span class="s">&quot;{project</span><span class="nv"> </span><span class="s">root}/my_training_data/learner.sh&quot;</span><span class="p p-Indicator">]</span>
+    <span class="nt">image</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">my_image</span>
+    <span class="nt">mount</span><span class="p">:</span>
+      <span class="nt">target</span><span class="p">:</span> <span class="s">&quot;{project</span><span class="nv"> </span><span class="s">root}&quot;</span>
+    <span class="nt">num</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+    <span class="nt">resources</span><span class="p">:</span>
+      <span class="nt">cpu</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
+      <span class="nt">gpu</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0</span>
+      <span class="nt">memory</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2048m</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="k8s-start-schedule">
+<h3>k8s-start-schedule<a class="headerlink" href="#k8s-start-schedule" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">mode</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">k8s</span>
+<span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">my_schedule_1</span>
+
+<span class="nt">job_names</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">my_job_2</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">my_job_3</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">my_job_4</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">my_job_5</span>
+
+<span class="nt">components</span><span class="p">:</span>
+  <span class="nt">actor</span><span class="p">:</span>
+    <span class="nt">command</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="s">&quot;bash&quot;</span><span class="p p-Indicator">,</span> <span class="s">&quot;{project</span><span class="nv"> </span><span class="s">root}/my_training_data/actor.sh&quot;</span><span class="p p-Indicator">]</span>
+    <span class="nt">image</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">my_image</span>
+    <span class="nt">mount</span><span class="p">:</span>
+      <span class="nt">target</span><span class="p">:</span> <span class="s">&quot;{project</span><span class="nv"> </span><span class="s">root}&quot;</span>
+    <span class="nt">num</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">5</span>
+    <span class="nt">resources</span><span class="p">:</span>
+      <span class="nt">cpu</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
+      <span class="nt">gpu</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0</span>
+      <span class="nt">memory</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2048m</span>
+  <span class="nt">learner</span><span class="p">:</span>
+    <span class="nt">command</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="s">&quot;bash&quot;</span><span class="p p-Indicator">,</span> <span class="s">&quot;{project</span><span class="nv"> </span><span class="s">root}/my_training_data/learner.sh&quot;</span><span class="p p-Indicator">]</span>
+    <span class="nt">image</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">my_image</span>
+    <span class="nt">mount</span><span class="p">:</span>
+      <span class="nt">target</span><span class="p">:</span> <span class="s">&quot;{project</span><span class="nv"> </span><span class="s">root}&quot;</span>
+    <span class="nt">num</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+    <span class="nt">resources</span><span class="p">:</span>
+      <span class="nt">cpu</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
+      <span class="nt">gpu</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0</span>
+      <span class="nt">memory</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2048m</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+    <a class='left-prev' id="prev-link" href="grass_cluster_provisioning_on_azure.html" title="previous page">Grass Cluster Provisioning on Azure</a>
+    <a class='right-next' id="next-link" href="grass_cluster_provisioning_on_premises.html" title="next page">Grass Cluster Provisioning in On-Premises Environment</a>
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../_static/js/index.js"></script>
+    
+  </body>
+</html>

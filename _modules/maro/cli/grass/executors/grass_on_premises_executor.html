@@ -1,0 +1,696 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maro.cli.grass.executors.grass_on_premises_executor &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../../../../../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../../../../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../../../../../" src="../../../../../_static/documentation_options.js"></script>
+    <script src="../../../../../_static/sphinx-book-theme.js"></script>
+    <script src="../../../../../_static/jquery.js"></script>
+    <script src="../../../../../_static/underscore.js"></script>
+    <script src="../../../../../_static/doctools.js"></script>
+    <script src="../../../../../_static/language_data.js"></script>
+    <script src="../../../../../_static/clipboard.min.js"></script>
+    <script src="../../../../../_static/copybutton.js"></script>
+    <script src="../../../../../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../../../../../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../../../../../index.html">
+  
+  <img src="../../../../../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../../../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../scenarios/container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../scenarios/citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../scenarios/vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../apidoc/maro.html">
+   maro package
+  </a>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2F_modules/maro/cli/grass/executors/grass_on_premises_executor.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <nav id="bd-toc-nav">
+            
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <h1>Source code for maro.cli.grass.executors.grass_on_premises_executor</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) Microsoft Corporation.</span>
+<span class="c1"># Licensed under the MIT license.</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">secrets</span>
+<span class="kn">import</span> <span class="nn">string</span>
+<span class="kn">from</span> <span class="nn">shutil</span> <span class="kn">import</span> <span class="n">rmtree</span>
+
+<span class="kn">import</span> <span class="nn">yaml</span>
+
+<span class="kn">from</span> <span class="nn">maro.cli.grass.executors.grass_executor</span> <span class="kn">import</span> <span class="n">GrassExecutor</span>
+<span class="kn">from</span> <span class="nn">maro.cli.grass.utils.copy</span> <span class="kn">import</span> <span class="n">copy_files_to_node</span>
+<span class="kn">from</span> <span class="nn">maro.cli.utils.details</span> <span class="kn">import</span> <span class="p">(</span><span class="n">load_cluster_details</span><span class="p">,</span> <span class="n">save_cluster_details</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">maro.cli.utils.naming</span> <span class="kn">import</span> <span class="n">generate_cluster_id</span>
+<span class="kn">from</span> <span class="nn">maro.cli.utils.params</span> <span class="kn">import</span> <span class="n">GlobalParams</span><span class="p">,</span> <span class="n">GlobalPaths</span>
+<span class="kn">from</span> <span class="nn">maro.cli.utils.validation</span> <span class="kn">import</span> <span class="n">validate_and_fill_dict</span>
+<span class="kn">from</span> <span class="nn">maro.utils.exception.cli_exception</span> <span class="kn">import</span> <span class="n">CliError</span>
+<span class="kn">from</span> <span class="nn">maro.utils.logger</span> <span class="kn">import</span> <span class="n">CliLogger</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">CliLogger</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="GrassOnPremisesExecutor"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.grass.executors.html#maro.cli.grass.executors.grass_on_premises_executor.GrassOnPremisesExecutor">[docs]</a><span class="k">class</span> <span class="nc">GrassOnPremisesExecutor</span><span class="p">:</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cluster_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span> <span class="o">=</span> <span class="n">cluster_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span> <span class="o">=</span> <span class="n">load_cluster_details</span><span class="p">(</span><span class="n">cluster_name</span><span class="o">=</span><span class="n">cluster_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grass_executor</span> <span class="o">=</span> <span class="n">GrassExecutor</span><span class="p">(</span><span class="n">cluster_details</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span><span class="p">)</span>
+
+<div class="viewcode-block" id="GrassOnPremisesExecutor.build_cluster_details"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.grass.executors.html#maro.cli.grass.executors.grass_on_premises_executor.GrassOnPremisesExecutor.build_cluster_details">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">build_cluster_details</span><span class="p">(</span><span class="n">create_deployment</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="c1"># Standardize create deployment</span>
+        <span class="n">GrassOnPremisesExecutor</span><span class="o">.</span><span class="n">_standardize_create_deployment</span><span class="p">(</span><span class="n">create_deployment</span><span class="o">=</span><span class="n">create_deployment</span><span class="p">)</span>
+
+        <span class="c1"># Create user account</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Now is going to create an user account for maro cluster node.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;super_user&quot;</span> <span class="ow">in</span> <span class="n">create_deployment</span><span class="p">[</span><span class="s2">&quot;user&quot;</span><span class="p">]:</span>
+            <span class="n">super_user</span> <span class="o">=</span> <span class="n">create_deployment</span><span class="p">[</span><span class="s2">&quot;user&quot;</span><span class="p">][</span><span class="s2">&quot;super_user&quot;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">super_user</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">GrassOnPremisesExecutor</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span>
+            <span class="n">admin_username</span><span class="o">=</span><span class="n">super_user</span><span class="p">,</span>
+            <span class="n">maro_user</span><span class="o">=</span><span class="n">create_deployment</span><span class="p">[</span><span class="s2">&quot;user&quot;</span><span class="p">][</span><span class="s2">&quot;admin_username&quot;</span><span class="p">],</span>
+            <span class="n">ip_address</span><span class="o">=</span><span class="n">create_deployment</span><span class="p">[</span><span class="s2">&quot;master&quot;</span><span class="p">][</span><span class="s2">&quot;public_ip_address&quot;</span><span class="p">],</span>
+            <span class="n">pubkey</span><span class="o">=</span><span class="n">create_deployment</span><span class="p">[</span><span class="s2">&quot;user&quot;</span><span class="p">][</span><span class="s2">&quot;admin_public_key&quot;</span><span class="p">],</span>
+            <span class="n">ssh_port</span><span class="o">=</span><span class="n">create_deployment</span><span class="p">[</span><span class="s2">&quot;connection&quot;</span><span class="p">][</span><span class="s2">&quot;ssh&quot;</span><span class="p">][</span><span class="s2">&quot;port&quot;</span><span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Get cluster name and save details</span>
+        <span class="n">cluster_name</span> <span class="o">=</span> <span class="n">create_deployment</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">MARO_CLUSTERS</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">cluster_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="n">CliError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cluster </span><span class="si">{</span><span class="n">cluster_name</span><span class="si">}</span><span class="s2"> already exist.&quot;</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">MARO_CLUSTERS</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">cluster_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">))</span>
+        <span class="n">save_cluster_details</span><span class="p">(</span>
+            <span class="n">cluster_name</span><span class="o">=</span><span class="n">cluster_name</span><span class="p">,</span>
+            <span class="n">cluster_details</span><span class="o">=</span><span class="n">create_deployment</span>
+        <span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_standardize_create_deployment</span><span class="p">(</span><span class="n">create_deployment</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="n">alphabet</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">ascii_letters</span> <span class="o">+</span> <span class="n">string</span><span class="o">.</span><span class="n">digits</span>
+        <span class="n">optional_key_to_value</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;root[&#39;master&#39;][&#39;redis&#39;]&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;port&#39;</span><span class="p">:</span> <span class="mi">6379</span><span class="p">},</span>
+            <span class="s2">&quot;root[&#39;master&#39;][&#39;redis&#39;][&#39;port&#39;]&quot;</span><span class="p">:</span> <span class="mi">6379</span><span class="p">,</span>
+            <span class="s2">&quot;root[&#39;master&#39;][&#39;fluentd&#39;]&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;port&#39;</span><span class="p">:</span> <span class="mi">24224</span><span class="p">},</span>
+            <span class="s2">&quot;root[&#39;master&#39;][&#39;fluentd&#39;][&#39;port&#39;]&quot;</span><span class="p">:</span> <span class="mi">24224</span><span class="p">,</span>
+            <span class="s2">&quot;root[&#39;master&#39;][&#39;samba&#39;]&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;password&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">secrets</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">alphabet</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">20</span><span class="p">))},</span>
+            <span class="s2">&quot;root[&#39;master&#39;][&#39;samba&#39;][&#39;password&#39;]&quot;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">secrets</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">alphabet</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">20</span><span class="p">)),</span>
+            <span class="s2">&quot;root[&#39;connection&#39;]&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;ssh&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;port&quot;</span><span class="p">:</span> <span class="n">GlobalParams</span><span class="o">.</span><span class="n">DEFAULT_SSH_PORT</span><span class="p">}},</span>
+            <span class="s2">&quot;root[&#39;connection&#39;][&#39;ssh&#39;]&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;port&quot;</span><span class="p">:</span> <span class="n">GlobalParams</span><span class="o">.</span><span class="n">DEFAULT_SSH_PORT</span><span class="p">},</span>
+            <span class="s2">&quot;root[&#39;connection&#39;][&#39;ssh&#39;][&#39;port&#39;]&quot;</span><span class="p">:</span> <span class="n">GlobalParams</span><span class="o">.</span><span class="n">DEFAULT_SSH_PORT</span>
+        <span class="p">}</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">MARO_GRASS_LIB</span><span class="si">}</span><span class="s2">/deployments/internal/grass-on-premises-create.yml&quot;</span><span class="p">))</span> <span class="k">as</span> <span class="n">fr</span><span class="p">:</span>
+            <span class="n">create_deployment_template</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">fr</span><span class="p">)</span>
+        <span class="n">validate_and_fill_dict</span><span class="p">(</span>
+            <span class="n">template_dict</span><span class="o">=</span><span class="n">create_deployment_template</span><span class="p">,</span>
+            <span class="n">actual_dict</span><span class="o">=</span><span class="n">create_deployment</span><span class="p">,</span>
+            <span class="n">optional_key_to_value</span><span class="o">=</span><span class="n">optional_key_to_value</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="GrassOnPremisesExecutor.create"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.grass.executors.html#maro.cli.grass.executors.grass_on_premises_executor.GrassOnPremisesExecutor.create">[docs]</a>    <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Creating cluster&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Start creating</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_cluster_id</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_master_info</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_init_master</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c1"># If failed, remove details folder, then raise</span>
+            <span class="n">rmtree</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">MARO_CLUSTERS</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="n">CliError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failure to create cluster, due to </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info_green</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cluster </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="si">}</span><span class="s2"> has been created.&quot;</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_set_cluster_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Load details</span>
+        <span class="n">cluster_details</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span>
+
+        <span class="c1"># Set cluster id</span>
+        <span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">generate_cluster_id</span><span class="p">()</span>
+
+        <span class="c1"># Save details</span>
+        <span class="n">save_cluster_details</span><span class="p">(</span>
+            <span class="n">cluster_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">,</span>
+            <span class="n">cluster_details</span><span class="o">=</span><span class="n">cluster_details</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_create_path_in_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_ip</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">path_list</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">path_to_create</span> <span class="ow">in</span> <span class="n">path_list</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">grass_executor</span><span class="o">.</span><span class="n">remote_mkdir</span><span class="p">(</span>
+                <span class="n">path</span><span class="o">=</span><span class="n">path_to_create</span><span class="p">,</span>
+                <span class="n">node_ip_address</span><span class="o">=</span><span class="n">target_ip</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_master_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Load details</span>
+        <span class="n">cluster_details</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span>
+        <span class="n">cluster_id</span> <span class="o">=</span> <span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+        <span class="n">master_details</span> <span class="o">=</span> <span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;master&quot;</span><span class="p">]</span>
+        <span class="n">hostname</span> <span class="o">=</span> <span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;master&quot;</span><span class="p">][</span><span class="s2">&quot;public_ip_address&quot;</span><span class="p">]</span>
+        <span class="n">master_details</span><span class="p">[</span><span class="s2">&quot;private_ip_address&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;master&quot;</span><span class="p">][</span><span class="s2">&quot;public_ip_address&quot;</span><span class="p">]</span>
+        <span class="n">master_details</span><span class="p">[</span><span class="s2">&quot;hostname&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">hostname</span>
+        <span class="n">master_details</span><span class="p">[</span><span class="s2">&quot;resource_name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cluster_id</span><span class="si">}</span><span class="s2">-master-vm&quot;</span>
+        <span class="n">admin_username</span> <span class="o">=</span> <span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;user&quot;</span><span class="p">][</span><span class="s2">&quot;admin_username&quot;</span><span class="p">]</span>
+        <span class="n">public_ip_address</span> <span class="o">=</span> <span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;master&quot;</span><span class="p">][</span><span class="s2">&quot;public_ip_address&quot;</span><span class="p">]</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info_green</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;You can login to your master node with: ssh </span><span class="si">{</span><span class="n">admin_username</span><span class="si">}</span><span class="s2">@</span><span class="si">{</span><span class="n">public_ip_address</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_init_master</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Initializing master node&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Load details</span>
+        <span class="n">cluster_details</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span>
+        <span class="n">master_details</span> <span class="o">=</span> <span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;master&quot;</span><span class="p">]</span>
+        <span class="n">admin_username</span> <span class="o">=</span> <span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;user&quot;</span><span class="p">][</span><span class="s2">&quot;admin_username&quot;</span><span class="p">]</span>
+        <span class="n">master_public_ip_address</span> <span class="o">=</span> <span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;master&quot;</span><span class="p">][</span><span class="s2">&quot;public_ip_address&quot;</span><span class="p">]</span>
+        <span class="n">ssh_port</span> <span class="o">=</span> <span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;connection&quot;</span><span class="p">][</span><span class="s2">&quot;ssh&quot;</span><span class="p">][</span><span class="s2">&quot;port&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Make sure master is able to connect</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grass_executor</span><span class="o">.</span><span class="n">retry_connection_and_set_ssh_port</span><span class="p">(</span><span class="n">node_ip_address</span><span class="o">=</span><span class="n">master_public_ip_address</span><span class="p">)</span>
+
+        <span class="c1"># Create folders</span>
+        <span class="n">path_list</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">GlobalPaths</span><span class="o">.</span><span class="n">MARO_GRASS_LIB</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">MARO_CLUSTERS</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">MARO_CLUSTERS</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="si">}</span><span class="s2">/data&quot;</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">MARO_CLUSTERS</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="si">}</span><span class="s2">/images&quot;</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">MARO_CLUSTERS</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="si">}</span><span class="s2">/jobs&quot;</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">MARO_CLUSTERS</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="si">}</span><span class="s2">/schedules&quot;</span>
+        <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_create_path_in_list</span><span class="p">(</span><span class="n">master_public_ip_address</span><span class="p">,</span> <span class="n">path_list</span><span class="p">)</span>
+
+        <span class="c1"># Copy required files</span>
+        <span class="n">copy_files_to_node</span><span class="p">(</span>
+            <span class="n">local_path</span><span class="o">=</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">MARO_GRASS_LIB</span><span class="p">,</span>
+            <span class="n">remote_dir</span><span class="o">=</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">MARO_LIB</span><span class="p">,</span>
+            <span class="n">admin_username</span><span class="o">=</span><span class="n">admin_username</span><span class="p">,</span> <span class="n">node_ip_address</span><span class="o">=</span><span class="n">master_public_ip_address</span><span class="p">,</span> <span class="n">ssh_port</span><span class="o">=</span><span class="n">ssh_port</span>
+        <span class="p">)</span>
+        <span class="n">copy_files_to_node</span><span class="p">(</span>
+            <span class="n">local_path</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">MARO_CLUSTERS</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">remote_dir</span><span class="o">=</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">MARO_CLUSTERS</span><span class="p">,</span>
+            <span class="n">admin_username</span><span class="o">=</span><span class="n">admin_username</span><span class="p">,</span> <span class="n">node_ip_address</span><span class="o">=</span><span class="n">master_public_ip_address</span><span class="p">,</span> <span class="n">ssh_port</span><span class="o">=</span><span class="n">ssh_port</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Get public key</span>
+        <span class="n">public_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">grass_executor</span><span class="o">.</span><span class="n">remote_get_public_key</span><span class="p">(</span><span class="n">node_ip_address</span><span class="o">=</span><span class="n">master_public_ip_address</span><span class="p">)</span>
+
+        <span class="c1"># Remote init master</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grass_executor</span><span class="o">.</span><span class="n">remote_init_master</span><span class="p">()</span>
+
+        <span class="c1"># Load master agent service</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grass_executor</span><span class="o">.</span><span class="n">remote_load_master_agent_service</span><span class="p">()</span>
+
+        <span class="c1"># Save details</span>
+        <span class="n">master_details</span><span class="p">[</span><span class="s2">&quot;public_key&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">public_key</span>
+        <span class="n">save_cluster_details</span><span class="p">(</span>
+            <span class="n">cluster_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">,</span>
+            <span class="n">cluster_details</span><span class="o">=</span><span class="n">cluster_details</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grass_executor</span><span class="o">.</span><span class="n">remote_set_master_details</span><span class="p">(</span><span class="n">master_details</span><span class="o">=</span><span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;master&quot;</span><span class="p">])</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info_green</span><span class="p">(</span><span class="s2">&quot;Master node is initialized&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="GrassOnPremisesExecutor.delete"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.grass.executors.html#maro.cli.grass.executors.grass_on_premises_executor.GrassOnPremisesExecutor.delete">[docs]</a>    <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Load details</span>
+        <span class="n">cluster_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Deleting cluster </span><span class="si">{</span><span class="n">cluster_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Delete redis and other services</span>
+        <span class="n">node_details_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">grass_executor</span><span class="o">.</span><span class="n">remote_get_nodes_details</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">node_name</span><span class="p">,</span> <span class="n">node_details</span> <span class="ow">in</span> <span class="n">node_details_list</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">node_leave_cluster</span><span class="p">(</span><span class="n">node_name</span><span class="p">)</span>
+
+        <span class="c1"># Delete cluster folder</span>
+        <span class="n">rmtree</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">MARO_CLUSTERS</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">cluster_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grass_executor</span><span class="o">.</span><span class="n">remote_clean</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grass_executor</span><span class="o">.</span><span class="n">delete_master_details</span><span class="p">(</span><span class="n">cluster_name</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info_green</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The cluster </span><span class="si">{</span><span class="n">cluster_name</span><span class="si">}</span><span class="s2"> has been deleted.&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GrassOnPremisesExecutor.node_join_cluster"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.grass.executors.html#maro.cli.grass.executors.grass_on_premises_executor.GrassOnPremisesExecutor.node_join_cluster">[docs]</a>    <span class="k">def</span> <span class="nf">node_join_cluster</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_join_info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="n">node_name</span> <span class="o">=</span> <span class="n">node_join_info</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
+        <span class="n">cluster_details</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span>
+        <span class="n">node_ip_address</span> <span class="o">=</span> <span class="n">node_join_info</span><span class="p">[</span><span class="s2">&quot;public_ip_address&quot;</span><span class="p">]</span>
+        <span class="c1"># Create user account</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Now is going to create an user account for maro working node </span><span class="si">{</span><span class="n">node_name</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;super_user&quot;</span> <span class="ow">in</span> <span class="n">node_join_info</span><span class="p">:</span>
+            <span class="n">super_user</span> <span class="o">=</span> <span class="n">node_join_info</span><span class="p">[</span><span class="s2">&quot;super_user&quot;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">super_user</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">GrassOnPremisesExecutor</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span>
+            <span class="n">admin_username</span><span class="o">=</span><span class="n">super_user</span><span class="p">,</span>
+            <span class="n">maro_user</span><span class="o">=</span><span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;user&quot;</span><span class="p">][</span><span class="s2">&quot;admin_username&quot;</span><span class="p">],</span>
+            <span class="n">ip_address</span><span class="o">=</span><span class="n">node_ip_address</span><span class="p">,</span>
+            <span class="n">pubkey</span><span class="o">=</span><span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;user&quot;</span><span class="p">][</span><span class="s2">&quot;admin_public_key&quot;</span><span class="p">],</span>
+            <span class="n">ssh_port</span><span class="o">=</span><span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;connection&quot;</span><span class="p">][</span><span class="s2">&quot;ssh&quot;</span><span class="p">][</span><span class="s2">&quot;port&quot;</span><span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_create_node_data</span><span class="p">(</span><span class="n">node_join_info</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_node</span><span class="p">(</span><span class="n">node_name</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_create_node_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_join_info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="c1"># Load details</span>
+        <span class="n">cluster_details</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span>
+        <span class="n">cluster_id</span> <span class="o">=</span> <span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+        <span class="n">node_name</span> <span class="o">=</span> <span class="n">node_join_info</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
+        <span class="n">node_ip_address</span> <span class="o">=</span> <span class="n">node_join_info</span><span class="p">[</span><span class="s2">&quot;public_ip_address&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Get resources</span>
+        <span class="n">cpu</span> <span class="o">=</span> <span class="n">node_join_info</span><span class="p">[</span><span class="s2">&quot;resources&quot;</span><span class="p">][</span><span class="s2">&quot;cpu&quot;</span><span class="p">]</span>
+        <span class="n">memory</span> <span class="o">=</span> <span class="n">node_join_info</span><span class="p">[</span><span class="s2">&quot;resources&quot;</span><span class="p">][</span><span class="s2">&quot;memory&quot;</span><span class="p">]</span>
+        <span class="n">gpu</span> <span class="o">=</span> <span class="n">node_join_info</span><span class="p">[</span><span class="s2">&quot;resources&quot;</span><span class="p">][</span><span class="s2">&quot;gpu&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Save details</span>
+        <span class="n">node_details</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;public_ip_address&quot;</span><span class="p">:</span> <span class="n">node_ip_address</span><span class="p">,</span>
+            <span class="s2">&quot;private_ip_address&quot;</span><span class="p">:</span> <span class="n">node_ip_address</span><span class="p">,</span>
+            <span class="s2">&quot;node_size&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;resource_name&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cluster_id</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">node_name</span><span class="si">}</span><span class="s2">-vm&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;hostname&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cluster_id</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">node_name</span><span class="si">}</span><span class="s2">-vm&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;resources&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;cpu&quot;</span><span class="p">:</span> <span class="n">cpu</span><span class="p">,</span>
+                <span class="s2">&quot;memory&quot;</span><span class="p">:</span> <span class="n">memory</span><span class="p">,</span>
+                <span class="s2">&quot;gpu&quot;</span><span class="p">:</span> <span class="n">gpu</span>
+            <span class="p">},</span>
+            <span class="s2">&quot;containers&quot;</span><span class="p">:</span> <span class="p">{}</span>
+        <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grass_executor</span><span class="o">.</span><span class="n">remote_set_node_details</span><span class="p">(</span>
+            <span class="n">node_name</span><span class="o">=</span><span class="n">node_name</span><span class="p">,</span>
+            <span class="n">node_details</span><span class="o">=</span><span class="n">node_details</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_init_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Initiating node </span><span class="si">{</span><span class="n">node_name</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Load details</span>
+        <span class="n">cluster_details</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span>
+        <span class="n">admin_username</span> <span class="o">=</span> <span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;user&quot;</span><span class="p">][</span><span class="s2">&quot;admin_username&quot;</span><span class="p">]</span>
+        <span class="n">node_details</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">grass_executor</span><span class="o">.</span><span class="n">remote_get_node_details</span><span class="p">(</span><span class="n">node_name</span><span class="o">=</span><span class="n">node_name</span><span class="p">)</span>
+        <span class="n">node_public_ip_address</span> <span class="o">=</span> <span class="n">node_details</span><span class="p">[</span><span class="s2">&quot;public_ip_address&quot;</span><span class="p">]</span>
+        <span class="n">ssh_port</span> <span class="o">=</span> <span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;connection&quot;</span><span class="p">][</span><span class="s2">&quot;ssh&quot;</span><span class="p">][</span><span class="s2">&quot;port&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Make sure the node is able to connect</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grass_executor</span><span class="o">.</span><span class="n">retry_connection_and_set_ssh_port</span><span class="p">(</span><span class="n">node_ip_address</span><span class="o">=</span><span class="n">node_public_ip_address</span><span class="p">)</span>
+
+        <span class="c1"># Create folders</span>
+        <span class="n">path_list</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">GlobalPaths</span><span class="o">.</span><span class="n">MARO_GRASS_LIB</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">MARO_CLUSTERS</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">MARO_CLUSTERS</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="si">}</span><span class="s2">/data&quot;</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">MARO_CLUSTERS</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="si">}</span><span class="s2">/images&quot;</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">MARO_CLUSTERS</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="si">}</span><span class="s2">/jobs&quot;</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">MARO_CLUSTERS</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="si">}</span><span class="s2">/schedules&quot;</span>
+        <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_create_path_in_list</span><span class="p">(</span><span class="n">node_public_ip_address</span><span class="p">,</span> <span class="n">path_list</span><span class="p">)</span>
+
+        <span class="c1"># Copy required files</span>
+        <span class="n">copy_files_to_node</span><span class="p">(</span>
+            <span class="n">local_path</span><span class="o">=</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">MARO_GRASS_LIB</span><span class="p">,</span>
+            <span class="n">remote_dir</span><span class="o">=</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">MARO_LIB</span><span class="p">,</span>
+            <span class="n">admin_username</span><span class="o">=</span><span class="n">admin_username</span><span class="p">,</span> <span class="n">node_ip_address</span><span class="o">=</span><span class="n">node_public_ip_address</span><span class="p">,</span> <span class="n">ssh_port</span><span class="o">=</span><span class="n">ssh_port</span>
+        <span class="p">)</span>
+        <span class="n">copy_files_to_node</span><span class="p">(</span>
+            <span class="n">local_path</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">MARO_CLUSTERS</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">remote_dir</span><span class="o">=</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">MARO_CLUSTERS</span><span class="p">,</span>
+            <span class="n">admin_username</span><span class="o">=</span><span class="n">admin_username</span><span class="p">,</span> <span class="n">node_ip_address</span><span class="o">=</span><span class="n">node_public_ip_address</span><span class="p">,</span> <span class="n">ssh_port</span><span class="o">=</span><span class="n">ssh_port</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Remote init node</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grass_executor</span><span class="o">.</span><span class="n">remote_init_node</span><span class="p">(</span>
+            <span class="n">node_name</span><span class="o">=</span><span class="n">node_name</span><span class="p">,</span>
+            <span class="n">node_ip_address</span><span class="o">=</span><span class="n">node_public_ip_address</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Get public key</span>
+        <span class="n">public_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">grass_executor</span><span class="o">.</span><span class="n">remote_get_public_key</span><span class="p">(</span><span class="n">node_ip_address</span><span class="o">=</span><span class="n">node_public_ip_address</span><span class="p">)</span>
+
+        <span class="c1"># Save details</span>
+        <span class="n">node_details</span><span class="p">[</span><span class="s2">&quot;public_key&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">public_key</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grass_executor</span><span class="o">.</span><span class="n">remote_set_node_details</span><span class="p">(</span>
+            <span class="n">node_name</span><span class="o">=</span><span class="n">node_name</span><span class="p">,</span>
+            <span class="n">node_details</span><span class="o">=</span><span class="n">node_details</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Update node status</span>
+        <span class="c1"># Since On-Premises machines don&#39;t need to shutdown, it will be set to start directly.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grass_executor</span><span class="o">.</span><span class="n">remote_update_node_status</span><span class="p">(</span>
+            <span class="n">node_name</span><span class="o">=</span><span class="n">node_name</span><span class="p">,</span>
+            <span class="n">action</span><span class="o">=</span><span class="s2">&quot;start&quot;</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Load images</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grass_executor</span><span class="o">.</span><span class="n">remote_load_images</span><span class="p">(</span>
+            <span class="n">node_name</span><span class="o">=</span><span class="n">node_name</span><span class="p">,</span>
+            <span class="n">parallels</span><span class="o">=</span><span class="n">GlobalParams</span><span class="o">.</span><span class="n">PARALLELS</span><span class="p">,</span>
+            <span class="n">node_ip_address</span><span class="o">=</span><span class="n">node_public_ip_address</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Load node agent service</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grass_executor</span><span class="o">.</span><span class="n">remote_load_node_agent_service</span><span class="p">(</span>
+            <span class="n">node_name</span><span class="o">=</span><span class="n">node_name</span><span class="p">,</span>
+            <span class="n">node_ip_address</span><span class="o">=</span><span class="n">node_public_ip_address</span>
+        <span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info_green</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Node </span><span class="si">{</span><span class="n">node_name</span><span class="si">}</span><span class="s2"> has been initialized.&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="GrassOnPremisesExecutor.node_leave_cluster"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.grass.executors.html#maro.cli.grass.executors.grass_on_premises_executor.GrassOnPremisesExecutor.node_leave_cluster">[docs]</a>    <span class="k">def</span> <span class="nf">node_leave_cluster</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">cluster_details</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span>
+        <span class="n">nodes_details</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">grass_executor</span><span class="o">.</span><span class="n">remote_get_nodes_details</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">node_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">nodes_details</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The specified node cannot be found in cluster </span><span class="si">{</span><span class="n">cluster_details</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="n">node_details</span> <span class="o">=</span> <span class="n">nodes_details</span><span class="p">[</span><span class="n">node_name</span><span class="p">]</span>
+        <span class="c1"># Update node status</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grass_executor</span><span class="o">.</span><span class="n">remote_update_node_status</span><span class="p">(</span>
+            <span class="n">node_name</span><span class="o">=</span><span class="n">node_name</span><span class="p">,</span>
+            <span class="n">action</span><span class="o">=</span><span class="s2">&quot;stop&quot;</span>
+        <span class="p">)</span>
+        <span class="c1"># Delete node record in redis.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grass_executor</span><span class="o">.</span><span class="n">remote_update_node_status</span><span class="p">(</span><span class="n">node_name</span><span class="p">,</span> <span class="s2">&quot;delete&quot;</span><span class="p">)</span>
+
+        <span class="n">admin_username</span> <span class="o">=</span> <span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;user&quot;</span><span class="p">][</span><span class="s2">&quot;admin_username&quot;</span><span class="p">]</span>
+        <span class="n">node_ip_address</span> <span class="o">=</span> <span class="n">node_details</span><span class="p">[</span><span class="s2">&quot;public_ip_address&quot;</span><span class="p">]</span>
+        <span class="n">ssh_port</span> <span class="o">=</span> <span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;connection&quot;</span><span class="p">][</span><span class="s2">&quot;ssh&quot;</span><span class="p">][</span><span class="s2">&quot;port&quot;</span><span class="p">]</span>
+        <span class="n">GrassOnPremisesExecutor</span><span class="o">.</span><span class="n">delete_user</span><span class="p">(</span>
+            <span class="n">admin_username</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="n">maro_user</span><span class="o">=</span><span class="n">admin_username</span><span class="p">,</span>
+            <span class="n">ip_address</span><span class="o">=</span><span class="n">node_ip_address</span><span class="p">,</span>
+            <span class="n">ssh_port</span><span class="o">=</span><span class="n">ssh_port</span>
+        <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info_green</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The node </span><span class="si">{</span><span class="n">node_name</span><span class="si">}</span><span class="s2"> has been left cluster </span><span class="si">{</span><span class="n">cluster_details</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GrassOnPremisesExecutor.create_user"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.grass.executors.html#maro.cli.grass.executors.grass_on_premises_executor.GrassOnPremisesExecutor.create_user">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">create_user</span><span class="p">(</span><span class="n">admin_username</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">maro_user</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">ip_address</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">pubkey</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">ssh_port</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">&quot;&quot;</span> <span class="o">==</span> <span class="n">admin_username</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Please input a user account that has permissions to create user:&quot;</span><span class="p">)</span>
+            <span class="n">admin_username</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;&gt; &quot;</span><span class="p">)</span>
+
+        <span class="n">copy_files_to_node</span><span class="p">(</span>
+            <span class="n">local_path</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">MARO_GRASS_LIB</span><span class="si">}</span><span class="s2">/scripts/create_user.py&quot;</span><span class="p">,</span>
+            <span class="n">remote_dir</span><span class="o">=</span><span class="s2">&quot;~/&quot;</span><span class="p">,</span>
+            <span class="n">admin_username</span><span class="o">=</span><span class="n">admin_username</span><span class="p">,</span> <span class="n">node_ip_address</span><span class="o">=</span><span class="n">ip_address</span><span class="p">,</span> <span class="n">ssh_port</span><span class="o">=</span><span class="n">ssh_port</span>
+        <span class="p">)</span>
+        <span class="n">GrassExecutor</span><span class="o">.</span><span class="n">remote_add_user_to_node</span><span class="p">(</span><span class="n">admin_username</span><span class="p">,</span> <span class="n">maro_user</span><span class="p">,</span> <span class="n">ip_address</span><span class="p">,</span> <span class="n">pubkey</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GrassOnPremisesExecutor.delete_user"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.grass.executors.html#maro.cli.grass.executors.grass_on_premises_executor.GrassOnPremisesExecutor.delete_user">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">delete_user</span><span class="p">(</span><span class="n">admin_username</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">maro_user</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">ip_address</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">ssh_port</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">&quot;&quot;</span> <span class="o">==</span> <span class="n">admin_username</span><span class="p">:</span>
+            <span class="n">admin_username</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Please input a user account that has permissions to delete user:</span><span class="se">\r\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">copy_files_to_node</span><span class="p">(</span>
+            <span class="n">local_path</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">MARO_GRASS_LIB</span><span class="si">}</span><span class="s2">/scripts/delete_user.py&quot;</span><span class="p">,</span>
+            <span class="n">remote_dir</span><span class="o">=</span><span class="s2">&quot;~/&quot;</span><span class="p">,</span>
+            <span class="n">admin_username</span><span class="o">=</span><span class="n">admin_username</span><span class="p">,</span> <span class="n">node_ip_address</span><span class="o">=</span><span class="n">ip_address</span><span class="p">,</span> <span class="n">ssh_port</span><span class="o">=</span><span class="n">ssh_port</span>
+        <span class="p">)</span>
+
+        <span class="n">GrassExecutor</span><span class="o">.</span><span class="n">remote_delete_user_from_node</span><span class="p">(</span><span class="n">admin_username</span><span class="p">,</span> <span class="n">maro_user</span><span class="p">,</span> <span class="n">ip_address</span><span class="p">)</span></div></div>
+</pre></div>
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../../../../../_static/js/index.js"></script>
+    
+  </body>
+</html>

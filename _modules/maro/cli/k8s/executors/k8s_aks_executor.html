@@ -1,0 +1,1202 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maro.cli.k8s.executors.k8s_aks_executor &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../../../../../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../../../../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../../../../../" src="../../../../../_static/documentation_options.js"></script>
+    <script src="../../../../../_static/sphinx-book-theme.js"></script>
+    <script src="../../../../../_static/jquery.js"></script>
+    <script src="../../../../../_static/underscore.js"></script>
+    <script src="../../../../../_static/doctools.js"></script>
+    <script src="../../../../../_static/language_data.js"></script>
+    <script src="../../../../../_static/clipboard.min.js"></script>
+    <script src="../../../../../_static/copybutton.js"></script>
+    <script src="../../../../../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../../../../../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../../../../../index.html">
+  
+  <img src="../../../../../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../../../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../scenarios/container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../scenarios/citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../scenarios/vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../apidoc/maro.html">
+   maro package
+  </a>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2F_modules/maro/cli/k8s/executors/k8s_aks_executor.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <nav id="bd-toc-nav">
+            
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <h1>Source code for maro.cli.k8s.executors.k8s_aks_executor</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) Microsoft Corporation.</span>
+<span class="c1"># Licensed under the MIT license.</span>
+
+
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+
+<span class="kn">import</span> <span class="nn">yaml</span>
+
+<span class="kn">from</span> <span class="nn">maro.cli.utils.copy</span> <span class="kn">import</span> <span class="n">get_reformatted_source_path</span><span class="p">,</span> <span class="n">get_reformatted_target_dir</span>
+<span class="kn">from</span> <span class="nn">maro.cli.utils.details</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">load_cluster_details</span><span class="p">,</span> <span class="n">load_job_details</span><span class="p">,</span> <span class="n">load_schedule_details</span><span class="p">,</span> <span class="n">save_cluster_details</span><span class="p">,</span> <span class="n">save_job_details</span><span class="p">,</span>
+    <span class="n">save_schedule_details</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">maro.cli.utils.executors.azure_executor</span> <span class="kn">import</span> <span class="n">AzureExecutor</span>
+<span class="kn">from</span> <span class="nn">maro.cli.utils.naming</span> <span class="kn">import</span> <span class="n">generate_cluster_id</span><span class="p">,</span> <span class="n">generate_component_id</span><span class="p">,</span> <span class="n">generate_job_id</span><span class="p">,</span> <span class="n">generate_name_with_md5</span>
+<span class="kn">from</span> <span class="nn">maro.cli.utils.params</span> <span class="kn">import</span> <span class="n">GlobalPaths</span>
+<span class="kn">from</span> <span class="nn">maro.cli.utils.subprocess</span> <span class="kn">import</span> <span class="n">SubProcess</span>
+<span class="kn">from</span> <span class="nn">maro.cli.utils.validation</span> <span class="kn">import</span> <span class="n">validate_and_fill_dict</span>
+<span class="kn">from</span> <span class="nn">maro.utils.exception.cli_exception</span> <span class="kn">import</span> <span class="n">BadRequestError</span><span class="p">,</span> <span class="n">FileOperationError</span>
+<span class="kn">from</span> <span class="nn">maro.utils.logger</span> <span class="kn">import</span> <span class="n">CliLogger</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">CliLogger</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="K8sAksExecutor"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.k8s.executors.html#maro.cli.k8s.executors.k8s_aks_executor.K8sAksExecutor">[docs]</a><span class="k">class</span> <span class="nc">K8sAksExecutor</span><span class="p">:</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cluster_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span> <span class="o">=</span> <span class="n">cluster_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span> <span class="o">=</span> <span class="n">load_cluster_details</span><span class="p">(</span><span class="n">cluster_name</span><span class="o">=</span><span class="n">cluster_name</span><span class="p">)</span>
+
+    <span class="c1"># maro k8s create</span>
+
+<div class="viewcode-block" id="K8sAksExecutor.build_cluster_details"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.k8s.executors.html#maro.cli.k8s.executors.k8s_aks_executor.K8sAksExecutor.build_cluster_details">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">build_cluster_details</span><span class="p">(</span><span class="n">create_deployment</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="c1"># Validate and fill optional value to deployment</span>
+        <span class="n">K8sAksExecutor</span><span class="o">.</span><span class="n">_validate_create_deployment</span><span class="p">(</span><span class="n">create_deployment</span><span class="o">=</span><span class="n">create_deployment</span><span class="p">)</span>
+
+        <span class="c1"># Get cluster name and save details</span>
+        <span class="n">cluster_name</span> <span class="o">=</span> <span class="n">create_deployment</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">ABS_MARO_CLUSTERS</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">cluster_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">BadRequestError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cluster &#39;</span><span class="si">{</span><span class="n">cluster_name</span><span class="si">}</span><span class="s2">&#39; is exist.&quot;</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">ABS_MARO_CLUSTERS</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">cluster_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">save_cluster_details</span><span class="p">(</span>
+            <span class="n">cluster_name</span><span class="o">=</span><span class="n">cluster_name</span><span class="p">,</span>
+            <span class="n">cluster_details</span><span class="o">=</span><span class="n">create_deployment</span>
+        <span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_validate_create_deployment</span><span class="p">(</span><span class="n">create_deployment</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="n">optional_key_to_value</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;root[&#39;master&#39;][&#39;redis&#39;]&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;port&quot;</span><span class="p">:</span> <span class="mi">6379</span><span class="p">},</span>
+            <span class="s2">&quot;root[&#39;master&#39;][&#39;redis&#39;][&#39;port&#39;]&quot;</span><span class="p">:</span> <span class="mi">6379</span>
+        <span class="p">}</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">ABS_MARO_K8S_LIB</span><span class="si">}</span><span class="s2">/deployments/internal/k8s_aks_create.yml&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fr</span><span class="p">:</span>
+            <span class="n">create_deployment_template</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">fr</span><span class="p">)</span>
+        <span class="n">validate_and_fill_dict</span><span class="p">(</span>
+            <span class="n">template_dict</span><span class="o">=</span><span class="n">create_deployment_template</span><span class="p">,</span>
+            <span class="n">actual_dict</span><span class="o">=</span><span class="n">create_deployment</span><span class="p">,</span>
+            <span class="n">optional_key_to_value</span><span class="o">=</span><span class="n">optional_key_to_value</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="K8sAksExecutor.create"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.k8s.executors.html#maro.cli.k8s.executors.k8s_aks_executor.K8sAksExecutor.create">[docs]</a>    <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Creating cluster&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Start creating</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_cluster_id</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_create_resource_group</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_create_k8s_cluster</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_init_redis</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_init_nvidia_plugin</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_create_k8s_secret</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c1"># If failed, remove details folder, then raise</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">ABS_MARO_CLUSTERS</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">e</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info_green</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cluster </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="si">}</span><span class="s2"> is created&quot;</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_set_cluster_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Set cluster id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">generate_cluster_id</span><span class="p">()</span>
+
+        <span class="c1"># Save details</span>
+        <span class="n">save_cluster_details</span><span class="p">(</span>
+            <span class="n">cluster_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">,</span>
+            <span class="n">cluster_details</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_create_resource_group</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Load details</span>
+        <span class="n">subscription</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;cloud&quot;</span><span class="p">][</span><span class="s2">&quot;subscription&quot;</span><span class="p">]</span>
+        <span class="n">resource_group</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;cloud&quot;</span><span class="p">][</span><span class="s2">&quot;resource_group&quot;</span><span class="p">]</span>
+        <span class="n">location</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;cloud&quot;</span><span class="p">][</span><span class="s2">&quot;location&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Check if Azure CLI is installed, and print version</span>
+        <span class="n">azure_version</span> <span class="o">=</span> <span class="n">AzureExecutor</span><span class="o">.</span><span class="n">get_version</span><span class="p">()</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info_green</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Your Azure CLI version: </span><span class="si">{</span><span class="n">azure_version</span><span class="p">[</span><span class="s1">&#39;azure-cli&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Set subscription id</span>
+        <span class="n">AzureExecutor</span><span class="o">.</span><span class="n">set_subscription</span><span class="p">(</span><span class="n">subscription</span><span class="o">=</span><span class="n">subscription</span><span class="p">)</span>
+
+        <span class="c1"># Check and create resource group</span>
+        <span class="n">resource_group_info</span> <span class="o">=</span> <span class="n">AzureExecutor</span><span class="o">.</span><span class="n">get_resource_group</span><span class="p">(</span><span class="n">resource_group</span><span class="o">=</span><span class="n">resource_group</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">resource_group_info</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning_yellow</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Azure resource group </span><span class="si">{</span><span class="n">resource_group</span><span class="si">}</span><span class="s2"> is already existed&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">AzureExecutor</span><span class="o">.</span><span class="n">create_resource_group</span><span class="p">(</span>
+                <span class="n">resource_group</span><span class="o">=</span><span class="n">resource_group</span><span class="p">,</span>
+                <span class="n">location</span><span class="o">=</span><span class="n">location</span>
+            <span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info_green</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Resource group: </span><span class="si">{</span><span class="n">resource_group</span><span class="si">}</span><span class="s2"> is created&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_create_k8s_cluster</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Creating k8s cluster&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Load details</span>
+        <span class="n">resource_group</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;cloud&quot;</span><span class="p">][</span><span class="s2">&quot;resource_group&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Create ARM parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_create_deployment_parameters</span><span class="p">(</span><span class="n">export_dir</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">ABS_MARO_CLUSTERS</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="si">}</span><span class="s2">/parameters&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Start deployment</span>
+        <span class="n">template_file_location</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">ABS_MARO_K8S_LIB</span><span class="si">}</span><span class="s2">/azure/create_aks_cluster/template.json&quot;</span>
+        <span class="n">parameters_file_location</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">ABS_MARO_CLUSTERS</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="si">}</span><span class="s2">/parameters/create_aks_cluster.json&quot;</span>
+        <span class="p">)</span>
+        <span class="n">AzureExecutor</span><span class="o">.</span><span class="n">start_deployment</span><span class="p">(</span>
+            <span class="n">resource_group</span><span class="o">=</span><span class="n">resource_group</span><span class="p">,</span>
+            <span class="n">deployment_name</span><span class="o">=</span><span class="s2">&quot;aks_cluster&quot;</span><span class="p">,</span>
+            <span class="n">template_file_path</span><span class="o">=</span><span class="n">template_file_location</span><span class="p">,</span>
+            <span class="n">parameters_file_path</span><span class="o">=</span><span class="n">parameters_file_location</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Attach ACR</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_attach_acr</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_create_deployment_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">export_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="c1"># Extract variables</span>
+        <span class="n">cluster_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+        <span class="n">location</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;cloud&quot;</span><span class="p">][</span><span class="s2">&quot;location&quot;</span><span class="p">]</span>
+        <span class="n">admin_username</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;user&quot;</span><span class="p">][</span><span class="s2">&quot;admin_username&quot;</span><span class="p">]</span>
+        <span class="n">admin_public_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;user&quot;</span><span class="p">][</span><span class="s2">&quot;admin_public_key&quot;</span><span class="p">]</span>
+        <span class="n">node_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;master&quot;</span><span class="p">][</span><span class="s2">&quot;node_size&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Mkdir</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">export_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">ABS_MARO_K8S_LIB</span><span class="si">}</span><span class="s2">/azure/create_aks_cluster/parameters.json&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">base_parameters</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">export_dir</span> <span class="o">+</span> <span class="s2">&quot;/create_aks_cluster.json&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fw</span><span class="p">:</span>
+            <span class="n">parameters</span> <span class="o">=</span> <span class="n">base_parameters</span><span class="p">[</span><span class="s2">&quot;parameters&quot;</span><span class="p">]</span>
+            <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;location&quot;</span><span class="p">][</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">location</span>
+            <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;adminUsername&quot;</span><span class="p">][</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">admin_username</span>
+            <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;adminPublicKey&quot;</span><span class="p">][</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">admin_public_key</span>
+            <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;clusterName&quot;</span><span class="p">][</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cluster_id</span><span class="si">}</span><span class="s2">-aks&quot;</span>
+            <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;agentCount&quot;</span><span class="p">][</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;agentVMSize&quot;</span><span class="p">][</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">node_size</span>
+            <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;virtualNetworkName&quot;</span><span class="p">][</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cluster_id</span><span class="si">}</span><span class="s2">-vnet&quot;</span>
+            <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;acrName&quot;</span><span class="p">][</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cluster_id</span><span class="si">}</span><span class="s2">acr&quot;</span>
+            <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;acrSku&quot;</span><span class="p">][</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Basic&quot;</span>
+            <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;storageAccountName&quot;</span><span class="p">][</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cluster_id</span><span class="si">}</span><span class="s2">st&quot;</span>
+            <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;fileShareName&quot;</span><span class="p">][</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cluster_id</span><span class="si">}</span><span class="s2">-fs&quot;</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">base_parameters</span><span class="p">,</span> <span class="n">fw</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_attach_acr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Load details</span>
+        <span class="n">cluster_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+        <span class="n">resource_group</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;cloud&quot;</span><span class="p">][</span><span class="s2">&quot;resource_group&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Attach ACR</span>
+        <span class="n">AzureExecutor</span><span class="o">.</span><span class="n">attach_acr</span><span class="p">(</span>
+            <span class="n">resource_group</span><span class="o">=</span><span class="n">resource_group</span><span class="p">,</span>
+            <span class="n">aks_name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cluster_id</span><span class="si">}</span><span class="s2">-aks&quot;</span><span class="p">,</span>
+            <span class="n">acr_name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cluster_id</span><span class="si">}</span><span class="s2">acr&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_init_redis</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Create folder</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">ABS_MARO_CLUSTERS</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="si">}</span><span class="s2">/k8s_configs&quot;</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># Create k8s config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_create_redis_k8s_config</span><span class="p">(</span><span class="n">export_dir</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">ABS_MARO_CLUSTERS</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="si">}</span><span class="s2">/k8s_configs&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Apply k8s config</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;kubectl apply -f </span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">ABS_MARO_CLUSTERS</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="si">}</span><span class="s2">/k8s_configs/redis.yml&quot;</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_init_nvidia_plugin</span><span class="p">():</span>
+        <span class="c1"># Create plugin namespace</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="s2">&quot;kubectl create namespace gpu-resources&quot;</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+
+        <span class="c1"># Apply k8s config</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;kubectl apply -f </span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">ABS_MARO_K8S_LIB</span><span class="si">}</span><span class="s2">/k8s_configs/nvidia-device-plugin.yml&quot;</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_create_redis_k8s_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">export_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="c1"># Check and load k8s context</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_and_load_k8s_context</span><span class="p">()</span>
+
+        <span class="c1"># Load details</span>
+        <span class="n">cluster_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Fill redis k8s config and saves</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">ABS_MARO_K8S_LIB</span><span class="si">}</span><span class="s2">/k8s_configs/redis.yml&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fr</span><span class="p">:</span>
+            <span class="n">base_config</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">fr</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">export_dir</span> <span class="o">+</span> <span class="s2">&quot;/redis.yml&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fw</span><span class="p">:</span>
+            <span class="n">azure_file_config</span> <span class="o">=</span> <span class="n">base_config</span><span class="p">[</span><span class="s2">&quot;spec&quot;</span><span class="p">][</span><span class="s2">&quot;template&quot;</span><span class="p">][</span><span class="s2">&quot;spec&quot;</span><span class="p">][</span><span class="s2">&quot;volumes&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;azureFile&quot;</span><span class="p">]</span>
+            <span class="n">azure_file_config</span><span class="p">[</span><span class="s2">&quot;secretName&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cluster_id</span><span class="si">}</span><span class="s2">-k8s-secret&quot;</span>
+            <span class="n">azure_file_config</span><span class="p">[</span><span class="s2">&quot;shareName&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cluster_id</span><span class="si">}</span><span class="s2">-fs&quot;</span>
+            <span class="n">yaml</span><span class="o">.</span><span class="n">safe_dump</span><span class="p">(</span><span class="n">base_config</span><span class="p">,</span> <span class="n">fw</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_create_k8s_secret</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Load details</span>
+        <span class="n">cluster_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+        <span class="n">resource_group</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;cloud&quot;</span><span class="p">][</span><span class="s2">&quot;resource_group&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Get storage account key</span>
+        <span class="n">storage_account_keys</span> <span class="o">=</span> <span class="n">AzureExecutor</span><span class="o">.</span><span class="n">get_storage_account_keys</span><span class="p">(</span>
+            <span class="n">resource_group</span><span class="o">=</span><span class="n">resource_group</span><span class="p">,</span>
+            <span class="n">storage_account_name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cluster_id</span><span class="si">}</span><span class="s2">st&quot;</span>
+        <span class="p">)</span>
+        <span class="n">storage_key</span> <span class="o">=</span> <span class="n">storage_account_keys</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Create k8s secret</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;kubectl create secret generic </span><span class="si">{</span><span class="n">cluster_id</span><span class="si">}</span><span class="s2">-k8s-secret &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;--from-literal=azurestorageaccountname=</span><span class="si">{</span><span class="n">cluster_id</span><span class="si">}</span><span class="s2">st &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;--from-literal=azurestorageaccountkey=</span><span class="si">{</span><span class="n">storage_key</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+
+    <span class="c1"># maro k8s delete</span>
+
+<div class="viewcode-block" id="K8sAksExecutor.delete"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.k8s.executors.html#maro.cli.k8s.executors.k8s_aks_executor.K8sAksExecutor.delete">[docs]</a>    <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Deleting cluster </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Load details</span>
+        <span class="n">cluster_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+        <span class="n">resource_group</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;cloud&quot;</span><span class="p">][</span><span class="s2">&quot;resource_group&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Get resource list</span>
+        <span class="n">resource_list</span> <span class="o">=</span> <span class="n">AzureExecutor</span><span class="o">.</span><span class="n">list_resources</span><span class="p">(</span><span class="n">resource_group</span><span class="o">=</span><span class="n">resource_group</span><span class="p">)</span>
+
+        <span class="c1"># Filter resources</span>
+        <span class="n">deletable_ids</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">resource</span> <span class="ow">in</span> <span class="n">resource_list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">resource</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">cluster_id</span><span class="p">):</span>
+                <span class="n">deletable_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">resource</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">])</span>
+
+        <span class="c1"># Delete resources</span>
+        <span class="k">if</span> <span class="n">deletable_ids</span><span class="p">:</span>
+            <span class="n">AzureExecutor</span><span class="o">.</span><span class="n">delete_resources</span><span class="p">(</span><span class="n">resources</span><span class="o">=</span><span class="n">deletable_ids</span><span class="p">)</span>
+
+        <span class="c1"># Delete cluster folder</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">ABS_MARO_CLUSTERS</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info_green</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cluster </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="si">}</span><span class="s2"> is deleted&quot;</span><span class="p">)</span></div>
+
+    <span class="c1"># maro k8s node</span>
+
+<div class="viewcode-block" id="K8sAksExecutor.scale_node"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.k8s.executors.html#maro.cli.k8s.executors.k8s_aks_executor.K8sAksExecutor.scale_node">[docs]</a>    <span class="k">def</span> <span class="nf">scale_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">replicas</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">node_size</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="c1"># Get node_size_to_info</span>
+        <span class="n">node_size_to_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_node_size_to_info</span><span class="p">()</span>
+
+        <span class="c1"># Get node_size_to_spec, and check if node_size is valid</span>
+        <span class="n">node_size_to_spec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_node_size_to_spec</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">node_size</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">node_size_to_spec</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">BadRequestError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid node_size &#39;</span><span class="si">{</span><span class="n">node_size</span><span class="si">}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Scale node</span>
+        <span class="k">if</span> <span class="n">node_size</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">node_size_to_info</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_build_node_pool</span><span class="p">(</span>
+                <span class="n">replicas</span><span class="o">=</span><span class="n">replicas</span><span class="p">,</span>
+                <span class="n">node_size</span><span class="o">=</span><span class="n">node_size</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">node_size_to_info</span><span class="p">[</span><span class="n">node_size</span><span class="p">][</span><span class="s2">&quot;count&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">replicas</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_scale_node_pool</span><span class="p">(</span>
+                <span class="n">replicas</span><span class="o">=</span><span class="n">replicas</span><span class="p">,</span>
+                <span class="n">node_size</span><span class="o">=</span><span class="n">node_size</span><span class="p">,</span>
+                <span class="n">node_size_to_info</span><span class="o">=</span><span class="n">node_size_to_info</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning_yellow</span><span class="p">(</span><span class="s2">&quot;Replica is match, no create or delete&quot;</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_get_node_size_to_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Load details</span>
+        <span class="n">cluster_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+        <span class="n">resource_group</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;cloud&quot;</span><span class="p">][</span><span class="s2">&quot;resource_group&quot;</span><span class="p">]</span>
+
+        <span class="c1"># List nodepool</span>
+        <span class="n">nodepools</span> <span class="o">=</span> <span class="n">AzureExecutor</span><span class="o">.</span><span class="n">list_nodepool</span><span class="p">(</span>
+            <span class="n">resource_group</span><span class="o">=</span><span class="n">resource_group</span><span class="p">,</span>
+            <span class="n">aks_name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cluster_id</span><span class="si">}</span><span class="s2">-aks&quot;</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Build node_size_to_count</span>
+        <span class="n">node_size_to_count</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">nodepool</span> <span class="ow">in</span> <span class="n">nodepools</span><span class="p">:</span>
+            <span class="n">node_size_to_count</span><span class="p">[</span><span class="n">nodepool</span><span class="p">[</span><span class="s2">&quot;vmSize&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">nodepool</span>
+
+        <span class="k">return</span> <span class="n">node_size_to_count</span>
+
+    <span class="k">def</span> <span class="nf">_get_node_size_to_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="c1"># Load details</span>
+        <span class="n">location</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;cloud&quot;</span><span class="p">][</span><span class="s2">&quot;location&quot;</span><span class="p">]</span>
+
+        <span class="c1"># List available sizes for VM</span>
+        <span class="n">specs</span> <span class="o">=</span> <span class="n">AzureExecutor</span><span class="o">.</span><span class="n">list_vm_sizes</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">)</span>
+
+        <span class="c1"># Build node_size_to_spec</span>
+        <span class="n">node_size_to_spec</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">specs</span><span class="p">:</span>
+            <span class="n">node_size_to_spec</span><span class="p">[</span><span class="n">spec</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">spec</span>
+
+        <span class="k">return</span> <span class="n">node_size_to_spec</span>
+
+    <span class="k">def</span> <span class="nf">_build_node_pool</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">replicas</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">node_size</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Building </span><span class="si">{</span><span class="n">node_size</span><span class="si">}</span><span class="s2"> NodePool&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Load details</span>
+        <span class="n">cluster_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+        <span class="n">resource_group</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;cloud&quot;</span><span class="p">][</span><span class="s2">&quot;resource_group&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Build nodepool</span>
+        <span class="n">AzureExecutor</span><span class="o">.</span><span class="n">add_nodepool</span><span class="p">(</span>
+            <span class="n">resource_group</span><span class="o">=</span><span class="n">resource_group</span><span class="p">,</span>
+            <span class="n">aks_name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cluster_id</span><span class="si">}</span><span class="s2">-aks&quot;</span><span class="p">,</span>
+            <span class="n">nodepool_name</span><span class="o">=</span><span class="n">K8sAksExecutor</span><span class="o">.</span><span class="n">_generate_nodepool_name</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">node_size</span><span class="p">),</span>
+            <span class="n">node_count</span><span class="o">=</span><span class="n">replicas</span><span class="p">,</span>
+            <span class="n">node_size</span><span class="o">=</span><span class="n">node_size</span>
+        <span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info_green</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">node_size</span><span class="si">}</span><span class="s2"> NodePool is built&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_scale_node_pool</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">replicas</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">node_size</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">node_size_to_info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Scaling </span><span class="si">{</span><span class="n">node_size</span><span class="si">}</span><span class="s2"> NodePool&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Load details</span>
+        <span class="n">cluster_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+        <span class="n">resource_group</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;cloud&quot;</span><span class="p">][</span><span class="s2">&quot;resource_group&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Scale node pool</span>
+        <span class="n">AzureExecutor</span><span class="o">.</span><span class="n">scale_nodepool</span><span class="p">(</span>
+            <span class="n">resource_group</span><span class="o">=</span><span class="n">resource_group</span><span class="p">,</span>
+            <span class="n">aks_name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cluster_id</span><span class="si">}</span><span class="s2">-aks&quot;</span><span class="p">,</span>
+            <span class="n">nodepool_name</span><span class="o">=</span><span class="n">node_size_to_info</span><span class="p">[</span><span class="n">node_size</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">],</span>
+            <span class="n">node_count</span><span class="o">=</span><span class="n">replicas</span>
+        <span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info_green</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">node_size</span><span class="si">}</span><span class="s2"> NodePool is scaled&quot;</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_generate_nodepool_name</span><span class="p">(</span><span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">generate_name_with_md5</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;pool&quot;</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">,</span> <span class="n">md5_len</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+
+<div class="viewcode-block" id="K8sAksExecutor.list_node"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.k8s.executors.html#maro.cli.k8s.executors.k8s_aks_executor.K8sAksExecutor.list_node">[docs]</a>    <span class="k">def</span> <span class="nf">list_node</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Load details</span>
+        <span class="n">cluster_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+        <span class="n">resource_group</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;cloud&quot;</span><span class="p">][</span><span class="s2">&quot;resource_group&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Get aks details</span>
+        <span class="n">aks_details</span> <span class="o">=</span> <span class="n">AzureExecutor</span><span class="o">.</span><span class="n">get_aks</span><span class="p">(</span>
+            <span class="n">resource_group</span><span class="o">=</span><span class="n">resource_group</span><span class="p">,</span>
+            <span class="n">aks_name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cluster_id</span><span class="si">}</span><span class="s2">-aks&quot;</span>
+        <span class="p">)</span>
+        <span class="n">agent_pools_details</span> <span class="o">=</span> <span class="n">aks_details</span><span class="p">[</span><span class="s2">&quot;agentPoolProfiles&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Filter and print</span>
+        <span class="n">node_details</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">agent_pool_details</span> <span class="ow">in</span> <span class="n">agent_pools_details</span><span class="p">:</span>
+            <span class="n">node_details</span><span class="p">[</span><span class="n">agent_pool_details</span><span class="p">[</span><span class="s2">&quot;vmSize&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">agent_pool_details</span><span class="p">[</span><span class="s2">&quot;count&quot;</span><span class="p">]</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span>
+                <span class="n">node_details</span><span class="p">,</span>
+                <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
+        <span class="p">)</span></div>
+
+    <span class="c1"># maro k8s image</span>
+
+<div class="viewcode-block" id="K8sAksExecutor.push_image"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.k8s.executors.html#maro.cli.k8s.executors.k8s_aks_executor.K8sAksExecutor.push_image">[docs]</a>    <span class="k">def</span> <span class="nf">push_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="c1"># Load details</span>
+        <span class="n">cluster_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+        <span class="n">remote_image_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cluster_id</span><span class="si">}</span><span class="s2">acr.azurecr.io/</span><span class="si">{</span><span class="n">image_name</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="c1"># ACR login</span>
+        <span class="n">AzureExecutor</span><span class="o">.</span><span class="n">login_acr</span><span class="p">(</span><span class="n">acr_name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cluster_id</span><span class="si">}</span><span class="s2">acr&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Tag image</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;docker tag </span><span class="si">{</span><span class="n">image_name</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">remote_image_name</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+
+        <span class="c1"># Push image to ACR</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;docker push </span><span class="si">{</span><span class="n">remote_image_name</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="K8sAksExecutor.list_image"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.k8s.executors.html#maro.cli.k8s.executors.k8s_aks_executor.K8sAksExecutor.list_image">[docs]</a>    <span class="k">def</span> <span class="nf">list_image</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Load details</span>
+        <span class="n">cluster_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+
+        <span class="c1"># List acr repository</span>
+        <span class="n">acr_repositories</span> <span class="o">=</span> <span class="n">AzureExecutor</span><span class="o">.</span><span class="n">list_acr_repositories</span><span class="p">(</span><span class="n">acr_name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cluster_id</span><span class="si">}</span><span class="s2">acr&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">acr_repositories</span><span class="p">)</span></div>
+
+    <span class="c1"># maro k8s data</span>
+
+<div class="viewcode-block" id="K8sAksExecutor.push_data"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.k8s.executors.html#maro.cli.k8s.executors.k8s_aks_executor.K8sAksExecutor.push_data">[docs]</a>    <span class="k">def</span> <span class="nf">push_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">local_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">remote_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="c1"># Load details</span>
+        <span class="n">cluster_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Get sas</span>
+        <span class="n">sas</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_and_get_account_sas</span><span class="p">()</span>
+
+        <span class="c1"># Push data</span>
+        <span class="n">abs_local_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">local_path</span><span class="p">)</span>
+        <span class="n">abs_source_path</span> <span class="o">=</span> <span class="n">get_reformatted_source_path</span><span class="p">(</span><span class="n">abs_local_path</span><span class="p">)</span>
+        <span class="n">target_dir</span> <span class="o">=</span> <span class="n">get_reformatted_target_dir</span><span class="p">(</span><span class="n">remote_dir</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">target_dir</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">FileOperationError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid remote path: </span><span class="si">{</span><span class="n">target_dir</span><span class="si">}</span><span class="se">\n</span><span class="s2">Should be started with &#39;/&#39;.&quot;</span><span class="p">)</span>
+        <span class="n">copy_command</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s2">&quot;azcopy copy &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">abs_source_path</span><span class="si">}</span><span class="s2">&#39; &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;&#39;https://</span><span class="si">{</span><span class="n">cluster_id</span><span class="si">}</span><span class="s2">st.file.core.windows.net/</span><span class="si">{</span><span class="n">cluster_id</span><span class="si">}</span><span class="s2">-fs</span><span class="si">{</span><span class="n">target_dir</span><span class="si">}</span><span class="s2">?</span><span class="si">{</span><span class="n">sas</span><span class="si">}</span><span class="s2">&#39; &quot;</span>
+            <span class="s2">&quot;--recursive=True&quot;</span>
+        <span class="p">)</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">copy_command</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="K8sAksExecutor.pull_data"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.k8s.executors.html#maro.cli.k8s.executors.k8s_aks_executor.K8sAksExecutor.pull_data">[docs]</a>    <span class="k">def</span> <span class="nf">pull_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">local_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">remote_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="c1"># Load details</span>
+        <span class="n">cluster_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Get sas</span>
+        <span class="n">sas</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_and_get_account_sas</span><span class="p">()</span>
+
+        <span class="c1"># Push data</span>
+        <span class="n">abs_local_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">local_dir</span><span class="p">)</span>
+        <span class="n">source_path</span> <span class="o">=</span> <span class="n">get_reformatted_source_path</span><span class="p">(</span><span class="n">remote_path</span><span class="p">)</span>
+        <span class="n">abs_target_dir</span> <span class="o">=</span> <span class="n">get_reformatted_target_dir</span><span class="p">(</span><span class="n">abs_local_dir</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">abs_target_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">source_path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">FileOperationError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid remote path: </span><span class="si">{</span><span class="n">source_path</span><span class="si">}</span><span class="se">\n</span><span class="s2">Should be started with &#39;/&#39;.&quot;</span><span class="p">)</span>
+        <span class="n">copy_command</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s2">&quot;azcopy copy &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;&#39;https://</span><span class="si">{</span><span class="n">cluster_id</span><span class="si">}</span><span class="s2">st.file.core.windows.net/</span><span class="si">{</span><span class="n">cluster_id</span><span class="si">}</span><span class="s2">-fs</span><span class="si">{</span><span class="n">source_path</span><span class="si">}</span><span class="s2">?</span><span class="si">{</span><span class="n">sas</span><span class="si">}</span><span class="s2">&#39; &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">abs_target_dir</span><span class="si">}</span><span class="s2">&#39; &quot;</span>
+            <span class="s2">&quot;--recursive=True&quot;</span>
+        <span class="p">)</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">copy_command</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="K8sAksExecutor.remove_data"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.k8s.executors.html#maro.cli.k8s.executors.k8s_aks_executor.K8sAksExecutor.remove_data">[docs]</a>    <span class="k">def</span> <span class="nf">remove_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">remote_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="c1"># FIXME: Remove failed, The specified resource may be in use by an SMB client</span>
+
+        <span class="c1"># Load details</span>
+        <span class="n">cluster_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Get sas</span>
+        <span class="n">sas</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_and_get_account_sas</span><span class="p">()</span>
+
+        <span class="c1"># Remove data</span>
+        <span class="n">copy_command</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s2">&quot;azcopy remove &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;&#39;https://</span><span class="si">{</span><span class="n">cluster_id</span><span class="si">}</span><span class="s2">st.file.core.windows.net/</span><span class="si">{</span><span class="n">cluster_id</span><span class="si">}</span><span class="s2">-fs</span><span class="si">{</span><span class="n">remote_path</span><span class="si">}</span><span class="s2">?</span><span class="si">{</span><span class="n">sas</span><span class="si">}</span><span class="s2">&#39; &quot;</span>
+            <span class="s2">&quot;--recursive=True&quot;</span>
+        <span class="p">)</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">copy_command</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_check_and_get_account_sas</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Ref: https://msdn.microsoft.com/library/azure/mt584140.aspx</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Load details</span>
+        <span class="n">cloud_details</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;cloud&quot;</span><span class="p">]</span>
+        <span class="n">cluster_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Regenerate sas if the key is None or expired TODO:</span>
+        <span class="k">if</span> <span class="s2">&quot;account_sas&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cloud_details</span><span class="p">:</span>
+            <span class="n">account_sas</span> <span class="o">=</span> <span class="n">AzureExecutor</span><span class="o">.</span><span class="n">get_storage_account_sas</span><span class="p">(</span><span class="n">account_name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cluster_id</span><span class="si">}</span><span class="s2">st&quot;</span><span class="p">)</span>
+            <span class="n">cloud_details</span><span class="p">[</span><span class="s2">&quot;account_sas&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">account_sas</span>
+            <span class="n">save_cluster_details</span><span class="p">(</span>
+                <span class="n">cluster_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">,</span>
+                <span class="n">cluster_details</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">cloud_details</span><span class="p">[</span><span class="s2">&quot;account_sas&quot;</span><span class="p">]</span>
+
+    <span class="c1"># maro k8s job</span>
+
+<div class="viewcode-block" id="K8sAksExecutor.start_job"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.k8s.executors.html#maro.cli.k8s.executors.k8s_aks_executor.K8sAksExecutor.start_job">[docs]</a>    <span class="k">def</span> <span class="nf">start_job</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">deployment_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="c1"># Load start_job_deployment</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">deployment_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fr</span><span class="p">:</span>
+            <span class="n">start_job_deployment</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">fr</span><span class="p">)</span>
+
+        <span class="c1"># Start job</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_start_job</span><span class="p">(</span><span class="n">job_details</span><span class="o">=</span><span class="n">start_job_deployment</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_start_job</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job_details</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="c1"># Validate and fill optional value to deployment</span>
+        <span class="n">K8sAksExecutor</span><span class="o">.</span><span class="n">_standardize_start_job_deployment</span><span class="p">(</span><span class="n">start_job_deployment</span><span class="o">=</span><span class="n">job_details</span><span class="p">)</span>
+        <span class="n">job_name</span> <span class="o">=</span> <span class="n">job_details</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Mkdir and save job details</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">ABS_MARO_CLUSTERS</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="si">}</span><span class="s2">/jobs/</span><span class="si">{</span><span class="n">job_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">save_job_details</span><span class="p">(</span>
+            <span class="n">cluster_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">,</span>
+            <span class="n">job_name</span><span class="o">=</span><span class="n">job_name</span><span class="p">,</span>
+            <span class="n">job_details</span><span class="o">=</span><span class="n">job_details</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Set job id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_job_id</span><span class="p">(</span><span class="n">job_name</span><span class="o">=</span><span class="n">job_name</span><span class="p">)</span>
+
+        <span class="c1"># Create folder</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">ABS_MARO_CLUSTERS</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="si">}</span><span class="s2">/jobs/</span><span class="si">{</span><span class="n">job_name</span><span class="si">}</span><span class="s2">/k8s_configs&quot;</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># Create and save k8s config</span>
+        <span class="n">k8s_job_config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_k8s_job_config</span><span class="p">(</span><span class="n">job_name</span><span class="o">=</span><span class="n">job_name</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">ABS_MARO_CLUSTERS</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="si">}</span><span class="s2">/jobs/</span><span class="si">{</span><span class="n">job_name</span><span class="si">}</span><span class="s2">/k8s_configs/jobs.yml&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span>
+        <span class="p">)</span> <span class="k">as</span> <span class="n">fw</span><span class="p">:</span>
+            <span class="n">yaml</span><span class="o">.</span><span class="n">safe_dump</span><span class="p">(</span><span class="n">k8s_job_config</span><span class="p">,</span> <span class="n">fw</span><span class="p">)</span>
+
+        <span class="c1"># Apply k8s config</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s2">&quot;kubectl apply -f &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">ABS_MARO_CLUSTERS</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="si">}</span><span class="s2">/jobs/</span><span class="si">{</span><span class="n">job_name</span><span class="si">}</span><span class="s2">/k8s_configs/jobs.yml&quot;</span>
+        <span class="p">)</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+
+<div class="viewcode-block" id="K8sAksExecutor.stop_job"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.k8s.executors.html#maro.cli.k8s.executors.k8s_aks_executor.K8sAksExecutor.stop_job">[docs]</a>    <span class="k">def</span> <span class="nf">stop_job</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="c1"># Stop job</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s2">&quot;kubectl delete -f &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">ABS_MARO_CLUSTERS</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="si">}</span><span class="s2">/jobs/</span><span class="si">{</span><span class="n">job_name</span><span class="si">}</span><span class="s2">/k8s_configs/jobs.yml&quot;</span>
+        <span class="p">)</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_standardize_start_job_deployment</span><span class="p">(</span><span class="n">start_job_deployment</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="c1"># Validate k8s_aks_start_job</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">ABS_MARO_K8S_LIB</span><span class="si">}</span><span class="s2">/deployments/internal/k8s_aks_start_job.yml&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fr</span><span class="p">:</span>
+            <span class="n">start_job_template</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">fr</span><span class="p">)</span>
+        <span class="n">validate_and_fill_dict</span><span class="p">(</span>
+            <span class="n">template_dict</span><span class="o">=</span><span class="n">start_job_template</span><span class="p">,</span>
+            <span class="n">actual_dict</span><span class="o">=</span><span class="n">start_job_deployment</span><span class="p">,</span>
+            <span class="n">optional_key_to_value</span><span class="o">=</span><span class="p">{}</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Validate component</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">ABS_MARO_K8S_LIB</span><span class="si">}</span><span class="s2">/deployments/internal/component.yml&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fr</span><span class="p">:</span>
+            <span class="n">component_template</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">fr</span><span class="p">)</span>
+        <span class="n">components_details</span> <span class="o">=</span> <span class="n">start_job_deployment</span><span class="p">[</span><span class="s2">&quot;components&quot;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">component_details</span> <span class="ow">in</span> <span class="n">components_details</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">validate_and_fill_dict</span><span class="p">(</span>
+                <span class="n">template_dict</span><span class="o">=</span><span class="n">component_template</span><span class="p">,</span>
+                <span class="n">actual_dict</span><span class="o">=</span><span class="n">component_details</span><span class="p">,</span>
+                <span class="n">optional_key_to_value</span><span class="o">=</span><span class="p">{}</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_create_k8s_job_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="c1"># Load details</span>
+        <span class="n">job_details</span> <span class="o">=</span> <span class="n">load_job_details</span><span class="p">(</span><span class="n">cluster_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">,</span> <span class="n">job_name</span><span class="o">=</span><span class="n">job_name</span><span class="p">)</span>
+        <span class="n">cluster_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+        <span class="n">job_id</span> <span class="o">=</span> <span class="n">job_details</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Check and load k8s context</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_and_load_k8s_context</span><span class="p">()</span>
+
+        <span class="c1"># Get config template</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">ABS_MARO_K8S_LIB</span><span class="si">}</span><span class="s2">/k8s_configs/job.yml&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fr</span><span class="p">:</span>
+            <span class="n">k8s_job_config</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">fr</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">ABS_MARO_K8S_LIB</span><span class="si">}</span><span class="s2">/k8s_configs/container.yml&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fr</span><span class="p">:</span>
+            <span class="n">k8s_container_config</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">fr</span><span class="p">)</span>
+
+        <span class="c1"># Fill configs</span>
+        <span class="n">k8s_job_config</span><span class="p">[</span><span class="s2">&quot;metadata&quot;</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">job_id</span>
+        <span class="n">k8s_job_config</span><span class="p">[</span><span class="s2">&quot;metadata&quot;</span><span class="p">][</span><span class="s2">&quot;labels&quot;</span><span class="p">][</span><span class="s2">&quot;jobName&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">job_name</span>
+        <span class="n">azure_file_config</span> <span class="o">=</span> <span class="n">k8s_job_config</span><span class="p">[</span><span class="s2">&quot;spec&quot;</span><span class="p">][</span><span class="s2">&quot;template&quot;</span><span class="p">][</span><span class="s2">&quot;spec&quot;</span><span class="p">][</span><span class="s2">&quot;volumes&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;azureFile&quot;</span><span class="p">]</span>
+        <span class="n">azure_file_config</span><span class="p">[</span><span class="s2">&quot;secretName&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cluster_id</span><span class="si">}</span><span class="s2">-k8s-secret&quot;</span>
+        <span class="n">azure_file_config</span><span class="p">[</span><span class="s2">&quot;shareName&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cluster_id</span><span class="si">}</span><span class="s2">-fs&quot;</span>
+
+        <span class="c1"># Create and fill container config</span>
+        <span class="k">for</span> <span class="n">component_type</span><span class="p">,</span> <span class="n">component_details</span> <span class="ow">in</span> <span class="n">job_details</span><span class="p">[</span><span class="s2">&quot;components&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">component_index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">component_details</span><span class="p">[</span><span class="s2">&quot;num&quot;</span><span class="p">]):</span>
+                <span class="n">container_config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_k8s_container_config</span><span class="p">(</span>
+                    <span class="n">job_details</span><span class="o">=</span><span class="n">job_details</span><span class="p">,</span>
+                    <span class="n">k8s_container_config_template</span><span class="o">=</span><span class="n">k8s_container_config</span><span class="p">,</span>
+                    <span class="n">component_type</span><span class="o">=</span><span class="n">component_type</span><span class="p">,</span>
+                    <span class="n">component_index</span><span class="o">=</span><span class="n">component_index</span>
+                <span class="p">)</span>
+                <span class="n">k8s_job_config</span><span class="p">[</span><span class="s2">&quot;spec&quot;</span><span class="p">][</span><span class="s2">&quot;template&quot;</span><span class="p">][</span><span class="s2">&quot;spec&quot;</span><span class="p">][</span><span class="s2">&quot;containers&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">container_config</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">k8s_job_config</span>
+
+    <span class="k">def</span> <span class="nf">_create_k8s_container_config</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">job_details</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">k8s_container_config_template</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">component_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">component_index</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="p">):</span>
+        <span class="c1"># Copy config</span>
+        <span class="n">k8s_container_config</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">k8s_container_config_template</span><span class="p">)</span>
+
+        <span class="c1"># Get container config</span>
+        <span class="n">component_details</span> <span class="o">=</span> <span class="n">job_details</span><span class="p">[</span><span class="s2">&quot;components&quot;</span><span class="p">][</span><span class="n">component_type</span><span class="p">]</span>
+
+        <span class="c1"># Load details</span>
+        <span class="n">cluster_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+        <span class="n">job_name</span> <span class="o">=</span> <span class="n">job_details</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
+        <span class="n">job_id</span> <span class="o">=</span> <span class="n">job_details</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+        <span class="n">component_id</span> <span class="o">=</span> <span class="n">job_details</span><span class="p">[</span><span class="s2">&quot;components&quot;</span><span class="p">][</span><span class="n">component_type</span><span class="p">][</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+        <span class="n">container_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">component_id</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">component_index</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="c1"># Fill config</span>
+        <span class="n">k8s_container_config</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">container_name</span>
+        <span class="n">k8s_container_config</span><span class="p">[</span><span class="s2">&quot;image&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_image_address</span><span class="p">(</span><span class="n">image_name</span><span class="o">=</span><span class="n">component_details</span><span class="p">[</span><span class="s2">&quot;image&quot;</span><span class="p">])</span>
+        <span class="n">k8s_container_config</span><span class="p">[</span><span class="s2">&quot;resources&quot;</span><span class="p">][</span><span class="s2">&quot;requests&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;cpu&quot;</span><span class="p">:</span> <span class="n">component_details</span><span class="p">[</span><span class="s2">&quot;resources&quot;</span><span class="p">][</span><span class="s2">&quot;cpu&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;memory&quot;</span><span class="p">:</span> <span class="n">component_details</span><span class="p">[</span><span class="s2">&quot;resources&quot;</span><span class="p">][</span><span class="s2">&quot;memory&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;nvidia.com/gpu&quot;</span><span class="p">:</span> <span class="n">component_details</span><span class="p">[</span><span class="s2">&quot;resources&quot;</span><span class="p">][</span><span class="s2">&quot;gpu&quot;</span><span class="p">]</span>
+        <span class="p">}</span>
+        <span class="n">k8s_container_config</span><span class="p">[</span><span class="s2">&quot;resources&quot;</span><span class="p">][</span><span class="s2">&quot;limits&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;cpu&quot;</span><span class="p">:</span> <span class="n">component_details</span><span class="p">[</span><span class="s2">&quot;resources&quot;</span><span class="p">][</span><span class="s2">&quot;cpu&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;memory&quot;</span><span class="p">:</span> <span class="n">component_details</span><span class="p">[</span><span class="s2">&quot;resources&quot;</span><span class="p">][</span><span class="s2">&quot;memory&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;nvidia.com/gpu&quot;</span><span class="p">:</span> <span class="n">component_details</span><span class="p">[</span><span class="s2">&quot;resources&quot;</span><span class="p">][</span><span class="s2">&quot;gpu&quot;</span><span class="p">]</span>
+        <span class="p">}</span>
+        <span class="n">k8s_container_config</span><span class="p">[</span><span class="s2">&quot;env&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;COMPONENT_TYPE&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">component_type</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;COMPONENT_ID&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">component_id</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;COMPONENT_INDEX&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">component_index</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;JOB_NAME&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">job_name</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;JOB_ID&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;CLUSTER_NAME&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;CLUSTER_ID&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cluster_id</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;PYTHONUNBUFFERED&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;0&quot;</span>
+            <span class="p">}</span>
+        <span class="p">]</span>
+        <span class="n">k8s_container_config</span><span class="p">[</span><span class="s2">&quot;command&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">component_details</span><span class="p">[</span><span class="s2">&quot;command&quot;</span><span class="p">]</span>
+        <span class="n">k8s_container_config</span><span class="p">[</span><span class="s2">&quot;volumeMounts&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;mountPath&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">component_details</span><span class="p">[</span><span class="s2">&quot;mount&quot;</span><span class="p">][</span><span class="s2">&quot;target&quot;</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">k8s_container_config</span>
+
+    <span class="k">def</span> <span class="nf">_set_job_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="c1"># Load job details</span>
+        <span class="n">job_details</span> <span class="o">=</span> <span class="n">load_job_details</span><span class="p">(</span>
+            <span class="n">cluster_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">,</span>
+            <span class="n">job_name</span><span class="o">=</span><span class="n">job_name</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Set job id</span>
+        <span class="n">job_details</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">generate_job_id</span><span class="p">()</span>
+
+        <span class="c1"># Set component id</span>
+        <span class="k">for</span> <span class="n">component</span><span class="p">,</span> <span class="n">component_details</span> <span class="ow">in</span> <span class="n">job_details</span><span class="p">[</span><span class="s2">&quot;components&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">component_details</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">generate_component_id</span><span class="p">()</span>
+
+        <span class="c1"># Save details</span>
+        <span class="n">save_job_details</span><span class="p">(</span>
+            <span class="n">cluster_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">,</span>
+            <span class="n">job_name</span><span class="o">=</span><span class="n">job_name</span><span class="p">,</span>
+            <span class="n">job_details</span><span class="o">=</span><span class="n">job_details</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_build_image_address</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="c1"># Load details</span>
+        <span class="n">cluster_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Get repositories</span>
+        <span class="n">acr_repositories</span> <span class="o">=</span> <span class="n">AzureExecutor</span><span class="o">.</span><span class="n">list_acr_repositories</span><span class="p">(</span><span class="n">acr_name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cluster_id</span><span class="si">}</span><span class="s2">acr&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Build address</span>
+        <span class="k">if</span> <span class="n">image_name</span> <span class="ow">in</span> <span class="n">acr_repositories</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cluster_id</span><span class="si">}</span><span class="s2">acr.azurecr.io/</span><span class="si">{</span><span class="n">image_name</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">image_name</span>
+
+<div class="viewcode-block" id="K8sAksExecutor.list_job"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.k8s.executors.html#maro.cli.k8s.executors.k8s_aks_executor.K8sAksExecutor.list_job">[docs]</a>    <span class="k">def</span> <span class="nf">list_job</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Get jobs details</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="s2">&quot;kubectl get jobs -o=json&quot;</span>
+        <span class="n">return_str</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+        <span class="n">job_details_list</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">return_str</span><span class="p">)[</span><span class="s2">&quot;items&quot;</span><span class="p">]</span>
+        <span class="n">jobs_details</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">job_details</span> <span class="ow">in</span> <span class="n">job_details_list</span><span class="p">:</span>
+            <span class="n">jobs_details</span><span class="p">[</span><span class="n">job_details</span><span class="p">[</span><span class="s2">&quot;metadata&quot;</span><span class="p">][</span><span class="s2">&quot;labels&quot;</span><span class="p">][</span><span class="s2">&quot;jobName&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">job_details</span>
+
+        <span class="c1"># Print details</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span>
+                <span class="n">jobs_details</span><span class="p">,</span>
+                <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="K8sAksExecutor.get_job_logs"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.k8s.executors.html#maro.cli.k8s.executors.k8s_aks_executor.K8sAksExecutor.get_job_logs">[docs]</a>    <span class="k">def</span> <span class="nf">get_job_logs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">export_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;./&quot;</span><span class="p">):</span>
+        <span class="c1"># Load details</span>
+        <span class="n">job_details</span> <span class="o">=</span> <span class="n">load_job_details</span><span class="p">(</span><span class="n">cluster_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">,</span> <span class="n">job_name</span><span class="o">=</span><span class="n">job_name</span><span class="p">)</span>
+        <span class="n">job_id</span> <span class="o">=</span> <span class="n">job_details</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Get pods details</span>
+        <span class="n">pods_details</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_pods_details</span><span class="p">()</span>
+
+        <span class="c1"># Export logs</span>
+        <span class="k">for</span> <span class="n">pod_details</span> <span class="ow">in</span> <span class="n">pods_details</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">pod_details</span><span class="p">[</span><span class="s2">&quot;metadata&quot;</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">job_id</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">container_details</span> <span class="ow">in</span> <span class="n">pod_details</span><span class="p">[</span><span class="s2">&quot;spec&quot;</span><span class="p">][</span><span class="s2">&quot;containers&quot;</span><span class="p">]:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_export_log</span><span class="p">(</span>
+                        <span class="n">pod_id</span><span class="o">=</span><span class="n">pod_details</span><span class="p">[</span><span class="s2">&quot;metadata&quot;</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">],</span>
+                        <span class="n">container_name</span><span class="o">=</span><span class="n">container_details</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">],</span>
+                        <span class="n">export_dir</span><span class="o">=</span><span class="n">export_dir</span>
+                    <span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_export_log</span><span class="p">(</span><span class="n">pod_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">container_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">export_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">export_dir</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="n">pod_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">),</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">export_dir</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="n">pod_id</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">container_name</span><span class="si">}</span><span class="s2">.log&quot;</span><span class="p">),</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fw</span><span class="p">:</span>
+            <span class="n">command</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;kubectl logs </span><span class="si">{</span><span class="n">pod_id</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">container_name</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">return_str</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+            <span class="n">fw</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">return_str</span><span class="p">)</span>
+
+    <span class="c1"># maro k8s schedule</span>
+
+<div class="viewcode-block" id="K8sAksExecutor.start_schedule"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.k8s.executors.html#maro.cli.k8s.executors.k8s_aks_executor.K8sAksExecutor.start_schedule">[docs]</a>    <span class="k">def</span> <span class="nf">start_schedule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">deployment_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="c1"># Load start_schedule_deployment</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">deployment_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fr</span><span class="p">:</span>
+            <span class="n">start_schedule_deployment</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">fr</span><span class="p">)</span>
+
+        <span class="c1"># Standardize start_schedule_deployment</span>
+        <span class="n">K8sAksExecutor</span><span class="o">.</span><span class="n">_standardize_start_schedule_deployment</span><span class="p">(</span><span class="n">start_schedule_deployment</span><span class="o">=</span><span class="n">start_schedule_deployment</span><span class="p">)</span>
+        <span class="n">schedule_name</span> <span class="o">=</span> <span class="n">start_schedule_deployment</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Save schedule deployment</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">ABS_MARO_CLUSTERS</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="si">}</span><span class="s2">/schedules/</span><span class="si">{</span><span class="n">schedule_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">save_schedule_details</span><span class="p">(</span>
+            <span class="n">cluster_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">,</span>
+            <span class="n">schedule_name</span><span class="o">=</span><span class="n">schedule_name</span><span class="p">,</span>
+            <span class="n">schedule_details</span><span class="o">=</span><span class="n">start_schedule_deployment</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Start jobs</span>
+        <span class="k">for</span> <span class="n">job_name</span> <span class="ow">in</span> <span class="n">start_schedule_deployment</span><span class="p">[</span><span class="s2">&quot;job_names&quot;</span><span class="p">]:</span>
+            <span class="n">job_details</span> <span class="o">=</span> <span class="n">K8sAksExecutor</span><span class="o">.</span><span class="n">_build_job_details</span><span class="p">(</span>
+                <span class="n">schedule_details</span><span class="o">=</span><span class="n">start_schedule_deployment</span><span class="p">,</span>
+                <span class="n">job_name</span><span class="o">=</span><span class="n">job_name</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_start_job</span><span class="p">(</span>
+                <span class="n">job_details</span><span class="o">=</span><span class="n">job_details</span>
+            <span class="p">)</span></div>
+
+<div class="viewcode-block" id="K8sAksExecutor.stop_schedule"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.k8s.executors.html#maro.cli.k8s.executors.k8s_aks_executor.K8sAksExecutor.stop_schedule">[docs]</a>    <span class="k">def</span> <span class="nf">stop_schedule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">schedule_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="c1"># Load details</span>
+        <span class="n">schedule_details</span> <span class="o">=</span> <span class="n">load_schedule_details</span><span class="p">(</span><span class="n">cluster_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">,</span> <span class="n">schedule_name</span><span class="o">=</span><span class="n">schedule_name</span><span class="p">)</span>
+        <span class="n">job_names</span> <span class="o">=</span> <span class="n">schedule_details</span><span class="p">[</span><span class="s2">&quot;job_names&quot;</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">job_name</span> <span class="ow">in</span> <span class="n">job_names</span><span class="p">:</span>
+            <span class="c1"># Load job details</span>
+            <span class="n">job_details</span> <span class="o">=</span> <span class="n">load_job_details</span><span class="p">(</span><span class="n">cluster_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_name</span><span class="p">,</span> <span class="n">job_name</span><span class="o">=</span><span class="n">job_name</span><span class="p">)</span>
+            <span class="n">job_schedule_tag</span> <span class="o">=</span> <span class="n">job_details</span><span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">][</span><span class="s2">&quot;schedule&quot;</span><span class="p">]</span>
+
+            <span class="c1"># Stop job</span>
+            <span class="k">if</span> <span class="n">job_schedule_tag</span> <span class="o">==</span> <span class="n">schedule_name</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">stop_job</span><span class="p">(</span>
+                    <span class="n">job_name</span><span class="o">=</span><span class="n">job_name</span>
+                <span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_standardize_start_schedule_deployment</span><span class="p">(</span><span class="n">start_schedule_deployment</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="c1"># Validate k8s_aks_start_schedule</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">ABS_MARO_K8S_LIB</span><span class="si">}</span><span class="s2">/deployments/internal/k8s_aks_start_schedule.yml&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fr</span><span class="p">:</span>
+            <span class="n">start_job_template</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">fr</span><span class="p">)</span>
+        <span class="n">validate_and_fill_dict</span><span class="p">(</span>
+            <span class="n">template_dict</span><span class="o">=</span><span class="n">start_job_template</span><span class="p">,</span>
+            <span class="n">actual_dict</span><span class="o">=</span><span class="n">start_schedule_deployment</span><span class="p">,</span>
+            <span class="n">optional_key_to_value</span><span class="o">=</span><span class="p">{}</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Validate component</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">ABS_MARO_K8S_LIB</span><span class="si">}</span><span class="s2">/deployments/internal/component.yml&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fr</span><span class="p">:</span>
+            <span class="n">start_job_component_template</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">fr</span><span class="p">)</span>
+        <span class="n">components_details</span> <span class="o">=</span> <span class="n">start_schedule_deployment</span><span class="p">[</span><span class="s2">&quot;components&quot;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">component_details</span> <span class="ow">in</span> <span class="n">components_details</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">validate_and_fill_dict</span><span class="p">(</span>
+                <span class="n">template_dict</span><span class="o">=</span><span class="n">start_job_component_template</span><span class="p">,</span>
+                <span class="n">actual_dict</span><span class="o">=</span><span class="n">component_details</span><span class="p">,</span>
+                <span class="n">optional_key_to_value</span><span class="o">=</span><span class="p">{}</span>
+            <span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_build_job_details</span><span class="p">(</span><span class="n">schedule_details</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">job_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="n">schedule_name</span> <span class="o">=</span> <span class="n">schedule_details</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
+
+        <span class="n">job_details</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">schedule_details</span><span class="p">)</span>
+        <span class="n">job_details</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">job_name</span>
+        <span class="n">job_details</span><span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;schedule&quot;</span><span class="p">:</span> <span class="n">schedule_name</span><span class="p">}</span>
+        <span class="n">job_details</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;job_names&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">job_details</span>
+
+    <span class="c1"># maro k8s status</span>
+
+<div class="viewcode-block" id="K8sAksExecutor.status"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.k8s.executors.html#maro.cli.k8s.executors.k8s_aks_executor.K8sAksExecutor.status">[docs]</a>    <span class="k">def</span> <span class="nf">status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">return_status</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># Get pods details</span>
+        <span class="n">pods_details</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_pods_details</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">pod_details</span> <span class="ow">in</span> <span class="n">pods_details</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;app&quot;</span> <span class="ow">in</span> <span class="n">pod_details</span><span class="p">[</span><span class="s2">&quot;metadata&quot;</span><span class="p">][</span><span class="s2">&quot;labels&quot;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">pod_details</span><span class="p">[</span><span class="s2">&quot;metadata&quot;</span><span class="p">][</span><span class="s2">&quot;labels&quot;</span><span class="p">][</span><span class="s2">&quot;app&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;maro-redis&quot;</span><span class="p">:</span>
+                <span class="n">return_status</span><span class="p">[</span><span class="s2">&quot;redis&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s2">&quot;private_ip_address&quot;</span><span class="p">:</span> <span class="n">pod_details</span><span class="p">[</span><span class="s2">&quot;status&quot;</span><span class="p">][</span><span class="s2">&quot;podIP&quot;</span><span class="p">]</span>
+                <span class="p">}</span>
+                <span class="k">break</span>
+
+        <span class="c1"># Print status</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span>
+                <span class="n">return_status</span><span class="p">,</span>
+                <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
+        <span class="p">)</span></div>
+
+    <span class="c1"># maro k8s template</span>
+
+<div class="viewcode-block" id="K8sAksExecutor.template"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.k8s.executors.html#maro.cli.k8s.executors.k8s_aks_executor.K8sAksExecutor.template">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">template</span><span class="p">(</span><span class="n">export_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;cp </span><span class="si">{</span><span class="n">GlobalPaths</span><span class="o">.</span><span class="n">ABS_MARO_K8S_LIB</span><span class="si">}</span><span class="s2">/deployments/external/* </span><span class="si">{</span><span class="n">export_path</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">)</span></div>
+
+    <span class="c1"># utils</span>
+
+    <span class="k">def</span> <span class="nf">_load_k8s_context</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Load details</span>
+        <span class="n">resource_group</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;cloud&quot;</span><span class="p">][</span><span class="s2">&quot;resource_group&quot;</span><span class="p">]</span>
+        <span class="n">cluster_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Load context</span>
+        <span class="n">AzureExecutor</span><span class="o">.</span><span class="n">load_aks_context</span><span class="p">(</span>
+            <span class="n">resource_group</span><span class="o">=</span><span class="n">resource_group</span><span class="p">,</span>
+            <span class="n">aks_name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cluster_id</span><span class="si">}</span><span class="s2">-aks&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_check_and_load_k8s_context</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Load details</span>
+        <span class="n">cluster_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_details</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Check and load k8s context</span>
+        <span class="n">check_command</span> <span class="o">=</span> <span class="s2">&quot;kubectl config view&quot;</span>
+        <span class="n">config_str</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">check_command</span><span class="p">)</span>
+        <span class="n">config_dict</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">config_str</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">config_dict</span><span class="p">[</span><span class="s2">&quot;current-context&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cluster_id</span><span class="si">}</span><span class="s2">-aks&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_load_k8s_context</span><span class="p">()</span>
+
+<div class="viewcode-block" id="K8sAksExecutor.get_pods_details"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.k8s.executors.html#maro.cli.k8s.executors.k8s_aks_executor.K8sAksExecutor.get_pods_details">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_pods_details</span><span class="p">():</span>
+        <span class="c1"># Get pods details</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="s2">&quot;kubectl get pods -o json&quot;</span>
+        <span class="n">return_str</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">return_str</span><span class="p">)[</span><span class="s2">&quot;items&quot;</span><span class="p">]</span></div></div>
+</pre></div>
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../../../../../_static/js/index.js"></script>
+    
+  </body>
+</html>

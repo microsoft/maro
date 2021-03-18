@@ -1,0 +1,1390 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maro.event_buffer package &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="maro.forecasting package" href="maro.forecasting.html" />
+    <link rel="prev" title="maro.data_lib.cim package" href="maro.data_lib.cim.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../index.html">
+  
+  <img src="../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="current nav sidenav_l1">
+ <li class="toctree-l1 current active">
+  <a class="reference internal" href="maro.html">
+   maro package
+  </a>
+  <ul class="current">
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.backends.html">
+     maro.backends package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.cli.html">
+     maro.cli package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.data_pipeline.html">
+       maro.cli.data_pipeline package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.envs.html">
+       maro.cli.envs package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.grass.html">
+       maro.cli.grass package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.grass.executors.html">
+         maro.cli.grass.executors package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.grass.utils.html">
+         maro.cli.grass.utils package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.inspector.html">
+       maro.cli.inspector package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.k8s.html">
+       maro.cli.k8s package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.k8s.executors.html">
+         maro.cli.k8s.executors package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.process.html">
+       maro.cli.process package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.process.utils.html">
+         maro.cli.process.utils package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.utils.html">
+       maro.cli.utils package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.utils.executors.html">
+         maro.cli.utils.executors package
+        </a>
+       </li>
+      </ul>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.communication.html">
+     maro.communication package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.communication.driver.html">
+       maro.communication.driver package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.communication.utils.html">
+       maro.communication.utils package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.data_lib.html">
+     maro.data_lib package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.data_lib.cim.html">
+       maro.data_lib.cim package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 current active">
+    <a class="current reference internal" href="#">
+     maro.event_buffer package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.forecasting.html">
+     maro.forecasting package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.rl.html">
+     maro.rl package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.actor.html">
+       maro.rl.actor package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.agent.html">
+       maro.rl.agent package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.algorithms.html">
+       maro.rl.algorithms package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.dist_topologies.html">
+       maro.rl.dist_topologies package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.exploration.html">
+       maro.rl.exploration package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.learner.html">
+       maro.rl.learner package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.models.html">
+       maro.rl.models package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.scheduling.html">
+       maro.rl.scheduling package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.shaping.html">
+       maro.rl.shaping package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.storage.html">
+       maro.rl.storage package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.simulator.html">
+     maro.simulator package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.simulator.scenarios.html">
+       maro.simulator.scenarios package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.cim.html">
+         maro.simulator.scenarios.cim package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.citi_bike.html">
+         maro.simulator.scenarios.citi_bike package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.vm_scheduling.html">
+         maro.simulator.scenarios.vm_scheduling package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.simulator.utils.html">
+       maro.simulator.utils package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.utils.html">
+     maro.utils package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.utils.exception.html">
+       maro.utils.exception package
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+        
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="../_sources/apidoc/maro.event_buffer.rst.txt"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.rst</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2Fapidoc/maro.event_buffer.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        <a class="edit-button" href="https://github.com/microsoft/maro/edit/master/doc/source/apidoc/maro.event_buffer.rst"><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Edit this page"><i class="fas fa-pencil-alt"></i>suggest edit</button></a>
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <div class="tocsection onthispage pt-5 pb-3">
+            <i class="fas fa-list"></i> Contents
+        </div>
+        <nav id="bd-toc-nav">
+            <ul class="nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#submodules">
+   Submodules
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.event_buffer.atom_event">
+   maro.event_buffer.atom_event module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.event_buffer.cascade_event">
+   maro.event_buffer.cascade_event module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.event_buffer.event_buffer">
+   maro.event_buffer.event_buffer module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.event_buffer.event_linked_list">
+   maro.event_buffer.event_linked_list module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.event_buffer.event_pool">
+   maro.event_buffer.event_pool module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.event_buffer.event_state">
+   maro.event_buffer.event_state module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.event_buffer.maro_events">
+   maro.event_buffer.maro_events module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.event_buffer.typings">
+   maro.event_buffer.typings module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.event_buffer">
+   Module contents
+  </a>
+ </li>
+</ul>
+
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <div class="section" id="maro-event-buffer-package">
+<h1>maro.event_buffer package<a class="headerlink" href="#maro-event-buffer-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-maro.event_buffer.atom_event">
+<span id="maro-event-buffer-atom-event-module"></span><h2>maro.event_buffer.atom_event module<a class="headerlink" href="#module-maro.event_buffer.atom_event" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.event_buffer.atom_event.AtomEvent">
+<em class="property">class </em><code class="sig-prename descclassname">maro.event_buffer.atom_event.</code><code class="sig-name descname">AtomEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">id</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">tick</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">event_type</span><span class="p">:</span> <span class="n">object</span></em>, <em class="sig-param"><span class="n">payload</span><span class="p">:</span> <span class="n">object</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/event_buffer/atom_event.html#AtomEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.event_buffer.atom_event.AtomEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Basic event object that used to hold information that for callback.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The payload of event can be any object that related with specified logic.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>int</em>) – Id of this event.</p></li>
+<li><p><strong>tick</strong> (<em>int</em>) – Tick that this event will be processed.</p></li>
+<li><p><strong>event_type</strong> (<em>int</em>) – Type of this event, this is a customize field,
+there is one predefined event type is 0 (PREDEFINE_EVENT_ACTION).</p></li>
+<li><p><strong>payload</strong> (<em>object</em>) – Payload of this event.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Variables</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>id</strong> (<em>int</em>) – Id of this event, usually this is used for “joint decision” node
+that need “sequential action”.</p></li>
+<li><p><strong>tick</strong> (<em>int</em>) – Process tick of this event.</p></li>
+<li><p><strong>payload</strong> (<em>object</em>) – Payload of this event, can be any object.</p></li>
+<li><p><strong>event_type</strong> (<em>object</em>) – Type of this event, can be any type,
+EventBuffer will use this to match handlers.</p></li>
+<li><p><strong>state</strong> (<a class="reference internal" href="#maro.event_buffer.event_state.EventState" title="maro.event_buffer.event_state.EventState"><em>EventState</em></a>) – Internal life-circle state of event.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.event_buffer.cascade_event">
+<span id="maro-event-buffer-cascade-event-module"></span><h2>maro.event_buffer.cascade_event module<a class="headerlink" href="#module-maro.event_buffer.cascade_event" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.event_buffer.cascade_event.CascadeEvent">
+<em class="property">class </em><code class="sig-prename descclassname">maro.event_buffer.cascade_event.</code><code class="sig-name descname">CascadeEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">id</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">tick</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">event_type</span><span class="p">:</span> <span class="n">object</span></em>, <em class="sig-param"><span class="n">payload</span><span class="p">:</span> <span class="n">object</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/event_buffer/cascade_event.html#CascadeEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.event_buffer.cascade_event.CascadeEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.event_buffer.atom_event.AtomEvent" title="maro.event_buffer.atom_event.AtomEvent"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.event_buffer.atom_event.AtomEvent</span></code></a></p>
+<p>Special event type that support add immediate events (or sub events), these
+events will be execute right after its parent.</p>
+<p>Some times there may be some events that depend on another one,
+then you can append these events with add_immediate_event method, then
+these events will be processed after the parent event.</p>
+<dl class="py method">
+<dt id="maro.event_buffer.cascade_event.CascadeEvent.add_immediate_event">
+<code class="sig-name descname">add_immediate_event</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em>, <em class="sig-param"><span class="n">is_head</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/maro/event_buffer/cascade_event.html#CascadeEvent.add_immediate_event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.event_buffer.cascade_event.CascadeEvent.add_immediate_event" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add an immediate event, that will be processed right after the current event.</p>
+<p>Immediate events are only supported to be inserted into the head or tail of the immediate event list.
+By default, the events will be appended to the end.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The tick of the event to insert must be the same as the current event, or will fail to insert.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>event</strong> (<em>Event</em>) – Event object to insert.</p></li>
+<li><p><strong>is_head</strong> (<em>bool</em>) – Whether to insert at the head or append to the end.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>True if success, or False.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.event_buffer.event_buffer">
+<span id="maro-event-buffer-event-buffer-module"></span><h2>maro.event_buffer.event_buffer module<a class="headerlink" href="#module-maro.event_buffer.event_buffer" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.event_buffer.event_buffer.EventBuffer">
+<em class="property">class </em><code class="sig-prename descclassname">maro.event_buffer.event_buffer.</code><code class="sig-name descname">EventBuffer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">disable_finished_events</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/event_buffer/event_buffer.html#EventBuffer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.event_buffer.event_buffer.EventBuffer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>EventBuffer used to hold events, and dispatch them at specified tick.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Different with normal event dispatcher,
+EventBuffer will stop executing and return following cascade events when it meet
+first pending cascade event, this may cause each tick is separated into several parts,
+users should check the return result before step to next tick.</p>
+<p>And insert order will affect the processing order,
+so ensure the order when you need something strange.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>disable_finished_events</strong> (<em>bool</em>) – Is disable the method to get finished event list,
+EventBuffer will recycle the finished events for furthure using, not push them
+into finished events list, so it will cause method “get_finished_events” return
+empty list.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.event_buffer.event_buffer.EventBuffer.execute">
+<code class="sig-name descname">execute</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tick</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>Union<span class="p">[</span><a class="reference internal" href="#maro.event_buffer.atom_event.AtomEvent" title="maro.event_buffer.atom_event.AtomEvent">maro.event_buffer.atom_event.AtomEvent</a><span class="p">, </span><a class="reference internal" href="#maro.event_buffer.cascade_event.CascadeEvent" title="maro.event_buffer.cascade_event.CascadeEvent">maro.event_buffer.cascade_event.CascadeEvent</a><span class="p">]</span><span class="p">]</span><a class="reference internal" href="../_modules/maro/event_buffer/event_buffer.html#EventBuffer.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.event_buffer.event_buffer.EventBuffer.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process and dispatch event by tick.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The executing process will be stopped if there is any cascade event,
+and all following cascade events will be returned,
+so should check if the return list is empty before step to next tick.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>tick</strong> (<em>int</em>) – Tick used to process events.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A list of events that are pending decisions at the current tick.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>EventList</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.event_buffer.event_buffer.EventBuffer.gen_action_event">
+<code class="sig-name descname">gen_action_event</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tick</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">payload</span><span class="p">:</span> <span class="n">object</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#maro.event_buffer.cascade_event.CascadeEvent" title="maro.event_buffer.cascade_event.CascadeEvent">maro.event_buffer.cascade_event.CascadeEvent</a><a class="reference internal" href="../_modules/maro/event_buffer/event_buffer.html#EventBuffer.gen_action_event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.event_buffer.event_buffer.EventBuffer.gen_action_event" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate an event that used to dispatch action to business engine.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tick</strong> (<em>int</em>) – Tick that the event will be processed.</p></li>
+<li><p><strong>payload</strong> (<em>object</em>) – Payload of event, used to pass data to handlers.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Event object</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#maro.event_buffer.cascade_event.CascadeEvent" title="maro.event_buffer.cascade_event.CascadeEvent">CascadeEvent</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.event_buffer.event_buffer.EventBuffer.gen_atom_event">
+<code class="sig-name descname">gen_atom_event</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tick</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">event_type</span><span class="p">:</span> <span class="n">object</span></em>, <em class="sig-param"><span class="n">payload</span><span class="p">:</span> <span class="n">object</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#maro.event_buffer.atom_event.AtomEvent" title="maro.event_buffer.atom_event.AtomEvent">maro.event_buffer.atom_event.AtomEvent</a><a class="reference internal" href="../_modules/maro/event_buffer/event_buffer.html#EventBuffer.gen_atom_event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.event_buffer.event_buffer.EventBuffer.gen_atom_event" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate an atom event, an atom event is for normal usages,
+they will not stop current event dispatching process.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tick</strong> (<em>int</em>) – Tick that the event will be processed.</p></li>
+<li><p><strong>event_type</strong> (<em>object</em>) – Type of this event.</p></li>
+<li><p><strong>payload</strong> (<em>object</em>) – Payload of event, used to pass data to handlers.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Atom event object</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#maro.event_buffer.atom_event.AtomEvent" title="maro.event_buffer.atom_event.AtomEvent">AtomEvent</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.event_buffer.event_buffer.EventBuffer.gen_cascade_event">
+<code class="sig-name descname">gen_cascade_event</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tick</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">event_type</span><span class="p">:</span> <span class="n">object</span></em>, <em class="sig-param"><span class="n">payload</span><span class="p">:</span> <span class="n">object</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#maro.event_buffer.cascade_event.CascadeEvent" title="maro.event_buffer.cascade_event.CascadeEvent">maro.event_buffer.cascade_event.CascadeEvent</a><a class="reference internal" href="../_modules/maro/event_buffer/event_buffer.html#EventBuffer.gen_cascade_event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.event_buffer.event_buffer.EventBuffer.gen_cascade_event" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate an cascade event that used to hold immediate events that
+run right after current event.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tick</strong> (<em>int</em>) – Tick that the event will be processed.</p></li>
+<li><p><strong>event_type</strong> (<em>object</em>) – Type of this event.</p></li>
+<li><p><strong>payload</strong> (<em>object</em>) – Payload of event, used to pass data to handlers.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Cascade event object.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#maro.event_buffer.cascade_event.CascadeEvent" title="maro.event_buffer.cascade_event.CascadeEvent">CascadeEvent</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.event_buffer.event_buffer.EventBuffer.gen_decision_event">
+<code class="sig-name descname">gen_decision_event</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tick</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">payload</span><span class="p">:</span> <span class="n">object</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#maro.event_buffer.cascade_event.CascadeEvent" title="maro.event_buffer.cascade_event.CascadeEvent">maro.event_buffer.cascade_event.CascadeEvent</a><a class="reference internal" href="../_modules/maro/event_buffer/event_buffer.html#EventBuffer.gen_decision_event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.event_buffer.event_buffer.EventBuffer.gen_decision_event" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a decision event that will stop current simulation, and ask agent for action.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tick</strong> (<em>int</em>) – Tick that the event will be processed.</p></li>
+<li><p><strong>payload</strong> (<em>object</em>) – Payload of event, used to pass data to handlers.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Event object</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#maro.event_buffer.cascade_event.CascadeEvent" title="maro.event_buffer.cascade_event.CascadeEvent">CascadeEvent</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.event_buffer.event_buffer.EventBuffer.get_finished_events">
+<code class="sig-name descname">get_finished_events</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>Union<span class="p">[</span><a class="reference internal" href="#maro.event_buffer.atom_event.AtomEvent" title="maro.event_buffer.atom_event.AtomEvent">maro.event_buffer.atom_event.AtomEvent</a><span class="p">, </span><a class="reference internal" href="#maro.event_buffer.cascade_event.CascadeEvent" title="maro.event_buffer.cascade_event.CascadeEvent">maro.event_buffer.cascade_event.CascadeEvent</a><span class="p">]</span><span class="p">]</span><a class="reference internal" href="../_modules/maro/event_buffer/event_buffer.html#EventBuffer.get_finished_events"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.event_buffer.event_buffer.EventBuffer.get_finished_events" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get all the processed events, call this function before reset method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>List of event object.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>EventList</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.event_buffer.event_buffer.EventBuffer.get_pending_events">
+<code class="sig-name descname">get_pending_events</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tick</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>Union<span class="p">[</span><a class="reference internal" href="#maro.event_buffer.atom_event.AtomEvent" title="maro.event_buffer.atom_event.AtomEvent">maro.event_buffer.atom_event.AtomEvent</a><span class="p">, </span><a class="reference internal" href="#maro.event_buffer.cascade_event.CascadeEvent" title="maro.event_buffer.cascade_event.CascadeEvent">maro.event_buffer.cascade_event.CascadeEvent</a><span class="p">]</span><span class="p">]</span><a class="reference internal" href="../_modules/maro/event_buffer/event_buffer.html#EventBuffer.get_pending_events"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.event_buffer.event_buffer.EventBuffer.get_pending_events" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get pending event at specified tick.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>Tick</strong> (<em>int</em>) – tick of events to get.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List of event object.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>EventList</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.event_buffer.event_buffer.EventBuffer.insert_event">
+<code class="sig-name descname">insert_event</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference internal" href="#maro.event_buffer.atom_event.AtomEvent" title="maro.event_buffer.atom_event.AtomEvent">maro.event_buffer.atom_event.AtomEvent</a><span class="p">, </span><a class="reference internal" href="#maro.event_buffer.cascade_event.CascadeEvent" title="maro.event_buffer.cascade_event.CascadeEvent">maro.event_buffer.cascade_event.CascadeEvent</a><span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/event_buffer/event_buffer.html#EventBuffer.insert_event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.event_buffer.event_buffer.EventBuffer.insert_event" title="Permalink to this definition">¶</a></dt>
+<dd><p>Insert an event to the pending queue.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>event</strong> (<em>Event</em>) – Event to insert,
+usually get event object from get_atom_event or get_cascade_event.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.event_buffer.event_buffer.EventBuffer.register_event_handler">
+<code class="sig-name descname">register_event_handler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event_type</span><span class="p">:</span> <span class="n">object</span></em>, <em class="sig-param"><span class="n">handler</span><span class="p">:</span> <span class="n">Callable</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/event_buffer/event_buffer.html#EventBuffer.register_event_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.event_buffer.event_buffer.EventBuffer.register_event_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register an event with handler, when there is an event need to be processed,
+EventBuffer will invoke the handler if there are any event’s type match specified at each tick.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Callback function should only hold one parameter that is the event object.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>event_type</strong> (<em>object</em>) – Type of event that the handler want to process.</p></li>
+<li><p><strong>handler</strong> (<em>Callable</em>) – Handler that will process the event.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.event_buffer.event_buffer.EventBuffer.reset">
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/event_buffer/event_buffer.html#EventBuffer.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.event_buffer.event_buffer.EventBuffer.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset internal states, this method will clear all events.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>After reset the get_finished_event method will return empty list.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.event_buffer.event_linked_list">
+<span id="maro-event-buffer-event-linked-list-module"></span><h2>maro.event_buffer.event_linked_list module<a class="headerlink" href="#module-maro.event_buffer.event_linked_list" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.event_buffer.event_linked_list.EventLinkedList">
+<em class="property">class </em><code class="sig-prename descclassname">maro.event_buffer.event_linked_list.</code><code class="sig-name descname">EventLinkedList</code><a class="reference internal" href="../_modules/maro/event_buffer/event_linked_list.html#EventLinkedList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.event_buffer.event_linked_list.EventLinkedList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Event linked list used to provide methods for easy accessing.</p>
+<p>Event linked list only support 2 methods to add event:</p>
+<ol class="arabic simple">
+<li><p>append: Append event to the end.</p></li>
+<li><p>insert: Insert event to the head.</p></li>
+</ol>
+<p>Pop method used to pop event(s) from list head, according to current event type,
+it may return a list of deicision event, or just an AtomEvent object.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">event_list</span> <span class="o">=</span> <span class="n">EventLinkedList</span><span class="p">()</span>
+
+<span class="c1"># Append a new event to the end</span>
+<span class="n">event_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">my_event</span><span class="p">)</span>
+
+<span class="c1"># Insert a event to the head</span>
+<span class="n">event_list</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">my_event_2</span><span class="p">)</span>
+
+<span class="c1"># Pop first event</span>
+<span class="n">event</span> <span class="o">=</span> <span class="n">event_list</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt id="maro.event_buffer.event_linked_list.EventLinkedList.append">
+<code class="sig-name descname">append</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference internal" href="#maro.event_buffer.atom_event.AtomEvent" title="maro.event_buffer.atom_event.AtomEvent">maro.event_buffer.atom_event.AtomEvent</a><span class="p">, </span><a class="reference internal" href="#maro.event_buffer.cascade_event.CascadeEvent" title="maro.event_buffer.cascade_event.CascadeEvent">maro.event_buffer.cascade_event.CascadeEvent</a><span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/event_buffer/event_linked_list.html#EventLinkedList.append"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.event_buffer.event_linked_list.EventLinkedList.append" title="Permalink to this definition">¶</a></dt>
+<dd><p>Append an event to the end.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>event</strong> (<em>Event</em>) – New event to append.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.event_buffer.event_linked_list.EventLinkedList.clear">
+<code class="sig-name descname">clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/event_buffer/event_linked_list.html#EventLinkedList.clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.event_buffer.event_linked_list.EventLinkedList.clear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clear current events.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.event_buffer.event_linked_list.EventLinkedList.insert">
+<code class="sig-name descname">insert</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference internal" href="#maro.event_buffer.atom_event.AtomEvent" title="maro.event_buffer.atom_event.AtomEvent">maro.event_buffer.atom_event.AtomEvent</a><span class="p">, </span><a class="reference internal" href="#maro.event_buffer.cascade_event.CascadeEvent" title="maro.event_buffer.cascade_event.CascadeEvent">maro.event_buffer.cascade_event.CascadeEvent</a><span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/event_buffer/event_linked_list.html#EventLinkedList.insert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.event_buffer.event_linked_list.EventLinkedList.insert" title="Permalink to this definition">¶</a></dt>
+<dd><p>Insert an event to the head, will be the first one to pop.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>event</strong> (<em>Event</em>) – Event to insert.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.event_buffer.event_linked_list.EventLinkedList.pop">
+<code class="sig-name descname">pop</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Union<span class="p">[</span><a class="reference internal" href="#maro.event_buffer.atom_event.AtomEvent" title="maro.event_buffer.atom_event.AtomEvent">maro.event_buffer.atom_event.AtomEvent</a><span class="p">, </span><a class="reference internal" href="#maro.event_buffer.cascade_event.CascadeEvent" title="maro.event_buffer.cascade_event.CascadeEvent">maro.event_buffer.cascade_event.CascadeEvent</a><span class="p">, </span>List<span class="p">[</span>Union<span class="p">[</span><a class="reference internal" href="#maro.event_buffer.atom_event.AtomEvent" title="maro.event_buffer.atom_event.AtomEvent">maro.event_buffer.atom_event.AtomEvent</a><span class="p">, </span><a class="reference internal" href="#maro.event_buffer.cascade_event.CascadeEvent" title="maro.event_buffer.cascade_event.CascadeEvent">maro.event_buffer.cascade_event.CascadeEvent</a><span class="p">]</span><span class="p">]</span><span class="p">]</span><a class="reference internal" href="../_modules/maro/event_buffer/event_linked_list.html#EventLinkedList.pop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.event_buffer.event_linked_list.EventLinkedList.pop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pop first event that its state is not Finished.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A list of decision events if current event is decision event, or an AtomEvent.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Union[Event, EventList]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.event_buffer.event_pool">
+<span id="maro-event-buffer-event-pool-module"></span><h2>maro.event_buffer.event_pool module<a class="headerlink" href="#module-maro.event_buffer.event_pool" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.event_buffer.event_pool.EventPool">
+<em class="property">class </em><code class="sig-prename descclassname">maro.event_buffer.event_pool.</code><code class="sig-name descname">EventPool</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">capacity</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1000</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/event_buffer/event_pool.html#EventPool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.event_buffer.event_pool.EventPool" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Event pool used to generate and pool event object.</p>
+<p>The pooling function is disabled by default, then it is used as an Event generator with a buffer.</p>
+<p>When enable pooling, it will recycle events.</p>
+<dl class="py method">
+<dt id="maro.event_buffer.event_pool.EventPool.gen">
+<code class="sig-name descname">gen</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tick</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">event_type</span><span class="p">:</span> <span class="n">object</span></em>, <em class="sig-param"><span class="n">payload</span><span class="p">:</span> <span class="n">object</span></em>, <em class="sig-param"><span class="n">is_cascade</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; Union<span class="p">[</span><a class="reference internal" href="#maro.event_buffer.atom_event.AtomEvent" title="maro.event_buffer.atom_event.AtomEvent">maro.event_buffer.atom_event.AtomEvent</a><span class="p">, </span><a class="reference internal" href="#maro.event_buffer.cascade_event.CascadeEvent" title="maro.event_buffer.cascade_event.CascadeEvent">maro.event_buffer.cascade_event.CascadeEvent</a><span class="p">]</span><a class="reference internal" href="../_modules/maro/event_buffer/event_pool.html#EventPool.gen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.event_buffer.event_pool.EventPool.gen" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate an event.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tick</strong> (<em>int</em>) – Tick of the event will be trigger.</p></li>
+<li><p><strong>event_type</strong> (<em>object</em>) – Type of new event.</p></li>
+<li><p><strong>payload</strong> (<em>object</em>) – Payload attached to this event.</p></li>
+<li><p><strong>is_cascade</strong> (<em>bool</em>) – Is the new event is cascade event.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>AtomEvent or CascadeEvent instance.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Event</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.event_buffer.event_pool.EventPool.recycle">
+<code class="sig-name descname">recycle</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">events</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference internal" href="#maro.event_buffer.atom_event.AtomEvent" title="maro.event_buffer.atom_event.AtomEvent">maro.event_buffer.atom_event.AtomEvent</a><span class="p">, </span><a class="reference internal" href="#maro.event_buffer.cascade_event.CascadeEvent" title="maro.event_buffer.cascade_event.CascadeEvent">maro.event_buffer.cascade_event.CascadeEvent</a><span class="p">, </span>List<span class="p">[</span>Union<span class="p">[</span><a class="reference internal" href="#maro.event_buffer.atom_event.AtomEvent" title="maro.event_buffer.atom_event.AtomEvent">maro.event_buffer.atom_event.AtomEvent</a><span class="p">, </span><a class="reference internal" href="#maro.event_buffer.cascade_event.CascadeEvent" title="maro.event_buffer.cascade_event.CascadeEvent">maro.event_buffer.cascade_event.CascadeEvent</a><span class="p">]</span><span class="p">]</span><span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/event_buffer/event_pool.html#EventPool.recycle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.event_buffer.event_pool.EventPool.recycle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recycle specified event for further using.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>events</strong> (<em>Union[Event, EventList]</em>) – Event object(s) to recycle.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.event_buffer.event_state">
+<span id="maro-event-buffer-event-state-module"></span><h2>maro.event_buffer.event_state module<a class="headerlink" href="#module-maro.event_buffer.event_state" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.event_buffer.event_state.EventState">
+<em class="property">class </em><code class="sig-prename descclassname">maro.event_buffer.event_state.</code><code class="sig-name descname">EventState</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/event_buffer/event_state.html#EventState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.event_buffer.event_state.EventState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.IntEnum</span></code></p>
+<p>State of event for internal using.</p>
+<dl class="py attribute">
+<dt id="maro.event_buffer.event_state.EventState.EXECUTING">
+<code class="sig-name descname">EXECUTING</code><em class="property"> = 1</em><a class="headerlink" href="#maro.event_buffer.event_state.EventState.EXECUTING" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.event_buffer.event_state.EventState.FINISHED">
+<code class="sig-name descname">FINISHED</code><em class="property"> = 2</em><a class="headerlink" href="#maro.event_buffer.event_state.EventState.FINISHED" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.event_buffer.event_state.EventState.PENDING">
+<code class="sig-name descname">PENDING</code><em class="property"> = 0</em><a class="headerlink" href="#maro.event_buffer.event_state.EventState.PENDING" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.event_buffer.event_state.EventState.RECYCLING">
+<code class="sig-name descname">RECYCLING</code><em class="property"> = 3</em><a class="headerlink" href="#maro.event_buffer.event_state.EventState.RECYCLING" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.event_buffer.maro_events">
+<span id="maro-event-buffer-maro-events-module"></span><h2>maro.event_buffer.maro_events module<a class="headerlink" href="#module-maro.event_buffer.maro_events" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.event_buffer.maro_events.MaroEvents">
+<em class="property">class </em><code class="sig-prename descclassname">maro.event_buffer.maro_events.</code><code class="sig-name descname">MaroEvents</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/event_buffer/maro_events.html#MaroEvents"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.event_buffer.maro_events.MaroEvents" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>Predefined decision event types, that used to communicate with outside.</p>
+<dl class="py attribute">
+<dt id="maro.event_buffer.maro_events.MaroEvents.PENDING_DECISION">
+<code class="sig-name descname">PENDING_DECISION</code><em class="property"> = 'maro_event_pending_decision'</em><a class="headerlink" href="#maro.event_buffer.maro_events.MaroEvents.PENDING_DECISION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.event_buffer.maro_events.MaroEvents.TAKE_ACTION">
+<code class="sig-name descname">TAKE_ACTION</code><em class="property"> = 'maro_event_take_action'</em><a class="headerlink" href="#maro.event_buffer.maro_events.MaroEvents.TAKE_ACTION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.event_buffer.typings">
+<span id="maro-event-buffer-typings-module"></span><h2>maro.event_buffer.typings module<a class="headerlink" href="#module-maro.event_buffer.typings" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-maro.event_buffer">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-maro.event_buffer" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.event_buffer.AtomEvent">
+<em class="property">class </em><code class="sig-prename descclassname">maro.event_buffer.</code><code class="sig-name descname">AtomEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">id</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">tick</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">event_type</span><span class="p">:</span> <span class="n">object</span></em>, <em class="sig-param"><span class="n">payload</span><span class="p">:</span> <span class="n">object</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/event_buffer/atom_event.html#AtomEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.event_buffer.AtomEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Basic event object that used to hold information that for callback.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The payload of event can be any object that related with specified logic.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>int</em>) – Id of this event.</p></li>
+<li><p><strong>tick</strong> (<em>int</em>) – Tick that this event will be processed.</p></li>
+<li><p><strong>event_type</strong> (<em>int</em>) – Type of this event, this is a customize field,
+there is one predefined event type is 0 (PREDEFINE_EVENT_ACTION).</p></li>
+<li><p><strong>payload</strong> (<em>object</em>) – Payload of this event.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Variables</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>id</strong> (<em>int</em>) – Id of this event, usually this is used for “joint decision” node
+that need “sequential action”.</p></li>
+<li><p><strong>tick</strong> (<em>int</em>) – Process tick of this event.</p></li>
+<li><p><strong>payload</strong> (<em>object</em>) – Payload of this event, can be any object.</p></li>
+<li><p><strong>event_type</strong> (<em>object</em>) – Type of this event, can be any type,
+EventBuffer will use this to match handlers.</p></li>
+<li><p><strong>state</strong> (<a class="reference internal" href="#maro.event_buffer.event_state.EventState" title="maro.event_buffer.event_state.EventState"><em>EventState</em></a>) – Internal life-circle state of event.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.event_buffer.CascadeEvent">
+<em class="property">class </em><code class="sig-prename descclassname">maro.event_buffer.</code><code class="sig-name descname">CascadeEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">id</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">tick</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">event_type</span><span class="p">:</span> <span class="n">object</span></em>, <em class="sig-param"><span class="n">payload</span><span class="p">:</span> <span class="n">object</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/event_buffer/cascade_event.html#CascadeEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.event_buffer.CascadeEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.event_buffer.atom_event.AtomEvent" title="maro.event_buffer.atom_event.AtomEvent"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.event_buffer.atom_event.AtomEvent</span></code></a></p>
+<p>Special event type that support add immediate events (or sub events), these
+events will be execute right after its parent.</p>
+<p>Some times there may be some events that depend on another one,
+then you can append these events with add_immediate_event method, then
+these events will be processed after the parent event.</p>
+<dl class="py method">
+<dt id="maro.event_buffer.CascadeEvent.add_immediate_event">
+<code class="sig-name descname">add_immediate_event</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em>, <em class="sig-param"><span class="n">is_head</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/maro/event_buffer/cascade_event.html#CascadeEvent.add_immediate_event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.event_buffer.CascadeEvent.add_immediate_event" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add an immediate event, that will be processed right after the current event.</p>
+<p>Immediate events are only supported to be inserted into the head or tail of the immediate event list.
+By default, the events will be appended to the end.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The tick of the event to insert must be the same as the current event, or will fail to insert.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>event</strong> (<em>Event</em>) – Event object to insert.</p></li>
+<li><p><strong>is_head</strong> (<em>bool</em>) – Whether to insert at the head or append to the end.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>True if success, or False.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.event_buffer.EventBuffer">
+<em class="property">class </em><code class="sig-prename descclassname">maro.event_buffer.</code><code class="sig-name descname">EventBuffer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">disable_finished_events</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/event_buffer/event_buffer.html#EventBuffer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.event_buffer.EventBuffer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>EventBuffer used to hold events, and dispatch them at specified tick.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Different with normal event dispatcher,
+EventBuffer will stop executing and return following cascade events when it meet
+first pending cascade event, this may cause each tick is separated into several parts,
+users should check the return result before step to next tick.</p>
+<p>And insert order will affect the processing order,
+so ensure the order when you need something strange.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>disable_finished_events</strong> (<em>bool</em>) – Is disable the method to get finished event list,
+EventBuffer will recycle the finished events for furthure using, not push them
+into finished events list, so it will cause method “get_finished_events” return
+empty list.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.event_buffer.EventBuffer.execute">
+<code class="sig-name descname">execute</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tick</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>Union<span class="p">[</span><a class="reference internal" href="#maro.event_buffer.atom_event.AtomEvent" title="maro.event_buffer.atom_event.AtomEvent">maro.event_buffer.atom_event.AtomEvent</a><span class="p">, </span><a class="reference internal" href="#maro.event_buffer.cascade_event.CascadeEvent" title="maro.event_buffer.cascade_event.CascadeEvent">maro.event_buffer.cascade_event.CascadeEvent</a><span class="p">]</span><span class="p">]</span><a class="reference internal" href="../_modules/maro/event_buffer/event_buffer.html#EventBuffer.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.event_buffer.EventBuffer.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process and dispatch event by tick.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The executing process will be stopped if there is any cascade event,
+and all following cascade events will be returned,
+so should check if the return list is empty before step to next tick.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>tick</strong> (<em>int</em>) – Tick used to process events.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A list of events that are pending decisions at the current tick.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>EventList</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.event_buffer.EventBuffer.gen_action_event">
+<code class="sig-name descname">gen_action_event</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tick</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">payload</span><span class="p">:</span> <span class="n">object</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#maro.event_buffer.cascade_event.CascadeEvent" title="maro.event_buffer.cascade_event.CascadeEvent">maro.event_buffer.cascade_event.CascadeEvent</a><a class="reference internal" href="../_modules/maro/event_buffer/event_buffer.html#EventBuffer.gen_action_event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.event_buffer.EventBuffer.gen_action_event" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate an event that used to dispatch action to business engine.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tick</strong> (<em>int</em>) – Tick that the event will be processed.</p></li>
+<li><p><strong>payload</strong> (<em>object</em>) – Payload of event, used to pass data to handlers.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Event object</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#maro.event_buffer.cascade_event.CascadeEvent" title="maro.event_buffer.cascade_event.CascadeEvent">CascadeEvent</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.event_buffer.EventBuffer.gen_atom_event">
+<code class="sig-name descname">gen_atom_event</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tick</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">event_type</span><span class="p">:</span> <span class="n">object</span></em>, <em class="sig-param"><span class="n">payload</span><span class="p">:</span> <span class="n">object</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#maro.event_buffer.atom_event.AtomEvent" title="maro.event_buffer.atom_event.AtomEvent">maro.event_buffer.atom_event.AtomEvent</a><a class="reference internal" href="../_modules/maro/event_buffer/event_buffer.html#EventBuffer.gen_atom_event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.event_buffer.EventBuffer.gen_atom_event" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate an atom event, an atom event is for normal usages,
+they will not stop current event dispatching process.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tick</strong> (<em>int</em>) – Tick that the event will be processed.</p></li>
+<li><p><strong>event_type</strong> (<em>object</em>) – Type of this event.</p></li>
+<li><p><strong>payload</strong> (<em>object</em>) – Payload of event, used to pass data to handlers.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Atom event object</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#maro.event_buffer.atom_event.AtomEvent" title="maro.event_buffer.atom_event.AtomEvent">AtomEvent</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.event_buffer.EventBuffer.gen_cascade_event">
+<code class="sig-name descname">gen_cascade_event</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tick</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">event_type</span><span class="p">:</span> <span class="n">object</span></em>, <em class="sig-param"><span class="n">payload</span><span class="p">:</span> <span class="n">object</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#maro.event_buffer.cascade_event.CascadeEvent" title="maro.event_buffer.cascade_event.CascadeEvent">maro.event_buffer.cascade_event.CascadeEvent</a><a class="reference internal" href="../_modules/maro/event_buffer/event_buffer.html#EventBuffer.gen_cascade_event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.event_buffer.EventBuffer.gen_cascade_event" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate an cascade event that used to hold immediate events that
+run right after current event.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tick</strong> (<em>int</em>) – Tick that the event will be processed.</p></li>
+<li><p><strong>event_type</strong> (<em>object</em>) – Type of this event.</p></li>
+<li><p><strong>payload</strong> (<em>object</em>) – Payload of event, used to pass data to handlers.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Cascade event object.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#maro.event_buffer.cascade_event.CascadeEvent" title="maro.event_buffer.cascade_event.CascadeEvent">CascadeEvent</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.event_buffer.EventBuffer.gen_decision_event">
+<code class="sig-name descname">gen_decision_event</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tick</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">payload</span><span class="p">:</span> <span class="n">object</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#maro.event_buffer.cascade_event.CascadeEvent" title="maro.event_buffer.cascade_event.CascadeEvent">maro.event_buffer.cascade_event.CascadeEvent</a><a class="reference internal" href="../_modules/maro/event_buffer/event_buffer.html#EventBuffer.gen_decision_event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.event_buffer.EventBuffer.gen_decision_event" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a decision event that will stop current simulation, and ask agent for action.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tick</strong> (<em>int</em>) – Tick that the event will be processed.</p></li>
+<li><p><strong>payload</strong> (<em>object</em>) – Payload of event, used to pass data to handlers.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Event object</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#maro.event_buffer.cascade_event.CascadeEvent" title="maro.event_buffer.cascade_event.CascadeEvent">CascadeEvent</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.event_buffer.EventBuffer.get_finished_events">
+<code class="sig-name descname">get_finished_events</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>Union<span class="p">[</span><a class="reference internal" href="#maro.event_buffer.atom_event.AtomEvent" title="maro.event_buffer.atom_event.AtomEvent">maro.event_buffer.atom_event.AtomEvent</a><span class="p">, </span><a class="reference internal" href="#maro.event_buffer.cascade_event.CascadeEvent" title="maro.event_buffer.cascade_event.CascadeEvent">maro.event_buffer.cascade_event.CascadeEvent</a><span class="p">]</span><span class="p">]</span><a class="reference internal" href="../_modules/maro/event_buffer/event_buffer.html#EventBuffer.get_finished_events"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.event_buffer.EventBuffer.get_finished_events" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get all the processed events, call this function before reset method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>List of event object.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>EventList</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.event_buffer.EventBuffer.get_pending_events">
+<code class="sig-name descname">get_pending_events</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tick</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>Union<span class="p">[</span><a class="reference internal" href="#maro.event_buffer.atom_event.AtomEvent" title="maro.event_buffer.atom_event.AtomEvent">maro.event_buffer.atom_event.AtomEvent</a><span class="p">, </span><a class="reference internal" href="#maro.event_buffer.cascade_event.CascadeEvent" title="maro.event_buffer.cascade_event.CascadeEvent">maro.event_buffer.cascade_event.CascadeEvent</a><span class="p">]</span><span class="p">]</span><a class="reference internal" href="../_modules/maro/event_buffer/event_buffer.html#EventBuffer.get_pending_events"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.event_buffer.EventBuffer.get_pending_events" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get pending event at specified tick.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>Tick</strong> (<em>int</em>) – tick of events to get.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List of event object.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>EventList</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.event_buffer.EventBuffer.insert_event">
+<code class="sig-name descname">insert_event</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference internal" href="#maro.event_buffer.atom_event.AtomEvent" title="maro.event_buffer.atom_event.AtomEvent">maro.event_buffer.atom_event.AtomEvent</a><span class="p">, </span><a class="reference internal" href="#maro.event_buffer.cascade_event.CascadeEvent" title="maro.event_buffer.cascade_event.CascadeEvent">maro.event_buffer.cascade_event.CascadeEvent</a><span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/event_buffer/event_buffer.html#EventBuffer.insert_event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.event_buffer.EventBuffer.insert_event" title="Permalink to this definition">¶</a></dt>
+<dd><p>Insert an event to the pending queue.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>event</strong> (<em>Event</em>) – Event to insert,
+usually get event object from get_atom_event or get_cascade_event.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.event_buffer.EventBuffer.register_event_handler">
+<code class="sig-name descname">register_event_handler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event_type</span><span class="p">:</span> <span class="n">object</span></em>, <em class="sig-param"><span class="n">handler</span><span class="p">:</span> <span class="n">Callable</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/event_buffer/event_buffer.html#EventBuffer.register_event_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.event_buffer.EventBuffer.register_event_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register an event with handler, when there is an event need to be processed,
+EventBuffer will invoke the handler if there are any event’s type match specified at each tick.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Callback function should only hold one parameter that is the event object.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>event_type</strong> (<em>object</em>) – Type of event that the handler want to process.</p></li>
+<li><p><strong>handler</strong> (<em>Callable</em>) – Handler that will process the event.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.event_buffer.EventBuffer.reset">
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/event_buffer/event_buffer.html#EventBuffer.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.event_buffer.EventBuffer.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset internal states, this method will clear all events.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>After reset the get_finished_event method will return empty list.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.event_buffer.EventState">
+<em class="property">class </em><code class="sig-prename descclassname">maro.event_buffer.</code><code class="sig-name descname">EventState</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/event_buffer/event_state.html#EventState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.event_buffer.EventState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.IntEnum</span></code></p>
+<p>State of event for internal using.</p>
+<dl class="py attribute">
+<dt id="maro.event_buffer.EventState.EXECUTING">
+<code class="sig-name descname">EXECUTING</code><em class="property"> = 1</em><a class="headerlink" href="#maro.event_buffer.EventState.EXECUTING" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.event_buffer.EventState.FINISHED">
+<code class="sig-name descname">FINISHED</code><em class="property"> = 2</em><a class="headerlink" href="#maro.event_buffer.EventState.FINISHED" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.event_buffer.EventState.PENDING">
+<code class="sig-name descname">PENDING</code><em class="property"> = 0</em><a class="headerlink" href="#maro.event_buffer.EventState.PENDING" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.event_buffer.EventState.RECYCLING">
+<code class="sig-name descname">RECYCLING</code><em class="property"> = 3</em><a class="headerlink" href="#maro.event_buffer.EventState.RECYCLING" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.event_buffer.MaroEvents">
+<em class="property">class </em><code class="sig-prename descclassname">maro.event_buffer.</code><code class="sig-name descname">MaroEvents</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/event_buffer/maro_events.html#MaroEvents"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.event_buffer.MaroEvents" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>Predefined decision event types, that used to communicate with outside.</p>
+<dl class="py attribute">
+<dt id="maro.event_buffer.MaroEvents.PENDING_DECISION">
+<code class="sig-name descname">PENDING_DECISION</code><em class="property"> = 'maro_event_pending_decision'</em><a class="headerlink" href="#maro.event_buffer.MaroEvents.PENDING_DECISION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.event_buffer.MaroEvents.TAKE_ACTION">
+<code class="sig-name descname">TAKE_ACTION</code><em class="property"> = 'maro_event_take_action'</em><a class="headerlink" href="#maro.event_buffer.MaroEvents.TAKE_ACTION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+    <a class='left-prev' id="prev-link" href="maro.data_lib.cim.html" title="previous page">maro.data_lib.cim package</a>
+    <a class='right-next' id="next-link" href="maro.forecasting.html" title="next page">maro.forecasting package</a>
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../_static/js/index.js"></script>
+    
+  </body>
+</html>

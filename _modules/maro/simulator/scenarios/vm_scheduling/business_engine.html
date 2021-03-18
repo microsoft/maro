@@ -1,0 +1,949 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maro.simulator.scenarios.vm_scheduling.business_engine &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../../../../../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../../../../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../../../../../" src="../../../../../_static/documentation_options.js"></script>
+    <script src="../../../../../_static/sphinx-book-theme.js"></script>
+    <script src="../../../../../_static/jquery.js"></script>
+    <script src="../../../../../_static/underscore.js"></script>
+    <script src="../../../../../_static/doctools.js"></script>
+    <script src="../../../../../_static/language_data.js"></script>
+    <script src="../../../../../_static/clipboard.min.js"></script>
+    <script src="../../../../../_static/copybutton.js"></script>
+    <script src="../../../../../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../../../../../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../../../../../index.html">
+  
+  <img src="../../../../../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../../../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../scenarios/container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../scenarios/citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../scenarios/vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../apidoc/maro.html">
+   maro package
+  </a>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2F_modules/maro/simulator/scenarios/vm_scheduling/business_engine.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <nav id="bd-toc-nav">
+            
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <h1>Source code for maro.simulator.scenarios.vm_scheduling.business_engine</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) Microsoft Corporation.</span>
+<span class="c1"># Licensed under the MIT license.</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">import</span> <span class="nn">tarfile</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span>
+
+<span class="kn">from</span> <span class="nn">yaml</span> <span class="kn">import</span> <span class="n">safe_load</span>
+
+<span class="kn">from</span> <span class="nn">maro.backends.frame</span> <span class="kn">import</span> <span class="n">FrameBase</span><span class="p">,</span> <span class="n">SnapshotList</span>
+<span class="kn">from</span> <span class="nn">maro.cli.data_pipeline.utils</span> <span class="kn">import</span> <span class="n">StaticParameter</span><span class="p">,</span> <span class="n">download_file</span>
+<span class="kn">from</span> <span class="nn">maro.data_lib</span> <span class="kn">import</span> <span class="n">BinaryReader</span>
+<span class="kn">from</span> <span class="nn">maro.event_buffer</span> <span class="kn">import</span> <span class="n">CascadeEvent</span><span class="p">,</span> <span class="n">EventBuffer</span><span class="p">,</span> <span class="n">MaroEvents</span>
+<span class="kn">from</span> <span class="nn">maro.simulator.scenarios.abs_business_engine</span> <span class="kn">import</span> <span class="n">AbsBusinessEngine</span>
+<span class="kn">from</span> <span class="nn">maro.simulator.scenarios.helpers</span> <span class="kn">import</span> <span class="n">DocableDict</span>
+<span class="kn">from</span> <span class="nn">maro.utils.logger</span> <span class="kn">import</span> <span class="n">CliLogger</span>
+<span class="kn">from</span> <span class="nn">maro.utils.utils</span> <span class="kn">import</span> <span class="n">convert_dottable</span>
+
+<span class="kn">from</span> <span class="nn">.common</span> <span class="kn">import</span> <span class="n">AllocateAction</span><span class="p">,</span> <span class="n">DecisionPayload</span><span class="p">,</span> <span class="n">Latency</span><span class="p">,</span> <span class="n">PostponeAction</span><span class="p">,</span> <span class="n">VmRequestPayload</span>
+<span class="kn">from</span> <span class="nn">.cpu_reader</span> <span class="kn">import</span> <span class="n">CpuReader</span>
+<span class="kn">from</span> <span class="nn">.enums</span> <span class="kn">import</span> <span class="n">Events</span><span class="p">,</span> <span class="n">PmState</span><span class="p">,</span> <span class="n">PostponeType</span><span class="p">,</span> <span class="n">VmCategory</span>
+<span class="kn">from</span> <span class="nn">.frame_builder</span> <span class="kn">import</span> <span class="n">build_frame</span>
+<span class="kn">from</span> <span class="nn">.physical_machine</span> <span class="kn">import</span> <span class="n">PhysicalMachine</span>
+<span class="kn">from</span> <span class="nn">.virtual_machine</span> <span class="kn">import</span> <span class="n">VirtualMachine</span>
+
+<span class="n">metrics_desc</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">VM scheduling metrics used provide statistics information until now.</span>
+<span class="s2">It contains following keys:</span>
+
+<span class="s2">total_vm_requests (int): Total VM requests.</span>
+<span class="s2">total_energy_consumption (float): Accumulative total PM energy consumption.</span>
+<span class="s2">successful_allocation (int): Accumulative successful VM allocation until now.</span>
+<span class="s2">successful_completion (int): Accumulative successful completion of tasks.</span>
+<span class="s2">failed_allocation (int): Accumulative failed VM allocation until now.</span>
+<span class="s2">failed_completion (int): Accumulative failed VM completion due to PM overloading.</span>
+<span class="s2">total_latency (Latency): Accumulative used buffer time until now.</span>
+<span class="s2">total_oversubscriptions (int): Accumulative over-subscriptions. The unit is PM amount * tick.</span>
+<span class="s2">total_overload_pms (int): Accumulative overload pms. The unit is PM amount * tick.</span>
+<span class="s2">total_overload_vms (int): Accumulative VMs on overload pms. The unit is VM amount * tick.</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">CliLogger</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="VmSchedulingBusinessEngine"><a class="viewcode-back" href="../../../../../apidoc/maro.simulator.scenarios.vm_scheduling.html#maro.simulator.scenarios.vm_scheduling.business_engine.VmSchedulingBusinessEngine">[docs]</a><span class="k">class</span> <span class="nc">VmSchedulingBusinessEngine</span><span class="p">(</span><span class="n">AbsBusinessEngine</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">event_buffer</span><span class="p">:</span> <span class="n">EventBuffer</span><span class="p">,</span>
+        <span class="n">topology</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">start_tick</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">max_tick</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">snapshot_resolution</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">max_snapshots</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">additional_options</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">scenario_name</span><span class="o">=</span><span class="s2">&quot;vm_scheduling&quot;</span><span class="p">,</span> <span class="n">event_buffer</span><span class="o">=</span><span class="n">event_buffer</span><span class="p">,</span> <span class="n">topology</span><span class="o">=</span><span class="n">topology</span><span class="p">,</span> <span class="n">start_tick</span><span class="o">=</span><span class="n">start_tick</span><span class="p">,</span>
+            <span class="n">max_tick</span><span class="o">=</span><span class="n">max_tick</span><span class="p">,</span> <span class="n">snapshot_resolution</span><span class="o">=</span><span class="n">snapshot_resolution</span><span class="p">,</span> <span class="n">max_snapshots</span><span class="o">=</span><span class="n">max_snapshots</span><span class="p">,</span>
+            <span class="n">additional_options</span><span class="o">=</span><span class="n">additional_options</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Initialize environment metrics.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_metrics</span><span class="p">()</span>
+        <span class="c1"># Load configurations.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_load_configs</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_register_events</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_frame</span><span class="p">()</span>
+        <span class="c1"># Initialize simulation data.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_data</span><span class="p">()</span>
+        <span class="c1"># PMs list used for quick accessing.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_pms</span><span class="p">()</span>
+        <span class="c1"># All living VMs.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_live_vms</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">VirtualMachine</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c1"># All request payload of the pending decision VMs.</span>
+        <span class="c1"># NOTE: Need naming suggestestion.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pending_vm_request_payload</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">VmRequestPayload</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_vm_reader</span> <span class="o">=</span> <span class="n">BinaryReader</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="o">.</span><span class="n">VM_TABLE</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_vm_item_picker</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vm_reader</span><span class="o">.</span><span class="n">items_tick_picker</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_start_tick</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_tick</span><span class="p">,</span> <span class="n">time_unit</span><span class="o">=</span><span class="s2">&quot;s&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cpu_reader</span> <span class="o">=</span> <span class="n">CpuReader</span><span class="p">(</span><span class="n">data_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="o">.</span><span class="n">CPU_READINGS</span><span class="p">,</span> <span class="n">start_tick</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_start_tick</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tick</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pending_action_vm_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">configs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;dict: Current configuration.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">frame</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FrameBase</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;FrameBase: Current frame.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frame</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">snapshots</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SnapshotList</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;SnapshotList: Current snapshot list.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_snapshots</span>
+
+    <span class="k">def</span> <span class="nf">_load_configs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Load configurations.&quot;&quot;&quot;</span>
+        <span class="c1"># Update self._config_path with current file path.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_config_root_path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config_path</span><span class="p">,</span> <span class="s2">&quot;config.yml&quot;</span><span class="p">))</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_config</span> <span class="o">=</span> <span class="n">convert_dottable</span><span class="p">(</span><span class="n">safe_load</span><span class="p">(</span><span class="n">fp</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_delay_duration</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="o">.</span><span class="n">DELAY_DURATION</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_buffer_time_budget</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="o">.</span><span class="n">BUFFER_TIME_BUDGET</span>
+        <span class="c1"># Oversubscription rate.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_max_cpu_oversubscription_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="o">.</span><span class="n">MAX_CPU_OVERSUBSCRIPTION_RATE</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_max_memory_oversubscription_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="o">.</span><span class="n">MAX_MEM_OVERSUBSCRIPTION_RATE</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_max_utilization_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="o">.</span><span class="n">MAX_UTILIZATION_RATE</span>
+        <span class="c1"># Load PM related configs.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pm_amount</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cal_pm_amount</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_kill_all_vms_if_overload</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="o">.</span><span class="n">KILL_ALL_VMS_IF_OVERLOAD</span>
+
+    <span class="k">def</span> <span class="nf">_init_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Env metrics.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_total_vm_requests</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_total_energy_consumption</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_successful_allocation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_successful_completion</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_failed_allocation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_failed_completion</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_total_latency</span><span class="p">:</span> <span class="n">Latency</span> <span class="o">=</span> <span class="n">Latency</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_total_oversubscriptions</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_total_overload_pms</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_total_overload_vms</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="nf">_init_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;If the file does not exist, then trigger the short data pipeline to download the processed data.&quot;&quot;&quot;</span>
+        <span class="n">vm_table_data_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="o">.</span><span class="n">VM_TABLE</span>
+        <span class="k">if</span> <span class="n">vm_table_data_path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;~&quot;</span><span class="p">):</span>
+            <span class="n">vm_table_data_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">vm_table_data_path</span><span class="p">)</span>
+
+        <span class="n">cpu_readings_data_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="o">.</span><span class="n">CPU_READINGS</span>
+        <span class="k">if</span> <span class="n">cpu_readings_data_path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;~&quot;</span><span class="p">):</span>
+            <span class="n">cpu_readings_data_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">cpu_readings_data_path</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">vm_table_data_path</span><span class="p">))</span> <span class="ow">or</span> <span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">cpu_readings_data_path</span><span class="p">)):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info_green</span><span class="p">(</span><span class="s2">&quot;Lack data. Start preparing data.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_download_processed_data</span><span class="p">()</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info_green</span><span class="p">(</span><span class="s2">&quot;Data preparation is finished.&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_cal_pm_amount</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="n">amount</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">pm_type</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="o">.</span><span class="n">PM</span><span class="p">:</span>
+            <span class="n">amount</span> <span class="o">+=</span> <span class="n">pm_type</span><span class="p">[</span><span class="s2">&quot;amount&quot;</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">amount</span>
+
+    <span class="k">def</span> <span class="nf">_init_pms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize the physical machines based on the config setting. The PM id starts from 0.&quot;&quot;&quot;</span>
+        <span class="c1"># TODO: Improve the scalability. Like the use of multiple PM sets.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_machines</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">pms</span>
+        <span class="c1"># PM type dictionary.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pm_type_dict</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">pm_id</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">pm_type</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="o">.</span><span class="n">PM</span><span class="p">:</span>
+            <span class="n">amount</span> <span class="o">=</span> <span class="n">pm_type</span><span class="p">[</span><span class="s2">&quot;amount&quot;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_pm_type_dict</span><span class="p">[</span><span class="n">pm_type</span><span class="p">[</span><span class="s2">&quot;PM_type&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">pm_type</span>
+            <span class="k">while</span> <span class="n">amount</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">pm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_machines</span><span class="p">[</span><span class="n">pm_id</span><span class="p">]</span>
+                <span class="n">pm</span><span class="o">.</span><span class="n">set_init_state</span><span class="p">(</span>
+                    <span class="nb">id</span><span class="o">=</span><span class="n">pm_id</span><span class="p">,</span>
+                    <span class="n">cpu_cores_capacity</span><span class="o">=</span><span class="n">pm_type</span><span class="p">[</span><span class="s2">&quot;CPU&quot;</span><span class="p">],</span>
+                    <span class="n">memory_capacity</span><span class="o">=</span><span class="n">pm_type</span><span class="p">[</span><span class="s2">&quot;memory&quot;</span><span class="p">],</span>
+                    <span class="n">pm_type</span><span class="o">=</span><span class="n">pm_type</span><span class="p">[</span><span class="s2">&quot;PM_type&quot;</span><span class="p">],</span>
+                    <span class="n">oversubscribable</span><span class="o">=</span><span class="n">PmState</span><span class="o">.</span><span class="n">EMPTY</span>
+                <span class="p">)</span>
+                <span class="n">amount</span> <span class="o">-=</span> <span class="mi">1</span>
+                <span class="n">pm_id</span> <span class="o">+=</span> <span class="mi">1</span>
+
+<div class="viewcode-block" id="VmSchedulingBusinessEngine.reset"><a class="viewcode-back" href="../../../../../apidoc/maro.simulator.scenarios.vm_scheduling.html#maro.simulator.scenarios.vm_scheduling.business_engine.VmSchedulingBusinessEngine.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Reset internal states for episode.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_total_vm_requests</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_total_energy_consumption</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_successful_allocation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_successful_completion</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_failed_allocation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_failed_completion</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_total_latency</span><span class="p">:</span> <span class="n">Latency</span> <span class="o">=</span> <span class="n">Latency</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_total_oversubscriptions</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_total_overload_pms</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_total_overload_vms</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_snapshots</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">pm</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_machines</span><span class="p">:</span>
+            <span class="n">pm</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_live_vms</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pending_vm_request_payload</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_vm_reader</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_vm_item_picker</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vm_reader</span><span class="o">.</span><span class="n">items_tick_picker</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_start_tick</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_tick</span><span class="p">,</span> <span class="n">time_unit</span><span class="o">=</span><span class="s2">&quot;s&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cpu_reader</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">_init_frame</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_frame</span> <span class="o">=</span> <span class="n">build_frame</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pm_amount</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_max_snapshots</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_snapshots</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">snapshots</span>
+
+<div class="viewcode-block" id="VmSchedulingBusinessEngine.step"><a class="viewcode-back" href="../../../../../apidoc/maro.simulator.scenarios.vm_scheduling.html#maro.simulator.scenarios.vm_scheduling.business_engine.VmSchedulingBusinessEngine.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tick</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Push business to next step.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            tick (int): Current tick to process.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tick</span> <span class="o">=</span> <span class="n">tick</span>
+        <span class="c1"># All vm&#39;s cpu utilization at current tick.</span>
+        <span class="n">cur_tick_cpu_utilization</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cpu_reader</span><span class="o">.</span><span class="n">items</span><span class="p">(</span><span class="n">tick</span><span class="o">=</span><span class="n">tick</span><span class="p">)</span>
+
+        <span class="c1"># Process finished VMs.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_process_finished_vm</span><span class="p">()</span>
+        <span class="c1"># Update all live VMs CPU utilization.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_vm_workload</span><span class="p">(</span><span class="n">cur_tick_cpu_utilization</span><span class="o">=</span><span class="n">cur_tick_cpu_utilization</span><span class="p">)</span>
+        <span class="c1"># Update all PM CPU utilization.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_pm_workload</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">vm</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vm_item_picker</span><span class="o">.</span><span class="n">items</span><span class="p">(</span><span class="n">tick</span><span class="p">):</span>
+            <span class="c1"># TODO: Batch request support.</span>
+            <span class="n">vm_info</span> <span class="o">=</span> <span class="n">VirtualMachine</span><span class="p">(</span>
+                <span class="nb">id</span><span class="o">=</span><span class="n">vm</span><span class="o">.</span><span class="n">vm_id</span><span class="p">,</span>
+                <span class="n">cpu_cores_requirement</span><span class="o">=</span><span class="n">vm</span><span class="o">.</span><span class="n">vm_cpu_cores</span><span class="p">,</span>
+                <span class="n">memory_requirement</span><span class="o">=</span><span class="n">vm</span><span class="o">.</span><span class="n">vm_memory</span><span class="p">,</span>
+                <span class="n">lifetime</span><span class="o">=</span><span class="n">vm</span><span class="o">.</span><span class="n">vm_lifetime</span><span class="p">,</span>
+                <span class="n">sub_id</span><span class="o">=</span><span class="n">vm</span><span class="o">.</span><span class="n">sub_id</span><span class="p">,</span>
+                <span class="n">deployment_id</span><span class="o">=</span><span class="n">vm</span><span class="o">.</span><span class="n">deploy_id</span><span class="p">,</span>
+                <span class="n">category</span><span class="o">=</span><span class="n">VmCategory</span><span class="p">(</span><span class="n">vm</span><span class="o">.</span><span class="n">vm_category</span><span class="p">)</span>
+            <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">vm</span><span class="o">.</span><span class="n">vm_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cur_tick_cpu_utilization</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The VM id: &#39;</span><span class="si">{</span><span class="n">vm</span><span class="o">.</span><span class="n">vm_id</span><span class="si">}</span><span class="s2">&#39; does not exist at this tick.&quot;</span><span class="p">)</span>
+
+            <span class="n">vm_info</span><span class="o">.</span><span class="n">add_utilization</span><span class="p">(</span><span class="n">cpu_utilization</span><span class="o">=</span><span class="n">cur_tick_cpu_utilization</span><span class="p">[</span><span class="n">vm</span><span class="o">.</span><span class="n">vm_id</span><span class="p">])</span>
+            <span class="n">vm_req_payload</span><span class="p">:</span> <span class="n">VmRequestPayload</span> <span class="o">=</span> <span class="n">VmRequestPayload</span><span class="p">(</span>
+                <span class="n">vm_info</span><span class="o">=</span><span class="n">vm_info</span><span class="p">,</span>
+                <span class="n">remaining_buffer_time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_buffer_time_budget</span>
+            <span class="p">)</span>
+            <span class="n">vm_request_event</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_event_buffer</span><span class="o">.</span><span class="n">gen_cascade_event</span><span class="p">(</span>
+                <span class="n">tick</span><span class="o">=</span><span class="n">tick</span><span class="p">,</span>
+                <span class="n">event_type</span><span class="o">=</span><span class="n">Events</span><span class="o">.</span><span class="n">REQUEST</span><span class="p">,</span>
+                <span class="n">payload</span><span class="o">=</span><span class="n">vm_req_payload</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_event_buffer</span><span class="o">.</span><span class="n">insert_event</span><span class="p">(</span><span class="n">event</span><span class="o">=</span><span class="n">vm_request_event</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_total_vm_requests</span> <span class="o">+=</span> <span class="mi">1</span></div>
+
+<div class="viewcode-block" id="VmSchedulingBusinessEngine.post_step"><a class="viewcode-back" href="../../../../../apidoc/maro.simulator.scenarios.vm_scheduling.html#maro.simulator.scenarios.vm_scheduling.business_engine.VmSchedulingBusinessEngine.post_step">[docs]</a>    <span class="k">def</span> <span class="nf">post_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tick</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="c1"># Update energy to the environment metrices.</span>
+        <span class="n">total_energy</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">pm</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_machines</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">pm</span><span class="o">.</span><span class="n">oversubscribable</span> <span class="ow">and</span> <span class="n">pm</span><span class="o">.</span><span class="n">cpu_cores_allocated</span> <span class="o">&gt;</span> <span class="n">pm</span><span class="o">.</span><span class="n">cpu_cores_capacity</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_total_oversubscriptions</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">total_energy</span> <span class="o">+=</span> <span class="n">pm</span><span class="o">.</span><span class="n">energy_consumption</span>
+            <span class="c1"># Overload PMs.</span>
+            <span class="k">if</span> <span class="n">pm</span><span class="o">.</span><span class="n">cpu_utilization</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_overload</span><span class="p">(</span><span class="n">pm</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_total_energy_consumption</span> <span class="o">+=</span> <span class="n">total_energy</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">tick</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_snapshot_resolution</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># NOTE: We should use frame_index method to get correct index in snapshot list.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">take_snapshot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frame_index</span><span class="p">(</span><span class="n">tick</span><span class="p">))</span>
+
+        <span class="c1"># Stop current episode if we reach max tick.</span>
+        <span class="k">return</span> <span class="n">tick</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_tick</span></div>
+
+<div class="viewcode-block" id="VmSchedulingBusinessEngine.get_event_payload_detail"><a class="viewcode-back" href="../../../../../apidoc/maro.simulator.scenarios.vm_scheduling.html#maro.simulator.scenarios.vm_scheduling.business_engine.VmSchedulingBusinessEngine.get_event_payload_detail">[docs]</a>    <span class="k">def</span> <span class="nf">get_event_payload_detail</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;dict: Event payload details of current scenario.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="n">Events</span><span class="o">.</span><span class="n">REQUEST</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">VmRequestPayload</span><span class="o">.</span><span class="n">summary_key</span><span class="p">,</span>
+            <span class="n">MaroEvents</span><span class="o">.</span><span class="n">PENDING_DECISION</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">DecisionPayload</span><span class="o">.</span><span class="n">summary_key</span>
+        <span class="p">}</span></div>
+
+<div class="viewcode-block" id="VmSchedulingBusinessEngine.get_agent_idx_list"><a class="viewcode-back" href="../../../../../apidoc/maro.simulator.scenarios.vm_scheduling.html#maro.simulator.scenarios.vm_scheduling.business_engine.VmSchedulingBusinessEngine.get_agent_idx_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_agent_idx_list</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Get a list of agent index.&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="VmSchedulingBusinessEngine.get_node_mapping"><a class="viewcode-back" href="../../../../../apidoc/maro.simulator.scenarios.vm_scheduling.html#maro.simulator.scenarios.vm_scheduling.business_engine.VmSchedulingBusinessEngine.get_node_mapping">[docs]</a>    <span class="k">def</span> <span class="nf">get_node_mapping</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;dict: Node mapping.&quot;&quot;&quot;</span>
+        <span class="n">node_mapping</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">return</span> <span class="n">node_mapping</span></div>
+
+<div class="viewcode-block" id="VmSchedulingBusinessEngine.get_vm_cpu_utilization_series"><a class="viewcode-back" href="../../../../../apidoc/maro.simulator.scenarios.vm_scheduling.html#maro.simulator.scenarios.vm_scheduling.business_engine.VmSchedulingBusinessEngine.get_vm_cpu_utilization_series">[docs]</a>    <span class="k">def</span> <span class="nf">get_vm_cpu_utilization_series</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vm_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Get the CPU utilization series of the specific VM by the given ID.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">vm_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_live_vms</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_live_vms</span><span class="p">[</span><span class="n">vm_id</span><span class="p">]</span><span class="o">.</span><span class="n">get_historical_utilization_series</span><span class="p">(</span><span class="n">cur_tick</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_tick</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">[]</span></div>
+
+<div class="viewcode-block" id="VmSchedulingBusinessEngine.get_metrics"><a class="viewcode-back" href="../../../../../apidoc/maro.simulator.scenarios.vm_scheduling.html#maro.simulator.scenarios.vm_scheduling.business_engine.VmSchedulingBusinessEngine.get_metrics">[docs]</a>    <span class="k">def</span> <span class="nf">get_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DocableDict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Get current environment metrics information.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            DocableDict: Metrics information.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">DocableDict</span><span class="p">(</span>
+            <span class="n">metrics_desc</span><span class="p">,</span>
+            <span class="n">total_vm_requests</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_total_vm_requests</span><span class="p">,</span>
+            <span class="n">total_energy_consumption</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_total_energy_consumption</span><span class="p">,</span>
+            <span class="n">successful_allocation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_successful_allocation</span><span class="p">,</span>
+            <span class="n">successful_completion</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_successful_completion</span><span class="p">,</span>
+            <span class="n">failed_allocation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_failed_allocation</span><span class="p">,</span>
+            <span class="n">failed_completion</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_failed_completion</span><span class="p">,</span>
+            <span class="n">total_latency</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_total_latency</span><span class="p">,</span>
+            <span class="n">total_oversubscriptions</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_total_oversubscriptions</span><span class="p">,</span>
+            <span class="n">total_overload_pms</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_total_overload_pms</span><span class="p">,</span>
+            <span class="n">total_overload_vms</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_total_overload_vms</span>
+        <span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_register_events</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Register our own events and their callback handlers.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_event_buffer</span><span class="o">.</span><span class="n">register_event_handler</span><span class="p">(</span><span class="n">event_type</span><span class="o">=</span><span class="n">Events</span><span class="o">.</span><span class="n">REQUEST</span><span class="p">,</span> <span class="n">handler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_vm_required</span><span class="p">)</span>
+        <span class="c1"># Generate decision event.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_event_buffer</span><span class="o">.</span><span class="n">register_event_handler</span><span class="p">(</span><span class="n">event_type</span><span class="o">=</span><span class="n">MaroEvents</span><span class="o">.</span><span class="n">TAKE_ACTION</span><span class="p">,</span> <span class="n">handler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_action_received</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_update_vm_workload</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cur_tick_cpu_utilization</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update all live VMs CPU utilization.</span>
+
+<span class="sd">        The length of VMs utilization series could be difference among all VMs,</span>
+<span class="sd">        because index 0 represents the VM&#39;s CPU utilization at the tick it starts.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">live_vm</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_live_vms</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="c1"># NOTE: Some data could be lost. We use -1.0 to represent the missing data.</span>
+            <span class="k">if</span> <span class="n">live_vm</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cur_tick_cpu_utilization</span><span class="p">:</span>
+                <span class="n">live_vm</span><span class="o">.</span><span class="n">add_utilization</span><span class="p">(</span><span class="n">cpu_utilization</span><span class="o">=-</span><span class="mf">1.0</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">live_vm</span><span class="o">.</span><span class="n">add_utilization</span><span class="p">(</span><span class="n">cpu_utilization</span><span class="o">=</span><span class="n">cur_tick_cpu_utilization</span><span class="p">[</span><span class="n">live_vm</span><span class="o">.</span><span class="n">id</span><span class="p">])</span>
+                <span class="n">live_vm</span><span class="o">.</span><span class="n">cpu_utilization</span> <span class="o">=</span> <span class="n">live_vm</span><span class="o">.</span><span class="n">get_utilization</span><span class="p">(</span><span class="n">cur_tick</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_tick</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">pending_vm_payload</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pending_vm_request_payload</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">pending_vm</span> <span class="o">=</span> <span class="n">pending_vm_payload</span><span class="o">.</span><span class="n">vm_info</span>
+            <span class="k">if</span> <span class="n">pending_vm</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cur_tick_cpu_utilization</span><span class="p">:</span>
+                <span class="n">pending_vm</span><span class="o">.</span><span class="n">add_utilization</span><span class="p">(</span><span class="n">cpu_utilization</span><span class="o">=-</span><span class="mf">1.0</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">pending_vm</span><span class="o">.</span><span class="n">add_utilization</span><span class="p">(</span><span class="n">cpu_utilization</span><span class="o">=</span><span class="n">cur_tick_cpu_utilization</span><span class="p">[</span><span class="n">pending_vm</span><span class="o">.</span><span class="n">id</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">_update_pm_workload</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update CPU utilization occupied by total VMs on each PM.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">pm</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_machines</span><span class="p">:</span>
+            <span class="n">total_pm_cpu_cores_used</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="k">for</span> <span class="n">vm_id</span> <span class="ow">in</span> <span class="n">pm</span><span class="o">.</span><span class="n">live_vms</span><span class="p">:</span>
+                <span class="n">vm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_live_vms</span><span class="p">[</span><span class="n">vm_id</span><span class="p">]</span>
+                <span class="n">total_pm_cpu_cores_used</span> <span class="o">+=</span> <span class="n">vm</span><span class="o">.</span><span class="n">cpu_utilization</span> <span class="o">*</span> <span class="n">vm</span><span class="o">.</span><span class="n">cpu_cores_requirement</span>
+            <span class="n">pm</span><span class="o">.</span><span class="n">update_cpu_utilization</span><span class="p">(</span><span class="n">vm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cpu_utilization</span><span class="o">=</span><span class="n">total_pm_cpu_cores_used</span> <span class="o">/</span> <span class="n">pm</span><span class="o">.</span><span class="n">cpu_cores_capacity</span><span class="p">)</span>
+            <span class="n">pm</span><span class="o">.</span><span class="n">energy_consumption</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cpu_utilization_to_energy_consumption</span><span class="p">(</span>
+                <span class="n">pm_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_pm_type_dict</span><span class="p">[</span><span class="n">pm</span><span class="o">.</span><span class="n">pm_type</span><span class="p">],</span>
+                <span class="n">cpu_utilization</span><span class="o">=</span><span class="n">pm</span><span class="o">.</span><span class="n">cpu_utilization</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_overload</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pm_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Overload logic.</span>
+
+<span class="sd">        Currently only support killing all VMs on the overload PM and note them as failed allocations.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># TODO: Future features of overload modeling.</span>
+        <span class="c1">#       1. Performance degradation</span>
+        <span class="c1">#       2. Quiesce specific VMs.</span>
+        <span class="n">pm</span><span class="p">:</span> <span class="n">PhysicalMachine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_machines</span><span class="p">[</span><span class="n">pm_id</span><span class="p">]</span>
+        <span class="n">vm_ids</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">vm_id</span> <span class="k">for</span> <span class="n">vm_id</span> <span class="ow">in</span> <span class="n">pm</span><span class="o">.</span><span class="n">live_vms</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kill_all_vms_if_overload</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">vm_id</span> <span class="ow">in</span> <span class="n">vm_ids</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_live_vms</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">vm_id</span><span class="p">)</span>
+
+            <span class="n">pm</span><span class="o">.</span><span class="n">deallocate_vms</span><span class="p">(</span><span class="n">vm_ids</span><span class="o">=</span><span class="n">vm_ids</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_failed_completion</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">vm_ids</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_total_overload_vms</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">vm_ids</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_cpu_utilization_to_energy_consumption</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pm_type</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">cpu_utilization</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Convert the CPU utilization to energy consumption.</span>
+
+<span class="sd">        The formulation refers to https://dl.acm.org/doi/epdf/10.1145/1273440.1250665</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">power</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">pm_type</span><span class="p">[</span><span class="s2">&quot;power_curve&quot;</span><span class="p">][</span><span class="s2">&quot;calibration_parameter&quot;</span><span class="p">]</span>
+        <span class="n">busy_power</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">pm_type</span><span class="p">[</span><span class="s2">&quot;power_curve&quot;</span><span class="p">][</span><span class="s2">&quot;busy_power&quot;</span><span class="p">]</span>
+        <span class="n">idle_power</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">pm_type</span><span class="p">[</span><span class="s2">&quot;power_curve&quot;</span><span class="p">][</span><span class="s2">&quot;idle_power&quot;</span><span class="p">]</span>
+
+        <span class="n">cpu_utilization</span> <span class="o">/=</span> <span class="mi">100</span>
+        <span class="n">cpu_utilization</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">cpu_utilization</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">idle_power</span> <span class="o">+</span> <span class="p">(</span><span class="n">busy_power</span> <span class="o">-</span> <span class="n">idle_power</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">cpu_utilization</span> <span class="o">-</span> <span class="nb">pow</span><span class="p">(</span><span class="n">cpu_utilization</span><span class="p">,</span> <span class="n">power</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_postpone_vm_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">postpone_type</span><span class="p">:</span> <span class="n">PostponeType</span><span class="p">,</span> <span class="n">vm_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">remaining_buffer_time</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Postpone VM request.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">remaining_buffer_time</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delay_duration</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">postpone_type</span> <span class="o">==</span> <span class="n">PostponeType</span><span class="o">.</span><span class="n">Resource</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_total_latency</span><span class="o">.</span><span class="n">due_to_resource</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delay_duration</span>
+            <span class="k">elif</span> <span class="n">postpone_type</span> <span class="o">==</span> <span class="n">PostponeType</span><span class="o">.</span><span class="n">Agent</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_total_latency</span><span class="o">.</span><span class="n">due_to_agent</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delay_duration</span>
+
+            <span class="n">postpone_payload</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pending_vm_request_payload</span><span class="p">[</span><span class="n">vm_id</span><span class="p">]</span>
+            <span class="n">postpone_payload</span><span class="o">.</span><span class="n">remaining_buffer_time</span> <span class="o">-=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delay_duration</span>
+            <span class="n">postpone_event</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_event_buffer</span><span class="o">.</span><span class="n">gen_cascade_event</span><span class="p">(</span>
+                <span class="n">tick</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_tick</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delay_duration</span><span class="p">,</span>
+                <span class="n">event_type</span><span class="o">=</span><span class="n">Events</span><span class="o">.</span><span class="n">REQUEST</span><span class="p">,</span>
+                <span class="n">payload</span><span class="o">=</span><span class="n">postpone_payload</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_event_buffer</span><span class="o">.</span><span class="n">insert_event</span><span class="p">(</span><span class="n">event</span><span class="o">=</span><span class="n">postpone_event</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Fail</span>
+            <span class="c1"># Pop out VM request payload.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_pending_vm_request_payload</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">vm_id</span><span class="p">)</span>
+            <span class="c1"># Add failed allocation.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_failed_allocation</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">def</span> <span class="nf">_get_valid_pms</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">vm_cpu_cores_requirement</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">vm_memory_requirement</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">vm_category</span><span class="p">:</span> <span class="n">VmCategory</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Check all valid PMs.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            vm_cpu_cores_requirement (int): The CPU cores requested by the VM.</span>
+<span class="sd">            vm_memory_requirement (int): The memory requested by the VM.</span>
+<span class="sd">            vm_category (VmCategory): The VM category. Delay-insensitive: 0, Interactive: 1, Unknown: 2.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># NOTE: Should we implement this logic inside the action scope?</span>
+        <span class="n">valid_pm_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># Delay-insensitive: 0, Interactive: 1, and Unknown: 2.</span>
+        <span class="k">if</span> <span class="n">vm_category</span> <span class="o">==</span> <span class="n">VmCategory</span><span class="o">.</span><span class="n">INTERACTIVE</span> <span class="ow">or</span> <span class="n">vm_category</span> <span class="o">==</span> <span class="n">VmCategory</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">:</span>
+            <span class="n">valid_pm_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_valid_non_oversubscribable_pms</span><span class="p">(</span>
+                <span class="n">vm_cpu_cores_requirement</span><span class="o">=</span><span class="n">vm_cpu_cores_requirement</span><span class="p">,</span>
+                <span class="n">vm_memory_requirement</span><span class="o">=</span><span class="n">vm_memory_requirement</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">valid_pm_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_valid_oversubscribable_pms</span><span class="p">(</span>
+                <span class="n">vm_cpu_cores_requirement</span><span class="o">=</span><span class="n">vm_cpu_cores_requirement</span><span class="p">,</span>
+                <span class="n">vm_memory_requirement</span><span class="o">=</span><span class="n">vm_memory_requirement</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">valid_pm_list</span>
+
+    <span class="k">def</span> <span class="nf">_get_valid_non_oversubscribable_pms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vm_cpu_cores_requirement</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">vm_memory_requirement</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="n">valid_pm_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">pm</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_machines</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">pm</span><span class="o">.</span><span class="n">oversubscribable</span> <span class="o">==</span> <span class="n">PmState</span><span class="o">.</span><span class="n">EMPTY</span> <span class="ow">or</span> <span class="n">pm</span><span class="o">.</span><span class="n">oversubscribable</span> <span class="o">==</span> <span class="n">PmState</span><span class="o">.</span><span class="n">NON_OVERSUBSCRIBABLE</span><span class="p">:</span>
+                <span class="c1"># In the condition of non-oversubscription, the valid PMs mean:</span>
+                <span class="c1"># PM allocated resource + VM allocated resource &lt;= PM capacity.</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">pm</span><span class="o">.</span><span class="n">cpu_cores_allocated</span> <span class="o">+</span> <span class="n">vm_cpu_cores_requirement</span> <span class="o">&lt;=</span> <span class="n">pm</span><span class="o">.</span><span class="n">cpu_cores_capacity</span>
+                        <span class="ow">and</span> <span class="n">pm</span><span class="o">.</span><span class="n">memory_allocated</span> <span class="o">+</span> <span class="n">vm_memory_requirement</span> <span class="o">&lt;=</span> <span class="n">pm</span><span class="o">.</span><span class="n">memory_capacity</span><span class="p">):</span>
+                    <span class="n">valid_pm_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pm</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">valid_pm_list</span>
+
+    <span class="k">def</span> <span class="nf">_get_valid_oversubscribable_pms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vm_cpu_cores_requirement</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">vm_memory_requirement</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+        <span class="n">valid_pm_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">pm</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_machines</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">pm</span><span class="o">.</span><span class="n">oversubscribable</span> <span class="o">==</span> <span class="n">PmState</span><span class="o">.</span><span class="n">EMPTY</span> <span class="ow">or</span> <span class="n">pm</span><span class="o">.</span><span class="n">oversubscribable</span> <span class="o">==</span> <span class="n">PmState</span><span class="o">.</span><span class="n">OVERSUBSCRIBABLE</span><span class="p">:</span>
+                <span class="c1"># In the condition of oversubscription, the valid PMs mean:</span>
+                <span class="c1"># 1. PM allocated resource + VM allocated resource &lt;= Max oversubscription rate * PM capacity.</span>
+                <span class="c1"># 2. PM CPU usage + VM requirements &lt;= Max utilization rate * PM capacity.</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="p">(</span>
+                        <span class="n">pm</span><span class="o">.</span><span class="n">cpu_cores_allocated</span> <span class="o">+</span> <span class="n">vm_cpu_cores_requirement</span>
+                        <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_cpu_oversubscription_rate</span> <span class="o">*</span> <span class="n">pm</span><span class="o">.</span><span class="n">cpu_cores_capacity</span>
+                    <span class="p">)</span> <span class="ow">and</span> <span class="p">(</span>
+                        <span class="n">pm</span><span class="o">.</span><span class="n">memory_allocated</span> <span class="o">+</span> <span class="n">vm_memory_requirement</span>
+                        <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_memory_oversubscription_rate</span> <span class="o">*</span> <span class="n">pm</span><span class="o">.</span><span class="n">memory_capacity</span>
+                    <span class="p">)</span> <span class="ow">and</span> <span class="p">(</span>
+                        <span class="n">pm</span><span class="o">.</span><span class="n">cpu_utilization</span> <span class="o">/</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">pm</span><span class="o">.</span><span class="n">cpu_cores_capacity</span> <span class="o">+</span> <span class="n">vm_cpu_cores_requirement</span>
+                        <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_utilization_rate</span> <span class="o">*</span> <span class="n">pm</span><span class="o">.</span><span class="n">cpu_cores_capacity</span>
+                    <span class="p">)</span>
+                <span class="p">):</span>
+                    <span class="n">valid_pm_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pm</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">valid_pm_list</span>
+
+    <span class="k">def</span> <span class="nf">_process_finished_vm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Release PM resource from the finished VM.&quot;&quot;&quot;</span>
+        <span class="c1"># Get the VM info.</span>
+        <span class="n">vm_id_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">vm</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_live_vms</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">vm</span><span class="o">.</span><span class="n">deletion_tick</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tick</span><span class="p">:</span>
+                <span class="c1"># Release PM resources.</span>
+                <span class="n">pm</span><span class="p">:</span> <span class="n">PhysicalMachine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_machines</span><span class="p">[</span><span class="n">vm</span><span class="o">.</span><span class="n">pm_id</span><span class="p">]</span>
+                <span class="n">pm</span><span class="o">.</span><span class="n">cpu_cores_allocated</span> <span class="o">-=</span> <span class="n">vm</span><span class="o">.</span><span class="n">cpu_cores_requirement</span>
+                <span class="n">pm</span><span class="o">.</span><span class="n">memory_allocated</span> <span class="o">-=</span> <span class="n">vm</span><span class="o">.</span><span class="n">memory_requirement</span>
+                <span class="n">pm</span><span class="o">.</span><span class="n">deallocate_vms</span><span class="p">(</span><span class="n">vm_ids</span><span class="o">=</span><span class="p">[</span><span class="n">vm</span><span class="o">.</span><span class="n">id</span><span class="p">])</span>
+                <span class="c1"># If the VM list is empty, switch the state to empty.</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">pm</span><span class="o">.</span><span class="n">live_vms</span><span class="p">:</span>
+                    <span class="n">pm</span><span class="o">.</span><span class="n">oversubscribable</span> <span class="o">=</span> <span class="n">PmState</span><span class="o">.</span><span class="n">EMPTY</span>
+
+                <span class="n">vm_id_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vm</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+                <span class="c1"># VM completed task succeed.</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_successful_completion</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="c1"># Remove dead VM.</span>
+        <span class="k">for</span> <span class="n">vm_id</span> <span class="ow">in</span> <span class="n">vm_id_list</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_live_vms</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">vm_id</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_on_vm_required</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vm_request_event</span><span class="p">:</span> <span class="n">CascadeEvent</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Callback when there is a VM request generated.&quot;&quot;&quot;</span>
+        <span class="c1"># Get VM data from payload.</span>
+        <span class="n">payload</span><span class="p">:</span> <span class="n">VmRequestPayload</span> <span class="o">=</span> <span class="n">vm_request_event</span><span class="o">.</span><span class="n">payload</span>
+
+        <span class="n">vm_info</span><span class="p">:</span> <span class="n">VirtualMachine</span> <span class="o">=</span> <span class="n">payload</span><span class="o">.</span><span class="n">vm_info</span>
+        <span class="n">remaining_buffer_time</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">payload</span><span class="o">.</span><span class="n">remaining_buffer_time</span>
+        <span class="c1"># Store the payload inside business engine.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pending_vm_request_payload</span><span class="p">[</span><span class="n">vm_info</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">payload</span>
+        <span class="c1"># Get valid pm list.</span>
+        <span class="n">valid_pm_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_valid_pms</span><span class="p">(</span>
+            <span class="n">vm_cpu_cores_requirement</span><span class="o">=</span><span class="n">vm_info</span><span class="o">.</span><span class="n">cpu_cores_requirement</span><span class="p">,</span>
+            <span class="n">vm_memory_requirement</span><span class="o">=</span><span class="n">vm_info</span><span class="o">.</span><span class="n">memory_requirement</span><span class="p">,</span>
+            <span class="n">vm_category</span><span class="o">=</span><span class="n">vm_info</span><span class="o">.</span><span class="n">category</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_pm_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># Generate pending decision.</span>
+            <span class="n">decision_payload</span> <span class="o">=</span> <span class="n">DecisionPayload</span><span class="p">(</span>
+                <span class="n">frame_index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">frame_index</span><span class="p">(</span><span class="n">tick</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_tick</span><span class="p">),</span>
+                <span class="n">valid_pms</span><span class="o">=</span><span class="n">valid_pm_list</span><span class="p">,</span>
+                <span class="n">vm_id</span><span class="o">=</span><span class="n">vm_info</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                <span class="n">vm_cpu_cores_requirement</span><span class="o">=</span><span class="n">vm_info</span><span class="o">.</span><span class="n">cpu_cores_requirement</span><span class="p">,</span>
+                <span class="n">vm_memory_requirement</span><span class="o">=</span><span class="n">vm_info</span><span class="o">.</span><span class="n">memory_requirement</span><span class="p">,</span>
+                <span class="n">remaining_buffer_time</span><span class="o">=</span><span class="n">remaining_buffer_time</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_pending_action_vm_id</span> <span class="o">=</span> <span class="n">vm_info</span><span class="o">.</span><span class="n">id</span>
+            <span class="n">pending_decision_event</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_event_buffer</span><span class="o">.</span><span class="n">gen_decision_event</span><span class="p">(</span>
+                <span class="n">tick</span><span class="o">=</span><span class="n">vm_request_event</span><span class="o">.</span><span class="n">tick</span><span class="p">,</span> <span class="n">payload</span><span class="o">=</span><span class="n">decision_payload</span><span class="p">)</span>
+            <span class="n">vm_request_event</span><span class="o">.</span><span class="n">add_immediate_event</span><span class="p">(</span><span class="n">event</span><span class="o">=</span><span class="n">pending_decision_event</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Either postpone the requirement event or failed.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_postpone_vm_request</span><span class="p">(</span>
+                <span class="n">postpone_type</span><span class="o">=</span><span class="n">PostponeType</span><span class="o">.</span><span class="n">Resource</span><span class="p">,</span>
+                <span class="n">vm_id</span><span class="o">=</span><span class="n">vm_info</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                <span class="n">remaining_buffer_time</span><span class="o">=</span><span class="n">remaining_buffer_time</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_on_action_received</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">CascadeEvent</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Callback wen we get an action from agent.&quot;&quot;&quot;</span>
+        <span class="n">action</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">event</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">event</span><span class="o">.</span><span class="n">payload</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_pending_vm_request_payload</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pending_action_vm_id</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="n">cur_tick</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">tick</span>
+
+        <span class="k">for</span> <span class="n">action</span> <span class="ow">in</span> <span class="n">event</span><span class="o">.</span><span class="n">payload</span><span class="p">:</span>
+            <span class="n">vm_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">action</span><span class="o">.</span><span class="n">vm_id</span>
+
+            <span class="k">if</span> <span class="n">vm_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pending_vm_request_payload</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The VM id: &#39;</span><span class="si">{</span><span class="n">vm_id</span><span class="si">}</span><span class="s2">&#39; sent by agent is invalid.&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">action</span><span class="p">)</span> <span class="o">==</span> <span class="n">AllocateAction</span><span class="p">:</span>
+                <span class="n">pm_id</span> <span class="o">=</span> <span class="n">action</span><span class="o">.</span><span class="n">pm_id</span>
+                <span class="n">vm</span><span class="p">:</span> <span class="n">VirtualMachine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pending_vm_request_payload</span><span class="p">[</span><span class="n">vm_id</span><span class="p">]</span><span class="o">.</span><span class="n">vm_info</span>
+                <span class="n">lifetime</span> <span class="o">=</span> <span class="n">vm</span><span class="o">.</span><span class="n">lifetime</span>
+
+                <span class="c1"># Update VM information.</span>
+                <span class="n">vm</span><span class="o">.</span><span class="n">pm_id</span> <span class="o">=</span> <span class="n">pm_id</span>
+                <span class="n">vm</span><span class="o">.</span><span class="n">creation_tick</span> <span class="o">=</span> <span class="n">cur_tick</span>
+                <span class="n">vm</span><span class="o">.</span><span class="n">deletion_tick</span> <span class="o">=</span> <span class="n">cur_tick</span> <span class="o">+</span> <span class="n">lifetime</span>
+                <span class="n">vm</span><span class="o">.</span><span class="n">cpu_utilization</span> <span class="o">=</span> <span class="n">vm</span><span class="o">.</span><span class="n">get_utilization</span><span class="p">(</span><span class="n">cur_tick</span><span class="o">=</span><span class="n">cur_tick</span><span class="p">)</span>
+
+                <span class="c1"># Pop out the VM from pending requests and add to live VM dict.</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_pending_vm_request_payload</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">vm_id</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_live_vms</span><span class="p">[</span><span class="n">vm_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">vm</span>
+
+                <span class="c1"># Update PM resources requested by VM.</span>
+                <span class="n">pm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_machines</span><span class="p">[</span><span class="n">pm_id</span><span class="p">]</span>
+
+                <span class="c1"># Empty pm (init state).</span>
+                <span class="k">if</span> <span class="n">pm</span><span class="o">.</span><span class="n">oversubscribable</span> <span class="o">==</span> <span class="n">PmState</span><span class="o">.</span><span class="n">EMPTY</span><span class="p">:</span>
+                    <span class="c1"># Delay-Insensitive: oversubscribable.</span>
+                    <span class="k">if</span> <span class="n">vm</span><span class="o">.</span><span class="n">category</span> <span class="o">==</span> <span class="n">VmCategory</span><span class="o">.</span><span class="n">DELAY_INSENSITIVE</span><span class="p">:</span>
+                        <span class="n">pm</span><span class="o">.</span><span class="n">oversubscribable</span> <span class="o">=</span> <span class="n">PmState</span><span class="o">.</span><span class="n">OVERSUBSCRIBABLE</span>
+                    <span class="c1"># Interactive or Unknown: non-oversubscribable</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">pm</span><span class="o">.</span><span class="n">oversubscribable</span> <span class="o">=</span> <span class="n">PmState</span><span class="o">.</span><span class="n">NON_OVERSUBSCRIBABLE</span>
+
+                <span class="n">pm</span><span class="o">.</span><span class="n">allocate_vms</span><span class="p">(</span><span class="n">vm_ids</span><span class="o">=</span><span class="p">[</span><span class="n">vm</span><span class="o">.</span><span class="n">id</span><span class="p">])</span>
+                <span class="n">pm</span><span class="o">.</span><span class="n">cpu_cores_allocated</span> <span class="o">+=</span> <span class="n">vm</span><span class="o">.</span><span class="n">cpu_cores_requirement</span>
+                <span class="n">pm</span><span class="o">.</span><span class="n">memory_allocated</span> <span class="o">+=</span> <span class="n">vm</span><span class="o">.</span><span class="n">memory_requirement</span>
+                <span class="n">pm</span><span class="o">.</span><span class="n">update_cpu_utilization</span><span class="p">(</span>
+                    <span class="n">vm</span><span class="o">=</span><span class="n">vm</span><span class="p">,</span>
+                    <span class="n">cpu_utilization</span><span class="o">=</span><span class="kc">None</span>
+                <span class="p">)</span>
+                <span class="n">pm</span><span class="o">.</span><span class="n">energy_consumption</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cpu_utilization_to_energy_consumption</span><span class="p">(</span>
+                    <span class="n">pm_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_pm_type_dict</span><span class="p">[</span><span class="n">pm</span><span class="o">.</span><span class="n">pm_type</span><span class="p">],</span>
+                    <span class="n">cpu_utilization</span><span class="o">=</span><span class="n">pm</span><span class="o">.</span><span class="n">cpu_utilization</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_successful_allocation</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">action</span><span class="p">)</span> <span class="o">==</span> <span class="n">PostponeAction</span><span class="p">:</span>
+                <span class="n">postpone_step</span> <span class="o">=</span> <span class="n">action</span><span class="o">.</span><span class="n">postpone_step</span>
+                <span class="n">remaining_buffer_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pending_vm_request_payload</span><span class="p">[</span><span class="n">vm_id</span><span class="p">]</span><span class="o">.</span><span class="n">remaining_buffer_time</span>
+                <span class="c1"># Either postpone the requirement event or failed.</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_postpone_vm_request</span><span class="p">(</span>
+                    <span class="n">postpone_type</span><span class="o">=</span><span class="n">PostponeType</span><span class="o">.</span><span class="n">Agent</span><span class="p">,</span>
+                    <span class="n">vm_id</span><span class="o">=</span><span class="n">vm_id</span><span class="p">,</span>
+                    <span class="n">remaining_buffer_time</span><span class="o">=</span><span class="n">remaining_buffer_time</span> <span class="o">-</span> <span class="n">postpone_step</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delay_duration</span>
+                <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_download_processed_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Build processed data.&quot;&quot;&quot;</span>
+        <span class="n">data_root</span> <span class="o">=</span> <span class="n">StaticParameter</span><span class="o">.</span><span class="n">data_root</span>
+        <span class="n">build_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_root</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scenario_name</span><span class="p">,</span> <span class="s2">&quot;.build&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_topology</span><span class="p">)</span>
+
+        <span class="n">source</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="o">.</span><span class="n">PROCESSED_DATA_URL</span>
+        <span class="n">download_file_name</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">download_file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">build_folder</span><span class="p">,</span> <span class="n">download_file_name</span><span class="p">)</span>
+
+        <span class="c1"># Download file from the Azure blob storage.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">download_file_path</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info_green</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Downloading data from </span><span class="si">{</span><span class="n">source</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">download_file_path</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+            <span class="n">download_file</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">,</span> <span class="n">destination</span><span class="o">=</span><span class="n">download_file_path</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info_green</span><span class="p">(</span><span class="s2">&quot;File already exists, skipping download.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Unzip files.</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info_green</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unzip </span><span class="si">{</span><span class="n">download_file_path</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">build_folder</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">tar</span> <span class="o">=</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">download_file_path</span><span class="p">,</span> <span class="s2">&quot;r:gz&quot;</span><span class="p">)</span>
+        <span class="n">tar</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">build_folder</span><span class="p">)</span>
+        <span class="n">tar</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="c1"># Move to the correct path.</span>
+        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">directories</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">build_folder</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">directory</span> <span class="ow">in</span> <span class="n">directories</span><span class="p">:</span>
+                <span class="n">unzip_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">build_folder</span><span class="p">,</span> <span class="n">directory</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info_green</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Move files to </span><span class="si">{</span><span class="n">build_folder</span><span class="si">}</span><span class="s2"> from </span><span class="si">{</span><span class="n">unzip_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">file_name</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">unzip_file</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">file_name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.bin&quot;</span><span class="p">):</span>
+                        <span class="n">shutil</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">unzip_file</span><span class="p">,</span> <span class="n">file_name</span><span class="p">),</span> <span class="n">build_folder</span><span class="p">)</span>
+
+        <span class="n">os</span><span class="o">.</span><span class="n">rmdir</span><span class="p">(</span><span class="n">unzip_file</span><span class="p">)</span></div>
+</pre></div>
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../../../../../_static/js/index.js"></script>
+    
+  </body>
+</html>

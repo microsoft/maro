@@ -1,0 +1,1120 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maro.rl.models package &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="maro.rl.scheduling package" href="maro.rl.scheduling.html" />
+    <link rel="prev" title="maro.rl.learner package" href="maro.rl.learner.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../index.html">
+  
+  <img src="../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="current nav sidenav_l1">
+ <li class="toctree-l1 current active">
+  <a class="reference internal" href="maro.html">
+   maro package
+  </a>
+  <ul class="current">
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.backends.html">
+     maro.backends package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.cli.html">
+     maro.cli package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.data_pipeline.html">
+       maro.cli.data_pipeline package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.envs.html">
+       maro.cli.envs package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.grass.html">
+       maro.cli.grass package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.grass.executors.html">
+         maro.cli.grass.executors package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.grass.utils.html">
+         maro.cli.grass.utils package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.inspector.html">
+       maro.cli.inspector package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.k8s.html">
+       maro.cli.k8s package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.k8s.executors.html">
+         maro.cli.k8s.executors package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.process.html">
+       maro.cli.process package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.process.utils.html">
+         maro.cli.process.utils package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.utils.html">
+       maro.cli.utils package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.utils.executors.html">
+         maro.cli.utils.executors package
+        </a>
+       </li>
+      </ul>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.communication.html">
+     maro.communication package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.communication.driver.html">
+       maro.communication.driver package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.communication.utils.html">
+       maro.communication.utils package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.data_lib.html">
+     maro.data_lib package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.data_lib.cim.html">
+       maro.data_lib.cim package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.event_buffer.html">
+     maro.event_buffer package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.forecasting.html">
+     maro.forecasting package
+    </a>
+   </li>
+   <li class="toctree-l2 current active">
+    <a class="reference internal" href="maro.rl.html">
+     maro.rl package
+    </a>
+    <ul class="current">
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.actor.html">
+       maro.rl.actor package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.agent.html">
+       maro.rl.agent package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.algorithms.html">
+       maro.rl.algorithms package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.dist_topologies.html">
+       maro.rl.dist_topologies package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.exploration.html">
+       maro.rl.exploration package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.learner.html">
+       maro.rl.learner package
+      </a>
+     </li>
+     <li class="toctree-l3 current active">
+      <a class="current reference internal" href="#">
+       maro.rl.models package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.scheduling.html">
+       maro.rl.scheduling package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.shaping.html">
+       maro.rl.shaping package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.storage.html">
+       maro.rl.storage package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.simulator.html">
+     maro.simulator package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.simulator.scenarios.html">
+       maro.simulator.scenarios package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.cim.html">
+         maro.simulator.scenarios.cim package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.citi_bike.html">
+         maro.simulator.scenarios.citi_bike package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.vm_scheduling.html">
+         maro.simulator.scenarios.vm_scheduling package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.simulator.utils.html">
+       maro.simulator.utils package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.utils.html">
+     maro.utils package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.utils.exception.html">
+       maro.utils.exception package
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+        
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="../_sources/apidoc/maro.rl.models.rst.txt"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.rst</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2Fapidoc/maro.rl.models.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        <a class="edit-button" href="https://github.com/microsoft/maro/edit/master/doc/source/apidoc/maro.rl.models.rst"><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Edit this page"><i class="fas fa-pencil-alt"></i>suggest edit</button></a>
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <div class="tocsection onthispage pt-5 pb-3">
+            <i class="fas fa-list"></i> Contents
+        </div>
+        <nav id="bd-toc-nav">
+            <ul class="nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#submodules">
+   Submodules
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.rl.models.abs_block">
+   maro.rl.models.abs_block module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.rl.models.fc_block">
+   maro.rl.models.fc_block module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.rl.models.learning_model">
+   maro.rl.models.learning_model module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.rl.models">
+   Module contents
+  </a>
+ </li>
+</ul>
+
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <div class="section" id="maro-rl-models-package">
+<h1>maro.rl.models package<a class="headerlink" href="#maro-rl-models-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-maro.rl.models.abs_block">
+<span id="maro-rl-models-abs-block-module"></span><h2>maro.rl.models.abs_block module<a class="headerlink" href="#module-maro.rl.models.abs_block" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.rl.models.abs_block.AbsBlock">
+<em class="property">class </em><code class="sig-prename descclassname">maro.rl.models.abs_block.</code><code class="sig-name descname">AbsBlock</code><a class="reference internal" href="../_modules/maro/rl/models/abs_block.html#AbsBlock"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.models.abs_block.AbsBlock" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<dl class="py method">
+<dt id="maro.rl.models.abs_block.AbsBlock.input_dim">
+<em class="property">property </em><code class="sig-name descname">input_dim</code><a class="headerlink" href="#maro.rl.models.abs_block.AbsBlock.input_dim" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.models.abs_block.AbsBlock.output_dim">
+<em class="property">property </em><code class="sig-name descname">output_dim</code><a class="headerlink" href="#maro.rl.models.abs_block.AbsBlock.output_dim" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.rl.models.abs_block.AbsBlock.training">
+<code class="sig-name descname">training</code><a class="headerlink" href="#maro.rl.models.abs_block.AbsBlock.training" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.rl.models.fc_block">
+<span id="maro-rl-models-fc-block-module"></span><h2>maro.rl.models.fc_block module<a class="headerlink" href="#module-maro.rl.models.fc_block" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.rl.models.fc_block.FullyConnectedBlock">
+<em class="property">class </em><code class="sig-prename descclassname">maro.rl.models.fc_block.</code><code class="sig-name descname">FullyConnectedBlock</code><span class="sig-paren">(</span><em class="sig-param">input_dim: int, output_dim: int, hidden_dims: [&lt;class 'int'&gt;], activation=&lt;class 'torch.nn.modules.activation.LeakyReLU'&gt;, is_head: bool = False, softmax_enabled: bool = False, batch_norm_enabled: bool = False, skip_connection_enabled: bool = False, dropout_p: float = None, gradient_threshold: float = None, name: str = None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/models/fc_block.html#FullyConnectedBlock"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.models.fc_block.FullyConnectedBlock" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.rl.models.abs_block.AbsBlock" title="maro.rl.models.abs_block.AbsBlock"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.rl.models.abs_block.AbsBlock</span></code></a></p>
+<p>Fully connected network with optional batch normalization, activation and dropout components.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Network name.</p></li>
+<li><p><strong>input_dim</strong> (<em>int</em>) – Network input dimension.</p></li>
+<li><p><strong>output_dim</strong> (<em>int</em>) – Network output dimension.</p></li>
+<li><p><strong>hidden_dims</strong> (<em>[int]</em>) – Dimensions of hidden layers. Its length is the number of hidden layers.</p></li>
+<li><p><strong>activation</strong> – A <code class="docutils literal notranslate"><span class="pre">torch.nn</span></code> activation type. If None, there will be no activation. Defaults to LeakyReLU.</p></li>
+<li><p><strong>is_head</strong> (<em>bool</em>) – If true, this block will be the top block of the full model and the top layer of this block
+will be the final output layer. Defaults to False.</p></li>
+<li><p><strong>softmax_enabled</strong> (<em>bool</em>) – If true, the output of the net will be a softmax transformation of the top layer’s
+output. Defaults to False.</p></li>
+<li><p><strong>batch_norm_enabled</strong> (<em>bool</em>) – If true, batch normalization will be performed at each layer.</p></li>
+<li><p><strong>skip_connection_enabled</strong> (<em>bool</em>) – If true, a skip connection will be built between the bottom (input) layer and
+top (output) layer. Defaults to False.</p></li>
+<li><p><strong>dropout_p</strong> (<em>float</em>) – Dropout probability. Defaults to None, in which case there is no drop-out.</p></li>
+<li><p><strong>gradient_threshold</strong> (<em>float</em>) – Gradient clipping threshold. Defaults to None, in which case not gradient clipping
+is performed.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.rl.models.fc_block.FullyConnectedBlock.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/models/fc_block.html#FullyConnectedBlock.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.models.fc_block.FullyConnectedBlock.forward" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.models.fc_block.FullyConnectedBlock.input_dim">
+<em class="property">property </em><code class="sig-name descname">input_dim</code><a class="headerlink" href="#maro.rl.models.fc_block.FullyConnectedBlock.input_dim" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.models.fc_block.FullyConnectedBlock.name">
+<em class="property">property </em><code class="sig-name descname">name</code><a class="headerlink" href="#maro.rl.models.fc_block.FullyConnectedBlock.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.models.fc_block.FullyConnectedBlock.output_dim">
+<em class="property">property </em><code class="sig-name descname">output_dim</code><a class="headerlink" href="#maro.rl.models.fc_block.FullyConnectedBlock.output_dim" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.rl.models.fc_block.FullyConnectedBlock.training">
+<code class="sig-name descname">training</code><a class="headerlink" href="#maro.rl.models.fc_block.FullyConnectedBlock.training" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.rl.models.learning_model">
+<span id="maro-rl-models-learning-model-module"></span><h2>maro.rl.models.learning_model module<a class="headerlink" href="#module-maro.rl.models.learning_model" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.rl.models.learning_model.LearningModel">
+<em class="property">class </em><code class="sig-prename descclassname">maro.rl.models.learning_model.</code><code class="sig-name descname">LearningModel</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">task_stacks</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.rl.models.learning_model.NNStack" title="maro.rl.models.learning_model.NNStack">maro.rl.models.learning_model.NNStack</a></span></em>, <em class="sig-param"><span class="n">shared_stack</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.rl.models.learning_model.NNStack" title="maro.rl.models.learning_model.NNStack">maro.rl.models.learning_model.NNStack</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">optimizer_options</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference internal" href="#maro.rl.models.learning_model.OptimizerOptions" title="maro.rl.models.learning_model.OptimizerOptions">maro.rl.models.learning_model.OptimizerOptions</a><span class="p">, </span>Dict<span class="p">[</span>str<span class="p">, </span><a class="reference internal" href="#maro.rl.models.learning_model.OptimizerOptions" title="maro.rl.models.learning_model.OptimizerOptions">maro.rl.models.learning_model.OptimizerOptions</a><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/models/learning_model.html#LearningModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.models.learning_model.LearningModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<p>NN model that consists of multiple task heads and an optional shared stack.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>task_stacks</strong> (<em>NNStack</em>) – NNStack instances, each of which performs a designated task.</p></li>
+<li><p><strong>shared_stack</strong> (<em>NNStack</em>) – Network module that forms that shared part of the model. Defaults to None.</p></li>
+<li><p><strong>optimizer_options</strong> (<em>Union[OptimizerOptions, Dict[str, OptimizerOptions]]</em>) – Optimizer options for
+the internal stacks. If none, no optimizer will be created for the model and the model will not
+be trainable. If it is a single OptimizerOptions instance, an optimizer will be created to jointly
+optimize all parameters of the model. If it is a dictionary, for each <cite>(key, value)</cite> pair, an optimizer
+specified by <cite>value</cite> will be created for the internal stack named <cite>key</cite>. Defaults to None.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.rl.models.learning_model.LearningModel.copy">
+<code class="sig-name descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/models/learning_model.html#LearningModel.copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.models.learning_model.LearningModel.copy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.models.learning_model.LearningModel.dump">
+<code class="sig-name descname">dump</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/models/learning_model.html#LearningModel.dump"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.models.learning_model.LearningModel.dump" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.models.learning_model.LearningModel.dump_to_file">
+<code class="sig-name descname">dump_to_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/models/learning_model.html#LearningModel.dump_to_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.models.learning_model.LearningModel.dump_to_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.models.learning_model.LearningModel.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em>, <em class="sig-param"><span class="n">task_name</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">is_training</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/models/learning_model.html#LearningModel.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.models.learning_model.LearningModel.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Feedforward computations for the given head(s).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>inputs</strong> – Inputs to the model.</p></li>
+<li><p><strong>task_name</strong> (<em>str</em>) – The name of the task for which the network output is required. If the model contains only
+one task module, the task_name is ignored and the output of that module will be returned. If the model
+contains multiple task modules, then 1) if task_name is None, the output from all task modules will be
+returned in the form of a dictionary; 2) if task_name is a list, the outputs from the task modules
+specified in the list will be returned in the form of a dictionary; 3) if this is a single string,
+the output from the corresponding task module will be returned.</p></li>
+<li><p><strong>is_training</strong> (<em>bool</em>) – If true, all torch submodules will be set to training mode, and auto-differentiation
+will be turned on. Defaults to True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Outputs from the required head(s).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.models.learning_model.LearningModel.input_dim">
+<em class="property">property </em><code class="sig-name descname">input_dim</code><a class="headerlink" href="#maro.rl.models.learning_model.LearningModel.input_dim" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.models.learning_model.LearningModel.is_trainable">
+<em class="property">property </em><code class="sig-name descname">is_trainable</code><a class="headerlink" href="#maro.rl.models.learning_model.LearningModel.is_trainable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.models.learning_model.LearningModel.learn">
+<code class="sig-name descname">learn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">loss</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/models/learning_model.html#LearningModel.learn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.models.learning_model.LearningModel.learn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use the loss to back-propagate gradients and apply them to the underlying parameters.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.models.learning_model.LearningModel.load">
+<code class="sig-name descname">load</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">state_dict</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/models/learning_model.html#LearningModel.load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.models.learning_model.LearningModel.load" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.models.learning_model.LearningModel.load_from_file">
+<code class="sig-name descname">load_from_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/models/learning_model.html#LearningModel.load_from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.models.learning_model.LearningModel.load_from_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.models.learning_model.LearningModel.output_dim">
+<em class="property">property </em><code class="sig-name descname">output_dim</code><a class="headerlink" href="#maro.rl.models.learning_model.LearningModel.output_dim" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.models.learning_model.LearningModel.shared_stack">
+<em class="property">property </em><code class="sig-name descname">shared_stack</code><a class="headerlink" href="#maro.rl.models.learning_model.LearningModel.shared_stack" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.models.learning_model.LearningModel.soft_update">
+<code class="sig-name descname">soft_update</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">other_model</span><span class="p">:</span> <span class="n">torch.nn.modules.module.Module</span></em>, <em class="sig-param"><span class="n">tau</span><span class="p">:</span> <span class="n">float</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/models/learning_model.html#LearningModel.soft_update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.models.learning_model.LearningModel.soft_update" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.models.learning_model.LearningModel.task_names">
+<em class="property">property </em><code class="sig-name descname">task_names</code><a class="headerlink" href="#maro.rl.models.learning_model.LearningModel.task_names" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.rl.models.learning_model.LearningModel.training">
+<code class="sig-name descname">training</code><a class="headerlink" href="#maro.rl.models.learning_model.LearningModel.training" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.models.learning_model.LearningModel.validate_dims">
+<em class="property">static </em><code class="sig-name descname">validate_dims</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">task_stacks</span></em>, <em class="sig-param"><span class="n">shared_stack</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/models/learning_model.html#LearningModel.validate_dims"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.models.learning_model.LearningModel.validate_dims" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.rl.models.learning_model.NNStack">
+<em class="property">class </em><code class="sig-prename descclassname">maro.rl.models.learning_model.</code><code class="sig-name descname">NNStack</code><span class="sig-paren">(</span><em class="sig-param">name: str, *blocks: [&lt;class 'maro.rl.models.abs_block.AbsBlock'&gt;]</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/models/learning_model.html#NNStack"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.models.learning_model.NNStack" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<p>An NN stack that consists of a sequence of chainable blocks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Name of the stack.</p></li>
+<li><p><strong>blocks</strong> (<em>AbsBlock</em>) – Blocks that comprise the model. They must be chainable, i.e., the output dimension
+of a block must match the input dimension of its successor.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.rl.models.learning_model.NNStack.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/models/learning_model.html#NNStack.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.models.learning_model.NNStack.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Feedforward computation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>inputs</strong> – Inputs to the model.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Outputs from the model.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.models.learning_model.NNStack.input_dim">
+<em class="property">property </em><code class="sig-name descname">input_dim</code><a class="headerlink" href="#maro.rl.models.learning_model.NNStack.input_dim" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.models.learning_model.NNStack.name">
+<em class="property">property </em><code class="sig-name descname">name</code><a class="headerlink" href="#maro.rl.models.learning_model.NNStack.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.models.learning_model.NNStack.output_dim">
+<em class="property">property </em><code class="sig-name descname">output_dim</code><a class="headerlink" href="#maro.rl.models.learning_model.NNStack.output_dim" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.rl.models.learning_model.NNStack.training">
+<code class="sig-name descname">training</code><a class="headerlink" href="#maro.rl.models.learning_model.NNStack.training" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.rl.models.learning_model.OptimizerOptions">
+<em class="property">class </em><code class="sig-prename descclassname">maro.rl.models.learning_model.</code><code class="sig-name descname">OptimizerOptions</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cls</span></em>, <em class="sig-param"><span class="n">params</span></em><span class="sig-paren">)</span><a class="headerlink" href="#maro.rl.models.learning_model.OptimizerOptions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="py method">
+<dt id="maro.rl.models.learning_model.OptimizerOptions.cls">
+<em class="property">property </em><code class="sig-name descname">cls</code><a class="headerlink" href="#maro.rl.models.learning_model.OptimizerOptions.cls" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.models.learning_model.OptimizerOptions.params">
+<em class="property">property </em><code class="sig-name descname">params</code><a class="headerlink" href="#maro.rl.models.learning_model.OptimizerOptions.params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.rl.models">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-maro.rl.models" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.rl.models.AbsBlock">
+<em class="property">class </em><code class="sig-prename descclassname">maro.rl.models.</code><code class="sig-name descname">AbsBlock</code><a class="reference internal" href="../_modules/maro/rl/models/abs_block.html#AbsBlock"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.models.AbsBlock" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<dl class="py method">
+<dt id="maro.rl.models.AbsBlock.input_dim">
+<em class="property">property </em><code class="sig-name descname">input_dim</code><a class="headerlink" href="#maro.rl.models.AbsBlock.input_dim" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.models.AbsBlock.output_dim">
+<em class="property">property </em><code class="sig-name descname">output_dim</code><a class="headerlink" href="#maro.rl.models.AbsBlock.output_dim" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.rl.models.AbsBlock.training">
+<code class="sig-name descname">training</code><a class="headerlink" href="#maro.rl.models.AbsBlock.training" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.rl.models.FullyConnectedBlock">
+<em class="property">class </em><code class="sig-prename descclassname">maro.rl.models.</code><code class="sig-name descname">FullyConnectedBlock</code><span class="sig-paren">(</span><em class="sig-param">input_dim: int, output_dim: int, hidden_dims: [&lt;class 'int'&gt;], activation=&lt;class 'torch.nn.modules.activation.LeakyReLU'&gt;, is_head: bool = False, softmax_enabled: bool = False, batch_norm_enabled: bool = False, skip_connection_enabled: bool = False, dropout_p: float = None, gradient_threshold: float = None, name: str = None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/models/fc_block.html#FullyConnectedBlock"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.models.FullyConnectedBlock" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.rl.models.abs_block.AbsBlock" title="maro.rl.models.abs_block.AbsBlock"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.rl.models.abs_block.AbsBlock</span></code></a></p>
+<p>Fully connected network with optional batch normalization, activation and dropout components.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Network name.</p></li>
+<li><p><strong>input_dim</strong> (<em>int</em>) – Network input dimension.</p></li>
+<li><p><strong>output_dim</strong> (<em>int</em>) – Network output dimension.</p></li>
+<li><p><strong>hidden_dims</strong> (<em>[int]</em>) – Dimensions of hidden layers. Its length is the number of hidden layers.</p></li>
+<li><p><strong>activation</strong> – A <code class="docutils literal notranslate"><span class="pre">torch.nn</span></code> activation type. If None, there will be no activation. Defaults to LeakyReLU.</p></li>
+<li><p><strong>is_head</strong> (<em>bool</em>) – If true, this block will be the top block of the full model and the top layer of this block
+will be the final output layer. Defaults to False.</p></li>
+<li><p><strong>softmax_enabled</strong> (<em>bool</em>) – If true, the output of the net will be a softmax transformation of the top layer’s
+output. Defaults to False.</p></li>
+<li><p><strong>batch_norm_enabled</strong> (<em>bool</em>) – If true, batch normalization will be performed at each layer.</p></li>
+<li><p><strong>skip_connection_enabled</strong> (<em>bool</em>) – If true, a skip connection will be built between the bottom (input) layer and
+top (output) layer. Defaults to False.</p></li>
+<li><p><strong>dropout_p</strong> (<em>float</em>) – Dropout probability. Defaults to None, in which case there is no drop-out.</p></li>
+<li><p><strong>gradient_threshold</strong> (<em>float</em>) – Gradient clipping threshold. Defaults to None, in which case not gradient clipping
+is performed.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.rl.models.FullyConnectedBlock.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/models/fc_block.html#FullyConnectedBlock.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.models.FullyConnectedBlock.forward" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.models.FullyConnectedBlock.input_dim">
+<em class="property">property </em><code class="sig-name descname">input_dim</code><a class="headerlink" href="#maro.rl.models.FullyConnectedBlock.input_dim" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.models.FullyConnectedBlock.name">
+<em class="property">property </em><code class="sig-name descname">name</code><a class="headerlink" href="#maro.rl.models.FullyConnectedBlock.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.models.FullyConnectedBlock.output_dim">
+<em class="property">property </em><code class="sig-name descname">output_dim</code><a class="headerlink" href="#maro.rl.models.FullyConnectedBlock.output_dim" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.rl.models.FullyConnectedBlock.training">
+<code class="sig-name descname">training</code><a class="headerlink" href="#maro.rl.models.FullyConnectedBlock.training" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.rl.models.LearningModel">
+<em class="property">class </em><code class="sig-prename descclassname">maro.rl.models.</code><code class="sig-name descname">LearningModel</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">task_stacks</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.rl.models.learning_model.NNStack" title="maro.rl.models.learning_model.NNStack">maro.rl.models.learning_model.NNStack</a></span></em>, <em class="sig-param"><span class="n">shared_stack</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.rl.models.learning_model.NNStack" title="maro.rl.models.learning_model.NNStack">maro.rl.models.learning_model.NNStack</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">optimizer_options</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference internal" href="#maro.rl.models.learning_model.OptimizerOptions" title="maro.rl.models.learning_model.OptimizerOptions">maro.rl.models.learning_model.OptimizerOptions</a><span class="p">, </span>Dict<span class="p">[</span>str<span class="p">, </span><a class="reference internal" href="#maro.rl.models.learning_model.OptimizerOptions" title="maro.rl.models.learning_model.OptimizerOptions">maro.rl.models.learning_model.OptimizerOptions</a><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/models/learning_model.html#LearningModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.models.LearningModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<p>NN model that consists of multiple task heads and an optional shared stack.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>task_stacks</strong> (<em>NNStack</em>) – NNStack instances, each of which performs a designated task.</p></li>
+<li><p><strong>shared_stack</strong> (<em>NNStack</em>) – Network module that forms that shared part of the model. Defaults to None.</p></li>
+<li><p><strong>optimizer_options</strong> (<em>Union[OptimizerOptions, Dict[str, OptimizerOptions]]</em>) – Optimizer options for
+the internal stacks. If none, no optimizer will be created for the model and the model will not
+be trainable. If it is a single OptimizerOptions instance, an optimizer will be created to jointly
+optimize all parameters of the model. If it is a dictionary, for each <cite>(key, value)</cite> pair, an optimizer
+specified by <cite>value</cite> will be created for the internal stack named <cite>key</cite>. Defaults to None.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.rl.models.LearningModel.copy">
+<code class="sig-name descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/models/learning_model.html#LearningModel.copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.models.LearningModel.copy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.models.LearningModel.dump">
+<code class="sig-name descname">dump</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/models/learning_model.html#LearningModel.dump"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.models.LearningModel.dump" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.models.LearningModel.dump_to_file">
+<code class="sig-name descname">dump_to_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/models/learning_model.html#LearningModel.dump_to_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.models.LearningModel.dump_to_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.models.LearningModel.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em>, <em class="sig-param"><span class="n">task_name</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">is_training</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/models/learning_model.html#LearningModel.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.models.LearningModel.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Feedforward computations for the given head(s).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>inputs</strong> – Inputs to the model.</p></li>
+<li><p><strong>task_name</strong> (<em>str</em>) – The name of the task for which the network output is required. If the model contains only
+one task module, the task_name is ignored and the output of that module will be returned. If the model
+contains multiple task modules, then 1) if task_name is None, the output from all task modules will be
+returned in the form of a dictionary; 2) if task_name is a list, the outputs from the task modules
+specified in the list will be returned in the form of a dictionary; 3) if this is a single string,
+the output from the corresponding task module will be returned.</p></li>
+<li><p><strong>is_training</strong> (<em>bool</em>) – If true, all torch submodules will be set to training mode, and auto-differentiation
+will be turned on. Defaults to True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Outputs from the required head(s).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.models.LearningModel.input_dim">
+<em class="property">property </em><code class="sig-name descname">input_dim</code><a class="headerlink" href="#maro.rl.models.LearningModel.input_dim" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.models.LearningModel.is_trainable">
+<em class="property">property </em><code class="sig-name descname">is_trainable</code><a class="headerlink" href="#maro.rl.models.LearningModel.is_trainable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.models.LearningModel.learn">
+<code class="sig-name descname">learn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">loss</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/models/learning_model.html#LearningModel.learn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.models.LearningModel.learn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use the loss to back-propagate gradients and apply them to the underlying parameters.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.models.LearningModel.load">
+<code class="sig-name descname">load</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">state_dict</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/models/learning_model.html#LearningModel.load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.models.LearningModel.load" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.models.LearningModel.load_from_file">
+<code class="sig-name descname">load_from_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/models/learning_model.html#LearningModel.load_from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.models.LearningModel.load_from_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.models.LearningModel.output_dim">
+<em class="property">property </em><code class="sig-name descname">output_dim</code><a class="headerlink" href="#maro.rl.models.LearningModel.output_dim" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.models.LearningModel.shared_stack">
+<em class="property">property </em><code class="sig-name descname">shared_stack</code><a class="headerlink" href="#maro.rl.models.LearningModel.shared_stack" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.models.LearningModel.soft_update">
+<code class="sig-name descname">soft_update</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">other_model</span><span class="p">:</span> <span class="n">torch.nn.modules.module.Module</span></em>, <em class="sig-param"><span class="n">tau</span><span class="p">:</span> <span class="n">float</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/models/learning_model.html#LearningModel.soft_update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.models.LearningModel.soft_update" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.models.LearningModel.task_names">
+<em class="property">property </em><code class="sig-name descname">task_names</code><a class="headerlink" href="#maro.rl.models.LearningModel.task_names" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.rl.models.LearningModel.training">
+<code class="sig-name descname">training</code><a class="headerlink" href="#maro.rl.models.LearningModel.training" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.models.LearningModel.validate_dims">
+<em class="property">static </em><code class="sig-name descname">validate_dims</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">task_stacks</span></em>, <em class="sig-param"><span class="n">shared_stack</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/models/learning_model.html#LearningModel.validate_dims"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.models.LearningModel.validate_dims" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.rl.models.NNStack">
+<em class="property">class </em><code class="sig-prename descclassname">maro.rl.models.</code><code class="sig-name descname">NNStack</code><span class="sig-paren">(</span><em class="sig-param">name: str, *blocks: [&lt;class 'maro.rl.models.abs_block.AbsBlock'&gt;]</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/models/learning_model.html#NNStack"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.models.NNStack" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<p>An NN stack that consists of a sequence of chainable blocks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Name of the stack.</p></li>
+<li><p><strong>blocks</strong> (<em>AbsBlock</em>) – Blocks that comprise the model. They must be chainable, i.e., the output dimension
+of a block must match the input dimension of its successor.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.rl.models.NNStack.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/models/learning_model.html#NNStack.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.models.NNStack.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Feedforward computation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>inputs</strong> – Inputs to the model.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Outputs from the model.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.models.NNStack.input_dim">
+<em class="property">property </em><code class="sig-name descname">input_dim</code><a class="headerlink" href="#maro.rl.models.NNStack.input_dim" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.models.NNStack.name">
+<em class="property">property </em><code class="sig-name descname">name</code><a class="headerlink" href="#maro.rl.models.NNStack.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.models.NNStack.output_dim">
+<em class="property">property </em><code class="sig-name descname">output_dim</code><a class="headerlink" href="#maro.rl.models.NNStack.output_dim" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.rl.models.NNStack.training">
+<code class="sig-name descname">training</code><a class="headerlink" href="#maro.rl.models.NNStack.training" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.rl.models.OptimizerOptions">
+<em class="property">class </em><code class="sig-prename descclassname">maro.rl.models.</code><code class="sig-name descname">OptimizerOptions</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cls</span></em>, <em class="sig-param"><span class="n">params</span></em><span class="sig-paren">)</span><a class="headerlink" href="#maro.rl.models.OptimizerOptions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="py method">
+<dt id="maro.rl.models.OptimizerOptions.cls">
+<em class="property">property </em><code class="sig-name descname">cls</code><a class="headerlink" href="#maro.rl.models.OptimizerOptions.cls" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.models.OptimizerOptions.params">
+<em class="property">property </em><code class="sig-name descname">params</code><a class="headerlink" href="#maro.rl.models.OptimizerOptions.params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+    <a class='left-prev' id="prev-link" href="maro.rl.learner.html" title="previous page">maro.rl.learner package</a>
+    <a class='right-next' id="next-link" href="maro.rl.scheduling.html" title="next page">maro.rl.scheduling package</a>
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../_static/js/index.js"></script>
+    
+  </body>
+</html>

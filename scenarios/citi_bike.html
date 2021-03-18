@@ -1,0 +1,1382 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bike Repositioning (Citi Bike) &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Virtual Machine Scheduling (VM Scheduling)" href="vm_scheduling.html" />
+    <link rel="prev" title="Container Inventory Management (CIM)" href="container_inventory_management.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../index.html">
+  
+  <img src="../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="current nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1 current active">
+  <a class="current reference internal" href="#">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../apidoc/maro.html">
+   maro package
+  </a>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+        
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="../_sources/scenarios/citi_bike.rst.txt"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.rst</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2Fscenarios/citi_bike.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        <a class="edit-button" href="https://github.com/microsoft/maro/edit/master/doc/source/scenarios/citi_bike.rst"><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Edit this page"><i class="fas fa-pencil-alt"></i>suggest edit</button></a>
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <div class="tocsection onthispage pt-5 pb-3">
+            <i class="fas fa-list"></i> Contents
+        </div>
+        <nav id="bd-toc-nav">
+            <ul class="nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#resource-flow">
+   Resource Flow
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#bike-trip">
+     Bike Trip
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#bike-repositioning">
+     Bike Repositioning
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#topologies">
+   Topologies
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#toy-topologies">
+     Toy Topologies
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#real-topologies">
+     Real Topologies
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#naive-baseline">
+     Naive Baseline
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#no-repositioning">
+       No Repositioning
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#random-repositioning">
+       Random Repositioning
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#quick-start">
+   Quick Start
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#data-preparation">
+     Data Preparation
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#environment-list-command">
+       Environment List Command
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#generate-command">
+       Generate Command
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#build-command">
+       Build Command
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#environment-interface">
+     Environment Interface
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#id4">
+       DecisionEvent
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#action">
+       Action
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#example">
+     Example
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#visualization">
+   Visualization
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#inter-epoch-view">
+     Inter-epoch view
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#intra-epoch-view">
+     Intra-epoch view
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <div class="section" id="bike-repositioning-citi-bike">
+<h1>Bike Repositioning (Citi Bike)<a class="headerlink" href="#bike-repositioning-citi-bike" title="Permalink to this headline">¶</a></h1>
+<p>The Citi Bike scenario simulates the bike repositioning problem triggered by the
+one-way bike trips based on the public trip data from
+<a class="reference external" href="https://www.citibikenyc.com/">Citi Bike</a>.</p>
+<blockquote>
+<div><p>Citi Bike is New York City’s bike share system, which consists of a fleet of
+bikes that are locked into a network of docking stations throughout the city.
+The bikes can be unlocked from one station and returned to any other station in
+the system, making them ideal for one-way trips. People use bike share to commute
+to work or school, run errands, get to appointments or social engagements, and
+more.</p>
+</div></blockquote>
+<p>Since the demand for bikes and empty docks is dynamically changed during a day,
+and the bike flow between two stations are not equal in a same period, some
+stations suffer from severe bike shortages, while some have too much bikes and
+too few empty docks. In such a situation, the bike repositioning is essential to
+balance the bike’s supply and demand. A good bike repositioning can not only meet
+the needs in the stations with heavy ride demand but also free the stations that
+do not have enough empty docks. Also, in the long run, a good bike repositioning
+can improve the bike useability, empower citizens’ daily life, and reduce the
+carbon emission.</p>
+<div class="section" id="resource-flow">
+<h2>Resource Flow<a class="headerlink" href="#resource-flow" title="Permalink to this headline">¶</a></h2>
+<p>In this scenario, the <strong>bike</strong> is the central resource. Two events will trigger
+the movement of the bike:</p>
+<ul class="simple">
+<li><p>The first one is the trip requirement, which may cause the bike transfer from
+the source station to the destination station;</p></li>
+<li><p>The second one is the repositioning operation. It is used to rebalance the bike
+distribution among stations.</p></li>
+</ul>
+<div class="section" id="bike-trip">
+<h3>Bike Trip<a class="headerlink" href="#bike-trip" title="Permalink to this headline">¶</a></h3>
+<p>In the citi bike scenario in MARO, the trip generation and the corresponding bike
+flow is defined as follows:</p>
+<ul class="simple">
+<li><p>Given a fixed time interval, for each specific source-destination station pair,
+a trip requirement will arise according to a predefined distribution or the real
+trip data. It depends on the chosen topology.</p></li>
+<li><p>If there are enough available bikes in the source station of the trip requirement,
+the required bike(s) will be unlocked and assigned to this trip. Otherwise, a
+shortage will be recorded in the source station.</p></li>
+<li><p>The trip duration is read from the trip log if real trip data is used. Otherwise,
+the duration will be sampled from a specific random distribution.</p></li>
+<li><p>At the end of the trip, the bike will be returned to the destination station.
+But if the destination does not have enough available docks, the bike will be
+returned to the nearest station with available docks.</p></li>
+</ul>
+</div>
+<div class="section" id="bike-repositioning">
+<h3>Bike Repositioning<a class="headerlink" href="#bike-repositioning" title="Permalink to this headline">¶</a></h3>
+<p>As for the repositioning operation, the simulator in MARO will regularly check
+the remaining bikes in each station and compare it with a predefined low watermark
+and high watermark. If the bike inventory is lower than the low watermark, the
+station will generate a <code class="docutils literal notranslate"><span class="pre">Demand</span></code> event to request the supply of bikes from its
+neighboring stations. Similarly, if the bike inventory is higher than the high
+watermark, the station will generate a <code class="docutils literal notranslate"><span class="pre">Supply</span></code> event to transport excess bikes
+to its neighboring stations. The low watermark and the high watermark is specified
+in the topology and can be customized based on different requirements.</p>
+<p>The target station candidates of the <code class="docutils literal notranslate"><span class="pre">Supply</span></code> and <code class="docutils literal notranslate"><span class="pre">Demand</span></code> events are selected
+by a predefined multi-layer filter in this scenario:</p>
+<ol class="arabic simple">
+<li><p>The distance between the caller station and the neighboring stations will be
+used to filter and get a specific number of stations;</p></li>
+<li><p>The number of available bikes at each candidate station will be used to further
+filter on the candidate stations. For a <code class="docutils literal notranslate"><span class="pre">Supply</span></code> event, the stations with less
+bikes will be kept, while for a <code class="docutils literal notranslate"><span class="pre">Demand</span></code> event, the stations with more bikes will
+be kept;</p></li>
+<li><p>The future trip requirement of the target station will be the last filter. For
+a <code class="docutils literal notranslate"><span class="pre">Supply</span></code> event, the stations with more future trip requirement will be left in
+the final station candidate set, while the stations with less future trip
+requirement will be left for <code class="docutils literal notranslate"><span class="pre">Demand</span></code> event.</p></li>
+</ol>
+<p>The size of the candidate sets in each filter level is specified in the topology
+and can be customized based on different requirements.</p>
+<p>Once the target station candidate is filtered, the <code class="docutils literal notranslate"><span class="pre">action</span> <span class="pre">scope</span></code> for each candidate
+will also be calculated in the simulator and return to the decision agent together
+with some other information in the <a class="reference external" href="#decisionevent-in-citi-bike">DecisionEvent</a>.
+For a <code class="docutils literal notranslate"><span class="pre">Supply</span></code> event, the bike inventory of the caller station and the number of
+available docks of the target station candidates will be attached. On the contrary,
+for a <code class="docutils literal notranslate"><span class="pre">Demand</span></code> event, the number of available docks of the source station and the
+bike inventory of the target station candidates will be attached.</p>
+<p>Based on the given target station candidates and the corresponding <code class="docutils literal notranslate"><span class="pre">action</span> <span class="pre">scope</span></code>,
+the decision agent of the caller station should decide how many bikes to transfer
+to/request from the target station. We call a pair of <code class="docutils literal notranslate"><span class="pre">(target</span> <span class="pre">station,</span> <span class="pre">bike</span> <span class="pre">number)</span></code>
+a repositioning action. After an action taken, the destination station should wait
+for a certain period to get the bikes available for trip requirement. The action
+<a class="reference external" href="https://en.wikipedia.org/wiki/Lead_time">lead time</a> is sampled from a predefined
+distribution.</p>
+</div>
+</div>
+<div class="section" id="topologies">
+<h2>Topologies<a class="headerlink" href="#topologies" title="Permalink to this headline">¶</a></h2>
+<p>To provide an exploration road map from easy to difficult, two kinds of topologies
+are designed and provided in Citi Bike scenario. Toy topologies provide a super
+simplified environment for algorithm debugging, while the real topologies with
+real data from Citi Bike historical trips can present the real problem to users.</p>
+<div class="section" id="toy-topologies">
+<h3>Toy Topologies<a class="headerlink" href="#toy-topologies" title="Permalink to this headline">¶</a></h3>
+<p>In toy topology, the generation of the trip requirements follows a stable pattern
+as introduced above. The detailed trip demand pattern are listed as below. And we
+hope that these toy topologies can provide you with some insights about this scenario.</p>
+<a class="reference external image-reference" href="../images/scenario/citibike.toys.svg"><img alt="Citi Bike toy topologies" src="../_images/citibike.toys.svg" /></a>
+<p><strong>toy.3s_4t</strong>: There are three stations in this topology. Every two minutes,
+there will be a trip requirement from S2 to S3 and a trip requirement from S3 to
+S2. At the same time, every two minutes, the system will generate trip requirement
+from S1 to S3 and from S1 to S2 with a fixed probability (80% and 20%, respectively).
+In this topology, the traffic flow between S2 and S3 is always equal, but station
+S1 is a super consumer with only bikes flow out. So the best repositioning policy
+in this topology is to reposition bikes from S2 and S3 to S1. It requires the
+active request action of S1 or the proactive transfer action of S2 and S3.</p>
+<p><strong>toy.4s_4t</strong>: There are four stations in this topology. According to the global
+trip demand, there are more returned bikes than leaving bikes in station S1 and S3,
+while more leaving bikes than returned bikes in station S2 and S4. So the best
+repositioning policy in this topology is to reposition the excess bikes from S1
+and S3 to S2 and S4. Furthermore, the cooperation between these stations is also
+necessary since only a proper allocation can lead to a globally optimal solution.</p>
+<p><strong>toy.5s_6t</strong>: There are five stations in this topology. Although trip demand is
+more complex than the other two topologies above, we can still find that station
+S1 is a self-balancing station, station S2 and S5 have more returned bikes, and
+station S3 and S4 have more leaving bikes. Just like in topology toy.4s_4t, the
+best repositioning policy is to reposition excess bikes from S2 and S5 to S3 and
+S4 coordinately.</p>
+</div>
+<div class="section" id="real-topologies">
+<h3>Real Topologies<a class="headerlink" href="#real-topologies" title="Permalink to this headline">¶</a></h3>
+<p><strong>ny.YYYYMM</strong>: Different from the stable generation model in the toy topologies,
+the trip requirement in the topology ny.YYYYMM is generated based on the real
+trip data from <a class="reference external" href="https://www.citibikenyc.com/">Citi Bike</a>, which includes the
+source station, the destination station, and the duration of each trip. Besides,
+the total number of available bikes in this kind of topologies is counted from
+the real trip data of the specific month. Weighted by the the latest capacity
+of each stations, the available bikes are allocated to each station, which
+constitutes the initial bike inventory of each station. In this series of
+topologies, the definition of the bike flow and the trigger mechanism of
+repositioning actions are the same as those in the toy topologies. We provide
+this series of topologies to better simulate the actual Citi Bike scenario.</p>
+</div>
+<div class="section" id="naive-baseline">
+<h3>Naive Baseline<a class="headerlink" href="#naive-baseline" title="Permalink to this headline">¶</a></h3>
+<p>Below are the final environment metrics of the method <em>no repositioning</em> and
+<em>random repositioning</em> in different topologies. For each experiment, we setup
+the environment and test for a duration of 1 week.</p>
+<div class="section" id="no-repositioning">
+<h4>No Repositioning<a class="headerlink" href="#no-repositioning" title="Permalink to this headline">¶</a></h4>
+<table class="table">
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Topology</p></th>
+<th class="head"><p>Total Requirement</p></th>
+<th class="head"><p>Resource Shortage</p></th>
+<th class="head"><p>Repositioning Number</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>toy.3s_4t</p></td>
+<td><p>15,118</p></td>
+<td><p>8,233</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>toy.4s_4t</p></td>
+<td><p>9,976</p></td>
+<td><p>7,048</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p>toy.5s_6t</p></td>
+<td><p>16,341</p></td>
+<td><p>9,231</p></td>
+<td><p>0</p></td>
+</tr>
+</tbody>
+</table>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<table class="table">
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Topology</p></th>
+<th class="head"><p>Total Requirement</p></th>
+<th class="head"><p>Resource Shortage</p></th>
+<th class="head"><p>Repositioning Number</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>ny.201801</p></td>
+<td><p>48,089</p></td>
+<td><p>2,688</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>ny.201802</p></td>
+<td><p>126,374</p></td>
+<td><p>8,814</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p>ny.201803</p></td>
+<td><p>138,952</p></td>
+<td><p>10,942</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>ny.201804</p></td>
+<td><p>161,443</p></td>
+<td><p>10,349</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p>ny.201805</p></td>
+<td><p>323,375</p></td>
+<td><p>29,081</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>ny.201806</p></td>
+<td><p>305,971</p></td>
+<td><p>26,412</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p>ny.201807</p></td>
+<td><p>254,715</p></td>
+<td><p>19,669</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>ny.201808</p></td>
+<td><p>302,589</p></td>
+<td><p>26,352</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p>ny.201809</p></td>
+<td><p>313,002</p></td>
+<td><p>28,472</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>ny.201810</p></td>
+<td><p>339,268</p></td>
+<td><p>24,109</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p>ny.201811</p></td>
+<td><p>263,227</p></td>
+<td><p>21,485</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>ny.201812</p></td>
+<td><p>209,102</p></td>
+<td><p>15,876</p></td>
+<td><p>0</p></td>
+</tr>
+</tbody>
+</table>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<table class="table">
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Topology</p></th>
+<th class="head"><p>Total Requirement</p></th>
+<th class="head"><p>Resource Shortage</p></th>
+<th class="head"><p>Repositioning Number</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>ny.201901</p></td>
+<td><p>161,474</p></td>
+<td><p>10,775</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>ny.201902</p></td>
+<td><p>187,354</p></td>
+<td><p>12,593</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p>ny.201903</p></td>
+<td><p>148,371</p></td>
+<td><p>7,193</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>ny.201904</p></td>
+<td><p>280,852</p></td>
+<td><p>16,906</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p>ny.201905</p></td>
+<td><p>287,290</p></td>
+<td><p>27,213</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>ny.201906</p></td>
+<td><p>379,415</p></td>
+<td><p>33,968</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p>ny.201907</p></td>
+<td><p>309,365</p></td>
+<td><p>21,105</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>ny.201908</p></td>
+<td><p>371,969</p></td>
+<td><p>33,703</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p>ny.201909</p></td>
+<td><p>344,847</p></td>
+<td><p>24,528</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>ny.201910</p></td>
+<td><p>351,855</p></td>
+<td><p>29,544</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p>ny.201911</p></td>
+<td><p>324,327</p></td>
+<td><p>29,489</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>ny.201912</p></td>
+<td><p>184,015</p></td>
+<td><p>14,205</p></td>
+<td><p>0</p></td>
+</tr>
+</tbody>
+</table>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<table class="table">
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Topology</p></th>
+<th class="head"><p>Total Requirement</p></th>
+<th class="head"><p>Resource Shortage</p></th>
+<th class="head"><p>Repositioning Number</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>ny.202001</p></td>
+<td><p>169,304</p></td>
+<td><p>12,449</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>ny.202002</p></td>
+<td><p>206,105</p></td>
+<td><p>14,794</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p>ny.202003</p></td>
+<td><p>235,986</p></td>
+<td><p>15,436</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>ny.202004</p></td>
+<td><p>91,810</p></td>
+<td><p>2,348</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p>ny.202005</p></td>
+<td><p>169,412</p></td>
+<td><p>5,231</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>ny.202006</p></td>
+<td><p>197,883</p></td>
+<td><p>7,608</p></td>
+<td><p>0</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="random-repositioning">
+<h4>Random Repositioning<a class="headerlink" href="#random-repositioning" title="Permalink to this headline">¶</a></h4>
+<table class="table">
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Topology</p></th>
+<th class="head"><p>Total Requirement</p></th>
+<th class="head"><p>Resource Shortage</p></th>
+<th class="head"><p>Repositioning Number</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>toy.3s_4t</p></td>
+<td><p>15,154</p></td>
+<td><p>8,422 <span class="math notranslate nohighlight">\(\pm\)</span> 11</p></td>
+<td><p>449 <span class="math notranslate nohighlight">\(\pm\)</span>    22</p></td>
+</tr>
+<tr class="row-odd"><td><p>toy.4s_4t</p></td>
+<td><p>10,186</p></td>
+<td><p>4,371 <span class="math notranslate nohighlight">\(\pm\)</span>    72</p></td>
+<td><p>3,392 <span class="math notranslate nohighlight">\(\pm\)</span>    83</p></td>
+</tr>
+<tr class="row-even"><td><p>toy.5s_6t</p></td>
+<td><p>16,171</p></td>
+<td><p>7,513 <span class="math notranslate nohighlight">\(\pm\)</span>    40</p></td>
+<td><p>3,242 <span class="math notranslate nohighlight">\(\pm\)</span>    71</p></td>
+</tr>
+</tbody>
+</table>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<table class="table">
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Topology</p></th>
+<th class="head"><p>Total Requirement</p></th>
+<th class="head"><p>Resource Shortage</p></th>
+<th class="head"><p>Repositioning Number</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>ny.201801</p></td>
+<td><p>48,089</p></td>
+<td><p>6,693 <span class="math notranslate nohighlight">\(\pm\)</span>   138</p></td>
+<td><p>445,996 <span class="math notranslate nohighlight">\(\pm\)</span>  6,756</p></td>
+</tr>
+<tr class="row-odd"><td><p>ny.201802</p></td>
+<td><p>126,374</p></td>
+<td><p>21,418 <span class="math notranslate nohighlight">\(\pm\)</span>   120</p></td>
+<td><p>446,564 <span class="math notranslate nohighlight">\(\pm\)</span>  3,505</p></td>
+</tr>
+<tr class="row-even"><td><p>ny.201803</p></td>
+<td><p>138,952</p></td>
+<td><p>22,121 <span class="math notranslate nohighlight">\(\pm\)</span>   272</p></td>
+<td><p>448,259 <span class="math notranslate nohighlight">\(\pm\)</span>  1,831</p></td>
+</tr>
+<tr class="row-odd"><td><p>ny.201804</p></td>
+<td><p>161,443</p></td>
+<td><p>22,201 <span class="math notranslate nohighlight">\(\pm\)</span>   194</p></td>
+<td><p>453,705 <span class="math notranslate nohighlight">\(\pm\)</span>  3,697</p></td>
+</tr>
+<tr class="row-even"><td><p>ny.201805</p></td>
+<td><p>323,375</p></td>
+<td><p>54,365 <span class="math notranslate nohighlight">\(\pm\)</span>   538</p></td>
+<td><p>470,771 <span class="math notranslate nohighlight">\(\pm\)</span>  5,337</p></td>
+</tr>
+<tr class="row-odd"><td><p>ny.201806</p></td>
+<td><p>305,971</p></td>
+<td><p>49,876 <span class="math notranslate nohighlight">\(\pm\)</span> 1,091</p></td>
+<td><p>481,443 <span class="math notranslate nohighlight">\(\pm\)</span>  6,981</p></td>
+</tr>
+<tr class="row-even"><td><p>ny.201807</p></td>
+<td><p>254,715</p></td>
+<td><p>46,199 <span class="math notranslate nohighlight">\(\pm\)</span>   204</p></td>
+<td><p>483,788 <span class="math notranslate nohighlight">\(\pm\)</span>    982</p></td>
+</tr>
+<tr class="row-odd"><td><p>ny.201808</p></td>
+<td><p>302,589</p></td>
+<td><p>53,679 <span class="math notranslate nohighlight">\(\pm\)</span>   433</p></td>
+<td><p>485,137 <span class="math notranslate nohighlight">\(\pm\)</span>  2,557</p></td>
+</tr>
+<tr class="row-even"><td><p>ny.201809</p></td>
+<td><p>313,002</p></td>
+<td><p>61,432 <span class="math notranslate nohighlight">\(\pm\)</span>    75</p></td>
+<td><p>474,851 <span class="math notranslate nohighlight">\(\pm\)</span>  2,908</p></td>
+</tr>
+<tr class="row-odd"><td><p>ny.201810</p></td>
+<td><p>339,268</p></td>
+<td><p>64,269 <span class="math notranslate nohighlight">\(\pm\)</span>   600</p></td>
+<td><p>461,928 <span class="math notranslate nohighlight">\(\pm\)</span>  1,018</p></td>
+</tr>
+<tr class="row-even"><td><p>ny.201811</p></td>
+<td><p>263,227</p></td>
+<td><p>40,440 <span class="math notranslate nohighlight">\(\pm\)</span>   239</p></td>
+<td><p>467,050 <span class="math notranslate nohighlight">\(\pm\)</span>  6,595</p></td>
+</tr>
+<tr class="row-odd"><td><p>ny.201812</p></td>
+<td><p>209,102</p></td>
+<td><p>26,067 <span class="math notranslate nohighlight">\(\pm\)</span>   234</p></td>
+<td><p>457,173 <span class="math notranslate nohighlight">\(\pm\)</span>  6,444</p></td>
+</tr>
+</tbody>
+</table>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<table class="table">
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Topology</p></th>
+<th class="head"><p>Total Requirement</p></th>
+<th class="head"><p>Resource Shortage</p></th>
+<th class="head"><p>Repositioning Number</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>ny.201901</p></td>
+<td><p>161,474</p></td>
+<td><p>19,295 <span class="math notranslate nohighlight">\(\pm\)</span>   155</p></td>
+<td><p>444,445 <span class="math notranslate nohighlight">\(\pm\)</span>  2,287</p></td>
+</tr>
+<tr class="row-odd"><td><p>ny.201902</p></td>
+<td><p>187,354</p></td>
+<td><p>23,875 <span class="math notranslate nohighlight">\(\pm\)</span>   282</p></td>
+<td><p>456,888 <span class="math notranslate nohighlight">\(\pm\)</span>    362</p></td>
+</tr>
+<tr class="row-even"><td><p>ny.201903</p></td>
+<td><p>148,371</p></td>
+<td><p>12,451 <span class="math notranslate nohighlight">\(\pm\)</span>   312</p></td>
+<td><p>409,226 <span class="math notranslate nohighlight">\(\pm\)</span>  5,392</p></td>
+</tr>
+<tr class="row-odd"><td><p>ny.201904</p></td>
+<td><p>280,852</p></td>
+<td><p>29,591 <span class="math notranslate nohighlight">\(\pm\)</span>   170</p></td>
+<td><p>464,671 <span class="math notranslate nohighlight">\(\pm\)</span>  6,148</p></td>
+</tr>
+<tr class="row-even"><td><p>ny.201905</p></td>
+<td><p>287,290</p></td>
+<td><p>44,199 <span class="math notranslate nohighlight">\(\pm\)</span>   542</p></td>
+<td><p>485,077 <span class="math notranslate nohighlight">\(\pm\)</span>  6,140</p></td>
+</tr>
+<tr class="row-odd"><td><p>ny.201906</p></td>
+<td><p>379,415</p></td>
+<td><p>51,396 <span class="math notranslate nohighlight">\(\pm\)</span>   256</p></td>
+<td><p>503,503 <span class="math notranslate nohighlight">\(\pm\)</span>  4,742</p></td>
+</tr>
+<tr class="row-even"><td><p>ny.201907</p></td>
+<td><p>309,365</p></td>
+<td><p>33,861 <span class="math notranslate nohighlight">\(\pm\)</span>   643</p></td>
+<td><p>500,443 <span class="math notranslate nohighlight">\(\pm\)</span>  4,314</p></td>
+</tr>
+<tr class="row-odd"><td><p>ny.201908</p></td>
+<td><p>371,969</p></td>
+<td><p>51,319 <span class="math notranslate nohighlight">\(\pm\)</span>   417</p></td>
+<td><p>516,684 <span class="math notranslate nohighlight">\(\pm\)</span>  1,400</p></td>
+</tr>
+<tr class="row-even"><td><p>ny.201909</p></td>
+<td><p>344,847</p></td>
+<td><p>34,532 <span class="math notranslate nohighlight">\(\pm\)</span>   466</p></td>
+<td><p>476,965 <span class="math notranslate nohighlight">\(\pm\)</span>  3,932</p></td>
+</tr>
+<tr class="row-odd"><td><p>ny.201910</p></td>
+<td><p>351,855</p></td>
+<td><p>37,828 <span class="math notranslate nohighlight">\(\pm\)</span>   502</p></td>
+<td><p>496,135 <span class="math notranslate nohighlight">\(\pm\)</span>  4,167</p></td>
+</tr>
+<tr class="row-even"><td><p>ny.201911</p></td>
+<td><p>324,327</p></td>
+<td><p>34,745 <span class="math notranslate nohighlight">\(\pm\)</span>   427</p></td>
+<td><p>484,599 <span class="math notranslate nohighlight">\(\pm\)</span>  8,771</p></td>
+</tr>
+<tr class="row-odd"><td><p>ny.201912</p></td>
+<td><p>184,015</p></td>
+<td><p>20,119 <span class="math notranslate nohighlight">\(\pm\)</span>   110</p></td>
+<td><p>437,311 <span class="math notranslate nohighlight">\(\pm\)</span>  5,936</p></td>
+</tr>
+</tbody>
+</table>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<table class="table">
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Topology</p></th>
+<th class="head"><p>Total Requirement</p></th>
+<th class="head"><p>Resource Shortage</p></th>
+<th class="head"><p>Repositioning Number</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>ny.202001</p></td>
+<td><p>169,304</p></td>
+<td><p>17,152 <span class="math notranslate nohighlight">\(\pm\)</span>   218</p></td>
+<td><p>476,821 <span class="math notranslate nohighlight">\(\pm\)</span>  1,052</p></td>
+</tr>
+<tr class="row-odd"><td><p>ny.202002</p></td>
+<td><p>206,105</p></td>
+<td><p>24,223 <span class="math notranslate nohighlight">\(\pm\)</span>   209</p></td>
+<td><p>480,012 <span class="math notranslate nohighlight">\(\pm\)</span>  1,547</p></td>
+</tr>
+<tr class="row-even"><td><p>ny.202003</p></td>
+<td><p>235,986</p></td>
+<td><p>23,749 <span class="math notranslate nohighlight">\(\pm\)</span>   654</p></td>
+<td><p>458,536 <span class="math notranslate nohighlight">\(\pm\)</span>  1,457</p></td>
+</tr>
+<tr class="row-odd"><td><p>ny.202004</p></td>
+<td><p>91,810</p></td>
+<td><p>3,349 <span class="math notranslate nohighlight">\(\pm\)</span>    48</p></td>
+<td><p>326,817 <span class="math notranslate nohighlight">\(\pm\)</span>  3.131</p></td>
+</tr>
+<tr class="row-even"><td><p>ny.202005</p></td>
+<td><p>169,412</p></td>
+<td><p>10,177 <span class="math notranslate nohighlight">\(\pm\)</span>   216</p></td>
+<td><p>378,038 <span class="math notranslate nohighlight">\(\pm\)</span>  2,429</p></td>
+</tr>
+<tr class="row-odd"><td><p>ny.202006</p></td>
+<td><p>197,883</p></td>
+<td><p>11,741 <span class="math notranslate nohighlight">\(\pm\)</span>   170</p></td>
+<td><p>349,932 <span class="math notranslate nohighlight">\(\pm\)</span>  4,375</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="section" id="quick-start">
+<h2>Quick Start<a class="headerlink" href="#quick-start" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="data-preparation">
+<h3>Data Preparation<a class="headerlink" href="#data-preparation" title="Permalink to this headline">¶</a></h3>
+<p>To start the simulation of Citi Bike scenario, users have two options for the data preparation:</p>
+<ul class="simple">
+<li><p>If the topology data is not generated in advance, the system will automatically download and
+process the relevant data when the environment is created. The data will be stored in a
+temporary folder and be automatically deleted after the experiment.</p></li>
+<li><p>Before creating the environment, users can also manually download and generate relevant data.
+This approach will save you a lot of time if you need to conduct several experiments on the
+same topology. Therefore, we encourage you to generate the relevant data manually first.</p></li>
+</ul>
+<p>The following is the introduction to related commands:</p>
+<div class="section" id="environment-list-command">
+<h4>Environment List Command<a class="headerlink" href="#environment-list-command" title="Permalink to this headline">¶</a></h4>
+<p>The data environment <code class="docutils literal notranslate"><span class="pre">list</span></code> command is used to list the environments that need the
+data files generated before the simulation.</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>maro env data list
+
+scenario: citi_bike, topology: ny.201801
+scenario: citi_bike, topology: ny.201802
+scenario: citi_bike, topology: ny.201803
+scenario: citi_bike, topology: ny.201804
+scenario: citi_bike, topology: ny.201805
+scenario: citi_bike, topology: ny.201806
+...
+</pre></div>
+</div>
+</div>
+<div class="section" id="generate-command">
+<h4>Generate Command<a class="headerlink" href="#generate-command" title="Permalink to this headline">¶</a></h4>
+<p>The data <code class="docutils literal notranslate"><span class="pre">generate</span></code> command is used to automatically download and build the specified
+predefined scenario and topology data files for the simulation. Currently, there
+are three arguments for the data <code class="docutils literal notranslate"><span class="pre">generate</span></code> command:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">-s</span></code>: required, used to specify the predefined scenario. Valid scenarios are
+listed in the result of <a class="reference external" href="#environment-list-command">environment list command</a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-t</span></code>: required, used to specify the predefined topology. Valid topologies are
+listed in the result of <a class="reference external" href="#environment-list-command">environment list command</a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-f</span></code>: optional, if set, to force to re-download and re-generate the data files
+and overwrite the already existing ones.</p></li>
+</ul>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>maro env data generate -s citi_bike -t ny.201802
+
+The data files <span class="k">for</span> citi_bike-ny201802 will <span class="k">then</span> be downloaded and deployed to ~/.maro/data/citibike/_build/ny201802.
+</pre></div>
+</div>
+<p>For the example above, the directory structure should be like:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="p">|</span>-- ~/.maro
+    <span class="p">|</span>-- data
+    <span class="p">|</span>   <span class="p">|</span>-- citi_bike
+    <span class="p">|</span>       <span class="p">|</span>-- .build          <span class="c1"># bin data file</span>
+    <span class="p">|</span>           <span class="p">|</span>-- <span class="o">[</span>topology<span class="o">]</span>  <span class="c1"># topology</span>
+    <span class="p">|</span>       <span class="p">|</span>-- .source
+    <span class="p">|</span>           <span class="p">|</span>-- .download   <span class="c1"># original data file</span>
+    <span class="p">|</span>           <span class="p">|</span>-- .clean      <span class="c1"># cleaned data file</span>
+    <span class="p">|</span>-- temp                    <span class="c1"># download temp file</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="build-command">
+<h4>Build Command<a class="headerlink" href="#build-command" title="Permalink to this headline">¶</a></h4>
+<p>The data <code class="docutils literal notranslate"><span class="pre">build</span></code> command is used to build the CSV data files to binary data
+files that the simulator needs. Currently, there are three arguments for the data
+<code class="docutils literal notranslate"><span class="pre">build</span></code> command:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--meta</span></code>: required, used to specify the path of the meta file. The source
+columns that to be converted and the data type of each columns should be
+specified in the meta file.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--file</span></code>: required, used to specify the path of the source CSV data file(s).
+If multiple source CSV data files are needed, you can list all the full paths of
+the source files in a specific file and use a <code class="docutils literal notranslate"><span class="pre">&#64;</span></code> symbol to specify it.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--output</span></code>: required, used to specify the path of the target binary file.</p></li>
+</ul>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>maro data build --meta ~/.maro/data/citibike/meta/trips.yml --file ~/.maro/data/citibike/source/_clean/ny201801/trip.csv --output ~/.maro/data/citibike/_build/ny201801/trip.bin
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="environment-interface">
+<h3>Environment Interface<a class="headerlink" href="#environment-interface" title="Permalink to this headline">¶</a></h3>
+<p>Before starting interaction with the environment, we need to know the definition
+of <code class="docutils literal notranslate"><span class="pre">DecisionEvent</span></code> and <code class="docutils literal notranslate"><span class="pre">Action</span></code> in Citi Bike scenario first. Besides, you can query
+the environment <a class="reference external" href="../key_components/data_model.html#advanced-features">snapshot list</a>
+to get more detailed information for the decision making.</p>
+<div class="section" id="id4">
+<h4>DecisionEvent<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h4>
+<p>Once the environment need the agent’s response to reposition bikes, it will
+throw an <code class="docutils literal notranslate"><span class="pre">DecisionEvent</span></code>. In the scenario of Citi Bike, the information of each
+<code class="docutils literal notranslate"><span class="pre">DecisionEvent</span></code> is listed as below:</p>
+<ul class="simple">
+<li><p><strong>station_idx</strong> (int): The id of the station/agent that needs to respond to the
+environment.</p></li>
+<li><p><strong>tick</strong> (int): The corresponding tick.</p></li>
+<li><p><strong>frame_index</strong> (int): The corresponding frame index, that is the index of the
+corresponding snapshot in the environment snapshot list.</p></li>
+<li><p><strong>type</strong> (DecisionType): The decision type of this decision event. In Citi Bike
+scenario, there are 2 types:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">Supply</span></code> indicates there is too many bikes in the corresponding station, so
+it is better to reposition some of them to other stations.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Demand</span></code> indicates there is no enough bikes in the corresponding station, so
+it is better to reposition bikes from other stations.</p></li>
+</ul>
+</li>
+<li><p><strong>action_scope</strong> (dict): A dictionary that maintains the information for
+calculating the valid action scope:</p>
+<ul>
+<li><p>The key of these item indicate the station/agent ids.</p></li>
+<li><p>The meaning of the value differs for different decision type:</p>
+<ul>
+<li><p>If the decision type is <code class="docutils literal notranslate"><span class="pre">Supply</span></code>, the value of the station itself means its
+bike inventory at that moment, while the value of other target stations means
+the number of their empty docks.</p></li>
+<li><p>If the decision type is <code class="docutils literal notranslate"><span class="pre">Demand</span></code>, the value of the station itself means the
+number of its empty docks, while the value of other target stations means
+their bike inventory.</p></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="action">
+<h4>Action<a class="headerlink" href="#action" title="Permalink to this headline">¶</a></h4>
+<p>Once we get a <code class="docutils literal notranslate"><span class="pre">DecisionEvent</span></code> from the environment, we should respond with an
+<code class="docutils literal notranslate"><span class="pre">Action</span></code>. Valid <code class="docutils literal notranslate"><span class="pre">Action</span></code> could be:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">None</span></code>, which means do nothing.</p></li>
+<li><p>A valid <code class="docutils literal notranslate"><span class="pre">Action</span></code> instance, including:</p>
+<ul>
+<li><p><strong>from_station_idx</strong> (int): The id of the source station of the bike
+transportation.</p></li>
+<li><p><strong>to_station_idx</strong> (int): The id of the destination station of the bike
+transportation.</p></li>
+<li><p><strong>number</strong> (int): The quantity of the bike transportation.</p></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="example">
+<h3>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h3>
+<p>Here we will show you a simple example of interaction with the environment in
+random mode, we hope this could help you learn how to use the environment interfaces:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">maro.simulator</span> <span class="kn">import</span> <span class="n">Env</span>
+<span class="kn">from</span> <span class="nn">maro.simulator.scenarios.citi_bike.common</span> <span class="kn">import</span> <span class="n">Action</span><span class="p">,</span> <span class="n">DecisionEvent</span><span class="p">,</span> <span class="n">DecisionType</span>
+
+<span class="kn">import</span> <span class="nn">random</span>
+
+<span class="c1"># Initialize an environment of Citi Bike scenario, with a specific topology.</span>
+<span class="c1"># In CitiBike, 1 tick means 1 minute, durations=1440 here indicates a length of 1 day.</span>
+<span class="c1"># In CitiBike, one snapshot will be maintained every snapshot_resolution ticks,</span>
+<span class="c1"># snapshot_resolution=30 here indicates 1 snapshot per 30 minutes.</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">Env</span><span class="p">(</span><span class="n">scenario</span><span class="o">=</span><span class="s2">&quot;citi_bike&quot;</span><span class="p">,</span> <span class="n">topology</span><span class="o">=</span><span class="s2">&quot;toy.3s_4t&quot;</span><span class="p">,</span> <span class="n">start_tick</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">durations</span><span class="o">=</span><span class="mi">1440</span><span class="p">,</span> <span class="n">snapshot_resolution</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+
+<span class="c1"># Query for the environment summary, the business instances and intra-instance attributes</span>
+<span class="c1"># will be listed in the output for your reference.</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">summary</span><span class="p">)</span>
+
+<span class="n">metrics</span><span class="p">:</span> <span class="nb">object</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="n">decision_event</span><span class="p">:</span> <span class="n">DecisionEvent</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="n">is_done</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="n">action</span><span class="p">:</span> <span class="n">Action</span> <span class="o">=</span> <span class="kc">None</span>
+
+<span class="n">num_episode</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="k">for</span> <span class="n">ep</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_episode</span><span class="p">):</span>
+    <span class="c1"># Gym-like step function.</span>
+    <span class="n">metrics</span><span class="p">,</span> <span class="n">decision_event</span><span class="p">,</span> <span class="n">is_done</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">while</span> <span class="ow">not</span> <span class="n">is_done</span><span class="p">:</span>
+        <span class="n">past_2hour_frames</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">decision_event</span><span class="o">.</span><span class="n">frame_index</span> <span class="o">-</span> <span class="mi">4</span><span class="p">,</span> <span class="n">decision_event</span><span class="o">.</span><span class="n">frame_index</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="n">decision_station_idx</span> <span class="o">=</span> <span class="n">decision_event</span><span class="o">.</span><span class="n">station_idx</span>
+        <span class="n">intr_station_infos</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;trip_requirement&quot;</span><span class="p">,</span> <span class="s2">&quot;bikes&quot;</span><span class="p">,</span> <span class="s2">&quot;shortage&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Query the snapshot list of this environment to get the information of</span>
+        <span class="c1"># the trip requirements, bikes, shortage of the decision station in the past 2 hours.</span>
+        <span class="n">past_2hour_info</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">snapshot_list</span><span class="p">[</span><span class="s2">&quot;stations&quot;</span><span class="p">][</span>
+            <span class="n">past_2hour_frames</span> <span class="p">:</span> <span class="n">decision_station_idx</span> <span class="p">:</span> <span class="n">intr_station_infos</span>
+        <span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">decision_event</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">DecisionType</span><span class="o">.</span><span class="n">Supply</span><span class="p">:</span>
+            <span class="c1"># Supply: the value of the station itself means the bike inventory.</span>
+            <span class="n">self_bike_inventory</span> <span class="o">=</span> <span class="n">decision_event</span><span class="o">.</span><span class="n">action_scope</span><span class="p">[</span><span class="n">decision_event</span><span class="o">.</span><span class="n">station_idx</span><span class="p">]</span>
+            <span class="c1"># Supply: the value of other stations means the quantity of empty docks.</span>
+            <span class="n">target_idx_dock_tuple_list</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">decision_event</span><span class="o">.</span><span class="n">action_scope</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="n">decision_event</span><span class="o">.</span><span class="n">station_idx</span>
+            <span class="p">]</span>
+            <span class="c1"># Randomly choose a target station weighted by the quantity of empty docks.</span>
+            <span class="n">target_idx</span><span class="p">,</span> <span class="n">target_dock</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choices</span><span class="p">(</span>
+                <span class="n">target_idx_dock_tuple_list</span><span class="p">,</span>
+                <span class="n">weights</span><span class="o">=</span><span class="p">[</span><span class="n">item</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">target_idx_dock_tuple_list</span><span class="p">],</span>
+                <span class="n">k</span><span class="o">=</span><span class="mi">1</span>
+            <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="c1"># Generate the corresponding random Action.</span>
+            <span class="n">action</span> <span class="o">=</span> <span class="n">Action</span><span class="p">(</span>
+                <span class="n">from_station_idx</span><span class="o">=</span><span class="n">decision_event</span><span class="o">.</span><span class="n">station_idx</span><span class="p">,</span>
+                <span class="n">to_station_idx</span><span class="o">=</span><span class="n">target_idx</span><span class="p">,</span>
+                <span class="n">number</span><span class="o">=</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">self_bike_inventory</span><span class="p">,</span> <span class="n">target_dock</span><span class="p">))</span>
+            <span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">decision_event</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">DecisionType</span><span class="o">.</span><span class="n">Demand</span><span class="p">:</span>
+            <span class="c1"># Demand: the value of the station itself means the quantity of empty docks.</span>
+            <span class="n">self_available_dock</span> <span class="o">=</span> <span class="n">decision_event</span><span class="o">.</span><span class="n">action_scope</span><span class="p">[</span><span class="n">decision_event</span><span class="o">.</span><span class="n">station_idx</span><span class="p">]</span>
+            <span class="c1"># Demand: the value of other stations means their bike inventory.</span>
+            <span class="n">target_idx_inventory_tuple_list</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">decision_event</span><span class="o">.</span><span class="n">action_scope</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="n">decision_event</span><span class="o">.</span><span class="n">station_idx</span>
+            <span class="p">]</span>
+            <span class="c1"># Randomly choose a target station weighted by the bike inventory.</span>
+            <span class="n">target_idx</span><span class="p">,</span> <span class="n">target_inventory</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choices</span><span class="p">(</span>
+                <span class="n">target_idx_inventory_tuple_list</span><span class="p">,</span>
+                <span class="n">weights</span><span class="o">=</span><span class="p">[</span><span class="n">item</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">target_idx_inventory_tuple_list</span><span class="p">],</span>
+                <span class="n">k</span><span class="o">=</span><span class="mi">1</span>
+            <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="c1"># Generate the corresponding random Action.</span>
+            <span class="n">action</span> <span class="o">=</span> <span class="n">Action</span><span class="p">(</span>
+                <span class="n">from_station_idx</span><span class="o">=</span><span class="n">target_idx</span><span class="p">,</span>
+                <span class="n">to_station_idx</span><span class="o">=</span><span class="n">decision_event</span><span class="o">.</span><span class="n">station_idx</span><span class="p">,</span>
+                <span class="n">number</span><span class="o">=</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">self_available_dock</span><span class="p">,</span> <span class="n">target_inventory</span><span class="p">))</span>
+            <span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">action</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Drive the environment with the random action.</span>
+        <span class="n">metrics</span><span class="p">,</span> <span class="n">decision_event</span><span class="p">,</span> <span class="n">is_done</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
+
+    <span class="c1"># Query for the environment business metrics at the end of each episode,</span>
+    <span class="c1"># it is usually users&#39; optimized object (usually includes multi-target).</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ep: </span><span class="si">{</span><span class="n">ep</span><span class="si">}</span><span class="s2">, environment metrics: </span><span class="si">{</span><span class="n">env</span><span class="o">.</span><span class="n">metrics</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Jump to <a class="reference external" href="https://github.com/microsoft/maro/tree/master/notebooks/bike_repositioning/interact_with_environment.ipynb">this notebook</a>
+for a quick experience.</p>
+</div>
+</div>
+<div class="section" id="visualization">
+<h2>Visualization<a class="headerlink" href="#visualization" title="Permalink to this headline">¶</a></h2>
+<p>The resource holder in this scenario is the bike station.
+The number of epoches is varied based on selected strategy.
+Currently, we generate result with Greedy Policy.
+Only one epoch is included in result. Thus, inter-epoch view
+would not be displayed.</p>
+<div class="section" id="inter-epoch-view">
+<h3>Inter-epoch view<a class="headerlink" href="#inter-epoch-view" title="Permalink to this headline">¶</a></h3>
+<p>This part display cross-epoch summary information. User could select
+the Start Epoch and End Epoch, as well as Epoch Sampling Ratio. Since
+there is only one epoch, this part is hidden.</p>
+</div>
+<div class="section" id="intra-epoch-view">
+<h3>Intra-epoch view<a class="headerlink" href="#intra-epoch-view" title="Permalink to this headline">¶</a></h3>
+<p>Intra-view is divided into two dimensions according to time and space.</p>
+<p>If user choose to view information by station, it means that attributes
+of all snapshots within a selected station would be displayed. By
+changing the option “station index”, user could view data of different
+stations. By changing the option “Snapshot Sampling Ratio”, Users can
+freely adjust the sampling rate. For example, if there are 100 snapshots
+and user selected 0.3 as sampling ratio, 30 snapshots data would be
+selected to render the chart.</p>
+<img alt="citi_bike_intra_epoch_by_station" src="../_images/citi_bike_intra_epoch_by_station.gif" />
+<p>To be specific, the line chart could be customized with operations in
+the following example.</p>
+<p>By choosing the item “All”, all of attributes would be displayed. In
+addition, according to the data characteristics of each scenario, users
+will be provided with the option to quickly select a set of data.</p>
+<p>e.g. In this scenario, item “Requirement Info” refers to
+[trip_requirement, shortage, fulfillment].</p>
+<img alt="citi_bike_intra_epoch_by_station_2" src="../_images/citi_bike_intra_epoch_by_station_2.gif" />
+<p>Moreover, to improve the flexibility of visualizing data, user could use
+pre-defined formula and selected attributes to generate new attributes.
+Generated attributes would be treated in the same way as original
+attributes.</p>
+<img alt="citi_bike_intra_epoch_by_station_3" src="../_images/citi_bike_intra_epoch_by_station_3.gif" />
+<p>If user choose to view information by snapshot, it means attributes of
+all stations within a selected snapshot would be displayed. By changing
+option “snapshot index”, user could view data of different snapshot. By
+changing option “Station Sampling Ratio”, user could change the number
+of sampled data.</p>
+<p>Particularly, if user want to check the name of a specific station,
+just hovering on the according bar.</p>
+<img alt="citi_bike_intra_epoch_by_snapshot" src="../_images/citi_bike_intra_epoch_by_snapshot.gif" />
+</div>
+</div>
+</div>
+
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+    <a class='left-prev' id="prev-link" href="container_inventory_management.html" title="previous page">Container Inventory Management (CIM)</a>
+    <a class='right-next' id="next-link" href="vm_scheduling.html" title="next page">Virtual Machine Scheduling (VM Scheduling)</a>
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../_static/js/index.js"></script>
+    
+  </body>
+</html>

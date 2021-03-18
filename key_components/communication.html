@@ -1,0 +1,577 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distributed Communication &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Distributed Orchestration" href="orchestration.html" />
+    <link rel="prev" title="Distributed Toolkit" href="distributed_toolkit.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../index.html">
+  
+  <img src="../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="current nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1 current active">
+  <a class="current reference internal" href="#">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../apidoc/maro.html">
+   maro package
+  </a>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+        
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="../_sources/key_components/communication.rst.txt"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.rst</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2Fkey_components/communication.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        <a class="edit-button" href="https://github.com/microsoft/maro/edit/master/doc/source/key_components/communication.rst"><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Edit this page"><i class="fas fa-pencil-alt"></i>suggest edit</button></a>
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <div class="tocsection onthispage pt-5 pb-3">
+            <i class="fas fa-list"></i> Contents
+        </div>
+        <nav id="bd-toc-nav">
+            <ul class="nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#proxy">
+   Proxy
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#message">
+     Message
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#session-message">
+     Session Message
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#communication-primitives">
+     Communication Primitives
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#id1">
+   Conditional Event Register Table
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#distributed-decorator">
+   Distributed Decorator
+  </a>
+ </li>
+</ul>
+
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <div class="section" id="distributed-communication">
+<h1>Distributed Communication<a class="headerlink" href="#distributed-communication" title="Permalink to this headline">¶</a></h1>
+<p>The distributed communication component provides a general message passing mechanism,
+which is used to build various communication topologies in the distributed environment.
+Besides the essential communication primitive supporting, it also provides the functions of
+peer discovering, fault recovering (partially), conditional event auto-dispatching, etc.</p>
+<div class="section" id="proxy">
+<h2>Proxy<a class="headerlink" href="#proxy" title="Permalink to this headline">¶</a></h2>
+<p>Providing an implementation of the communication primitives, proxy is the primary entity
+of the communication component. Proxy provides a uniformed communication interface,
+the underlying driver is pluggable based on the real requirements.
+Currently, we use <a class="reference external" href="https://zeromq.org/">ZeroMQ</a> as the default choice.
+Proxy also provides support for peer discovering based on <a class="reference external" href="https://redis.io/">Redis</a>.</p>
+<a class="reference external image-reference" href="../images/distributed/proxy.svg"><img alt="Proxy" src="../_images/proxy.svg" /></a>
+<div class="section" id="message">
+<h3>Message<a class="headerlink" href="#message" title="Permalink to this headline">¶</a></h3>
+<p>Message is designed for general purpose,
+it is used to package the communication content between components.
+The main attributes of a message instance include:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">tag</span></code>: A customized attribute, it can be used to implement the auto-dispatching logic
+with a <a class="reference external" href="#conditional-event-register-table">conditional event register table</a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">source</span></code>: The alias of the message sender.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">destination</span></code>: The alias of the message receiver.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">payload</span></code>: A Python object for remote function call.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">session_id</span></code> (auto-generated): UUID of a specific session,
+one session may include multiple messages.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">message_id</span></code> (auto-generated): UUID of a specific message.</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">maro.communication</span> <span class="kn">import</span> <span class="n">Message</span>
+
+<span class="n">message</span> <span class="o">=</span> <span class="n">Message</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="s2">&quot;check_in&quot;</span><span class="p">,</span>
+                  <span class="n">source</span><span class="o">=</span><span class="s2">&quot;worker_001&quot;</span><span class="p">,</span>
+                  <span class="n">destination</span><span class="o">=</span><span class="s2">&quot;master&quot;</span><span class="p">,</span>
+                  <span class="n">payload</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="session-message">
+<h3>Session Message<a class="headerlink" href="#session-message" title="Permalink to this headline">¶</a></h3>
+<p>We provide two kinds of predefined session types for common distributed scenarios:</p>
+<ul class="simple">
+<li><p><strong>Task Session</strong>: It is used to describe a computing task sent from master to worker.
+Three stages are included:</p>
+<ol class="arabic simple">
+<li><p>The master sends the task request(s) to the worker(s);</p></li>
+<li><p>Once the worker(s) receiving the task(s), the worker(s) start to finish the task(s);</p></li>
+<li><p>The worker(s) return the computing result(s) to the master.</p></li>
+</ol>
+</li>
+<li><p><strong>Notification Session</strong>: It is used for information syncing and only includes two stages:</p>
+<ol class="arabic simple">
+<li><p>The sender sends out the notification message;</p></li>
+<li><p>The receiver(s) receive the notification message.</p></li>
+</ol>
+</li>
+</ul>
+<p>The stages of each session are maintained internally by the proxy.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">maro.communication</span> <span class="kn">import</span> <span class="n">SessionMessage</span><span class="p">,</span> <span class="n">SessionType</span>
+
+<span class="n">task_message</span> <span class="o">=</span> <span class="n">SessionMessage</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="s2">&quot;sum&quot;</span><span class="p">,</span>
+                              <span class="n">source</span><span class="o">=</span><span class="s2">&quot;master&quot;</span><span class="p">,</span>
+                              <span class="n">destination</span><span class="o">=</span><span class="s2">&quot;worker_001&quot;</span><span class="p">,</span>
+                              <span class="n">payload</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
+                              <span class="n">session_type</span><span class="o">=</span><span class="n">SessionType</span><span class="o">.</span><span class="n">TASK</span><span class="p">)</span>
+
+<span class="n">notification_message</span> <span class="o">=</span> <span class="n">SessionMessage</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="s2">&quot;check_out&quot;</span><span class="p">,</span>
+                                      <span class="n">source</span><span class="o">=</span><span class="s2">&quot;worker_001&quot;</span><span class="p">,</span>
+                                      <span class="n">destination</span><span class="o">=</span><span class="s2">&quot;master&quot;</span><span class="p">,</span>
+                                      <span class="n">payload</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+                                      <span class="n">session_type</span><span class="o">=</span><span class="n">SessionType</span><span class="o">.</span><span class="n">NOTIFICATION</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="communication-primitives">
+<h3>Communication Primitives<a class="headerlink" href="#communication-primitives" title="Permalink to this headline">¶</a></h3>
+<p>Proxy provides a set of general-purpose communication primitives that support
+both blocking and non-blocking cases. These primitives are decoupled from
+the underlying implementation of the communication driver (protocol).
+The main primitives are listed below:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">send</span></code>: Unicast. It is a blocking, one-to-one sending mode.
+It will watch and collect the reply message from the remote peer.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">isend</span></code>: The non-blocking version of the <code class="docutils literal notranslate"><span class="pre">send</span></code>.
+A message session ID will be immediately returned, which can be used by <code class="docutils literal notranslate"><span class="pre">receive_by_id</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">scatter</span></code>: An advanced version of <code class="docutils literal notranslate"><span class="pre">send</span></code>. Is is used to send message(s) to peer(s)
+and watch and collect reply message(s) from the peer(s).
+<code class="docutils literal notranslate"><span class="pre">scatter</span></code> is not a real multi-cast, each message will go through the full TCP/IP
+stack (ZeroMQ driver). If the message you want to send is completely same and
+you want better performance, use the <code class="docutils literal notranslate"><span class="pre">broadcast</span></code> interface instead.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">iscatter</span></code>: The non-blocking version of the <code class="docutils literal notranslate"><span class="pre">scatter</span></code>. The related messages
+session ID(s) will be returned immediately, which can be used by <code class="docutils literal notranslate"><span class="pre">receive_by_id</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">broadcast</span></code>: A blocking function call which is used to broadcast the message
+to all subscribers, it will watch and collect all subscribers’ reply messages.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ibroadcast</span></code>: The non-blocking version of the <code class="docutils literal notranslate"><span class="pre">broadcast</span></code>. The related messages
+session IDs will be returned immediately, which can be used by <code class="docutils literal notranslate"><span class="pre">receive_by_id</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">receive</span></code>: It is used to continually receive the message.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">receive_by_id</span></code>: It only receives the message(s) with the given session ID(s).</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="id1">
+<h2>Conditional Event Register Table<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>The conditional event register table provides a message auto-despatching mechanism.
+By registering the <code class="docutils literal notranslate"><span class="pre">conditional</span> <span class="pre">event</span></code> and related <code class="docutils literal notranslate"><span class="pre">handler</span> <span class="pre">function</span></code> to
+the register table, the handler function will be automatically executed
+with the received messages when the event conditions are met.</p>
+<a class="reference external image-reference" href="../images/distributed/register_table.register.svg"><img alt="Register Table" src="../_images/register_table.register.svg" /></a>
+<p><code class="docutils literal notranslate"><span class="pre">Conditional</span> <span class="pre">event</span></code> is used to declare the required message group for
+auto-triggering the related handler function.
+The unit event is the minimal component in the conditional event,
+it follows a three-stage format: <cite>source</cite>:<cite>tag</cite>:<code class="docutils literal notranslate"><span class="pre">amount</span></code>.</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">source</span></code>: It is used to declare the required message source.
+The longest-prefix matching is supported.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">*</span></code> is used to present any sources.</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tag</span></code>: The <code class="docutils literal notranslate"><span class="pre">tag</span></code> attribute of the message instance.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">*</span></code> is used to present any tags.</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">amount</span></code>: The required message instance amount.
+Both a absolute integer and a relative percentage are valid for this field.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">%</span></code> is used to represent the relative percentages, such as 60%, 10%, etc.</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">unit_event_abs</span> <span class="o">=</span> <span class="s2">&quot;worker:update:10&quot;</span>
+
+<span class="n">unit_event_rel</span> <span class="o">=</span> <span class="s2">&quot;worker:update:60%&quot;</span>
+</pre></div>
+</div>
+</li>
+</ul>
+<p>To support more complex business logic,
+we provide two operations: <code class="docutils literal notranslate"><span class="pre">AND</span></code> and <code class="docutils literal notranslate"><span class="pre">OR</span></code> to combine unit events up:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">AND</span></code>: Valid for multiple unit events and combined unit events.
+The combined event condition is met if all the conditions of the sub-events are met.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">OR</span></code>: Valid for multiple unit events and combined unit events.
+The combined event condition is met if any sub-event meets the condition.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">combined_event_and</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;worker_01:update:2&quot;</span><span class="p">,</span>
+                      <span class="s2">&quot;worker_02:update:3&quot;</span><span class="p">,</span>
+                      <span class="s2">&quot;AND&quot;</span><span class="p">)</span>
+
+<span class="n">combined_event_or</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;worker_03:update:1&quot;</span><span class="p">,</span>
+                      <span class="s2">&quot;worker_04:update:5&quot;</span><span class="p">,</span>
+                      <span class="s2">&quot;OR&quot;</span><span class="p">)</span>
+
+<span class="n">combined_event_mix</span> <span class="o">=</span> <span class="p">((</span><span class="s2">&quot;worker_01:update:2&quot;</span><span class="p">,</span> <span class="s2">&quot;worker_02:update:3&quot;</span><span class="p">,</span> <span class="s2">&quot;AND&quot;</span><span class="p">),</span>
+                      <span class="s2">&quot;worker_03:update:1&quot;</span><span class="p">,</span>
+                      <span class="s2">&quot;OR&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">Handler</span> <span class="pre">function</span></code> is a user-defined callback function that is bind to
+a specific conditional event. When the condition of the event is met,
+the related messages will be sent to the handler function for its execution.</p>
+<a class="reference external image-reference" href="../images/distributed/register_table.trigger.svg"><img alt="Register Table" src="../_images/register_table.trigger.svg" /></a>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># A common handler function signature</span>
+<span class="k">def</span> <span class="nf">handler</span><span class="p">(</span><span class="n">that</span><span class="p">,</span> <span class="n">proxy</span><span class="p">,</span> <span class="n">messages</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Conditional event handler function.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            that: local instance reference, which needs to be operated.</span>
+<span class="sd">            proxy: the proxy reference for remote communication.</span>
+<span class="sd">            messages: received messages.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="distributed-decorator">
+<h2>Distributed Decorator<a class="headerlink" href="#distributed-decorator" title="Permalink to this headline">¶</a></h2>
+<p>Distributed decorator is a helper for generating a distributed worker class
+from a local functional class.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">maro.communication</span> <span class="kn">import</span> <span class="n">dist</span><span class="p">,</span> <span class="n">Proxy</span>
+
+<span class="c1"># Initialize proxy instance for remote communication.</span>
+<span class="n">proxy</span> <span class="o">=</span> <span class="n">Proxy</span><span class="p">(</span><span class="n">group_name</span><span class="o">=</span><span class="s2">&quot;master-worker&quot;</span><span class="p">,</span>
+              <span class="n">component_type</span><span class="o">=</span><span class="s2">&quot;worker&quot;</span><span class="p">,</span>
+              <span class="n">expected_peers</span><span class="o">=</span><span class="p">[(</span><span class="s2">&quot;master&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)])</span>
+
+<span class="c1"># Declare the trigger condition of rollout event.</span>
+<span class="n">rollout_event</span> <span class="o">=</span> <span class="s2">&quot;master:rollout:1&quot;</span>
+
+<span class="c1"># Implement rollout event handler logic.</span>
+<span class="k">def</span> <span class="nf">on_rollout</span><span class="p">(</span><span class="n">that</span><span class="p">,</span> <span class="n">proxy</span><span class="p">,</span> <span class="n">messages</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+<span class="c1"># Assemble event-handler directory.</span>
+<span class="n">handler_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">rollout_event</span><span class="p">:</span> <span class="n">on_rollout</span><span class="p">}</span>
+
+<span class="c1"># Convert a local functional class to a distributed one.</span>
+<span class="nd">@dist</span><span class="p">(</span><span class="n">proxy</span><span class="p">,</span> <span class="n">handler_dict</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">Worker</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+    <a class='left-prev' id="prev-link" href="distributed_toolkit.html" title="previous page">Distributed Toolkit</a>
+    <a class='right-next' id="next-link" href="orchestration.html" title="next page">Distributed Orchestration</a>
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../_static/js/index.js"></script>
+    
+  </body>
+</html>

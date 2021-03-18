@@ -1,0 +1,2094 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maro.backends package &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="maro.cli package" href="maro.cli.html" />
+    <link rel="prev" title="maro package" href="maro.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../index.html">
+  
+  <img src="../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="current nav sidenav_l1">
+ <li class="toctree-l1 current active">
+  <a class="reference internal" href="maro.html">
+   maro package
+  </a>
+  <ul class="current">
+   <li class="toctree-l2 current active">
+    <a class="current reference internal" href="#">
+     maro.backends package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.cli.html">
+     maro.cli package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.data_pipeline.html">
+       maro.cli.data_pipeline package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.envs.html">
+       maro.cli.envs package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.grass.html">
+       maro.cli.grass package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.grass.executors.html">
+         maro.cli.grass.executors package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.grass.utils.html">
+         maro.cli.grass.utils package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.inspector.html">
+       maro.cli.inspector package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.k8s.html">
+       maro.cli.k8s package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.k8s.executors.html">
+         maro.cli.k8s.executors package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.process.html">
+       maro.cli.process package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.process.utils.html">
+         maro.cli.process.utils package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.utils.html">
+       maro.cli.utils package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.utils.executors.html">
+         maro.cli.utils.executors package
+        </a>
+       </li>
+      </ul>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.communication.html">
+     maro.communication package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.communication.driver.html">
+       maro.communication.driver package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.communication.utils.html">
+       maro.communication.utils package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.data_lib.html">
+     maro.data_lib package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.data_lib.cim.html">
+       maro.data_lib.cim package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.event_buffer.html">
+     maro.event_buffer package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.forecasting.html">
+     maro.forecasting package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.rl.html">
+     maro.rl package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.actor.html">
+       maro.rl.actor package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.agent.html">
+       maro.rl.agent package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.algorithms.html">
+       maro.rl.algorithms package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.dist_topologies.html">
+       maro.rl.dist_topologies package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.exploration.html">
+       maro.rl.exploration package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.learner.html">
+       maro.rl.learner package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.models.html">
+       maro.rl.models package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.scheduling.html">
+       maro.rl.scheduling package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.shaping.html">
+       maro.rl.shaping package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.storage.html">
+       maro.rl.storage package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.simulator.html">
+     maro.simulator package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.simulator.scenarios.html">
+       maro.simulator.scenarios package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.cim.html">
+         maro.simulator.scenarios.cim package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.citi_bike.html">
+         maro.simulator.scenarios.citi_bike package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.vm_scheduling.html">
+         maro.simulator.scenarios.vm_scheduling package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.simulator.utils.html">
+       maro.simulator.utils package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.utils.html">
+     maro.utils package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.utils.exception.html">
+       maro.utils.exception package
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+        
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="../_sources/apidoc/maro.backends.rst.txt"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.rst</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2Fapidoc/maro.backends.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        <a class="edit-button" href="https://github.com/microsoft/maro/edit/master/doc/source/apidoc/maro.backends.rst"><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Edit this page"><i class="fas fa-pencil-alt"></i>suggest edit</button></a>
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <div class="tocsection onthispage pt-5 pb-3">
+            <i class="fas fa-list"></i> Contents
+        </div>
+        <nav id="bd-toc-nav">
+            <ul class="nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#submodules">
+   Submodules
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.backends.backend">
+   maro.backends.backend module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#id1">
+   maro.backends.backend module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.backends.frame">
+   maro.backends.frame module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#id15">
+   maro.backends.frame module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.backends.np_backend">
+   maro.backends.np_backend module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#id38">
+   maro.backends.np_backend module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.backends.raw_backend">
+   maro.backends.raw_backend module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#id54">
+   maro.backends.raw_backend module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.backends">
+   Module contents
+  </a>
+ </li>
+</ul>
+
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <div class="section" id="maro-backends-package">
+<h1>maro.backends package<a class="headerlink" href="#maro-backends-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-maro.backends.backend">
+<span id="maro-backends-backend-module"></span><h2>maro.backends.backend module<a class="headerlink" href="#module-maro.backends.backend" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.backends.backend.AttributeType">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.backend.</code><code class="sig-name descname">AttributeType</code><a class="headerlink" href="#maro.backends.backend.AttributeType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt id="maro.backends.backend.AttributeType.Byte">
+<code class="sig-name descname">Byte</code><em class="property"> = b'byte'</em><a class="headerlink" href="#maro.backends.backend.AttributeType.Byte" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.backends.backend.AttributeType.Double">
+<code class="sig-name descname">Double</code><em class="property"> = b'double'</em><a class="headerlink" href="#maro.backends.backend.AttributeType.Double" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.backends.backend.AttributeType.Float">
+<code class="sig-name descname">Float</code><em class="property"> = b'float'</em><a class="headerlink" href="#maro.backends.backend.AttributeType.Float" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.backends.backend.AttributeType.Int">
+<code class="sig-name descname">Int</code><em class="property"> = b'int'</em><a class="headerlink" href="#maro.backends.backend.AttributeType.Int" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.backends.backend.AttributeType.Long">
+<code class="sig-name descname">Long</code><em class="property"> = b'long'</em><a class="headerlink" href="#maro.backends.backend.AttributeType.Long" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.backends.backend.AttributeType.Short">
+<code class="sig-name descname">Short</code><em class="property"> = b'short'</em><a class="headerlink" href="#maro.backends.backend.AttributeType.Short" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.backends.backend.AttributeType.UByte">
+<code class="sig-name descname">UByte</code><em class="property"> = b'ubyte'</em><a class="headerlink" href="#maro.backends.backend.AttributeType.UByte" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.backends.backend.AttributeType.UInt">
+<code class="sig-name descname">UInt</code><em class="property"> = b'uint'</em><a class="headerlink" href="#maro.backends.backend.AttributeType.UInt" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.backends.backend.AttributeType.ULong">
+<code class="sig-name descname">ULong</code><em class="property"> = b'ulong'</em><a class="headerlink" href="#maro.backends.backend.AttributeType.ULong" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.backends.backend.AttributeType.UShort">
+<code class="sig-name descname">UShort</code><em class="property"> = b'ushort'</em><a class="headerlink" href="#maro.backends.backend.AttributeType.UShort" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.backends.backend.BackendAbc">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.backend.</code><code class="sig-name descname">BackendAbc</code><a class="headerlink" href="#maro.backends.backend.BackendAbc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt id="maro.backends.backend.BackendAbc.snapshots">
+<code class="sig-name descname">snapshots</code><a class="headerlink" href="#maro.backends.backend.BackendAbc.snapshots" title="Permalink to this definition">¶</a></dt>
+<dd><p>maro.backends.backend.SnapshotListAbc</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>snapshots</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.backends.backend.SnapshotListAbc">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.backend.</code><code class="sig-name descname">SnapshotListAbc</code><a class="headerlink" href="#maro.backends.backend.SnapshotListAbc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+</div>
+<div class="section" id="id1">
+<h2>maro.backends.backend module<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-0"></span><dl class="py class">
+<dt id="id0">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.backend.</code><code class="sig-name descname">AttributeType</code><a class="headerlink" href="#id0" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt id="id2">
+<code class="sig-name descname">Byte</code><em class="property"> = b'byte'</em><a class="headerlink" href="#id2" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="id3">
+<code class="sig-name descname">Double</code><em class="property"> = b'double'</em><a class="headerlink" href="#id3" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="id4">
+<code class="sig-name descname">Float</code><em class="property"> = b'float'</em><a class="headerlink" href="#id4" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="id5">
+<code class="sig-name descname">Int</code><em class="property"> = b'int'</em><a class="headerlink" href="#id5" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="id6">
+<code class="sig-name descname">Long</code><em class="property"> = b'long'</em><a class="headerlink" href="#id6" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="id7">
+<code class="sig-name descname">Short</code><em class="property"> = b'short'</em><a class="headerlink" href="#id7" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="id8">
+<code class="sig-name descname">UByte</code><em class="property"> = b'ubyte'</em><a class="headerlink" href="#id8" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="id9">
+<code class="sig-name descname">UInt</code><em class="property"> = b'uint'</em><a class="headerlink" href="#id9" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="id10">
+<code class="sig-name descname">ULong</code><em class="property"> = b'ulong'</em><a class="headerlink" href="#id10" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="id11">
+<code class="sig-name descname">UShort</code><em class="property"> = b'ushort'</em><a class="headerlink" href="#id11" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="id12">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.backend.</code><code class="sig-name descname">BackendAbc</code><a class="headerlink" href="#id12" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt id="id13">
+<code class="sig-name descname">snapshots</code><a class="headerlink" href="#id13" title="Permalink to this definition">¶</a></dt>
+<dd><p>maro.backends.backend.SnapshotListAbc</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>snapshots</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="id14">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.backend.</code><code class="sig-name descname">SnapshotListAbc</code><a class="headerlink" href="#id14" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.backends.frame">
+<span id="maro-backends-frame-module"></span><h2>maro.backends.frame module<a class="headerlink" href="#module-maro.backends.frame" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.backends.frame.FrameBase">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.frame.</code><code class="sig-name descname">FrameBase</code><span class="sig-paren">(</span><em class="sig-param">bool enable_snapshot: bool = False</em>, <em class="sig-param">total_snapshot: int = 0</em>, <em class="sig-param">dict options: dict = {}</em>, <em class="sig-param">backend_name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#maro.backends.frame.FrameBase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Base object used to define frame in backend, any frame that need to be hosted in backend should inherit from this.</p>
+<p>Usually a frame is composed with serveral nodes (NodeBase), a snapshot list if enabled.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Normal frame definition.</span>
+<span class="k">class</span> <span class="nc">MyFrame</span><span class="p">(</span><span class="n">FrameBase</span><span class="p">):</span>
+    <span class="c1"># Assuming we have 2 nodes definition with NodeBase (MyNode, YourNodes).</span>
+    <span class="n">mynodes</span> <span class="o">=</span> <span class="n">FrameNode</span><span class="p">(</span><span class="n">MyNode</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+    <span class="n">yournodes</span> <span class="o">=</span> <span class="n">FrameNode</span><span class="p">(</span><span class="n">YourNode</span><span class="p">,</span> <span class="mi">12</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">enable_snapshot</span><span class="p">:</span><span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">snapshot_number</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">enable_snapshot</span><span class="p">,</span> <span class="n">total_snapshots</span><span class="o">=</span><span class="n">snapshot_number</span><span class="p">,</span> <span class="n">backend_name</span><span class="o">=</span><span class="s2">&quot;static or dynamic&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Currently we support 2 kinds of backend implementation for frame: static and dynamic. Dynamic backend support list attribute
+which works list a normal python list, but only can hold decleared data type.</p>
+<p>The snapshot list is used to hold snapshot of current frame at specified point (tick or frame index), it can be
+configured that how many snapshots should be kept in memory, latest snapshot will over-write oldest one if reach
+the limitation, this is useful when the memory is not enough.</p>
+<p>When defining a frame, number of node must be specified, this may not suitable for all the case, such as the node number
+is dynamic generated after initializing, this is a workaround to fix this that use function wrapper to generate frame
+definition at runtime.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Using function to wrap the frame definition to support dynamic node number.</span>
+<span class="k">def</span> <span class="nf">gen_frame_definition</span><span class="p">(</span><span class="n">my_node_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="k">class</span> <span class="nc">MyDynamicFrame</span><span class="p">(</span><span class="n">FrameBase</span><span class="p">):</span>
+        <span class="n">mynodes</span> <span class="o">=</span> <span class="n">FrameNode</span><span class="p">(</span><span class="n">MyNode</span><span class="p">,</span> <span class="n">my_node_number</span><span class="p">)</span>
+        <span class="n">yourndes</span> <span class="o">=</span> <span class="n">FrameNode</span><span class="p">(</span><span class="n">YourNode</span><span class="p">,</span> <span class="mi">12</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">total_snapshots</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+    <span class="c1"># This is our final frame definition.</span>
+    <span class="k">return</span> <span class="n">MyDynamicFrame</span>
+</pre></div>
+</div>
+<p>After initializing, frame will generate instance list for all the nodes, these list can be accessed
+by their definition name, each node instance will be assigned an index attribute (0 based) for later quering.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">frame</span> <span class="o">=</span> <span class="n">MyFrame</span><span class="p">()</span>
+
+<span class="c1"># Get instance list of MyNode.</span>
+<span class="n">my_nodes_list</span> <span class="o">=</span> <span class="n">frame</span><span class="o">.</span><span class="n">mynodes</span>
+<span class="n">your_nodes_list</span> <span class="o">=</span> <span class="n">frame</span><span class="o">.</span><span class="n">yournodes</span>
+
+<span class="k">for</span> <span class="n">mnode</span> <span class="ow">in</span> <span class="n">my_node_list</span><span class="p">:</span>
+    <span class="c1"># 0 - len(my_node_list)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">mnode</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>enable_snapshot</strong> (<em>bool</em>) – If enable snapshot list to keep frame snapshot at specified point. Defaults to False.</p></li>
+<li><p><strong>total_snapshots</strong> (<em>int</em>) – Total snapshots number in memory.</p></li>
+<li><p><strong>options</strong> (<em>dict</em>) – Additional options, reserved for later using.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Variables</dt>
+<dd class="field-even"><p><a class="reference internal" href="#id25" title="maro.backends.frame.FrameBase.snapshots"><strong>snapshots</strong></a> (<a class="reference internal" href="#id32" title="maro.backends.frame.SnapshotList"><em>SnapshotList</em></a>) – Property to access snapshot list, readonly, see SnapshotList for details.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.backends.frame.FrameBase.append_node">
+<code class="sig-name descname">append_node</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">unicode node_name</em>, <em class="sig-param">NODE_INDEX number</em><span class="sig-paren">)</span> &#x2192; void<a class="headerlink" href="#maro.backends.frame.FrameBase.append_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Append specified number of node instance to node type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node_name</strong> (<em>str</em>) – Name of the node type to append.</p></li>
+<li><p><strong>number</strong> (<em>int</em>) – Number of node instance to append.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.backends.frame.FrameBase.backend_type">
+<code class="sig-name descname">backend_type</code><a class="headerlink" href="#maro.backends.frame.FrameBase.backend_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Type of backend, static or dynamic.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.backends.frame.FrameBase.delete_node">
+<code class="sig-name descname">delete_node</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">NodeBase node</em><span class="sig-paren">)</span> &#x2192; void<a class="headerlink" href="#maro.backends.frame.FrameBase.delete_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete specified node instance, then any operation on this instance will cause error.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>node</strong> (<em>NodeBase</em>) – Node instance to delete.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.backends.frame.FrameBase.dump">
+<code class="sig-name descname">dump</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">unicode folder: str</em><span class="sig-paren">)</span><a class="headerlink" href="#maro.backends.frame.FrameBase.dump" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dump data of current frame into specified folder.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>folder</strong> (<em>str</em>) – Folder path to dump (without file name).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.backends.frame.FrameBase.enable_history">
+<code class="sig-name descname">enable_history</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">unicode path</em><span class="sig-paren">)</span> &#x2192; void<a class="headerlink" href="#maro.backends.frame.FrameBase.enable_history" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enable snapshot history, history will be dumped into files under specified folder,
+history of nodes will be dump seperately, named as node name.</p>
+<p>Different with take snapshot, history will not over-write oldest or snapshot at same point,
+it will keep all the changes after <code class="docutils literal notranslate"><span class="pre">take_snapshot</span></code> method is called.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>path</strong> (<em>str</em>) – Folder path to save history files.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.backends.frame.FrameBase.get_node_info">
+<code class="sig-name descname">get_node_info</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; dict<a class="headerlink" href="#maro.backends.frame.FrameBase.get_node_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a dictionary contains node attribute and number definition.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Key is node name in Frame, value is a dictionary contains attribute and number.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.backends.frame.FrameBase.reset">
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; void<a class="headerlink" href="#maro.backends.frame.FrameBase.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset internal states of frame, currently all the attributes will reset to 0.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This method will not reset states in snapshot list.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.backends.frame.FrameBase.resume_node">
+<code class="sig-name descname">resume_node</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">NodeBase node</em><span class="sig-paren">)</span> &#x2192; void<a class="headerlink" href="#maro.backends.frame.FrameBase.resume_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resume a deleted node instance, this will enable operations on this node instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>node</strong> (<em>NodeBase</em>) – Node instance to resume.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.backends.frame.FrameBase.snapshots">
+<code class="sig-name descname">snapshots</code><a class="headerlink" href="#maro.backends.frame.FrameBase.snapshots" title="Permalink to this definition">¶</a></dt>
+<dd><p>Snapshots of this frame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#id32" title="maro.backends.frame.SnapshotList">SnapshotList</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.backends.frame.FrameBase.take_snapshot">
+<code class="sig-name descname">take_snapshot</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">INT tick</em><span class="sig-paren">)</span> &#x2192; void<a class="headerlink" href="#maro.backends.frame.FrameBase.take_snapshot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Take snapshot for specified point (tick) for current frame.</p>
+<p>This method will copy current frame value (except const attributes) into snapshot list for later using.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Frame and SnapshotList do not know about snapshot_resolution from simulator,
+they just accept a point as tick for current frame states.
+Current scenarios and decision event already provided a property “frame_index”
+used to get correct point of snapshot.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>tick</strong> (<em>int</em>) – Tick (point or frame index) for current frame states,
+this value will be used when querying states from snapshot list.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.backends.frame.FrameNode">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.frame.</code><code class="sig-name descname">FrameNode</code><a class="headerlink" href="#maro.backends.frame.FrameNode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Helper class used to define a node in frame, specified node class and number.</p>
+<p>Usually use with FrameBase, see FrameBase for details.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node_cls</strong> (<em>type</em>) – Class type of node definition inherit from NodeBase.</p></li>
+<li><p><strong>number</strong> (<em>int</em>) – The number of this node in Frame.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.backends.frame.NodeAttribute">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.frame.</code><code class="sig-name descname">NodeAttribute</code><a class="headerlink" href="#maro.backends.frame.NodeAttribute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Helper class used to declare an attribute in node that inherit from NodeBase.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dtype</strong> (<em>str</em>) – Type of this attribute, use type from maro.backends.backend.AttributeType to specify valid type,
+default is AttributeType.Int if not provided, or invalid type provided.</p></li>
+<li><p><strong>slots</strong> (<em>int</em>) – If this number greater than 1, then it will be treat as an array, this will be the array size,
+this value cannot be changed after definition, max value is 2^32.</p></li>
+<li><p><strong>is_const</strong> (<em>bool</em>) – Is this is a const attribute, True means this attribute will not be copied into snapshot list,
+share between current frame and snapshots. Default is False.</p></li>
+<li><p><strong>is_list</strong> (<em>bool</em>) – Is this is a list attribute, True means this attribute works like a list (max size is 2^32),
+without a fixed size like normal attribute. NOTE: a list attribute cannot be const, it will cause exception,
+and its default slot number will be 0, but can be resized.
+Default is False.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.backends.frame.NodeBase">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.frame.</code><code class="sig-name descname">NodeBase</code><a class="headerlink" href="#maro.backends.frame.NodeBase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Helper class used to define a node with attributes, any node that need to be hosted in backend should
+inherit from this class.</p>
+<p>A node is composed with serveral attributes that defined with NodeAttribute class with data type and slot number.</p>
+<p>A node must have a name that used to query states in snapshot list, this name is specified via <code class="docutils literal notranslate"><span class="pre">&#64;node</span></code> decorator.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>A node definition must decorated with <code class="docutils literal notranslate"><span class="pre">&#64;node</span></code> decorator to specified a name, or will cause error.</p>
+</div>
+<p>To add an attribute in node definition, just add class variable that type is NodeAttribute to your node class.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Node name in Frame, we use this name to query from snapshot list.</span>
+<span class="nd">@node</span><span class="p">(</span><span class="s2">&quot;my nodes&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">MyNode</span><span class="p">(</span><span class="n">NodeBase</span><span class="p">):</span>
+    <span class="c1"># Attribute name, and its data type.</span>
+    <span class="c1"># Int attribute with 1 value.</span>
+    <span class="n">my_int_attr</span> <span class="o">=</span> <span class="n">NodeAttribute</span><span class="p">(</span><span class="s2">&quot;i&quot;</span><span class="p">)</span>
+
+    <span class="c1"># A fixed size float array.</span>
+    <span class="n">my_float_array_attr</span> <span class="o">=</span> <span class="n">NodeAttribute</span><span class="p">(</span><span class="s2">&quot;f&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Each attribute will have a default hook than will trigger an event after the value changed, to recieve this event
+there should be a specified method that named as <code class="docutils literal notranslate"><span class="pre">_on_&lt;attribute</span> <span class="pre">name&gt;_changed</span></code> in node definition class,
+this method will recieve the new value as its only parameter.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@node</span><span class="p">(</span><span class="s2">&quot;my nodes&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">MyNode</span><span class="p">(</span><span class="n">NodeBase</span><span class="p">):</span>
+    <span class="n">my_int_attr</span> <span class="o">=</span> <span class="n">NodeAttrbute</span><span class="p">(</span><span class="s2">&quot;i&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_on_my_int_attr_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_val</span><span class="p">):</span>
+        <span class="c1"># Do something here</span>
+        <span class="k">pass</span>
+</pre></div>
+</div>
+<p>Same as frame definition, if you need dynamic slot number, you use a function that wrap a node defnition too.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Do not create instance of nodes by yourself, it will cause error, as each node need to know about frame.</p>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">gen_my_node_definition</span><span class="p">(</span><span class="n">float_attr_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="nd">@node</span><span class="p">(</span><span class="s2">&quot;my nodes&quot;</span><span class="p">)</span>
+    <span class="k">class</span> <span class="nc">MyNode</span><span class="p">(</span><span class="n">NodeBase</span><span class="p">):</span>
+        <span class="c1"># Default attribute type is AttributeType.Int, slot number is 1, so we can leave it empty here</span>
+        <span class="n">my_int_attr</span> <span class="o">=</span> <span class="n">NodeAttribute</span><span class="p">()</span>
+        <span class="n">my_float_array_attr</span> <span class="o">=</span> <span class="n">NodeAttribute</span><span class="p">(</span><span class="s2">&quot;f&quot;</span><span class="p">,</span> <span class="n">float_attr_number</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">MyNode</span>
+</pre></div>
+</div>
+<p>After frame initialzing, we can access these attribute via frame node instance list for this node type.</p>
+<p>For attributes which slot number is 1, you can access it as normal python object property.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">f</span> <span class="o">=</span> <span class="n">MyFrame</span><span class="p">()</span>
+
+<span class="c1"># Get MyNode instance list.</span>
+<span class="n">my_nodes</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">mynodes</span>
+
+<span class="c1"># 1st MyNode.</span>
+<span class="n">mnode_1</span> <span class="o">=</span> <span class="n">my_nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="c1"># Access predefined attributes.</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">mnode_1</span><span class="o">.</span><span class="n">my_int_attr</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For attributes that slot number greater than 1, we provided a slice interface to make it easy to access.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Accessing attributes that slot number greater than 1 should alway use slice interface, cannot assign value to them
+directly, this will cause error.</p>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Accessing by slot index to get a value at that slot.</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">my_nodes</span><span class="o">.</span><span class="n">my_float_array_attr</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+<span class="c1"># Accessing with range of slot index, will return values at those slots.</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">my_nodes</span><span class="o">.</span><span class="n">my_float_array_attr</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)])</span>
+
+<span class="c1"># Get all values at all slots of this attribute.</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">my_nodes</span><span class="o">.</span><span class="n">my_float_array_attr</span><span class="p">[:])</span>
+
+<span class="c1"># Also you can use same way to assign values.</span>
+<span class="n">my_nodes</span><span class="o">.</span><span class="n">my_float_array_attr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.1</span>
+<span class="n">my_nodes</span><span class="o">.</span><span class="n">my_float_array_attr</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt id="maro.backends.frame.NodeBase.index">
+<code class="sig-name descname">index</code><a class="headerlink" href="#maro.backends.frame.NodeBase.index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Index of current node instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.backends.frame.NodeBase.is_deleted">
+<code class="sig-name descname">is_deleted</code><a class="headerlink" href="#maro.backends.frame.NodeBase.is_deleted" title="Permalink to this definition">¶</a></dt>
+<dd><p>bool:: Is this node instance already been deleted.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.backends.frame.SnapshotList">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.frame.</code><code class="sig-name descname">SnapshotList</code><a class="headerlink" href="#maro.backends.frame.SnapshotList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>List of frame snapshot for ticks (frame index), usually used to query states.</p>
+<p>SnapshotList is read-only for out-side of simulator, it provides a slice interface to query states
+for nodes at specified ticks (frame index).
+Same as frame, snapshot list is composed with serveral nodes, you should get snapshot list for
+a node with node name, before querying,then use the slice interface to query.</p>
+<p>Slice interface accept 3 parameters:</p>
+<ul class="simple">
+<li><p>Tick/tick_list (frame index).</p></li>
+<li><p>Node_index/node_index_list.</p></li>
+<li><p>Attribute_name/attribute_name_list.</p></li>
+</ul>
+<p>Tick and node_index can be empty, then means all the ticks (frame index) or all the nodes.</p>
+<p>When querying, all the slot of specified attribute will be returned.
+The querying result is a 1 dim numpy array, and grouped like:
+[[node[attr] for node in nodes] attr for attr in attributes] * len(ticks)</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Slice interface returns a 1-dim numpy array, you may need to reshape it as your requirement.
+Also the attribute must defined in specified node, or will cause error.</p>
+<p>Invalid tick (frame index) will be padding in return value,
+that means all the value for that tick (frame index) will be 0, and will not cause error.</p>
+</div>
+<p class="rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Suppose it contains &#39;yournodes&#39; and &#39;mynodes&#39; in definition.</span>
+<span class="n">frame</span> <span class="o">=</span> <span class="n">MyFrame</span><span class="p">()</span>
+
+<span class="c1"># Get snapshots of &#39;mynodes&#39; node.</span>
+<span class="n">my_snapshots</span> <span class="o">=</span> <span class="n">frame</span><span class="o">.</span><span class="n">snapshots</span><span class="p">[</span><span class="s2">&quot;mynodes&quot;</span><span class="p">]</span>
+
+<span class="c1"># Query attributes states from snapshot list.</span>
+<span class="c1"># Get values of all &#39;mynodes&#39; node at all the tick.</span>
+<span class="n">my_value_at_all_tick</span> <span class="o">=</span> <span class="n">my_snapshot</span><span class="p">[::</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
+
+<span class="c1"># Get values of all &#39;mynodes&#39; node at 1st tick.</span>
+<span class="n">my_value_at_1st_tick</span> <span class="o">=</span> <span class="n">my_snapshot</span><span class="p">[</span><span class="mi">0</span><span class="p">::</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
+
+<span class="c1"># Get values of all &#39;mynodes&#39; node at [0, 2, 3] ticks.</span>
+<span class="n">my_values</span> <span class="o">=</span> <span class="n">my_snapshot</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)::</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
+
+<span class="c1"># Get all value of 1st &#39;mynodes&#39; node at 1st tick.</span>
+<span class="n">my_values</span> <span class="o">=</span> <span class="n">my_snapshot</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">0</span><span class="p">:</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt id="maro.backends.frame.SnapshotList.dump">
+<code class="sig-name descname">dump</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">unicode folder: str</em><span class="sig-paren">)</span><a class="headerlink" href="#maro.backends.frame.SnapshotList.dump" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dump data of current snapshots into specified folder.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>folder</strong> (<em>str</em>) – Folder path to dump (without file name).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.backends.frame.SnapshotList.get_frame_index_list">
+<code class="sig-name descname">get_frame_index_list</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; list<a class="headerlink" href="#maro.backends.frame.SnapshotList.get_frame_index_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get list of available frame index in snapshot list.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Frame index list.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>List[int]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.backends.frame.SnapshotList.reset">
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="headerlink" href="#maro.backends.frame.SnapshotList.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset current states, this will cause all the values to be 0, make sure call it after states querying.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.backends.frame.SnapshotNode">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.frame.</code><code class="sig-name descname">SnapshotNode</code><a class="headerlink" href="#maro.backends.frame.SnapshotNode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.backends.frame.node">
+<code class="sig-prename descclassname">maro.backends.frame.</code><code class="sig-name descname">node</code><span class="sig-paren">(</span><em class="sig-param">unicode name: str</em><span class="sig-paren">)</span><a class="headerlink" href="#maro.backends.frame.node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Frame node decorator, used to specified node name in Frame and SnapshotList.</p>
+<p>This node name used for querying from snapshot list, see NodeBase for details.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>str</em>) – Node name in Frame.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="id15">
+<h2>maro.backends.frame module<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-1"></span><dl class="py class">
+<dt id="id16">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.frame.</code><code class="sig-name descname">FrameBase</code><span class="sig-paren">(</span><em class="sig-param">bool enable_snapshot: bool = False</em>, <em class="sig-param">total_snapshot: int = 0</em>, <em class="sig-param">dict options: dict = {}</em>, <em class="sig-param">backend_name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#id16" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Base object used to define frame in backend, any frame that need to be hosted in backend should inherit from this.</p>
+<p>Usually a frame is composed with serveral nodes (NodeBase), a snapshot list if enabled.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Normal frame definition.</span>
+<span class="k">class</span> <span class="nc">MyFrame</span><span class="p">(</span><span class="n">FrameBase</span><span class="p">):</span>
+    <span class="c1"># Assuming we have 2 nodes definition with NodeBase (MyNode, YourNodes).</span>
+    <span class="n">mynodes</span> <span class="o">=</span> <span class="n">FrameNode</span><span class="p">(</span><span class="n">MyNode</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+    <span class="n">yournodes</span> <span class="o">=</span> <span class="n">FrameNode</span><span class="p">(</span><span class="n">YourNode</span><span class="p">,</span> <span class="mi">12</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">enable_snapshot</span><span class="p">:</span><span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">snapshot_number</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">enable_snapshot</span><span class="p">,</span> <span class="n">total_snapshots</span><span class="o">=</span><span class="n">snapshot_number</span><span class="p">,</span> <span class="n">backend_name</span><span class="o">=</span><span class="s2">&quot;static or dynamic&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Currently we support 2 kinds of backend implementation for frame: static and dynamic. Dynamic backend support list attribute
+which works list a normal python list, but only can hold decleared data type.</p>
+<p>The snapshot list is used to hold snapshot of current frame at specified point (tick or frame index), it can be
+configured that how many snapshots should be kept in memory, latest snapshot will over-write oldest one if reach
+the limitation, this is useful when the memory is not enough.</p>
+<p>When defining a frame, number of node must be specified, this may not suitable for all the case, such as the node number
+is dynamic generated after initializing, this is a workaround to fix this that use function wrapper to generate frame
+definition at runtime.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Using function to wrap the frame definition to support dynamic node number.</span>
+<span class="k">def</span> <span class="nf">gen_frame_definition</span><span class="p">(</span><span class="n">my_node_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="k">class</span> <span class="nc">MyDynamicFrame</span><span class="p">(</span><span class="n">FrameBase</span><span class="p">):</span>
+        <span class="n">mynodes</span> <span class="o">=</span> <span class="n">FrameNode</span><span class="p">(</span><span class="n">MyNode</span><span class="p">,</span> <span class="n">my_node_number</span><span class="p">)</span>
+        <span class="n">yourndes</span> <span class="o">=</span> <span class="n">FrameNode</span><span class="p">(</span><span class="n">YourNode</span><span class="p">,</span> <span class="mi">12</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">total_snapshots</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+    <span class="c1"># This is our final frame definition.</span>
+    <span class="k">return</span> <span class="n">MyDynamicFrame</span>
+</pre></div>
+</div>
+<p>After initializing, frame will generate instance list for all the nodes, these list can be accessed
+by their definition name, each node instance will be assigned an index attribute (0 based) for later quering.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">frame</span> <span class="o">=</span> <span class="n">MyFrame</span><span class="p">()</span>
+
+<span class="c1"># Get instance list of MyNode.</span>
+<span class="n">my_nodes_list</span> <span class="o">=</span> <span class="n">frame</span><span class="o">.</span><span class="n">mynodes</span>
+<span class="n">your_nodes_list</span> <span class="o">=</span> <span class="n">frame</span><span class="o">.</span><span class="n">yournodes</span>
+
+<span class="k">for</span> <span class="n">mnode</span> <span class="ow">in</span> <span class="n">my_node_list</span><span class="p">:</span>
+    <span class="c1"># 0 - len(my_node_list)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">mnode</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>enable_snapshot</strong> (<em>bool</em>) – If enable snapshot list to keep frame snapshot at specified point. Defaults to False.</p></li>
+<li><p><strong>total_snapshots</strong> (<em>int</em>) – Total snapshots number in memory.</p></li>
+<li><p><strong>options</strong> (<em>dict</em>) – Additional options, reserved for later using.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Variables</dt>
+<dd class="field-even"><p><a class="reference internal" href="#id25" title="maro.backends.frame.FrameBase.snapshots"><strong>snapshots</strong></a> (<a class="reference internal" href="#id32" title="maro.backends.frame.SnapshotList"><em>SnapshotList</em></a>) – Property to access snapshot list, readonly, see SnapshotList for details.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="id17">
+<code class="sig-name descname">append_node</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">unicode node_name</em>, <em class="sig-param">NODE_INDEX number</em><span class="sig-paren">)</span> &#x2192; void<a class="headerlink" href="#id17" title="Permalink to this definition">¶</a></dt>
+<dd><p>Append specified number of node instance to node type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node_name</strong> (<em>str</em>) – Name of the node type to append.</p></li>
+<li><p><strong>number</strong> (<em>int</em>) – Number of node instance to append.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="id18">
+<code class="sig-name descname">backend_type</code><a class="headerlink" href="#id18" title="Permalink to this definition">¶</a></dt>
+<dd><p>Type of backend, static or dynamic.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id19">
+<code class="sig-name descname">delete_node</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">NodeBase node</em><span class="sig-paren">)</span> &#x2192; void<a class="headerlink" href="#id19" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete specified node instance, then any operation on this instance will cause error.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>node</strong> (<em>NodeBase</em>) – Node instance to delete.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id20">
+<code class="sig-name descname">dump</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">unicode folder: str</em><span class="sig-paren">)</span><a class="headerlink" href="#id20" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dump data of current frame into specified folder.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>folder</strong> (<em>str</em>) – Folder path to dump (without file name).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id21">
+<code class="sig-name descname">enable_history</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">unicode path</em><span class="sig-paren">)</span> &#x2192; void<a class="headerlink" href="#id21" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enable snapshot history, history will be dumped into files under specified folder,
+history of nodes will be dump seperately, named as node name.</p>
+<p>Different with take snapshot, history will not over-write oldest or snapshot at same point,
+it will keep all the changes after <code class="docutils literal notranslate"><span class="pre">take_snapshot</span></code> method is called.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>path</strong> (<em>str</em>) – Folder path to save history files.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id22">
+<code class="sig-name descname">get_node_info</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; dict<a class="headerlink" href="#id22" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a dictionary contains node attribute and number definition.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Key is node name in Frame, value is a dictionary contains attribute and number.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id23">
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; void<a class="headerlink" href="#id23" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset internal states of frame, currently all the attributes will reset to 0.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This method will not reset states in snapshot list.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id24">
+<code class="sig-name descname">resume_node</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">NodeBase node</em><span class="sig-paren">)</span> &#x2192; void<a class="headerlink" href="#id24" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resume a deleted node instance, this will enable operations on this node instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>node</strong> (<em>NodeBase</em>) – Node instance to resume.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="id25">
+<code class="sig-name descname">snapshots</code><a class="headerlink" href="#id25" title="Permalink to this definition">¶</a></dt>
+<dd><p>Snapshots of this frame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#id32" title="maro.backends.frame.SnapshotList">SnapshotList</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id26">
+<code class="sig-name descname">take_snapshot</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">INT tick</em><span class="sig-paren">)</span> &#x2192; void<a class="headerlink" href="#id26" title="Permalink to this definition">¶</a></dt>
+<dd><p>Take snapshot for specified point (tick) for current frame.</p>
+<p>This method will copy current frame value (except const attributes) into snapshot list for later using.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Frame and SnapshotList do not know about snapshot_resolution from simulator,
+they just accept a point as tick for current frame states.
+Current scenarios and decision event already provided a property “frame_index”
+used to get correct point of snapshot.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>tick</strong> (<em>int</em>) – Tick (point or frame index) for current frame states,
+this value will be used when querying states from snapshot list.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="id27">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.frame.</code><code class="sig-name descname">FrameNode</code><a class="headerlink" href="#id27" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Helper class used to define a node in frame, specified node class and number.</p>
+<p>Usually use with FrameBase, see FrameBase for details.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node_cls</strong> (<em>type</em>) – Class type of node definition inherit from NodeBase.</p></li>
+<li><p><strong>number</strong> (<em>int</em>) – The number of this node in Frame.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="id28">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.frame.</code><code class="sig-name descname">NodeAttribute</code><a class="headerlink" href="#id28" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Helper class used to declare an attribute in node that inherit from NodeBase.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dtype</strong> (<em>str</em>) – Type of this attribute, use type from maro.backends.backend.AttributeType to specify valid type,
+default is AttributeType.Int if not provided, or invalid type provided.</p></li>
+<li><p><strong>slots</strong> (<em>int</em>) – If this number greater than 1, then it will be treat as an array, this will be the array size,
+this value cannot be changed after definition, max value is 2^32.</p></li>
+<li><p><strong>is_const</strong> (<em>bool</em>) – Is this is a const attribute, True means this attribute will not be copied into snapshot list,
+share between current frame and snapshots. Default is False.</p></li>
+<li><p><strong>is_list</strong> (<em>bool</em>) – Is this is a list attribute, True means this attribute works like a list (max size is 2^32),
+without a fixed size like normal attribute. NOTE: a list attribute cannot be const, it will cause exception,
+and its default slot number will be 0, but can be resized.
+Default is False.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="id29">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.frame.</code><code class="sig-name descname">NodeBase</code><a class="headerlink" href="#id29" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Helper class used to define a node with attributes, any node that need to be hosted in backend should
+inherit from this class.</p>
+<p>A node is composed with serveral attributes that defined with NodeAttribute class with data type and slot number.</p>
+<p>A node must have a name that used to query states in snapshot list, this name is specified via <code class="docutils literal notranslate"><span class="pre">&#64;node</span></code> decorator.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>A node definition must decorated with <code class="docutils literal notranslate"><span class="pre">&#64;node</span></code> decorator to specified a name, or will cause error.</p>
+</div>
+<p>To add an attribute in node definition, just add class variable that type is NodeAttribute to your node class.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Node name in Frame, we use this name to query from snapshot list.</span>
+<span class="nd">@node</span><span class="p">(</span><span class="s2">&quot;my nodes&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">MyNode</span><span class="p">(</span><span class="n">NodeBase</span><span class="p">):</span>
+    <span class="c1"># Attribute name, and its data type.</span>
+    <span class="c1"># Int attribute with 1 value.</span>
+    <span class="n">my_int_attr</span> <span class="o">=</span> <span class="n">NodeAttribute</span><span class="p">(</span><span class="s2">&quot;i&quot;</span><span class="p">)</span>
+
+    <span class="c1"># A fixed size float array.</span>
+    <span class="n">my_float_array_attr</span> <span class="o">=</span> <span class="n">NodeAttribute</span><span class="p">(</span><span class="s2">&quot;f&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Each attribute will have a default hook than will trigger an event after the value changed, to recieve this event
+there should be a specified method that named as <code class="docutils literal notranslate"><span class="pre">_on_&lt;attribute</span> <span class="pre">name&gt;_changed</span></code> in node definition class,
+this method will recieve the new value as its only parameter.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@node</span><span class="p">(</span><span class="s2">&quot;my nodes&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">MyNode</span><span class="p">(</span><span class="n">NodeBase</span><span class="p">):</span>
+    <span class="n">my_int_attr</span> <span class="o">=</span> <span class="n">NodeAttrbute</span><span class="p">(</span><span class="s2">&quot;i&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_on_my_int_attr_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_val</span><span class="p">):</span>
+        <span class="c1"># Do something here</span>
+        <span class="k">pass</span>
+</pre></div>
+</div>
+<p>Same as frame definition, if you need dynamic slot number, you use a function that wrap a node defnition too.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Do not create instance of nodes by yourself, it will cause error, as each node need to know about frame.</p>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">gen_my_node_definition</span><span class="p">(</span><span class="n">float_attr_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="nd">@node</span><span class="p">(</span><span class="s2">&quot;my nodes&quot;</span><span class="p">)</span>
+    <span class="k">class</span> <span class="nc">MyNode</span><span class="p">(</span><span class="n">NodeBase</span><span class="p">):</span>
+        <span class="c1"># Default attribute type is AttributeType.Int, slot number is 1, so we can leave it empty here</span>
+        <span class="n">my_int_attr</span> <span class="o">=</span> <span class="n">NodeAttribute</span><span class="p">()</span>
+        <span class="n">my_float_array_attr</span> <span class="o">=</span> <span class="n">NodeAttribute</span><span class="p">(</span><span class="s2">&quot;f&quot;</span><span class="p">,</span> <span class="n">float_attr_number</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">MyNode</span>
+</pre></div>
+</div>
+<p>After frame initialzing, we can access these attribute via frame node instance list for this node type.</p>
+<p>For attributes which slot number is 1, you can access it as normal python object property.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">f</span> <span class="o">=</span> <span class="n">MyFrame</span><span class="p">()</span>
+
+<span class="c1"># Get MyNode instance list.</span>
+<span class="n">my_nodes</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">mynodes</span>
+
+<span class="c1"># 1st MyNode.</span>
+<span class="n">mnode_1</span> <span class="o">=</span> <span class="n">my_nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="c1"># Access predefined attributes.</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">mnode_1</span><span class="o">.</span><span class="n">my_int_attr</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For attributes that slot number greater than 1, we provided a slice interface to make it easy to access.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Accessing attributes that slot number greater than 1 should alway use slice interface, cannot assign value to them
+directly, this will cause error.</p>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Accessing by slot index to get a value at that slot.</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">my_nodes</span><span class="o">.</span><span class="n">my_float_array_attr</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+<span class="c1"># Accessing with range of slot index, will return values at those slots.</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">my_nodes</span><span class="o">.</span><span class="n">my_float_array_attr</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)])</span>
+
+<span class="c1"># Get all values at all slots of this attribute.</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">my_nodes</span><span class="o">.</span><span class="n">my_float_array_attr</span><span class="p">[:])</span>
+
+<span class="c1"># Also you can use same way to assign values.</span>
+<span class="n">my_nodes</span><span class="o">.</span><span class="n">my_float_array_attr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.1</span>
+<span class="n">my_nodes</span><span class="o">.</span><span class="n">my_float_array_attr</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt id="id30">
+<code class="sig-name descname">index</code><a class="headerlink" href="#id30" title="Permalink to this definition">¶</a></dt>
+<dd><p>Index of current node instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="id31">
+<code class="sig-name descname">is_deleted</code><a class="headerlink" href="#id31" title="Permalink to this definition">¶</a></dt>
+<dd><p>bool:: Is this node instance already been deleted.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="id32">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.frame.</code><code class="sig-name descname">SnapshotList</code><a class="headerlink" href="#id32" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>List of frame snapshot for ticks (frame index), usually used to query states.</p>
+<p>SnapshotList is read-only for out-side of simulator, it provides a slice interface to query states
+for nodes at specified ticks (frame index).
+Same as frame, snapshot list is composed with serveral nodes, you should get snapshot list for
+a node with node name, before querying,then use the slice interface to query.</p>
+<p>Slice interface accept 3 parameters:</p>
+<ul class="simple">
+<li><p>Tick/tick_list (frame index).</p></li>
+<li><p>Node_index/node_index_list.</p></li>
+<li><p>Attribute_name/attribute_name_list.</p></li>
+</ul>
+<p>Tick and node_index can be empty, then means all the ticks (frame index) or all the nodes.</p>
+<p>When querying, all the slot of specified attribute will be returned.
+The querying result is a 1 dim numpy array, and grouped like:
+[[node[attr] for node in nodes] attr for attr in attributes] * len(ticks)</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Slice interface returns a 1-dim numpy array, you may need to reshape it as your requirement.
+Also the attribute must defined in specified node, or will cause error.</p>
+<p>Invalid tick (frame index) will be padding in return value,
+that means all the value for that tick (frame index) will be 0, and will not cause error.</p>
+</div>
+<p class="rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Suppose it contains &#39;yournodes&#39; and &#39;mynodes&#39; in definition.</span>
+<span class="n">frame</span> <span class="o">=</span> <span class="n">MyFrame</span><span class="p">()</span>
+
+<span class="c1"># Get snapshots of &#39;mynodes&#39; node.</span>
+<span class="n">my_snapshots</span> <span class="o">=</span> <span class="n">frame</span><span class="o">.</span><span class="n">snapshots</span><span class="p">[</span><span class="s2">&quot;mynodes&quot;</span><span class="p">]</span>
+
+<span class="c1"># Query attributes states from snapshot list.</span>
+<span class="c1"># Get values of all &#39;mynodes&#39; node at all the tick.</span>
+<span class="n">my_value_at_all_tick</span> <span class="o">=</span> <span class="n">my_snapshot</span><span class="p">[::</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
+
+<span class="c1"># Get values of all &#39;mynodes&#39; node at 1st tick.</span>
+<span class="n">my_value_at_1st_tick</span> <span class="o">=</span> <span class="n">my_snapshot</span><span class="p">[</span><span class="mi">0</span><span class="p">::</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
+
+<span class="c1"># Get values of all &#39;mynodes&#39; node at [0, 2, 3] ticks.</span>
+<span class="n">my_values</span> <span class="o">=</span> <span class="n">my_snapshot</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)::</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
+
+<span class="c1"># Get all value of 1st &#39;mynodes&#39; node at 1st tick.</span>
+<span class="n">my_values</span> <span class="o">=</span> <span class="n">my_snapshot</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">0</span><span class="p">:</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt id="id33">
+<code class="sig-name descname">dump</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">unicode folder: str</em><span class="sig-paren">)</span><a class="headerlink" href="#id33" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dump data of current snapshots into specified folder.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>folder</strong> (<em>str</em>) – Folder path to dump (without file name).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id34">
+<code class="sig-name descname">get_frame_index_list</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; list<a class="headerlink" href="#id34" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get list of available frame index in snapshot list.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Frame index list.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>List[int]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id35">
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="headerlink" href="#id35" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset current states, this will cause all the values to be 0, make sure call it after states querying.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="id36">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.frame.</code><code class="sig-name descname">SnapshotNode</code><a class="headerlink" href="#id36" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="id37">
+<code class="sig-prename descclassname">maro.backends.frame.</code><code class="sig-name descname">node</code><span class="sig-paren">(</span><em class="sig-param">unicode name: str</em><span class="sig-paren">)</span><a class="headerlink" href="#id37" title="Permalink to this definition">¶</a></dt>
+<dd><p>Frame node decorator, used to specified node name in Frame and SnapshotList.</p>
+<p>This node name used for querying from snapshot list, see NodeBase for details.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>str</em>) – Node name in Frame.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.backends.np_backend">
+<span id="maro-backends-np-backend-module"></span><h2>maro.backends.np_backend module<a class="headerlink" href="#module-maro.backends.np_backend" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.backends.np_backend.AttrInfo">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.np_backend.</code><code class="sig-name descname">AttrInfo</code><a class="headerlink" href="#maro.backends.np_backend.AttrInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Internal structure to hold attribute info</p>
+<dl class="py attribute">
+<dt id="maro.backends.np_backend.AttrInfo.dtype">
+<code class="sig-name descname">dtype</code><a class="headerlink" href="#maro.backends.np_backend.AttrInfo.dtype" title="Permalink to this definition">¶</a></dt>
+<dd><p>unicode</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>dtype</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.backends.np_backend.AttrInfo.gen_numpy_dtype">
+<code class="sig-name descname">gen_numpy_dtype</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="headerlink" href="#maro.backends.np_backend.AttrInfo.gen_numpy_dtype" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate numpy data type (structured)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.backends.np_backend.AttrInfo.name">
+<code class="sig-name descname">name</code><a class="headerlink" href="#maro.backends.np_backend.AttrInfo.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>unicode</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>name</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.backends.np_backend.AttrInfo.node_type">
+<code class="sig-name descname">node_type</code><a class="headerlink" href="#maro.backends.np_backend.AttrInfo.node_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>‘NODE_TYPE’</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>node_type</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.backends.np_backend.AttrInfo.slot_number">
+<code class="sig-name descname">slot_number</code><a class="headerlink" href="#maro.backends.np_backend.AttrInfo.slot_number" title="Permalink to this definition">¶</a></dt>
+<dd><p>‘SLOT_INDEX’</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>slot_number</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.backends.np_backend.AttrInfo.type">
+<code class="sig-name descname">type</code><a class="headerlink" href="#maro.backends.np_backend.AttrInfo.type" title="Permalink to this definition">¶</a></dt>
+<dd><p>‘ATTR_TYPE’</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>type</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.backends.np_backend.NPBufferedMmap">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.np_backend.</code><code class="sig-name descname">NPBufferedMmap</code><a class="headerlink" href="#maro.backends.np_backend.NPBufferedMmap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Buffered memmap of numpy array, as it have size limitation around 2G</p>
+<dl class="py method">
+<dt id="maro.backends.np_backend.NPBufferedMmap.record">
+<code class="sig-name descname">record</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">ndarray arr</em><span class="sig-paren">)</span><a class="headerlink" href="#maro.backends.np_backend.NPBufferedMmap.record" title="Permalink to this definition">¶</a></dt>
+<dd><p>Record specified array into file</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.backends.np_backend.NPSnapshotList">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.np_backend.</code><code class="sig-name descname">NPSnapshotList</code><a class="headerlink" href="#maro.backends.np_backend.NPSnapshotList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#id14" title="maro.backends.backend.SnapshotListAbc"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.backends.backend.SnapshotListAbc</span></code></a></p>
+<p>Snapshot list implemented with numpy</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.backends.np_backend.NodeInfo">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.np_backend.</code><code class="sig-name descname">NodeInfo</code><a class="headerlink" href="#maro.backends.np_backend.NodeInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Internal structure to hold node info.</p>
+<dl class="py attribute">
+<dt id="maro.backends.np_backend.NodeInfo.name">
+<code class="sig-name descname">name</code><a class="headerlink" href="#maro.backends.np_backend.NodeInfo.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>unicode</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>name</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.backends.np_backend.NodeInfo.number">
+<code class="sig-name descname">number</code><a class="headerlink" href="#maro.backends.np_backend.NodeInfo.number" title="Permalink to this definition">¶</a></dt>
+<dd><p>‘NODE_INDEX’</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>number</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.backends.np_backend.NodeInfo.type">
+<code class="sig-name descname">type</code><a class="headerlink" href="#maro.backends.np_backend.NodeInfo.type" title="Permalink to this definition">¶</a></dt>
+<dd><p>‘NODE_TYPE’</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>type</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.backends.np_backend.NumpyBackend">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.np_backend.</code><code class="sig-name descname">NumpyBackend</code><a class="headerlink" href="#maro.backends.np_backend.NumpyBackend" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#id12" title="maro.backends.backend.BackendAbc"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.backends.backend.BackendAbc</span></code></a></p>
+<p>Backend using numpy array to hold data, this backend only support fixed size array for now</p>
+</dd></dl>
+
+</div>
+<div class="section" id="id38">
+<h2>maro.backends.np_backend module<a class="headerlink" href="#id38" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-2"></span><dl class="py class">
+<dt id="id39">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.np_backend.</code><code class="sig-name descname">AttrInfo</code><a class="headerlink" href="#id39" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Internal structure to hold attribute info</p>
+<dl class="py attribute">
+<dt id="id40">
+<code class="sig-name descname">dtype</code><a class="headerlink" href="#id40" title="Permalink to this definition">¶</a></dt>
+<dd><p>unicode</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>dtype</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id41">
+<code class="sig-name descname">gen_numpy_dtype</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="headerlink" href="#id41" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate numpy data type (structured)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="id42">
+<code class="sig-name descname">name</code><a class="headerlink" href="#id42" title="Permalink to this definition">¶</a></dt>
+<dd><p>unicode</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>name</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="id43">
+<code class="sig-name descname">node_type</code><a class="headerlink" href="#id43" title="Permalink to this definition">¶</a></dt>
+<dd><p>‘NODE_TYPE’</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>node_type</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="id44">
+<code class="sig-name descname">slot_number</code><a class="headerlink" href="#id44" title="Permalink to this definition">¶</a></dt>
+<dd><p>‘SLOT_INDEX’</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>slot_number</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="id45">
+<code class="sig-name descname">type</code><a class="headerlink" href="#id45" title="Permalink to this definition">¶</a></dt>
+<dd><p>‘ATTR_TYPE’</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>type</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="id46">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.np_backend.</code><code class="sig-name descname">NPBufferedMmap</code><a class="headerlink" href="#id46" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Buffered memmap of numpy array, as it have size limitation around 2G</p>
+<dl class="py method">
+<dt id="id47">
+<code class="sig-name descname">record</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">ndarray arr</em><span class="sig-paren">)</span><a class="headerlink" href="#id47" title="Permalink to this definition">¶</a></dt>
+<dd><p>Record specified array into file</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="id48">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.np_backend.</code><code class="sig-name descname">NPSnapshotList</code><a class="headerlink" href="#id48" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#id14" title="maro.backends.backend.SnapshotListAbc"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.backends.backend.SnapshotListAbc</span></code></a></p>
+<p>Snapshot list implemented with numpy</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="id49">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.np_backend.</code><code class="sig-name descname">NodeInfo</code><a class="headerlink" href="#id49" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Internal structure to hold node info.</p>
+<dl class="py attribute">
+<dt id="id50">
+<code class="sig-name descname">name</code><a class="headerlink" href="#id50" title="Permalink to this definition">¶</a></dt>
+<dd><p>unicode</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>name</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="id51">
+<code class="sig-name descname">number</code><a class="headerlink" href="#id51" title="Permalink to this definition">¶</a></dt>
+<dd><p>‘NODE_INDEX’</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>number</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="id52">
+<code class="sig-name descname">type</code><a class="headerlink" href="#id52" title="Permalink to this definition">¶</a></dt>
+<dd><p>‘NODE_TYPE’</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>type</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="id53">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.np_backend.</code><code class="sig-name descname">NumpyBackend</code><a class="headerlink" href="#id53" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#id12" title="maro.backends.backend.BackendAbc"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.backends.backend.BackendAbc</span></code></a></p>
+<p>Backend using numpy array to hold data, this backend only support fixed size array for now</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.backends.raw_backend">
+<span id="maro-backends-raw-backend-module"></span><h2>maro.backends.raw_backend module<a class="headerlink" href="#module-maro.backends.raw_backend" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.backends.raw_backend.AttributeAccessor">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.raw_backend.</code><code class="sig-name descname">AttributeAccessor</code><a class="headerlink" href="#maro.backends.raw_backend.AttributeAccessor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.backends.raw_backend.AttributeCharAccessor">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.raw_backend.</code><code class="sig-name descname">AttributeCharAccessor</code><a class="headerlink" href="#maro.backends.raw_backend.AttributeCharAccessor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#id55" title="maro.backends.raw_backend.AttributeAccessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.backends.raw_backend.AttributeAccessor</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.backends.raw_backend.AttributeDoubleAccessor">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.raw_backend.</code><code class="sig-name descname">AttributeDoubleAccessor</code><a class="headerlink" href="#maro.backends.raw_backend.AttributeDoubleAccessor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#id55" title="maro.backends.raw_backend.AttributeAccessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.backends.raw_backend.AttributeAccessor</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.backends.raw_backend.AttributeFloatAccessor">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.raw_backend.</code><code class="sig-name descname">AttributeFloatAccessor</code><a class="headerlink" href="#maro.backends.raw_backend.AttributeFloatAccessor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#id55" title="maro.backends.raw_backend.AttributeAccessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.backends.raw_backend.AttributeAccessor</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.backends.raw_backend.AttributeIntAccessor">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.raw_backend.</code><code class="sig-name descname">AttributeIntAccessor</code><a class="headerlink" href="#maro.backends.raw_backend.AttributeIntAccessor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#id55" title="maro.backends.raw_backend.AttributeAccessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.backends.raw_backend.AttributeAccessor</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.backends.raw_backend.AttributeLongAccessor">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.raw_backend.</code><code class="sig-name descname">AttributeLongAccessor</code><a class="headerlink" href="#maro.backends.raw_backend.AttributeLongAccessor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#id55" title="maro.backends.raw_backend.AttributeAccessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.backends.raw_backend.AttributeAccessor</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.backends.raw_backend.AttributeShortAccessor">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.raw_backend.</code><code class="sig-name descname">AttributeShortAccessor</code><a class="headerlink" href="#maro.backends.raw_backend.AttributeShortAccessor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#id55" title="maro.backends.raw_backend.AttributeAccessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.backends.raw_backend.AttributeAccessor</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.backends.raw_backend.AttributeUCharAccessor">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.raw_backend.</code><code class="sig-name descname">AttributeUCharAccessor</code><a class="headerlink" href="#maro.backends.raw_backend.AttributeUCharAccessor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#id55" title="maro.backends.raw_backend.AttributeAccessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.backends.raw_backend.AttributeAccessor</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.backends.raw_backend.AttributeUIntAccessor">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.raw_backend.</code><code class="sig-name descname">AttributeUIntAccessor</code><a class="headerlink" href="#maro.backends.raw_backend.AttributeUIntAccessor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#id55" title="maro.backends.raw_backend.AttributeAccessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.backends.raw_backend.AttributeAccessor</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.backends.raw_backend.AttributeULongAccessor">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.raw_backend.</code><code class="sig-name descname">AttributeULongAccessor</code><a class="headerlink" href="#maro.backends.raw_backend.AttributeULongAccessor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#id55" title="maro.backends.raw_backend.AttributeAccessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.backends.raw_backend.AttributeAccessor</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.backends.raw_backend.AttributeUShortAccessor">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.raw_backend.</code><code class="sig-name descname">AttributeUShortAccessor</code><a class="headerlink" href="#maro.backends.raw_backend.AttributeUShortAccessor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#id55" title="maro.backends.raw_backend.AttributeAccessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.backends.raw_backend.AttributeAccessor</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.backends.raw_backend.RawBackend">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.raw_backend.</code><code class="sig-name descname">RawBackend</code><a class="headerlink" href="#maro.backends.raw_backend.RawBackend" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#id12" title="maro.backends.backend.BackendAbc"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.backends.backend.BackendAbc</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.backends.raw_backend.RawSnapshotList">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.raw_backend.</code><code class="sig-name descname">RawSnapshotList</code><a class="headerlink" href="#maro.backends.raw_backend.RawSnapshotList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#id14" title="maro.backends.backend.SnapshotListAbc"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.backends.backend.SnapshotListAbc</span></code></a></p>
+</dd></dl>
+
+</div>
+<div class="section" id="id54">
+<h2>maro.backends.raw_backend module<a class="headerlink" href="#id54" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-3"></span><dl class="py class">
+<dt id="id55">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.raw_backend.</code><code class="sig-name descname">AttributeAccessor</code><a class="headerlink" href="#id55" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="id56">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.raw_backend.</code><code class="sig-name descname">AttributeCharAccessor</code><a class="headerlink" href="#id56" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#id55" title="maro.backends.raw_backend.AttributeAccessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.backends.raw_backend.AttributeAccessor</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="id57">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.raw_backend.</code><code class="sig-name descname">AttributeDoubleAccessor</code><a class="headerlink" href="#id57" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#id55" title="maro.backends.raw_backend.AttributeAccessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.backends.raw_backend.AttributeAccessor</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="id58">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.raw_backend.</code><code class="sig-name descname">AttributeFloatAccessor</code><a class="headerlink" href="#id58" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#id55" title="maro.backends.raw_backend.AttributeAccessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.backends.raw_backend.AttributeAccessor</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="id59">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.raw_backend.</code><code class="sig-name descname">AttributeIntAccessor</code><a class="headerlink" href="#id59" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#id55" title="maro.backends.raw_backend.AttributeAccessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.backends.raw_backend.AttributeAccessor</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="id60">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.raw_backend.</code><code class="sig-name descname">AttributeLongAccessor</code><a class="headerlink" href="#id60" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#id55" title="maro.backends.raw_backend.AttributeAccessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.backends.raw_backend.AttributeAccessor</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="id61">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.raw_backend.</code><code class="sig-name descname">AttributeShortAccessor</code><a class="headerlink" href="#id61" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#id55" title="maro.backends.raw_backend.AttributeAccessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.backends.raw_backend.AttributeAccessor</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="id62">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.raw_backend.</code><code class="sig-name descname">AttributeUCharAccessor</code><a class="headerlink" href="#id62" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#id55" title="maro.backends.raw_backend.AttributeAccessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.backends.raw_backend.AttributeAccessor</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="id63">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.raw_backend.</code><code class="sig-name descname">AttributeUIntAccessor</code><a class="headerlink" href="#id63" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#id55" title="maro.backends.raw_backend.AttributeAccessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.backends.raw_backend.AttributeAccessor</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="id64">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.raw_backend.</code><code class="sig-name descname">AttributeULongAccessor</code><a class="headerlink" href="#id64" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#id55" title="maro.backends.raw_backend.AttributeAccessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.backends.raw_backend.AttributeAccessor</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="id65">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.raw_backend.</code><code class="sig-name descname">AttributeUShortAccessor</code><a class="headerlink" href="#id65" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#id55" title="maro.backends.raw_backend.AttributeAccessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.backends.raw_backend.AttributeAccessor</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="id66">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.raw_backend.</code><code class="sig-name descname">RawBackend</code><a class="headerlink" href="#id66" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#id12" title="maro.backends.backend.BackendAbc"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.backends.backend.BackendAbc</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="id67">
+<em class="property">class </em><code class="sig-prename descclassname">maro.backends.raw_backend.</code><code class="sig-name descname">RawSnapshotList</code><a class="headerlink" href="#id67" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#id14" title="maro.backends.backend.SnapshotListAbc"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.backends.backend.SnapshotListAbc</span></code></a></p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.backends">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-maro.backends" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+    <a class='left-prev' id="prev-link" href="maro.html" title="previous page">maro package</a>
+    <a class='right-next' id="next-link" href="maro.cli.html" title="next page">maro.cli package</a>
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../_static/js/index.js"></script>
+    
+  </body>
+</html>

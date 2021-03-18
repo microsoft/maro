@@ -1,0 +1,951 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maro.simulator.scenarios.cim.business_engine &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../../../../../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../../../../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../../../../../" src="../../../../../_static/documentation_options.js"></script>
+    <script src="../../../../../_static/sphinx-book-theme.js"></script>
+    <script src="../../../../../_static/jquery.js"></script>
+    <script src="../../../../../_static/underscore.js"></script>
+    <script src="../../../../../_static/doctools.js"></script>
+    <script src="../../../../../_static/language_data.js"></script>
+    <script src="../../../../../_static/clipboard.min.js"></script>
+    <script src="../../../../../_static/copybutton.js"></script>
+    <script src="../../../../../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../../../../../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../../../../../index.html">
+  
+  <img src="../../../../../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../../../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../scenarios/container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../scenarios/citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../scenarios/vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../apidoc/maro.html">
+   maro package
+  </a>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2F_modules/maro/simulator/scenarios/cim/business_engine.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <nav id="bd-toc-nav">
+            
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <h1>Source code for maro.simulator.scenarios.cim.business_engine</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) Microsoft Corporation.</span>
+<span class="c1"># Licensed under the MIT license.</span>
+
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">ceil</span><span class="p">,</span> <span class="n">floor</span>
+
+<span class="kn">from</span> <span class="nn">yaml</span> <span class="kn">import</span> <span class="n">safe_load</span>
+
+<span class="kn">from</span> <span class="nn">maro.backends.frame</span> <span class="kn">import</span> <span class="n">FrameBase</span><span class="p">,</span> <span class="n">SnapshotList</span>
+<span class="kn">from</span> <span class="nn">maro.data_lib.cim</span> <span class="kn">import</span> <span class="n">CimDataContainerWrapper</span><span class="p">,</span> <span class="n">Order</span><span class="p">,</span> <span class="n">Stop</span>
+<span class="kn">from</span> <span class="nn">maro.event_buffer</span> <span class="kn">import</span> <span class="n">AtomEvent</span><span class="p">,</span> <span class="n">CascadeEvent</span><span class="p">,</span> <span class="n">EventBuffer</span><span class="p">,</span> <span class="n">MaroEvents</span>
+<span class="kn">from</span> <span class="nn">maro.simulator.scenarios</span> <span class="kn">import</span> <span class="n">AbsBusinessEngine</span>
+<span class="kn">from</span> <span class="nn">maro.simulator.scenarios.helpers</span> <span class="kn">import</span> <span class="n">DocableDict</span>
+<span class="kn">from</span> <span class="nn">maro.simulator.scenarios.matrix_accessor</span> <span class="kn">import</span> <span class="n">MatrixAttributeAccessor</span>
+
+<span class="kn">from</span> <span class="nn">.common</span> <span class="kn">import</span> <span class="n">Action</span><span class="p">,</span> <span class="n">ActionScope</span><span class="p">,</span> <span class="n">DecisionEvent</span>
+<span class="kn">from</span> <span class="nn">.event_payload</span> <span class="kn">import</span> <span class="n">EmptyReturnPayload</span><span class="p">,</span> <span class="n">LadenReturnPayload</span><span class="p">,</span> <span class="n">VesselDischargePayload</span><span class="p">,</span> <span class="n">VesselStatePayload</span>
+<span class="kn">from</span> <span class="nn">.events</span> <span class="kn">import</span> <span class="n">Events</span>
+<span class="kn">from</span> <span class="nn">.frame_builder</span> <span class="kn">import</span> <span class="n">gen_cim_frame</span>
+<span class="kn">from</span> <span class="nn">.ports_order_export</span> <span class="kn">import</span> <span class="n">PortOrderExporter</span>
+
+<span class="n">metrics_desc</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">CIM metrics used provide statistics information until now (may be in the middle of current tick).</span>
+<span class="s2">It contains following keys:</span>
+
+<span class="s2">order_requirements (int): Accumulative orders until now.</span>
+<span class="s2">container_shortage (int): Accumulative shortage until now.</span>
+<span class="s2">operation_number (int): Total empty transfer (both load and discharge) cost,</span>
+<span class="s2">    the cost factors can be configured in configuration file at section &quot;transfer_cost_factors&quot;.</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="CimBusinessEngine"><a class="viewcode-back" href="../../../../../apidoc/maro.simulator.scenarios.cim.html#maro.simulator.scenarios.cim.business_engine.CimBusinessEngine">[docs]</a><span class="k">class</span> <span class="nc">CimBusinessEngine</span><span class="p">(</span><span class="n">AbsBusinessEngine</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Cim business engine, used simulate CIM related problem.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">event_buffer</span><span class="p">:</span> <span class="n">EventBuffer</span><span class="p">,</span> <span class="n">topology</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">start_tick</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">max_tick</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">snapshot_resolution</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">max_snapshots</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">additional_options</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="s2">&quot;cim&quot;</span><span class="p">,</span> <span class="n">event_buffer</span><span class="p">,</span> <span class="n">topology</span><span class="p">,</span> <span class="n">start_tick</span><span class="p">,</span> <span class="n">max_tick</span><span class="p">,</span>
+            <span class="n">snapshot_resolution</span><span class="p">,</span> <span class="n">max_snapshots</span><span class="p">,</span> <span class="n">additional_options</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Update self._config_path with current file path.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_config_root_path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span>
+
+        <span class="n">config_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config_path</span><span class="p">,</span> <span class="s2">&quot;config.yml&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Load data from wrapper.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data_cntr</span><span class="p">:</span> <span class="n">CimDataContainerWrapper</span> <span class="o">=</span> <span class="n">CimDataContainerWrapper</span><span class="p">(</span>
+            <span class="n">config_path</span><span class="p">,</span> <span class="n">max_tick</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_topology</span><span class="p">)</span>
+
+        <span class="c1"># Create a copy of config object to expose to others, and not affect generator.</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">config_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_config</span> <span class="o">=</span> <span class="n">safe_load</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_vessels</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ports</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_frame</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_full_on_ports</span><span class="p">:</span> <span class="n">MatrixAttributeAccessor</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_full_on_vessels</span><span class="p">:</span> <span class="n">MatrixAttributeAccessor</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_vessel_plans</span><span class="p">:</span> <span class="n">MatrixAttributeAccessor</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_port_orders_exporter</span> <span class="o">=</span> <span class="n">PortOrderExporter</span><span class="p">(</span><span class="s2">&quot;enable-dump-snapshot&quot;</span> <span class="ow">in</span> <span class="n">additional_options</span><span class="p">)</span>
+
+        <span class="c1"># Read transfer cost factors.</span>
+        <span class="n">transfer_cost_factors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s2">&quot;transfer_cost_factors&quot;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_load_cost_factor</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">transfer_cost_factors</span><span class="p">[</span><span class="s2">&quot;load&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dsch_cost_factor</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">transfer_cost_factors</span><span class="p">[</span><span class="s2">&quot;dsch&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Used to collect total cost to avoid to much snapshot querying.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_total_operate_num</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_frame</span><span class="p">()</span>
+
+        <span class="c1"># Snapshot list should be initialized after frame.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_snapshots</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">snapshots</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_register_events</span><span class="p">()</span>
+
+        <span class="c1"># As we already unpack the route to the max tick, we can insert all departure events at the beginning.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_load_departure_events</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">configs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;dict: Configurations of CIM business engine.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">frame</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FrameBase</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;FrameBase: Frame of current business engine.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frame</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">snapshots</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SnapshotList</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;SnapshotList: Snapshot list of current frame.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_snapshots</span>
+
+<div class="viewcode-block" id="CimBusinessEngine.step"><a class="viewcode-back" href="../../../../../apidoc/maro.simulator.scenarios.cim.html#maro.simulator.scenarios.cim.business_engine.CimBusinessEngine.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tick</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Called at each tick to generate orders and arrival events.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            tick (int): Tick to generate orders.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># At each tick:</span>
+        <span class="c1"># 1. Generate orders for this tick.</span>
+        <span class="c1"># 2. Transfer orders into events (ORDER).</span>
+        <span class="c1"># 3. Check and add vessel arrival event (atom and cascade).</span>
+
+        <span class="n">total_empty_number</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">empty</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ports</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vessels</span><span class="p">])</span>
+
+        <span class="k">for</span> <span class="n">order</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_cntr</span><span class="o">.</span><span class="n">get_orders</span><span class="p">(</span><span class="n">tick</span><span class="p">,</span> <span class="n">total_empty_number</span><span class="p">):</span>
+            <span class="c1"># Use cascade event to support insert sub events.</span>
+            <span class="n">order_evt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_event_buffer</span><span class="o">.</span><span class="n">gen_cascade_event</span><span class="p">(</span><span class="n">tick</span><span class="p">,</span> <span class="n">Events</span><span class="o">.</span><span class="n">ORDER</span><span class="p">,</span> <span class="n">order</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_event_buffer</span><span class="o">.</span><span class="n">insert_event</span><span class="p">(</span><span class="n">order_evt</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_port_orders_exporter</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
+
+        <span class="c1"># Used to hold decision event of this tick, we will append this at the end</span>
+        <span class="c1"># to make sure all the other logic finished.</span>
+        <span class="c1"># TODO: Remove it after event priority is supported.</span>
+        <span class="n">decision_evt_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">vessel</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vessels</span><span class="p">:</span>
+            <span class="n">vessel_idx</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">vessel</span><span class="o">.</span><span class="n">idx</span>
+            <span class="n">loc_idx</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">vessel</span><span class="o">.</span><span class="n">next_loc_idx</span>
+
+            <span class="n">stop</span><span class="p">:</span> <span class="n">Stop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_cntr</span><span class="o">.</span><span class="n">vessel_stops</span><span class="p">[</span><span class="n">vessel_idx</span><span class="p">,</span> <span class="n">loc_idx</span><span class="p">]</span>
+            <span class="n">port_idx</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">stop</span><span class="o">.</span><span class="n">port_idx</span>
+
+            <span class="c1"># At the beginning the vessel is parking at port, will not invoke arrive event.</span>
+            <span class="k">if</span> <span class="n">loc_idx</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># Check if there is any arrive event.</span>
+                <span class="k">if</span> <span class="n">stop</span><span class="o">.</span><span class="n">arrive_tick</span> <span class="o">==</span> <span class="n">tick</span><span class="p">:</span>
+                    <span class="n">arrival_payload</span> <span class="o">=</span> <span class="n">VesselStatePayload</span><span class="p">(</span><span class="n">port_idx</span><span class="p">,</span> <span class="n">vessel_idx</span><span class="p">)</span>
+
+                    <span class="c1"># This vessel will arrive at current tick.</span>
+                    <span class="n">arrival_event</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_event_buffer</span><span class="o">.</span><span class="n">gen_atom_event</span><span class="p">(</span>
+                        <span class="n">tick</span><span class="p">,</span> <span class="n">Events</span><span class="o">.</span><span class="n">VESSEL_ARRIVAL</span><span class="p">,</span> <span class="n">arrival_payload</span><span class="p">)</span>
+
+                    <span class="c1"># Then it will load full.</span>
+                    <span class="n">load_event</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_event_buffer</span><span class="o">.</span><span class="n">gen_atom_event</span><span class="p">(</span>
+                        <span class="n">tick</span><span class="p">,</span> <span class="n">Events</span><span class="o">.</span><span class="n">LOAD_FULL</span><span class="p">,</span> <span class="n">arrival_payload</span><span class="p">)</span>
+
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_event_buffer</span><span class="o">.</span><span class="n">insert_event</span><span class="p">(</span><span class="n">arrival_event</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_event_buffer</span><span class="o">.</span><span class="n">insert_event</span><span class="p">(</span><span class="n">load_event</span><span class="p">)</span>
+
+                    <span class="c1"># Generate cascade event and payload.</span>
+                    <span class="n">decision_payload</span> <span class="o">=</span> <span class="n">DecisionEvent</span><span class="p">(</span>
+                        <span class="n">tick</span><span class="p">,</span> <span class="n">port_idx</span><span class="p">,</span> <span class="n">vessel_idx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">snapshots</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_scope</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">early_discharge</span>
+                    <span class="p">)</span>
+
+                    <span class="n">decision_event</span><span class="p">:</span> <span class="n">CascadeEvent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_event_buffer</span><span class="o">.</span><span class="n">gen_decision_event</span><span class="p">(</span><span class="n">tick</span><span class="p">,</span> <span class="n">decision_payload</span><span class="p">)</span>
+
+                    <span class="n">decision_evt_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">decision_event</span><span class="p">)</span>
+
+                    <span class="c1"># Update vessel location so that later logic will get correct value.</span>
+                    <span class="n">vessel</span><span class="o">.</span><span class="n">last_loc_idx</span> <span class="o">=</span> <span class="n">vessel</span><span class="o">.</span><span class="n">next_loc_idx</span>
+
+            <span class="c1"># We should update the future stop list at each tick.</span>
+            <span class="n">past_stops</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_cntr</span><span class="o">.</span><span class="n">vessel_past_stops</span><span class="p">[</span><span class="n">vessel</span><span class="o">.</span><span class="n">idx</span><span class="p">,</span> <span class="n">vessel</span><span class="o">.</span><span class="n">last_loc_idx</span><span class="p">,</span> <span class="n">loc_idx</span><span class="p">]</span>
+            <span class="n">future_stops</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_cntr</span><span class="o">.</span><span class="n">vessel_future_stops</span><span class="p">[</span><span class="n">vessel</span><span class="o">.</span><span class="n">idx</span><span class="p">,</span> <span class="n">vessel</span><span class="o">.</span><span class="n">last_loc_idx</span><span class="p">,</span> <span class="n">loc_idx</span><span class="p">]</span>
+
+            <span class="n">vessel</span><span class="o">.</span><span class="n">set_stop_list</span><span class="p">(</span><span class="n">past_stops</span><span class="p">,</span> <span class="n">future_stops</span><span class="p">)</span>
+
+            <span class="c1"># Update vessel plans.</span>
+            <span class="k">for</span> <span class="n">plan_port_idx</span><span class="p">,</span> <span class="n">plan_tick</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_cntr</span><span class="o">.</span><span class="n">vessel_planned_stops</span><span class="p">[</span><span class="n">vessel_idx</span><span class="p">,</span> <span class="n">vessel</span><span class="o">.</span><span class="n">route_idx</span><span class="p">,</span> <span class="n">loc_idx</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_vessel_plans</span><span class="p">[</span><span class="n">vessel_idx</span><span class="p">,</span> <span class="n">plan_port_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">plan_tick</span>
+
+            <span class="k">if</span> <span class="n">loc_idx</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">stop</span><span class="o">.</span><span class="n">arrive_tick</span> <span class="o">==</span> <span class="n">tick</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_vessel_plans</span><span class="p">[</span><span class="n">vessel_idx</span><span class="p">,</span> <span class="n">port_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">stop</span><span class="o">.</span><span class="n">arrive_tick</span>
+
+        <span class="c1"># Insert the cascade events at the end.</span>
+        <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">decision_evt_list</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_event_buffer</span><span class="o">.</span><span class="n">insert_event</span><span class="p">(</span><span class="n">event</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CimBusinessEngine.post_step"><a class="viewcode-back" href="../../../../../apidoc/maro.simulator.scenarios.cim.html#maro.simulator.scenarios.cim.business_engine.CimBusinessEngine.post_step">[docs]</a>    <span class="k">def</span> <span class="nf">post_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tick</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Post-process after each step.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            tick (int): Tick to process.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">tick</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_snapshot_resolution</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># Update acc_fulfillment before take snapshot.</span>
+            <span class="k">for</span> <span class="n">port</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ports</span><span class="p">:</span>
+                <span class="n">port</span><span class="o">.</span><span class="n">acc_fulfillment</span> <span class="o">=</span> <span class="n">port</span><span class="o">.</span><span class="n">acc_booking</span> <span class="o">-</span> <span class="n">port</span><span class="o">.</span><span class="n">acc_shortage</span>
+
+            <span class="c1"># Before go to next tick, we will take a snapshot first.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">take_snapshot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frame_index</span><span class="p">(</span><span class="n">tick</span><span class="p">))</span>
+
+            <span class="c1"># Reset port statistics (by tick) fields.</span>
+            <span class="k">for</span> <span class="n">port</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ports</span><span class="p">:</span>
+                <span class="n">port</span><span class="o">.</span><span class="n">shortage</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">port</span><span class="o">.</span><span class="n">booking</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">port</span><span class="o">.</span><span class="n">fulfillment</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">port</span><span class="o">.</span><span class="n">transfer_cost</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">return</span> <span class="n">tick</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_tick</span></div>
+
+<div class="viewcode-block" id="CimBusinessEngine.reset"><a class="viewcode-back" href="../../../../../apidoc/maro.simulator.scenarios.cim.html#maro.simulator.scenarios.cim.business_engine.CimBusinessEngine.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Reset the business engine, it will reset frame value.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_snapshots</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reset_nodes</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data_cntr</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+        <span class="c1"># Insert departure event again.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_load_departure_events</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_total_operate_num</span> <span class="o">=</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="CimBusinessEngine.action_scope"><a class="viewcode-back" href="../../../../../apidoc/maro.simulator.scenarios.cim.html#maro.simulator.scenarios.cim.business_engine.CimBusinessEngine.action_scope">[docs]</a>    <span class="k">def</span> <span class="nf">action_scope</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">port_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">vessel_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ActionScope</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Get the action scope of specified agent.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            port_idx (int): Index of specified agent.</span>
+<span class="sd">            vessel_idx (int): Index of specified vessel to take the action.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            ActionScope: Contains load and discharge scope.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">port</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ports</span><span class="p">[</span><span class="n">port_idx</span><span class="p">]</span>
+        <span class="n">vessel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vessels</span><span class="p">[</span><span class="n">vessel_idx</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">ActionScope</span><span class="p">(</span><span class="n">load</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">port</span><span class="o">.</span><span class="n">empty</span><span class="p">,</span> <span class="n">vessel</span><span class="o">.</span><span class="n">remaining_space</span><span class="p">),</span> <span class="n">discharge</span><span class="o">=</span><span class="n">vessel</span><span class="o">.</span><span class="n">empty</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CimBusinessEngine.early_discharge"><a class="viewcode-back" href="../../../../../apidoc/maro.simulator.scenarios.cim.html#maro.simulator.scenarios.cim.business_engine.CimBusinessEngine.early_discharge">[docs]</a>    <span class="k">def</span> <span class="nf">early_discharge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vessel_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Get the early discharge number of specified vessel.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            vessel_idx (int): Index of specified vessel.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vessels</span><span class="p">[</span><span class="n">vessel_idx</span><span class="p">]</span><span class="o">.</span><span class="n">early_discharge</span></div>
+
+<div class="viewcode-block" id="CimBusinessEngine.get_metrics"><a class="viewcode-back" href="../../../../../apidoc/maro.simulator.scenarios.cim.html#maro.simulator.scenarios.cim.business_engine.CimBusinessEngine.get_metrics">[docs]</a>    <span class="k">def</span> <span class="nf">get_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DocableDict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Get metrics information for cim scenario.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dict: A dict that contains &quot;perf&quot;, &quot;total_shortage&quot; and &quot;total_cost&quot;,</span>
+<span class="sd">                and can use help method to show help docs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">total_shortage</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">p</span><span class="o">.</span><span class="n">acc_shortage</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ports</span><span class="p">])</span>
+        <span class="n">total_booking</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">p</span><span class="o">.</span><span class="n">acc_booking</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ports</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">DocableDict</span><span class="p">(</span>
+            <span class="n">metrics_desc</span><span class="p">,</span>
+            <span class="n">order_requirements</span><span class="o">=</span><span class="n">total_booking</span><span class="p">,</span>
+            <span class="n">container_shortage</span><span class="o">=</span><span class="n">total_shortage</span><span class="p">,</span>
+            <span class="n">operation_number</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_total_operate_num</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="CimBusinessEngine.get_node_mapping"><a class="viewcode-back" href="../../../../../apidoc/maro.simulator.scenarios.cim.html#maro.simulator.scenarios.cim.business_engine.CimBusinessEngine.get_node_mapping">[docs]</a>    <span class="k">def</span> <span class="nf">get_node_mapping</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Get node name mappings related with this environment.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            dict: Node name to index mapping dictionary.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;ports&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_cntr</span><span class="o">.</span><span class="n">port_mapping</span><span class="p">,</span>
+            <span class="s2">&quot;vessels&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_cntr</span><span class="o">.</span><span class="n">vessel_mapping</span>
+        <span class="p">}</span></div>
+
+<div class="viewcode-block" id="CimBusinessEngine.get_event_payload_detail"><a class="viewcode-back" href="../../../../../apidoc/maro.simulator.scenarios.cim.html#maro.simulator.scenarios.cim.business_engine.CimBusinessEngine.get_event_payload_detail">[docs]</a>    <span class="k">def</span> <span class="nf">get_event_payload_detail</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;dict: Event payload details of current scenario.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="n">Events</span><span class="o">.</span><span class="n">ORDER</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">Order</span><span class="o">.</span><span class="n">summary_key</span><span class="p">,</span>
+            <span class="n">Events</span><span class="o">.</span><span class="n">RETURN_FULL</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">LadenReturnPayload</span><span class="o">.</span><span class="n">summary_key</span><span class="p">,</span>
+            <span class="n">Events</span><span class="o">.</span><span class="n">VESSEL_ARRIVAL</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">VesselStatePayload</span><span class="o">.</span><span class="n">summary_key</span><span class="p">,</span>
+            <span class="n">Events</span><span class="o">.</span><span class="n">LOAD_FULL</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">VesselStatePayload</span><span class="o">.</span><span class="n">summary_key</span><span class="p">,</span>
+            <span class="n">Events</span><span class="o">.</span><span class="n">DISCHARGE_FULL</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">VesselDischargePayload</span><span class="o">.</span><span class="n">summary_key</span><span class="p">,</span>
+            <span class="n">Events</span><span class="o">.</span><span class="n">PENDING_DECISION</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">DecisionEvent</span><span class="o">.</span><span class="n">summary_key</span><span class="p">,</span>
+            <span class="n">Events</span><span class="o">.</span><span class="n">LOAD_EMPTY</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">Action</span><span class="o">.</span><span class="n">summary_key</span><span class="p">,</span>
+            <span class="n">Events</span><span class="o">.</span><span class="n">DISCHARGE_EMPTY</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">Action</span><span class="o">.</span><span class="n">summary_key</span><span class="p">,</span>
+            <span class="n">Events</span><span class="o">.</span><span class="n">VESSEL_DEPARTURE</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">VesselStatePayload</span><span class="o">.</span><span class="n">summary_key</span><span class="p">,</span>
+            <span class="n">Events</span><span class="o">.</span><span class="n">RETURN_EMPTY</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">EmptyReturnPayload</span><span class="o">.</span><span class="n">summary_key</span>
+        <span class="p">}</span></div>
+
+<div class="viewcode-block" id="CimBusinessEngine.get_agent_idx_list"><a class="viewcode-back" href="../../../../../apidoc/maro.simulator.scenarios.cim.html#maro.simulator.scenarios.cim.business_engine.CimBusinessEngine.get_agent_idx_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_agent_idx_list</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Get port index list related with this environment.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list: A list of port index.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data_cntr</span><span class="o">.</span><span class="n">port_number</span><span class="p">)]</span></div>
+
+<div class="viewcode-block" id="CimBusinessEngine.dump"><a class="viewcode-back" href="../../../../../apidoc/maro.simulator.scenarios.cim.html#maro.simulator.scenarios.cim.business_engine.CimBusinessEngine.dump">[docs]</a>    <span class="k">def</span> <span class="nf">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">folder</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_port_orders_exporter</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_init_nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Init ports.</span>
+        <span class="k">for</span> <span class="n">port_settings</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_cntr</span><span class="o">.</span><span class="n">ports</span><span class="p">:</span>
+            <span class="n">port</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ports</span><span class="p">[</span><span class="n">port_settings</span><span class="o">.</span><span class="n">index</span><span class="p">]</span>
+            <span class="n">port</span><span class="o">.</span><span class="n">set_init_state</span><span class="p">(</span><span class="n">port_settings</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                <span class="n">port_settings</span><span class="o">.</span><span class="n">capacity</span><span class="p">,</span> <span class="n">port_settings</span><span class="o">.</span><span class="n">empty</span><span class="p">)</span>
+
+        <span class="c1"># Init vessels.</span>
+        <span class="k">for</span> <span class="n">vessel_setting</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_cntr</span><span class="o">.</span><span class="n">vessels</span><span class="p">:</span>
+            <span class="n">vessel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vessels</span><span class="p">[</span><span class="n">vessel_setting</span><span class="o">.</span><span class="n">index</span><span class="p">]</span>
+
+            <span class="n">vessel</span><span class="o">.</span><span class="n">set_init_state</span><span class="p">(</span>
+                <span class="n">vessel_setting</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_data_cntr</span><span class="o">.</span><span class="n">container_volume</span><span class="p">,</span>
+                <span class="n">vessel_setting</span><span class="o">.</span><span class="n">capacity</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_data_cntr</span><span class="o">.</span><span class="n">route_mapping</span><span class="p">[</span><span class="n">vessel_setting</span><span class="o">.</span><span class="n">route_name</span><span class="p">],</span>
+                <span class="n">vessel_setting</span><span class="o">.</span><span class="n">empty</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Init vessel plans.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_vessel_plans</span><span class="p">[:]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="k">def</span> <span class="nf">_reset_nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Reset both vessels and ports.</span>
+        <span class="c1"># NOTE: This should be called after frame.reset.</span>
+        <span class="k">for</span> <span class="n">port</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ports</span><span class="p">:</span>
+            <span class="n">port</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">vessel</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vessels</span><span class="p">:</span>
+            <span class="n">vessel</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+        <span class="c1"># Reset vessel plans.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_vessel_plans</span><span class="p">[:]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="k">def</span> <span class="nf">_register_events</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Register events.&quot;&quot;&quot;</span>
+        <span class="n">register_handler</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_event_buffer</span><span class="o">.</span><span class="n">register_event_handler</span>
+
+        <span class="n">register_handler</span><span class="p">(</span><span class="n">Events</span><span class="o">.</span><span class="n">RETURN_FULL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_full_return</span><span class="p">)</span>
+        <span class="n">register_handler</span><span class="p">(</span><span class="n">Events</span><span class="o">.</span><span class="n">RETURN_EMPTY</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_empty_return</span><span class="p">)</span>
+        <span class="n">register_handler</span><span class="p">(</span><span class="n">Events</span><span class="o">.</span><span class="n">ORDER</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_order_generated</span><span class="p">)</span>
+        <span class="n">register_handler</span><span class="p">(</span><span class="n">Events</span><span class="o">.</span><span class="n">LOAD_FULL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_full_load</span><span class="p">)</span>
+        <span class="n">register_handler</span><span class="p">(</span><span class="n">Events</span><span class="o">.</span><span class="n">VESSEL_DEPARTURE</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_departure</span><span class="p">)</span>
+        <span class="n">register_handler</span><span class="p">(</span><span class="n">Events</span><span class="o">.</span><span class="n">DISCHARGE_FULL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_discharge</span><span class="p">)</span>
+        <span class="n">register_handler</span><span class="p">(</span><span class="n">MaroEvents</span><span class="o">.</span><span class="n">TAKE_ACTION</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_action_received</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_load_departure_events</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Insert leaving event at the beginning as we already unpack the root to a loop at the beginning.&quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">vessel_idx</span><span class="p">,</span> <span class="n">stops</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data_cntr</span><span class="o">.</span><span class="n">vessel_stops</span><span class="p">[:]):</span>
+            <span class="k">for</span> <span class="n">stop</span> <span class="ow">in</span> <span class="n">stops</span><span class="p">:</span>
+                <span class="n">payload</span> <span class="o">=</span> <span class="n">VesselStatePayload</span><span class="p">(</span><span class="n">stop</span><span class="o">.</span><span class="n">port_idx</span><span class="p">,</span> <span class="n">vessel_idx</span><span class="p">)</span>
+                <span class="n">dep_evt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_event_buffer</span><span class="o">.</span><span class="n">gen_atom_event</span><span class="p">(</span><span class="n">stop</span><span class="o">.</span><span class="n">leave_tick</span><span class="p">,</span> <span class="n">Events</span><span class="o">.</span><span class="n">VESSEL_DEPARTURE</span><span class="p">,</span> <span class="n">payload</span><span class="p">)</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">_event_buffer</span><span class="o">.</span><span class="n">insert_event</span><span class="p">(</span><span class="n">dep_evt</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_init_frame</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize the frame based on data generator.&quot;&quot;&quot;</span>
+        <span class="n">port_num</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_cntr</span><span class="o">.</span><span class="n">port_number</span>
+        <span class="n">vessel_num</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_cntr</span><span class="o">.</span><span class="n">vessel_number</span>
+        <span class="n">stop_num</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data_cntr</span><span class="o">.</span><span class="n">past_stop_number</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_data_cntr</span><span class="o">.</span><span class="n">future_stop_number</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_frame</span> <span class="o">=</span> <span class="n">gen_cim_frame</span><span class="p">(</span>
+            <span class="n">port_num</span><span class="p">,</span> <span class="n">vessel_num</span><span class="p">,</span> <span class="n">stop_num</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_max_snapshots</span><span class="p">())</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ports</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">ports</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_vessels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">vessels</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_full_on_ports</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">matrix</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;full_on_ports&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_full_on_vessels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">matrix</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;full_on_vessels&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_vessel_plans</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">matrix</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;vessel_plans&quot;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_nodes</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_get_reachable_ports</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vessel_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get ports that specified vessel can reach (for order), return a list of tuple (port_id, arrive_tick).</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            vessel_idx (int): Index of specified vessel.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Reachable port index list of specified vessel.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">vessel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vessels</span><span class="p">[</span><span class="n">vessel_idx</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_cntr</span><span class="o">.</span><span class="n">reachable_stops</span><span class="p">[</span><span class="n">vessel_idx</span><span class="p">,</span> <span class="n">vessel</span><span class="o">.</span><span class="n">route_idx</span><span class="p">,</span> <span class="n">vessel</span><span class="o">.</span><span class="n">next_loc_idx</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_get_pending_full</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">src_port_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dest_port_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get pending full number from src_port_idx to dest_port_idx.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_full_on_ports</span><span class="p">[</span><span class="n">src_port_idx</span><span class="p">,</span> <span class="n">dest_port_idx</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_set_pending_full</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">src_port_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dest_port_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the full number from src_port_idx to dest_port_idx.&quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">value</span> <span class="o">&gt;=</span> <span class="mi">0</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_full_on_ports</span><span class="p">[</span><span class="n">src_port_idx</span><span class="p">,</span> <span class="n">dest_port_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="k">def</span> <span class="nf">_on_order_generated</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">CascadeEvent</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;When there is an order generated, we should do:</span>
+<span class="sd">        1. Generate a LADEN_RETURN event by configured buffer time: \</span>
+<span class="sd">        The event will be inserted to the immediate_event_list ASAP if the configured buffer time is 0, \</span>
+<span class="sd">        else the event will be inserted to the event buffer directly.</span>
+<span class="sd">        2. Update port state: on_shipper +, empty -.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            event (CascadeEvent): Order event object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">order</span><span class="p">:</span> <span class="n">Order</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">payload</span>
+        <span class="n">src_port</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ports</span><span class="p">[</span><span class="n">order</span><span class="o">.</span><span class="n">src_port_idx</span><span class="p">]</span>
+
+        <span class="n">execute_qty</span> <span class="o">=</span> <span class="n">order</span><span class="o">.</span><span class="n">quantity</span>
+        <span class="n">src_empty</span> <span class="o">=</span> <span class="n">src_port</span><span class="o">.</span><span class="n">empty</span>
+        <span class="n">src_port</span><span class="o">.</span><span class="n">booking</span> <span class="o">+=</span> <span class="n">execute_qty</span>
+        <span class="n">src_port</span><span class="o">.</span><span class="n">acc_booking</span> <span class="o">+=</span> <span class="n">execute_qty</span>
+
+        <span class="c1"># Check if there is any shortage.</span>
+        <span class="k">if</span> <span class="n">src_empty</span> <span class="o">&lt;</span> <span class="n">order</span><span class="o">.</span><span class="n">quantity</span><span class="p">:</span>
+            <span class="c1"># Booking &amp; shortage.</span>
+            <span class="n">shortage_qty</span> <span class="o">=</span> <span class="n">order</span><span class="o">.</span><span class="n">quantity</span> <span class="o">-</span> <span class="n">src_empty</span>
+            <span class="n">src_port</span><span class="o">.</span><span class="n">shortage</span> <span class="o">+=</span> <span class="n">shortage_qty</span>
+            <span class="n">src_port</span><span class="o">.</span><span class="n">acc_shortage</span> <span class="o">+=</span> <span class="n">shortage_qty</span>
+            <span class="n">execute_qty</span> <span class="o">=</span> <span class="n">src_empty</span>
+
+        <span class="c1"># Update port state.</span>
+        <span class="n">src_port</span><span class="o">.</span><span class="n">empty</span> <span class="o">-=</span> <span class="n">execute_qty</span>
+        <span class="c1"># Full contianers that pending to return.</span>
+        <span class="n">src_port</span><span class="o">.</span><span class="n">on_shipper</span> <span class="o">+=</span> <span class="n">execute_qty</span>
+
+        <span class="n">buffer_ticks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_cntr</span><span class="o">.</span><span class="n">full_return_buffers</span><span class="p">[</span><span class="n">src_port</span><span class="o">.</span><span class="n">idx</span><span class="p">]</span>
+
+        <span class="n">payload</span> <span class="o">=</span> <span class="n">LadenReturnPayload</span><span class="p">(</span>
+            <span class="n">src_port_idx</span><span class="o">=</span><span class="n">order</span><span class="o">.</span><span class="n">src_port_idx</span><span class="p">,</span> <span class="n">dest_port_idx</span><span class="o">=</span><span class="n">order</span><span class="o">.</span><span class="n">dest_port_idx</span><span class="p">,</span> <span class="n">quantity</span><span class="o">=</span><span class="n">execute_qty</span>
+        <span class="p">)</span>
+
+        <span class="n">laden_return_evt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_event_buffer</span><span class="o">.</span><span class="n">gen_atom_event</span><span class="p">(</span>
+            <span class="n">tick</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">tick</span> <span class="o">+</span> <span class="n">buffer_ticks</span><span class="p">,</span> <span class="n">event_type</span><span class="o">=</span><span class="n">Events</span><span class="o">.</span><span class="n">RETURN_FULL</span><span class="p">,</span> <span class="n">payload</span><span class="o">=</span><span class="n">payload</span>
+        <span class="p">)</span>
+
+        <span class="c1"># If buffer_tick is 0, we should execute it as this tick.</span>
+        <span class="k">if</span> <span class="n">buffer_ticks</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">event</span><span class="o">.</span><span class="n">add_immediate_event</span><span class="p">(</span><span class="n">laden_return_evt</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_event_buffer</span><span class="o">.</span><span class="n">insert_event</span><span class="p">(</span><span class="n">laden_return_evt</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_on_full_return</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">AtomEvent</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Handler for processing the event that full containers are returned from shipper.</span>
+
+<span class="sd">        Once the full containers are returned, the containers are ready to be loaded. The workflow is:</span>
+<span class="sd">        1. First move the container from on_shipper to full (update state: on_shipper -&gt; full).</span>
+<span class="sd">        2. Then append the container to the port pending list.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">payload</span><span class="p">:</span> <span class="n">LadenReturnPayload</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">payload</span>
+
+        <span class="n">src_port</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ports</span><span class="p">[</span><span class="n">payload</span><span class="o">.</span><span class="n">src_port_idx</span><span class="p">]</span>
+        <span class="n">src_port</span><span class="o">.</span><span class="n">on_shipper</span> <span class="o">-=</span> <span class="n">payload</span><span class="o">.</span><span class="n">quantity</span>
+        <span class="n">src_port</span><span class="o">.</span><span class="n">full</span> <span class="o">+=</span> <span class="n">payload</span><span class="o">.</span><span class="n">quantity</span>
+
+        <span class="n">pending_full_number</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_pending_full</span><span class="p">(</span>
+            <span class="n">payload</span><span class="o">.</span><span class="n">src_port_idx</span><span class="p">,</span> <span class="n">payload</span><span class="o">.</span><span class="n">dest_port_idx</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_pending_full</span><span class="p">(</span>
+            <span class="n">payload</span><span class="o">.</span><span class="n">src_port_idx</span><span class="p">,</span> <span class="n">payload</span><span class="o">.</span><span class="n">dest_port_idx</span><span class="p">,</span> <span class="n">pending_full_number</span> <span class="o">+</span> <span class="n">payload</span><span class="o">.</span><span class="n">quantity</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_on_full_load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">AtomEvent</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Handler for processing event that a vessel need to load full containers from current port.</span>
+
+<span class="sd">        When there is a vessel arrive at a port:</span>
+<span class="sd">        1. Discharge full (we ignore this action here, as we will generate a discharge event \</span>
+<span class="sd">        after a vessel have loaded any full).</span>
+<span class="sd">        2. Load full by destination id, and generate discharge event.</span>
+<span class="sd">        3. Update vessel.state to PARKING.</span>
+<span class="sd">        4. Fill future stop list.</span>
+<span class="sd">        5. Early discharge.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            event (AtomEvent): Arrival event object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">arrival_obj</span><span class="p">:</span> <span class="n">VesselStatePayload</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">payload</span>
+        <span class="n">vessel_idx</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">arrival_obj</span><span class="o">.</span><span class="n">vessel_idx</span>
+        <span class="n">port_idx</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">arrival_obj</span><span class="o">.</span><span class="n">port_idx</span>
+        <span class="n">vessel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vessels</span><span class="p">[</span><span class="n">vessel_idx</span><span class="p">]</span>
+        <span class="n">port</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ports</span><span class="p">[</span><span class="n">port_idx</span><span class="p">]</span>
+        <span class="n">container_volume</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_cntr</span><span class="o">.</span><span class="n">container_volume</span>
+        <span class="n">vessel_capacity</span> <span class="o">=</span> <span class="n">vessel</span><span class="o">.</span><span class="n">capacity</span>
+
+        <span class="c1"># Update vessel state.</span>
+        <span class="n">vessel</span><span class="o">.</span><span class="n">last_loc_idx</span> <span class="o">=</span> <span class="n">vessel</span><span class="o">.</span><span class="n">next_loc_idx</span>
+
+        <span class="c1"># NOTE: This remaining space do not contains empty, as we can early discharge them if no enough space.</span>
+        <span class="n">remaining_space</span> <span class="o">=</span> <span class="n">vessel_capacity</span> <span class="o">-</span> <span class="n">vessel</span><span class="o">.</span><span class="n">full</span> <span class="o">*</span> <span class="n">container_volume</span>
+
+        <span class="c1"># How many containers we can load.</span>
+        <span class="n">acceptable_number</span> <span class="o">=</span> <span class="n">floor</span><span class="p">(</span><span class="n">remaining_space</span> <span class="o">/</span> <span class="n">container_volume</span><span class="p">)</span>
+        <span class="n">total_load_qty</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">for</span> <span class="n">next_port_idx</span><span class="p">,</span> <span class="n">arrive_tick</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_reachable_ports</span><span class="p">(</span><span class="n">vessel_idx</span><span class="p">):</span>
+            <span class="n">full_number_to_next_port</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_pending_full</span><span class="p">(</span>
+                <span class="n">port_idx</span><span class="p">,</span> <span class="n">next_port_idx</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">acceptable_number</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">full_number_to_next_port</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># We can load some full.</span>
+                <span class="n">loaded_qty</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">full_number_to_next_port</span><span class="p">,</span> <span class="n">acceptable_number</span><span class="p">)</span>
+                <span class="n">total_load_qty</span> <span class="o">+=</span> <span class="n">loaded_qty</span>
+
+                <span class="c1"># Update port state.</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_set_pending_full</span><span class="p">(</span>
+                    <span class="n">port_idx</span><span class="p">,</span> <span class="n">next_port_idx</span><span class="p">,</span> <span class="n">full_number_to_next_port</span> <span class="o">-</span> <span class="n">loaded_qty</span><span class="p">)</span>
+
+                <span class="n">port</span><span class="o">.</span><span class="n">full</span> <span class="o">-=</span> <span class="n">loaded_qty</span>
+                <span class="n">vessel</span><span class="o">.</span><span class="n">full</span> <span class="o">+=</span> <span class="n">loaded_qty</span>
+
+                <span class="c1"># Update state.</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_full_on_vessels</span><span class="p">[</span><span class="n">vessel_idx</span><span class="p">,</span> <span class="n">next_port_idx</span><span class="p">]</span> <span class="o">+=</span> <span class="n">loaded_qty</span>
+
+                <span class="n">acceptable_number</span> <span class="o">-=</span> <span class="n">loaded_qty</span>
+
+                <span class="c1"># Generate a discharge event, as we know when the vessel will arrive at destination.</span>
+                <span class="n">payload</span> <span class="o">=</span> <span class="n">VesselDischargePayload</span><span class="p">(</span><span class="n">vessel_idx</span><span class="p">,</span> <span class="n">port_idx</span><span class="p">,</span> <span class="n">next_port_idx</span><span class="p">,</span> <span class="n">loaded_qty</span><span class="p">)</span>
+                <span class="n">dsch_event</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_event_buffer</span><span class="o">.</span><span class="n">gen_cascade_event</span><span class="p">(</span><span class="n">arrive_tick</span><span class="p">,</span> <span class="n">Events</span><span class="o">.</span><span class="n">DISCHARGE_FULL</span><span class="p">,</span> <span class="n">payload</span><span class="p">)</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">_event_buffer</span><span class="o">.</span><span class="n">insert_event</span><span class="p">(</span><span class="n">dsch_event</span><span class="p">)</span>
+
+        <span class="c1"># Early discharge.</span>
+        <span class="n">total_container</span> <span class="o">=</span> <span class="n">vessel</span><span class="o">.</span><span class="n">full</span> <span class="o">+</span> <span class="n">vessel</span><span class="o">.</span><span class="n">empty</span>
+
+        <span class="n">vessel</span><span class="o">.</span><span class="n">early_discharge</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="n">total_container</span> <span class="o">*</span> <span class="n">container_volume</span> <span class="o">&gt;</span> <span class="n">vessel</span><span class="o">.</span><span class="n">capacity</span><span class="p">:</span>
+            <span class="n">early_discharge_number</span> <span class="o">=</span> \
+                <span class="n">total_container</span> <span class="o">-</span> <span class="n">ceil</span><span class="p">(</span><span class="n">vessel</span><span class="o">.</span><span class="n">capacity</span> <span class="o">/</span> <span class="n">container_volume</span><span class="p">)</span>
+            <span class="n">vessel</span><span class="o">.</span><span class="n">empty</span> <span class="o">-=</span> <span class="n">early_discharge_number</span>
+            <span class="n">port</span><span class="o">.</span><span class="n">empty</span> <span class="o">+=</span> <span class="n">early_discharge_number</span>
+            <span class="n">vessel</span><span class="o">.</span><span class="n">early_discharge</span> <span class="o">=</span> <span class="n">early_discharge_number</span>
+
+    <span class="k">def</span> <span class="nf">_on_departure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">AtomEvent</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Handler for processing event when there is a vessel leaving from port.</span>
+
+<span class="sd">        When the vessel departing from port:</span>
+<span class="sd">        1. Update location to next stop.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            event (AtomEvent): Departure event object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">departure_payload</span><span class="p">:</span> <span class="n">VesselStatePayload</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">payload</span>
+        <span class="n">vessel_idx</span> <span class="o">=</span> <span class="n">departure_payload</span><span class="o">.</span><span class="n">vessel_idx</span>
+        <span class="n">vessel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vessels</span><span class="p">[</span><span class="n">vessel_idx</span><span class="p">]</span>
+
+        <span class="c1"># As we have unfold all the route stop, we can just location ++.</span>
+        <span class="n">vessel</span><span class="o">.</span><span class="n">next_loc_idx</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">def</span> <span class="nf">_on_discharge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">CascadeEvent</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Handler for processing event the there are some full need to be discharged.</span>
+
+
+<span class="sd">        1. Discharge specified qty of full from vessel into port.on_consignee.</span>
+<span class="sd">        2. Generate a empty_return event by configured buffer time:</span>
+<span class="sd">            a. If buffer time is 0, then insert into immediate_event_list to process it ASAP.</span>
+<span class="sd">            b. Or insert into event buffer.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            event (AtomEvent): Discharge event object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">discharge_payload</span><span class="p">:</span> <span class="n">VesselDischargePayload</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">payload</span>
+        <span class="n">vessel_idx</span> <span class="o">=</span> <span class="n">discharge_payload</span><span class="o">.</span><span class="n">vessel_idx</span>
+        <span class="n">port_idx</span> <span class="o">=</span> <span class="n">discharge_payload</span><span class="o">.</span><span class="n">port_idx</span>
+        <span class="n">vessel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vessels</span><span class="p">[</span><span class="n">vessel_idx</span><span class="p">]</span>
+        <span class="n">port</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ports</span><span class="p">[</span><span class="n">port_idx</span><span class="p">]</span>
+        <span class="n">discharge_qty</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">discharge_payload</span><span class="o">.</span><span class="n">quantity</span>
+
+        <span class="n">vessel</span><span class="o">.</span><span class="n">full</span> <span class="o">-=</span> <span class="n">discharge_qty</span>
+        <span class="n">port</span><span class="o">.</span><span class="n">on_consignee</span> <span class="o">+=</span> <span class="n">discharge_qty</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_full_on_vessels</span><span class="p">[</span><span class="n">vessel_idx</span><span class="p">,</span> <span class="n">port_idx</span><span class="p">]</span> <span class="o">-=</span> <span class="n">discharge_qty</span>
+
+        <span class="n">buffer_ticks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_cntr</span><span class="o">.</span><span class="n">empty_return_buffers</span><span class="p">[</span><span class="n">port</span><span class="o">.</span><span class="n">idx</span><span class="p">]</span>
+        <span class="n">payload</span> <span class="o">=</span> <span class="n">EmptyReturnPayload</span><span class="p">(</span><span class="n">port_idx</span><span class="o">=</span><span class="n">port</span><span class="o">.</span><span class="n">idx</span><span class="p">,</span> <span class="n">quantity</span><span class="o">=</span><span class="n">discharge_qty</span><span class="p">)</span>
+        <span class="n">mt_return_evt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_event_buffer</span><span class="o">.</span><span class="n">gen_atom_event</span><span class="p">(</span>
+            <span class="n">tick</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">tick</span> <span class="o">+</span> <span class="n">buffer_ticks</span><span class="p">,</span> <span class="n">event_type</span><span class="o">=</span><span class="n">Events</span><span class="o">.</span><span class="n">RETURN_EMPTY</span><span class="p">,</span> <span class="n">payload</span><span class="o">=</span><span class="n">payload</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">buffer_ticks</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">event</span><span class="o">.</span><span class="n">add_immediate_event</span><span class="p">(</span><span class="n">mt_return_evt</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_event_buffer</span><span class="o">.</span><span class="n">insert_event</span><span class="p">(</span><span class="n">mt_return_evt</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_on_empty_return</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">AtomEvent</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Handler for processing event when there are some empty container return to port.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            event (AtomEvent): Empty-return event object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">payload</span><span class="p">:</span> <span class="n">EmptyReturnPayload</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">payload</span>
+        <span class="n">port</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ports</span><span class="p">[</span><span class="n">payload</span><span class="o">.</span><span class="n">port_idx</span><span class="p">]</span>
+
+        <span class="n">port</span><span class="o">.</span><span class="n">on_consignee</span> <span class="o">-=</span> <span class="n">payload</span><span class="o">.</span><span class="n">quantity</span>
+        <span class="n">port</span><span class="o">.</span><span class="n">empty</span> <span class="o">+=</span> <span class="n">payload</span><span class="o">.</span><span class="n">quantity</span>
+
+    <span class="k">def</span> <span class="nf">_on_action_received</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">CascadeEvent</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Handler for processing actions from agent.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            event (CascadeEvent): Action event object with expected payload: {vessel_id: empty_number_to_move}}.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">actions</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">payload</span>
+
+        <span class="k">if</span> <span class="n">actions</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">actions</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">list</span><span class="p">:</span>
+                <span class="n">actions</span> <span class="o">=</span> <span class="p">[</span><span class="n">actions</span><span class="p">]</span>
+
+            <span class="k">for</span> <span class="n">action</span> <span class="ow">in</span> <span class="n">actions</span><span class="p">:</span>
+                <span class="n">vessel_idx</span> <span class="o">=</span> <span class="n">action</span><span class="o">.</span><span class="n">vessel_idx</span>
+                <span class="n">port_idx</span> <span class="o">=</span> <span class="n">action</span><span class="o">.</span><span class="n">port_idx</span>
+                <span class="n">move_num</span> <span class="o">=</span> <span class="n">action</span><span class="o">.</span><span class="n">quantity</span>
+                <span class="n">vessel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vessels</span><span class="p">[</span><span class="n">vessel_idx</span><span class="p">]</span>
+                <span class="n">port</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ports</span><span class="p">[</span><span class="n">port_idx</span><span class="p">]</span>
+                <span class="n">port_empty</span> <span class="o">=</span> <span class="n">port</span><span class="o">.</span><span class="n">empty</span>
+                <span class="n">vessel_empty</span> <span class="o">=</span> <span class="n">vessel</span><span class="o">.</span><span class="n">empty</span>
+
+                <span class="k">assert</span> <span class="p">(</span>
+                    <span class="o">-</span><span class="nb">min</span><span class="p">(</span><span class="n">port</span><span class="o">.</span><span class="n">empty</span><span class="p">,</span> <span class="n">vessel</span><span class="o">.</span><span class="n">remaining_space</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">move_num</span> <span class="o">&lt;=</span> <span class="n">vessel_empty</span>
+                <span class="p">)</span>
+
+                <span class="n">port</span><span class="o">.</span><span class="n">empty</span> <span class="o">=</span> <span class="n">port_empty</span> <span class="o">+</span> <span class="n">move_num</span>
+                <span class="n">vessel</span><span class="o">.</span><span class="n">empty</span> <span class="o">=</span> <span class="n">vessel_empty</span> <span class="o">-</span> <span class="n">move_num</span>
+
+                <span class="n">event</span><span class="o">.</span><span class="n">event_type</span> <span class="o">=</span> <span class="n">Events</span><span class="o">.</span><span class="n">DISCHARGE_EMPTY</span> <span class="k">if</span> <span class="n">move_num</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">Events</span><span class="o">.</span><span class="n">LOAD_EMPTY</span>
+
+                <span class="c1"># Update cost.</span>
+                <span class="n">num</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">move_num</span><span class="p">)</span>
+
+                <span class="c1"># Update transfer cost for port and metrics.</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_total_operate_num</span> <span class="o">+=</span> <span class="n">num</span>
+                <span class="n">port</span><span class="o">.</span><span class="n">transfer_cost</span> <span class="o">+=</span> <span class="n">num</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">_vessel_plans</span><span class="p">[</span><span class="n">vessel_idx</span><span class="p">,</span> <span class="n">port_idx</span><span class="p">]</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_cntr</span><span class="o">.</span><span class="n">vessel_period</span><span class="p">[</span><span class="n">vessel_idx</span><span class="p">]</span></div>
+</pre></div>
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../../../../../_static/js/index.js"></script>
+    
+  </body>
+</html>

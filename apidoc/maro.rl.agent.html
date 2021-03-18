@@ -1,0 +1,1122 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maro.rl.agent package &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="maro.rl.algorithms package" href="maro.rl.algorithms.html" />
+    <link rel="prev" title="maro.rl.actor package" href="maro.rl.actor.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../index.html">
+  
+  <img src="../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="current nav sidenav_l1">
+ <li class="toctree-l1 current active">
+  <a class="reference internal" href="maro.html">
+   maro package
+  </a>
+  <ul class="current">
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.backends.html">
+     maro.backends package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.cli.html">
+     maro.cli package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.data_pipeline.html">
+       maro.cli.data_pipeline package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.envs.html">
+       maro.cli.envs package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.grass.html">
+       maro.cli.grass package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.grass.executors.html">
+         maro.cli.grass.executors package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.grass.utils.html">
+         maro.cli.grass.utils package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.inspector.html">
+       maro.cli.inspector package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.k8s.html">
+       maro.cli.k8s package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.k8s.executors.html">
+         maro.cli.k8s.executors package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.process.html">
+       maro.cli.process package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.process.utils.html">
+         maro.cli.process.utils package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.utils.html">
+       maro.cli.utils package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.utils.executors.html">
+         maro.cli.utils.executors package
+        </a>
+       </li>
+      </ul>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.communication.html">
+     maro.communication package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.communication.driver.html">
+       maro.communication.driver package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.communication.utils.html">
+       maro.communication.utils package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.data_lib.html">
+     maro.data_lib package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.data_lib.cim.html">
+       maro.data_lib.cim package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.event_buffer.html">
+     maro.event_buffer package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.forecasting.html">
+     maro.forecasting package
+    </a>
+   </li>
+   <li class="toctree-l2 current active">
+    <a class="reference internal" href="maro.rl.html">
+     maro.rl package
+    </a>
+    <ul class="current">
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.actor.html">
+       maro.rl.actor package
+      </a>
+     </li>
+     <li class="toctree-l3 current active">
+      <a class="current reference internal" href="#">
+       maro.rl.agent package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.algorithms.html">
+       maro.rl.algorithms package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.dist_topologies.html">
+       maro.rl.dist_topologies package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.exploration.html">
+       maro.rl.exploration package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.learner.html">
+       maro.rl.learner package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.models.html">
+       maro.rl.models package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.scheduling.html">
+       maro.rl.scheduling package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.shaping.html">
+       maro.rl.shaping package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.storage.html">
+       maro.rl.storage package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.simulator.html">
+     maro.simulator package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.simulator.scenarios.html">
+       maro.simulator.scenarios package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.cim.html">
+         maro.simulator.scenarios.cim package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.citi_bike.html">
+         maro.simulator.scenarios.citi_bike package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.vm_scheduling.html">
+         maro.simulator.scenarios.vm_scheduling package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.simulator.utils.html">
+       maro.simulator.utils package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.utils.html">
+     maro.utils package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.utils.exception.html">
+       maro.utils.exception package
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+        
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="../_sources/apidoc/maro.rl.agent.rst.txt"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.rst</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2Fapidoc/maro.rl.agent.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        <a class="edit-button" href="https://github.com/microsoft/maro/edit/master/doc/source/apidoc/maro.rl.agent.rst"><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Edit this page"><i class="fas fa-pencil-alt"></i>suggest edit</button></a>
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <div class="tocsection onthispage pt-5 pb-3">
+            <i class="fas fa-list"></i> Contents
+        </div>
+        <nav id="bd-toc-nav">
+            <ul class="nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#submodules">
+   Submodules
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.rl.agent.abs_agent">
+   maro.rl.agent.abs_agent module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.rl.agent.abs_agent_manager">
+   maro.rl.agent.abs_agent_manager module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.rl.agent.simple_agent_manager">
+   maro.rl.agent.simple_agent_manager module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.rl.agent">
+   Module contents
+  </a>
+ </li>
+</ul>
+
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <div class="section" id="maro-rl-agent-package">
+<h1>maro.rl.agent package<a class="headerlink" href="#maro-rl-agent-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-maro.rl.agent.abs_agent">
+<span id="maro-rl-agent-abs-agent-module"></span><h2>maro.rl.agent.abs_agent module<a class="headerlink" href="#module-maro.rl.agent.abs_agent" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.rl.agent.abs_agent.AbsAgent">
+<em class="property">class </em><code class="sig-prename descclassname">maro.rl.agent.abs_agent.</code><code class="sig-name descname">AbsAgent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">algorithm</span><span class="p">:</span> <span class="n"><a class="reference internal" href="maro.rl.algorithms.html#maro.rl.algorithms.abs_algorithm.AbsAlgorithm" title="maro.rl.algorithms.abs_algorithm.AbsAlgorithm">maro.rl.algorithms.abs_algorithm.AbsAlgorithm</a></span></em>, <em class="sig-param"><span class="n">experience_pool</span><span class="p">:</span> <span class="n"><a class="reference internal" href="maro.rl.storage.html#maro.rl.storage.abs_store.AbsStore" title="maro.rl.storage.abs_store.AbsStore">maro.rl.storage.abs_store.AbsStore</a></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/abs_agent.html#AbsAgent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.abs_agent.AbsAgent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<p>Abstract RL agent class.</p>
+<p>It’s a sandbox for the RL algorithm. Scenario-specific details will be excluded.
+We focus on the abstraction algorithm development here. Environment observation and decision events will
+be converted to a uniform format before calling in. And the output will be converted to an environment
+executable format before return back to the environment. Its key responsibility is optimizing policy based
+on interaction with the environment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Agent’s name.</p></li>
+<li><p><strong>algorithm</strong> (<em>AbsAlgorithm</em>) – A concrete algorithm instance that inherits from AbstractAlgorithm.
+This is the centerpiece of the Agent class and is responsible for the most important tasks of an agent:
+choosing actions and optimizing models.</p></li>
+<li><p><strong>experience_pool</strong> (<em>AbsStore</em>) – It is used to store experiences processed by the experience shaper, which will be
+used by some value-based algorithms, such as DQN. Defaults to None.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.rl.agent.abs_agent.AbsAgent.algorithm">
+<em class="property">property </em><code class="sig-name descname">algorithm</code><a class="headerlink" href="#maro.rl.agent.abs_agent.AbsAgent.algorithm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Underlying algorithm employed by the agent.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.agent.abs_agent.AbsAgent.choose_action">
+<code class="sig-name descname">choose_action</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model_state</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/abs_agent.html#AbsAgent.choose_action"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.abs_agent.AbsAgent.choose_action" title="Permalink to this definition">¶</a></dt>
+<dd><p>Choose an action using the underlying algorithm based on a preprocessed env state.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>model_state</strong> – State vector as accepted by the underlying algorithm.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>If the agent’s explorer is None, the action given by the underlying model is returned. Otherwise,
+an exploratory action is returned.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.agent.abs_agent.AbsAgent.dump_model">
+<code class="sig-name descname">dump_model</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/abs_agent.html#AbsAgent.dump_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.abs_agent.AbsAgent.dump_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the algorithm’s trainable models.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.agent.abs_agent.AbsAgent.dump_model_to_file">
+<code class="sig-name descname">dump_model_to_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dir_path</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/abs_agent.html#AbsAgent.dump_model_to_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.abs_agent.AbsAgent.dump_model_to_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dump the algorithm’s trainable models to disk.</p>
+<p>Dump trainable models to the specified directory. The model file is always prefixed with the agent’s name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>dir_path</strong> (<em>str</em>) – path to the directory where the models are saved.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.agent.abs_agent.AbsAgent.experience_pool">
+<em class="property">property </em><code class="sig-name descname">experience_pool</code><a class="headerlink" href="#maro.rl.agent.abs_agent.AbsAgent.experience_pool" title="Permalink to this definition">¶</a></dt>
+<dd><p>Underlying experience pool where the agent stores experiences.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.agent.abs_agent.AbsAgent.load_model">
+<code class="sig-name descname">load_model</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/abs_agent.html#AbsAgent.load_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.abs_agent.AbsAgent.load_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load models from memory.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.agent.abs_agent.AbsAgent.load_model_from_file">
+<code class="sig-name descname">load_model_from_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dir_path</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/abs_agent.html#AbsAgent.load_model_from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.abs_agent.AbsAgent.load_model_from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load trainable models from disk.</p>
+<p>Load trainable models from the specified directory. The model file is always prefixed with the agent’s name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>dir_path</strong> (<em>str</em>) – path to the directory where the models are saved.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.agent.abs_agent.AbsAgent.set_exploration_params">
+<code class="sig-name descname">set_exploration_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">params</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/abs_agent.html#AbsAgent.set_exploration_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.abs_agent.AbsAgent.set_exploration_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.agent.abs_agent.AbsAgent.store_experiences">
+<code class="sig-name descname">store_experiences</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">experiences</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/abs_agent.html#AbsAgent.store_experiences"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.abs_agent.AbsAgent.store_experiences" title="Permalink to this definition">¶</a></dt>
+<dd><p>Store new experiences in the experience pool.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.agent.abs_agent.AbsAgent.train">
+<em class="property">abstract </em><code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/abs_agent.html#AbsAgent.train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.abs_agent.AbsAgent.train" title="Permalink to this definition">¶</a></dt>
+<dd><p>Training logic to be implemented by the user.</p>
+<p>For example, this may include drawing samples from the experience pool and the algorithm training on
+these samples.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.rl.agent.abs_agent_manager">
+<span id="maro-rl-agent-abs-agent-manager-module"></span><h2>maro.rl.agent.abs_agent_manager module<a class="headerlink" href="#module-maro.rl.agent.abs_agent_manager" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.rl.agent.abs_agent_manager.AbsAgentManager">
+<em class="property">class </em><code class="sig-prename descclassname">maro.rl.agent.abs_agent_manager.</code><code class="sig-name descname">AbsAgentManager</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">mode</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.rl.agent.abs_agent_manager.AgentManagerMode" title="maro.rl.agent.abs_agent_manager.AgentManagerMode">maro.rl.agent.abs_agent_manager.AgentManagerMode</a></span></em>, <em class="sig-param"><span class="n">agent_dict</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">state_shaper</span><span class="p">:</span> <span class="n"><a class="reference internal" href="maro.rl.shaping.html#maro.rl.shaping.state_shaper.StateShaper" title="maro.rl.shaping.state_shaper.StateShaper">maro.rl.shaping.state_shaper.StateShaper</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">action_shaper</span><span class="p">:</span> <span class="n"><a class="reference internal" href="maro.rl.shaping.html#maro.rl.shaping.action_shaper.ActionShaper" title="maro.rl.shaping.action_shaper.ActionShaper">maro.rl.shaping.action_shaper.ActionShaper</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">experience_shaper</span><span class="p">:</span> <span class="n"><a class="reference internal" href="maro.rl.shaping.html#maro.rl.shaping.experience_shaper.ExperienceShaper" title="maro.rl.shaping.experience_shaper.ExperienceShaper">maro.rl.shaping.experience_shaper.ExperienceShaper</a></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/abs_agent_manager.html#AbsAgentManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.abs_agent_manager.AbsAgentManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<p>Abstract agent manager class.</p>
+<p>The agent manager provides a unified interactive interface with the environment for RL agent(s). From
+the actor’s perspective, it isolates the complex dependencies of the various homogeneous/heterogeneous
+agents, so that the whole agent manager will behave just like a single agent.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Name of agent manager.</p></li>
+<li><p><strong>mode</strong> (<em>AgentManagerMode</em>) – An <code class="docutils literal notranslate"><span class="pre">AgentManagerNode</span></code> enum member that indicates the role of the agent manager
+in the current process.</p></li>
+<li><p><strong>agent_dict</strong> (<em>dict</em>) – A dictionary of agents to be wrapper by the agent manager.</p></li>
+<li><p><strong>state_shaper</strong> (<em>StateShaper, optional</em>) – It is responsible for converting the environment observation to model
+input.</p></li>
+<li><p><strong>action_shaper</strong> (<em>ActionShaper, optional</em>) – It is responsible for converting an agent’s model output to environment
+executable action. Cannot be None under Inference and TrainInference modes.</p></li>
+<li><p><strong>experience_shaper</strong> (<em>ExperienceShaper, optional</em>) – It is responsible for processing data in the replay buffer at
+the end of an episode.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.rl.agent.abs_agent_manager.AbsAgentManager.choose_action">
+<em class="property">abstract </em><code class="sig-name descname">choose_action</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/abs_agent_manager.html#AbsAgentManager.choose_action"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.abs_agent_manager.AbsAgentManager.choose_action" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate an environment executable action given the current decision event and snapshot list.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.agent.abs_agent_manager.AbsAgentManager.name">
+<em class="property">property </em><code class="sig-name descname">name</code><a class="headerlink" href="#maro.rl.agent.abs_agent_manager.AbsAgentManager.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Agent manager’s name.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.agent.abs_agent_manager.AbsAgentManager.on_env_feedback">
+<em class="property">abstract </em><code class="sig-name descname">on_env_feedback</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/abs_agent_manager.html#AbsAgentManager.on_env_feedback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.abs_agent_manager.AbsAgentManager.on_env_feedback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Processing logic after receiving feedback from the environment is implemented here.</p>
+<p>See <code class="docutils literal notranslate"><span class="pre">SimpleAgentManager</span></code> for example.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.agent.abs_agent_manager.AbsAgentManager.post_process">
+<em class="property">abstract </em><code class="sig-name descname">post_process</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/abs_agent_manager.html#AbsAgentManager.post_process"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.abs_agent_manager.AbsAgentManager.post_process" title="Permalink to this definition">¶</a></dt>
+<dd><p>Processing logic after an episode is finished.</p>
+<p>These things may involve generating experiences and resetting stateful objects. See <code class="docutils literal notranslate"><span class="pre">SimpleAgentManager</span></code>
+for example.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.agent.abs_agent_manager.AbsAgentManager.set_exploration_params">
+<code class="sig-name descname">set_exploration_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">params</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/abs_agent_manager.html#AbsAgentManager.set_exploration_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.abs_agent_manager.AbsAgentManager.set_exploration_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.agent.abs_agent_manager.AbsAgentManager.train">
+<em class="property">abstract </em><code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">experience_by_agent</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/abs_agent_manager.html#AbsAgentManager.train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.abs_agent_manager.AbsAgentManager.train" title="Permalink to this definition">¶</a></dt>
+<dd><p>Train the agents.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.rl.agent.abs_agent_manager.AgentManagerMode">
+<em class="property">class </em><code class="sig-prename descclassname">maro.rl.agent.abs_agent_manager.</code><code class="sig-name descname">AgentManagerMode</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/abs_agent_manager.html#AgentManagerMode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.abs_agent_manager.AgentManagerMode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt id="maro.rl.agent.abs_agent_manager.AgentManagerMode.INFERENCE">
+<code class="sig-name descname">INFERENCE</code><em class="property"> = 'inference'</em><a class="headerlink" href="#maro.rl.agent.abs_agent_manager.AgentManagerMode.INFERENCE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.rl.agent.abs_agent_manager.AgentManagerMode.TRAIN">
+<code class="sig-name descname">TRAIN</code><em class="property"> = 'train'</em><a class="headerlink" href="#maro.rl.agent.abs_agent_manager.AgentManagerMode.TRAIN" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.rl.agent.abs_agent_manager.AgentManagerMode.TRAIN_INFERENCE">
+<code class="sig-name descname">TRAIN_INFERENCE</code><em class="property"> = 'train_inference'</em><a class="headerlink" href="#maro.rl.agent.abs_agent_manager.AgentManagerMode.TRAIN_INFERENCE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.rl.agent.simple_agent_manager">
+<span id="maro-rl-agent-simple-agent-manager-module"></span><h2>maro.rl.agent.simple_agent_manager module<a class="headerlink" href="#module-maro.rl.agent.simple_agent_manager" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.rl.agent.simple_agent_manager.SimpleAgentManager">
+<em class="property">class </em><code class="sig-prename descclassname">maro.rl.agent.simple_agent_manager.</code><code class="sig-name descname">SimpleAgentManager</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">mode</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.rl.agent.abs_agent_manager.AgentManagerMode" title="maro.rl.agent.abs_agent_manager.AgentManagerMode">maro.rl.agent.abs_agent_manager.AgentManagerMode</a></span></em>, <em class="sig-param"><span class="n">agent_dict</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">state_shaper</span><span class="p">:</span> <span class="n"><a class="reference internal" href="maro.rl.shaping.html#maro.rl.shaping.state_shaper.StateShaper" title="maro.rl.shaping.state_shaper.StateShaper">maro.rl.shaping.state_shaper.StateShaper</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">action_shaper</span><span class="p">:</span> <span class="n"><a class="reference internal" href="maro.rl.shaping.html#maro.rl.shaping.action_shaper.ActionShaper" title="maro.rl.shaping.action_shaper.ActionShaper">maro.rl.shaping.action_shaper.ActionShaper</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">experience_shaper</span><span class="p">:</span> <span class="n"><a class="reference internal" href="maro.rl.shaping.html#maro.rl.shaping.experience_shaper.ExperienceShaper" title="maro.rl.shaping.experience_shaper.ExperienceShaper">maro.rl.shaping.experience_shaper.ExperienceShaper</a></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/simple_agent_manager.html#SimpleAgentManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.simple_agent_manager.SimpleAgentManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.rl.agent.abs_agent_manager.AbsAgentManager" title="maro.rl.agent.abs_agent_manager.AbsAgentManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.rl.agent.abs_agent_manager.AbsAgentManager</span></code></a></p>
+<dl class="py method">
+<dt id="maro.rl.agent.simple_agent_manager.SimpleAgentManager.choose_action">
+<code class="sig-name descname">choose_action</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">decision_event</span></em>, <em class="sig-param"><span class="n">snapshot_list</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/simple_agent_manager.html#SimpleAgentManager.choose_action"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.simple_agent_manager.SimpleAgentManager.choose_action" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate an environment executable action given the current decision event and snapshot list.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.agent.simple_agent_manager.SimpleAgentManager.dump_models">
+<code class="sig-name descname">dump_models</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; dict<a class="reference internal" href="../_modules/maro/rl/agent/simple_agent_manager.html#SimpleAgentManager.dump_models"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.simple_agent_manager.SimpleAgentManager.dump_models" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get agents’ underlying models.</p>
+<p>This is usually used in distributed mode where models need to be broadcast to remote roll-out actors.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.agent.simple_agent_manager.SimpleAgentManager.dump_models_to_files">
+<code class="sig-name descname">dump_models_to_files</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dir_path</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/simple_agent_manager.html#SimpleAgentManager.dump_models_to_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.simple_agent_manager.SimpleAgentManager.dump_models_to_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dump agents’ models to disk.</p>
+<p>Each agent will use its own name to create a separate file under <code class="docutils literal notranslate"><span class="pre">dir_path</span></code> for dumping.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.agent.simple_agent_manager.SimpleAgentManager.load_models">
+<code class="sig-name descname">load_models</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">agent_model_dict</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/simple_agent_manager.html#SimpleAgentManager.load_models"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.simple_agent_manager.SimpleAgentManager.load_models" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load models from memory for each agent.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.agent.simple_agent_manager.SimpleAgentManager.load_models_from_files">
+<code class="sig-name descname">load_models_from_files</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dir_path</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/simple_agent_manager.html#SimpleAgentManager.load_models_from_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.simple_agent_manager.SimpleAgentManager.load_models_from_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load models from disk for each agent.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.agent.simple_agent_manager.SimpleAgentManager.on_env_feedback">
+<code class="sig-name descname">on_env_feedback</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">metrics</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/simple_agent_manager.html#SimpleAgentManager.on_env_feedback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.simple_agent_manager.SimpleAgentManager.on_env_feedback" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method records the environment-generated metrics as part of the latest transition in the trajectory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>metrics</strong> – business metrics provided by the environment after an action has been executed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.agent.simple_agent_manager.SimpleAgentManager.post_process">
+<code class="sig-name descname">post_process</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">snapshot_list</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/simple_agent_manager.html#SimpleAgentManager.post_process"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.simple_agent_manager.SimpleAgentManager.post_process" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method processes the latest trajectory into experiences.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>snapshot_list</strong> – the snapshot list from the env at the end of an episode.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.agent.simple_agent_manager.SimpleAgentManager.train">
+<em class="property">abstract </em><code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">experiences_by_agent</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/simple_agent_manager.html#SimpleAgentManager.train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.simple_agent_manager.SimpleAgentManager.train" title="Permalink to this definition">¶</a></dt>
+<dd><p>Train all agents.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.rl.agent">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-maro.rl.agent" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.rl.agent.AbsAgent">
+<em class="property">class </em><code class="sig-prename descclassname">maro.rl.agent.</code><code class="sig-name descname">AbsAgent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">algorithm</span><span class="p">:</span> <span class="n"><a class="reference internal" href="maro.rl.algorithms.html#maro.rl.algorithms.abs_algorithm.AbsAlgorithm" title="maro.rl.algorithms.abs_algorithm.AbsAlgorithm">maro.rl.algorithms.abs_algorithm.AbsAlgorithm</a></span></em>, <em class="sig-param"><span class="n">experience_pool</span><span class="p">:</span> <span class="n"><a class="reference internal" href="maro.rl.storage.html#maro.rl.storage.abs_store.AbsStore" title="maro.rl.storage.abs_store.AbsStore">maro.rl.storage.abs_store.AbsStore</a></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/abs_agent.html#AbsAgent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.AbsAgent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<p>Abstract RL agent class.</p>
+<p>It’s a sandbox for the RL algorithm. Scenario-specific details will be excluded.
+We focus on the abstraction algorithm development here. Environment observation and decision events will
+be converted to a uniform format before calling in. And the output will be converted to an environment
+executable format before return back to the environment. Its key responsibility is optimizing policy based
+on interaction with the environment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Agent’s name.</p></li>
+<li><p><strong>algorithm</strong> (<em>AbsAlgorithm</em>) – A concrete algorithm instance that inherits from AbstractAlgorithm.
+This is the centerpiece of the Agent class and is responsible for the most important tasks of an agent:
+choosing actions and optimizing models.</p></li>
+<li><p><strong>experience_pool</strong> (<em>AbsStore</em>) – It is used to store experiences processed by the experience shaper, which will be
+used by some value-based algorithms, such as DQN. Defaults to None.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.rl.agent.AbsAgent.algorithm">
+<em class="property">property </em><code class="sig-name descname">algorithm</code><a class="headerlink" href="#maro.rl.agent.AbsAgent.algorithm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Underlying algorithm employed by the agent.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.agent.AbsAgent.choose_action">
+<code class="sig-name descname">choose_action</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model_state</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/abs_agent.html#AbsAgent.choose_action"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.AbsAgent.choose_action" title="Permalink to this definition">¶</a></dt>
+<dd><p>Choose an action using the underlying algorithm based on a preprocessed env state.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>model_state</strong> – State vector as accepted by the underlying algorithm.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>If the agent’s explorer is None, the action given by the underlying model is returned. Otherwise,
+an exploratory action is returned.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.agent.AbsAgent.dump_model">
+<code class="sig-name descname">dump_model</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/abs_agent.html#AbsAgent.dump_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.AbsAgent.dump_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the algorithm’s trainable models.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.agent.AbsAgent.dump_model_to_file">
+<code class="sig-name descname">dump_model_to_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dir_path</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/abs_agent.html#AbsAgent.dump_model_to_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.AbsAgent.dump_model_to_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dump the algorithm’s trainable models to disk.</p>
+<p>Dump trainable models to the specified directory. The model file is always prefixed with the agent’s name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>dir_path</strong> (<em>str</em>) – path to the directory where the models are saved.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.agent.AbsAgent.experience_pool">
+<em class="property">property </em><code class="sig-name descname">experience_pool</code><a class="headerlink" href="#maro.rl.agent.AbsAgent.experience_pool" title="Permalink to this definition">¶</a></dt>
+<dd><p>Underlying experience pool where the agent stores experiences.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.agent.AbsAgent.load_model">
+<code class="sig-name descname">load_model</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/abs_agent.html#AbsAgent.load_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.AbsAgent.load_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load models from memory.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.agent.AbsAgent.load_model_from_file">
+<code class="sig-name descname">load_model_from_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dir_path</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/abs_agent.html#AbsAgent.load_model_from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.AbsAgent.load_model_from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load trainable models from disk.</p>
+<p>Load trainable models from the specified directory. The model file is always prefixed with the agent’s name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>dir_path</strong> (<em>str</em>) – path to the directory where the models are saved.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.agent.AbsAgent.set_exploration_params">
+<code class="sig-name descname">set_exploration_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">params</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/abs_agent.html#AbsAgent.set_exploration_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.AbsAgent.set_exploration_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.agent.AbsAgent.store_experiences">
+<code class="sig-name descname">store_experiences</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">experiences</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/abs_agent.html#AbsAgent.store_experiences"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.AbsAgent.store_experiences" title="Permalink to this definition">¶</a></dt>
+<dd><p>Store new experiences in the experience pool.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.agent.AbsAgent.train">
+<em class="property">abstract </em><code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/abs_agent.html#AbsAgent.train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.AbsAgent.train" title="Permalink to this definition">¶</a></dt>
+<dd><p>Training logic to be implemented by the user.</p>
+<p>For example, this may include drawing samples from the experience pool and the algorithm training on
+these samples.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.rl.agent.AbsAgentManager">
+<em class="property">class </em><code class="sig-prename descclassname">maro.rl.agent.</code><code class="sig-name descname">AbsAgentManager</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">mode</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.rl.agent.abs_agent_manager.AgentManagerMode" title="maro.rl.agent.abs_agent_manager.AgentManagerMode">maro.rl.agent.abs_agent_manager.AgentManagerMode</a></span></em>, <em class="sig-param"><span class="n">agent_dict</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">state_shaper</span><span class="p">:</span> <span class="n"><a class="reference internal" href="maro.rl.shaping.html#maro.rl.shaping.state_shaper.StateShaper" title="maro.rl.shaping.state_shaper.StateShaper">maro.rl.shaping.state_shaper.StateShaper</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">action_shaper</span><span class="p">:</span> <span class="n"><a class="reference internal" href="maro.rl.shaping.html#maro.rl.shaping.action_shaper.ActionShaper" title="maro.rl.shaping.action_shaper.ActionShaper">maro.rl.shaping.action_shaper.ActionShaper</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">experience_shaper</span><span class="p">:</span> <span class="n"><a class="reference internal" href="maro.rl.shaping.html#maro.rl.shaping.experience_shaper.ExperienceShaper" title="maro.rl.shaping.experience_shaper.ExperienceShaper">maro.rl.shaping.experience_shaper.ExperienceShaper</a></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/abs_agent_manager.html#AbsAgentManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.AbsAgentManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<p>Abstract agent manager class.</p>
+<p>The agent manager provides a unified interactive interface with the environment for RL agent(s). From
+the actor’s perspective, it isolates the complex dependencies of the various homogeneous/heterogeneous
+agents, so that the whole agent manager will behave just like a single agent.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Name of agent manager.</p></li>
+<li><p><strong>mode</strong> (<em>AgentManagerMode</em>) – An <code class="docutils literal notranslate"><span class="pre">AgentManagerNode</span></code> enum member that indicates the role of the agent manager
+in the current process.</p></li>
+<li><p><strong>agent_dict</strong> (<em>dict</em>) – A dictionary of agents to be wrapper by the agent manager.</p></li>
+<li><p><strong>state_shaper</strong> (<em>StateShaper, optional</em>) – It is responsible for converting the environment observation to model
+input.</p></li>
+<li><p><strong>action_shaper</strong> (<em>ActionShaper, optional</em>) – It is responsible for converting an agent’s model output to environment
+executable action. Cannot be None under Inference and TrainInference modes.</p></li>
+<li><p><strong>experience_shaper</strong> (<em>ExperienceShaper, optional</em>) – It is responsible for processing data in the replay buffer at
+the end of an episode.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.rl.agent.AbsAgentManager.choose_action">
+<em class="property">abstract </em><code class="sig-name descname">choose_action</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/abs_agent_manager.html#AbsAgentManager.choose_action"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.AbsAgentManager.choose_action" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate an environment executable action given the current decision event and snapshot list.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.agent.AbsAgentManager.name">
+<em class="property">property </em><code class="sig-name descname">name</code><a class="headerlink" href="#maro.rl.agent.AbsAgentManager.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Agent manager’s name.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.agent.AbsAgentManager.on_env_feedback">
+<em class="property">abstract </em><code class="sig-name descname">on_env_feedback</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/abs_agent_manager.html#AbsAgentManager.on_env_feedback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.AbsAgentManager.on_env_feedback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Processing logic after receiving feedback from the environment is implemented here.</p>
+<p>See <code class="docutils literal notranslate"><span class="pre">SimpleAgentManager</span></code> for example.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.agent.AbsAgentManager.post_process">
+<em class="property">abstract </em><code class="sig-name descname">post_process</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/abs_agent_manager.html#AbsAgentManager.post_process"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.AbsAgentManager.post_process" title="Permalink to this definition">¶</a></dt>
+<dd><p>Processing logic after an episode is finished.</p>
+<p>These things may involve generating experiences and resetting stateful objects. See <code class="docutils literal notranslate"><span class="pre">SimpleAgentManager</span></code>
+for example.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.agent.AbsAgentManager.set_exploration_params">
+<code class="sig-name descname">set_exploration_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">params</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/abs_agent_manager.html#AbsAgentManager.set_exploration_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.AbsAgentManager.set_exploration_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.agent.AbsAgentManager.train">
+<em class="property">abstract </em><code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">experience_by_agent</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/abs_agent_manager.html#AbsAgentManager.train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.AbsAgentManager.train" title="Permalink to this definition">¶</a></dt>
+<dd><p>Train the agents.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.rl.agent.AgentManagerMode">
+<em class="property">class </em><code class="sig-prename descclassname">maro.rl.agent.</code><code class="sig-name descname">AgentManagerMode</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/abs_agent_manager.html#AgentManagerMode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.AgentManagerMode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt id="maro.rl.agent.AgentManagerMode.INFERENCE">
+<code class="sig-name descname">INFERENCE</code><em class="property"> = 'inference'</em><a class="headerlink" href="#maro.rl.agent.AgentManagerMode.INFERENCE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.rl.agent.AgentManagerMode.TRAIN">
+<code class="sig-name descname">TRAIN</code><em class="property"> = 'train'</em><a class="headerlink" href="#maro.rl.agent.AgentManagerMode.TRAIN" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.rl.agent.AgentManagerMode.TRAIN_INFERENCE">
+<code class="sig-name descname">TRAIN_INFERENCE</code><em class="property"> = 'train_inference'</em><a class="headerlink" href="#maro.rl.agent.AgentManagerMode.TRAIN_INFERENCE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.rl.agent.SimpleAgentManager">
+<em class="property">class </em><code class="sig-prename descclassname">maro.rl.agent.</code><code class="sig-name descname">SimpleAgentManager</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">mode</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.rl.agent.abs_agent_manager.AgentManagerMode" title="maro.rl.agent.abs_agent_manager.AgentManagerMode">maro.rl.agent.abs_agent_manager.AgentManagerMode</a></span></em>, <em class="sig-param"><span class="n">agent_dict</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">state_shaper</span><span class="p">:</span> <span class="n"><a class="reference internal" href="maro.rl.shaping.html#maro.rl.shaping.state_shaper.StateShaper" title="maro.rl.shaping.state_shaper.StateShaper">maro.rl.shaping.state_shaper.StateShaper</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">action_shaper</span><span class="p">:</span> <span class="n"><a class="reference internal" href="maro.rl.shaping.html#maro.rl.shaping.action_shaper.ActionShaper" title="maro.rl.shaping.action_shaper.ActionShaper">maro.rl.shaping.action_shaper.ActionShaper</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">experience_shaper</span><span class="p">:</span> <span class="n"><a class="reference internal" href="maro.rl.shaping.html#maro.rl.shaping.experience_shaper.ExperienceShaper" title="maro.rl.shaping.experience_shaper.ExperienceShaper">maro.rl.shaping.experience_shaper.ExperienceShaper</a></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/simple_agent_manager.html#SimpleAgentManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.SimpleAgentManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.rl.agent.abs_agent_manager.AbsAgentManager" title="maro.rl.agent.abs_agent_manager.AbsAgentManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.rl.agent.abs_agent_manager.AbsAgentManager</span></code></a></p>
+<dl class="py method">
+<dt id="maro.rl.agent.SimpleAgentManager.choose_action">
+<code class="sig-name descname">choose_action</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">decision_event</span></em>, <em class="sig-param"><span class="n">snapshot_list</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/simple_agent_manager.html#SimpleAgentManager.choose_action"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.SimpleAgentManager.choose_action" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate an environment executable action given the current decision event and snapshot list.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.agent.SimpleAgentManager.dump_models">
+<code class="sig-name descname">dump_models</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; dict<a class="reference internal" href="../_modules/maro/rl/agent/simple_agent_manager.html#SimpleAgentManager.dump_models"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.SimpleAgentManager.dump_models" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get agents’ underlying models.</p>
+<p>This is usually used in distributed mode where models need to be broadcast to remote roll-out actors.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.agent.SimpleAgentManager.dump_models_to_files">
+<code class="sig-name descname">dump_models_to_files</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dir_path</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/simple_agent_manager.html#SimpleAgentManager.dump_models_to_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.SimpleAgentManager.dump_models_to_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dump agents’ models to disk.</p>
+<p>Each agent will use its own name to create a separate file under <code class="docutils literal notranslate"><span class="pre">dir_path</span></code> for dumping.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.agent.SimpleAgentManager.load_models">
+<code class="sig-name descname">load_models</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">agent_model_dict</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/simple_agent_manager.html#SimpleAgentManager.load_models"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.SimpleAgentManager.load_models" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load models from memory for each agent.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.agent.SimpleAgentManager.load_models_from_files">
+<code class="sig-name descname">load_models_from_files</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dir_path</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/simple_agent_manager.html#SimpleAgentManager.load_models_from_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.SimpleAgentManager.load_models_from_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load models from disk for each agent.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.agent.SimpleAgentManager.on_env_feedback">
+<code class="sig-name descname">on_env_feedback</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">metrics</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/simple_agent_manager.html#SimpleAgentManager.on_env_feedback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.SimpleAgentManager.on_env_feedback" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method records the environment-generated metrics as part of the latest transition in the trajectory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>metrics</strong> – business metrics provided by the environment after an action has been executed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.agent.SimpleAgentManager.post_process">
+<code class="sig-name descname">post_process</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">snapshot_list</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/simple_agent_manager.html#SimpleAgentManager.post_process"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.SimpleAgentManager.post_process" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method processes the latest trajectory into experiences.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>snapshot_list</strong> – the snapshot list from the env at the end of an episode.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.agent.SimpleAgentManager.train">
+<em class="property">abstract </em><code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">experiences_by_agent</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/agent/simple_agent_manager.html#SimpleAgentManager.train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.agent.SimpleAgentManager.train" title="Permalink to this definition">¶</a></dt>
+<dd><p>Train all agents.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+    <a class='left-prev' id="prev-link" href="maro.rl.actor.html" title="previous page">maro.rl.actor package</a>
+    <a class='right-next' id="next-link" href="maro.rl.algorithms.html" title="next page">maro.rl.algorithms package</a>
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../_static/js/index.js"></script>
+    
+  </body>
+</html>

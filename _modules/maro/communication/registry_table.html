@@ -1,0 +1,584 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maro.communication.registry_table &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../../../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/sphinx-book-theme.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../_static/clipboard.min.js"></script>
+    <script src="../../../_static/copybutton.js"></script>
+    <script src="../../../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../../../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../../../index.html">
+  
+  <img src="../../../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../scenarios/container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../scenarios/citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../scenarios/vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../apidoc/maro.html">
+   maro package
+  </a>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2F_modules/maro/communication/registry_table.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <nav id="bd-toc-nav">
+            
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <h1>Source code for maro.communication.registry_table</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) Microsoft Corporation.</span>
+<span class="c1"># Licensed under the MIT license.</span>
+
+<span class="c1"># native lib</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="c1"># private lib</span>
+<span class="kn">from</span> <span class="nn">maro.utils.exception.communication_exception</span> <span class="kn">import</span> <span class="n">ConditionalEventSyntaxError</span><span class="p">,</span> <span class="n">PeersMissError</span>
+
+<span class="kn">from</span> <span class="nn">.message</span> <span class="kn">import</span> <span class="n">Message</span>
+
+
+<div class="viewcode-block" id="Operation"><a class="viewcode-back" href="../../../apidoc/maro.communication.html#maro.communication.registry_table.Operation">[docs]</a><span class="k">class</span> <span class="nc">Operation</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The Enum class of the logic operations.&quot;&quot;&quot;</span>
+    <span class="n">AND</span> <span class="o">=</span> <span class="s2">&quot;AND&quot;</span>
+    <span class="n">OR</span> <span class="o">=</span> <span class="s2">&quot;OR&quot;</span></div>
+
+
+<div class="viewcode-block" id="SuffixTree"><a class="viewcode-back" href="../../../apidoc/maro.communication.html#maro.communication.registry_table.SuffixTree">[docs]</a><span class="k">class</span> <span class="nc">SuffixTree</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;The suffix tree uses to decompose the conditional event.</span>
+
+<span class="sd">    For the unit conditional event, the ``SuffixTree.value`` is the unit conditional event;</span>
+<span class="sd">    For the conditional event, the ``SuffixTree.value`` is one of the ``Operation``, and the</span>
+<span class="sd">    ``SuffixTree.nodes`` is the list of the unit conditional event.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        value (Operation|str): Event operation: ``Operation.AND`` or ``Operation.OR``, or the unit conditional event.</span>
+<span class="sd">        nodes List[SuffixTree]: List of the SuffixTrees.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nodes</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">=</span> <span class="n">nodes</span> <span class="k">if</span> <span class="n">nodes</span> <span class="k">else</span> <span class="p">[]</span></div>
+
+
+<div class="viewcode-block" id="ConditionalEvent"><a class="viewcode-back" href="../../../apidoc/maro.communication.html#maro.communication.registry_table.ConditionalEvent">[docs]</a><span class="k">class</span> <span class="nc">ConditionalEvent</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;The description of the messages&#39; combination.</span>
+
+<span class="sd">    The conditional event can be composed of any number of unit conditional events and end with an Operation.</span>
+<span class="sd">    For unit conditional event, It must be three parts and divided by ``:``:</span>
+
+<span class="sd">    - The first part of unit event represent the message&#39;s source. E.g. ``learner`` or ``*``.</span>
+<span class="sd">    - The second part of unit event represent the message&#39;s type. E.g. ``experience`` or ``*``.</span>
+<span class="sd">    - The third part of unit event represent how much messages needed. E.g. ``1`` or ``90%``.</span>
+
+<span class="sd">    Note:</span>
+<span class="sd">        Do not use special symbol in the unit event, such as ``,``, ``(``, ``)``.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        event (str|Tuple): The description of the requisite messages&#39; combination.</span>
+<span class="sd">            E.g. &quot;actor:rollout:1&quot; or (&quot;learner:rollout:1&quot;, &quot;learner:update:1&quot;, &quot;AND&quot;).</span>
+<span class="sd">        peers_name (dict|property): The property function which returns the newest peer&#39;s name dict from proxy,</span>
+<span class="sd">            or the Dict with the key (peer type) and the value (peer name list).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">],</span> <span class="n">peers_name</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">property</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_event</span> <span class="o">=</span> <span class="n">event</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_peers_name</span> <span class="o">=</span> <span class="n">peers_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_suffix_tree</span> <span class="o">=</span> <span class="n">SuffixTree</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_unit_event_message_dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_decomposer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_event</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_suffix_tree</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_decomposer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">],</span> <span class="n">suffix_tree</span><span class="p">:</span> <span class="n">SuffixTree</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;To generate suffix tree depending on the conditional event.&quot;&quot;&quot;</span>
+        <span class="n">operation_and_list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;&amp;&amp;&quot;</span><span class="p">,</span> <span class="s2">&quot;AND&quot;</span><span class="p">]</span>
+        <span class="n">operation_or_list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;||&quot;</span><span class="p">,</span> <span class="s2">&quot;OR&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Check it is unit conditional event(str) or conditional event(tuple).</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_unit_event_syntax_check</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_unit_event_message_dict</span><span class="p">[</span><span class="n">event</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">suffix_tree</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">event</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">event</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">operation_and_list</span><span class="p">:</span>
+                <span class="n">suffix_tree</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">Operation</span><span class="o">.</span><span class="n">AND</span>
+            <span class="k">elif</span> <span class="n">event</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">operation_or_list</span><span class="p">:</span>
+                <span class="n">suffix_tree</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">Operation</span><span class="o">.</span><span class="n">OR</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ConditionalEventSyntaxError</span><span class="p">(</span>
+                    <span class="s2">&quot;The last of the conditional event tuple must be one of [&#39;AND&#39;, &#39;OR&#39;, &#39;&amp;&amp;&#39;, &#39;||]&quot;</span>
+                <span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">slot</span> <span class="ow">in</span> <span class="n">event</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="n">node</span> <span class="o">=</span> <span class="n">SuffixTree</span><span class="p">()</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">slot</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_decomposer</span><span class="p">(</span><span class="n">slot</span><span class="p">,</span> <span class="n">node</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_unit_event_syntax_check</span><span class="p">(</span><span class="n">slot</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_unit_event_message_dict</span><span class="p">[</span><span class="n">slot</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="n">node</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">slot</span>
+                <span class="n">suffix_tree</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ConditionalEventSyntaxError</span><span class="p">(</span><span class="s2">&quot;Conditional event should be string or tuple.&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_unit_event_syntax_check</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unit_event</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;To check unit conditional event expression.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            unit_event (str): The description of the requisite messages.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">slots</span> <span class="o">=</span> <span class="n">unit_event</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">slots</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ConditionalEventSyntaxError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The conditional event: </span><span class="si">{</span><span class="n">unit_event</span><span class="si">}</span><span class="s2">, must have three parts, and divided by &#39;:&#39;.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># The third part of unit conditional event must be an integer or percentage(*%).</span>
+        <span class="k">if</span> <span class="n">slots</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;%&quot;</span><span class="p">:</span>
+            <span class="n">slots</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">slots</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">slots</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ConditionalEventSyntaxError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The third part of conditional event must be an integer or percentage with % in the end. </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_request_message_number</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unit_event</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;To get the number of request messages by the given unit event.&quot;&quot;&quot;</span>
+        <span class="n">component_type</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">number</span> <span class="o">=</span> <span class="n">unit_event</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)</span>
+        <span class="n">peers_number</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_peers_name</span><span class="p">[</span><span class="n">component_type</span><span class="p">])</span> <span class="k">if</span> <span class="n">component_type</span> <span class="o">!=</span> <span class="s2">&quot;*&quot;</span> <span class="k">else</span> \
+            <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="o">.</span><span class="n">from_iterable</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_peers_name</span><span class="o">.</span><span class="n">values</span><span class="p">())))</span>
+
+        <span class="k">if</span> <span class="n">peers_number</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">PeersMissError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;There is no target component in peer list! Required peer type </span><span class="si">{</span><span class="n">component_type</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">number</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;%&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">number</span><span class="p">)</span> <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">number</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">peers_number</span> <span class="k">else</span> <span class="n">peers_number</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">request_message_number</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">number</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="n">peers_number</span> <span class="o">/</span> <span class="mi">100</span><span class="p">)</span>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">request_message_number</span><span class="p">)</span> <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">request_message_number</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">peers_number</span> <span class="k">else</span> <span class="n">peers_number</span>
+
+    <span class="k">def</span> <span class="nf">_unit_event_satisfied</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unit_event</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;To check if the given unit conditional event has been satisfied.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            If the unit conditional event has been satisfied, it will return the list of unit conditional event;</span>
+<span class="sd">            otherwise, it will return None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">request_message_number</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_request_message_number</span><span class="p">(</span><span class="n">unit_event</span><span class="p">)</span>
+
+        <span class="c1"># Check if unit conditional event dict storied enough message.</span>
+        <span class="k">if</span> <span class="n">request_message_number</span> <span class="o">&lt;=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_unit_event_message_dict</span><span class="p">[</span><span class="n">unit_event</span><span class="p">]):</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">unit_event</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="p">[]</span>
+
+    <span class="k">def</span> <span class="nf">_conditional_event_satisfied</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">suffixtree</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;To check if the completed conditional event been satisfied.&quot;&quot;&quot;</span>
+        <span class="n">operation</span> <span class="o">=</span> <span class="n">suffixtree</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">operation</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unit_event_satisfied</span><span class="p">(</span><span class="n">operation</span><span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">suffixtree</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_conditional_event_satisfied</span><span class="p">(</span><span class="n">node</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">operation</span> <span class="o">==</span> <span class="n">Operation</span><span class="o">.</span><span class="n">AND</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">r</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">[]</span>
+            <span class="k">if</span> <span class="n">operation</span> <span class="o">==</span> <span class="n">Operation</span><span class="o">.</span><span class="n">OR</span> <span class="ow">and</span> <span class="n">r</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">r</span>
+
+        <span class="c1"># Flatten.</span>
+        <span class="n">flatten_result</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="o">.</span><span class="n">from_iterable</span><span class="p">(</span><span class="n">result</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">flatten_result</span>
+
+<div class="viewcode-block" id="ConditionalEvent.push_message"><a class="viewcode-back" href="../../../apidoc/maro.communication.html#maro.communication.registry_table.ConditionalEvent.push_message">[docs]</a>    <span class="k">def</span> <span class="nf">push_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">Message</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Push message to all satisfied unit conditional events.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            message (Message): Received message.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">message_source</span><span class="p">,</span> <span class="n">message_type</span> <span class="o">=</span> <span class="n">message</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="n">message</span><span class="o">.</span><span class="n">tag</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">message_type</span><span class="p">,</span> <span class="n">Enum</span><span class="p">):</span>
+            <span class="n">message_type</span> <span class="o">=</span> <span class="n">message_type</span><span class="o">.</span><span class="n">value</span>
+
+        <span class="k">for</span> <span class="n">unit_event</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unit_event_message_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">event_source</span><span class="p">,</span> <span class="n">event_type</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">unit_event</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)</span>
+            <span class="n">source_match</span><span class="p">,</span> <span class="n">type_match</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="n">event_source</span> <span class="o">==</span> <span class="s2">&quot;*&quot;</span> <span class="ow">or</span> <span class="n">event_source</span> <span class="ow">in</span> <span class="n">message_source</span><span class="p">:</span>
+                <span class="n">source_match</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="n">event_type</span> <span class="o">==</span> <span class="s2">&quot;*&quot;</span> <span class="ow">or</span> <span class="n">event_type</span> <span class="o">==</span> <span class="n">message_type</span><span class="p">:</span>
+                <span class="n">type_match</span> <span class="o">=</span> <span class="kc">True</span>
+
+            <span class="k">if</span> <span class="n">source_match</span> <span class="ow">and</span> <span class="n">type_match</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_unit_event_message_dict</span><span class="p">[</span><span class="n">unit_event</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">message</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ConditionalEvent.get_qualified_message"><a class="viewcode-back" href="../../../apidoc/maro.communication.html#maro.communication.registry_table.ConditionalEvent.get_qualified_message">[docs]</a>    <span class="k">def</span> <span class="nf">get_qualified_message</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Message</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Self-inspection of conditional event, if satisfied, pop qualified messages.</span>
+
+<span class="sd">        Return:</span>
+<span class="sd">            List[Message]: List of qualified messages.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">message_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">satisfied_unit_events</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_conditional_event_satisfied</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_suffix_tree</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">satisfied_unit_events</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">unit_event</span> <span class="ow">in</span> <span class="n">satisfied_unit_events</span><span class="p">:</span>
+                <span class="n">request_message_number</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_request_message_number</span><span class="p">(</span><span class="n">unit_event</span><span class="p">)</span>
+                <span class="n">message_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_unit_event_message_dict</span><span class="p">[</span><span class="n">unit_event</span><span class="p">][:</span><span class="n">request_message_number</span><span class="p">])</span>
+                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unit_event_message_dict</span><span class="p">[</span><span class="n">unit_event</span><span class="p">][:</span><span class="n">request_message_number</span><span class="p">]</span>
+
+            <span class="c1"># Flatten.</span>
+            <span class="n">message_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="o">.</span><span class="n">from_iterable</span><span class="p">(</span><span class="n">message_list</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">message_list</span></div></div>
+
+
+<div class="viewcode-block" id="RegisterTable"><a class="viewcode-back" href="../../../apidoc/maro.communication.html#maro.communication.registry_table.RegisterTable">[docs]</a><span class="k">class</span> <span class="nc">RegisterTable</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;The RegisterTable is responsible for matching ``conditional events`` and user-defined ``message handlers``.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        peers_name (dict|property): The property function which returns the newest peer&#39;s name dict from proxy,</span>
+<span class="sd">            or the Dict with the key (peer type) and the value (peers name list).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">peers_name</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">property</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_event_handler_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_peers_name</span> <span class="o">=</span> <span class="n">peers_name</span>
+
+<div class="viewcode-block" id="RegisterTable.register_event_handler"><a class="viewcode-back" href="../../../apidoc/maro.communication.html#maro.communication.registry_table.RegisterTable.register_event_handler">[docs]</a>    <span class="k">def</span> <span class="nf">register_event_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">],</span> <span class="n">handler_fn</span><span class="p">:</span> <span class="n">callable</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Register conditional event in the RegisterTable, and create a dict which match ``message handler`` and</span>
+<span class="sd">        ``conditional event``.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            event (str|Tuple): The description of the requisite messages&#39; combination,</span>
+<span class="sd">            handler_fn (callable): The user-define function which usually uses to handle incoming messages.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">event</span> <span class="o">=</span> <span class="n">ConditionalEvent</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_peers_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_event_handler_dict</span><span class="p">[</span><span class="n">event</span><span class="p">]</span> <span class="o">=</span> <span class="n">handler_fn</span></div>
+
+<div class="viewcode-block" id="RegisterTable.push"><a class="viewcode-back" href="../../../apidoc/maro.communication.html#maro.communication.registry_table.RegisterTable.push">[docs]</a>    <span class="k">def</span> <span class="nf">push</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">Message</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Push message into all ``conditional events`` which register in the Registry Table.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            message (Message): Received message.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_event_handler_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">event</span><span class="o">.</span><span class="n">push_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RegisterTable.get"><a class="viewcode-back" href="../../../apidoc/maro.communication.html#maro.communication.registry_table.RegisterTable.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">callable</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Message</span><span class="p">]]]:</span>
+        <span class="sd">&quot;&quot;&quot;If any ``conditional event`` has been satisfied, return the requisite message list and</span>
+<span class="sd">        the correlational handler function.</span>
+
+<span class="sd">        Return:</span>
+<span class="sd">            List[Tuple[callable, List[Message]]]: The list of triggered handler functions and messages.</span>
+<span class="sd">            E.g. [(handle_function_1, [messages]), (handle_function_2, [messages])]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">satisfied_handler_fn</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">event</span><span class="p">,</span> <span class="n">handler_fn</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_event_handler_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">message_list</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">get_qualified_message</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">message_list</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">message_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">satisfied_handler_fn</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">handler_fn</span><span class="p">,</span> <span class="n">message_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">satisfied_handler_fn</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">handler_fn</span><span class="p">,</span> <span class="n">message_list</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">satisfied_handler_fn</span></div></div>
+</pre></div>
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../../../_static/js/index.js"></script>
+    
+  </body>
+</html>

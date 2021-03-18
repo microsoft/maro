@@ -1,0 +1,1383 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maro.cli.maro &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../../../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/sphinx-book-theme.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../_static/clipboard.min.js"></script>
+    <script src="../../../_static/copybutton.js"></script>
+    <script src="../../../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../../../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../../../index.html">
+  
+  <img src="../../../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../scenarios/container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../scenarios/citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../scenarios/vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../apidoc/maro.html">
+   maro package
+  </a>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2F_modules/maro/cli/maro.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <nav id="bd-toc-nav">
+            
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <h1>Source code for maro.cli.maro</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) Microsoft Corporation.</span>
+<span class="c1"># Licensed under the MIT license.</span>
+
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">traceback</span>
+<span class="kn">from</span> <span class="nn">argparse</span> <span class="kn">import</span> <span class="n">Namespace</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+
+<span class="kn">import</span> <span class="nn">maro.cli.utils.examples</span> <span class="k">as</span> <span class="nn">CliExamples</span>
+<span class="kn">from</span> <span class="nn">maro</span> <span class="kn">import</span> <span class="n">__version__</span>
+<span class="kn">from</span> <span class="nn">maro.cli.utils.params</span> <span class="kn">import</span> <span class="n">GlobalParams</span>
+<span class="kn">from</span> <span class="nn">maro.cli.utils.parser</span> <span class="kn">import</span> <span class="n">ArgumentParser</span>
+<span class="kn">from</span> <span class="nn">maro.utils.exception.cli_exception</span> <span class="kn">import</span> <span class="n">CliError</span><span class="p">,</span> <span class="n">CommandNotFoundError</span>
+<span class="kn">from</span> <span class="nn">maro.utils.logger</span> <span class="kn">import</span> <span class="n">CliLogger</span>
+
+<span class="n">MARO_BANNER</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">___  __    _    ____   ___</span>
+<span class="s2">|  \/  |  / \  |  _ \ / _ </span><span class="se">\\</span><span class="s2"></span>
+<span class="s2">| |\/| | / _ \ | |_) | | | |</span>
+<span class="s2">| |  | |/ ___ \|  _ &lt;| |_| |</span>
+<span class="s2">|_|  |_/_/   \_\_| \_ \___/</span>
+
+<span class="s2">Welcome to the MARO CLI</span>
+
+<span class="s2">Use `maro --version` to get the current version.</span>
+
+<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">CliLogger</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../apidoc/maro.cli.html#maro.cli.maro.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">global_parser</span> <span class="o">=</span> <span class="n">ArgumentParser</span><span class="p">()</span>
+    <span class="n">global_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--debug&quot;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Enable debug mode&quot;</span><span class="p">)</span>
+    <span class="n">global_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-h&quot;</span><span class="p">,</span> <span class="s2">&quot;--help&quot;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Show this message and exit&quot;</span><span class="p">)</span>
+
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">ArgumentParser</span><span class="p">(</span><span class="n">prog</span><span class="o">=</span><span class="s1">&#39;maro&#39;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="n">MARO_BANNER</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">])</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">_help_func</span><span class="p">(</span><span class="n">parser</span><span class="o">=</span><span class="n">parser</span><span class="p">))</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--version&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Get version info&#39;</span><span class="p">)</span>
+    <span class="n">subparsers</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">()</span>
+
+    <span class="c1"># maro env</span>
+    <span class="n">parser_env</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;env&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="p">(</span>
+            <span class="s1">&#39;Get all environment-related information, &#39;</span>
+            <span class="s1">&#39;such as the supported scenarios, topologies. &#39;</span>
+            <span class="s1">&#39;And it is also responsible to generate data to the specific environment, &#39;</span>
+            <span class="s1">&#39;which has external data dependency.&#39;</span>
+        <span class="p">),</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_env</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">_help_func</span><span class="p">(</span><span class="n">parser</span><span class="o">=</span><span class="n">parser_env</span><span class="p">))</span>
+    <span class="n">load_parser_env</span><span class="p">(</span><span class="n">parser_env</span><span class="p">,</span> <span class="n">global_parser</span><span class="p">)</span>
+
+    <span class="c1"># maro data</span>
+    <span class="n">parser_data</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;data&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Data processing tools for MARO binary format.&quot;</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_data</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">_help_func</span><span class="p">(</span><span class="n">parser</span><span class="o">=</span><span class="n">parser_data</span><span class="p">))</span>
+    <span class="n">load_parser_data</span><span class="p">(</span><span class="n">prev_parser</span><span class="o">=</span><span class="n">parser_data</span><span class="p">,</span> <span class="n">global_parser</span><span class="o">=</span><span class="n">global_parser</span><span class="p">)</span>
+
+    <span class="c1"># maro meta</span>
+    <span class="n">parser_meta</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;meta&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Manage the meta files for MARO.&quot;</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_meta</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">_help_func</span><span class="p">(</span><span class="n">parser</span><span class="o">=</span><span class="n">parser_meta</span><span class="p">))</span>
+    <span class="n">load_parser_meta</span><span class="p">(</span><span class="n">prev_parser</span><span class="o">=</span><span class="n">parser_meta</span><span class="p">,</span> <span class="n">global_parser</span><span class="o">=</span><span class="n">global_parser</span><span class="p">)</span>
+
+    <span class="c1"># maro grass</span>
+    <span class="n">parser_grass</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;grass&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Manage distributed cluster with native virtual machines (for development only).&quot;</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_grass</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">_help_func</span><span class="p">(</span><span class="n">parser</span><span class="o">=</span><span class="n">parser_grass</span><span class="p">))</span>
+    <span class="n">load_parser_grass</span><span class="p">(</span><span class="n">prev_parser</span><span class="o">=</span><span class="n">parser_grass</span><span class="p">,</span> <span class="n">global_parser</span><span class="o">=</span><span class="n">global_parser</span><span class="p">)</span>
+
+    <span class="c1"># maro k8s</span>
+    <span class="n">parser_k8s</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;k8s&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Manage distributed cluster with Kubernetes.&quot;</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_k8s</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">_help_func</span><span class="p">(</span><span class="n">parser</span><span class="o">=</span><span class="n">parser_k8s</span><span class="p">))</span>
+    <span class="n">load_parser_k8s</span><span class="p">(</span><span class="n">prev_parser</span><span class="o">=</span><span class="n">parser_k8s</span><span class="p">,</span> <span class="n">global_parser</span><span class="o">=</span><span class="n">global_parser</span><span class="p">)</span>
+
+    <span class="c1"># maro inspector</span>
+    <span class="n">parser_inspector</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;inspector&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;Display visualization of post-experiment data.&quot;</span><span class="p">),</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_inspector</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">_help_func</span><span class="p">(</span><span class="n">parser</span><span class="o">=</span><span class="n">parser_inspector</span><span class="p">))</span>
+    <span class="n">load_parser_inspector</span><span class="p">(</span><span class="n">parser_inspector</span><span class="p">,</span> <span class="n">global_parser</span><span class="p">)</span>
+
+    <span class="c1"># maro process</span>
+    <span class="n">parser_process</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s2">&quot;process&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Run application by mulit-process to simulate distributed mode.&quot;</span>
+    <span class="p">)</span>
+    <span class="n">parser_process</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">_help_func</span><span class="p">(</span><span class="n">parser</span><span class="o">=</span><span class="n">parser_process</span><span class="p">))</span>
+    <span class="n">load_parser_process</span><span class="p">(</span><span class="n">prev_parser</span><span class="o">=</span><span class="n">parser_process</span><span class="p">,</span> <span class="n">global_parser</span><span class="o">=</span><span class="n">global_parser</span><span class="p">)</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Get args and parse global arguments</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
+            <span class="n">GlobalParams</span><span class="o">.</span><span class="n">LOG_LEVEL</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">GlobalParams</span><span class="o">.</span><span class="n">LOG_LEVEL</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">INFO</span>
+        <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">version</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">__version__</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="n">actual_args</span> <span class="o">=</span> <span class="n">_get_actual_args</span><span class="p">(</span><span class="n">namespace</span><span class="o">=</span><span class="n">args</span><span class="p">)</span>
+
+        <span class="c1"># WARNING: We cannot assign any argument like &#39;func&#39; in the CLI</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">func</span><span class="p">(</span><span class="o">**</span><span class="n">actual_args</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">CommandNotFoundError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error_red</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">get_message</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">usage</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">CliError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">args</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">args</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error_red</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">get_message</span><span class="p">()</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error_red</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">get_message</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="load_parser_process"><a class="viewcode-back" href="../../../apidoc/maro.cli.html#maro.cli.maro.load_parser_process">[docs]</a><span class="k">def</span> <span class="nf">load_parser_process</span><span class="p">(</span><span class="n">prev_parser</span><span class="p">:</span> <span class="n">ArgumentParser</span><span class="p">,</span> <span class="n">global_parser</span><span class="p">:</span> <span class="n">ArgumentParser</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">subparsers</span> <span class="o">=</span> <span class="n">prev_parser</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">()</span>
+
+    <span class="c1"># maro process create</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.process.create</span> <span class="kn">import</span> <span class="n">create</span>
+    <span class="n">parser_setup</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s2">&quot;create&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Create local process environment.&quot;</span><span class="p">,</span>
+        <span class="n">examples</span><span class="o">=</span><span class="n">CliExamples</span><span class="o">.</span><span class="n">MARO_PROCESS_SETUP</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_setup</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;deployment_path&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path of the local process setting deployment.&#39;</span><span class="p">,</span>
+        <span class="n">nargs</span><span class="o">=</span><span class="s1">&#39;?&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">parser_setup</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">create</span><span class="p">)</span>
+
+    <span class="c1"># maro process delete</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.process.delete</span> <span class="kn">import</span> <span class="n">delete</span>
+    <span class="n">parser_setup</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s2">&quot;delete&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Delete the local process environment. Including closing agents and maro Redis.&quot;</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_setup</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">delete</span><span class="p">)</span>
+
+    <span class="c1"># maro process job</span>
+    <span class="n">parser_job</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s2">&quot;job&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Manage jobs&quot;</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_job</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">_help_func</span><span class="p">(</span><span class="n">parser</span><span class="o">=</span><span class="n">parser_job</span><span class="p">))</span>
+    <span class="n">parser_job_subparsers</span> <span class="o">=</span> <span class="n">parser_job</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">()</span>
+
+    <span class="c1"># maro process job start</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.process.job</span> <span class="kn">import</span> <span class="n">start_job</span>
+    <span class="n">parser_job_start</span> <span class="o">=</span> <span class="n">parser_job_subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;start&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Start a training job&#39;</span><span class="p">,</span>
+        <span class="n">examples</span><span class="o">=</span><span class="n">CliExamples</span><span class="o">.</span><span class="n">MARO_PROCESS_JOB_START</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_job_start</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;deployment_path&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path of the job deployment&#39;</span><span class="p">)</span>
+    <span class="n">parser_job_start</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">start_job</span><span class="p">)</span>
+
+    <span class="c1"># maro process job stop</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.process.job</span> <span class="kn">import</span> <span class="n">stop_job</span>
+    <span class="n">parser_job_stop</span> <span class="o">=</span> <span class="n">parser_job_subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;stop&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Stop a training job&#39;</span><span class="p">,</span>
+        <span class="n">examples</span><span class="o">=</span><span class="n">CliExamples</span><span class="o">.</span><span class="n">MARO_PROCESS_JOB_STOP</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_job_stop</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;job_name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the job&#39;</span><span class="p">)</span>
+    <span class="n">parser_job_stop</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">stop_job</span><span class="p">)</span>
+
+    <span class="c1"># maro process job delete</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.process.job</span> <span class="kn">import</span> <span class="n">delete_job</span>
+    <span class="n">parser_job_delete</span> <span class="o">=</span> <span class="n">parser_job_subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;delete&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;delete a stopped job&#39;</span><span class="p">,</span>
+        <span class="n">examples</span><span class="o">=</span><span class="n">CliExamples</span><span class="o">.</span><span class="n">MARO_PROCESS_JOB_DELETE</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_job_delete</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;job_name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the job or the schedule&#39;</span><span class="p">)</span>
+    <span class="n">parser_job_delete</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">delete_job</span><span class="p">)</span>
+
+    <span class="c1"># maro process job list</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.process.job</span> <span class="kn">import</span> <span class="n">list_jobs</span>
+    <span class="n">parser_job_list</span> <span class="o">=</span> <span class="n">parser_job_subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;list&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;List all jobs&#39;</span><span class="p">,</span>
+        <span class="n">examples</span><span class="o">=</span><span class="n">CliExamples</span><span class="o">.</span><span class="n">MARO_PROCESS_JOB_LIST</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_job_list</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">list_jobs</span><span class="p">)</span>
+
+    <span class="c1"># maro process job logs</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.process.job</span> <span class="kn">import</span> <span class="n">get_job_logs</span>
+    <span class="n">parser_job_logs</span> <span class="o">=</span> <span class="n">parser_job_subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;logs&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Get logs of the job&#39;</span><span class="p">,</span>
+        <span class="n">examples</span><span class="o">=</span><span class="n">CliExamples</span><span class="o">.</span><span class="n">MARO_PROCESS_JOB_LOGS</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_job_logs</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;job_name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the job&#39;</span><span class="p">)</span>
+    <span class="n">parser_job_logs</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">get_job_logs</span><span class="p">)</span>
+
+    <span class="c1"># maro process schedule</span>
+    <span class="n">parser_schedule</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;schedule&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Manage schedules&#39;</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_schedule</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">_help_func</span><span class="p">(</span><span class="n">parser</span><span class="o">=</span><span class="n">parser_schedule</span><span class="p">))</span>
+    <span class="n">parser_schedule_subparsers</span> <span class="o">=</span> <span class="n">parser_schedule</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">()</span>
+
+    <span class="c1"># maro process schedule start</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.process.schedule</span> <span class="kn">import</span> <span class="n">start_schedule</span>
+    <span class="n">parser_schedule_start</span> <span class="o">=</span> <span class="n">parser_schedule_subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;start&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Start a schedule&#39;</span><span class="p">,</span>
+        <span class="n">examples</span><span class="o">=</span><span class="n">CliExamples</span><span class="o">.</span><span class="n">MARO_PROCESS_SCHEDULE_START</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_schedule_start</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;deployment_path&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path of the schedule deployment&#39;</span><span class="p">)</span>
+    <span class="n">parser_schedule_start</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">start_schedule</span><span class="p">)</span>
+
+    <span class="c1"># maro process schedule stop</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.process.schedule</span> <span class="kn">import</span> <span class="n">stop_schedule</span>
+    <span class="n">parser_schedule_stop</span> <span class="o">=</span> <span class="n">parser_schedule_subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;stop&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Stop a schedule&#39;</span><span class="p">,</span>
+        <span class="n">examples</span><span class="o">=</span><span class="n">CliExamples</span><span class="o">.</span><span class="n">MARO_PROCESS_SCHEDULE_STOP</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_schedule_stop</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;schedule_name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the schedule&#39;</span><span class="p">)</span>
+    <span class="n">parser_schedule_stop</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">stop_schedule</span><span class="p">)</span>
+
+    <span class="c1"># maro process template</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.process.template</span> <span class="kn">import</span> <span class="n">template</span>
+    <span class="n">parser_template</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s2">&quot;template&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Get deployment templates&quot;</span><span class="p">,</span>
+        <span class="n">examples</span><span class="o">=</span><span class="n">CliExamples</span><span class="o">.</span><span class="n">MARO_PROCESS_TEMPLATE</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_template</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--setting_deploy&quot;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Get environment setting templates&quot;</span>
+    <span class="p">)</span>
+    <span class="n">parser_template</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;export_path&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s2">&quot;./&quot;</span><span class="p">,</span>
+        <span class="n">nargs</span><span class="o">=</span><span class="s1">&#39;?&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Path of the export directory&quot;</span><span class="p">)</span>
+    <span class="n">parser_template</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">template</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="load_parser_grass"><a class="viewcode-back" href="../../../apidoc/maro.cli.html#maro.cli.maro.load_parser_grass">[docs]</a><span class="k">def</span> <span class="nf">load_parser_grass</span><span class="p">(</span><span class="n">prev_parser</span><span class="p">:</span> <span class="n">ArgumentParser</span><span class="p">,</span> <span class="n">global_parser</span><span class="p">:</span> <span class="n">ArgumentParser</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">subparsers</span> <span class="o">=</span> <span class="n">prev_parser</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">()</span>
+
+    <span class="c1"># maro grass create</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.grass.create</span> <span class="kn">import</span> <span class="n">create</span>
+    <span class="n">parser_create</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;create&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Create cluster&#39;</span><span class="p">,</span>
+        <span class="n">examples</span><span class="o">=</span><span class="n">CliExamples</span><span class="o">.</span><span class="n">MARO_GRASS_CREATE</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_create</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;deployment_path&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path of the create deployment&#39;</span><span class="p">)</span>
+    <span class="n">parser_create</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">create</span><span class="p">)</span>
+
+    <span class="c1"># maro grass delete</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.grass.delete</span> <span class="kn">import</span> <span class="n">delete</span>
+    <span class="n">parser_delete</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;delete&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Delete cluster&#39;</span><span class="p">,</span>
+        <span class="n">examples</span><span class="o">=</span><span class="n">CliExamples</span><span class="o">.</span><span class="n">MARO_GRASS_DELETE</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_delete</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;cluster_name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the cluster&#39;</span><span class="p">)</span>
+    <span class="n">parser_delete</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">delete</span><span class="p">)</span>
+
+    <span class="c1"># maro grass node</span>
+    <span class="n">parser_node</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;node&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Manage nodes of the cluster&#39;</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_node</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">_help_func</span><span class="p">(</span><span class="n">parser</span><span class="o">=</span><span class="n">parser_node</span><span class="p">))</span>
+    <span class="n">parser_node_subparsers</span> <span class="o">=</span> <span class="n">parser_node</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">()</span>
+
+    <span class="c1"># maro grass node scale</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.grass.node</span> <span class="kn">import</span> <span class="n">scale_node</span>
+    <span class="n">parser_node_scale</span> <span class="o">=</span> <span class="n">parser_node_subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;scale&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Scale up or scale down nodes to target number&quot;</span><span class="p">,</span>
+        <span class="n">examples</span><span class="o">=</span><span class="n">CliExamples</span><span class="o">.</span><span class="n">MARO_GRASS_NODE_SCALE</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_node_scale</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;cluster_name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the cluster&#39;</span><span class="p">)</span>
+    <span class="n">parser_node_scale</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;node_size&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Azure VM size&#39;</span><span class="p">)</span>
+    <span class="n">parser_node_scale</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;replicas&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Target number of the nodes in the specific node_size&#39;</span><span class="p">)</span>
+    <span class="n">parser_node_scale</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">scale_node</span><span class="p">)</span>
+
+    <span class="c1"># maro grass node start</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.grass.node</span> <span class="kn">import</span> <span class="n">start_node</span>
+    <span class="n">parser_node_start</span> <span class="o">=</span> <span class="n">parser_node_subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;start&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Start nodes&quot;</span><span class="p">,</span>
+        <span class="n">examples</span><span class="o">=</span><span class="n">CliExamples</span><span class="o">.</span><span class="n">MARO_GRASS_NODE_START</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_node_start</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;cluster_name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the cluster&#39;</span><span class="p">)</span>
+    <span class="n">parser_node_start</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;node_size&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Azure VM size&#39;</span><span class="p">)</span>
+    <span class="n">parser_node_start</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;replicas&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Target number of the nodes need to be started in the specific node_size&#39;</span><span class="p">)</span>
+    <span class="n">parser_node_start</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">start_node</span><span class="p">)</span>
+
+    <span class="c1"># maro grass node stop</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.grass.node</span> <span class="kn">import</span> <span class="n">stop_node</span>
+    <span class="n">parser_node_stop</span> <span class="o">=</span> <span class="n">parser_node_subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;stop&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Stop nodes&quot;</span><span class="p">,</span>
+        <span class="n">examples</span><span class="o">=</span><span class="n">CliExamples</span><span class="o">.</span><span class="n">MARO_GRASS_NODE_STOP</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_node_stop</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;cluster_name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the cluster&#39;</span><span class="p">)</span>
+    <span class="n">parser_node_stop</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;node_size&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Azure VM size&#39;</span><span class="p">)</span>
+    <span class="n">parser_node_stop</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;replicas&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Target number of the nodes need to be stopped in the specific node_size&#39;</span><span class="p">)</span>
+    <span class="n">parser_node_stop</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">stop_node</span><span class="p">)</span>
+
+    <span class="c1"># maro grass node list</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.grass.node</span> <span class="kn">import</span> <span class="n">list_node</span>
+    <span class="n">parser_node_list</span> <span class="o">=</span> <span class="n">parser_node_subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;list&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;List details of nodes&quot;</span><span class="p">,</span>
+        <span class="n">examples</span><span class="o">=</span><span class="n">CliExamples</span><span class="o">.</span><span class="n">MARO_GRASS_NODE_LIST</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_node_list</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;cluster_name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the cluster&#39;</span><span class="p">)</span>
+    <span class="n">parser_node_list</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">list_node</span><span class="p">)</span>
+
+    <span class="c1"># maro grass node join</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.grass.node</span> <span class="kn">import</span> <span class="n">node_join</span>
+    <span class="n">parser_node_join</span> <span class="o">=</span> <span class="n">parser_node_subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;join&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Let one node join in a cluster in on-premises mode.&quot;</span><span class="p">,</span>
+        <span class="n">examples</span><span class="o">=</span><span class="n">CliExamples</span><span class="o">.</span><span class="n">MARO_GRASS_NODE_JOIN</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_node_join</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;node_join_path&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The node join description file path.&#39;</span><span class="p">)</span>
+    <span class="n">parser_node_join</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">node_join</span><span class="p">)</span>
+
+    <span class="c1"># maro grass node leave</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.grass.node</span> <span class="kn">import</span> <span class="n">node_leave</span>
+    <span class="n">parser_node_leave</span> <span class="o">=</span> <span class="n">parser_node_subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s2">&quot;leave&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;make node leave to cluster&quot;</span><span class="p">,</span>
+        <span class="n">examples</span><span class="o">=</span><span class="n">CliExamples</span><span class="o">.</span><span class="n">MARO_GRASS_NODE_LEAVE</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_node_leave</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;cluster_name&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;name of the cluster&quot;</span><span class="p">)</span>
+    <span class="n">parser_node_leave</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;node_name&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The name of node going to be leave cluster.&quot;</span><span class="p">)</span>
+    <span class="n">parser_node_leave</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">node_leave</span><span class="p">)</span>
+
+    <span class="c1"># maro grass image</span>
+    <span class="n">parser_image</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;image&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Manage images of the cluster&#39;</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_image</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">_help_func</span><span class="p">(</span><span class="n">parser</span><span class="o">=</span><span class="n">parser_image</span><span class="p">))</span>
+    <span class="n">parser_image_subparsers</span> <span class="o">=</span> <span class="n">parser_image</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">()</span>
+
+    <span class="c1"># maro grass image push</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.grass.image</span> <span class="kn">import</span> <span class="n">push_image</span>
+    <span class="n">parser_image_push</span> <span class="o">=</span> <span class="n">parser_image_subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;push&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Push a local image to the cluster&#39;</span><span class="p">,</span>
+        <span class="n">examples</span><span class="o">=</span><span class="n">CliExamples</span><span class="o">.</span><span class="n">MARO_GRASS_IMAGE_PUSH</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_image_push</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;cluster_name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the cluster&#39;</span><span class="p">)</span>
+    <span class="n">parser_image_push</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--image-name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the local image&#39;</span><span class="p">)</span>
+    <span class="n">parser_image_push</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--image-path&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path of the local tar file&#39;</span><span class="p">)</span>
+    <span class="n">parser_image_push</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--remote-context-path&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Absolute path of the image context in the user data storage of the cluster &#39;</span><span class="p">)</span>
+    <span class="n">parser_image_push</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--remote-image-name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the image&#39;</span><span class="p">)</span>
+    <span class="n">parser_image_push</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">push_image</span><span class="p">)</span>
+
+    <span class="c1"># maro grass data</span>
+    <span class="n">parser_data</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;data&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Manage user data storage in the cluster&#39;</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_data</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">_help_func</span><span class="p">(</span><span class="n">parser</span><span class="o">=</span><span class="n">parser_data</span><span class="p">))</span>
+    <span class="n">parser_data_subparsers</span> <span class="o">=</span> <span class="n">parser_data</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">()</span>
+
+    <span class="c1"># maro grass data push</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.grass.data</span> <span class="kn">import</span> <span class="n">push_data</span>
+    <span class="n">parser_data_push</span> <span class="o">=</span> <span class="n">parser_data_subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;push&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Push the local data to the remote directory&#39;</span><span class="p">,</span>
+        <span class="n">examples</span><span class="o">=</span><span class="n">CliExamples</span><span class="o">.</span><span class="n">MARO_GRASS_DATA_PUSH</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_data_push</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;cluster_name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the cluster&#39;</span><span class="p">)</span>
+    <span class="n">parser_data_push</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;local_path&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path of the local file&#39;</span><span class="p">)</span>
+    <span class="n">parser_data_push</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;remote_path&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path of the directory in the cluster data storage&#39;</span><span class="p">)</span>
+    <span class="n">parser_data_push</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">push_data</span><span class="p">)</span>
+
+    <span class="c1"># maro grass data pull</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.grass.data</span> <span class="kn">import</span> <span class="n">pull_data</span>
+    <span class="n">parser_data_pull</span> <span class="o">=</span> <span class="n">parser_data_subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;pull&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Pull the remote data to the local directory&#39;</span><span class="p">,</span>
+        <span class="n">examples</span><span class="o">=</span><span class="n">CliExamples</span><span class="o">.</span><span class="n">MARO_GRASS_DATA_PULL</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_data_pull</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;cluster_name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the cluster&#39;</span><span class="p">)</span>
+    <span class="n">parser_data_pull</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;remote_path&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path of the file in the cluster data storage&#39;</span><span class="p">)</span>
+    <span class="n">parser_data_pull</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;local_path&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path of the directory in the local&#39;</span><span class="p">)</span>
+    <span class="n">parser_data_pull</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">pull_data</span><span class="p">)</span>
+
+    <span class="c1"># maro grass job</span>
+    <span class="n">parser_job</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;job&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Manage jobs&#39;</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_job</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">_help_func</span><span class="p">(</span><span class="n">parser</span><span class="o">=</span><span class="n">parser_job</span><span class="p">))</span>
+    <span class="n">parser_job_subparsers</span> <span class="o">=</span> <span class="n">parser_job</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">()</span>
+
+    <span class="c1"># maro grass job start</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.grass.job</span> <span class="kn">import</span> <span class="n">start_job</span>
+    <span class="n">parser_job_start</span> <span class="o">=</span> <span class="n">parser_job_subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;start&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Start a training job&#39;</span><span class="p">,</span>
+        <span class="n">examples</span><span class="o">=</span><span class="n">CliExamples</span><span class="o">.</span><span class="n">MARO_GRASS_JOB_START</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_job_start</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;cluster_name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the cluster&#39;</span><span class="p">)</span>
+    <span class="n">parser_job_start</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;deployment_path&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path of the job deployment&#39;</span><span class="p">)</span>
+    <span class="n">parser_job_start</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">start_job</span><span class="p">)</span>
+
+    <span class="c1"># maro grass job stop</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.grass.job</span> <span class="kn">import</span> <span class="n">stop_job</span>
+    <span class="n">parser_job_stop</span> <span class="o">=</span> <span class="n">parser_job_subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;stop&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Stop a training job&#39;</span><span class="p">,</span>
+        <span class="n">examples</span><span class="o">=</span><span class="n">CliExamples</span><span class="o">.</span><span class="n">MARO_GRASS_JOB_STOP</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_job_stop</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;cluster_name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the cluster&#39;</span><span class="p">)</span>
+    <span class="n">parser_job_stop</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;job_name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the job&#39;</span><span class="p">)</span>
+    <span class="n">parser_job_stop</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">stop_job</span><span class="p">)</span>
+
+    <span class="c1"># maro grass job list</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.grass.job</span> <span class="kn">import</span> <span class="n">list_job</span>
+    <span class="n">parser_job_list</span> <span class="o">=</span> <span class="n">parser_job_subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;list&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;List details of jobs&#39;</span><span class="p">,</span>
+        <span class="n">examples</span><span class="o">=</span><span class="n">CliExamples</span><span class="o">.</span><span class="n">MARO_GRASS_JOB_LIST</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_job_list</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;cluster_name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the cluster&#39;</span><span class="p">)</span>
+    <span class="n">parser_job_list</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">list_job</span><span class="p">)</span>
+
+    <span class="c1"># maro grass job logs</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.grass.job</span> <span class="kn">import</span> <span class="n">get_job_logs</span>
+    <span class="n">parser_job_logs</span> <span class="o">=</span> <span class="n">parser_job_subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;logs&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Get logs of the job&#39;</span><span class="p">,</span>
+        <span class="n">examples</span><span class="o">=</span><span class="n">CliExamples</span><span class="o">.</span><span class="n">MARO_GRASS_JOB_LOGS</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_job_logs</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;cluster_name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the cluster&#39;</span><span class="p">)</span>
+    <span class="n">parser_job_logs</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;job_name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the job&#39;</span><span class="p">)</span>
+    <span class="n">parser_job_logs</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">get_job_logs</span><span class="p">)</span>
+
+    <span class="c1"># maro grass schedule</span>
+    <span class="n">parser_schedule</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;schedule&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Manage schedules&#39;</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_schedule</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">_help_func</span><span class="p">(</span><span class="n">parser</span><span class="o">=</span><span class="n">parser_schedule</span><span class="p">))</span>
+    <span class="n">parser_schedule_subparsers</span> <span class="o">=</span> <span class="n">parser_schedule</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">()</span>
+
+    <span class="c1"># maro grass schedule start</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.grass.schedule</span> <span class="kn">import</span> <span class="n">start_schedule</span>
+    <span class="n">parser_schedule_start</span> <span class="o">=</span> <span class="n">parser_schedule_subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;start&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Start a schedule&#39;</span><span class="p">,</span>
+        <span class="n">examples</span><span class="o">=</span><span class="n">CliExamples</span><span class="o">.</span><span class="n">MARO_GRASS_SCHEDULE_START</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_schedule_start</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;cluster_name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the cluster&#39;</span><span class="p">)</span>
+    <span class="n">parser_schedule_start</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;deployment_path&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path of the schedule deployment&#39;</span><span class="p">)</span>
+    <span class="n">parser_schedule_start</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">start_schedule</span><span class="p">)</span>
+
+    <span class="c1"># maro grass schedule stop</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.grass.schedule</span> <span class="kn">import</span> <span class="n">stop_schedule</span>
+    <span class="n">parser_schedule_stop</span> <span class="o">=</span> <span class="n">parser_schedule_subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;stop&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Stop a schedule&#39;</span><span class="p">,</span>
+        <span class="n">examples</span><span class="o">=</span><span class="n">CliExamples</span><span class="o">.</span><span class="n">MARO_GRASS_SCHEDULE_STOP</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_schedule_stop</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;cluster_name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the cluster&#39;</span><span class="p">)</span>
+    <span class="n">parser_schedule_stop</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;schedule_name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the schedule&#39;</span><span class="p">)</span>
+    <span class="n">parser_schedule_stop</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">stop_schedule</span><span class="p">)</span>
+
+    <span class="c1"># maro grass clean</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.grass.clean</span> <span class="kn">import</span> <span class="n">clean</span>
+    <span class="n">parser_clean</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;clean&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Clean cluster&#39;</span><span class="p">,</span>
+        <span class="n">examples</span><span class="o">=</span><span class="n">CliExamples</span><span class="o">.</span><span class="n">MARO_GRASS_CLEAN</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_clean</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;cluster_name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the cluster&#39;</span><span class="p">)</span>
+    <span class="n">parser_clean</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">clean</span><span class="p">)</span>
+
+    <span class="c1"># maro grass status</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.grass.status</span> <span class="kn">import</span> <span class="n">status</span>
+    <span class="n">parser_status</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;status&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Get status of the cluster&#39;</span><span class="p">,</span>
+        <span class="n">examples</span><span class="o">=</span><span class="n">CliExamples</span><span class="o">.</span><span class="n">MARO_GRASS_STATUS</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_status</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;cluster_name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the cluster&#39;</span><span class="p">)</span>
+    <span class="n">parser_status</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;resource_name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the resource&#39;</span><span class="p">)</span>
+    <span class="n">parser_status</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">status</span><span class="p">)</span>
+
+    <span class="c1"># maro grass template</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.grass.template</span> <span class="kn">import</span> <span class="n">template</span>
+    <span class="n">parser_clean</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;template&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Get deployment templates&#39;</span><span class="p">,</span>
+        <span class="n">examples</span><span class="o">=</span><span class="n">CliExamples</span><span class="o">.</span><span class="n">MARO_GRASS_TEMPLATES</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_clean</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;export_path&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;./&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path of the export directory&#39;</span><span class="p">)</span>
+    <span class="n">parser_clean</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">template</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="load_parser_env"><a class="viewcode-back" href="../../../apidoc/maro.cli.html#maro.cli.maro.load_parser_env">[docs]</a><span class="k">def</span> <span class="nf">load_parser_env</span><span class="p">(</span><span class="n">prev_parser</span><span class="p">:</span> <span class="n">ArgumentParser</span><span class="p">,</span> <span class="n">global_parser</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.envs.list_available</span> <span class="kn">import</span> <span class="n">list_scenarios</span><span class="p">,</span> <span class="n">list_topologies</span>
+
+    <span class="n">subparsers</span> <span class="o">=</span> <span class="n">prev_parser</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">()</span>
+
+    <span class="c1"># maro env list</span>
+    <span class="n">parser_list</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;list&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;List name of built-in scenarios.&#39;</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="n">parser_list</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">list_scenarios</span><span class="p">)</span>
+
+    <span class="c1"># maro env topologies --scenario name</span>
+    <span class="n">parser_topo</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;topology&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Get built-in topologies for specified scenario.&#39;</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="n">parser_topo</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-s&#39;</span><span class="p">,</span> <span class="s1">&#39;--scenario&#39;</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Scenario name to show topologies.&#39;</span>
+    <span class="p">)</span>
+
+    <span class="n">parser_topo</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">list_topologies</span><span class="p">)</span>
+
+    <span class="c1"># MARO env data command</span>
+    <span class="n">parser_env_data</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;data&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Generate predefined scenario related data.&quot;</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_env_data</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">_help_func</span><span class="p">(</span><span class="n">parser</span><span class="o">=</span><span class="n">parser_env_data</span><span class="p">))</span>
+
+    <span class="c1"># Generate data for a specific scenario and topology.</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.data_pipeline.data_process</span> <span class="kn">import</span> <span class="n">generate</span><span class="p">,</span> <span class="n">list_env</span>
+    <span class="kn">from</span> <span class="nn">maro.simulator.utils.common</span> <span class="kn">import</span> <span class="n">get_scenarios</span>
+    <span class="n">data_subparsers</span> <span class="o">=</span> <span class="n">parser_env_data</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">()</span>
+
+    <span class="n">generate_cmd_parser</span> <span class="o">=</span> <span class="n">data_subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s2">&quot;generate&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Generate data for a specific scenario and topology.&quot;</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">])</span>
+
+    <span class="n">generate_cmd_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;-s&quot;</span><span class="p">,</span> <span class="s2">&quot;--scenario&quot;</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">choices</span><span class="o">=</span><span class="n">get_scenarios</span><span class="p">(),</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Scenario of environment.&quot;</span><span class="p">)</span>
+
+    <span class="n">generate_cmd_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;-t&quot;</span><span class="p">,</span> <span class="s2">&quot;--topology&quot;</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Topology of scenario.&quot;</span><span class="p">)</span>
+
+    <span class="n">generate_cmd_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;-f&quot;</span><span class="p">,</span> <span class="s2">&quot;--forced&quot;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Re-generate forcibly.&quot;</span><span class="p">)</span>
+    <span class="n">generate_cmd_parser</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">generate</span><span class="p">)</span>
+
+    <span class="n">list_cmd_parser</span> <span class="o">=</span> <span class="n">data_subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s2">&quot;list&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;List predefined environments that need generate data extraly.&quot;</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">])</span>
+
+    <span class="n">list_cmd_parser</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">list_env</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="load_parser_k8s"><a class="viewcode-back" href="../../../apidoc/maro.cli.html#maro.cli.maro.load_parser_k8s">[docs]</a><span class="k">def</span> <span class="nf">load_parser_k8s</span><span class="p">(</span><span class="n">prev_parser</span><span class="p">:</span> <span class="n">ArgumentParser</span><span class="p">,</span> <span class="n">global_parser</span><span class="p">:</span> <span class="n">ArgumentParser</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">subparsers</span> <span class="o">=</span> <span class="n">prev_parser</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">()</span>
+
+    <span class="c1"># maro k8s create</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.k8s.create</span> <span class="kn">import</span> <span class="n">create</span>
+    <span class="n">parser_create</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;create&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Create cluster&#39;</span><span class="p">,</span>
+        <span class="n">examples</span><span class="o">=</span><span class="n">CliExamples</span><span class="o">.</span><span class="n">MARO_K8S_CREATE</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_create</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;deployment_path&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path of the create deployment&#39;</span><span class="p">)</span>
+    <span class="n">parser_create</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">create</span><span class="p">)</span>
+
+    <span class="c1"># maro k8s delete</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.k8s.delete</span> <span class="kn">import</span> <span class="n">delete</span>
+    <span class="n">parser_create</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;delete&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Delete cluster&#39;</span><span class="p">,</span>
+        <span class="n">examples</span><span class="o">=</span><span class="n">CliExamples</span><span class="o">.</span><span class="n">MARO_K8S_DELETE</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_create</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;cluster_name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the cluster&#39;</span><span class="p">)</span>
+    <span class="n">parser_create</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">delete</span><span class="p">)</span>
+
+    <span class="c1"># maro k8s node</span>
+    <span class="n">parser_node</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;node&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Manage nodes of the cluster&#39;</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_node</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">_help_func</span><span class="p">(</span><span class="n">parser</span><span class="o">=</span><span class="n">parser_node</span><span class="p">))</span>
+    <span class="n">parser_node_subparsers</span> <span class="o">=</span> <span class="n">parser_node</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">()</span>
+
+    <span class="c1"># maro k8s node scale</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.k8s.node</span> <span class="kn">import</span> <span class="n">scale_node</span>
+    <span class="n">parser_node_scale</span> <span class="o">=</span> <span class="n">parser_node_subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;scale&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Scale up or scale down nodes to target number&quot;</span><span class="p">,</span>
+        <span class="n">examples</span><span class="o">=</span><span class="n">CliExamples</span><span class="o">.</span><span class="n">MARO_K8S_NODE_SCALE</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_node_scale</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;cluster_name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the cluster&#39;</span><span class="p">)</span>
+    <span class="n">parser_node_scale</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;node_size&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Azure VM size&#39;</span><span class="p">)</span>
+    <span class="n">parser_node_scale</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;replicas&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Target number of the nodes in the specific node_size&#39;</span><span class="p">)</span>
+    <span class="n">parser_node_scale</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">scale_node</span><span class="p">)</span>
+
+    <span class="c1"># maro k8s node list</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.k8s.node</span> <span class="kn">import</span> <span class="n">list_node</span>
+    <span class="n">parser_node_scale</span> <span class="o">=</span> <span class="n">parser_node_subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;list&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;List details of nodes&quot;</span><span class="p">,</span>
+        <span class="n">examples</span><span class="o">=</span><span class="n">CliExamples</span><span class="o">.</span><span class="n">MARO_K8S_NODE_LIST</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_node_scale</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;cluster_name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the cluster&#39;</span><span class="p">)</span>
+    <span class="n">parser_node_scale</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">list_node</span><span class="p">)</span>
+
+    <span class="c1"># maro k8s image</span>
+    <span class="n">parser_image</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;image&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Manage images of the cluster&#39;</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_image</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">_help_func</span><span class="p">(</span><span class="n">parser</span><span class="o">=</span><span class="n">parser_image</span><span class="p">))</span>
+    <span class="n">parser_image_subparsers</span> <span class="o">=</span> <span class="n">parser_image</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">()</span>
+
+    <span class="c1"># maro k8s image push</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.k8s.image</span> <span class="kn">import</span> <span class="n">push_image</span>
+    <span class="n">parser_image_push</span> <span class="o">=</span> <span class="n">parser_image_subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;push&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Push a local image to the cluster&#39;</span><span class="p">,</span>
+        <span class="n">examples</span><span class="o">=</span><span class="n">CliExamples</span><span class="o">.</span><span class="n">MARO_K8S_IMAGE_PUSH</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_image_push</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;cluster_name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the cluster&#39;</span><span class="p">)</span>
+    <span class="n">parser_image_push</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--image-name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the local image&#39;</span><span class="p">)</span>
+    <span class="n">parser_image_push</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">push_image</span><span class="p">)</span>
+
+    <span class="c1"># maro k8s image list</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.k8s.image</span> <span class="kn">import</span> <span class="n">list_image</span>
+    <span class="n">parser_image_push</span> <span class="o">=</span> <span class="n">parser_image_subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;list&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;List the images in the cluster&#39;</span><span class="p">,</span>
+        <span class="n">examples</span><span class="o">=</span><span class="n">CliExamples</span><span class="o">.</span><span class="n">MARO_K8S_IMAGE_LIST</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_image_push</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;cluster_name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the cluster&#39;</span><span class="p">)</span>
+    <span class="n">parser_image_push</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">list_image</span><span class="p">)</span>
+
+    <span class="c1"># maro k8s data</span>
+    <span class="n">parser_data</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;data&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Manage user data storage in the cluster&#39;</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_data</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">_help_func</span><span class="p">(</span><span class="n">parser</span><span class="o">=</span><span class="n">parser_data</span><span class="p">))</span>
+    <span class="n">parser_data_subparsers</span> <span class="o">=</span> <span class="n">parser_data</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">()</span>
+
+    <span class="c1"># maro k8s data push</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.k8s.data</span> <span class="kn">import</span> <span class="n">push_data</span>
+    <span class="n">parser_data_push</span> <span class="o">=</span> <span class="n">parser_data_subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;push&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Push the local data to the remote directory&#39;</span><span class="p">,</span>
+        <span class="n">examples</span><span class="o">=</span><span class="n">CliExamples</span><span class="o">.</span><span class="n">MARO_K8S_DATA_PUSH</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_data_push</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;cluster_name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the cluster&#39;</span><span class="p">)</span>
+    <span class="n">parser_data_push</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;local_path&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path of the local file&#39;</span><span class="p">)</span>
+    <span class="n">parser_data_push</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;remote_dir&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path of the directory in the cluster data storage&#39;</span><span class="p">)</span>
+    <span class="n">parser_data_push</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">push_data</span><span class="p">)</span>
+
+    <span class="c1"># maro k8s data pull</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.k8s.data</span> <span class="kn">import</span> <span class="n">pull_data</span>
+    <span class="n">parser_data_pull</span> <span class="o">=</span> <span class="n">parser_data_subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;pull&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Pull the remote data to the local directory&#39;</span><span class="p">,</span>
+        <span class="n">examples</span><span class="o">=</span><span class="n">CliExamples</span><span class="o">.</span><span class="n">MARO_K8S_DATA_PULL</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_data_pull</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;cluster_name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the cluster&#39;</span><span class="p">)</span>
+    <span class="n">parser_data_pull</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;remote_path&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path of the file in the cluster data storage&#39;</span><span class="p">)</span>
+    <span class="n">parser_data_pull</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;local_dir&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path of the directory in the local&#39;</span><span class="p">)</span>
+    <span class="n">parser_data_pull</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">pull_data</span><span class="p">)</span>
+
+    <span class="c1"># maro k8s data remove</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.k8s.data</span> <span class="kn">import</span> <span class="n">remove_data</span>
+    <span class="n">parser_data_pull</span> <span class="o">=</span> <span class="n">parser_data_subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;remove&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Remove data in the cluster data storage&#39;</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_data_pull</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;cluster_name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the cluster&#39;</span><span class="p">)</span>
+    <span class="n">parser_data_pull</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;remote_path&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path of the file in the cluster data storage&#39;</span><span class="p">)</span>
+    <span class="n">parser_data_pull</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">remove_data</span><span class="p">)</span>
+
+    <span class="c1"># maro k8s job</span>
+    <span class="n">parser_job</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;job&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Manage jobs&#39;</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_job</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">_help_func</span><span class="p">(</span><span class="n">parser</span><span class="o">=</span><span class="n">parser_job</span><span class="p">))</span>
+    <span class="n">parser_job_subparsers</span> <span class="o">=</span> <span class="n">parser_job</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">()</span>
+
+    <span class="c1"># maro k8s job start</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.k8s.job</span> <span class="kn">import</span> <span class="n">start_job</span>
+    <span class="n">parser_job_start</span> <span class="o">=</span> <span class="n">parser_job_subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;start&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Start a training job&#39;</span><span class="p">,</span>
+        <span class="n">examples</span><span class="o">=</span><span class="n">CliExamples</span><span class="o">.</span><span class="n">MARO_K8S_JOB_START</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_job_start</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;cluster_name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the cluster&#39;</span><span class="p">)</span>
+    <span class="n">parser_job_start</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;deployment_path&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path of the job deployment&#39;</span><span class="p">)</span>
+    <span class="n">parser_job_start</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">start_job</span><span class="p">)</span>
+
+    <span class="c1"># maro k8s job stop</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.k8s.job</span> <span class="kn">import</span> <span class="n">stop_job</span>
+    <span class="n">parser_job_stop</span> <span class="o">=</span> <span class="n">parser_job_subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;stop&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Stop a training job&#39;</span><span class="p">,</span>
+        <span class="n">examples</span><span class="o">=</span><span class="n">CliExamples</span><span class="o">.</span><span class="n">MARO_K8S_JOB_STOP</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_job_stop</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;cluster_name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the cluster&#39;</span><span class="p">)</span>
+    <span class="n">parser_job_stop</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;job_name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the job&#39;</span><span class="p">)</span>
+    <span class="n">parser_job_stop</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">stop_job</span><span class="p">)</span>
+
+    <span class="c1"># maro k8s job logs</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.k8s.job</span> <span class="kn">import</span> <span class="n">get_job_logs</span>
+    <span class="n">parser_job_logs</span> <span class="o">=</span> <span class="n">parser_job_subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;logs&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Get logs of the job&#39;</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_job_logs</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;cluster_name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the cluster&#39;</span><span class="p">)</span>
+    <span class="n">parser_job_logs</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;job_name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the job&#39;</span><span class="p">)</span>
+    <span class="n">parser_job_logs</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">get_job_logs</span><span class="p">)</span>
+
+    <span class="c1"># maro k8s job list</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.k8s.job</span> <span class="kn">import</span> <span class="n">list_job</span>
+    <span class="n">parser_job_list</span> <span class="o">=</span> <span class="n">parser_job_subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;list&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;List details of jobs&#39;</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_job_list</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;cluster_name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the cluster&#39;</span><span class="p">)</span>
+    <span class="n">parser_job_list</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">list_job</span><span class="p">)</span>
+
+    <span class="c1"># maro k8s schedule</span>
+    <span class="n">parser_schedule</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;schedule&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Manage schedules&#39;</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_schedule</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">_help_func</span><span class="p">(</span><span class="n">parser</span><span class="o">=</span><span class="n">parser_schedule</span><span class="p">))</span>
+    <span class="n">parser_schedule_subparsers</span> <span class="o">=</span> <span class="n">parser_schedule</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">()</span>
+
+    <span class="c1"># maro k8s schedule start</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.k8s.schedule</span> <span class="kn">import</span> <span class="n">start_schedule</span>
+    <span class="n">parser_schedule_start</span> <span class="o">=</span> <span class="n">parser_schedule_subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;start&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Start a schedule&#39;</span><span class="p">,</span>
+        <span class="n">examples</span><span class="o">=</span><span class="n">CliExamples</span><span class="o">.</span><span class="n">MARO_K8S_SCHEDULE_START</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_schedule_start</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;cluster_name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the cluster&#39;</span><span class="p">)</span>
+    <span class="n">parser_schedule_start</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;deployment_path&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path of the schedule deployment&#39;</span><span class="p">)</span>
+    <span class="n">parser_schedule_start</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">start_schedule</span><span class="p">)</span>
+
+    <span class="c1"># maro k8s schedule stop</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.k8s.schedule</span> <span class="kn">import</span> <span class="n">stop_schedule</span>
+    <span class="n">parser_schedule_stop</span> <span class="o">=</span> <span class="n">parser_schedule_subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;stop&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Stop a schedule&#39;</span><span class="p">,</span>
+        <span class="n">examples</span><span class="o">=</span><span class="n">CliExamples</span><span class="o">.</span><span class="n">MARO_K8S_SCHEDULE_STOP</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_schedule_stop</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;cluster_name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the cluster&#39;</span><span class="p">)</span>
+    <span class="n">parser_schedule_stop</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;schedule_name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the schedule&#39;</span><span class="p">)</span>
+    <span class="n">parser_schedule_stop</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">stop_schedule</span><span class="p">)</span>
+
+    <span class="c1"># maro k8s status</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.k8s.status</span> <span class="kn">import</span> <span class="n">status</span>
+    <span class="n">parser_status</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;status&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Get status of the cluster&#39;</span><span class="p">,</span>
+        <span class="n">examples</span><span class="o">=</span><span class="n">CliExamples</span><span class="o">.</span><span class="n">MARO_K8S_STATUS</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_status</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;cluster_name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the cluster&#39;</span><span class="p">)</span>
+    <span class="n">parser_status</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">status</span><span class="p">)</span>
+
+    <span class="c1"># maro k8s template</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.k8s.template</span> <span class="kn">import</span> <span class="n">template</span>
+    <span class="n">parser_template</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s1">&#39;template&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Get deployment templates&#39;</span><span class="p">,</span>
+        <span class="n">examples</span><span class="o">=</span><span class="n">CliExamples</span><span class="o">.</span><span class="n">MARO_K8S_TEMPLATE</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">parser_template</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;export_path&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;./&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path of the export directory&#39;</span><span class="p">)</span>
+    <span class="n">parser_template</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">template</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="load_parser_data"><a class="viewcode-back" href="../../../apidoc/maro.cli.html#maro.cli.maro.load_parser_data">[docs]</a><span class="k">def</span> <span class="nf">load_parser_data</span><span class="p">(</span><span class="n">prev_parser</span><span class="p">:</span> <span class="n">ArgumentParser</span><span class="p">,</span> <span class="n">global_parser</span><span class="p">:</span> <span class="n">ArgumentParser</span><span class="p">):</span>
+    <span class="n">data_cmd_sub_parsers</span> <span class="o">=</span> <span class="n">prev_parser</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">()</span>
+
+    <span class="c1"># BUILD</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.data_pipeline.utils</span> <span class="kn">import</span> <span class="n">convert</span>
+    <span class="n">build_cmd_parser</span> <span class="o">=</span> <span class="n">data_cmd_sub_parsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s2">&quot;build&quot;</span><span class="p">,</span>
+        <span class="n">fromfile_prefix_chars</span><span class="o">=</span><span class="s2">&quot;@&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Build csv file to a strong type tight binary file.&quot;</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">])</span>
+
+    <span class="n">build_cmd_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--meta&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Metafile for binary file building.&quot;</span><span class="p">)</span>
+
+    <span class="n">build_cmd_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--file&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">nargs</span><span class="o">=</span><span class="s2">&quot;+&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        Path to original csv file(s) used to build,</span>
+<span class="s2">        you can save your files&#39; name into a file and call with prefix @ to read files list from your file,</span>
+<span class="s2">        like &#39;maro data build --meta meta.yml --output o.bin --file @files.txt&#39;</span>
+<span class="s2">        or just convert 1 file like &#39;maro data build --meta meta.yml --output o.bin --file input_file.csv&#39;</span>
+<span class="s2">        &quot;&quot;&quot;</span><span class="p">)</span>
+
+    <span class="n">build_cmd_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--output&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Path (with file name) to dump the binary file.&quot;</span><span class="p">)</span>
+
+    <span class="n">build_cmd_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--start-timestamp&quot;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;start_timestamp&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        Specified start timestamp (in UTC) for binary file,</span>
+<span class="s2">        then this timestamp will be considered as tick=0 for binary reader,</span>
+<span class="s2">        this can be used to adjust the reader pipeline.</span>
+<span class="s2">        &quot;&quot;&quot;</span><span class="p">)</span>
+
+    <span class="n">build_cmd_parser</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">convert</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="load_parser_meta"><a class="viewcode-back" href="../../../apidoc/maro.cli.html#maro.cli.maro.load_parser_meta">[docs]</a><span class="k">def</span> <span class="nf">load_parser_meta</span><span class="p">(</span><span class="n">prev_parser</span><span class="p">:</span> <span class="n">ArgumentParser</span><span class="p">,</span> <span class="n">global_parser</span><span class="p">:</span> <span class="n">ArgumentParser</span><span class="p">):</span>
+    <span class="n">meta_cmd_sub_parsers</span> <span class="o">=</span> <span class="n">prev_parser</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">()</span>
+    <span class="c1"># Deploy</span>
+    <span class="kn">from</span> <span class="nn">maro.cli.data_pipeline.data_process</span> <span class="kn">import</span> <span class="n">meta_deploy</span>
+    <span class="n">deploy_cmd_parser</span> <span class="o">=</span> <span class="n">meta_cmd_sub_parsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s2">&quot;deploy&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Deploy data files for MARO.&quot;</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">])</span>
+
+    <span class="n">deploy_cmd_parser</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">meta_deploy</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="load_parser_inspector"><a class="viewcode-back" href="../../../apidoc/maro.cli.html#maro.cli.maro.load_parser_inspector">[docs]</a><span class="k">def</span> <span class="nf">load_parser_inspector</span><span class="p">(</span><span class="n">prev_parser</span><span class="p">:</span> <span class="n">ArgumentParser</span><span class="p">,</span> <span class="n">global_parser</span><span class="p">:</span> <span class="n">ArgumentParser</span><span class="p">):</span>
+    <span class="n">inspector_cmd_sub_parsers</span> <span class="o">=</span> <span class="n">prev_parser</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">()</span>
+
+    <span class="kn">from</span> <span class="nn">maro.cli.inspector.env_data_process</span> <span class="kn">import</span> <span class="n">start_vis</span>
+    <span class="n">build_cmd_parser</span> <span class="o">=</span> <span class="n">inspector_cmd_sub_parsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s2">&quot;env&quot;</span><span class="p">,</span>
+        <span class="n">fromfile_prefix_chars</span><span class="o">=</span><span class="s2">&quot;@&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Dashboard of selected env displayed.&quot;</span><span class="p">,</span>
+        <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">global_parser</span><span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="n">build_cmd_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--source_path&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Folder path to load data, should be root path of snapshot folders. e.g. ~/project_root/dump_files/&quot;</span>
+    <span class="p">)</span>
+
+    <span class="n">build_cmd_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--force&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s2">&quot;True&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Overwrite the generated summary data or not: True/False.&quot;</span>
+    <span class="p">)</span>
+
+    <span class="n">build_cmd_parser</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">start_vis</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_help_func</span><span class="p">(</span><span class="n">parser</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">print_help</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">wrapper</span>
+
+
+<span class="k">def</span> <span class="nf">_get_actual_args</span><span class="p">(</span><span class="n">namespace</span><span class="p">:</span> <span class="n">Namespace</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="n">actual_args</span> <span class="o">=</span> <span class="nb">vars</span><span class="p">(</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">namespace</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">actual_args</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../../../_static/js/index.js"></script>
+    
+  </body>
+</html>

@@ -1,0 +1,1106 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maro.cli.data_pipeline.citi_bike &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../../../../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../../../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/sphinx-book-theme.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/language_data.js"></script>
+    <script src="../../../../_static/clipboard.min.js"></script>
+    <script src="../../../../_static/copybutton.js"></script>
+    <script src="../../../../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../../../../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../../../../index.html">
+  
+  <img src="../../../../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../scenarios/container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../scenarios/citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../scenarios/vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../apidoc/maro.html">
+   maro package
+  </a>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2F_modules/maro/cli/data_pipeline/citi_bike.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <nav id="bd-toc-nav">
+            
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <h1>Source code for maro.cli.data_pipeline.citi_bike</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) Microsoft Corporation.</span>
+<span class="c1"># Licensed under the MIT license.</span>
+
+<span class="kn">import</span> <span class="nn">csv</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">zipfile</span>
+<span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
+
+<span class="kn">import</span> <span class="nn">geopy.distance</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">yaml</span> <span class="kn">import</span> <span class="n">safe_load</span>
+
+<span class="kn">from</span> <span class="nn">maro.cli.data_pipeline.base</span> <span class="kn">import</span> <span class="n">DataPipeline</span><span class="p">,</span> <span class="n">DataTopology</span>
+<span class="kn">from</span> <span class="nn">maro.cli.data_pipeline.utils</span> <span class="kn">import</span> <span class="n">StaticParameter</span><span class="p">,</span> <span class="n">download_file</span>
+<span class="kn">from</span> <span class="nn">maro.utils.logger</span> <span class="kn">import</span> <span class="n">CliLogger</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">CliLogger</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="CitiBikePipeline"><a class="viewcode-back" href="../../../../apidoc/maro.cli.data_pipeline.html#maro.cli.data_pipeline.citi_bike.CitiBikePipeline">[docs]</a><span class="k">class</span> <span class="nc">CitiBikePipeline</span><span class="p">(</span><span class="n">DataPipeline</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Generate citi_bike data bin and other necessary files for the specified topology from specified source.</span>
+
+<span class="sd">    They will be generated in ~/.maro/data/citi_bike/[topology]/_build.</span>
+<span class="sd">    Folder structure:</span>
+<span class="sd">    ~/.maro</span>
+<span class="sd">            /data/citi_bike/[topology]</span>
+<span class="sd">                                    /_build bin data file and other necessory files</span>
+<span class="sd">                                    /source</span>
+<span class="sd">                                            /_download original data files</span>
+<span class="sd">                                            /_clean cleaned data files</span>
+<span class="sd">            /temp download temp files</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        topology(str): Topology name of the data files.</span>
+<span class="sd">        source(str): Source url of original data file.</span>
+<span class="sd">        station_info(str): Source url of station info file.</span>
+<span class="sd">        is_temp(bool): (optional) If the data file is temporary.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_download_file_name</span> <span class="o">=</span> <span class="s2">&quot;trips.zip&quot;</span>
+    <span class="n">_station_info_file_name</span> <span class="o">=</span> <span class="s2">&quot;full_station.json&quot;</span>
+
+    <span class="n">_clean_file_name</span> <span class="o">=</span> <span class="s2">&quot;trips.csv&quot;</span>
+
+    <span class="n">_build_file_name</span> <span class="o">=</span> <span class="s2">&quot;trips.bin&quot;</span>
+    <span class="n">_station_meta_file_name</span> <span class="o">=</span> <span class="s2">&quot;station_meta.csv&quot;</span>
+    <span class="n">_distance_file_name</span> <span class="o">=</span> <span class="s2">&quot;distance_adj.csv&quot;</span>
+
+    <span class="n">_meta_file_name</span> <span class="o">=</span> <span class="s2">&quot;trips.yml&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topology</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">station_info</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">is_temp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s2">&quot;citi_bike&quot;</span><span class="p">,</span> <span class="n">topology</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">is_temp</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_station_info</span> <span class="o">=</span> <span class="n">station_info</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_station_info_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_download_folder</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station_info_file_name</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_distance_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_build_folder</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_distance_file_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_station_meta_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_build_folder</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station_meta_file_name</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_common_data</span> <span class="o">=</span> <span class="p">{}</span>
+
+<div class="viewcode-block" id="CitiBikePipeline.download"><a class="viewcode-back" href="../../../../apidoc/maro.cli.data_pipeline.html#maro.cli.data_pipeline.citi_bike.CitiBikePipeline.download">[docs]</a>    <span class="k">def</span> <span class="nf">download</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">is_force</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Download the zip file.&quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">download</span><span class="p">(</span><span class="n">is_force</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_new_file_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_station_info_file</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">is_force</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_station_info_file</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info_green</span><span class="p">(</span><span class="s2">&quot;File already exists, skipping download.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info_green</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Downloading trip data from </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_station_info</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_station_info_file</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+            <span class="n">download_file</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_station_info</span><span class="p">,</span> <span class="n">destination</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_station_info_file</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CitiBikePipeline.clean"><a class="viewcode-back" href="../../../../apidoc/maro.cli.data_pipeline.html#maro.cli.data_pipeline.citi_bike.CitiBikePipeline.clean">[docs]</a>    <span class="k">def</span> <span class="nf">clean</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Unzip the csv file and process it for building binary file.&quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">clean</span><span class="p">()</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info_green</span><span class="p">(</span><span class="s2">&quot;Cleaning trip data.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_download_file</span><span class="p">):</span>
+            <span class="c1"># unzip</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info_green</span><span class="p">(</span><span class="s2">&quot;Unzip start.&quot;</span><span class="p">)</span>
+            <span class="k">with</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_download_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">zip_ref</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">zip_ref</span><span class="o">.</span><span class="n">namelist</span><span class="p">():</span>
+                    <span class="c1"># Only one csv file is expected.</span>
+                    <span class="k">if</span> <span class="p">(</span>
+                        <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.csv&quot;</span><span class="p">)</span> <span class="ow">and</span>
+                        <span class="p">(</span><span class="ow">not</span> <span class="p">(</span><span class="n">filename</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;__MACOSX&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">filename</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)))</span>
+                    <span class="p">):</span>
+
+                        <span class="n">logger</span><span class="o">.</span><span class="n">info_green</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unzip </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2"> from </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_download_file</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+                        <span class="n">zip_ref</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_clean_folder</span><span class="p">,</span> <span class="p">[</span><span class="n">filename</span><span class="p">])</span>
+                        <span class="n">unzip_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_clean_folder</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_new_file_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">unzip_file</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_preprocess</span><span class="p">(</span><span class="n">unzipped_file</span><span class="o">=</span><span class="n">unzip_file</span><span class="p">)</span>
+                        <span class="k">break</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Not found downloaded trip data: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_download_file</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_read_common_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Read and full init data and existed stations.&quot;&quot;&quot;</span>
+
+        <span class="n">full_stations</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_station_info_file</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">station_file</span><span class="p">:</span>
+            <span class="c1"># read station to station file</span>
+            <span class="n">raw_station_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">read_json</span><span class="p">(</span><span class="n">station_file</span><span class="p">)[</span><span class="s2">&quot;data&quot;</span><span class="p">][</span><span class="s2">&quot;stations&quot;</span><span class="p">])</span>
+            <span class="n">station_data</span> <span class="o">=</span> <span class="n">raw_station_data</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">&quot;lon&quot;</span><span class="p">:</span> <span class="s2">&quot;station_longitude&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;lat&quot;</span><span class="p">:</span> <span class="s2">&quot;station_latitude&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;region_id&quot;</span><span class="p">:</span> <span class="s2">&quot;region&quot;</span><span class="p">})</span>
+
+            <span class="c1"># group by station to generate station init info</span>
+            <span class="n">full_stations</span> <span class="o">=</span> <span class="n">station_data</span><span class="p">[</span>
+                <span class="p">[</span><span class="s2">&quot;station_id&quot;</span><span class="p">,</span> <span class="s2">&quot;capacity&quot;</span><span class="p">,</span> <span class="s2">&quot;station_longitude&quot;</span><span class="p">,</span> <span class="s2">&quot;station_latitude&quot;</span><span class="p">]</span>
+            <span class="p">]</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="c1"># generate station id by index</span>
+
+            <span class="n">full_stations</span><span class="p">[</span><span class="s2">&quot;station_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">full_stations</span><span class="p">[</span><span class="s2">&quot;station_id&quot;</span><span class="p">],</span> <span class="n">downcast</span><span class="o">=</span><span class="s2">&quot;integer&quot;</span><span class="p">)</span>
+            <span class="n">full_stations</span><span class="p">[</span><span class="s2">&quot;capacity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">full_stations</span><span class="p">[</span><span class="s2">&quot;capacity&quot;</span><span class="p">],</span> <span class="n">downcast</span><span class="o">=</span><span class="s2">&quot;integer&quot;</span><span class="p">)</span>
+            <span class="n">full_stations</span><span class="p">[</span><span class="s2">&quot;station_longitude&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">full_stations</span><span class="p">[</span><span class="s2">&quot;station_longitude&quot;</span><span class="p">],</span> <span class="n">downcast</span><span class="o">=</span><span class="s2">&quot;float&quot;</span><span class="p">)</span>
+            <span class="n">full_stations</span><span class="p">[</span><span class="s2">&quot;station_latitude&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">full_stations</span><span class="p">[</span><span class="s2">&quot;station_latitude&quot;</span><span class="p">],</span> <span class="n">downcast</span><span class="o">=</span><span class="s2">&quot;float&quot;</span><span class="p">)</span>
+            <span class="n">full_stations</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">full_stations</span><span class="p">[</span><span class="n">full_stations</span><span class="p">[</span><span class="s2">&quot;capacity&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">full_stations</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span>
+                <span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;station_id&quot;</span><span class="p">,</span> <span class="s2">&quot;capacity&quot;</span><span class="p">,</span> <span class="s2">&quot;station_longitude&quot;</span><span class="p">,</span> <span class="s2">&quot;station_latitude&quot;</span><span class="p">],</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_common_data</span><span class="p">[</span><span class="s2">&quot;full_stations&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">full_stations</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_common_data</span><span class="p">[</span><span class="s2">&quot;full_station_num&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_common_data</span><span class="p">[</span><span class="s2">&quot;full_stations&quot;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_common_data</span><span class="p">[</span><span class="s2">&quot;full_dock_num&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_common_data</span><span class="p">[</span><span class="s2">&quot;full_stations&quot;</span><span class="p">][</span><span class="s2">&quot;capacity&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_read_src_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Read and return processed rows.&quot;&quot;&quot;</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">file</span><span class="p">):</span>
+            <span class="c1"># For ignoring the unimportant issues in the source file.</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;ignore&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+
+                <span class="n">ret</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span>
+                <span class="n">ret</span> <span class="o">=</span> <span class="n">ret</span><span class="p">[[</span>
+                    <span class="s2">&quot;tripduration&quot;</span><span class="p">,</span> <span class="s2">&quot;starttime&quot;</span><span class="p">,</span> <span class="s2">&quot;start station id&quot;</span><span class="p">,</span> <span class="s2">&quot;end station id&quot;</span><span class="p">,</span> <span class="s2">&quot;start station latitude&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;start station longitude&quot;</span><span class="p">,</span> <span class="s2">&quot;end station latitude&quot;</span><span class="p">,</span> <span class="s2">&quot;end station longitude&quot;</span><span class="p">,</span> <span class="s2">&quot;gender&quot;</span><span class="p">,</span> <span class="s2">&quot;usertype&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;bikeid&quot;</span>
+                <span class="p">]]</span>
+                <span class="n">ret</span><span class="p">[</span><span class="s2">&quot;tripduration&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span>
+                    <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">ret</span><span class="p">[</span><span class="s2">&quot;tripduration&quot;</span><span class="p">],</span> <span class="n">downcast</span><span class="o">=</span><span class="s2">&quot;integer&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="mi">60</span><span class="p">,</span> <span class="n">downcast</span><span class="o">=</span><span class="s2">&quot;integer&quot;</span>
+                <span class="p">)</span>
+                <span class="n">ret</span><span class="p">[</span><span class="s2">&quot;starttime&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">ret</span><span class="p">[</span><span class="s2">&quot;starttime&quot;</span><span class="p">])</span>
+                <span class="n">ret</span><span class="p">[</span><span class="s2">&quot;start station id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">ret</span><span class="p">[</span><span class="s2">&quot;start station id&quot;</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;coerce&quot;</span><span class="p">,</span> <span class="n">downcast</span><span class="o">=</span><span class="s2">&quot;integer&quot;</span><span class="p">)</span>
+                <span class="n">ret</span><span class="p">[</span><span class="s2">&quot;end station id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">ret</span><span class="p">[</span><span class="s2">&quot;end station id&quot;</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;coerce&quot;</span><span class="p">,</span> <span class="n">downcast</span><span class="o">=</span><span class="s2">&quot;integer&quot;</span><span class="p">)</span>
+                <span class="n">ret</span><span class="p">[</span><span class="s2">&quot;start station latitude&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">ret</span><span class="p">[</span><span class="s2">&quot;start station latitude&quot;</span><span class="p">],</span> <span class="n">downcast</span><span class="o">=</span><span class="s2">&quot;float&quot;</span><span class="p">)</span>
+                <span class="n">ret</span><span class="p">[</span><span class="s2">&quot;start station longitude&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">ret</span><span class="p">[</span><span class="s2">&quot;start station longitude&quot;</span><span class="p">],</span> <span class="n">downcast</span><span class="o">=</span><span class="s2">&quot;float&quot;</span><span class="p">)</span>
+                <span class="n">ret</span><span class="p">[</span><span class="s2">&quot;end station latitude&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">ret</span><span class="p">[</span><span class="s2">&quot;end station latitude&quot;</span><span class="p">],</span> <span class="n">downcast</span><span class="o">=</span><span class="s2">&quot;float&quot;</span><span class="p">)</span>
+                <span class="n">ret</span><span class="p">[</span><span class="s2">&quot;end station longitude&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">ret</span><span class="p">[</span><span class="s2">&quot;end station longitude&quot;</span><span class="p">],</span> <span class="n">downcast</span><span class="o">=</span><span class="s2">&quot;float&quot;</span><span class="p">)</span>
+                <span class="n">ret</span><span class="p">[</span><span class="s2">&quot;bikeid&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">ret</span><span class="p">[</span><span class="s2">&quot;bikeid&quot;</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;coerce&quot;</span><span class="p">,</span> <span class="n">downcast</span><span class="o">=</span><span class="s2">&quot;integer&quot;</span><span class="p">)</span>
+                <span class="n">ret</span><span class="p">[</span><span class="s2">&quot;gender&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">ret</span><span class="p">[</span><span class="s2">&quot;gender&quot;</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;coerce&quot;</span><span class="p">,</span> <span class="n">downcast</span><span class="o">=</span><span class="s2">&quot;integer&quot;</span><span class="p">)</span>
+                <span class="n">ret</span><span class="p">[</span><span class="s2">&quot;usertype&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ret</span><span class="p">[</span><span class="s2">&quot;usertype&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+                    <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;Subscriber&quot;</span><span class="p">,</span> <span class="s2">&quot;subscriber&quot;</span><span class="p">]</span> <span class="k">else</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;Customer&quot;</span><span class="p">,</span> <span class="s2">&quot;customer&quot;</span><span class="p">]</span> <span class="k">else</span> <span class="mi">2</span>
+                <span class="p">)</span>
+                <span class="n">ret</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span>
+                    <span class="s2">&quot;start station id&quot;</span><span class="p">,</span> <span class="s2">&quot;end station id&quot;</span><span class="p">,</span> <span class="s2">&quot;start station latitude&quot;</span><span class="p">,</span> <span class="s2">&quot;end station latitude&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;start station longitude&quot;</span><span class="p">,</span> <span class="s2">&quot;end station longitude&quot;</span>
+                <span class="p">],</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">ret</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span>
+                    <span class="n">ret</span><span class="p">[</span>
+                        <span class="p">(</span><span class="n">ret</span><span class="p">[</span><span class="s2">&quot;tripduration&quot;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">|</span>
+                        <span class="p">(</span><span class="n">ret</span><span class="p">[</span><span class="s2">&quot;start station latitude&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="o">|</span>
+                        <span class="p">(</span><span class="n">ret</span><span class="p">[</span><span class="s2">&quot;start station longitude&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="o">|</span>
+                        <span class="p">(</span><span class="n">ret</span><span class="p">[</span><span class="s2">&quot;end station latitude&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="o">|</span>
+                        <span class="p">(</span><span class="n">ret</span><span class="p">[</span><span class="s2">&quot;end station longitude&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+                    <span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">,</span>
+                    <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                    <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span>
+                <span class="p">)</span>
+                <span class="n">ret</span> <span class="o">=</span> <span class="n">ret</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="s2">&quot;starttime&quot;</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">ret</span>
+
+    <span class="k">def</span> <span class="nf">_process_src_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">src_data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+        <span class="n">used_bikes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">src_data</span><span class="p">[[</span><span class="s2">&quot;bikeid&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;bikeid&quot;</span><span class="p">]))</span>
+
+        <span class="n">trip_data</span> <span class="o">=</span> <span class="n">src_data</span><span class="p">[</span>
+            <span class="p">(</span><span class="n">src_data</span><span class="p">[</span><span class="s2">&quot;start station latitude&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">40.689960</span><span class="p">)</span> <span class="o">&amp;</span>
+            <span class="p">(</span><span class="n">src_data</span><span class="p">[</span><span class="s2">&quot;start station latitude&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mf">40.768334</span><span class="p">)</span> <span class="o">&amp;</span>
+            <span class="p">(</span><span class="n">src_data</span><span class="p">[</span><span class="s2">&quot;start station longitude&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mf">74.019623</span><span class="p">)</span> <span class="o">&amp;</span>
+            <span class="p">(</span><span class="n">src_data</span><span class="p">[</span><span class="s2">&quot;start station longitude&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mf">73.909760</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="n">trip_data</span> <span class="o">=</span> <span class="n">trip_data</span><span class="p">[</span>
+            <span class="p">(</span><span class="n">trip_data</span><span class="p">[</span><span class="s2">&quot;end station latitude&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">40.689960</span><span class="p">)</span> <span class="o">&amp;</span>
+            <span class="p">(</span><span class="n">trip_data</span><span class="p">[</span><span class="s2">&quot;end station latitude&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mf">40.768334</span><span class="p">)</span> <span class="o">&amp;</span>
+            <span class="p">(</span><span class="n">trip_data</span><span class="p">[</span><span class="s2">&quot;end station longitude&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mf">74.019623</span><span class="p">)</span> <span class="o">&amp;</span>
+            <span class="p">(</span><span class="n">trip_data</span><span class="p">[</span><span class="s2">&quot;end station longitude&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mf">73.909760</span><span class="p">)</span>
+        <span class="p">]</span>
+
+        <span class="n">trip_data</span><span class="p">[</span><span class="s2">&quot;start_station_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">trip_data</span><span class="p">[</span><span class="s2">&quot;start station id&quot;</span><span class="p">]</span>
+        <span class="n">trip_data</span><span class="p">[</span><span class="s2">&quot;end_station_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">trip_data</span><span class="p">[</span><span class="s2">&quot;end station id&quot;</span><span class="p">]</span>
+
+        <span class="c1"># get new stations</span>
+        <span class="n">used_stations</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">used_stations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">trip_data</span><span class="p">[[</span><span class="s2">&quot;start_station_id&quot;</span><span class="p">,</span> <span class="s2">&quot;start station latitude&quot;</span><span class="p">,</span> <span class="s2">&quot;start station longitude&quot;</span><span class="p">,</span> <span class="p">]]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span>
+                <span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;start_station_id&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+                    <span class="n">columns</span><span class="o">=</span><span class="p">{</span>
+                        <span class="s2">&quot;start_station_id&quot;</span><span class="p">:</span> <span class="s2">&quot;station_id&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;start station latitude&quot;</span><span class="p">:</span> <span class="s2">&quot;latitude&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;start station longitude&quot;</span><span class="p">:</span> <span class="s2">&quot;longitude&quot;</span>
+                    <span class="p">}))</span>
+        <span class="n">used_stations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">trip_data</span><span class="p">[[</span><span class="s2">&quot;end_station_id&quot;</span><span class="p">,</span> <span class="s2">&quot;end station latitude&quot;</span><span class="p">,</span> <span class="s2">&quot;end station longitude&quot;</span><span class="p">,</span> <span class="p">]]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span>
+                <span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;end_station_id&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+                    <span class="n">columns</span><span class="o">=</span><span class="p">{</span>
+                        <span class="s2">&quot;end_station_id&quot;</span><span class="p">:</span> <span class="s2">&quot;station_id&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;end station latitude&quot;</span><span class="p">:</span> <span class="s2">&quot;latitude&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;end station longitude&quot;</span><span class="p">:</span> <span class="s2">&quot;longitude&quot;</span>
+                    <span class="p">}))</span>
+
+        <span class="n">in_data_station</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">used_stations</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span>
+            <span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;station_id&quot;</span><span class="p">]</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;station_id&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">stations_existed</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">in_data_station</span><span class="p">[[</span><span class="s2">&quot;station_id&quot;</span><span class="p">]])</span>
+
+        <span class="n">stations_existed</span><span class="p">[</span><span class="s2">&quot;station_index&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">stations_existed</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">downcast</span><span class="o">=</span><span class="s2">&quot;integer&quot;</span><span class="p">)</span>
+
+        <span class="c1"># get start station id and end station id</span>
+        <span class="n">trip_data</span> <span class="o">=</span> <span class="n">trip_data</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">stations_existed</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;station_id&quot;</span><span class="p">),</span>
+            <span class="n">on</span><span class="o">=</span><span class="s2">&quot;start_station_id&quot;</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;station_index&quot;</span><span class="p">:</span> <span class="s2">&quot;start_station_index&quot;</span><span class="p">})</span>
+        <span class="n">trip_data</span> <span class="o">=</span> <span class="n">trip_data</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">stations_existed</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;station_id&quot;</span><span class="p">),</span>
+            <span class="n">on</span><span class="o">=</span><span class="s2">&quot;end_station_id&quot;</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;station_index&quot;</span><span class="p">:</span> <span class="s2">&quot;end_station_index&quot;</span><span class="p">})</span>
+        <span class="n">trip_data</span> <span class="o">=</span> <span class="n">trip_data</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;starttime&quot;</span><span class="p">:</span> <span class="s2">&quot;start_time&quot;</span><span class="p">,</span> <span class="s2">&quot;tripduration&quot;</span><span class="p">:</span> <span class="s2">&quot;duration&quot;</span><span class="p">})</span>
+
+        <span class="n">trip_data</span> <span class="o">=</span> <span class="n">trip_data</span><span class="p">[</span>
+            <span class="p">[</span><span class="s2">&quot;start_time&quot;</span><span class="p">,</span> <span class="s2">&quot;start_station_id&quot;</span><span class="p">,</span> <span class="s2">&quot;end_station_id&quot;</span><span class="p">,</span> <span class="s2">&quot;duration&quot;</span><span class="p">,</span> <span class="s2">&quot;start_station_index&quot;</span><span class="p">,</span> <span class="s2">&quot;end_station_index&quot;</span><span class="p">]</span>
+        <span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">trip_data</span><span class="p">,</span> <span class="n">used_bikes</span><span class="p">,</span> <span class="n">in_data_station</span><span class="p">,</span> <span class="n">stations_existed</span>
+
+    <span class="k">def</span> <span class="nf">_process_current_topo_station_info</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">stations_existed</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">used_bikes</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">loc_ref</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+        <span class="n">data_station_init</span> <span class="o">=</span> <span class="n">stations_existed</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_common_data</span><span class="p">[</span><span class="s2">&quot;full_stations&quot;</span><span class="p">][[</span><span class="s2">&quot;station_id&quot;</span><span class="p">,</span> <span class="s2">&quot;capacity&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;station_id&quot;</span><span class="p">),</span>
+            <span class="n">on</span><span class="o">=</span><span class="s2">&quot;station_id&quot;</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">loc_ref</span><span class="p">[[</span><span class="s2">&quot;station_id&quot;</span><span class="p">,</span> <span class="s2">&quot;latitude&quot;</span><span class="p">,</span> <span class="s2">&quot;longitude&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;station_id&quot;</span><span class="p">),</span>
+            <span class="n">on</span><span class="o">=</span><span class="s2">&quot;station_id&quot;</span>
+        <span class="p">)</span>
+        <span class="c1"># data_station_init.rename(columns={&quot;station_id&quot;: &quot;station_index&quot;}, inplace=True)</span>
+        <span class="n">avg_capacity</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_common_data</span><span class="p">[</span><span class="s2">&quot;full_dock_num&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_common_data</span><span class="p">[</span><span class="s2">&quot;full_station_num&quot;</span><span class="p">])</span>
+        <span class="n">avalible_bike_rate</span> <span class="o">=</span> <span class="n">used_bikes</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_common_data</span><span class="p">[</span><span class="s2">&quot;full_dock_num&quot;</span><span class="p">]</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;capacity&quot;</span><span class="p">:</span> <span class="n">avg_capacity</span><span class="p">}</span>
+        <span class="n">data_station_init</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">values</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">data_station_init</span><span class="p">[</span><span class="s2">&quot;init&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">data_station_init</span><span class="p">[</span><span class="s2">&quot;capacity&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">avalible_bike_rate</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">()</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+        <span class="n">data_station_init</span><span class="p">[</span><span class="s2">&quot;capacity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span>
+            <span class="n">data_station_init</span><span class="p">[</span><span class="s2">&quot;capacity&quot;</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;coerce&quot;</span><span class="p">,</span> <span class="n">downcast</span><span class="o">=</span><span class="s2">&quot;integer&quot;</span>
+        <span class="p">)</span>
+        <span class="n">data_station_init</span><span class="p">[</span><span class="s2">&quot;station_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span>
+            <span class="n">data_station_init</span><span class="p">[</span><span class="s2">&quot;station_id&quot;</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;coerce&quot;</span><span class="p">,</span> <span class="n">downcast</span><span class="o">=</span><span class="s2">&quot;integer&quot;</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">data_station_init</span>
+
+    <span class="k">def</span> <span class="nf">_process_distance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_info</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+        <span class="n">distance_adj</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">station_info</span><span class="p">[</span><span class="s2">&quot;station_index&quot;</span><span class="p">],</span>
+                                    <span class="n">columns</span><span class="o">=</span><span class="n">station_info</span><span class="p">[</span><span class="s2">&quot;station_index&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+        <span class="n">look_up_df</span> <span class="o">=</span> <span class="n">station_info</span><span class="p">[[</span><span class="s2">&quot;latitude&quot;</span><span class="p">,</span> <span class="s2">&quot;longitude&quot;</span><span class="p">]]</span>
+        <span class="k">return</span> <span class="n">distance_adj</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">y</span><span class="p">:</span> <span class="n">geopy</span><span class="o">.</span><span class="n">distance</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">look_up_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;latitude&quot;</span><span class="p">],</span> <span class="n">look_up_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;longitude&quot;</span><span class="p">]),</span>
+            <span class="p">(</span><span class="n">look_up_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">y</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;latitude&quot;</span><span class="p">],</span> <span class="n">look_up_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">y</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;longitude&quot;</span><span class="p">])</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">km</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_preprocess</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unzipped_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_read_common_data</span><span class="p">()</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info_green</span><span class="p">(</span><span class="s2">&quot;Reading raw trip data.&quot;</span><span class="p">)</span>
+        <span class="n">org_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_src_file</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="n">unzipped_file</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info_green</span><span class="p">(</span><span class="s2">&quot;Processing trip data.&quot;</span><span class="p">)</span>
+        <span class="n">trip_data</span><span class="p">,</span> <span class="n">used_bikes</span><span class="p">,</span> <span class="n">in_data_station</span><span class="p">,</span> <span class="n">stations_existed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_src_file</span><span class="p">(</span><span class="n">src_data</span><span class="o">=</span><span class="n">org_data</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_new_file_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_clean_file</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_new_file_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_station_meta_file</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_new_file_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_distance_file</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_clean_file</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">trip_data</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info_green</span><span class="p">(</span><span class="s2">&quot;Processing station info data.&quot;</span><span class="p">)</span>
+        <span class="n">station_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_current_topo_station_info</span><span class="p">(</span>
+            <span class="n">stations_existed</span><span class="o">=</span><span class="n">stations_existed</span><span class="p">,</span> <span class="n">used_bikes</span><span class="o">=</span><span class="n">used_bikes</span><span class="p">,</span> <span class="n">loc_ref</span><span class="o">=</span><span class="n">in_data_station</span>
+        <span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_station_meta_file</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">station_info</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info_green</span><span class="p">(</span><span class="s2">&quot;Processing station distance data.&quot;</span><span class="p">)</span>
+        <span class="n">station_distance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_distance</span><span class="p">(</span><span class="n">station_info</span><span class="o">=</span><span class="n">station_info</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_distance_file</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">station_distance</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="WeatherPipeline"><a class="viewcode-back" href="../../../../apidoc/maro.cli.data_pipeline.html#maro.cli.data_pipeline.citi_bike.WeatherPipeline">[docs]</a><span class="k">class</span> <span class="nc">WeatherPipeline</span><span class="p">(</span><span class="n">DataPipeline</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Generate weather data bin for the specified topology from frontierweather.com.</span>
+
+<span class="sd">    Generated files will be generated in ~/.maro/data/citi_bike/[topology]/_build.</span>
+<span class="sd">    Folder structure:</span>
+<span class="sd">    ~/.maro</span>
+<span class="sd">            /data/citi_bike/[topology]</span>
+<span class="sd">                                    /_build bin data file</span>
+<span class="sd">                                    /source</span>
+<span class="sd">                                            /_download original data file</span>
+<span class="sd">                                            /_clean cleaned data file</span>
+<span class="sd">            /temp download temp file</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        topology(str): Topology name of the data file.</span>
+<span class="sd">        source(str): Source url of original data file.</span>
+<span class="sd">        is_temp(bool): (optional) If the data file is temporary.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_last_day_temp</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># used to fill the temp for days which have no temp info</span>
+
+    <span class="n">_download_file_name</span> <span class="o">=</span> <span class="s2">&quot;weather.csv&quot;</span>
+
+    <span class="n">_clean_file_name</span> <span class="o">=</span> <span class="s2">&quot;weather.csv&quot;</span>
+
+    <span class="n">_build_file_name</span> <span class="o">=</span> <span class="s2">&quot;KNYC_daily.bin&quot;</span>
+
+    <span class="n">_meta_file_name</span> <span class="o">=</span> <span class="s2">&quot;weather.yml&quot;</span>
+
+<div class="viewcode-block" id="WeatherPipeline.WeatherEnum"><a class="viewcode-back" href="../../../../apidoc/maro.cli.data_pipeline.html#maro.cli.data_pipeline.citi_bike.WeatherPipeline.WeatherEnum">[docs]</a>    <span class="k">class</span> <span class="nc">WeatherEnum</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+        <span class="n">SUNNY</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">RAINY</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">SNOWY</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="n">SLEET</span> <span class="o">=</span> <span class="mi">3</span></div>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topology</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">is_temp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s2">&quot;citi_bike&quot;</span><span class="p">,</span> <span class="n">topology</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">is_temp</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_common_data</span> <span class="o">=</span> <span class="p">{}</span>
+
+<div class="viewcode-block" id="WeatherPipeline.clean"><a class="viewcode-back" href="../../../../apidoc/maro.cli.data_pipeline.html#maro.cli.data_pipeline.citi_bike.WeatherPipeline.clean">[docs]</a>    <span class="k">def</span> <span class="nf">clean</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Clean the original data file.&quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">clean</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_download_file</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_new_file_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_clean_file</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info_green</span><span class="p">(</span><span class="s2">&quot;Cleaning weather data.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_preprocess</span><span class="p">(</span><span class="n">input_file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_download_file</span><span class="p">,</span> <span class="n">output_file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_clean_file</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Not found downloaded weather data: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_download_file</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_weather</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="n">water_str</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;Precipitation Water Equiv&quot;</span><span class="p">]</span>
+        <span class="n">water</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">water_str</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span> <span class="k">if</span> <span class="n">water_str</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span> <span class="k">else</span> <span class="mf">0.0</span>
+
+        <span class="n">snow_str</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;Snowfall&quot;</span><span class="p">]</span>
+        <span class="n">snow</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">snow_str</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span> <span class="k">if</span> <span class="n">snow_str</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span> <span class="k">else</span> <span class="mf">0.0</span>
+
+        <span class="k">if</span> <span class="n">snow</span> <span class="o">&gt;</span> <span class="mf">0.0</span> <span class="ow">and</span> <span class="n">water</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">WeatherPipeline</span><span class="o">.</span><span class="n">WeatherEnum</span><span class="o">.</span><span class="n">SLEET</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">elif</span> <span class="n">water</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">WeatherPipeline</span><span class="o">.</span><span class="n">WeatherEnum</span><span class="o">.</span><span class="n">RAINY</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">elif</span> <span class="n">snow</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">WeatherPipeline</span><span class="o">.</span><span class="n">WeatherEnum</span><span class="o">.</span><span class="n">SNOWY</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">WeatherPipeline</span><span class="o">.</span><span class="n">WeatherEnum</span><span class="o">.</span><span class="n">SUNNY</span><span class="o">.</span><span class="n">value</span>
+
+    <span class="k">def</span> <span class="nf">_parse_date</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="n">dstr</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Date&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">dstr</span>
+
+    <span class="k">def</span> <span class="nf">_parse_row</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+
+        <span class="n">date</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_date</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="n">row</span><span class="p">)</span>
+        <span class="n">wh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_weather</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="n">row</span><span class="p">)</span>
+        <span class="n">temp_str</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;Avg Temp&quot;</span><span class="p">]</span>
+
+        <span class="n">temp</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">temp_str</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span> <span class="k">if</span> <span class="n">temp_str</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span> <span class="ow">and</span> <span class="n">temp_str</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_day_temp</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_last_day_temp</span> <span class="o">=</span> <span class="n">temp</span>
+
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;date&quot;</span><span class="p">:</span> <span class="n">date</span><span class="p">,</span> <span class="s2">&quot;weather&quot;</span><span class="p">:</span> <span class="n">wh</span><span class="p">,</span> <span class="s2">&quot;temp&quot;</span><span class="p">:</span> <span class="n">temp</span><span class="p">}</span> <span class="k">if</span> <span class="n">date</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">_preprocess</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">output_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">data</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="s2">&quot;rt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+            <span class="n">reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">DictReader</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span>
+
+            <span class="n">data</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_parse_row</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="n">row</span><span class="p">)</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">reader</span><span class="p">]</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="nb">filter</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="s2">&quot;w+&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+            <span class="n">writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">DictWriter</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">,</span> <span class="s2">&quot;weather&quot;</span><span class="p">,</span> <span class="s2">&quot;temp&quot;</span><span class="p">])</span>
+
+            <span class="n">writer</span><span class="o">.</span><span class="n">writeheader</span><span class="p">()</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">writerows</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="CitiBikeTopology"><a class="viewcode-back" href="../../../../apidoc/maro.cli.data_pipeline.html#maro.cli.data_pipeline.citi_bike.CitiBikeTopology">[docs]</a><span class="k">class</span> <span class="nc">CitiBikeTopology</span><span class="p">(</span><span class="n">DataTopology</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Data topology for a predefined topology of citi_bike scenario.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        topology(str): Topology name of the data file.</span>
+<span class="sd">        trip_source(str): Original source url of citi_bike data.</span>
+<span class="sd">        station_info(str): Current status station info of the stations.</span>
+<span class="sd">        weather_source(str): Original source url of weather data.</span>
+<span class="sd">        is_temp(bool): (optional) If the data file is temporary.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">topology</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">trip_source</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">station_info</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">weather_source</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">is_temp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data_pipeline</span><span class="p">[</span><span class="s2">&quot;trip&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">CitiBikePipeline</span><span class="p">(</span><span class="n">topology</span><span class="p">,</span> <span class="n">trip_source</span><span class="p">,</span> <span class="n">station_info</span><span class="p">,</span> <span class="n">is_temp</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data_pipeline</span><span class="p">[</span><span class="s2">&quot;weather&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">NOAAWeatherPipeline</span><span class="p">(</span><span class="n">topology</span><span class="p">,</span> <span class="n">weather_source</span><span class="p">,</span> <span class="n">is_temp</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_temp</span> <span class="o">=</span> <span class="n">is_temp</span>
+
+    <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_temp</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">remove</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="CitiBikeToyPipeline"><a class="viewcode-back" href="../../../../apidoc/maro.cli.data_pipeline.html#maro.cli.data_pipeline.citi_bike.CitiBikeToyPipeline">[docs]</a><span class="k">class</span> <span class="nc">CitiBikeToyPipeline</span><span class="p">(</span><span class="n">DataPipeline</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Generate synthetic business events and station initialization distribution for Citi Bike scenario,</span>
+<span class="sd">    from the predefined toy topologies.</span>
+
+<span class="sd">    Folder structure:</span>
+<span class="sd">    ~/.maro</span>
+<span class="sd">            /data/citi_bike/[topology]</span>
+<span class="sd">                                    /_build bin data file and other necessory files</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        start_time(str): Start time of the toy data.</span>
+<span class="sd">        end_time(str): End time of the toy data.</span>
+<span class="sd">        stations(list): List of stations info.</span>
+<span class="sd">        trips(list): List of trips probability.</span>
+<span class="sd">        topology(str): Topology name of the data files.</span>
+<span class="sd">        is_temp(bool): (optional) If the data file is temporary.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_clean_file_name</span> <span class="o">=</span> <span class="s2">&quot;trips.csv&quot;</span>
+
+    <span class="n">_build_file_name</span> <span class="o">=</span> <span class="s2">&quot;trips.bin&quot;</span>
+    <span class="n">_station_meta_file_name</span> <span class="o">=</span> <span class="s2">&quot;station_meta.csv&quot;</span>
+    <span class="n">_distance_file_name</span> <span class="o">=</span> <span class="s2">&quot;distance_adj.csv&quot;</span>
+
+    <span class="n">_meta_file_name</span> <span class="o">=</span> <span class="s2">&quot;trips.yml&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">start_time</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">end_time</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">stations</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">trips</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">topology</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">is_temp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s2">&quot;citi_bike&quot;</span><span class="p">,</span> <span class="n">topology</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">is_temp</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_start_time</span> <span class="o">=</span> <span class="n">start_time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_end_time</span> <span class="o">=</span> <span class="n">end_time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stations</span> <span class="o">=</span> <span class="n">stations</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_trips</span> <span class="o">=</span> <span class="n">trips</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_distance_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_build_folder</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_distance_file_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_station_meta_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_build_folder</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station_meta_file_name</span><span class="p">)</span>
+
+<div class="viewcode-block" id="CitiBikeToyPipeline.download"><a class="viewcode-back" href="../../../../apidoc/maro.cli.data_pipeline.html#maro.cli.data_pipeline.citi_bike.CitiBikeToyPipeline.download">[docs]</a>    <span class="k">def</span> <span class="nf">download</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">is_force</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Toy datapipeline not need download process.&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+    <span class="k">def</span> <span class="nf">_station_dict_to_pd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_dict</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Convert dictionary of station information to pd series.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">station_dict</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span>
+                <span class="n">station_dict</span><span class="p">[</span><span class="s2">&quot;capacity&quot;</span><span class="p">],</span>
+                <span class="n">station_dict</span><span class="p">[</span><span class="s2">&quot;init&quot;</span><span class="p">],</span>
+                <span class="n">station_dict</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">],</span>
+                <span class="n">station_dict</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">],</span>
+            <span class="p">],</span>
+            <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;station_index&quot;</span><span class="p">,</span> <span class="s2">&quot;capacity&quot;</span><span class="p">,</span> <span class="s2">&quot;init&quot;</span><span class="p">,</span> <span class="s2">&quot;latitude&quot;</span><span class="p">,</span> <span class="s2">&quot;longitude&quot;</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">_gen_stations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Generate station meta csv.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_new_file_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_station_meta_file</span><span class="p">)</span>
+
+        <span class="n">stations</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_stations</span><span class="p">)</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_station_dict_to_pd</span><span class="p">)</span>
+        <span class="n">stations</span><span class="p">[</span><span class="s2">&quot;station_index&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">stations</span><span class="p">[</span><span class="s2">&quot;station_index&quot;</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;coerce&quot;</span><span class="p">,</span> <span class="n">downcast</span><span class="o">=</span><span class="s2">&quot;integer&quot;</span><span class="p">)</span>
+        <span class="n">stations</span><span class="p">[</span><span class="s2">&quot;station_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">stations</span><span class="p">[</span><span class="s2">&quot;station_index&quot;</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;coerce&quot;</span><span class="p">,</span> <span class="n">downcast</span><span class="o">=</span><span class="s2">&quot;integer&quot;</span><span class="p">)</span>
+        <span class="n">stations</span><span class="p">[</span><span class="s2">&quot;capacity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">stations</span><span class="p">[</span><span class="s2">&quot;capacity&quot;</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;coerce&quot;</span><span class="p">,</span> <span class="n">downcast</span><span class="o">=</span><span class="s2">&quot;integer&quot;</span><span class="p">)</span>
+        <span class="n">stations</span><span class="p">[</span><span class="s2">&quot;init&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">stations</span><span class="p">[</span><span class="s2">&quot;init&quot;</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;coerce&quot;</span><span class="p">,</span> <span class="n">downcast</span><span class="o">=</span><span class="s2">&quot;integer&quot;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_station_meta_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">stations</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">stations</span>
+
+    <span class="k">def</span> <span class="nf">_gen_trip</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tick</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Generate trip record.&quot;&quot;&quot;</span>
+        <span class="n">ret_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">cur_probability</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">trip</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_trips</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">trip</span><span class="p">[</span><span class="s2">&quot;probability&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">cur_probability</span><span class="p">:</span>
+                <span class="n">ret</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="n">ret</span><span class="p">[</span><span class="s2">&quot;start_time&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tick</span>
+                <span class="n">ret</span><span class="p">[</span><span class="s2">&quot;start_station_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">trip</span><span class="p">[</span><span class="s2">&quot;start_id&quot;</span><span class="p">]</span>
+                <span class="n">ret</span><span class="p">[</span><span class="s2">&quot;end_station_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">trip</span><span class="p">[</span><span class="s2">&quot;end_id&quot;</span><span class="p">]</span>
+                <span class="n">ret</span><span class="p">[</span><span class="s2">&quot;start_station_index&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">trip</span><span class="p">[</span><span class="s2">&quot;start_id&quot;</span><span class="p">]</span>
+                <span class="n">ret</span><span class="p">[</span><span class="s2">&quot;end_station_index&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">trip</span><span class="p">[</span><span class="s2">&quot;end_id&quot;</span><span class="p">]</span>
+                <span class="n">ret</span><span class="p">[</span><span class="s2">&quot;duration&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">120</span><span class="p">)</span>
+                <span class="n">ret_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ret_list</span>
+
+    <span class="k">def</span> <span class="nf">_gen_trips</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Generate trip records csv files.&quot;&quot;&quot;</span>
+        <span class="n">cur_tick</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_start_time</span><span class="p">)</span>
+        <span class="n">end_tick</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_end_time</span><span class="p">)</span>
+
+        <span class="n">trips</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">while</span> <span class="n">cur_tick</span> <span class="o">&lt;</span> <span class="n">end_tick</span><span class="p">:</span>
+            <span class="n">new_trips</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gen_trip</span><span class="p">(</span><span class="n">cur_tick</span><span class="p">)</span>
+            <span class="n">trips</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">new_trips</span><span class="p">)</span>
+            <span class="n">cur_tick</span> <span class="o">+=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="mi">120</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;second&quot;</span><span class="p">)</span>
+
+        <span class="n">trips_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">trips</span><span class="p">)</span>
+
+        <span class="n">trips_df</span><span class="p">[</span><span class="s2">&quot;start_station_index&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span>
+            <span class="n">trips_df</span><span class="p">[</span><span class="s2">&quot;start_station_index&quot;</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;coerce&quot;</span><span class="p">,</span> <span class="n">downcast</span><span class="o">=</span><span class="s2">&quot;integer&quot;</span>
+        <span class="p">)</span>
+        <span class="n">trips_df</span><span class="p">[</span><span class="s2">&quot;end_station_index&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span>
+            <span class="n">trips_df</span><span class="p">[</span><span class="s2">&quot;end_station_index&quot;</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;coerce&quot;</span><span class="p">,</span> <span class="n">downcast</span><span class="o">=</span><span class="s2">&quot;integer&quot;</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_new_file_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_clean_file</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_clean_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">trips_df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">trips_df</span>
+
+    <span class="k">def</span> <span class="nf">_gen_distance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_init</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Generate distance metrix csv file.&quot;&quot;&quot;</span>
+        <span class="n">distance_adj</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+            <span class="mi">0</span><span class="p">,</span>
+            <span class="n">index</span><span class="o">=</span><span class="n">station_init</span><span class="p">[</span><span class="s2">&quot;station_index&quot;</span><span class="p">],</span>
+            <span class="n">columns</span><span class="o">=</span><span class="n">station_init</span><span class="p">[</span><span class="s2">&quot;station_index&quot;</span><span class="p">],</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span>
+        <span class="p">)</span>
+        <span class="n">look_up_df</span> <span class="o">=</span> <span class="n">station_init</span><span class="p">[[</span><span class="s2">&quot;latitude&quot;</span><span class="p">,</span> <span class="s2">&quot;longitude&quot;</span><span class="p">]]</span>
+        <span class="n">distance_df</span> <span class="o">=</span> <span class="n">distance_adj</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">y</span><span class="p">:</span> <span class="n">geopy</span><span class="o">.</span><span class="n">distance</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">look_up_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;latitude&quot;</span><span class="p">],</span> <span class="n">look_up_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;longitude&quot;</span><span class="p">]),</span>
+            <span class="p">(</span><span class="n">look_up_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">y</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;latitude&quot;</span><span class="p">],</span> <span class="n">look_up_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">y</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;longitude&quot;</span><span class="p">])</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">km</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_new_file_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_distance_file</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_distance_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">distance_df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">distance_df</span>
+
+<div class="viewcode-block" id="CitiBikeToyPipeline.clean"><a class="viewcode-back" href="../../../../apidoc/maro.cli.data_pipeline.html#maro.cli.data_pipeline.citi_bike.CitiBikeToyPipeline.clean">[docs]</a>    <span class="k">def</span> <span class="nf">clean</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Clean the original data file.&quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info_green</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Generating trip data for topology </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_topology</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">clean</span><span class="p">()</span>
+        <span class="n">stations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gen_stations</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_gen_trips</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_gen_distance</span><span class="p">(</span><span class="n">stations</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="WeatherToyPipeline"><a class="viewcode-back" href="../../../../apidoc/maro.cli.data_pipeline.html#maro.cli.data_pipeline.citi_bike.WeatherToyPipeline">[docs]</a><span class="k">class</span> <span class="nc">WeatherToyPipeline</span><span class="p">(</span><span class="n">WeatherPipeline</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Generate weather data bin for the specified topology from frontierweather.com.</span>
+
+<span class="sd">    It will be generated in ~/.maro/data/citi_bike/[topology]/_build.</span>
+<span class="sd">    Folder structure:</span>
+<span class="sd">    ~/.maro</span>
+<span class="sd">            /data/citi_bike/[topology]</span>
+<span class="sd">                                    /_build bin data file</span>
+<span class="sd">                                    /source</span>
+<span class="sd">                                            /_download original data file</span>
+<span class="sd">                                            /_clean cleaned data file</span>
+<span class="sd">            /temp download temp file</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        topology(str): Topology name of the data file.</span>
+<span class="sd">        start_time(str): Start time of the toy data.</span>
+<span class="sd">        end_time(str): End time of the toy data.</span>
+<span class="sd">        is_temp(bool): (optional) If the data file is temporary.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topology</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">start_time</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">end_time</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">is_temp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">topology</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">is_temp</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_start_time</span> <span class="o">=</span> <span class="n">start_time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_end_time</span> <span class="o">=</span> <span class="n">end_time</span>
+
+<div class="viewcode-block" id="WeatherToyPipeline.download"><a class="viewcode-back" href="../../../../apidoc/maro.cli.data_pipeline.html#maro.cli.data_pipeline.citi_bike.WeatherToyPipeline.download">[docs]</a>    <span class="k">def</span> <span class="nf">download</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">is_force</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Toy datapipeline not need download process.&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="WeatherToyPipeline.clean"><a class="viewcode-back" href="../../../../apidoc/maro.cli.data_pipeline.html#maro.cli.data_pipeline.citi_bike.WeatherToyPipeline.clean">[docs]</a>    <span class="k">def</span> <span class="nf">clean</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Clean the original data file.&quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info_green</span><span class="p">(</span><span class="s2">&quot;Cleaning weather data.&quot;</span><span class="p">)</span>
+        <span class="n">DataPipeline</span><span class="o">.</span><span class="n">clean</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_new_file_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_clean_file</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_preprocess</span><span class="p">(</span><span class="n">output_file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_clean_file</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_weather</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">water</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="n">snow</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">snow</span> <span class="o">&gt;</span> <span class="mf">0.0</span> <span class="ow">and</span> <span class="n">water</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">WeatherPipeline</span><span class="o">.</span><span class="n">WeatherEnum</span><span class="o">.</span><span class="n">SLEET</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">elif</span> <span class="n">water</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">WeatherPipeline</span><span class="o">.</span><span class="n">WeatherEnum</span><span class="o">.</span><span class="n">RAINY</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">elif</span> <span class="n">snow</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">WeatherPipeline</span><span class="o">.</span><span class="n">WeatherEnum</span><span class="o">.</span><span class="n">SNOWY</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">WeatherPipeline</span><span class="o">.</span><span class="n">WeatherEnum</span><span class="o">.</span><span class="n">SUNNY</span><span class="o">.</span><span class="n">value</span>
+
+    <span class="k">def</span> <span class="nf">_gen_weather</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tick</span><span class="p">):</span>
+        <span class="n">date</span> <span class="o">=</span> <span class="n">tick</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%m/</span><span class="si">%d</span><span class="s2">/%Y %H:%M:%S&quot;</span><span class="p">)</span>
+        <span class="n">wh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_weather</span><span class="p">()</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">40</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;date&quot;</span><span class="p">:</span> <span class="n">date</span><span class="p">,</span> <span class="s2">&quot;weather&quot;</span><span class="p">:</span> <span class="n">wh</span><span class="p">,</span> <span class="s2">&quot;temp&quot;</span><span class="p">:</span> <span class="n">temp</span><span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">_preprocess</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">data</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">cur_tick</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_start_time</span><span class="p">)</span>
+        <span class="n">end_tick</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_end_time</span><span class="p">)</span>
+
+        <span class="k">while</span> <span class="n">cur_tick</span> <span class="o">&lt;=</span> <span class="n">end_tick</span><span class="p">:</span>
+            <span class="n">new_weather</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gen_weather</span><span class="p">(</span><span class="n">cur_tick</span><span class="p">)</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_weather</span><span class="p">)</span>
+            <span class="n">cur_tick</span> <span class="o">+=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;day&quot;</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="s2">&quot;w+&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+            <span class="n">writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">DictWriter</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">,</span> <span class="s2">&quot;weather&quot;</span><span class="p">,</span> <span class="s2">&quot;temp&quot;</span><span class="p">])</span>
+
+            <span class="n">writer</span><span class="o">.</span><span class="n">writeheader</span><span class="p">()</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">writerows</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="CitiBikeToyTopology"><a class="viewcode-back" href="../../../../apidoc/maro.cli.data_pipeline.html#maro.cli.data_pipeline.citi_bike.CitiBikeToyTopology">[docs]</a><span class="k">class</span> <span class="nc">CitiBikeToyTopology</span><span class="p">(</span><span class="n">DataTopology</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Data topology for a predefined toy topology of citi_bike scenario.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        topology(str): Topology name of the data file.</span>
+<span class="sd">        config_path(str): Config file path of the topology.</span>
+<span class="sd">        is_temp(bool): (optional) If the data file is temporary.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topology</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">config_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">is_temp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_temp</span> <span class="o">=</span> <span class="n">is_temp</span>
+        <span class="k">if</span> <span class="n">config_path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;~&quot;</span><span class="p">):</span>
+            <span class="n">config_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">config_path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">config_path</span><span class="p">):</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">config_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+                <span class="n">cfg</span> <span class="o">=</span> <span class="n">safe_load</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_data_pipeline</span><span class="p">[</span><span class="s2">&quot;trip&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">CitiBikeToyPipeline</span><span class="p">(</span>
+                    <span class="n">start_time</span><span class="o">=</span><span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;start_time&quot;</span><span class="p">],</span>
+                    <span class="n">end_time</span><span class="o">=</span><span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;end_time&quot;</span><span class="p">],</span>
+                    <span class="n">stations</span><span class="o">=</span><span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;stations&quot;</span><span class="p">],</span>
+                    <span class="n">trips</span><span class="o">=</span><span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;trips&quot;</span><span class="p">],</span>
+                    <span class="n">topology</span><span class="o">=</span><span class="n">topology</span><span class="p">,</span>
+                    <span class="n">is_temp</span><span class="o">=</span><span class="n">is_temp</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_data_pipeline</span><span class="p">[</span><span class="s2">&quot;weather&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">WeatherToyPipeline</span><span class="p">(</span>
+                    <span class="n">topology</span><span class="o">=</span><span class="n">topology</span><span class="p">,</span>
+                    <span class="n">start_time</span><span class="o">=</span><span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;start_time&quot;</span><span class="p">],</span>
+                    <span class="n">end_time</span><span class="o">=</span><span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;end_time&quot;</span><span class="p">],</span>
+                    <span class="n">is_temp</span><span class="o">=</span><span class="n">is_temp</span>
+                <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Config file </span><span class="si">{</span><span class="n">config_path</span><span class="si">}</span><span class="s2"> for toy topology </span><span class="si">{</span><span class="n">topology</span><span class="si">}</span><span class="s2"> not found.&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="CitiBikeToyTopology.download"><a class="viewcode-back" href="../../../../apidoc/maro.cli.data_pipeline.html#maro.cli.data_pipeline.citi_bike.CitiBikeToyTopology.download">[docs]</a>    <span class="k">def</span> <span class="nf">download</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">is_force</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+    <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_temp</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">remove</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="CitiBikeProcess"><a class="viewcode-back" href="../../../../apidoc/maro.cli.data_pipeline.html#maro.cli.data_pipeline.citi_bike.CitiBikeProcess">[docs]</a><span class="k">class</span> <span class="nc">CitiBikeProcess</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Contains all predefined data topologies of citi_bike scenario.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        is_temp(bool): (optional) If the data file is temporary.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">meta_file_name</span> <span class="o">=</span> <span class="s2">&quot;source_urls.yml&quot;</span>
+    <span class="n">meta_root</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">StaticParameter</span><span class="o">.</span><span class="n">data_root</span><span class="p">,</span> <span class="s2">&quot;citi_bike/meta&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">is_temp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">topologies</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meta_root</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meta_root</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_meta_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meta_root</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">meta_file_name</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_meta_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_conf</span> <span class="o">=</span> <span class="n">safe_load</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">topology</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_conf</span><span class="p">[</span><span class="s2">&quot;trips&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">topology</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;toy&quot;</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">topologies</span><span class="p">[</span><span class="n">topology</span><span class="p">]</span> <span class="o">=</span> <span class="n">CitiBikeToyTopology</span><span class="p">(</span>
+                        <span class="n">topology</span><span class="o">=</span><span class="n">topology</span><span class="p">,</span>
+                        <span class="n">config_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_conf</span><span class="p">[</span><span class="s2">&quot;trips&quot;</span><span class="p">][</span><span class="n">topology</span><span class="p">][</span><span class="s2">&quot;toy_meta_path&quot;</span><span class="p">],</span>
+                        <span class="n">is_temp</span><span class="o">=</span><span class="n">is_temp</span>
+                    <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">topologies</span><span class="p">[</span><span class="n">topology</span><span class="p">]</span> <span class="o">=</span> <span class="n">CitiBikeTopology</span><span class="p">(</span>
+                        <span class="n">topology</span><span class="o">=</span><span class="n">topology</span><span class="p">,</span>
+                        <span class="n">trip_source</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_conf</span><span class="p">[</span><span class="s2">&quot;trips&quot;</span><span class="p">][</span><span class="n">topology</span><span class="p">][</span><span class="s2">&quot;trip_remote_url&quot;</span><span class="p">],</span>
+                        <span class="n">station_info</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_conf</span><span class="p">[</span><span class="s2">&quot;station_info&quot;</span><span class="p">][</span><span class="s2">&quot;ny_station_info_url&quot;</span><span class="p">],</span>
+                        <span class="n">weather_source</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_conf</span><span class="p">[</span><span class="s2">&quot;weather&quot;</span><span class="p">][</span><span class="n">topology</span><span class="p">][</span><span class="s2">&quot;noaa_weather_url&quot;</span><span class="p">],</span>
+                        <span class="n">is_temp</span><span class="o">=</span><span class="n">is_temp</span>
+                    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="NOAAWeatherPipeline"><a class="viewcode-back" href="../../../../apidoc/maro.cli.data_pipeline.html#maro.cli.data_pipeline.citi_bike.NOAAWeatherPipeline">[docs]</a><span class="k">class</span> <span class="nc">NOAAWeatherPipeline</span><span class="p">(</span><span class="n">WeatherPipeline</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Generate weather data bin for the specified topology from ncei.noaa.gov.</span>
+
+<span class="sd">    Generated files will be generated in ~/.maro/data/citi_bike/[topology]/_build.</span>
+<span class="sd">    Folder structure:</span>
+<span class="sd">    ~/.maro</span>
+<span class="sd">            /data/citi_bike/[topology]</span>
+<span class="sd">                                    /_build bin data file</span>
+<span class="sd">                                    /source</span>
+<span class="sd">                                            /_download original data file</span>
+<span class="sd">                                            /_clean cleaned data file</span>
+<span class="sd">            /temp download temp file</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        topology(str): Topology name of the data file.</span>
+<span class="sd">        source(str): Source url of original data file.</span>
+<span class="sd">        is_temp(bool): (optional) If the data file is temporary.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topology</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">is_temp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">topology</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">is_temp</span><span class="p">)</span>
+
+<div class="viewcode-block" id="NOAAWeatherPipeline.download"><a class="viewcode-back" href="../../../../apidoc/maro.cli.data_pipeline.html#maro.cli.data_pipeline.citi_bike.NOAAWeatherPipeline.download">[docs]</a>    <span class="k">def</span> <span class="nf">download</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">is_force</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Download the original data file.&quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">download</span><span class="p">(</span><span class="n">is_force</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gen_fall_back_file</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="NOAAWeatherPipeline.clean"><a class="viewcode-back" href="../../../../apidoc/maro.cli.data_pipeline.html#maro.cli.data_pipeline.citi_bike.NOAAWeatherPipeline.clean">[docs]</a>    <span class="k">def</span> <span class="nf">clean</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Clean the original data file.&quot;&quot;&quot;</span>
+        <span class="n">DataPipeline</span><span class="o">.</span><span class="n">clean</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_download_file</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_new_file_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_clean_file</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info_green</span><span class="p">(</span><span class="s2">&quot;Cleaning weather data.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_preprocess</span><span class="p">(</span><span class="n">input_file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_download_file</span><span class="p">,</span> <span class="n">output_file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_clean_file</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Not found downloaded weather data: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_download_file</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_weather</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
+        <span class="n">water</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;PRCP&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;PRCP&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mf">0.0</span>
+
+        <span class="n">snow</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;SNOW&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;SNOW&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mf">0.0</span>
+
+        <span class="k">if</span> <span class="n">snow</span> <span class="o">&gt;</span> <span class="mf">0.0</span> <span class="ow">and</span> <span class="n">water</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">WeatherPipeline</span><span class="o">.</span><span class="n">WeatherEnum</span><span class="o">.</span><span class="n">SLEET</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">elif</span> <span class="n">water</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">WeatherPipeline</span><span class="o">.</span><span class="n">WeatherEnum</span><span class="o">.</span><span class="n">RAINY</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">elif</span> <span class="n">snow</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">WeatherPipeline</span><span class="o">.</span><span class="n">WeatherEnum</span><span class="o">.</span><span class="n">SNOWY</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">WeatherPipeline</span><span class="o">.</span><span class="n">WeatherEnum</span><span class="o">.</span><span class="n">SUNNY</span><span class="o">.</span><span class="n">value</span>
+
+    <span class="k">def</span> <span class="nf">_preprocess</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">output_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="s2">&quot;rt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+            <span class="n">org_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span>
+            <span class="n">org_data</span><span class="p">[</span><span class="s2">&quot;PRCP&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">org_data</span><span class="p">[</span><span class="s2">&quot;PRCP&quot;</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;coerce&quot;</span><span class="p">,</span> <span class="n">downcast</span><span class="o">=</span><span class="s2">&quot;integer&quot;</span><span class="p">)</span>
+            <span class="n">org_data</span><span class="p">[</span><span class="s2">&quot;SNOW&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">org_data</span><span class="p">[</span><span class="s2">&quot;SNOW&quot;</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;coerce&quot;</span><span class="p">,</span> <span class="n">downcast</span><span class="o">=</span><span class="s2">&quot;integer&quot;</span><span class="p">)</span>
+            <span class="n">org_data</span><span class="p">[</span><span class="s2">&quot;TMAX&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">org_data</span><span class="p">[</span><span class="s2">&quot;TMAX&quot;</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;coerce&quot;</span><span class="p">,</span> <span class="n">downcast</span><span class="o">=</span><span class="s2">&quot;integer&quot;</span><span class="p">)</span>
+            <span class="n">org_data</span><span class="p">[</span><span class="s2">&quot;TMIN&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">org_data</span><span class="p">[</span><span class="s2">&quot;TMIN&quot;</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;coerce&quot;</span><span class="p">,</span> <span class="n">downcast</span><span class="o">=</span><span class="s2">&quot;integer&quot;</span><span class="p">)</span>
+
+            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">org_data</span><span class="p">[</span><span class="s2">&quot;DATE&quot;</span><span class="p">]</span>
+            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;weather&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">org_data</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_weather</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;temp&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">org_data</span><span class="p">[</span><span class="s2">&quot;TMAX&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">org_data</span><span class="p">[</span><span class="s2">&quot;TMIN&quot;</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_gen_fall_back_file</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">fall_back_content</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">&quot;</span><span class="se">\&quot;</span><span class="s2">STATION</span><span class="se">\&quot;</span><span class="s2">,</span><span class="se">\&quot;</span><span class="s2">DATE</span><span class="se">\&quot;</span><span class="s2">,</span><span class="se">\&quot;</span><span class="s2">AWND</span><span class="se">\&quot;</span><span class="s2">,</span><span class="se">\&quot;</span><span class="s2">PRCP</span><span class="se">\&quot;</span><span class="s2">,</span><span class="se">\&quot;</span><span class="s2">SNOW</span><span class="se">\&quot;</span><span class="s2">,</span><span class="se">\&quot;</span><span class="s2">TMAX</span><span class="se">\&quot;</span><span class="s2">,</span><span class="se">\&quot;</span><span class="s2">TMIN</span><span class="se">\&quot;\n</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;,,,,,,</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="p">]</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_download_file</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">writelines</span><span class="p">(</span><span class="n">fall_back_content</span><span class="p">)</span></div>
+</pre></div>
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../../../../_static/js/index.js"></script>
+    
+  </body>
+</html>

@@ -1,0 +1,22 @@
+maro.cli.utils.executors package
+================================
+
+Submodules
+----------
+
+maro.cli.utils.executors.azure\_executor module
+-----------------------------------------------
+
+.. automodule:: maro.cli.utils.executors.azure_executor
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: maro.cli.utils.executors
+   :members:
+   :undoc-members:
+   :show-inheritance:

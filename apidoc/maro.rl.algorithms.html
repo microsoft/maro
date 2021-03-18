@@ -1,0 +1,1260 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maro.rl.algorithms package &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="maro.rl.dist_topologies package" href="maro.rl.dist_topologies.html" />
+    <link rel="prev" title="maro.rl.agent package" href="maro.rl.agent.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../index.html">
+  
+  <img src="../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="current nav sidenav_l1">
+ <li class="toctree-l1 current active">
+  <a class="reference internal" href="maro.html">
+   maro package
+  </a>
+  <ul class="current">
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.backends.html">
+     maro.backends package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.cli.html">
+     maro.cli package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.data_pipeline.html">
+       maro.cli.data_pipeline package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.envs.html">
+       maro.cli.envs package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.grass.html">
+       maro.cli.grass package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.grass.executors.html">
+         maro.cli.grass.executors package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.grass.utils.html">
+         maro.cli.grass.utils package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.inspector.html">
+       maro.cli.inspector package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.k8s.html">
+       maro.cli.k8s package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.k8s.executors.html">
+         maro.cli.k8s.executors package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.process.html">
+       maro.cli.process package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.process.utils.html">
+         maro.cli.process.utils package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.utils.html">
+       maro.cli.utils package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.utils.executors.html">
+         maro.cli.utils.executors package
+        </a>
+       </li>
+      </ul>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.communication.html">
+     maro.communication package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.communication.driver.html">
+       maro.communication.driver package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.communication.utils.html">
+       maro.communication.utils package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.data_lib.html">
+     maro.data_lib package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.data_lib.cim.html">
+       maro.data_lib.cim package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.event_buffer.html">
+     maro.event_buffer package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.forecasting.html">
+     maro.forecasting package
+    </a>
+   </li>
+   <li class="toctree-l2 current active">
+    <a class="reference internal" href="maro.rl.html">
+     maro.rl package
+    </a>
+    <ul class="current">
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.actor.html">
+       maro.rl.actor package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.agent.html">
+       maro.rl.agent package
+      </a>
+     </li>
+     <li class="toctree-l3 current active">
+      <a class="current reference internal" href="#">
+       maro.rl.algorithms package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.dist_topologies.html">
+       maro.rl.dist_topologies package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.exploration.html">
+       maro.rl.exploration package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.learner.html">
+       maro.rl.learner package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.models.html">
+       maro.rl.models package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.scheduling.html">
+       maro.rl.scheduling package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.shaping.html">
+       maro.rl.shaping package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.storage.html">
+       maro.rl.storage package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.simulator.html">
+     maro.simulator package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.simulator.scenarios.html">
+       maro.simulator.scenarios package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.cim.html">
+         maro.simulator.scenarios.cim package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.citi_bike.html">
+         maro.simulator.scenarios.citi_bike package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.vm_scheduling.html">
+         maro.simulator.scenarios.vm_scheduling package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.simulator.utils.html">
+       maro.simulator.utils package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.utils.html">
+     maro.utils package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.utils.exception.html">
+       maro.utils.exception package
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+        
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="../_sources/apidoc/maro.rl.algorithms.rst.txt"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.rst</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2Fapidoc/maro.rl.algorithms.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        <a class="edit-button" href="https://github.com/microsoft/maro/edit/master/doc/source/apidoc/maro.rl.algorithms.rst"><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Edit this page"><i class="fas fa-pencil-alt"></i>suggest edit</button></a>
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <div class="tocsection onthispage pt-5 pb-3">
+            <i class="fas fa-list"></i> Contents
+        </div>
+        <nav id="bd-toc-nav">
+            <ul class="nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#submodules">
+   Submodules
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.rl.algorithms.abs_algorithm">
+   maro.rl.algorithms.abs_algorithm module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.rl.algorithms.dqn">
+   maro.rl.algorithms.dqn module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.rl.algorithms.policy_optimization">
+   maro.rl.algorithms.policy_optimization module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.rl.algorithms">
+   Module contents
+  </a>
+ </li>
+</ul>
+
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <div class="section" id="maro-rl-algorithms-package">
+<h1>maro.rl.algorithms package<a class="headerlink" href="#maro-rl-algorithms-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-maro.rl.algorithms.abs_algorithm">
+<span id="maro-rl-algorithms-abs-algorithm-module"></span><h2>maro.rl.algorithms.abs_algorithm module<a class="headerlink" href="#module-maro.rl.algorithms.abs_algorithm" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.rl.algorithms.abs_algorithm.AbsAlgorithm">
+<em class="property">class </em><code class="sig-prename descclassname">maro.rl.algorithms.abs_algorithm.</code><code class="sig-name descname">AbsAlgorithm</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span><span class="p">:</span> <span class="n"><a class="reference internal" href="maro.rl.models.html#maro.rl.models.learning_model.LearningModel" title="maro.rl.models.learning_model.LearningModel">maro.rl.models.learning_model.LearningModel</a></span></em>, <em class="sig-param"><span class="n">config</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/algorithms/abs_algorithm.html#AbsAlgorithm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.algorithms.abs_algorithm.AbsAlgorithm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<p>Abstract RL algorithm class.</p>
+<p>The class provides uniform policy interfaces such as <code class="docutils literal notranslate"><span class="pre">choose_action</span></code> and <code class="docutils literal notranslate"><span class="pre">train</span></code>. We also provide some
+predefined RL algorithm based on it, such DQN, A2C, etc. User can inherit from it to customize their own
+algorithms.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>LearningModel</em>) – Task model or container of task models required by the algorithm.</p></li>
+<li><p><strong>config</strong> – Settings for the algorithm.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.rl.algorithms.abs_algorithm.AbsAlgorithm.choose_action">
+<em class="property">abstract </em><code class="sig-name descname">choose_action</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">state</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/algorithms/abs_algorithm.html#AbsAlgorithm.choose_action"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.algorithms.abs_algorithm.AbsAlgorithm.choose_action" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method uses the underlying model(s) to compute an action from a shaped state.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>state</strong> – A state object shaped by a <code class="docutils literal notranslate"><span class="pre">StateShaper</span></code> to conform to the model input format.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The action to be taken given <code class="docutils literal notranslate"><span class="pre">state</span></code>. It is usually necessary to use an <code class="docutils literal notranslate"><span class="pre">ActionShaper</span></code> to convert
+this to an environment executable action.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.algorithms.abs_algorithm.AbsAlgorithm.model">
+<em class="property">property </em><code class="sig-name descname">model</code><a class="headerlink" href="#maro.rl.algorithms.abs_algorithm.AbsAlgorithm.model" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.algorithms.abs_algorithm.AbsAlgorithm.set_exploration_params">
+<code class="sig-name descname">set_exploration_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">params</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/algorithms/abs_algorithm.html#AbsAlgorithm.set_exploration_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.algorithms.abs_algorithm.AbsAlgorithm.set_exploration_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.algorithms.abs_algorithm.AbsAlgorithm.train">
+<em class="property">abstract </em><code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/algorithms/abs_algorithm.html#AbsAlgorithm.train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.algorithms.abs_algorithm.AbsAlgorithm.train" title="Permalink to this definition">¶</a></dt>
+<dd><p>Train models using samples.</p>
+<p>This method is algorithm-specific and needs to be implemented by the user. For example, for the DQN
+algorithm, this may look like train(self, state_batch, action_batch, reward_batch, next_state_batch).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.algorithms.abs_algorithm.AbsAlgorithm.validate_task_names">
+<em class="property">static </em><code class="sig-name descname">validate_task_names</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model_task_names</span></em>, <em class="sig-param"><span class="n">expected_task_names</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/algorithms/abs_algorithm.html#AbsAlgorithm.validate_task_names"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.algorithms.abs_algorithm.AbsAlgorithm.validate_task_names" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.rl.algorithms.dqn">
+<span id="maro-rl-algorithms-dqn-module"></span><h2>maro.rl.algorithms.dqn module<a class="headerlink" href="#module-maro.rl.algorithms.dqn" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.rl.algorithms.dqn.DQN">
+<em class="property">class </em><code class="sig-prename descclassname">maro.rl.algorithms.dqn.</code><code class="sig-name descname">DQN</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span><span class="p">:</span> <span class="n"><a class="reference internal" href="maro.rl.models.html#maro.rl.models.learning_model.LearningModel" title="maro.rl.models.learning_model.LearningModel">maro.rl.models.learning_model.LearningModel</a></span></em>, <em class="sig-param"><span class="n">config</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.rl.algorithms.dqn.DQNConfig" title="maro.rl.algorithms.dqn.DQNConfig">maro.rl.algorithms.dqn.DQNConfig</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/algorithms/dqn.html#DQN"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.algorithms.dqn.DQN" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.rl.algorithms.abs_algorithm.AbsAlgorithm" title="maro.rl.algorithms.abs_algorithm.AbsAlgorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.rl.algorithms.abs_algorithm.AbsAlgorithm</span></code></a></p>
+<p>The Deep-Q-Networks algorithm.</p>
+<p>See <a class="reference external" href="https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf">https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf</a> for details.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>LearningModel</em>) – Q-value model.</p></li>
+<li><p><strong>config</strong> – Configuration for DQN algorithm.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.rl.algorithms.dqn.DQN.choose_action">
+<code class="sig-name descname">choose_action</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">state</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span> &#x2192; Union<span class="p">[</span>int<span class="p">, </span>numpy.ndarray<span class="p">]</span><a class="reference internal" href="../_modules/maro/rl/algorithms/dqn.html#DQN.choose_action"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.algorithms.dqn.DQN.choose_action" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method uses the underlying model(s) to compute an action from a shaped state.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>state</strong> – A state object shaped by a <code class="docutils literal notranslate"><span class="pre">StateShaper</span></code> to conform to the model input format.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The action to be taken given <code class="docutils literal notranslate"><span class="pre">state</span></code>. It is usually necessary to use an <code class="docutils literal notranslate"><span class="pre">ActionShaper</span></code> to convert
+this to an environment executable action.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.algorithms.dqn.DQN.set_exploration_params">
+<code class="sig-name descname">set_exploration_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">epsilon</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/algorithms/dqn.html#DQN.set_exploration_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.algorithms.dqn.DQN.set_exploration_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.algorithms.dqn.DQN.train">
+<code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">states</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">actions</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">rewards</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">next_states</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/algorithms/dqn.html#DQN.train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.algorithms.dqn.DQN.train" title="Permalink to this definition">¶</a></dt>
+<dd><p>Train models using samples.</p>
+<p>This method is algorithm-specific and needs to be implemented by the user. For example, for the DQN
+algorithm, this may look like train(self, state_batch, action_batch, reward_batch, next_state_batch).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.rl.algorithms.dqn.DQNConfig">
+<em class="property">class </em><code class="sig-prename descclassname">maro.rl.algorithms.dqn.</code><code class="sig-name descname">DQNConfig</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">reward_discount</span><span class="p">:</span> <span class="n">float</span></em>, <em class="sig-param"><span class="n">loss_cls</span></em>, <em class="sig-param"><span class="n">target_update_frequency</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">epsilon</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">tau</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.1</span></em>, <em class="sig-param"><span class="n">is_double</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">advantage_mode</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">per_sample_td_error_enabled</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/algorithms/dqn.html#DQNConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.algorithms.dqn.DQNConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Configuration for the DQN algorithm.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>reward_discount</strong> (<em>float</em>) – Reward decay as defined in standard RL terminology.</p></li>
+<li><p><strong>loss_cls</strong> – Loss function class for evaluating TD errors.</p></li>
+<li><p><strong>target_update_frequency</strong> (<em>int</em>) – Number of training rounds between target model updates.</p></li>
+<li><p><strong>epsilon</strong> (<em>float</em>) – Exploration rate for epsilon-greedy exploration. Defaults to None.</p></li>
+<li><p><strong>tau</strong> (<em>float</em>) – Soft update coefficient, i.e., target_model = tau * eval_model + (1 - tau) * target_model.</p></li>
+<li><p><strong>is_double</strong> (<em>bool</em>) – If True, the next Q values will be computed according to the double DQN algorithm,
+i.e., q_next = Q_target(s, argmax(Q_eval(s, a))). Otherwise, q_next = max(Q_target(s, a)).
+See <a class="reference external" href="https://arxiv.org/pdf/1509.06461.pdf">https://arxiv.org/pdf/1509.06461.pdf</a> for details. Defaults to False.</p></li>
+<li><p><strong>advantage_mode</strong> (<em>str</em>) – Advantage mode for the dueling architecture. Defaults to None, in which
+case it is assumed that the regular Q-value model is used.</p></li>
+<li><p><strong>per_sample_td_error_enabled</strong> (<em>bool</em>) – If True, per-sample TD errors will be returned by the DQN’s train()
+method. Defaults to False.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="maro.rl.algorithms.dqn.DQNConfig.advantage_mode">
+<code class="sig-name descname">advantage_mode</code><a class="headerlink" href="#maro.rl.algorithms.dqn.DQNConfig.advantage_mode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.rl.algorithms.dqn.DQNConfig.epsilon">
+<code class="sig-name descname">epsilon</code><a class="headerlink" href="#maro.rl.algorithms.dqn.DQNConfig.epsilon" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.rl.algorithms.dqn.DQNConfig.is_double">
+<code class="sig-name descname">is_double</code><a class="headerlink" href="#maro.rl.algorithms.dqn.DQNConfig.is_double" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.rl.algorithms.dqn.DQNConfig.loss_func">
+<code class="sig-name descname">loss_func</code><a class="headerlink" href="#maro.rl.algorithms.dqn.DQNConfig.loss_func" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.rl.algorithms.dqn.DQNConfig.per_sample_td_error_enabled">
+<code class="sig-name descname">per_sample_td_error_enabled</code><a class="headerlink" href="#maro.rl.algorithms.dqn.DQNConfig.per_sample_td_error_enabled" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.rl.algorithms.dqn.DQNConfig.reward_discount">
+<code class="sig-name descname">reward_discount</code><a class="headerlink" href="#maro.rl.algorithms.dqn.DQNConfig.reward_discount" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.rl.algorithms.dqn.DQNConfig.target_update_frequency">
+<code class="sig-name descname">target_update_frequency</code><a class="headerlink" href="#maro.rl.algorithms.dqn.DQNConfig.target_update_frequency" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.rl.algorithms.dqn.DQNConfig.tau">
+<code class="sig-name descname">tau</code><a class="headerlink" href="#maro.rl.algorithms.dqn.DQNConfig.tau" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.rl.algorithms.policy_optimization">
+<span id="maro-rl-algorithms-policy-optimization-module"></span><h2>maro.rl.algorithms.policy_optimization module<a class="headerlink" href="#module-maro.rl.algorithms.policy_optimization" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.rl.algorithms.policy_optimization.ActionInfo">
+<em class="property">class </em><code class="sig-prename descclassname">maro.rl.algorithms.policy_optimization.</code><code class="sig-name descname">ActionInfo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">action</span></em>, <em class="sig-param"><span class="n">log_probability</span></em><span class="sig-paren">)</span><a class="headerlink" href="#maro.rl.algorithms.policy_optimization.ActionInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="py method">
+<dt id="maro.rl.algorithms.policy_optimization.ActionInfo.action">
+<em class="property">property </em><code class="sig-name descname">action</code><a class="headerlink" href="#maro.rl.algorithms.policy_optimization.ActionInfo.action" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.algorithms.policy_optimization.ActionInfo.log_probability">
+<em class="property">property </em><code class="sig-name descname">log_probability</code><a class="headerlink" href="#maro.rl.algorithms.policy_optimization.ActionInfo.log_probability" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.rl.algorithms.policy_optimization.ActorCritic">
+<em class="property">class </em><code class="sig-prename descclassname">maro.rl.algorithms.policy_optimization.</code><code class="sig-name descname">ActorCritic</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span><span class="p">:</span> <span class="n"><a class="reference internal" href="maro.rl.models.html#maro.rl.models.learning_model.LearningModel" title="maro.rl.models.learning_model.LearningModel">maro.rl.models.learning_model.LearningModel</a></span></em>, <em class="sig-param"><span class="n">config</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.rl.algorithms.policy_optimization.ActorCriticConfig" title="maro.rl.algorithms.policy_optimization.ActorCriticConfig">maro.rl.algorithms.policy_optimization.ActorCriticConfig</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/algorithms/policy_optimization.html#ActorCritic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.algorithms.policy_optimization.ActorCritic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.rl.algorithms.policy_optimization.PolicyOptimization" title="maro.rl.algorithms.policy_optimization.PolicyOptimization"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.rl.algorithms.policy_optimization.PolicyOptimization</span></code></a></p>
+<p>Actor Critic algorithm with separate policy and value models.</p>
+<p>References:
+<a class="reference external" href="https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch">https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch</a>.
+<a class="reference external" href="https://towardsdatascience.com/understanding-actor-critic-methods-931b97b6df3f">https://towardsdatascience.com/understanding-actor-critic-methods-931b97b6df3f</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>LearningModel</em>) – Multi-task model that computes action distributions and state values.
+It may or may not have a shared bottom stack.</p></li>
+<li><p><strong>config</strong> – Configuration for the AC algorithm.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.rl.algorithms.policy_optimization.ActorCritic.train">
+<code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">states</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">actions</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">log_action_prob</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">rewards</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/algorithms/policy_optimization.html#ActorCritic.train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.algorithms.policy_optimization.ActorCritic.train" title="Permalink to this definition">¶</a></dt>
+<dd><p>Train models using samples.</p>
+<p>This method is algorithm-specific and needs to be implemented by the user. For example, for the DQN
+algorithm, this may look like train(self, state_batch, action_batch, reward_batch, next_state_batch).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.rl.algorithms.policy_optimization.ActorCriticConfig">
+<em class="property">class </em><code class="sig-prename descclassname">maro.rl.algorithms.policy_optimization.</code><code class="sig-name descname">ActorCriticConfig</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">reward_discount</span><span class="p">:</span> <span class="n">float</span></em>, <em class="sig-param"><span class="n">critic_loss_func</span><span class="p">:</span> <span class="n">Callable</span></em>, <em class="sig-param"><span class="n">train_iters</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">actor_loss_coefficient</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">1.0</span></em>, <em class="sig-param"><span class="n">k</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">- 1</span></em>, <em class="sig-param"><span class="n">lam</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">1.0</span></em>, <em class="sig-param"><span class="n">clip_ratio</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/algorithms/policy_optimization.html#ActorCriticConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.algorithms.policy_optimization.ActorCriticConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.rl.algorithms.policy_optimization.PolicyOptimizationConfig" title="maro.rl.algorithms.policy_optimization.PolicyOptimizationConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.rl.algorithms.policy_optimization.PolicyOptimizationConfig</span></code></a></p>
+<p>Configuration for the Actor-Critic algorithm.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>reward_discount</strong> (<em>float</em>) – Reward decay as defined in standard RL terminology.</p></li>
+<li><p><strong>critic_loss_func</strong> (<em>Callable</em>) – Loss function for the critic model.</p></li>
+<li><p><strong>train_iters</strong> (<em>int</em>) – Number of gradient descent steps per call to <code class="docutils literal notranslate"><span class="pre">train</span></code>.</p></li>
+<li><p><strong>actor_loss_coefficient</strong> (<em>float</em>) – The coefficient for actor loss in the total loss function, e.g.,
+loss = critic_loss + <code class="docutils literal notranslate"><span class="pre">actor_loss_coefficient</span></code> * actor_loss. Defaults to 1.0.</p></li>
+<li><p><strong>k</strong> (<em>int</em>) – Number of time steps used in computing returns or return estimates. Defaults to -1, in which case
+rewards are accumulated until the end of the trajectory.</p></li>
+<li><p><strong>lam</strong> (<em>float</em>) – Lambda coefficient used in computing lambda returns. Defaults to 1.0, in which case the usual
+k-step return is computed.</p></li>
+<li><p><strong>clip_ratio</strong> (<em>float</em>) – Clip ratio in the PPO algorithm (<a class="reference external" href="https://arxiv.org/pdf/1707.06347.pdf">https://arxiv.org/pdf/1707.06347.pdf</a>). Defaults to None,
+in which case the actor loss is calculated using the usual policy gradient theorem.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="maro.rl.algorithms.policy_optimization.ActorCriticConfig.actor_loss_coefficient">
+<code class="sig-name descname">actor_loss_coefficient</code><a class="headerlink" href="#maro.rl.algorithms.policy_optimization.ActorCriticConfig.actor_loss_coefficient" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.rl.algorithms.policy_optimization.ActorCriticConfig.clip_ratio">
+<code class="sig-name descname">clip_ratio</code><a class="headerlink" href="#maro.rl.algorithms.policy_optimization.ActorCriticConfig.clip_ratio" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.rl.algorithms.policy_optimization.ActorCriticConfig.critic_loss_func">
+<code class="sig-name descname">critic_loss_func</code><a class="headerlink" href="#maro.rl.algorithms.policy_optimization.ActorCriticConfig.critic_loss_func" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.rl.algorithms.policy_optimization.ActorCriticConfig.k">
+<code class="sig-name descname">k</code><a class="headerlink" href="#maro.rl.algorithms.policy_optimization.ActorCriticConfig.k" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.rl.algorithms.policy_optimization.ActorCriticConfig.lam">
+<code class="sig-name descname">lam</code><a class="headerlink" href="#maro.rl.algorithms.policy_optimization.ActorCriticConfig.lam" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.rl.algorithms.policy_optimization.ActorCriticConfig.reward_discount">
+<code class="sig-name descname">reward_discount</code><a class="headerlink" href="#maro.rl.algorithms.policy_optimization.ActorCriticConfig.reward_discount" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.rl.algorithms.policy_optimization.ActorCriticConfig.train_iters">
+<code class="sig-name descname">train_iters</code><a class="headerlink" href="#maro.rl.algorithms.policy_optimization.ActorCriticConfig.train_iters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.rl.algorithms.policy_optimization.PolicyGradient">
+<em class="property">class </em><code class="sig-prename descclassname">maro.rl.algorithms.policy_optimization.</code><code class="sig-name descname">PolicyGradient</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span><span class="p">:</span> <span class="n"><a class="reference internal" href="maro.rl.models.html#maro.rl.models.learning_model.LearningModel" title="maro.rl.models.learning_model.LearningModel">maro.rl.models.learning_model.LearningModel</a></span></em>, <em class="sig-param"><span class="n">config</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/algorithms/policy_optimization.html#PolicyGradient"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.algorithms.policy_optimization.PolicyGradient" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.rl.algorithms.policy_optimization.PolicyOptimization" title="maro.rl.algorithms.policy_optimization.PolicyOptimization"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.rl.algorithms.policy_optimization.PolicyOptimization</span></code></a></p>
+<p>The vanilla Policy Gradient (VPG) algorithm, a.k.a., REINFORCE.</p>
+<p>Reference: <a class="reference external" href="https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch">https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch</a>.</p>
+<dl class="py method">
+<dt id="maro.rl.algorithms.policy_optimization.PolicyGradient.train">
+<code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">states</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">actions</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">log_action_prob</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">rewards</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/algorithms/policy_optimization.html#PolicyGradient.train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.algorithms.policy_optimization.PolicyGradient.train" title="Permalink to this definition">¶</a></dt>
+<dd><p>Train models using samples.</p>
+<p>This method is algorithm-specific and needs to be implemented by the user. For example, for the DQN
+algorithm, this may look like train(self, state_batch, action_batch, reward_batch, next_state_batch).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.rl.algorithms.policy_optimization.PolicyOptimization">
+<em class="property">class </em><code class="sig-prename descclassname">maro.rl.algorithms.policy_optimization.</code><code class="sig-name descname">PolicyOptimization</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span><span class="p">:</span> <span class="n"><a class="reference internal" href="maro.rl.models.html#maro.rl.models.learning_model.LearningModel" title="maro.rl.models.learning_model.LearningModel">maro.rl.models.learning_model.LearningModel</a></span></em>, <em class="sig-param"><span class="n">config</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/algorithms/policy_optimization.html#PolicyOptimization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.algorithms.policy_optimization.PolicyOptimization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.rl.algorithms.abs_algorithm.AbsAlgorithm" title="maro.rl.algorithms.abs_algorithm.AbsAlgorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.rl.algorithms.abs_algorithm.AbsAlgorithm</span></code></a></p>
+<p>Policy optimization algorithm family.</p>
+<p>The algorithm family includes policy gradient (e.g. REINFORCE), actor-critic, PPO, etc.</p>
+<dl class="py method">
+<dt id="maro.rl.algorithms.policy_optimization.PolicyOptimization.choose_action">
+<code class="sig-name descname">choose_action</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">state</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span> &#x2192; Union<span class="p">[</span><a class="reference internal" href="#maro.rl.algorithms.policy_optimization.ActionInfo" title="maro.rl.algorithms.policy_optimization.ActionInfo">maro.rl.algorithms.policy_optimization.ActionInfo</a><span class="p">, </span>List<span class="p">[</span><a class="reference internal" href="#maro.rl.algorithms.policy_optimization.ActionInfo" title="maro.rl.algorithms.policy_optimization.ActionInfo">maro.rl.algorithms.policy_optimization.ActionInfo</a><span class="p">]</span><span class="p">]</span><a class="reference internal" href="../_modules/maro/rl/algorithms/policy_optimization.html#PolicyOptimization.choose_action"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.algorithms.policy_optimization.PolicyOptimization.choose_action" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use the actor (policy) model to generate stochastic actions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>state</strong> – Input to the actor model.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A single ActionInfo namedtuple or a list of ActionInfo namedtuples.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.algorithms.policy_optimization.PolicyOptimization.train">
+<code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">states</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">actions</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">log_action_prob</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">rewards</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/algorithms/policy_optimization.html#PolicyOptimization.train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.algorithms.policy_optimization.PolicyOptimization.train" title="Permalink to this definition">¶</a></dt>
+<dd><p>Train models using samples.</p>
+<p>This method is algorithm-specific and needs to be implemented by the user. For example, for the DQN
+algorithm, this may look like train(self, state_batch, action_batch, reward_batch, next_state_batch).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.rl.algorithms.policy_optimization.PolicyOptimizationConfig">
+<em class="property">class </em><code class="sig-prename descclassname">maro.rl.algorithms.policy_optimization.</code><code class="sig-name descname">PolicyOptimizationConfig</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">reward_discount</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/algorithms/policy_optimization.html#PolicyOptimizationConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.algorithms.policy_optimization.PolicyOptimizationConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Configuration for the policy optimization algorithm family.</p>
+<dl class="py attribute">
+<dt id="maro.rl.algorithms.policy_optimization.PolicyOptimizationConfig.reward_discount">
+<code class="sig-name descname">reward_discount</code><a class="headerlink" href="#maro.rl.algorithms.policy_optimization.PolicyOptimizationConfig.reward_discount" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.rl.algorithms">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-maro.rl.algorithms" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.rl.algorithms.AbsAlgorithm">
+<em class="property">class </em><code class="sig-prename descclassname">maro.rl.algorithms.</code><code class="sig-name descname">AbsAlgorithm</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span><span class="p">:</span> <span class="n"><a class="reference internal" href="maro.rl.models.html#maro.rl.models.learning_model.LearningModel" title="maro.rl.models.learning_model.LearningModel">maro.rl.models.learning_model.LearningModel</a></span></em>, <em class="sig-param"><span class="n">config</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/algorithms/abs_algorithm.html#AbsAlgorithm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.algorithms.AbsAlgorithm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<p>Abstract RL algorithm class.</p>
+<p>The class provides uniform policy interfaces such as <code class="docutils literal notranslate"><span class="pre">choose_action</span></code> and <code class="docutils literal notranslate"><span class="pre">train</span></code>. We also provide some
+predefined RL algorithm based on it, such DQN, A2C, etc. User can inherit from it to customize their own
+algorithms.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>LearningModel</em>) – Task model or container of task models required by the algorithm.</p></li>
+<li><p><strong>config</strong> – Settings for the algorithm.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.rl.algorithms.AbsAlgorithm.choose_action">
+<em class="property">abstract </em><code class="sig-name descname">choose_action</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">state</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/algorithms/abs_algorithm.html#AbsAlgorithm.choose_action"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.algorithms.AbsAlgorithm.choose_action" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method uses the underlying model(s) to compute an action from a shaped state.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>state</strong> – A state object shaped by a <code class="docutils literal notranslate"><span class="pre">StateShaper</span></code> to conform to the model input format.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The action to be taken given <code class="docutils literal notranslate"><span class="pre">state</span></code>. It is usually necessary to use an <code class="docutils literal notranslate"><span class="pre">ActionShaper</span></code> to convert
+this to an environment executable action.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.algorithms.AbsAlgorithm.model">
+<em class="property">property </em><code class="sig-name descname">model</code><a class="headerlink" href="#maro.rl.algorithms.AbsAlgorithm.model" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.algorithms.AbsAlgorithm.set_exploration_params">
+<code class="sig-name descname">set_exploration_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">params</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/algorithms/abs_algorithm.html#AbsAlgorithm.set_exploration_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.algorithms.AbsAlgorithm.set_exploration_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.algorithms.AbsAlgorithm.train">
+<em class="property">abstract </em><code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/algorithms/abs_algorithm.html#AbsAlgorithm.train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.algorithms.AbsAlgorithm.train" title="Permalink to this definition">¶</a></dt>
+<dd><p>Train models using samples.</p>
+<p>This method is algorithm-specific and needs to be implemented by the user. For example, for the DQN
+algorithm, this may look like train(self, state_batch, action_batch, reward_batch, next_state_batch).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.algorithms.AbsAlgorithm.validate_task_names">
+<em class="property">static </em><code class="sig-name descname">validate_task_names</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model_task_names</span></em>, <em class="sig-param"><span class="n">expected_task_names</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/algorithms/abs_algorithm.html#AbsAlgorithm.validate_task_names"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.algorithms.AbsAlgorithm.validate_task_names" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.rl.algorithms.ActionInfo">
+<em class="property">class </em><code class="sig-prename descclassname">maro.rl.algorithms.</code><code class="sig-name descname">ActionInfo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">action</span></em>, <em class="sig-param"><span class="n">log_probability</span></em><span class="sig-paren">)</span><a class="headerlink" href="#maro.rl.algorithms.ActionInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="py method">
+<dt id="maro.rl.algorithms.ActionInfo.action">
+<em class="property">property </em><code class="sig-name descname">action</code><a class="headerlink" href="#maro.rl.algorithms.ActionInfo.action" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.algorithms.ActionInfo.log_probability">
+<em class="property">property </em><code class="sig-name descname">log_probability</code><a class="headerlink" href="#maro.rl.algorithms.ActionInfo.log_probability" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.rl.algorithms.ActorCritic">
+<em class="property">class </em><code class="sig-prename descclassname">maro.rl.algorithms.</code><code class="sig-name descname">ActorCritic</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span><span class="p">:</span> <span class="n"><a class="reference internal" href="maro.rl.models.html#maro.rl.models.learning_model.LearningModel" title="maro.rl.models.learning_model.LearningModel">maro.rl.models.learning_model.LearningModel</a></span></em>, <em class="sig-param"><span class="n">config</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.rl.algorithms.policy_optimization.ActorCriticConfig" title="maro.rl.algorithms.policy_optimization.ActorCriticConfig">maro.rl.algorithms.policy_optimization.ActorCriticConfig</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/algorithms/policy_optimization.html#ActorCritic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.algorithms.ActorCritic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.rl.algorithms.policy_optimization.PolicyOptimization" title="maro.rl.algorithms.policy_optimization.PolicyOptimization"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.rl.algorithms.policy_optimization.PolicyOptimization</span></code></a></p>
+<p>Actor Critic algorithm with separate policy and value models.</p>
+<p>References:
+<a class="reference external" href="https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch">https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch</a>.
+<a class="reference external" href="https://towardsdatascience.com/understanding-actor-critic-methods-931b97b6df3f">https://towardsdatascience.com/understanding-actor-critic-methods-931b97b6df3f</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>LearningModel</em>) – Multi-task model that computes action distributions and state values.
+It may or may not have a shared bottom stack.</p></li>
+<li><p><strong>config</strong> – Configuration for the AC algorithm.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.rl.algorithms.ActorCritic.train">
+<code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">states</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">actions</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">log_action_prob</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">rewards</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/algorithms/policy_optimization.html#ActorCritic.train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.algorithms.ActorCritic.train" title="Permalink to this definition">¶</a></dt>
+<dd><p>Train models using samples.</p>
+<p>This method is algorithm-specific and needs to be implemented by the user. For example, for the DQN
+algorithm, this may look like train(self, state_batch, action_batch, reward_batch, next_state_batch).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.rl.algorithms.ActorCriticConfig">
+<em class="property">class </em><code class="sig-prename descclassname">maro.rl.algorithms.</code><code class="sig-name descname">ActorCriticConfig</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">reward_discount</span><span class="p">:</span> <span class="n">float</span></em>, <em class="sig-param"><span class="n">critic_loss_func</span><span class="p">:</span> <span class="n">Callable</span></em>, <em class="sig-param"><span class="n">train_iters</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">actor_loss_coefficient</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">1.0</span></em>, <em class="sig-param"><span class="n">k</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">- 1</span></em>, <em class="sig-param"><span class="n">lam</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">1.0</span></em>, <em class="sig-param"><span class="n">clip_ratio</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/algorithms/policy_optimization.html#ActorCriticConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.algorithms.ActorCriticConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.rl.algorithms.policy_optimization.PolicyOptimizationConfig" title="maro.rl.algorithms.policy_optimization.PolicyOptimizationConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.rl.algorithms.policy_optimization.PolicyOptimizationConfig</span></code></a></p>
+<p>Configuration for the Actor-Critic algorithm.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>reward_discount</strong> (<em>float</em>) – Reward decay as defined in standard RL terminology.</p></li>
+<li><p><strong>critic_loss_func</strong> (<em>Callable</em>) – Loss function for the critic model.</p></li>
+<li><p><strong>train_iters</strong> (<em>int</em>) – Number of gradient descent steps per call to <code class="docutils literal notranslate"><span class="pre">train</span></code>.</p></li>
+<li><p><strong>actor_loss_coefficient</strong> (<em>float</em>) – The coefficient for actor loss in the total loss function, e.g.,
+loss = critic_loss + <code class="docutils literal notranslate"><span class="pre">actor_loss_coefficient</span></code> * actor_loss. Defaults to 1.0.</p></li>
+<li><p><strong>k</strong> (<em>int</em>) – Number of time steps used in computing returns or return estimates. Defaults to -1, in which case
+rewards are accumulated until the end of the trajectory.</p></li>
+<li><p><strong>lam</strong> (<em>float</em>) – Lambda coefficient used in computing lambda returns. Defaults to 1.0, in which case the usual
+k-step return is computed.</p></li>
+<li><p><strong>clip_ratio</strong> (<em>float</em>) – Clip ratio in the PPO algorithm (<a class="reference external" href="https://arxiv.org/pdf/1707.06347.pdf">https://arxiv.org/pdf/1707.06347.pdf</a>). Defaults to None,
+in which case the actor loss is calculated using the usual policy gradient theorem.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="maro.rl.algorithms.ActorCriticConfig.actor_loss_coefficient">
+<code class="sig-name descname">actor_loss_coefficient</code><a class="headerlink" href="#maro.rl.algorithms.ActorCriticConfig.actor_loss_coefficient" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.rl.algorithms.ActorCriticConfig.clip_ratio">
+<code class="sig-name descname">clip_ratio</code><a class="headerlink" href="#maro.rl.algorithms.ActorCriticConfig.clip_ratio" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.rl.algorithms.ActorCriticConfig.critic_loss_func">
+<code class="sig-name descname">critic_loss_func</code><a class="headerlink" href="#maro.rl.algorithms.ActorCriticConfig.critic_loss_func" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.rl.algorithms.ActorCriticConfig.k">
+<code class="sig-name descname">k</code><a class="headerlink" href="#maro.rl.algorithms.ActorCriticConfig.k" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.rl.algorithms.ActorCriticConfig.lam">
+<code class="sig-name descname">lam</code><a class="headerlink" href="#maro.rl.algorithms.ActorCriticConfig.lam" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.rl.algorithms.ActorCriticConfig.reward_discount">
+<code class="sig-name descname">reward_discount</code><a class="headerlink" href="#maro.rl.algorithms.ActorCriticConfig.reward_discount" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.rl.algorithms.ActorCriticConfig.train_iters">
+<code class="sig-name descname">train_iters</code><a class="headerlink" href="#maro.rl.algorithms.ActorCriticConfig.train_iters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.rl.algorithms.DQN">
+<em class="property">class </em><code class="sig-prename descclassname">maro.rl.algorithms.</code><code class="sig-name descname">DQN</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span><span class="p">:</span> <span class="n"><a class="reference internal" href="maro.rl.models.html#maro.rl.models.learning_model.LearningModel" title="maro.rl.models.learning_model.LearningModel">maro.rl.models.learning_model.LearningModel</a></span></em>, <em class="sig-param"><span class="n">config</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.rl.algorithms.dqn.DQNConfig" title="maro.rl.algorithms.dqn.DQNConfig">maro.rl.algorithms.dqn.DQNConfig</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/algorithms/dqn.html#DQN"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.algorithms.DQN" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.rl.algorithms.abs_algorithm.AbsAlgorithm" title="maro.rl.algorithms.abs_algorithm.AbsAlgorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.rl.algorithms.abs_algorithm.AbsAlgorithm</span></code></a></p>
+<p>The Deep-Q-Networks algorithm.</p>
+<p>See <a class="reference external" href="https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf">https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf</a> for details.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>LearningModel</em>) – Q-value model.</p></li>
+<li><p><strong>config</strong> – Configuration for DQN algorithm.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.rl.algorithms.DQN.choose_action">
+<code class="sig-name descname">choose_action</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">state</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span> &#x2192; Union<span class="p">[</span>int<span class="p">, </span>numpy.ndarray<span class="p">]</span><a class="reference internal" href="../_modules/maro/rl/algorithms/dqn.html#DQN.choose_action"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.algorithms.DQN.choose_action" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method uses the underlying model(s) to compute an action from a shaped state.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>state</strong> – A state object shaped by a <code class="docutils literal notranslate"><span class="pre">StateShaper</span></code> to conform to the model input format.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The action to be taken given <code class="docutils literal notranslate"><span class="pre">state</span></code>. It is usually necessary to use an <code class="docutils literal notranslate"><span class="pre">ActionShaper</span></code> to convert
+this to an environment executable action.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.algorithms.DQN.set_exploration_params">
+<code class="sig-name descname">set_exploration_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">epsilon</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/algorithms/dqn.html#DQN.set_exploration_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.algorithms.DQN.set_exploration_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.algorithms.DQN.train">
+<code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">states</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">actions</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">rewards</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">next_states</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/algorithms/dqn.html#DQN.train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.algorithms.DQN.train" title="Permalink to this definition">¶</a></dt>
+<dd><p>Train models using samples.</p>
+<p>This method is algorithm-specific and needs to be implemented by the user. For example, for the DQN
+algorithm, this may look like train(self, state_batch, action_batch, reward_batch, next_state_batch).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.rl.algorithms.DQNConfig">
+<em class="property">class </em><code class="sig-prename descclassname">maro.rl.algorithms.</code><code class="sig-name descname">DQNConfig</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">reward_discount</span><span class="p">:</span> <span class="n">float</span></em>, <em class="sig-param"><span class="n">loss_cls</span></em>, <em class="sig-param"><span class="n">target_update_frequency</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">epsilon</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">tau</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.1</span></em>, <em class="sig-param"><span class="n">is_double</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">advantage_mode</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">per_sample_td_error_enabled</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/algorithms/dqn.html#DQNConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.algorithms.DQNConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Configuration for the DQN algorithm.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>reward_discount</strong> (<em>float</em>) – Reward decay as defined in standard RL terminology.</p></li>
+<li><p><strong>loss_cls</strong> – Loss function class for evaluating TD errors.</p></li>
+<li><p><strong>target_update_frequency</strong> (<em>int</em>) – Number of training rounds between target model updates.</p></li>
+<li><p><strong>epsilon</strong> (<em>float</em>) – Exploration rate for epsilon-greedy exploration. Defaults to None.</p></li>
+<li><p><strong>tau</strong> (<em>float</em>) – Soft update coefficient, i.e., target_model = tau * eval_model + (1 - tau) * target_model.</p></li>
+<li><p><strong>is_double</strong> (<em>bool</em>) – If True, the next Q values will be computed according to the double DQN algorithm,
+i.e., q_next = Q_target(s, argmax(Q_eval(s, a))). Otherwise, q_next = max(Q_target(s, a)).
+See <a class="reference external" href="https://arxiv.org/pdf/1509.06461.pdf">https://arxiv.org/pdf/1509.06461.pdf</a> for details. Defaults to False.</p></li>
+<li><p><strong>advantage_mode</strong> (<em>str</em>) – Advantage mode for the dueling architecture. Defaults to None, in which
+case it is assumed that the regular Q-value model is used.</p></li>
+<li><p><strong>per_sample_td_error_enabled</strong> (<em>bool</em>) – If True, per-sample TD errors will be returned by the DQN’s train()
+method. Defaults to False.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="maro.rl.algorithms.DQNConfig.advantage_mode">
+<code class="sig-name descname">advantage_mode</code><a class="headerlink" href="#maro.rl.algorithms.DQNConfig.advantage_mode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.rl.algorithms.DQNConfig.epsilon">
+<code class="sig-name descname">epsilon</code><a class="headerlink" href="#maro.rl.algorithms.DQNConfig.epsilon" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.rl.algorithms.DQNConfig.is_double">
+<code class="sig-name descname">is_double</code><a class="headerlink" href="#maro.rl.algorithms.DQNConfig.is_double" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.rl.algorithms.DQNConfig.loss_func">
+<code class="sig-name descname">loss_func</code><a class="headerlink" href="#maro.rl.algorithms.DQNConfig.loss_func" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.rl.algorithms.DQNConfig.per_sample_td_error_enabled">
+<code class="sig-name descname">per_sample_td_error_enabled</code><a class="headerlink" href="#maro.rl.algorithms.DQNConfig.per_sample_td_error_enabled" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.rl.algorithms.DQNConfig.reward_discount">
+<code class="sig-name descname">reward_discount</code><a class="headerlink" href="#maro.rl.algorithms.DQNConfig.reward_discount" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.rl.algorithms.DQNConfig.target_update_frequency">
+<code class="sig-name descname">target_update_frequency</code><a class="headerlink" href="#maro.rl.algorithms.DQNConfig.target_update_frequency" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.rl.algorithms.DQNConfig.tau">
+<code class="sig-name descname">tau</code><a class="headerlink" href="#maro.rl.algorithms.DQNConfig.tau" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.rl.algorithms.PolicyGradient">
+<em class="property">class </em><code class="sig-prename descclassname">maro.rl.algorithms.</code><code class="sig-name descname">PolicyGradient</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span><span class="p">:</span> <span class="n"><a class="reference internal" href="maro.rl.models.html#maro.rl.models.learning_model.LearningModel" title="maro.rl.models.learning_model.LearningModel">maro.rl.models.learning_model.LearningModel</a></span></em>, <em class="sig-param"><span class="n">config</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/algorithms/policy_optimization.html#PolicyGradient"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.algorithms.PolicyGradient" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.rl.algorithms.policy_optimization.PolicyOptimization" title="maro.rl.algorithms.policy_optimization.PolicyOptimization"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.rl.algorithms.policy_optimization.PolicyOptimization</span></code></a></p>
+<p>The vanilla Policy Gradient (VPG) algorithm, a.k.a., REINFORCE.</p>
+<p>Reference: <a class="reference external" href="https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch">https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch</a>.</p>
+<dl class="py method">
+<dt id="maro.rl.algorithms.PolicyGradient.train">
+<code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">states</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">actions</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">log_action_prob</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">rewards</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/algorithms/policy_optimization.html#PolicyGradient.train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.algorithms.PolicyGradient.train" title="Permalink to this definition">¶</a></dt>
+<dd><p>Train models using samples.</p>
+<p>This method is algorithm-specific and needs to be implemented by the user. For example, for the DQN
+algorithm, this may look like train(self, state_batch, action_batch, reward_batch, next_state_batch).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.rl.algorithms.PolicyOptimization">
+<em class="property">class </em><code class="sig-prename descclassname">maro.rl.algorithms.</code><code class="sig-name descname">PolicyOptimization</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span><span class="p">:</span> <span class="n"><a class="reference internal" href="maro.rl.models.html#maro.rl.models.learning_model.LearningModel" title="maro.rl.models.learning_model.LearningModel">maro.rl.models.learning_model.LearningModel</a></span></em>, <em class="sig-param"><span class="n">config</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/algorithms/policy_optimization.html#PolicyOptimization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.algorithms.PolicyOptimization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.rl.algorithms.abs_algorithm.AbsAlgorithm" title="maro.rl.algorithms.abs_algorithm.AbsAlgorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.rl.algorithms.abs_algorithm.AbsAlgorithm</span></code></a></p>
+<p>Policy optimization algorithm family.</p>
+<p>The algorithm family includes policy gradient (e.g. REINFORCE), actor-critic, PPO, etc.</p>
+<dl class="py method">
+<dt id="maro.rl.algorithms.PolicyOptimization.choose_action">
+<code class="sig-name descname">choose_action</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">state</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span> &#x2192; Union<span class="p">[</span><a class="reference internal" href="#maro.rl.algorithms.policy_optimization.ActionInfo" title="maro.rl.algorithms.policy_optimization.ActionInfo">maro.rl.algorithms.policy_optimization.ActionInfo</a><span class="p">, </span>List<span class="p">[</span><a class="reference internal" href="#maro.rl.algorithms.policy_optimization.ActionInfo" title="maro.rl.algorithms.policy_optimization.ActionInfo">maro.rl.algorithms.policy_optimization.ActionInfo</a><span class="p">]</span><span class="p">]</span><a class="reference internal" href="../_modules/maro/rl/algorithms/policy_optimization.html#PolicyOptimization.choose_action"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.algorithms.PolicyOptimization.choose_action" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use the actor (policy) model to generate stochastic actions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>state</strong> – Input to the actor model.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A single ActionInfo namedtuple or a list of ActionInfo namedtuples.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.algorithms.PolicyOptimization.train">
+<code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">states</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">actions</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">log_action_prob</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">rewards</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/algorithms/policy_optimization.html#PolicyOptimization.train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.algorithms.PolicyOptimization.train" title="Permalink to this definition">¶</a></dt>
+<dd><p>Train models using samples.</p>
+<p>This method is algorithm-specific and needs to be implemented by the user. For example, for the DQN
+algorithm, this may look like train(self, state_batch, action_batch, reward_batch, next_state_batch).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.rl.algorithms.PolicyOptimizationConfig">
+<em class="property">class </em><code class="sig-prename descclassname">maro.rl.algorithms.</code><code class="sig-name descname">PolicyOptimizationConfig</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">reward_discount</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/algorithms/policy_optimization.html#PolicyOptimizationConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.algorithms.PolicyOptimizationConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Configuration for the policy optimization algorithm family.</p>
+<dl class="py attribute">
+<dt id="maro.rl.algorithms.PolicyOptimizationConfig.reward_discount">
+<code class="sig-name descname">reward_discount</code><a class="headerlink" href="#maro.rl.algorithms.PolicyOptimizationConfig.reward_discount" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+    <a class='left-prev' id="prev-link" href="maro.rl.agent.html" title="previous page">maro.rl.agent package</a>
+    <a class='right-next' id="next-link" href="maro.rl.dist_topologies.html" title="next page">maro.rl.dist_topologies package</a>
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../_static/js/index.js"></script>
+    
+  </body>
+</html>

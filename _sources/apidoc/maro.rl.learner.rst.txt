@@ -1,0 +1,30 @@
+maro.rl.learner package
+=======================
+
+Submodules
+----------
+
+maro.rl.learner.abs\_learner module
+-----------------------------------
+
+.. automodule:: maro.rl.learner.abs_learner
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.rl.learner.simple\_learner module
+--------------------------------------
+
+.. automodule:: maro.rl.learner.simple_learner
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: maro.rl.learner
+   :members:
+   :undoc-members:
+   :show-inheritance:

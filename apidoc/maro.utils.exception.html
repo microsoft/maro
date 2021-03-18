@@ -1,0 +1,1056 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maro.utils.exception package &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="maro.utils package" href="maro.utils.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../index.html">
+  
+  <img src="../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="current nav sidenav_l1">
+ <li class="toctree-l1 current active">
+  <a class="reference internal" href="maro.html">
+   maro package
+  </a>
+  <ul class="current">
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.backends.html">
+     maro.backends package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.cli.html">
+     maro.cli package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.data_pipeline.html">
+       maro.cli.data_pipeline package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.envs.html">
+       maro.cli.envs package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.grass.html">
+       maro.cli.grass package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.grass.executors.html">
+         maro.cli.grass.executors package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.grass.utils.html">
+         maro.cli.grass.utils package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.inspector.html">
+       maro.cli.inspector package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.k8s.html">
+       maro.cli.k8s package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.k8s.executors.html">
+         maro.cli.k8s.executors package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.process.html">
+       maro.cli.process package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.process.utils.html">
+         maro.cli.process.utils package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.utils.html">
+       maro.cli.utils package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.utils.executors.html">
+         maro.cli.utils.executors package
+        </a>
+       </li>
+      </ul>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.communication.html">
+     maro.communication package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.communication.driver.html">
+       maro.communication.driver package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.communication.utils.html">
+       maro.communication.utils package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.data_lib.html">
+     maro.data_lib package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.data_lib.cim.html">
+       maro.data_lib.cim package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.event_buffer.html">
+     maro.event_buffer package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.forecasting.html">
+     maro.forecasting package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.rl.html">
+     maro.rl package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.actor.html">
+       maro.rl.actor package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.agent.html">
+       maro.rl.agent package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.algorithms.html">
+       maro.rl.algorithms package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.dist_topologies.html">
+       maro.rl.dist_topologies package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.exploration.html">
+       maro.rl.exploration package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.learner.html">
+       maro.rl.learner package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.models.html">
+       maro.rl.models package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.scheduling.html">
+       maro.rl.scheduling package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.shaping.html">
+       maro.rl.shaping package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.storage.html">
+       maro.rl.storage package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.simulator.html">
+     maro.simulator package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.simulator.scenarios.html">
+       maro.simulator.scenarios package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.cim.html">
+         maro.simulator.scenarios.cim package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.citi_bike.html">
+         maro.simulator.scenarios.citi_bike package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.vm_scheduling.html">
+         maro.simulator.scenarios.vm_scheduling package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.simulator.utils.html">
+       maro.simulator.utils package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 current active">
+    <a class="reference internal" href="maro.utils.html">
+     maro.utils package
+    </a>
+    <ul class="current">
+     <li class="toctree-l3 current active">
+      <a class="current reference internal" href="#">
+       maro.utils.exception package
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+        
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="../_sources/apidoc/maro.utils.exception.rst.txt"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.rst</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2Fapidoc/maro.utils.exception.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        <a class="edit-button" href="https://github.com/microsoft/maro/edit/master/doc/source/apidoc/maro.utils.exception.rst"><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Edit this page"><i class="fas fa-pencil-alt"></i>suggest edit</button></a>
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <div class="tocsection onthispage pt-5 pb-3">
+            <i class="fas fa-list"></i> Contents
+        </div>
+        <nav id="bd-toc-nav">
+            <ul class="nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#submodules">
+   Submodules
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.utils.exception.backends_exception">
+   maro.utils.exception.backends_exception module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.utils.exception.base_exception">
+   maro.utils.exception.base_exception module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.utils.exception.cli_exception">
+   maro.utils.exception.cli_exception module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.utils.exception.communication_exception">
+   maro.utils.exception.communication_exception module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.utils.exception.data_lib_exeption">
+   maro.utils.exception.data_lib_exeption module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.utils.exception.error_code">
+   maro.utils.exception.error_code module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.utils.exception.rl_toolkit_exception">
+   maro.utils.exception.rl_toolkit_exception module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.utils.exception.simulator_exception">
+   maro.utils.exception.simulator_exception module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.utils.exception">
+   Module contents
+  </a>
+ </li>
+</ul>
+
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <div class="section" id="maro-utils-exception-package">
+<h1>maro.utils.exception package<a class="headerlink" href="#maro-utils-exception-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-maro.utils.exception.backends_exception">
+<span id="maro-utils-exception-backends-exception-module"></span><h2>maro.utils.exception.backends_exception module<a class="headerlink" href="#module-maro.utils.exception.backends_exception" title="Permalink to this headline">¶</a></h2>
+<dl class="py exception">
+<dt id="maro.utils.exception.backends_exception.BackendsAccessDeletedNodeException">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.backends_exception.</code><code class="sig-name descname">BackendsAccessDeletedNodeException</code><a class="reference internal" href="../_modules/maro/utils/exception/backends_exception.html#BackendsAccessDeletedNodeException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.backends_exception.BackendsAccessDeletedNodeException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.base_exception.MAROException" title="maro.utils.exception.base_exception.MAROException"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.base_exception.MAROException</span></code></a></p>
+<p>Exception when try to access a deleted node.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="maro.utils.exception.backends_exception.BackendsAppendToNonListAttributeException">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.backends_exception.</code><code class="sig-name descname">BackendsAppendToNonListAttributeException</code><a class="reference internal" href="../_modules/maro/utils/exception/backends_exception.html#BackendsAppendToNonListAttributeException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.backends_exception.BackendsAppendToNonListAttributeException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.base_exception.MAROException" title="maro.utils.exception.base_exception.MAROException"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.base_exception.MAROException</span></code></a></p>
+<p>Exception when append value to a non list attribute.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="maro.utils.exception.backends_exception.BackendsArrayAttributeAccessException">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.backends_exception.</code><code class="sig-name descname">BackendsArrayAttributeAccessException</code><a class="reference internal" href="../_modules/maro/utils/exception/backends_exception.html#BackendsArrayAttributeAccessException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.backends_exception.BackendsArrayAttributeAccessException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.base_exception.MAROException" title="maro.utils.exception.base_exception.MAROException"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.base_exception.MAROException</span></code></a></p>
+<p>Exception when access attribute that slot number greater than 1.</p>
+<p>This exception is caused when using invalid slice interface to access slots.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="maro.utils.exception.backends_exception.BackendsClearNonListAttributeException">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.backends_exception.</code><code class="sig-name descname">BackendsClearNonListAttributeException</code><a class="reference internal" href="../_modules/maro/utils/exception/backends_exception.html#BackendsClearNonListAttributeException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.backends_exception.BackendsClearNonListAttributeException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.base_exception.MAROException" title="maro.utils.exception.base_exception.MAROException"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.base_exception.MAROException</span></code></a></p>
+<p>Exception when try to clear a non list attribute.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="maro.utils.exception.backends_exception.BackendsGetItemInvalidException">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.backends_exception.</code><code class="sig-name descname">BackendsGetItemInvalidException</code><a class="reference internal" href="../_modules/maro/utils/exception/backends_exception.html#BackendsGetItemInvalidException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.backends_exception.BackendsGetItemInvalidException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.base_exception.MAROException" title="maro.utils.exception.base_exception.MAROException"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.base_exception.MAROException</span></code></a></p>
+<p>Exception if the parameters is invalid when getting item from backend.</p>
+<p>Usually this exception is caused by invalid node or attribute index.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="maro.utils.exception.backends_exception.BackendsInsertNonListAttributeException">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.backends_exception.</code><code class="sig-name descname">BackendsInsertNonListAttributeException</code><a class="reference internal" href="../_modules/maro/utils/exception/backends_exception.html#BackendsInsertNonListAttributeException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.backends_exception.BackendsInsertNonListAttributeException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.base_exception.MAROException" title="maro.utils.exception.base_exception.MAROException"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.base_exception.MAROException</span></code></a></p>
+<p>Exception when try to insert a value to non list attribute.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="maro.utils.exception.backends_exception.BackendsInvalidAttributeException">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.backends_exception.</code><code class="sig-name descname">BackendsInvalidAttributeException</code><a class="reference internal" href="../_modules/maro/utils/exception/backends_exception.html#BackendsInvalidAttributeException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.backends_exception.BackendsInvalidAttributeException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.base_exception.MAROException" title="maro.utils.exception.base_exception.MAROException"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.base_exception.MAROException</span></code></a></p>
+<p>Exception when try to access a not exist attribute type.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="maro.utils.exception.backends_exception.BackendsInvalidNodeException">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.backends_exception.</code><code class="sig-name descname">BackendsInvalidNodeException</code><a class="reference internal" href="../_modules/maro/utils/exception/backends_exception.html#BackendsInvalidNodeException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.backends_exception.BackendsInvalidNodeException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.base_exception.MAROException" title="maro.utils.exception.base_exception.MAROException"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.base_exception.MAROException</span></code></a></p>
+<p>Exception when try to access a not exist node type.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="maro.utils.exception.backends_exception.BackendsRemoveFromNonListAttributeException">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.backends_exception.</code><code class="sig-name descname">BackendsRemoveFromNonListAttributeException</code><a class="reference internal" href="../_modules/maro/utils/exception/backends_exception.html#BackendsRemoveFromNonListAttributeException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.backends_exception.BackendsRemoveFromNonListAttributeException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.base_exception.MAROException" title="maro.utils.exception.base_exception.MAROException"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.base_exception.MAROException</span></code></a></p>
+<p>Exception when try to from a value to non list attribute.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="maro.utils.exception.backends_exception.BackendsResizeNonListAttributeException">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.backends_exception.</code><code class="sig-name descname">BackendsResizeNonListAttributeException</code><a class="reference internal" href="../_modules/maro/utils/exception/backends_exception.html#BackendsResizeNonListAttributeException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.backends_exception.BackendsResizeNonListAttributeException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.base_exception.MAROException" title="maro.utils.exception.base_exception.MAROException"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.base_exception.MAROException</span></code></a></p>
+<p>Exception when try to resize a non list attribute.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="maro.utils.exception.backends_exception.BackendsSetItemInvalidException">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.backends_exception.</code><code class="sig-name descname">BackendsSetItemInvalidException</code><a class="reference internal" href="../_modules/maro/utils/exception/backends_exception.html#BackendsSetItemInvalidException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.backends_exception.BackendsSetItemInvalidException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.base_exception.MAROException" title="maro.utils.exception.base_exception.MAROException"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.base_exception.MAROException</span></code></a></p>
+<p>Exception if the parameter is invalid when setting item from backend.</p>
+<p>Usually this exception is caused by invalid node or attribute index.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.utils.exception.base_exception">
+<span id="maro-utils-exception-base-exception-module"></span><h2>maro.utils.exception.base_exception module<a class="headerlink" href="#module-maro.utils.exception.base_exception" title="Permalink to this headline">¶</a></h2>
+<dl class="py exception">
+<dt id="maro.utils.exception.base_exception.MAROException">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.base_exception.</code><code class="sig-name descname">MAROException</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">error_code</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1000</span></em>, <em class="sig-param"><span class="n">msg</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/exception/base_exception.html#MAROException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.base_exception.MAROException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>The base exception class for MARO.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>error_code</strong> (<em>int</em>) – the predefined MARO error code. You can find the
+detailed definition in: <cite>maro.utils.exception.error_code.py</cite>.</p></li>
+<li><p><strong>msg</strong> (<em>str</em>) – Description of the error. Defaults to None, which will
+show the base error information.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.utils.exception.cli_exception">
+<span id="maro-utils-exception-cli-exception-module"></span><h2>maro.utils.exception.cli_exception module<a class="headerlink" href="#module-maro.utils.exception.cli_exception" title="Permalink to this headline">¶</a></h2>
+<dl class="py exception">
+<dt id="maro.utils.exception.cli_exception.BadRequestError">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.cli_exception.</code><code class="sig-name descname">BadRequestError</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/exception/cli_exception.html#BadRequestError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.cli_exception.BadRequestError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.cli_exception.UserFault" title="maro.utils.exception.cli_exception.UserFault"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.cli_exception.UserFault</span></code></a></p>
+<p>Bad request from client.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="maro.utils.exception.cli_exception.CliError">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.cli_exception.</code><code class="sig-name descname">CliError</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">error_code</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">3000</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/exception/cli_exception.html#CliError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.cli_exception.CliError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.base_exception.MAROException" title="maro.utils.exception.base_exception.MAROException"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.base_exception.MAROException</span></code></a></p>
+<p>Base class for all MARO CLI errors.</p>
+<dl class="py method">
+<dt id="maro.utils.exception.cli_exception.CliError.get_message">
+<code class="sig-name descname">get_message</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; str<a class="reference internal" href="../_modules/maro/utils/exception/cli_exception.html#CliError.get_message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.cli_exception.CliError.get_message" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the error message of the Exception.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Error message.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt id="maro.utils.exception.cli_exception.CliInternalError">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.cli_exception.</code><code class="sig-name descname">CliInternalError</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/exception/cli_exception.html#CliInternalError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.cli_exception.CliInternalError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.cli_exception.ClientError" title="maro.utils.exception.cli_exception.ClientError"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.cli_exception.ClientError</span></code></a></p>
+<p>MARO CLI internal error.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="maro.utils.exception.cli_exception.ClientError">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.cli_exception.</code><code class="sig-name descname">ClientError</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">error_code</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">3000</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/exception/cli_exception.html#ClientError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.cli_exception.ClientError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.cli_exception.CliError" title="maro.utils.exception.cli_exception.CliError"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.cli_exception.CliError</span></code></a></p>
+<p>MARO CLI should be responsible for the errors.
+ErrorCode with 31XX.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="maro.utils.exception.cli_exception.ClusterInternalError">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.cli_exception.</code><code class="sig-name descname">ClusterInternalError</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/exception/cli_exception.html#ClusterInternalError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.cli_exception.ClusterInternalError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.cli_exception.ServiceError" title="maro.utils.exception.cli_exception.ServiceError"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.cli_exception.ServiceError</span></code></a></p>
+<p>MARO Cluster internal error.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="maro.utils.exception.cli_exception.CommandError">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.cli_exception.</code><code class="sig-name descname">CommandError</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cli_command</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">message</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/exception/cli_exception.html#CommandError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.cli_exception.CommandError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.cli_exception.CliError" title="maro.utils.exception.cli_exception.CliError"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.cli_exception.CliError</span></code></a></p>
+<p>Failed execution error of CLI command.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="maro.utils.exception.cli_exception.CommandExecutionError">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.cli_exception.</code><code class="sig-name descname">CommandExecutionError</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">command</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/exception/cli_exception.html#CommandExecutionError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.cli_exception.CommandExecutionError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.cli_exception.ServiceError" title="maro.utils.exception.cli_exception.ServiceError"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.cli_exception.ServiceError</span></code></a></p>
+<p>Subprocess execution error.</p>
+<dl class="py method">
+<dt id="maro.utils.exception.cli_exception.CommandExecutionError.get_message">
+<code class="sig-name descname">get_message</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; str<a class="reference internal" href="../_modules/maro/utils/exception/cli_exception.html#CommandExecutionError.get_message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.cli_exception.CommandExecutionError.get_message" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the error message of the Exception.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Error message.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt id="maro.utils.exception.cli_exception.CommandNotFoundError">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.cli_exception.</code><code class="sig-name descname">CommandNotFoundError</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">usage</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">''</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/exception/cli_exception.html#CommandNotFoundError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.cli_exception.CommandNotFoundError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.cli_exception.UserFault" title="maro.utils.exception.cli_exception.UserFault"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.cli_exception.UserFault</span></code></a></p>
+<p>Command is misspelled or not recognized by MARO CLI.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="maro.utils.exception.cli_exception.DeploymentError">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.cli_exception.</code><code class="sig-name descname">DeploymentError</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/exception/cli_exception.html#DeploymentError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.cli_exception.DeploymentError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.cli_exception.UserFault" title="maro.utils.exception.cli_exception.UserFault"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.cli_exception.UserFault</span></code></a></p>
+<p>MARO deployment fails.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="maro.utils.exception.cli_exception.FileOperationError">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.cli_exception.</code><code class="sig-name descname">FileOperationError</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/exception/cli_exception.html#FileOperationError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.cli_exception.FileOperationError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.cli_exception.UserFault" title="maro.utils.exception.cli_exception.UserFault"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.cli_exception.UserFault</span></code></a></p>
+<p>For file or directory operation related errors.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="maro.utils.exception.cli_exception.InvalidDeploymentTemplateError">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.cli_exception.</code><code class="sig-name descname">InvalidDeploymentTemplateError</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/exception/cli_exception.html#InvalidDeploymentTemplateError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.cli_exception.InvalidDeploymentTemplateError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.cli_exception.UserFault" title="maro.utils.exception.cli_exception.UserFault"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.cli_exception.UserFault</span></code></a></p>
+<p>MARO deployment template validation fails.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="maro.utils.exception.cli_exception.ProcessInternalError">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.cli_exception.</code><code class="sig-name descname">ProcessInternalError</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/exception/cli_exception.html#ProcessInternalError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.cli_exception.ProcessInternalError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.cli_exception.UserFault" title="maro.utils.exception.cli_exception.UserFault"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.cli_exception.UserFault</span></code></a></p>
+<p>Errors in MARO CLI process mode.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="maro.utils.exception.cli_exception.ServiceError">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.cli_exception.</code><code class="sig-name descname">ServiceError</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">error_code</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">3000</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/exception/cli_exception.html#ServiceError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.cli_exception.ServiceError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.cli_exception.CliError" title="maro.utils.exception.cli_exception.CliError"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.cli_exception.CliError</span></code></a></p>
+<p>MARO Services should be responsible for the errors.
+ErrorCode with 32XX.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="maro.utils.exception.cli_exception.UserFault">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.cli_exception.</code><code class="sig-name descname">UserFault</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">error_code</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">3000</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/exception/cli_exception.html#UserFault"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.cli_exception.UserFault" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.cli_exception.CliError" title="maro.utils.exception.cli_exception.CliError"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.cli_exception.CliError</span></code></a></p>
+<p>Users should be responsible for the errors.
+ErrorCode with 30XX.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.utils.exception.communication_exception">
+<span id="maro-utils-exception-communication-exception-module"></span><h2>maro.utils.exception.communication_exception module<a class="headerlink" href="#module-maro.utils.exception.communication_exception" title="Permalink to this headline">¶</a></h2>
+<dl class="py exception">
+<dt id="maro.utils.exception.communication_exception.ConditionalEventSyntaxError">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.communication_exception.</code><code class="sig-name descname">ConditionalEventSyntaxError</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/exception/communication_exception.html#ConditionalEventSyntaxError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.communication_exception.ConditionalEventSyntaxError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.base_exception.MAROException" title="maro.utils.exception.base_exception.MAROException"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.base_exception.MAROException</span></code></a></p>
+<p>The syntax error of a conditional event.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="maro.utils.exception.communication_exception.DriverReceiveError">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.communication_exception.</code><code class="sig-name descname">DriverReceiveError</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/exception/communication_exception.html#DriverReceiveError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.communication_exception.DriverReceiveError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.base_exception.MAROException" title="maro.utils.exception.base_exception.MAROException"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.base_exception.MAROException</span></code></a></p>
+<p>Failure to receive message in the driver.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="maro.utils.exception.communication_exception.DriverSendError">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.communication_exception.</code><code class="sig-name descname">DriverSendError</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/exception/communication_exception.html#DriverSendError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.communication_exception.DriverSendError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.base_exception.MAROException" title="maro.utils.exception.base_exception.MAROException"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.base_exception.MAROException</span></code></a></p>
+<p>Failure to send message in the driver.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="maro.utils.exception.communication_exception.DriverTypeError">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.communication_exception.</code><code class="sig-name descname">DriverTypeError</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/exception/communication_exception.html#DriverTypeError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.communication_exception.DriverTypeError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.base_exception.MAROException" title="maro.utils.exception.base_exception.MAROException"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.base_exception.MAROException</span></code></a></p>
+<p>The unrecognized driver type, occurs in the proxy.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="maro.utils.exception.communication_exception.InformationUncompletedError">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.communication_exception.</code><code class="sig-name descname">InformationUncompletedError</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/exception/communication_exception.html#InformationUncompletedError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.communication_exception.InformationUncompletedError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.base_exception.MAROException" title="maro.utils.exception.base_exception.MAROException"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.base_exception.MAROException</span></code></a></p>
+<p>No enough information from the Redis.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="maro.utils.exception.communication_exception.MessageSessionTypeError">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.communication_exception.</code><code class="sig-name descname">MessageSessionTypeError</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/exception/communication_exception.html#MessageSessionTypeError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.communication_exception.MessageSessionTypeError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.base_exception.MAROException" title="maro.utils.exception.base_exception.MAROException"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.base_exception.MAROException</span></code></a></p>
+<p>The unrecognized session type, occurs in the <code class="docutils literal notranslate"><span class="pre">SessionMessage</span></code>.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="maro.utils.exception.communication_exception.PeersConnectionError">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.communication_exception.</code><code class="sig-name descname">PeersConnectionError</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/exception/communication_exception.html#PeersConnectionError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.communication_exception.PeersConnectionError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.base_exception.MAROException" title="maro.utils.exception.base_exception.MAROException"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.base_exception.MAROException</span></code></a></p>
+<p>Peers connection error, occurs in the driver.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="maro.utils.exception.communication_exception.PeersDisconnectionError">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.communication_exception.</code><code class="sig-name descname">PeersDisconnectionError</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/exception/communication_exception.html#PeersDisconnectionError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.communication_exception.PeersDisconnectionError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.base_exception.MAROException" title="maro.utils.exception.base_exception.MAROException"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.base_exception.MAROException</span></code></a></p>
+<p>Peers disconnection error, occurs in the driver.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="maro.utils.exception.communication_exception.PeersMissError">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.communication_exception.</code><code class="sig-name descname">PeersMissError</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/exception/communication_exception.html#PeersMissError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.communication_exception.PeersMissError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.base_exception.MAROException" title="maro.utils.exception.base_exception.MAROException"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.base_exception.MAROException</span></code></a></p>
+<p>Proxy do not have any expected peers.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="maro.utils.exception.communication_exception.PeersRejoinTimeout">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.communication_exception.</code><code class="sig-name descname">PeersRejoinTimeout</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/exception/communication_exception.html#PeersRejoinTimeout"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.communication_exception.PeersRejoinTimeout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.base_exception.MAROException" title="maro.utils.exception.base_exception.MAROException"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.base_exception.MAROException</span></code></a></p>
+<p>Failure to get enough peers during the max waiting time.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="maro.utils.exception.communication_exception.PendingToSend">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.communication_exception.</code><code class="sig-name descname">PendingToSend</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/exception/communication_exception.html#PendingToSend"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.communication_exception.PendingToSend" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.base_exception.MAROException" title="maro.utils.exception.base_exception.MAROException"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.base_exception.MAROException</span></code></a></p>
+<p>Temporary failure to send message, try to rejoin.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="maro.utils.exception.communication_exception.RedisConnectionError">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.communication_exception.</code><code class="sig-name descname">RedisConnectionError</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/exception/communication_exception.html#RedisConnectionError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.communication_exception.RedisConnectionError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.base_exception.MAROException" title="maro.utils.exception.base_exception.MAROException"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.base_exception.MAROException</span></code></a></p>
+<p>Failure to connect to redis, occurs in the proxy.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="maro.utils.exception.communication_exception.SocketTypeError">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.communication_exception.</code><code class="sig-name descname">SocketTypeError</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/exception/communication_exception.html#SocketTypeError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.communication_exception.SocketTypeError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.base_exception.MAROException" title="maro.utils.exception.base_exception.MAROException"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.base_exception.MAROException</span></code></a></p>
+<p>The unrecognized socket type, occurs in the driver.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.utils.exception.data_lib_exeption">
+<span id="maro-utils-exception-data-lib-exeption-module"></span><h2>maro.utils.exception.data_lib_exeption module<a class="headerlink" href="#module-maro.utils.exception.data_lib_exeption" title="Permalink to this headline">¶</a></h2>
+<dl class="py exception">
+<dt id="maro.utils.exception.data_lib_exeption.CimGeneratorInvalidParkingDuration">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.data_lib_exeption.</code><code class="sig-name descname">CimGeneratorInvalidParkingDuration</code><a class="reference internal" href="../_modules/maro/utils/exception/data_lib_exeption.html#CimGeneratorInvalidParkingDuration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.data_lib_exeption.CimGeneratorInvalidParkingDuration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.base_exception.MAROException" title="maro.utils.exception.base_exception.MAROException"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.base_exception.MAROException</span></code></a></p>
+<p>Exception when parking duration is less than 0 in CIM topology file.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="maro.utils.exception.data_lib_exeption.MetaTimestampNotExist">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.data_lib_exeption.</code><code class="sig-name descname">MetaTimestampNotExist</code><a class="reference internal" href="../_modules/maro/utils/exception/data_lib_exeption.html#MetaTimestampNotExist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.data_lib_exeption.MetaTimestampNotExist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.base_exception.MAROException" title="maro.utils.exception.base_exception.MAROException"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.base_exception.MAROException</span></code></a></p>
+<p>Exception that there is no timestamp specified in meta file, as this is required field.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.utils.exception.error_code">
+<span id="maro-utils-exception-error-code-module"></span><h2>maro.utils.exception.error_code module<a class="headerlink" href="#module-maro.utils.exception.error_code" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-maro.utils.exception.rl_toolkit_exception">
+<span id="maro-utils-exception-rl-toolkit-exception-module"></span><h2>maro.utils.exception.rl_toolkit_exception module<a class="headerlink" href="#module-maro.utils.exception.rl_toolkit_exception" title="Permalink to this headline">¶</a></h2>
+<dl class="py exception">
+<dt id="maro.utils.exception.rl_toolkit_exception.AgentManagerModeError">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.rl_toolkit_exception.</code><code class="sig-name descname">AgentManagerModeError</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/exception/rl_toolkit_exception.html#AgentManagerModeError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.rl_toolkit_exception.AgentManagerModeError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.base_exception.MAROException" title="maro.utils.exception.base_exception.MAROException"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.base_exception.MAROException</span></code></a></p>
+<p>Wrong agent manager mode.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="maro.utils.exception.rl_toolkit_exception.InfiniteTrainingLoop">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.rl_toolkit_exception.</code><code class="sig-name descname">InfiniteTrainingLoop</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/exception/rl_toolkit_exception.html#InfiniteTrainingLoop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.rl_toolkit_exception.InfiniteTrainingLoop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.base_exception.MAROException" title="maro.utils.exception.base_exception.MAROException"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.base_exception.MAROException</span></code></a></p>
+<p>Raised when the <code class="docutils literal notranslate"><span class="pre">SimpleLearner</span></code>’s training loop becomes infinite.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="maro.utils.exception.rl_toolkit_exception.InvalidEpisode">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.rl_toolkit_exception.</code><code class="sig-name descname">InvalidEpisode</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/exception/rl_toolkit_exception.html#InvalidEpisode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.rl_toolkit_exception.InvalidEpisode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.base_exception.MAROException" title="maro.utils.exception.base_exception.MAROException"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.base_exception.MAROException</span></code></a></p>
+<p>Raised when the <code class="docutils literal notranslate"><span class="pre">max_episode</span></code> passed to the the <code class="docutils literal notranslate"><span class="pre">SimpleLearner</span></code>’s <code class="docutils literal notranslate"><span class="pre">train</span></code> method is negative and not -1.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="maro.utils.exception.rl_toolkit_exception.MissingOptimizer">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.rl_toolkit_exception.</code><code class="sig-name descname">MissingOptimizer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/exception/rl_toolkit_exception.html#MissingOptimizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.rl_toolkit_exception.MissingOptimizer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.base_exception.MAROException" title="maro.utils.exception.base_exception.MAROException"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.base_exception.MAROException</span></code></a></p>
+<p>Raised when the optimizers are missing when calling LearningModel’s step() method.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="maro.utils.exception.rl_toolkit_exception.MissingShaper">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.rl_toolkit_exception.</code><code class="sig-name descname">MissingShaper</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/exception/rl_toolkit_exception.html#MissingShaper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.rl_toolkit_exception.MissingShaper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.base_exception.MAROException" title="maro.utils.exception.base_exception.MAROException"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.base_exception.MAROException</span></code></a></p>
+<p>Missing shaper.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="maro.utils.exception.rl_toolkit_exception.NNStackDimensionError">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.rl_toolkit_exception.</code><code class="sig-name descname">NNStackDimensionError</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/exception/rl_toolkit_exception.html#NNStackDimensionError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.rl_toolkit_exception.NNStackDimensionError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.base_exception.MAROException" title="maro.utils.exception.base_exception.MAROException"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.base_exception.MAROException</span></code></a></p>
+<p>Raised when a learning module’s input dimension is incorrect.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="maro.utils.exception.rl_toolkit_exception.StoreMisalignment">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.rl_toolkit_exception.</code><code class="sig-name descname">StoreMisalignment</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/exception/rl_toolkit_exception.html#StoreMisalignment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.rl_toolkit_exception.StoreMisalignment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.base_exception.MAROException" title="maro.utils.exception.base_exception.MAROException"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.base_exception.MAROException</span></code></a></p>
+<p>Raised when a <code class="docutils literal notranslate"><span class="pre">put</span></code> operation on a <code class="docutils literal notranslate"><span class="pre">ColumnBasedStore</span></code> would cause the underlying lists to have different
+sizes.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="maro.utils.exception.rl_toolkit_exception.UnrecognizedTask">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.rl_toolkit_exception.</code><code class="sig-name descname">UnrecognizedTask</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/exception/rl_toolkit_exception.html#UnrecognizedTask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.rl_toolkit_exception.UnrecognizedTask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.base_exception.MAROException" title="maro.utils.exception.base_exception.MAROException"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.base_exception.MAROException</span></code></a></p>
+<p>Raised when a LearningModel has task names that are not unrecognized by an algorithm.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.utils.exception.simulator_exception">
+<span id="maro-utils-exception-simulator-exception-module"></span><h2>maro.utils.exception.simulator_exception module<a class="headerlink" href="#module-maro.utils.exception.simulator_exception" title="Permalink to this headline">¶</a></h2>
+<dl class="py exception">
+<dt id="maro.utils.exception.simulator_exception.BusinessEngineNotFoundError">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.simulator_exception.</code><code class="sig-name descname">BusinessEngineNotFoundError</code><a class="reference internal" href="../_modules/maro/utils/exception/simulator_exception.html#BusinessEngineNotFoundError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.simulator_exception.BusinessEngineNotFoundError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.exception.base_exception.MAROException" title="maro.utils.exception.base_exception.MAROException"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.exception.base_exception.MAROException</span></code></a></p>
+<p>Exception then the simulator cannot find specified business engine module.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.utils.exception">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-maro.utils.exception" title="Permalink to this headline">¶</a></h2>
+<dl class="py exception">
+<dt id="maro.utils.exception.MAROException">
+<em class="property">exception </em><code class="sig-prename descclassname">maro.utils.exception.</code><code class="sig-name descname">MAROException</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">error_code</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1000</span></em>, <em class="sig-param"><span class="n">msg</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/exception/base_exception.html#MAROException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.exception.MAROException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>The base exception class for MARO.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>error_code</strong> (<em>int</em>) – the predefined MARO error code. You can find the
+detailed definition in: <cite>maro.utils.exception.error_code.py</cite>.</p></li>
+<li><p><strong>msg</strong> (<em>str</em>) – Description of the error. Defaults to None, which will
+show the base error information.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+    <a class='left-prev' id="prev-link" href="maro.utils.html" title="previous page">maro.utils package</a>
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../_static/js/index.js"></script>
+    
+  </body>
+</html>

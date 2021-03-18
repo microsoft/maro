@@ -1,0 +1,70 @@
+maro.cli.process package
+========================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   maro.cli.process.utils
+
+Submodules
+----------
+
+maro.cli.process.create module
+------------------------------
+
+.. automodule:: maro.cli.process.create
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.cli.process.delete module
+------------------------------
+
+.. automodule:: maro.cli.process.delete
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.cli.process.executor module
+--------------------------------
+
+.. automodule:: maro.cli.process.executor
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.cli.process.job module
+---------------------------
+
+.. automodule:: maro.cli.process.job
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.cli.process.schedule module
+--------------------------------
+
+.. automodule:: maro.cli.process.schedule
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.cli.process.template module
+--------------------------------
+
+.. automodule:: maro.cli.process.template
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: maro.cli.process
+   :members:
+   :undoc-members:
+   :show-inheritance:

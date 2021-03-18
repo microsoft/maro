@@ -1,0 +1,78 @@
+maro.cli.inspector package
+==========================
+
+Submodules
+----------
+
+maro.cli.inspector.cim\_dashboard module
+----------------------------------------
+
+.. automodule:: maro.cli.inspector.cim_dashboard
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.cli.inspector.citi\_bike\_dashboard module
+-----------------------------------------------
+
+.. automodule:: maro.cli.inspector.citi_bike_dashboard
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.cli.inspector.dashboard\_helper module
+-------------------------------------------
+
+.. automodule:: maro.cli.inspector.dashboard_helper
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.cli.inspector.env\_data\_process module
+--------------------------------------------
+
+.. automodule:: maro.cli.inspector.env_data_process
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.cli.inspector.launch\_env\_dashboard module
+------------------------------------------------
+
+.. automodule:: maro.cli.inspector.launch_env_dashboard
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.cli.inspector.params module
+--------------------------------
+
+.. automodule:: maro.cli.inspector.params
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.cli.inspector.visualization module
+---------------------------------------
+
+.. automodule:: maro.cli.inspector.visualization
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.cli.inspector.visualization\_choice module
+-----------------------------------------------
+
+.. automodule:: maro.cli.inspector.visualization_choice
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: maro.cli.inspector
+   :members:
+   :undoc-members:
+   :show-inheritance:

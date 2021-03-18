@@ -1,0 +1,36 @@
+maro.cli package
+================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   maro.cli.data_pipeline
+   maro.cli.envs
+   maro.cli.grass
+   maro.cli.inspector
+   maro.cli.k8s
+   maro.cli.process
+   maro.cli.utils
+
+Submodules
+----------
+
+maro.cli.maro module
+--------------------
+
+.. automodule:: maro.cli.maro
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: maro.cli
+   :members:
+   :undoc-members:
+   :show-inheritance:

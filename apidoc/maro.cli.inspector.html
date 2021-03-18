@@ -1,0 +1,1118 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maro.cli.inspector package &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="maro.cli.k8s package" href="maro.cli.k8s.html" />
+    <link rel="prev" title="maro.cli.grass.utils package" href="maro.cli.grass.utils.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../index.html">
+  
+  <img src="../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="current nav sidenav_l1">
+ <li class="toctree-l1 current active">
+  <a class="reference internal" href="maro.html">
+   maro package
+  </a>
+  <ul class="current">
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.backends.html">
+     maro.backends package
+    </a>
+   </li>
+   <li class="toctree-l2 current active">
+    <a class="reference internal" href="maro.cli.html">
+     maro.cli package
+    </a>
+    <ul class="current">
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.data_pipeline.html">
+       maro.cli.data_pipeline package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.envs.html">
+       maro.cli.envs package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.grass.html">
+       maro.cli.grass package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.grass.executors.html">
+         maro.cli.grass.executors package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.grass.utils.html">
+         maro.cli.grass.utils package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3 current active">
+      <a class="current reference internal" href="#">
+       maro.cli.inspector package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.k8s.html">
+       maro.cli.k8s package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.k8s.executors.html">
+         maro.cli.k8s.executors package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.process.html">
+       maro.cli.process package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.process.utils.html">
+         maro.cli.process.utils package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.utils.html">
+       maro.cli.utils package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.utils.executors.html">
+         maro.cli.utils.executors package
+        </a>
+       </li>
+      </ul>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.communication.html">
+     maro.communication package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.communication.driver.html">
+       maro.communication.driver package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.communication.utils.html">
+       maro.communication.utils package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.data_lib.html">
+     maro.data_lib package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.data_lib.cim.html">
+       maro.data_lib.cim package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.event_buffer.html">
+     maro.event_buffer package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.forecasting.html">
+     maro.forecasting package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.rl.html">
+     maro.rl package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.actor.html">
+       maro.rl.actor package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.agent.html">
+       maro.rl.agent package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.algorithms.html">
+       maro.rl.algorithms package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.dist_topologies.html">
+       maro.rl.dist_topologies package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.exploration.html">
+       maro.rl.exploration package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.learner.html">
+       maro.rl.learner package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.models.html">
+       maro.rl.models package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.scheduling.html">
+       maro.rl.scheduling package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.shaping.html">
+       maro.rl.shaping package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.storage.html">
+       maro.rl.storage package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.simulator.html">
+     maro.simulator package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.simulator.scenarios.html">
+       maro.simulator.scenarios package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.cim.html">
+         maro.simulator.scenarios.cim package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.citi_bike.html">
+         maro.simulator.scenarios.citi_bike package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.vm_scheduling.html">
+         maro.simulator.scenarios.vm_scheduling package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.simulator.utils.html">
+       maro.simulator.utils package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.utils.html">
+     maro.utils package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.utils.exception.html">
+       maro.utils.exception package
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+        
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="../_sources/apidoc/maro.cli.inspector.rst.txt"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.rst</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2Fapidoc/maro.cli.inspector.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        <a class="edit-button" href="https://github.com/microsoft/maro/edit/master/doc/source/apidoc/maro.cli.inspector.rst"><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Edit this page"><i class="fas fa-pencil-alt"></i>suggest edit</button></a>
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <div class="tocsection onthispage pt-5 pb-3">
+            <i class="fas fa-list"></i> Contents
+        </div>
+        <nav id="bd-toc-nav">
+            <ul class="nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#submodules">
+   Submodules
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.cli.inspector.cim_dashboard">
+   maro.cli.inspector.cim_dashboard module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.cli.inspector.citi_bike_dashboard">
+   maro.cli.inspector.citi_bike_dashboard module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.cli.inspector.dashboard_helper">
+   maro.cli.inspector.dashboard_helper module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.cli.inspector.env_data_process">
+   maro.cli.inspector.env_data_process module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.cli.inspector.launch_env_dashboard">
+   maro.cli.inspector.launch_env_dashboard module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.cli.inspector.params">
+   maro.cli.inspector.params module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.cli.inspector.visualization">
+   maro.cli.inspector.visualization module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.cli.inspector.visualization_choice">
+   maro.cli.inspector.visualization_choice module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.cli.inspector">
+   Module contents
+  </a>
+ </li>
+</ul>
+
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <div class="section" id="maro-cli-inspector-package">
+<h1>maro.cli.inspector package<a class="headerlink" href="#maro-cli-inspector-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-maro.cli.inspector.cim_dashboard">
+<span id="maro-cli-inspector-cim-dashboard-module"></span><h2>maro.cli.inspector.cim_dashboard module<a class="headerlink" href="#module-maro.cli.inspector.cim_dashboard" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="maro.cli.inspector.cim_dashboard.render_inter_view">
+<code class="sig-prename descclassname">maro.cli.inspector.cim_dashboard.</code><code class="sig-name descname">render_inter_view</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source_path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">epoch_num</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/inspector/cim_dashboard.html#render_inter_view"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.inspector.cim_dashboard.render_inter_view" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show CIM inter-view plot.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>source_path</strong> (<em>str</em>) – The root path of the dumped snapshots data for the corresponding experiment.</p></li>
+<li><p><strong>epoch_num</strong> (<em>int</em>) – Total number of epoches,
+i.e. the total number of data folders since there is a folder per epoch.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.cli.inspector.cim_dashboard.render_intra_view">
+<code class="sig-prename descclassname">maro.cli.inspector.cim_dashboard.</code><code class="sig-name descname">render_intra_view</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source_path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">epoch_num</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">prefix</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/inspector/cim_dashboard.html#render_intra_view"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.inspector.cim_dashboard.render_intra_view" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show CIM intra-view plot.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>source_path</strong> (<em>str</em>) – The root path of the dumped snapshots data for the corresponding experiment.</p></li>
+<li><p><strong>epoch_num</strong> (<em>int</em>) – Total number of epoches,
+i.e. the total number of data folders since there is a folder per epoch.</p></li>
+<li><p><strong>prefix</strong> (<em>str</em>) – Prefix of data folders.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.cli.inspector.cim_dashboard.start_cim_dashboard">
+<code class="sig-prename descclassname">maro.cli.inspector.cim_dashboard.</code><code class="sig-name descname">start_cim_dashboard</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source_path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">epoch_num</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">prefix</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/inspector/cim_dashboard.html#start_cim_dashboard"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.inspector.cim_dashboard.start_cim_dashboard" title="Permalink to this definition">¶</a></dt>
+<dd><p>Entrance of cim dashboard.</p>
+<p>Expected folder structure of Scenario CIM:
+-source_path</p>
+<blockquote>
+<div><dl class="simple">
+<dt>–epoch_0: Data of each epoch.</dt><dd><p>–ports.csv: Record ports’ attributes in this file.
+–vessel.csv: Record vessels’ attributes in this file.
+–matrices.csv: Record transfer volume information in this file.</p>
+</dd>
+</dl>
+<p>………………
+–epoch_{epoch_num-1}
+–manifest.yml: Record basic info like scenario name, name of index_name_mapping file.
+–config.yml: Record the relationship between ports’ index and name.
+–ports_summary.csv: Record cross-epoch summary data.</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>source_path</strong> (<em>str</em>) – The root path of the dumped snapshots data for the corresponding experiment.</p></li>
+<li><p><strong>epoch_num</strong> (<em>int</em>) – Total number of epoches,
+i.e. the total number of data folders since there is a folder per epoch.</p></li>
+<li><p><strong>prefix</strong> (<em>str</em>) – Prefix of data folders.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.cli.inspector.citi_bike_dashboard">
+<span id="maro-cli-inspector-citi-bike-dashboard-module"></span><h2>maro.cli.inspector.citi_bike_dashboard module<a class="headerlink" href="#module-maro.cli.inspector.citi_bike_dashboard" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="maro.cli.inspector.citi_bike_dashboard.render_inter_view">
+<code class="sig-prename descclassname">maro.cli.inspector.citi_bike_dashboard.</code><code class="sig-name descname">render_inter_view</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source_path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">epoch_num</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/inspector/citi_bike_dashboard.html#render_inter_view"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.inspector.citi_bike_dashboard.render_inter_view" title="Permalink to this definition">¶</a></dt>
+<dd><p>Render the cross-epoch infomartion chart of Citi Bike data.</p>
+<p>This part would be displayed only if epoch_num &gt; 1.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>source_path</strong> (<em>str</em>) – The root path of the dumped snapshots data for the corresponding experiment.</p></li>
+<li><p><strong>epoch_num</strong> (<em>int</em>) – Total number of epoches,
+i.e. the total number of data folders since there is a folder per epoch.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.cli.inspector.citi_bike_dashboard.render_intra_view">
+<code class="sig-prename descclassname">maro.cli.inspector.citi_bike_dashboard.</code><code class="sig-name descname">render_intra_view</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source_path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">epoch_num</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">prefix</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/inspector/citi_bike_dashboard.html#render_intra_view"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.inspector.citi_bike_dashboard.render_intra_view" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show Citi Bike intra-view plot.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>source_path</strong> (<em>str</em>) – The root path of the dumped snapshots data for the corresponding experiment.</p></li>
+<li><p><strong>epoch_num</strong> (<em>int</em>) – Total number of epoches,
+i.e. the total number of data folders since there is a folder per epoch.</p></li>
+<li><p><strong>prefix</strong> (<em>str</em>) – Prefix of data folders.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.cli.inspector.citi_bike_dashboard.render_top_k_summary">
+<code class="sig-prename descclassname">maro.cli.inspector.citi_bike_dashboard.</code><code class="sig-name descname">render_top_k_summary</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source_path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">prefix</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">epoch_index</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/inspector/citi_bike_dashboard.html#render_top_k_summary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.inspector.citi_bike_dashboard.render_top_k_summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show top-k summary plot.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>source_path</strong> (<em>str</em>) – The root path of the dumped snapshots data for the corresponding experiment.</p></li>
+<li><p><strong>prefix</strong> (<em>str</em>) – Prefix of data folders.</p></li>
+<li><p><strong>epoch_index</strong> (<em>int</em>) – The index of selected epoch.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.cli.inspector.citi_bike_dashboard.start_citi_bike_dashboard">
+<code class="sig-prename descclassname">maro.cli.inspector.citi_bike_dashboard.</code><code class="sig-name descname">start_citi_bike_dashboard</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source_path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">epoch_num</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">prefix</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/inspector/citi_bike_dashboard.html#start_citi_bike_dashboard"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.inspector.citi_bike_dashboard.start_citi_bike_dashboard" title="Permalink to this definition">¶</a></dt>
+<dd><p>Entrance of Citi_Bike dashboard.</p>
+<p>Expected folder structure of Scenario Citi Bike:
+-source_path</p>
+<blockquote>
+<div><dl class="simple">
+<dt>–epoch_0: Data of each epoch.</dt><dd><p>–stations.csv: Record stations’ attributes in this file.
+–matrices.csv: Record transfer volume information in this file.
+–stations_summary.csv: Record the summary data of current epoch.</p>
+</dd>
+</dl>
+<p>………………
+–epoch_{epoch_num-1}
+–manifest.yml: Record basic info like scenario name, name of index_name_mapping file.
+–full_stations.json: Record the relationship between ports’ index and name.
+–stations_summary.csv: Record cross-epoch summary data.</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>source_path</strong> (<em>str</em>) – The root path of the dumped snapshots data for the corresponding experiment.</p></li>
+<li><p><strong>epoch_num</strong> (<em>int</em>) – Total number of epoches,
+i.e. the total number of data folders since there is a folder per epoch.</p></li>
+<li><p><strong>prefix</strong> (<em>str</em>) – Prefix of data folders.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.cli.inspector.dashboard_helper">
+<span id="maro-cli-inspector-dashboard-helper-module"></span><h2>maro.cli.inspector.dashboard_helper module<a class="headerlink" href="#module-maro.cli.inspector.dashboard_helper" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="maro.cli.inspector.dashboard_helper.generate_by_snapshot_top_summary">
+<code class="sig-prename descclassname">maro.cli.inspector.dashboard_helper.</code><code class="sig-name descname">generate_by_snapshot_top_summary</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">attr_name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">data</span><span class="p">:</span> <span class="n">pandas.core.frame.DataFrame</span></em>, <em class="sig-param"><span class="n">top_number</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">attribute</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">snapshot_index</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">- 1</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/inspector/dashboard_helper.html#generate_by_snapshot_top_summary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.inspector.dashboard_helper.generate_by_snapshot_top_summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate top-k resource holders and their according summary data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>attr_name</strong> (<em>str</em>) – Name of attributes needed to be summarized.</p></li>
+<li><p><strong>data</strong> (<em>pd.Dataframe</em>) – Data of selected column and snapshot_index.</p></li>
+<li><p><strong>top_number</strong> (<em>int</em>) – Number of top summaries.</p></li>
+<li><p><strong>attribute</strong> (<em>str</em>) – Attributes needed to be displayed on plot.</p></li>
+<li><p><strong>snapshot_index</strong> (<em>int</em>) – Index of snapshot.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.cli.inspector.dashboard_helper.get_filtered_formula_and_data">
+<code class="sig-prename descclassname">maro.cli.inspector.dashboard_helper.</code><code class="sig-name descname">get_filtered_formula_and_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">scenario</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.cli.inspector.params.GlobalScenarios" title="maro.cli.inspector.params.GlobalScenarios">maro.cli.inspector.params.GlobalScenarios</a></span></em>, <em class="sig-param"><span class="n">data</span><span class="p">:</span> <span class="n">pandas.core.frame.DataFrame</span></em>, <em class="sig-param"><span class="n">attribute_option_candidates</span><span class="p">:</span> <span class="n">List<span class="p">[</span>str<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; dict<a class="reference internal" href="../_modules/maro/cli/inspector/dashboard_helper.html#get_filtered_formula_and_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.inspector.dashboard_helper.get_filtered_formula_and_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get calculated formula and whole data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scenario</strong> (<em>GlobalScenarios</em>) – Type of input scenario detail.</p></li>
+<li><p><strong>data</strong> (<em>pd.Dataframe</em>) – Original data.</p></li>
+<li><p><strong>attribute_option_candidates</strong> (<em>List[str]</em>) – All options for users to choose.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The data and attributes after formula calculation.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.cli.inspector.dashboard_helper.get_sample_index_list">
+<code class="sig-prename descclassname">maro.cli.inspector.dashboard_helper.</code><code class="sig-name descname">get_sample_index_list</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_num</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">sample_ratio</span><span class="p">:</span> <span class="n">float</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>float<span class="p">]</span><a class="reference internal" href="../_modules/maro/cli/inspector/dashboard_helper.html#get_sample_index_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.inspector.dashboard_helper.get_sample_index_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the index list of sampled data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data_num</strong> (<em>int</em>) – Number of data to be sampled.</p></li>
+<li><p><strong>sample_ratio</strong> (<em>float</em>) – The sample ratio selected by user.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The list of sampled data index list, which is a list range from 0 to data_num.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List[float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.cli.inspector.dashboard_helper.get_sample_ratio_selection_list">
+<code class="sig-prename descclassname">maro.cli.inspector.dashboard_helper.</code><code class="sig-name descname">get_sample_ratio_selection_list</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_num</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; list<a class="reference internal" href="../_modules/maro/cli/inspector/dashboard_helper.html#get_sample_ratio_selection_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.inspector.dashboard_helper.get_sample_ratio_selection_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get sample ratio list with current data_num.</p>
+<p>Note: Number 0,1 must be included in the return value.
+Because it is essential for user to select sample ratio at 0/1.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>data_num</strong> (<em>int</em>) – Number of data to be sampled.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The sample ratio list for user to select, which is a list range from 0 to 1.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List(float)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.cli.inspector.dashboard_helper.read_detail_csv">
+<code class="sig-prename descclassname">maro.cli.inspector.dashboard_helper.</code><code class="sig-name descname">read_detail_csv</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; pandas.core.frame.DataFrame<a class="reference internal" href="../_modules/maro/cli/inspector/dashboard_helper.html#read_detail_csv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.inspector.dashboard_helper.read_detail_csv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read detail csv with cache.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>path</strong> (<em>str</em>) – Path of file to be read.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Data in CSV file. Cached in local memory.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pd.Dataframe</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.cli.inspector.dashboard_helper.render_h1_title">
+<code class="sig-prename descclassname">maro.cli.inspector.dashboard_helper.</code><code class="sig-name descname">render_h1_title</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">content</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/inspector/dashboard_helper.html#render_h1_title"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.inspector.dashboard_helper.render_h1_title" title="Permalink to this definition">¶</a></dt>
+<dd><p>Flexible display of content according to predefined styles.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>Content</strong> (<em>str</em>) – Content to be showed on dashboard.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.cli.inspector.dashboard_helper.render_h3_title">
+<code class="sig-prename descclassname">maro.cli.inspector.dashboard_helper.</code><code class="sig-name descname">render_h3_title</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">content</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/inspector/dashboard_helper.html#render_h3_title"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.inspector.dashboard_helper.render_h3_title" title="Permalink to this definition">¶</a></dt>
+<dd><p>Flexible display of content according to predefined styles.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>Content</strong> (<em>str</em>) – Content to be showed on dashboard.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.cli.inspector.env_data_process">
+<span id="maro-cli-inspector-env-data-process-module"></span><h2>maro.cli.inspector.env_data_process module<a class="headerlink" href="#module-maro.cli.inspector.env_data_process" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="maro.cli.inspector.env_data_process.start_vis">
+<code class="sig-prename descclassname">maro.cli.inspector.env_data_process.</code><code class="sig-name descname">start_vis</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source_path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">force</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/inspector/env_data_process.html#start_vis"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.inspector.env_data_process.start_vis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Entrance of data pre-processing.</p>
+<p>Generate index_name_conversion CSV file and summary file.</p>
+<p>Expected File Structure:
+-input_file_folder_path</p>
+<blockquote>
+<div><dl class="simple">
+<dt>–epoch_0<span class="classifier">Data of current epoch.</span></dt><dd><p>–holder_info.csv: Attributes of current epoch.</p>
+</dd>
+</dl>
+<p>………………
+–epoch_{epoch_num-1}
+–manifest.yml: Record basic info like scenario name, name of index_name_mapping file.
+–index_name_mapping file: Record the relationship between an index and its name.
+Type of this file varied between scenario.</p>
+<p>Summary file would be generated after data processing.</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>source_path</strong> (<em>str</em>) – Data folder path.</p></li>
+<li><p><strong>force</strong> (<em>str</em>) – Indicates whether regenerate data. Expected input is True/False.</p></li>
+<li><p><strong>**kwargs</strong> (<em>dict</em>) – The irrelevant variable length key-value pair.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.cli.inspector.env_data_process.str2bool">
+<code class="sig-prename descclassname">maro.cli.inspector.env_data_process.</code><code class="sig-name descname">str2bool</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">force_type</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/maro/cli/inspector/env_data_process.html#str2bool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.inspector.env_data_process.str2bool" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert the parameter “force” from string to bool.</p>
+<p>Argsparse could not identify bool type automatically.
+Manually conversion is compulsory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>force_type</strong> (<em>str</em>) – The parameter input by user.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Converted parameter.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.cli.inspector.launch_env_dashboard">
+<span id="maro-cli-inspector-launch-env-dashboard-module"></span><h2>maro.cli.inspector.launch_env_dashboard module<a class="headerlink" href="#module-maro.cli.inspector.launch_env_dashboard" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="maro.cli.inspector.launch_env_dashboard.launch_dashboard">
+<code class="sig-prename descclassname">maro.cli.inspector.launch_env_dashboard.</code><code class="sig-name descname">launch_dashboard</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source_path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">scenario</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.cli.inspector.params.GlobalScenarios" title="maro.cli.inspector.params.GlobalScenarios">maro.cli.inspector.params.GlobalScenarios</a></span></em>, <em class="sig-param"><span class="n">epoch_num</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">prefix</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/inspector/launch_env_dashboard.html#launch_dashboard"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.inspector.launch_env_dashboard.launch_dashboard" title="Permalink to this definition">¶</a></dt>
+<dd><p>Launch streamlit dashboard.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>source_path</strong> (<em>str</em>) – The root path of the dumped snapshots data for the corresponding experiment.</p></li>
+<li><p><strong>scenario</strong> (<em>GlobalScenarios</em>) – Name of current scenario.</p></li>
+<li><p><strong>epoch_num</strong> (<em>int</em>) – Number of epochs.</p></li>
+<li><p><strong>prefix</strong> (<em>str</em>) – Prefix of data folders.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.cli.inspector.params">
+<span id="maro-cli-inspector-params-module"></span><h2>maro.cli.inspector.params module<a class="headerlink" href="#module-maro.cli.inspector.params" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.cli.inspector.params.CIMItemOption">
+<em class="property">class </em><code class="sig-prename descclassname">maro.cli.inspector.params.</code><code class="sig-name descname">CIMItemOption</code><a class="reference internal" href="../_modules/maro/cli/inspector/params.html#CIMItemOption"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.inspector.params.CIMItemOption" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt id="maro.cli.inspector.params.CIMItemOption.acc_info">
+<code class="sig-name descname">acc_info</code><em class="property"> = ['acc_shortage', 'acc_booking', 'acc_fulfillment']</em><a class="headerlink" href="#maro.cli.inspector.params.CIMItemOption.acc_info" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.cli.inspector.params.CIMItemOption.basic_info">
+<code class="sig-name descname">basic_info</code><em class="property"> = ['name', 'frame_index']</em><a class="headerlink" href="#maro.cli.inspector.params.CIMItemOption.basic_info" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.cli.inspector.params.CIMItemOption.booking_info">
+<code class="sig-name descname">booking_info</code><em class="property"> = ['shortage', 'booking', 'fulfillment']</em><a class="headerlink" href="#maro.cli.inspector.params.CIMItemOption.booking_info" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.cli.inspector.params.CIMItemOption.port_info">
+<code class="sig-name descname">port_info</code><em class="property"> = ['on_shipper', 'on_consignee', 'capacity', 'full', 'empty', 'remaining_space']</em><a class="headerlink" href="#maro.cli.inspector.params.CIMItemOption.port_info" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.cli.inspector.params.CIMItemOption.quick_info">
+<code class="sig-name descname">quick_info</code><em class="property"> = ['All', 'Booking Info', 'Port Info']</em><a class="headerlink" href="#maro.cli.inspector.params.CIMItemOption.quick_info" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.cli.inspector.params.CIMItemOption.vessel_info">
+<code class="sig-name descname">vessel_info</code><em class="property"> = ['capacity', 'full', 'empty', 'remaining_space', 'name']</em><a class="headerlink" href="#maro.cli.inspector.params.CIMItemOption.vessel_info" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.cli.inspector.params.CITIBIKEItemOption">
+<em class="property">class </em><code class="sig-prename descclassname">maro.cli.inspector.params.</code><code class="sig-name descname">CITIBIKEItemOption</code><a class="reference internal" href="../_modules/maro/cli/inspector/params.html#CITIBIKEItemOption"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.inspector.params.CITIBIKEItemOption" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt id="maro.cli.inspector.params.CITIBIKEItemOption.quick_info">
+<code class="sig-name descname">quick_info</code><em class="property"> = ['All', 'Requirement Info', 'Station Info']</em><a class="headerlink" href="#maro.cli.inspector.params.CITIBIKEItemOption.quick_info" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.cli.inspector.params.CITIBIKEItemOption.requirement_info">
+<code class="sig-name descname">requirement_info</code><em class="property"> = ['trip_requirement', 'shortage', 'fulfillment']</em><a class="headerlink" href="#maro.cli.inspector.params.CITIBIKEItemOption.requirement_info" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.cli.inspector.params.CITIBIKEItemOption.station_info">
+<code class="sig-name descname">station_info</code><em class="property"> = ['bikes', 'capacity', 'extra_cost', 'failed_return']</em><a class="headerlink" href="#maro.cli.inspector.params.CITIBIKEItemOption.station_info" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.cli.inspector.params.GlobalFileNames">
+<em class="property">class </em><code class="sig-prename descclassname">maro.cli.inspector.params.</code><code class="sig-name descname">GlobalFileNames</code><a class="reference internal" href="../_modules/maro/cli/inspector/params.html#GlobalFileNames"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.inspector.params.GlobalFileNames" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt id="maro.cli.inspector.params.GlobalFileNames.name_convert">
+<code class="sig-name descname">name_convert</code><em class="property"> = 'name_conversion.csv'</em><a class="headerlink" href="#maro.cli.inspector.params.GlobalFileNames.name_convert" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.cli.inspector.params.GlobalFileNames.ports_sum">
+<code class="sig-name descname">ports_sum</code><em class="property"> = 'ports_summary.csv'</em><a class="headerlink" href="#maro.cli.inspector.params.GlobalFileNames.ports_sum" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.cli.inspector.params.GlobalFileNames.stations_sum">
+<code class="sig-name descname">stations_sum</code><em class="property"> = 'stations_summary.csv'</em><a class="headerlink" href="#maro.cli.inspector.params.GlobalFileNames.stations_sum" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.cli.inspector.params.GlobalFileNames.vessels_sum">
+<code class="sig-name descname">vessels_sum</code><em class="property"> = 'vessels_summary.csv'</em><a class="headerlink" href="#maro.cli.inspector.params.GlobalFileNames.vessels_sum" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.cli.inspector.params.GlobalScenarios">
+<em class="property">class </em><code class="sig-prename descclassname">maro.cli.inspector.params.</code><code class="sig-name descname">GlobalScenarios</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/inspector/params.html#GlobalScenarios"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.inspector.params.GlobalScenarios" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt id="maro.cli.inspector.params.GlobalScenarios.CIM">
+<code class="sig-name descname">CIM</code><em class="property"> = 'container_inventort_management'</em><a class="headerlink" href="#maro.cli.inspector.params.GlobalScenarios.CIM" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.cli.inspector.params.GlobalScenarios.CITI_BIKE">
+<code class="sig-name descname">CITI_BIKE</code><em class="property"> = 'citi_bike'</em><a class="headerlink" href="#maro.cli.inspector.params.GlobalScenarios.CITI_BIKE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.cli.inspector.visualization">
+<span id="maro-cli-inspector-visualization-module"></span><h2>maro.cli.inspector.visualization module<a class="headerlink" href="#module-maro.cli.inspector.visualization" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-maro.cli.inspector.visualization_choice">
+<span id="maro-cli-inspector-visualization-choice-module"></span><h2>maro.cli.inspector.visualization_choice module<a class="headerlink" href="#module-maro.cli.inspector.visualization_choice" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.cli.inspector.visualization_choice.CIMIntraViewChoice">
+<em class="property">class </em><code class="sig-prename descclassname">maro.cli.inspector.visualization_choice.</code><code class="sig-name descname">CIMIntraViewChoice</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/inspector/visualization_choice.html#CIMIntraViewChoice"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.inspector.visualization_choice.CIMIntraViewChoice" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt id="maro.cli.inspector.visualization_choice.CIMIntraViewChoice.by_port">
+<code class="sig-name descname">by_port</code><em class="property"> = 'by_port'</em><a class="headerlink" href="#maro.cli.inspector.visualization_choice.CIMIntraViewChoice.by_port" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.cli.inspector.visualization_choice.CIMIntraViewChoice.by_snapshot">
+<code class="sig-name descname">by_snapshot</code><em class="property"> = 'by_snapshot'</em><a class="headerlink" href="#maro.cli.inspector.visualization_choice.CIMIntraViewChoice.by_snapshot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.cli.inspector.visualization_choice.CitiBikeIntraViewChoice">
+<em class="property">class </em><code class="sig-prename descclassname">maro.cli.inspector.visualization_choice.</code><code class="sig-name descname">CitiBikeIntraViewChoice</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/inspector/visualization_choice.html#CitiBikeIntraViewChoice"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.inspector.visualization_choice.CitiBikeIntraViewChoice" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt id="maro.cli.inspector.visualization_choice.CitiBikeIntraViewChoice.by_snapshot">
+<code class="sig-name descname">by_snapshot</code><em class="property"> = 'by_snapshot'</em><a class="headerlink" href="#maro.cli.inspector.visualization_choice.CitiBikeIntraViewChoice.by_snapshot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.cli.inspector.visualization_choice.CitiBikeIntraViewChoice.by_station">
+<code class="sig-name descname">by_station</code><em class="property"> = 'by_station'</em><a class="headerlink" href="#maro.cli.inspector.visualization_choice.CitiBikeIntraViewChoice.by_station" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.cli.inspector.visualization_choice.PanelViewChoice">
+<em class="property">class </em><code class="sig-prename descclassname">maro.cli.inspector.visualization_choice.</code><code class="sig-name descname">PanelViewChoice</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/inspector/visualization_choice.html#PanelViewChoice"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.inspector.visualization_choice.PanelViewChoice" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt id="maro.cli.inspector.visualization_choice.PanelViewChoice.Inter_Epoch">
+<code class="sig-name descname">Inter_Epoch</code><em class="property"> = 'Inter_Epoch View'</em><a class="headerlink" href="#maro.cli.inspector.visualization_choice.PanelViewChoice.Inter_Epoch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.cli.inspector.visualization_choice.PanelViewChoice.Intra_Epoch">
+<code class="sig-name descname">Intra_Epoch</code><em class="property"> = 'Intra_Epoch View'</em><a class="headerlink" href="#maro.cli.inspector.visualization_choice.PanelViewChoice.Intra_Epoch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.cli.inspector">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-maro.cli.inspector" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+    <a class='left-prev' id="prev-link" href="maro.cli.grass.utils.html" title="previous page">maro.cli.grass.utils package</a>
+    <a class='right-next' id="next-link" href="maro.cli.k8s.html" title="next page">maro.cli.k8s package</a>
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../_static/js/index.js"></script>
+    
+  </body>
+</html>

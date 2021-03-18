@@ -1,0 +1,1222 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maro.rl.storage package &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="maro.simulator package" href="maro.simulator.html" />
+    <link rel="prev" title="maro.rl.shaping package" href="maro.rl.shaping.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../index.html">
+  
+  <img src="../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="current nav sidenav_l1">
+ <li class="toctree-l1 current active">
+  <a class="reference internal" href="maro.html">
+   maro package
+  </a>
+  <ul class="current">
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.backends.html">
+     maro.backends package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.cli.html">
+     maro.cli package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.data_pipeline.html">
+       maro.cli.data_pipeline package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.envs.html">
+       maro.cli.envs package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.grass.html">
+       maro.cli.grass package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.grass.executors.html">
+         maro.cli.grass.executors package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.grass.utils.html">
+         maro.cli.grass.utils package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.inspector.html">
+       maro.cli.inspector package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.k8s.html">
+       maro.cli.k8s package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.k8s.executors.html">
+         maro.cli.k8s.executors package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.process.html">
+       maro.cli.process package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.process.utils.html">
+         maro.cli.process.utils package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.utils.html">
+       maro.cli.utils package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.utils.executors.html">
+         maro.cli.utils.executors package
+        </a>
+       </li>
+      </ul>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.communication.html">
+     maro.communication package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.communication.driver.html">
+       maro.communication.driver package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.communication.utils.html">
+       maro.communication.utils package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.data_lib.html">
+     maro.data_lib package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.data_lib.cim.html">
+       maro.data_lib.cim package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.event_buffer.html">
+     maro.event_buffer package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.forecasting.html">
+     maro.forecasting package
+    </a>
+   </li>
+   <li class="toctree-l2 current active">
+    <a class="reference internal" href="maro.rl.html">
+     maro.rl package
+    </a>
+    <ul class="current">
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.actor.html">
+       maro.rl.actor package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.agent.html">
+       maro.rl.agent package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.algorithms.html">
+       maro.rl.algorithms package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.dist_topologies.html">
+       maro.rl.dist_topologies package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.exploration.html">
+       maro.rl.exploration package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.learner.html">
+       maro.rl.learner package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.models.html">
+       maro.rl.models package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.scheduling.html">
+       maro.rl.scheduling package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.shaping.html">
+       maro.rl.shaping package
+      </a>
+     </li>
+     <li class="toctree-l3 current active">
+      <a class="current reference internal" href="#">
+       maro.rl.storage package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.simulator.html">
+     maro.simulator package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.simulator.scenarios.html">
+       maro.simulator.scenarios package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.cim.html">
+         maro.simulator.scenarios.cim package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.citi_bike.html">
+         maro.simulator.scenarios.citi_bike package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.vm_scheduling.html">
+         maro.simulator.scenarios.vm_scheduling package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.simulator.utils.html">
+       maro.simulator.utils package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.utils.html">
+     maro.utils package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.utils.exception.html">
+       maro.utils.exception package
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+        
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="../_sources/apidoc/maro.rl.storage.rst.txt"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.rst</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2Fapidoc/maro.rl.storage.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        <a class="edit-button" href="https://github.com/microsoft/maro/edit/master/doc/source/apidoc/maro.rl.storage.rst"><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Edit this page"><i class="fas fa-pencil-alt"></i>suggest edit</button></a>
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <div class="tocsection onthispage pt-5 pb-3">
+            <i class="fas fa-list"></i> Contents
+        </div>
+        <nav id="bd-toc-nav">
+            <ul class="nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#submodules">
+   Submodules
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.rl.storage.abs_store">
+   maro.rl.storage.abs_store module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.rl.storage.column_based_store">
+   maro.rl.storage.column_based_store module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.rl.storage">
+   Module contents
+  </a>
+ </li>
+</ul>
+
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <div class="section" id="maro-rl-storage-package">
+<h1>maro.rl.storage package<a class="headerlink" href="#maro-rl-storage-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-maro.rl.storage.abs_store">
+<span id="maro-rl-storage-abs-store-module"></span><h2>maro.rl.storage.abs_store module<a class="headerlink" href="#module-maro.rl.storage.abs_store" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.rl.storage.abs_store.AbsStore">
+<em class="property">class </em><code class="sig-prename descclassname">maro.rl.storage.abs_store.</code><code class="sig-name descname">AbsStore</code><a class="reference internal" href="../_modules/maro/rl/storage/abs_store.html#AbsStore"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.storage.abs_store.AbsStore" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<p>A data store abstraction that supports get, put, update and sample operations.</p>
+<dl class="py method">
+<dt id="maro.rl.storage.abs_store.AbsStore.filter">
+<code class="sig-name descname">filter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filters</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>Callable<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/storage/abs_store.html#AbsStore.filter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.storage.abs_store.AbsStore.filter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Multi-filter method.</p>
+<p>The input to one filter is the output from the previous filter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>filters</strong> (<em>Sequence[Callable]</em>) – Filter list, each item is a lambda function,
+e.g., [lambda d: d[‘a’] == 1 and d[‘b’] == 1].</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Filtered indexes and corresponding objects.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.storage.abs_store.AbsStore.get">
+<em class="property">abstract </em><code class="sig-name descname">get</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">indexes</span><span class="p">:</span> <span class="n">Sequence</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/storage/abs_store.html#AbsStore.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.storage.abs_store.AbsStore.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get contents.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>indexes</strong> – A sequence of indexes to retrieve contents at.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Retrieved contents.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.storage.abs_store.AbsStore.put">
+<code class="sig-name descname">put</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">contents</span><span class="p">:</span> <span class="n">Sequence</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/storage/abs_store.html#AbsStore.put"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.storage.abs_store.AbsStore.put" title="Permalink to this definition">¶</a></dt>
+<dd><p>Put new contents.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>contents</strong> (<em>Sequence</em>) – Contents to be added to the store.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The indexes where the newly added entries reside in the store.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.storage.abs_store.AbsStore.sample">
+<em class="property">abstract </em><code class="sig-name descname">sample</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">size</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">weights</span><span class="p">:</span> <span class="n">Sequence</span></em>, <em class="sig-param"><span class="n">replace</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/storage/abs_store.html#AbsStore.sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.storage.abs_store.AbsStore.sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Obtain a random sample from the experience pool.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>size</strong> (<em>int</em>) – Sample sizes for each round of sampling in the chain. If this is a single integer, it is
+used as the sample size for all samplers in the chain.</p></li>
+<li><p><strong>weights</strong> (<em>Sequence</em>) – A sequence of sampling weights.</p></li>
+<li><p><strong>replace</strong> (<em>bool</em>) – If True, sampling is performed with replacement. Defaults to True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A random sample from the experience pool.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.storage.abs_store.AbsStore.update">
+<em class="property">abstract </em><code class="sig-name descname">update</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">indexes</span><span class="p">:</span> <span class="n">Sequence</span></em>, <em class="sig-param"><span class="n">contents</span><span class="p">:</span> <span class="n">Sequence</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/storage/abs_store.html#AbsStore.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.storage.abs_store.AbsStore.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the store contents at given positions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>indexes</strong> (<em>Sequence</em>) – Positions where updates are to be made.</p></li>
+<li><p><strong>contents</strong> (<em>Sequence</em>) – Item list, which has the same length as indexes.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The indexes where store contents are updated.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.rl.storage.column_based_store">
+<span id="maro-rl-storage-column-based-store-module"></span><h2>maro.rl.storage.column_based_store module<a class="headerlink" href="#module-maro.rl.storage.column_based_store" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.rl.storage.column_based_store.ColumnBasedStore">
+<em class="property">class </em><code class="sig-prename descclassname">maro.rl.storage.column_based_store.</code><code class="sig-name descname">ColumnBasedStore</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">capacity</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">- 1</span></em>, <em class="sig-param"><span class="n">overwrite_type</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.rl.storage.column_based_store.OverwriteType" title="maro.rl.storage.column_based_store.OverwriteType">maro.rl.storage.column_based_store.OverwriteType</a></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/storage/column_based_store.html#ColumnBasedStore"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.storage.column_based_store.ColumnBasedStore" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.rl.storage.abs_store.AbsStore" title="maro.rl.storage.abs_store.AbsStore"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.rl.storage.abs_store.AbsStore</span></code></a></p>
+<p>An implementation of <code class="docutils literal notranslate"><span class="pre">AbsStore</span></code> for experience storage in RL.</p>
+<p>This implementation uses a dictionary of lists as the internal data structure. The objects for each key
+are stored in a list. To be useful for experience storage in RL, uniformity checks are performed during
+put operations to ensure that the list lengths stay the same for all keys at all times. Both unlimited
+and limited storage are supported.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>capacity</strong> (<em>int</em>) – If negative, the store is of unlimited capacity. Defaults to -1.</p></li>
+<li><p><strong>overwrite_type</strong> (<em>OverwriteType</em>) – If storage capacity is bounded, this specifies how existing entries
+are overwritten when the capacity is exceeded. Two types of overwrite behavior are supported:
+- Rolling, where overwrite occurs sequentially with wrap-around.
+- Random, where overwrite occurs randomly among filled positions.
+Alternatively, the user may also specify overwrite positions (see <code class="docutils literal notranslate"><span class="pre">put</span></code>).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.rl.storage.column_based_store.ColumnBasedStore.apply_multi_filters">
+<code class="sig-name descname">apply_multi_filters</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filters</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>Callable<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/storage/column_based_store.html#ColumnBasedStore.apply_multi_filters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.storage.column_based_store.ColumnBasedStore.apply_multi_filters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Multi-filter method.</p>
+<blockquote>
+<div><p>The input to one filter is the output from its predecessor in the sequence.</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>filters</strong> (<em>Sequence[Callable]</em>) – Filter list, each item is a lambda function,
+e.g., [lambda d: d[‘a’] == 1 and d[‘b’] == 1].</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Filtered indexes and corresponding objects.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.storage.column_based_store.ColumnBasedStore.apply_multi_samplers">
+<code class="sig-name descname">apply_multi_samplers</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">samplers</span><span class="p">:</span> <span class="n">Sequence</span></em>, <em class="sig-param"><span class="n">replace</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; Tuple<a class="reference internal" href="../_modules/maro/rl/storage/column_based_store.html#ColumnBasedStore.apply_multi_samplers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.storage.column_based_store.ColumnBasedStore.apply_multi_samplers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Multi-samplers method.</p>
+<p>This implements chained sampling where the input to one sampler is the output from its predecessor in
+the sequence.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>samplers</strong> (<em>Sequence</em>) – A sequence of weight functions for computing the sampling weights of the items
+in the store,
+e.g., [lambda d: d[‘a’], lambda d: d[‘b’]].</p></li>
+<li><p><strong>replace</strong> (<em>bool</em>) – If True, sampling will be performed with replacement.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Sampled indexes and corresponding objects.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.storage.column_based_store.ColumnBasedStore.capacity">
+<em class="property">property </em><code class="sig-name descname">capacity</code><a class="headerlink" href="#maro.rl.storage.column_based_store.ColumnBasedStore.capacity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Store capacity.</p>
+<p>If negative, the store grows without bound. Otherwise, the number of items in the store will not exceed
+this capacity.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.storage.column_based_store.ColumnBasedStore.check_uniformity">
+<em class="property">static </em><code class="sig-name descname">check_uniformity</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">contents</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/storage/column_based_store.html#ColumnBasedStore.check_uniformity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.storage.column_based_store.ColumnBasedStore.check_uniformity" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.storage.column_based_store.ColumnBasedStore.clear">
+<code class="sig-name descname">clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/storage/column_based_store.html#ColumnBasedStore.clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.storage.column_based_store.ColumnBasedStore.clear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Empty the store.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.storage.column_based_store.ColumnBasedStore.dumps">
+<code class="sig-name descname">dumps</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/storage/column_based_store.html#ColumnBasedStore.dumps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.storage.column_based_store.ColumnBasedStore.dumps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a deep copy of store contents.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.storage.column_based_store.ColumnBasedStore.get">
+<code class="sig-name descname">get</code><span class="sig-paren">(</span><em class="sig-param">indexes: [&lt;class 'int'&gt;]</em><span class="sig-paren">)</span> &#x2192; dict<a class="reference internal" href="../_modules/maro/rl/storage/column_based_store.html#ColumnBasedStore.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.storage.column_based_store.ColumnBasedStore.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get contents.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>indexes</strong> – A sequence of indexes to retrieve contents at.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Retrieved contents.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.storage.column_based_store.ColumnBasedStore.get_by_key">
+<code class="sig-name descname">get_by_key</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/storage/column_based_store.html#ColumnBasedStore.get_by_key"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.storage.column_based_store.ColumnBasedStore.get_by_key" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the contents of the store corresponding to <code class="docutils literal notranslate"><span class="pre">key</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.storage.column_based_store.ColumnBasedStore.overwrite_type">
+<em class="property">property </em><code class="sig-name descname">overwrite_type</code><a class="headerlink" href="#maro.rl.storage.column_based_store.ColumnBasedStore.overwrite_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>An <code class="docutils literal notranslate"><span class="pre">OverwriteType</span></code> member indicating the overwrite behavior when the store capacity is exceeded.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.storage.column_based_store.ColumnBasedStore.put">
+<code class="sig-name descname">put</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">contents</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">overwrite_indexes</span><span class="p">:</span> <span class="n">Sequence</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>int<span class="p">]</span><a class="reference internal" href="../_modules/maro/rl/storage/column_based_store.html#ColumnBasedStore.put"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.storage.column_based_store.ColumnBasedStore.put" title="Permalink to this definition">¶</a></dt>
+<dd><p>Put new contents in the store.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>contents</strong> (<em>dict</em>) – Dictionary of items to add to the store. If the store is not empty, this must have the
+same keys as the store itself. Otherwise an <code class="docutils literal notranslate"><span class="pre">StoreMisalignment</span></code> will be raised.</p></li>
+<li><p><strong>overwrite_indexes</strong> (<em>Sequence, optional</em>) – Indexes where the contents are to be overwritten. This is only
+used when the store has a fixed capacity and putting <code class="docutils literal notranslate"><span class="pre">contents</span></code> in the store would exceed this
+capacity. If this is None and overwriting is necessary, rolling or random overwriting will be done
+according to the <code class="docutils literal notranslate"><span class="pre">overwrite</span></code> property. Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The indexes where the newly added entries reside in the store.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.storage.column_based_store.ColumnBasedStore.sample">
+<code class="sig-name descname">sample</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">size</span></em>, <em class="sig-param"><span class="n">weights</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>list<span class="p">, </span>numpy.ndarray<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">replace</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/storage/column_based_store.html#ColumnBasedStore.sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.storage.column_based_store.ColumnBasedStore.sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Obtain a random sample from the experience pool.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>size</strong> (<em>int</em>) – Sample sizes for each round of sampling in the chain. If this is a single integer, it is
+used as the sample size for all samplers in the chain.</p></li>
+<li><p><strong>weights</strong> (<em>Union[list, np.ndarray]</em>) – Sampling weights.</p></li>
+<li><p><strong>replace</strong> (<em>bool</em>) – If True, sampling is performed with replacement. Defaults to True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Sampled indexes and the corresponding objects,
+e.g., [1, 2, 3], [‘a’, ‘b’, ‘c’].</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.storage.column_based_store.ColumnBasedStore.sample_by_key">
+<code class="sig-name descname">sample_by_key</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span></em>, <em class="sig-param"><span class="n">size</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">replace</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/storage/column_based_store.html#ColumnBasedStore.sample_by_key"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.storage.column_based_store.ColumnBasedStore.sample_by_key" title="Permalink to this definition">¶</a></dt>
+<dd><p>Obtain a random sample from the store using one of the columns as sampling weights.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> – The column whose values are to be used as sampling weights.</p></li>
+<li><p><strong>size</strong> (<em>int</em>) – Sample size.</p></li>
+<li><p><strong>replace</strong> (<em>bool</em>) – If True, sampling is performed with replacement.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Sampled indexes and the corresponding objects.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.storage.column_based_store.ColumnBasedStore.sample_by_keys">
+<code class="sig-name descname">sample_by_keys</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">keys</span><span class="p">:</span> <span class="n">Sequence</span></em>, <em class="sig-param"><span class="n">sizes</span><span class="p">:</span> <span class="n">Sequence</span></em>, <em class="sig-param"><span class="n">replace</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/storage/column_based_store.html#ColumnBasedStore.sample_by_keys"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.storage.column_based_store.ColumnBasedStore.sample_by_keys" title="Permalink to this definition">¶</a></dt>
+<dd><p>Obtain a random sample from the store by chained sampling using multiple columns as sampling weights.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>keys</strong> (<em>Sequence</em>) – The column whose values are to be used as sampling weights.</p></li>
+<li><p><strong>sizes</strong> (<em>Sequence</em>) – Sample size.</p></li>
+<li><p><strong>replace</strong> (<em>bool</em>) – If True, sampling is performed with replacement.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Sampled indexes and the corresponding objects.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.storage.column_based_store.ColumnBasedStore.update">
+<code class="sig-name descname">update</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">indexes</span><span class="p">:</span> <span class="n">Sequence</span></em>, <em class="sig-param"><span class="n">contents</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span> &#x2192; Sequence<a class="reference internal" href="../_modules/maro/rl/storage/column_based_store.html#ColumnBasedStore.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.storage.column_based_store.ColumnBasedStore.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update contents at given positions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>indexes</strong> (<em>Sequence</em>) – Positions where updates are to be made.</p></li>
+<li><p><strong>contents</strong> (<em>dict</em>) – Contents to write to the internal store at given positions. It is subject to uniformity
+checks to ensure that the lists for all keys have the same length.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The indexes where store contents are updated.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.rl.storage.column_based_store.OverwriteType">
+<em class="property">class </em><code class="sig-prename descclassname">maro.rl.storage.column_based_store.</code><code class="sig-name descname">OverwriteType</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/storage/column_based_store.html#OverwriteType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.storage.column_based_store.OverwriteType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt id="maro.rl.storage.column_based_store.OverwriteType.RANDOM">
+<code class="sig-name descname">RANDOM</code><em class="property"> = 'random'</em><a class="headerlink" href="#maro.rl.storage.column_based_store.OverwriteType.RANDOM" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.rl.storage.column_based_store.OverwriteType.ROLLING">
+<code class="sig-name descname">ROLLING</code><em class="property"> = 'rolling'</em><a class="headerlink" href="#maro.rl.storage.column_based_store.OverwriteType.ROLLING" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.rl.storage">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-maro.rl.storage" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.rl.storage.AbsStore">
+<em class="property">class </em><code class="sig-prename descclassname">maro.rl.storage.</code><code class="sig-name descname">AbsStore</code><a class="reference internal" href="../_modules/maro/rl/storage/abs_store.html#AbsStore"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.storage.AbsStore" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<p>A data store abstraction that supports get, put, update and sample operations.</p>
+<dl class="py method">
+<dt id="maro.rl.storage.AbsStore.filter">
+<code class="sig-name descname">filter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filters</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>Callable<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/storage/abs_store.html#AbsStore.filter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.storage.AbsStore.filter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Multi-filter method.</p>
+<p>The input to one filter is the output from the previous filter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>filters</strong> (<em>Sequence[Callable]</em>) – Filter list, each item is a lambda function,
+e.g., [lambda d: d[‘a’] == 1 and d[‘b’] == 1].</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Filtered indexes and corresponding objects.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.storage.AbsStore.get">
+<em class="property">abstract </em><code class="sig-name descname">get</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">indexes</span><span class="p">:</span> <span class="n">Sequence</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/storage/abs_store.html#AbsStore.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.storage.AbsStore.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get contents.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>indexes</strong> – A sequence of indexes to retrieve contents at.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Retrieved contents.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.storage.AbsStore.put">
+<code class="sig-name descname">put</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">contents</span><span class="p">:</span> <span class="n">Sequence</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/storage/abs_store.html#AbsStore.put"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.storage.AbsStore.put" title="Permalink to this definition">¶</a></dt>
+<dd><p>Put new contents.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>contents</strong> (<em>Sequence</em>) – Contents to be added to the store.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The indexes where the newly added entries reside in the store.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.storage.AbsStore.sample">
+<em class="property">abstract </em><code class="sig-name descname">sample</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">size</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">weights</span><span class="p">:</span> <span class="n">Sequence</span></em>, <em class="sig-param"><span class="n">replace</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/storage/abs_store.html#AbsStore.sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.storage.AbsStore.sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Obtain a random sample from the experience pool.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>size</strong> (<em>int</em>) – Sample sizes for each round of sampling in the chain. If this is a single integer, it is
+used as the sample size for all samplers in the chain.</p></li>
+<li><p><strong>weights</strong> (<em>Sequence</em>) – A sequence of sampling weights.</p></li>
+<li><p><strong>replace</strong> (<em>bool</em>) – If True, sampling is performed with replacement. Defaults to True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A random sample from the experience pool.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.storage.AbsStore.update">
+<em class="property">abstract </em><code class="sig-name descname">update</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">indexes</span><span class="p">:</span> <span class="n">Sequence</span></em>, <em class="sig-param"><span class="n">contents</span><span class="p">:</span> <span class="n">Sequence</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/storage/abs_store.html#AbsStore.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.storage.AbsStore.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the store contents at given positions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>indexes</strong> (<em>Sequence</em>) – Positions where updates are to be made.</p></li>
+<li><p><strong>contents</strong> (<em>Sequence</em>) – Item list, which has the same length as indexes.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The indexes where store contents are updated.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.rl.storage.ColumnBasedStore">
+<em class="property">class </em><code class="sig-prename descclassname">maro.rl.storage.</code><code class="sig-name descname">ColumnBasedStore</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">capacity</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">- 1</span></em>, <em class="sig-param"><span class="n">overwrite_type</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.rl.storage.column_based_store.OverwriteType" title="maro.rl.storage.column_based_store.OverwriteType">maro.rl.storage.column_based_store.OverwriteType</a></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/storage/column_based_store.html#ColumnBasedStore"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.storage.ColumnBasedStore" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.rl.storage.abs_store.AbsStore" title="maro.rl.storage.abs_store.AbsStore"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.rl.storage.abs_store.AbsStore</span></code></a></p>
+<p>An implementation of <code class="docutils literal notranslate"><span class="pre">AbsStore</span></code> for experience storage in RL.</p>
+<p>This implementation uses a dictionary of lists as the internal data structure. The objects for each key
+are stored in a list. To be useful for experience storage in RL, uniformity checks are performed during
+put operations to ensure that the list lengths stay the same for all keys at all times. Both unlimited
+and limited storage are supported.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>capacity</strong> (<em>int</em>) – If negative, the store is of unlimited capacity. Defaults to -1.</p></li>
+<li><p><strong>overwrite_type</strong> (<em>OverwriteType</em>) – If storage capacity is bounded, this specifies how existing entries
+are overwritten when the capacity is exceeded. Two types of overwrite behavior are supported:
+- Rolling, where overwrite occurs sequentially with wrap-around.
+- Random, where overwrite occurs randomly among filled positions.
+Alternatively, the user may also specify overwrite positions (see <code class="docutils literal notranslate"><span class="pre">put</span></code>).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.rl.storage.ColumnBasedStore.apply_multi_filters">
+<code class="sig-name descname">apply_multi_filters</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filters</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>Callable<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/storage/column_based_store.html#ColumnBasedStore.apply_multi_filters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.storage.ColumnBasedStore.apply_multi_filters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Multi-filter method.</p>
+<blockquote>
+<div><p>The input to one filter is the output from its predecessor in the sequence.</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>filters</strong> (<em>Sequence[Callable]</em>) – Filter list, each item is a lambda function,
+e.g., [lambda d: d[‘a’] == 1 and d[‘b’] == 1].</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Filtered indexes and corresponding objects.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.storage.ColumnBasedStore.apply_multi_samplers">
+<code class="sig-name descname">apply_multi_samplers</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">samplers</span><span class="p">:</span> <span class="n">Sequence</span></em>, <em class="sig-param"><span class="n">replace</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; Tuple<a class="reference internal" href="../_modules/maro/rl/storage/column_based_store.html#ColumnBasedStore.apply_multi_samplers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.storage.ColumnBasedStore.apply_multi_samplers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Multi-samplers method.</p>
+<p>This implements chained sampling where the input to one sampler is the output from its predecessor in
+the sequence.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>samplers</strong> (<em>Sequence</em>) – A sequence of weight functions for computing the sampling weights of the items
+in the store,
+e.g., [lambda d: d[‘a’], lambda d: d[‘b’]].</p></li>
+<li><p><strong>replace</strong> (<em>bool</em>) – If True, sampling will be performed with replacement.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Sampled indexes and corresponding objects.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.storage.ColumnBasedStore.capacity">
+<em class="property">property </em><code class="sig-name descname">capacity</code><a class="headerlink" href="#maro.rl.storage.ColumnBasedStore.capacity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Store capacity.</p>
+<p>If negative, the store grows without bound. Otherwise, the number of items in the store will not exceed
+this capacity.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.storage.ColumnBasedStore.check_uniformity">
+<em class="property">static </em><code class="sig-name descname">check_uniformity</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">contents</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/storage/column_based_store.html#ColumnBasedStore.check_uniformity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.storage.ColumnBasedStore.check_uniformity" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.storage.ColumnBasedStore.clear">
+<code class="sig-name descname">clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/storage/column_based_store.html#ColumnBasedStore.clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.storage.ColumnBasedStore.clear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Empty the store.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.storage.ColumnBasedStore.dumps">
+<code class="sig-name descname">dumps</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/storage/column_based_store.html#ColumnBasedStore.dumps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.storage.ColumnBasedStore.dumps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a deep copy of store contents.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.storage.ColumnBasedStore.get">
+<code class="sig-name descname">get</code><span class="sig-paren">(</span><em class="sig-param">indexes: [&lt;class 'int'&gt;]</em><span class="sig-paren">)</span> &#x2192; dict<a class="reference internal" href="../_modules/maro/rl/storage/column_based_store.html#ColumnBasedStore.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.storage.ColumnBasedStore.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get contents.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>indexes</strong> – A sequence of indexes to retrieve contents at.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Retrieved contents.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.storage.ColumnBasedStore.get_by_key">
+<code class="sig-name descname">get_by_key</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/storage/column_based_store.html#ColumnBasedStore.get_by_key"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.storage.ColumnBasedStore.get_by_key" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the contents of the store corresponding to <code class="docutils literal notranslate"><span class="pre">key</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.storage.ColumnBasedStore.overwrite_type">
+<em class="property">property </em><code class="sig-name descname">overwrite_type</code><a class="headerlink" href="#maro.rl.storage.ColumnBasedStore.overwrite_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>An <code class="docutils literal notranslate"><span class="pre">OverwriteType</span></code> member indicating the overwrite behavior when the store capacity is exceeded.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.storage.ColumnBasedStore.put">
+<code class="sig-name descname">put</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">contents</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">overwrite_indexes</span><span class="p">:</span> <span class="n">Sequence</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>int<span class="p">]</span><a class="reference internal" href="../_modules/maro/rl/storage/column_based_store.html#ColumnBasedStore.put"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.storage.ColumnBasedStore.put" title="Permalink to this definition">¶</a></dt>
+<dd><p>Put new contents in the store.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>contents</strong> (<em>dict</em>) – Dictionary of items to add to the store. If the store is not empty, this must have the
+same keys as the store itself. Otherwise an <code class="docutils literal notranslate"><span class="pre">StoreMisalignment</span></code> will be raised.</p></li>
+<li><p><strong>overwrite_indexes</strong> (<em>Sequence, optional</em>) – Indexes where the contents are to be overwritten. This is only
+used when the store has a fixed capacity and putting <code class="docutils literal notranslate"><span class="pre">contents</span></code> in the store would exceed this
+capacity. If this is None and overwriting is necessary, rolling or random overwriting will be done
+according to the <code class="docutils literal notranslate"><span class="pre">overwrite</span></code> property. Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The indexes where the newly added entries reside in the store.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.storage.ColumnBasedStore.sample">
+<code class="sig-name descname">sample</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">size</span></em>, <em class="sig-param"><span class="n">weights</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>list<span class="p">, </span>numpy.ndarray<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">replace</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/storage/column_based_store.html#ColumnBasedStore.sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.storage.ColumnBasedStore.sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Obtain a random sample from the experience pool.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>size</strong> (<em>int</em>) – Sample sizes for each round of sampling in the chain. If this is a single integer, it is
+used as the sample size for all samplers in the chain.</p></li>
+<li><p><strong>weights</strong> (<em>Union[list, np.ndarray]</em>) – Sampling weights.</p></li>
+<li><p><strong>replace</strong> (<em>bool</em>) – If True, sampling is performed with replacement. Defaults to True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Sampled indexes and the corresponding objects,
+e.g., [1, 2, 3], [‘a’, ‘b’, ‘c’].</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.storage.ColumnBasedStore.sample_by_key">
+<code class="sig-name descname">sample_by_key</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span></em>, <em class="sig-param"><span class="n">size</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">replace</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/storage/column_based_store.html#ColumnBasedStore.sample_by_key"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.storage.ColumnBasedStore.sample_by_key" title="Permalink to this definition">¶</a></dt>
+<dd><p>Obtain a random sample from the store using one of the columns as sampling weights.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> – The column whose values are to be used as sampling weights.</p></li>
+<li><p><strong>size</strong> (<em>int</em>) – Sample size.</p></li>
+<li><p><strong>replace</strong> (<em>bool</em>) – If True, sampling is performed with replacement.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Sampled indexes and the corresponding objects.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.storage.ColumnBasedStore.sample_by_keys">
+<code class="sig-name descname">sample_by_keys</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">keys</span><span class="p">:</span> <span class="n">Sequence</span></em>, <em class="sig-param"><span class="n">sizes</span><span class="p">:</span> <span class="n">Sequence</span></em>, <em class="sig-param"><span class="n">replace</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/storage/column_based_store.html#ColumnBasedStore.sample_by_keys"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.storage.ColumnBasedStore.sample_by_keys" title="Permalink to this definition">¶</a></dt>
+<dd><p>Obtain a random sample from the store by chained sampling using multiple columns as sampling weights.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>keys</strong> (<em>Sequence</em>) – The column whose values are to be used as sampling weights.</p></li>
+<li><p><strong>sizes</strong> (<em>Sequence</em>) – Sample size.</p></li>
+<li><p><strong>replace</strong> (<em>bool</em>) – If True, sampling is performed with replacement.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Sampled indexes and the corresponding objects.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.rl.storage.ColumnBasedStore.update">
+<code class="sig-name descname">update</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">indexes</span><span class="p">:</span> <span class="n">Sequence</span></em>, <em class="sig-param"><span class="n">contents</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span> &#x2192; Sequence<a class="reference internal" href="../_modules/maro/rl/storage/column_based_store.html#ColumnBasedStore.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.storage.ColumnBasedStore.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update contents at given positions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>indexes</strong> (<em>Sequence</em>) – Positions where updates are to be made.</p></li>
+<li><p><strong>contents</strong> (<em>dict</em>) – Contents to write to the internal store at given positions. It is subject to uniformity
+checks to ensure that the lists for all keys have the same length.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The indexes where store contents are updated.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.rl.storage.OverwriteType">
+<em class="property">class </em><code class="sig-prename descclassname">maro.rl.storage.</code><code class="sig-name descname">OverwriteType</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/rl/storage/column_based_store.html#OverwriteType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.rl.storage.OverwriteType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt id="maro.rl.storage.OverwriteType.RANDOM">
+<code class="sig-name descname">RANDOM</code><em class="property"> = 'random'</em><a class="headerlink" href="#maro.rl.storage.OverwriteType.RANDOM" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.rl.storage.OverwriteType.ROLLING">
+<code class="sig-name descname">ROLLING</code><em class="property"> = 'rolling'</em><a class="headerlink" href="#maro.rl.storage.OverwriteType.ROLLING" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+    <a class='left-prev' id="prev-link" href="maro.rl.shaping.html" title="previous page">maro.rl.shaping package</a>
+    <a class='right-next' id="next-link" href="maro.simulator.html" title="next page">maro.simulator package</a>
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../_static/js/index.js"></script>
+    
+  </body>
+</html>

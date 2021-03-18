@@ -1,0 +1,70 @@
+maro.simulator.scenarios.vm\_scheduling package
+===============================================
+
+Submodules
+----------
+
+maro.simulator.scenarios.vm\_scheduling.business\_engine module
+---------------------------------------------------------------
+
+.. automodule:: maro.simulator.scenarios.vm_scheduling.business_engine
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.simulator.scenarios.vm\_scheduling.common module
+-----------------------------------------------------
+
+.. automodule:: maro.simulator.scenarios.vm_scheduling.common
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.simulator.scenarios.vm\_scheduling.cpu\_reader module
+----------------------------------------------------------
+
+.. automodule:: maro.simulator.scenarios.vm_scheduling.cpu_reader
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.simulator.scenarios.vm\_scheduling.enums module
+----------------------------------------------------
+
+.. automodule:: maro.simulator.scenarios.vm_scheduling.enums
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.simulator.scenarios.vm\_scheduling.frame\_builder module
+-------------------------------------------------------------
+
+.. automodule:: maro.simulator.scenarios.vm_scheduling.frame_builder
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.simulator.scenarios.vm\_scheduling.physical\_machine module
+----------------------------------------------------------------
+
+.. automodule:: maro.simulator.scenarios.vm_scheduling.physical_machine
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.simulator.scenarios.vm\_scheduling.virtual\_machine module
+---------------------------------------------------------------
+
+.. automodule:: maro.simulator.scenarios.vm_scheduling.virtual_machine
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: maro.simulator.scenarios.vm_scheduling
+   :members:
+   :undoc-members:
+   :show-inheritance:

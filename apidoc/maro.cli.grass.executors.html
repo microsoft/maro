@@ -1,0 +1,935 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maro.cli.grass.executors package &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="maro.cli.grass.utils package" href="maro.cli.grass.utils.html" />
+    <link rel="prev" title="maro.cli.grass package" href="maro.cli.grass.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../index.html">
+  
+  <img src="../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="current nav sidenav_l1">
+ <li class="toctree-l1 current active">
+  <a class="reference internal" href="maro.html">
+   maro package
+  </a>
+  <ul class="current">
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.backends.html">
+     maro.backends package
+    </a>
+   </li>
+   <li class="toctree-l2 current active">
+    <a class="reference internal" href="maro.cli.html">
+     maro.cli package
+    </a>
+    <ul class="current">
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.data_pipeline.html">
+       maro.cli.data_pipeline package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.envs.html">
+       maro.cli.envs package
+      </a>
+     </li>
+     <li class="toctree-l3 current active">
+      <a class="reference internal" href="maro.cli.grass.html">
+       maro.cli.grass package
+      </a>
+      <ul class="current">
+       <li class="toctree-l4 current active">
+        <a class="current reference internal" href="#">
+         maro.cli.grass.executors package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.grass.utils.html">
+         maro.cli.grass.utils package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.inspector.html">
+       maro.cli.inspector package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.k8s.html">
+       maro.cli.k8s package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.k8s.executors.html">
+         maro.cli.k8s.executors package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.process.html">
+       maro.cli.process package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.process.utils.html">
+         maro.cli.process.utils package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.utils.html">
+       maro.cli.utils package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.utils.executors.html">
+         maro.cli.utils.executors package
+        </a>
+       </li>
+      </ul>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.communication.html">
+     maro.communication package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.communication.driver.html">
+       maro.communication.driver package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.communication.utils.html">
+       maro.communication.utils package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.data_lib.html">
+     maro.data_lib package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.data_lib.cim.html">
+       maro.data_lib.cim package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.event_buffer.html">
+     maro.event_buffer package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.forecasting.html">
+     maro.forecasting package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.rl.html">
+     maro.rl package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.actor.html">
+       maro.rl.actor package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.agent.html">
+       maro.rl.agent package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.algorithms.html">
+       maro.rl.algorithms package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.dist_topologies.html">
+       maro.rl.dist_topologies package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.exploration.html">
+       maro.rl.exploration package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.learner.html">
+       maro.rl.learner package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.models.html">
+       maro.rl.models package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.scheduling.html">
+       maro.rl.scheduling package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.shaping.html">
+       maro.rl.shaping package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.storage.html">
+       maro.rl.storage package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.simulator.html">
+     maro.simulator package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.simulator.scenarios.html">
+       maro.simulator.scenarios package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.cim.html">
+         maro.simulator.scenarios.cim package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.citi_bike.html">
+         maro.simulator.scenarios.citi_bike package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.vm_scheduling.html">
+         maro.simulator.scenarios.vm_scheduling package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.simulator.utils.html">
+       maro.simulator.utils package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.utils.html">
+     maro.utils package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.utils.exception.html">
+       maro.utils.exception package
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+        
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="../_sources/apidoc/maro.cli.grass.executors.rst.txt"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.rst</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2Fapidoc/maro.cli.grass.executors.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        <a class="edit-button" href="https://github.com/microsoft/maro/edit/master/doc/source/apidoc/maro.cli.grass.executors.rst"><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Edit this page"><i class="fas fa-pencil-alt"></i>suggest edit</button></a>
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <div class="tocsection onthispage pt-5 pb-3">
+            <i class="fas fa-list"></i> Contents
+        </div>
+        <nav id="bd-toc-nav">
+            <ul class="nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#submodules">
+   Submodules
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.cli.grass.executors.grass_azure_executor">
+   maro.cli.grass.executors.grass_azure_executor module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.cli.grass.executors.grass_executor">
+   maro.cli.grass.executors.grass_executor module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.cli.grass.executors.grass_on_premises_executor">
+   maro.cli.grass.executors.grass_on_premises_executor module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.cli.grass.executors">
+   Module contents
+  </a>
+ </li>
+</ul>
+
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <div class="section" id="maro-cli-grass-executors-package">
+<h1>maro.cli.grass.executors package<a class="headerlink" href="#maro-cli-grass-executors-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-maro.cli.grass.executors.grass_azure_executor">
+<span id="maro-cli-grass-executors-grass-azure-executor-module"></span><h2>maro.cli.grass.executors.grass_azure_executor module<a class="headerlink" href="#module-maro.cli.grass.executors.grass_azure_executor" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.cli.grass.executors.grass_azure_executor.ArmTemplateParameterBuilder">
+<em class="property">class </em><code class="sig-prename descclassname">maro.cli.grass.executors.grass_azure_executor.</code><code class="sig-name descname">ArmTemplateParameterBuilder</code><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_azure_executor.html#ArmTemplateParameterBuilder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_azure_executor.ArmTemplateParameterBuilder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_azure_executor.ArmTemplateParameterBuilder.create_build_node_image_vm">
+<em class="property">static </em><code class="sig-name descname">create_build_node_image_vm</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cluster_details</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">node_size</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">export_path</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; dict<a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_azure_executor.html#ArmTemplateParameterBuilder.create_build_node_image_vm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_azure_executor.ArmTemplateParameterBuilder.create_build_node_image_vm" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_azure_executor.ArmTemplateParameterBuilder.create_master">
+<em class="property">static </em><code class="sig-name descname">create_master</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cluster_details</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">node_size</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">export_path</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; dict<a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_azure_executor.html#ArmTemplateParameterBuilder.create_master"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_azure_executor.ArmTemplateParameterBuilder.create_master" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_azure_executor.ArmTemplateParameterBuilder.create_node">
+<em class="property">static </em><code class="sig-name descname">create_node</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node_name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">cluster_details</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">node_size</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">image_resource_id</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">export_path</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; dict<a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_azure_executor.html#ArmTemplateParameterBuilder.create_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_azure_executor.ArmTemplateParameterBuilder.create_node" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_azure_executor.ArmTemplateParameterBuilder.create_vnet">
+<em class="property">static </em><code class="sig-name descname">create_vnet</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cluster_details</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">export_path</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; dict<a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_azure_executor.html#ArmTemplateParameterBuilder.create_vnet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_azure_executor.ArmTemplateParameterBuilder.create_vnet" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.cli.grass.executors.grass_azure_executor.GrassAzureExecutor">
+<em class="property">class </em><code class="sig-prename descclassname">maro.cli.grass.executors.grass_azure_executor.</code><code class="sig-name descname">GrassAzureExecutor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cluster_name</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_azure_executor.html#GrassAzureExecutor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_azure_executor.GrassAzureExecutor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_azure_executor.GrassAzureExecutor.build_cluster_details">
+<em class="property">static </em><code class="sig-name descname">build_cluster_details</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">create_deployment</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_azure_executor.html#GrassAzureExecutor.build_cluster_details"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_azure_executor.GrassAzureExecutor.build_cluster_details" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_azure_executor.GrassAzureExecutor.clean">
+<code class="sig-name descname">clean</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_azure_executor.html#GrassAzureExecutor.clean"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_azure_executor.GrassAzureExecutor.clean" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_azure_executor.GrassAzureExecutor.create">
+<code class="sig-name descname">create</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_azure_executor.html#GrassAzureExecutor.create"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_azure_executor.GrassAzureExecutor.create" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_azure_executor.GrassAzureExecutor.delete">
+<code class="sig-name descname">delete</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_azure_executor.html#GrassAzureExecutor.delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_azure_executor.GrassAzureExecutor.delete" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_azure_executor.GrassAzureExecutor.get_job_logs">
+<code class="sig-name descname">get_job_logs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">job_name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">export_dir</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'./'</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_azure_executor.html#GrassAzureExecutor.get_job_logs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_azure_executor.GrassAzureExecutor.get_job_logs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_azure_executor.GrassAzureExecutor.list_job">
+<code class="sig-name descname">list_job</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_azure_executor.html#GrassAzureExecutor.list_job"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_azure_executor.GrassAzureExecutor.list_job" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_azure_executor.GrassAzureExecutor.list_node">
+<code class="sig-name descname">list_node</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_azure_executor.html#GrassAzureExecutor.list_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_azure_executor.GrassAzureExecutor.list_node" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_azure_executor.GrassAzureExecutor.pull_data">
+<code class="sig-name descname">pull_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">local_path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">remote_path</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_azure_executor.html#GrassAzureExecutor.pull_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_azure_executor.GrassAzureExecutor.pull_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_azure_executor.GrassAzureExecutor.push_data">
+<code class="sig-name descname">push_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">local_path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">remote_path</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_azure_executor.html#GrassAzureExecutor.push_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_azure_executor.GrassAzureExecutor.push_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_azure_executor.GrassAzureExecutor.push_image">
+<code class="sig-name descname">push_image</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">image_name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">image_path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">remote_context_path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">remote_image_name</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_azure_executor.html#GrassAzureExecutor.push_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_azure_executor.GrassAzureExecutor.push_image" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_azure_executor.GrassAzureExecutor.scale_node">
+<code class="sig-name descname">scale_node</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">replicas</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">node_size</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_azure_executor.html#GrassAzureExecutor.scale_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_azure_executor.GrassAzureExecutor.scale_node" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_azure_executor.GrassAzureExecutor.start_job">
+<code class="sig-name descname">start_job</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">deployment_path</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_azure_executor.html#GrassAzureExecutor.start_job"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_azure_executor.GrassAzureExecutor.start_job" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_azure_executor.GrassAzureExecutor.start_node">
+<code class="sig-name descname">start_node</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">replicas</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">node_size</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_azure_executor.html#GrassAzureExecutor.start_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_azure_executor.GrassAzureExecutor.start_node" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_azure_executor.GrassAzureExecutor.start_schedule">
+<code class="sig-name descname">start_schedule</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">deployment_path</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_azure_executor.html#GrassAzureExecutor.start_schedule"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_azure_executor.GrassAzureExecutor.start_schedule" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_azure_executor.GrassAzureExecutor.status">
+<code class="sig-name descname">status</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">resource_name</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_azure_executor.html#GrassAzureExecutor.status"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_azure_executor.GrassAzureExecutor.status" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_azure_executor.GrassAzureExecutor.stop_job">
+<code class="sig-name descname">stop_job</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">job_name</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_azure_executor.html#GrassAzureExecutor.stop_job"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_azure_executor.GrassAzureExecutor.stop_job" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_azure_executor.GrassAzureExecutor.stop_node">
+<code class="sig-name descname">stop_node</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">replicas</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">node_size</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_azure_executor.html#GrassAzureExecutor.stop_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_azure_executor.GrassAzureExecutor.stop_node" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_azure_executor.GrassAzureExecutor.stop_schedule">
+<code class="sig-name descname">stop_schedule</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">schedule_name</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_azure_executor.html#GrassAzureExecutor.stop_schedule"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_azure_executor.GrassAzureExecutor.stop_schedule" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_azure_executor.GrassAzureExecutor.template">
+<em class="property">static </em><code class="sig-name descname">template</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">export_path</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_azure_executor.html#GrassAzureExecutor.template"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_azure_executor.GrassAzureExecutor.template" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.cli.grass.executors.grass_executor">
+<span id="maro-cli-grass-executors-grass-executor-module"></span><h2>maro.cli.grass.executors.grass_executor module<a class="headerlink" href="#module-maro.cli.grass.executors.grass_executor" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.cli.grass.executors.grass_executor.GrassExecutor">
+<em class="property">class </em><code class="sig-prename descclassname">maro.cli.grass.executors.grass_executor.</code><code class="sig-name descname">GrassExecutor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cluster_details</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_executor.html#GrassExecutor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_executor.GrassExecutor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_executor.GrassExecutor.delete_master_details">
+<code class="sig-name descname">delete_master_details</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cluster_name</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_executor.html#GrassExecutor.delete_master_details"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_executor.GrassExecutor.delete_master_details" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_executor.GrassExecutor.remote_add_user_to_node">
+<em class="property">static </em><code class="sig-name descname">remote_add_user_to_node</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">admin_username</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">maro_user</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">node_ip_address</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">pubkey</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_executor.html#GrassExecutor.remote_add_user_to_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_executor.GrassExecutor.remote_add_user_to_node" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_executor.GrassExecutor.remote_build_image">
+<code class="sig-name descname">remote_build_image</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">remote_context_path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">remote_image_name</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_executor.html#GrassExecutor.remote_build_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_executor.GrassExecutor.remote_build_image" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_executor.GrassExecutor.remote_clean">
+<code class="sig-name descname">remote_clean</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">parallels</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_executor.html#GrassExecutor.remote_clean"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_executor.GrassExecutor.remote_clean" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_executor.GrassExecutor.remote_create_job_details">
+<code class="sig-name descname">remote_create_job_details</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">job_name</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_executor.html#GrassExecutor.remote_create_job_details"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_executor.GrassExecutor.remote_create_job_details" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_executor.GrassExecutor.remote_create_killed_job_ticket">
+<code class="sig-name descname">remote_create_killed_job_ticket</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">job_name</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_executor.html#GrassExecutor.remote_create_killed_job_ticket"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_executor.GrassExecutor.remote_create_killed_job_ticket" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_executor.GrassExecutor.remote_create_pending_job_ticket">
+<code class="sig-name descname">remote_create_pending_job_ticket</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">job_name</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_executor.html#GrassExecutor.remote_create_pending_job_ticket"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_executor.GrassExecutor.remote_create_pending_job_ticket" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_executor.GrassExecutor.remote_delete_pending_job_ticket">
+<code class="sig-name descname">remote_delete_pending_job_ticket</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">job_name</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_executor.html#GrassExecutor.remote_delete_pending_job_ticket"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_executor.GrassExecutor.remote_delete_pending_job_ticket" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_executor.GrassExecutor.remote_delete_user_from_node">
+<em class="property">static </em><code class="sig-name descname">remote_delete_user_from_node</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">admin_username</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">delete_user</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">node_ip_address</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_executor.html#GrassExecutor.remote_delete_user_from_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_executor.GrassExecutor.remote_delete_user_from_node" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_executor.GrassExecutor.remote_get_checksum">
+<code class="sig-name descname">remote_get_checksum</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_path</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; str<a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_executor.html#GrassExecutor.remote_get_checksum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_executor.GrassExecutor.remote_get_checksum" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_executor.GrassExecutor.remote_get_containers_details">
+<code class="sig-name descname">remote_get_containers_details</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_executor.html#GrassExecutor.remote_get_containers_details"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_executor.GrassExecutor.remote_get_containers_details" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_executor.GrassExecutor.remote_get_jobs_details">
+<code class="sig-name descname">remote_get_jobs_details</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_executor.html#GrassExecutor.remote_get_jobs_details"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_executor.GrassExecutor.remote_get_jobs_details" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_executor.GrassExecutor.remote_get_master_details">
+<code class="sig-name descname">remote_get_master_details</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_executor.html#GrassExecutor.remote_get_master_details"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_executor.GrassExecutor.remote_get_master_details" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_executor.GrassExecutor.remote_get_node_details">
+<code class="sig-name descname">remote_get_node_details</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node_name</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_executor.html#GrassExecutor.remote_get_node_details"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_executor.GrassExecutor.remote_get_node_details" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_executor.GrassExecutor.remote_get_nodes_details">
+<code class="sig-name descname">remote_get_nodes_details</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_executor.html#GrassExecutor.remote_get_nodes_details"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_executor.GrassExecutor.remote_get_nodes_details" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_executor.GrassExecutor.remote_get_public_key">
+<code class="sig-name descname">remote_get_public_key</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node_ip_address</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_executor.html#GrassExecutor.remote_get_public_key"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_executor.GrassExecutor.remote_get_public_key" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_executor.GrassExecutor.remote_init_build_node_image_vm">
+<code class="sig-name descname">remote_init_build_node_image_vm</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vm_ip_address</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_executor.html#GrassExecutor.remote_init_build_node_image_vm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_executor.GrassExecutor.remote_init_build_node_image_vm" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_executor.GrassExecutor.remote_init_master">
+<code class="sig-name descname">remote_init_master</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_executor.html#GrassExecutor.remote_init_master"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_executor.GrassExecutor.remote_init_master" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_executor.GrassExecutor.remote_init_node">
+<code class="sig-name descname">remote_init_node</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node_name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">node_ip_address</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_executor.html#GrassExecutor.remote_init_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_executor.GrassExecutor.remote_init_node" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_executor.GrassExecutor.remote_load_images">
+<code class="sig-name descname">remote_load_images</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node_name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">parallels</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">node_ip_address</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_executor.html#GrassExecutor.remote_load_images"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_executor.GrassExecutor.remote_load_images" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_executor.GrassExecutor.remote_load_master_agent_service">
+<code class="sig-name descname">remote_load_master_agent_service</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_executor.html#GrassExecutor.remote_load_master_agent_service"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_executor.GrassExecutor.remote_load_master_agent_service" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_executor.GrassExecutor.remote_load_node_agent_service">
+<code class="sig-name descname">remote_load_node_agent_service</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node_name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">node_ip_address</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_executor.html#GrassExecutor.remote_load_node_agent_service"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_executor.GrassExecutor.remote_load_node_agent_service" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_executor.GrassExecutor.remote_mkdir">
+<code class="sig-name descname">remote_mkdir</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node_ip_address</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_executor.html#GrassExecutor.remote_mkdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_executor.GrassExecutor.remote_mkdir" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_executor.GrassExecutor.remote_set_master_details">
+<code class="sig-name descname">remote_set_master_details</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">master_details</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_executor.html#GrassExecutor.remote_set_master_details"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_executor.GrassExecutor.remote_set_master_details" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_executor.GrassExecutor.remote_set_node_details">
+<code class="sig-name descname">remote_set_node_details</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node_name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">node_details</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_executor.html#GrassExecutor.remote_set_node_details"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_executor.GrassExecutor.remote_set_node_details" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_executor.GrassExecutor.remote_set_ssh_port">
+<code class="sig-name descname">remote_set_ssh_port</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node_ip_address</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_executor.html#GrassExecutor.remote_set_ssh_port"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_executor.GrassExecutor.remote_set_ssh_port" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_executor.GrassExecutor.remote_update_image_files_details">
+<code class="sig-name descname">remote_update_image_files_details</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_executor.html#GrassExecutor.remote_update_image_files_details"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_executor.GrassExecutor.remote_update_image_files_details" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_executor.GrassExecutor.remote_update_node_status">
+<code class="sig-name descname">remote_update_node_status</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node_name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">action</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_executor.html#GrassExecutor.remote_update_node_status"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_executor.GrassExecutor.remote_update_node_status" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_executor.GrassExecutor.retry_connection_and_set_ssh_port">
+<code class="sig-name descname">retry_connection_and_set_ssh_port</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node_ip_address</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_executor.html#GrassExecutor.retry_connection_and_set_ssh_port"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_executor.GrassExecutor.retry_connection_and_set_ssh_port" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_executor.GrassExecutor.test_ssh_22_connection">
+<code class="sig-name descname">test_ssh_22_connection</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node_ip_address</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_executor.html#GrassExecutor.test_ssh_22_connection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_executor.GrassExecutor.test_ssh_22_connection" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_executor.GrassExecutor.test_ssh_default_port_connection">
+<code class="sig-name descname">test_ssh_default_port_connection</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node_ip_address</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_executor.html#GrassExecutor.test_ssh_default_port_connection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_executor.GrassExecutor.test_ssh_default_port_connection" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.cli.grass.executors.grass_on_premises_executor">
+<span id="maro-cli-grass-executors-grass-on-premises-executor-module"></span><h2>maro.cli.grass.executors.grass_on_premises_executor module<a class="headerlink" href="#module-maro.cli.grass.executors.grass_on_premises_executor" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.cli.grass.executors.grass_on_premises_executor.GrassOnPremisesExecutor">
+<em class="property">class </em><code class="sig-prename descclassname">maro.cli.grass.executors.grass_on_premises_executor.</code><code class="sig-name descname">GrassOnPremisesExecutor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cluster_name</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_on_premises_executor.html#GrassOnPremisesExecutor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_on_premises_executor.GrassOnPremisesExecutor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_on_premises_executor.GrassOnPremisesExecutor.build_cluster_details">
+<em class="property">static </em><code class="sig-name descname">build_cluster_details</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">create_deployment</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_on_premises_executor.html#GrassOnPremisesExecutor.build_cluster_details"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_on_premises_executor.GrassOnPremisesExecutor.build_cluster_details" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_on_premises_executor.GrassOnPremisesExecutor.create">
+<code class="sig-name descname">create</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_on_premises_executor.html#GrassOnPremisesExecutor.create"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_on_premises_executor.GrassOnPremisesExecutor.create" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_on_premises_executor.GrassOnPremisesExecutor.create_user">
+<em class="property">static </em><code class="sig-name descname">create_user</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">admin_username</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">maro_user</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">ip_address</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">pubkey</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">ssh_port</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_on_premises_executor.html#GrassOnPremisesExecutor.create_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_on_premises_executor.GrassOnPremisesExecutor.create_user" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_on_premises_executor.GrassOnPremisesExecutor.delete">
+<code class="sig-name descname">delete</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_on_premises_executor.html#GrassOnPremisesExecutor.delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_on_premises_executor.GrassOnPremisesExecutor.delete" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_on_premises_executor.GrassOnPremisesExecutor.delete_user">
+<em class="property">static </em><code class="sig-name descname">delete_user</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">admin_username</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">maro_user</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">ip_address</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">ssh_port</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_on_premises_executor.html#GrassOnPremisesExecutor.delete_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_on_premises_executor.GrassOnPremisesExecutor.delete_user" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_on_premises_executor.GrassOnPremisesExecutor.node_join_cluster">
+<code class="sig-name descname">node_join_cluster</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node_join_info</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_on_premises_executor.html#GrassOnPremisesExecutor.node_join_cluster"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_on_premises_executor.GrassOnPremisesExecutor.node_join_cluster" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.grass.executors.grass_on_premises_executor.GrassOnPremisesExecutor.node_leave_cluster">
+<code class="sig-name descname">node_leave_cluster</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node_name</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/grass/executors/grass_on_premises_executor.html#GrassOnPremisesExecutor.node_leave_cluster"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.grass.executors.grass_on_premises_executor.GrassOnPremisesExecutor.node_leave_cluster" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.cli.grass.executors">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-maro.cli.grass.executors" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+    <a class='left-prev' id="prev-link" href="maro.cli.grass.html" title="previous page">maro.cli.grass package</a>
+    <a class='right-next' id="next-link" href="maro.cli.grass.utils.html" title="next page">maro.cli.grass.utils package</a>
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../_static/js/index.js"></script>
+    
+  </body>
+</html>

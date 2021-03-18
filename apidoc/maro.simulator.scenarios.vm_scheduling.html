@@ -1,0 +1,1540 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maro.simulator.scenarios.vm_scheduling package &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="maro.simulator.utils package" href="maro.simulator.utils.html" />
+    <link rel="prev" title="maro.simulator.scenarios.citi_bike package" href="maro.simulator.scenarios.citi_bike.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../index.html">
+  
+  <img src="../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="current nav sidenav_l1">
+ <li class="toctree-l1 current active">
+  <a class="reference internal" href="maro.html">
+   maro package
+  </a>
+  <ul class="current">
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.backends.html">
+     maro.backends package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.cli.html">
+     maro.cli package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.data_pipeline.html">
+       maro.cli.data_pipeline package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.envs.html">
+       maro.cli.envs package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.grass.html">
+       maro.cli.grass package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.grass.executors.html">
+         maro.cli.grass.executors package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.grass.utils.html">
+         maro.cli.grass.utils package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.inspector.html">
+       maro.cli.inspector package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.k8s.html">
+       maro.cli.k8s package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.k8s.executors.html">
+         maro.cli.k8s.executors package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.process.html">
+       maro.cli.process package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.process.utils.html">
+         maro.cli.process.utils package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.utils.html">
+       maro.cli.utils package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.utils.executors.html">
+         maro.cli.utils.executors package
+        </a>
+       </li>
+      </ul>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.communication.html">
+     maro.communication package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.communication.driver.html">
+       maro.communication.driver package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.communication.utils.html">
+       maro.communication.utils package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.data_lib.html">
+     maro.data_lib package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.data_lib.cim.html">
+       maro.data_lib.cim package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.event_buffer.html">
+     maro.event_buffer package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.forecasting.html">
+     maro.forecasting package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.rl.html">
+     maro.rl package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.actor.html">
+       maro.rl.actor package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.agent.html">
+       maro.rl.agent package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.algorithms.html">
+       maro.rl.algorithms package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.dist_topologies.html">
+       maro.rl.dist_topologies package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.exploration.html">
+       maro.rl.exploration package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.learner.html">
+       maro.rl.learner package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.models.html">
+       maro.rl.models package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.scheduling.html">
+       maro.rl.scheduling package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.shaping.html">
+       maro.rl.shaping package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.storage.html">
+       maro.rl.storage package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 current active">
+    <a class="reference internal" href="maro.simulator.html">
+     maro.simulator package
+    </a>
+    <ul class="current">
+     <li class="toctree-l3 current active">
+      <a class="reference internal" href="maro.simulator.scenarios.html">
+       maro.simulator.scenarios package
+      </a>
+      <ul class="current">
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.cim.html">
+         maro.simulator.scenarios.cim package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.citi_bike.html">
+         maro.simulator.scenarios.citi_bike package
+        </a>
+       </li>
+       <li class="toctree-l4 current active">
+        <a class="current reference internal" href="#">
+         maro.simulator.scenarios.vm_scheduling package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.simulator.utils.html">
+       maro.simulator.utils package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.utils.html">
+     maro.utils package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.utils.exception.html">
+       maro.utils.exception package
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+        
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="../_sources/apidoc/maro.simulator.scenarios.vm_scheduling.rst.txt"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.rst</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2Fapidoc/maro.simulator.scenarios.vm_scheduling.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        <a class="edit-button" href="https://github.com/microsoft/maro/edit/master/doc/source/apidoc/maro.simulator.scenarios.vm_scheduling.rst"><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Edit this page"><i class="fas fa-pencil-alt"></i>suggest edit</button></a>
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <div class="tocsection onthispage pt-5 pb-3">
+            <i class="fas fa-list"></i> Contents
+        </div>
+        <nav id="bd-toc-nav">
+            <ul class="nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#submodules">
+   Submodules
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.simulator.scenarios.vm_scheduling.business_engine">
+   maro.simulator.scenarios.vm_scheduling.business_engine module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.simulator.scenarios.vm_scheduling.common">
+   maro.simulator.scenarios.vm_scheduling.common module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.simulator.scenarios.vm_scheduling.cpu_reader">
+   maro.simulator.scenarios.vm_scheduling.cpu_reader module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.simulator.scenarios.vm_scheduling.enums">
+   maro.simulator.scenarios.vm_scheduling.enums module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.simulator.scenarios.vm_scheduling.frame_builder">
+   maro.simulator.scenarios.vm_scheduling.frame_builder module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.simulator.scenarios.vm_scheduling.physical_machine">
+   maro.simulator.scenarios.vm_scheduling.physical_machine module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.simulator.scenarios.vm_scheduling.virtual_machine">
+   maro.simulator.scenarios.vm_scheduling.virtual_machine module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.simulator.scenarios.vm_scheduling">
+   Module contents
+  </a>
+ </li>
+</ul>
+
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <div class="section" id="maro-simulator-scenarios-vm-scheduling-package">
+<h1>maro.simulator.scenarios.vm_scheduling package<a class="headerlink" href="#maro-simulator-scenarios-vm-scheduling-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-maro.simulator.scenarios.vm_scheduling.business_engine">
+<span id="maro-simulator-scenarios-vm-scheduling-business-engine-module"></span><h2>maro.simulator.scenarios.vm_scheduling.business_engine module<a class="headerlink" href="#module-maro.simulator.scenarios.vm_scheduling.business_engine" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.simulator.scenarios.vm_scheduling.business_engine.VmSchedulingBusinessEngine">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.vm_scheduling.business_engine.</code><code class="sig-name descname">VmSchedulingBusinessEngine</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event_buffer</span><span class="p">:</span> <span class="n"><a class="reference internal" href="maro.event_buffer.html#maro.event_buffer.event_buffer.EventBuffer" title="maro.event_buffer.event_buffer.EventBuffer">maro.event_buffer.event_buffer.EventBuffer</a></span></em>, <em class="sig-param"><span class="n">topology</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">start_tick</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">max_tick</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">snapshot_resolution</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">max_snapshots</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">additional_options</span><span class="p">:</span> <span class="n">dict</span> <span class="o">=</span> <span class="default_value">{}</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/business_engine.html#VmSchedulingBusinessEngine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.business_engine.VmSchedulingBusinessEngine" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="maro.simulator.scenarios.html#maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine" title="maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine</span></code></a></p>
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.business_engine.VmSchedulingBusinessEngine.configs">
+<em class="property">property </em><code class="sig-name descname">configs</code><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.business_engine.VmSchedulingBusinessEngine.configs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Current configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.business_engine.VmSchedulingBusinessEngine.frame">
+<em class="property">property </em><code class="sig-name descname">frame</code><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.business_engine.VmSchedulingBusinessEngine.frame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Current frame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="maro.backends.html#id16" title="maro.backends.frame.FrameBase">FrameBase</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.business_engine.VmSchedulingBusinessEngine.get_agent_idx_list">
+<code class="sig-name descname">get_agent_idx_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>int<span class="p">]</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/business_engine.html#VmSchedulingBusinessEngine.get_agent_idx_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.business_engine.VmSchedulingBusinessEngine.get_agent_idx_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a list of agent index.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.business_engine.VmSchedulingBusinessEngine.get_event_payload_detail">
+<code class="sig-name descname">get_event_payload_detail</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; dict<a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/business_engine.html#VmSchedulingBusinessEngine.get_event_payload_detail"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.business_engine.VmSchedulingBusinessEngine.get_event_payload_detail" title="Permalink to this definition">¶</a></dt>
+<dd><p>dict: Event payload details of current scenario.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.business_engine.VmSchedulingBusinessEngine.get_metrics">
+<code class="sig-name descname">get_metrics</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="maro.simulator.scenarios.html#maro.simulator.scenarios.helpers.DocableDict" title="maro.simulator.scenarios.helpers.DocableDict">maro.simulator.scenarios.helpers.DocableDict</a><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/business_engine.html#VmSchedulingBusinessEngine.get_metrics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.business_engine.VmSchedulingBusinessEngine.get_metrics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get current environment metrics information.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Metrics information.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="maro.simulator.scenarios.html#maro.simulator.scenarios.helpers.DocableDict" title="maro.simulator.scenarios.helpers.DocableDict">DocableDict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.business_engine.VmSchedulingBusinessEngine.get_node_mapping">
+<code class="sig-name descname">get_node_mapping</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; dict<a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/business_engine.html#VmSchedulingBusinessEngine.get_node_mapping"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.business_engine.VmSchedulingBusinessEngine.get_node_mapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>dict: Node mapping.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.business_engine.VmSchedulingBusinessEngine.get_vm_cpu_utilization_series">
+<code class="sig-name descname">get_vm_cpu_utilization_series</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vm_id</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>float<span class="p">]</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/business_engine.html#VmSchedulingBusinessEngine.get_vm_cpu_utilization_series"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.business_engine.VmSchedulingBusinessEngine.get_vm_cpu_utilization_series" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the CPU utilization series of the specific VM by the given ID.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.business_engine.VmSchedulingBusinessEngine.post_step">
+<code class="sig-name descname">post_step</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tick</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/business_engine.html#VmSchedulingBusinessEngine.post_step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.business_engine.VmSchedulingBusinessEngine.post_step" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method will be called at the end of each tick, used to post-process for each tick,
+for complex business logic with many events, it maybe not easy to determine
+if stop the scenario at the middle of tick, so this method is used to avoid this.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>tick</strong> (<em>int</em>) – Current tick.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>If simulator should stop simulation at current tick.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.business_engine.VmSchedulingBusinessEngine.reset">
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/business_engine.html#VmSchedulingBusinessEngine.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.business_engine.VmSchedulingBusinessEngine.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset internal states for episode.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.business_engine.VmSchedulingBusinessEngine.snapshots">
+<em class="property">property </em><code class="sig-name descname">snapshots</code><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.business_engine.VmSchedulingBusinessEngine.snapshots" title="Permalink to this definition">¶</a></dt>
+<dd><p>Current snapshot list.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="maro.backends.html#id32" title="maro.backends.frame.SnapshotList">SnapshotList</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.business_engine.VmSchedulingBusinessEngine.step">
+<code class="sig-name descname">step</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tick</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/business_engine.html#VmSchedulingBusinessEngine.step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.business_engine.VmSchedulingBusinessEngine.step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Push business to next step.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>tick</strong> (<em>int</em>) – Current tick to process.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.simulator.scenarios.vm_scheduling.common">
+<span id="maro-simulator-scenarios-vm-scheduling-common-module"></span><h2>maro.simulator.scenarios.vm_scheduling.common module<a class="headerlink" href="#module-maro.simulator.scenarios.vm_scheduling.common" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.simulator.scenarios.vm_scheduling.common.Action">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.vm_scheduling.common.</code><code class="sig-name descname">Action</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vm_id</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/common.html#Action"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.common.Action" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>VM Scheduling scenario action object, which was used to pass action from agent to business engine.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>vm_id</strong> (<em>int</em>) – The VM id.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.simulator.scenarios.vm_scheduling.common.AllocateAction">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.vm_scheduling.common.</code><code class="sig-name descname">AllocateAction</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vm_id</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">pm_id</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/common.html#AllocateAction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.common.AllocateAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.simulator.scenarios.vm_scheduling.common.Action" title="maro.simulator.scenarios.vm_scheduling.common.Action"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.simulator.scenarios.vm_scheduling.common.Action</span></code></a></p>
+<p>Allocation action object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vm_id</strong> (<em>int</em>) – The VM id.</p></li>
+<li><p><strong>pm_id</strong> (<em>int</em>) – The id of the physical machine where the VM will be allocated.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.simulator.scenarios.vm_scheduling.common.DecisionPayload">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.vm_scheduling.common.</code><code class="sig-name descname">DecisionPayload</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">frame_index</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">valid_pms</span><span class="p">:</span> <span class="n">List<span class="p">[</span>int<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">vm_id</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">vm_cpu_cores_requirement</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">vm_memory_requirement</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">remaining_buffer_time</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/common.html#DecisionPayload"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.common.DecisionPayload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Decision event in VM Scheduling scenario that contains information for agent to choose action.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>frame_index</strong> (<em>int</em>) – The current frame index (converted by tick).</p></li>
+<li><p><strong>valid_pms</strong> (<em>List[int]</em>) – A list contains pm id of all valid pms.</p></li>
+<li><p><strong>vm_id</strong> (<em>int</em>) – The id of the VM.</p></li>
+<li><p><strong>vm_cpu_cores_requirement</strong> (<em>int</em>) – The CPU requested by VM.</p></li>
+<li><p><strong>vm_memory_requirement</strong> (<em>int</em>) – The memory requested by VM.</p></li>
+<li><p><strong>remaining_buffer_time</strong> (<em>int</em>) – The remaining buffer time.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.vm_scheduling.common.DecisionPayload.summary_key">
+<code class="sig-name descname">summary_key</code><em class="property"> = ['frame_index', 'valid_pms', 'vm_id', 'vm_cpu_cores_requirement', 'vm_memory_requirement', 'remaining_buffer_time']</em><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.common.DecisionPayload.summary_key" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.simulator.scenarios.vm_scheduling.common.Latency">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.vm_scheduling.common.</code><code class="sig-name descname">Latency</code><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/common.html#Latency"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.common.Latency" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Accumulative latency.</p>
+<p>Two types of the latency.
+1. The accumulative latency triggered by the algorithm inaccurate predictions.
+2. The accumulative latency triggered by the resource exhaustion.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.simulator.scenarios.vm_scheduling.common.PostponeAction">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.vm_scheduling.common.</code><code class="sig-name descname">PostponeAction</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vm_id</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">postpone_step</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/common.html#PostponeAction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.common.PostponeAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.simulator.scenarios.vm_scheduling.common.Action" title="maro.simulator.scenarios.vm_scheduling.common.Action"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.simulator.scenarios.vm_scheduling.common.Action</span></code></a></p>
+<p>Postpone action object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vm_id</strong> (<em>int</em>) – The VM id.</p></li>
+<li><p><strong>postpone_step</strong> (<em>int</em>) – The number of times be postponed.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.simulator.scenarios.vm_scheduling.common.VmRequestPayload">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.vm_scheduling.common.</code><code class="sig-name descname">VmRequestPayload</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vm_info</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.simulator.scenarios.vm_scheduling.virtual_machine.VirtualMachine" title="maro.simulator.scenarios.vm_scheduling.virtual_machine.VirtualMachine">maro.simulator.scenarios.vm_scheduling.virtual_machine.VirtualMachine</a></span></em>, <em class="sig-param"><span class="n">remaining_buffer_time</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/common.html#VmRequestPayload"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.common.VmRequestPayload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Payload for the VM requirement.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vm_info</strong> (<em>VirtualMachine</em>) – The VM information.</p></li>
+<li><p><strong>remaining_buffer_time</strong> (<em>int</em>) – The remaining buffer time.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.vm_scheduling.common.VmRequestPayload.summary_key">
+<code class="sig-name descname">summary_key</code><em class="property"> = ['vm_info', 'remaining_buffer_time']</em><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.common.VmRequestPayload.summary_key" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.simulator.scenarios.vm_scheduling.cpu_reader">
+<span id="maro-simulator-scenarios-vm-scheduling-cpu-reader-module"></span><h2>maro.simulator.scenarios.vm_scheduling.cpu_reader module<a class="headerlink" href="#module-maro.simulator.scenarios.vm_scheduling.cpu_reader" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.simulator.scenarios.vm_scheduling.cpu_reader.CpuReader">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.vm_scheduling.cpu_reader.</code><code class="sig-name descname">CpuReader</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">start_tick</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/cpu_reader.html#CpuReader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.cpu_reader.CpuReader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A wrapper class for the BinaryReader.</p>
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.cpu_reader.CpuReader.items">
+<code class="sig-name descname">items</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tick</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/cpu_reader.html#CpuReader.items"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.cpu_reader.CpuReader.items" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.cpu_reader.CpuReader.reset">
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/cpu_reader.html#CpuReader.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.cpu_reader.CpuReader.reset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.simulator.scenarios.vm_scheduling.enums">
+<span id="maro-simulator-scenarios-vm-scheduling-enums-module"></span><h2>maro.simulator.scenarios.vm_scheduling.enums module<a class="headerlink" href="#module-maro.simulator.scenarios.vm_scheduling.enums" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.simulator.scenarios.vm_scheduling.enums.Events">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.vm_scheduling.enums.</code><code class="sig-name descname">Events</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/enums.html#Events"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.enums.Events" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>VM-PM pairs related events.</p>
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.vm_scheduling.enums.Events.REQUEST">
+<code class="sig-name descname">REQUEST</code><em class="property"> = 'vm_required'</em><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.enums.Events.REQUEST" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.simulator.scenarios.vm_scheduling.enums.PmState">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.vm_scheduling.enums.</code><code class="sig-name descname">PmState</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/enums.html#PmState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.enums.PmState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.IntEnum</span></code></p>
+<p>PM oversubscription state, includes empty, oversubscribable, non-oversubscribable.</p>
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.vm_scheduling.enums.PmState.EMPTY">
+<code class="sig-name descname">EMPTY</code><em class="property"> = 0</em><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.enums.PmState.EMPTY" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.vm_scheduling.enums.PmState.NON_OVERSUBSCRIBABLE">
+<code class="sig-name descname">NON_OVERSUBSCRIBABLE</code><em class="property"> = -1</em><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.enums.PmState.NON_OVERSUBSCRIBABLE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.vm_scheduling.enums.PmState.OVERSUBSCRIBABLE">
+<code class="sig-name descname">OVERSUBSCRIBABLE</code><em class="property"> = 1</em><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.enums.PmState.OVERSUBSCRIBABLE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.simulator.scenarios.vm_scheduling.enums.PostponeType">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.vm_scheduling.enums.</code><code class="sig-name descname">PostponeType</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/enums.html#PostponeType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.enums.PostponeType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>Postpone type.</p>
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.vm_scheduling.enums.PostponeType.Agent">
+<code class="sig-name descname">Agent</code><em class="property"> = 'agent'</em><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.enums.PostponeType.Agent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.vm_scheduling.enums.PostponeType.Resource">
+<code class="sig-name descname">Resource</code><em class="property"> = 'resource'</em><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.enums.PostponeType.Resource" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.simulator.scenarios.vm_scheduling.enums.VmCategory">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.vm_scheduling.enums.</code><code class="sig-name descname">VmCategory</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/enums.html#VmCategory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.enums.VmCategory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.IntEnum</span></code></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.vm_scheduling.enums.VmCategory.DELAY_INSENSITIVE">
+<code class="sig-name descname">DELAY_INSENSITIVE</code><em class="property"> = 0</em><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.enums.VmCategory.DELAY_INSENSITIVE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.vm_scheduling.enums.VmCategory.INTERACTIVE">
+<code class="sig-name descname">INTERACTIVE</code><em class="property"> = 1</em><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.enums.VmCategory.INTERACTIVE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.vm_scheduling.enums.VmCategory.UNKNOWN">
+<code class="sig-name descname">UNKNOWN</code><em class="property"> = 2</em><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.enums.VmCategory.UNKNOWN" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.simulator.scenarios.vm_scheduling.frame_builder">
+<span id="maro-simulator-scenarios-vm-scheduling-frame-builder-module"></span><h2>maro.simulator.scenarios.vm_scheduling.frame_builder module<a class="headerlink" href="#module-maro.simulator.scenarios.vm_scheduling.frame_builder" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="maro.simulator.scenarios.vm_scheduling.frame_builder.build_frame">
+<code class="sig-prename descclassname">maro.simulator.scenarios.vm_scheduling.frame_builder.</code><code class="sig-name descname">build_frame</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pm_amount</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">snapshots_num</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/frame_builder.html#build_frame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.frame_builder.build_frame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to build vm_scheduling Frame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pm_amount</strong> (<em>int</em>) – Number of physical machine.</p></li>
+<li><p><strong>snapshot_num</strong> (<em>int</em>) – Number of in-memory snapshots.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Frame instance for vm_scheduling scenario.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>VmSchedulingFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.simulator.scenarios.vm_scheduling.physical_machine">
+<span id="maro-simulator-scenarios-vm-scheduling-physical-machine-module"></span><h2>maro.simulator.scenarios.vm_scheduling.physical_machine module<a class="headerlink" href="#module-maro.simulator.scenarios.vm_scheduling.physical_machine" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.simulator.scenarios.vm_scheduling.physical_machine.PhysicalMachine">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.vm_scheduling.physical_machine.</code><code class="sig-name descname">PhysicalMachine</code><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/physical_machine.html#PhysicalMachine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.physical_machine.PhysicalMachine" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="maro.backends.html#id29" title="maro.backends.frame.NodeBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.backends.frame.NodeBase</span></code></a></p>
+<p>Physical machine node definition in frame.</p>
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.physical_machine.PhysicalMachine.allocate_vms">
+<code class="sig-name descname">allocate_vms</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vm_ids</span><span class="p">:</span> <span class="n">List<span class="p">[</span>int<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/physical_machine.html#PhysicalMachine.allocate_vms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.physical_machine.PhysicalMachine.allocate_vms" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.vm_scheduling.physical_machine.PhysicalMachine.cpu_cores_allocated">
+<code class="sig-name descname">cpu_cores_allocated</code><em class="property"> = &lt;maro.backends.frame.NodeAttribute object&gt;</em><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.physical_machine.PhysicalMachine.cpu_cores_allocated" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.vm_scheduling.physical_machine.PhysicalMachine.cpu_cores_capacity">
+<code class="sig-name descname">cpu_cores_capacity</code><em class="property"> = &lt;maro.backends.frame.NodeAttribute object&gt;</em><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.physical_machine.PhysicalMachine.cpu_cores_capacity" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.vm_scheduling.physical_machine.PhysicalMachine.cpu_utilization">
+<code class="sig-name descname">cpu_utilization</code><em class="property"> = &lt;maro.backends.frame.NodeAttribute object&gt;</em><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.physical_machine.PhysicalMachine.cpu_utilization" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.physical_machine.PhysicalMachine.deallocate_vms">
+<code class="sig-name descname">deallocate_vms</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vm_ids</span><span class="p">:</span> <span class="n">List<span class="p">[</span>int<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/physical_machine.html#PhysicalMachine.deallocate_vms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.physical_machine.PhysicalMachine.deallocate_vms" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.vm_scheduling.physical_machine.PhysicalMachine.energy_consumption">
+<code class="sig-name descname">energy_consumption</code><em class="property"> = &lt;maro.backends.frame.NodeAttribute object&gt;</em><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.physical_machine.PhysicalMachine.energy_consumption" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.vm_scheduling.physical_machine.PhysicalMachine.id">
+<code class="sig-name descname">id</code><em class="property"> = &lt;maro.backends.frame.NodeAttribute object&gt;</em><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.physical_machine.PhysicalMachine.id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.physical_machine.PhysicalMachine.live_vms">
+<em class="property">property </em><code class="sig-name descname">live_vms</code><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.physical_machine.PhysicalMachine.live_vms" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.vm_scheduling.physical_machine.PhysicalMachine.memory_allocated">
+<code class="sig-name descname">memory_allocated</code><em class="property"> = &lt;maro.backends.frame.NodeAttribute object&gt;</em><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.physical_machine.PhysicalMachine.memory_allocated" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.vm_scheduling.physical_machine.PhysicalMachine.memory_capacity">
+<code class="sig-name descname">memory_capacity</code><em class="property"> = &lt;maro.backends.frame.NodeAttribute object&gt;</em><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.physical_machine.PhysicalMachine.memory_capacity" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.vm_scheduling.physical_machine.PhysicalMachine.oversubscribable">
+<code class="sig-name descname">oversubscribable</code><em class="property"> = &lt;maro.backends.frame.NodeAttribute object&gt;</em><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.physical_machine.PhysicalMachine.oversubscribable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.vm_scheduling.physical_machine.PhysicalMachine.pm_type">
+<code class="sig-name descname">pm_type</code><em class="property"> = &lt;maro.backends.frame.NodeAttribute object&gt;</em><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.physical_machine.PhysicalMachine.pm_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.physical_machine.PhysicalMachine.reset">
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/physical_machine.html#PhysicalMachine.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.physical_machine.PhysicalMachine.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset to default value.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.physical_machine.PhysicalMachine.set_init_state">
+<code class="sig-name descname">set_init_state</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">id</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">cpu_cores_capacity</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">memory_capacity</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">pm_type</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">oversubscribable</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.simulator.scenarios.vm_scheduling.enums.PmState" title="maro.simulator.scenarios.vm_scheduling.enums.PmState">maro.simulator.scenarios.vm_scheduling.enums.PmState</a></span> <span class="o">=</span> <span class="default_value">0</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/physical_machine.html#PhysicalMachine.set_init_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.physical_machine.PhysicalMachine.set_init_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set initialize state, that will be used after frame reset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>int</em>) – PM id, from 0 to N. N means the amount of PM, which can be set in config.</p></li>
+<li><p><strong>cpu_cores_capacity</strong> (<em>int</em>) – The capacity of cores of the PM, which can be set in config.</p></li>
+<li><p><strong>memory_capacity</strong> (<em>int</em>) – The capacity of memory of the PM, which can be set in config.</p></li>
+<li><p><strong>pm_type</strong> (<em>int</em>) – The type of the PM.</p></li>
+<li><p><strong>oversubscribable</strong> (<em>int</em>) – The state of the PM:
+- non-oversubscribable: -1.
+- empty: 0.
+- oversubscribable: 1.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.physical_machine.PhysicalMachine.update_cpu_utilization">
+<code class="sig-name descname">update_cpu_utilization</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vm</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.simulator.scenarios.vm_scheduling.virtual_machine.VirtualMachine" title="maro.simulator.scenarios.vm_scheduling.virtual_machine.VirtualMachine">maro.simulator.scenarios.vm_scheduling.virtual_machine.VirtualMachine</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">cpu_utilization</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/physical_machine.html#PhysicalMachine.update_cpu_utilization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.physical_machine.PhysicalMachine.update_cpu_utilization" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.simulator.scenarios.vm_scheduling.virtual_machine">
+<span id="maro-simulator-scenarios-vm-scheduling-virtual-machine-module"></span><h2>maro.simulator.scenarios.vm_scheduling.virtual_machine module<a class="headerlink" href="#module-maro.simulator.scenarios.vm_scheduling.virtual_machine" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.simulator.scenarios.vm_scheduling.virtual_machine.VirtualMachine">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.vm_scheduling.virtual_machine.</code><code class="sig-name descname">VirtualMachine</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">id</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">cpu_cores_requirement</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">memory_requirement</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">lifetime</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">sub_id</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">deployment_id</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">category</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.simulator.scenarios.vm_scheduling.enums.VmCategory" title="maro.simulator.scenarios.vm_scheduling.enums.VmCategory">maro.simulator.scenarios.vm_scheduling.enums.VmCategory</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/virtual_machine.html#VirtualMachine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.virtual_machine.VirtualMachine" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>VM object.</p>
+<p>The VM lifetime equals to the deletion tick - creation tick.
+For example:</p>
+<blockquote>
+<div><p>A VM’s cpu utilization is {tick: cpu_utilization} = {0: 0.1, 1: 0.4, 2: 0.2}.
+In our scenario, we define vm’s creation tick as 0, and deletion tick as 3.
+Its lifetime will be deletion tick - creation tick = 3 - 0 = 3</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>int</em>) – The VM id.</p></li>
+<li><p><strong>cpu_cores_requirement</strong> (<em>int</em>) – The amount of virtual cores requested by VM.</p></li>
+<li><p><strong>memory_requirement</strong> (<em>int</em>) – The memory requested by VM. The unit is (GBs).</p></li>
+<li><p><strong>lifetime</strong> (<em>int</em>) – The lifetime of the VM, that is, deletion tick - creation tick.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.virtual_machine.VirtualMachine.add_utilization">
+<code class="sig-name descname">add_utilization</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cpu_utilization</span><span class="p">:</span> <span class="n">float</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/virtual_machine.html#VirtualMachine.add_utilization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.virtual_machine.VirtualMachine.add_utilization" title="Permalink to this definition">¶</a></dt>
+<dd><p>VM CPU utilization list.</p>
+<p>In the cpu_readings_file, all CPU utilization of all VMs are sorted by the timestamp, indexed by the VM ID.
+At each tick, we only read the CPU utilization at specific timestamp (tick).
+Hence, this function is designed to append the CPU utilization to the end of the corresponding
+VM utilization series one by one.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.virtual_machine.VirtualMachine.cpu_utilization">
+<em class="property">property </em><code class="sig-name descname">cpu_utilization</code><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.virtual_machine.VirtualMachine.cpu_utilization" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.virtual_machine.VirtualMachine.get_historical_utilization_series">
+<code class="sig-name descname">get_historical_utilization_series</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cur_tick</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>float<span class="p">]</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/virtual_machine.html#VirtualMachine.get_historical_utilization_series"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.virtual_machine.VirtualMachine.get_historical_utilization_series" title="Permalink to this definition">¶</a></dt>
+<dd><p>“Only expose the CPU utilization series before the current tick.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.virtual_machine.VirtualMachine.get_utilization">
+<code class="sig-name descname">get_utilization</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cur_tick</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; float<a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/virtual_machine.html#VirtualMachine.get_utilization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.virtual_machine.VirtualMachine.get_utilization" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.simulator.scenarios.vm_scheduling">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-maro.simulator.scenarios.vm_scheduling" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.simulator.scenarios.vm_scheduling.AllocateAction">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.vm_scheduling.</code><code class="sig-name descname">AllocateAction</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vm_id</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">pm_id</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/common.html#AllocateAction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.AllocateAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.simulator.scenarios.vm_scheduling.common.Action" title="maro.simulator.scenarios.vm_scheduling.common.Action"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.simulator.scenarios.vm_scheduling.common.Action</span></code></a></p>
+<p>Allocation action object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vm_id</strong> (<em>int</em>) – The VM id.</p></li>
+<li><p><strong>pm_id</strong> (<em>int</em>) – The id of the physical machine where the VM will be allocated.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.simulator.scenarios.vm_scheduling.CpuReader">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.vm_scheduling.</code><code class="sig-name descname">CpuReader</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">start_tick</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/cpu_reader.html#CpuReader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.CpuReader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A wrapper class for the BinaryReader.</p>
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.CpuReader.items">
+<code class="sig-name descname">items</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tick</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/cpu_reader.html#CpuReader.items"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.CpuReader.items" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.CpuReader.reset">
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/cpu_reader.html#CpuReader.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.CpuReader.reset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.simulator.scenarios.vm_scheduling.DecisionPayload">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.vm_scheduling.</code><code class="sig-name descname">DecisionPayload</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">frame_index</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">valid_pms</span><span class="p">:</span> <span class="n">List<span class="p">[</span>int<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">vm_id</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">vm_cpu_cores_requirement</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">vm_memory_requirement</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">remaining_buffer_time</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/common.html#DecisionPayload"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.DecisionPayload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Decision event in VM Scheduling scenario that contains information for agent to choose action.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>frame_index</strong> (<em>int</em>) – The current frame index (converted by tick).</p></li>
+<li><p><strong>valid_pms</strong> (<em>List[int]</em>) – A list contains pm id of all valid pms.</p></li>
+<li><p><strong>vm_id</strong> (<em>int</em>) – The id of the VM.</p></li>
+<li><p><strong>vm_cpu_cores_requirement</strong> (<em>int</em>) – The CPU requested by VM.</p></li>
+<li><p><strong>vm_memory_requirement</strong> (<em>int</em>) – The memory requested by VM.</p></li>
+<li><p><strong>remaining_buffer_time</strong> (<em>int</em>) – The remaining buffer time.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.vm_scheduling.DecisionPayload.summary_key">
+<code class="sig-name descname">summary_key</code><em class="property"> = ['frame_index', 'valid_pms', 'vm_id', 'vm_cpu_cores_requirement', 'vm_memory_requirement', 'remaining_buffer_time']</em><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.DecisionPayload.summary_key" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.simulator.scenarios.vm_scheduling.Events">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.vm_scheduling.</code><code class="sig-name descname">Events</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/enums.html#Events"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.Events" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>VM-PM pairs related events.</p>
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.vm_scheduling.Events.REQUEST">
+<code class="sig-name descname">REQUEST</code><em class="property"> = 'vm_required'</em><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.Events.REQUEST" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.simulator.scenarios.vm_scheduling.Latency">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.vm_scheduling.</code><code class="sig-name descname">Latency</code><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/common.html#Latency"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.Latency" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Accumulative latency.</p>
+<p>Two types of the latency.
+1. The accumulative latency triggered by the algorithm inaccurate predictions.
+2. The accumulative latency triggered by the resource exhaustion.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.simulator.scenarios.vm_scheduling.PhysicalMachine">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.vm_scheduling.</code><code class="sig-name descname">PhysicalMachine</code><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/physical_machine.html#PhysicalMachine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.PhysicalMachine" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="maro.backends.html#id29" title="maro.backends.frame.NodeBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.backends.frame.NodeBase</span></code></a></p>
+<p>Physical machine node definition in frame.</p>
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.PhysicalMachine.allocate_vms">
+<code class="sig-name descname">allocate_vms</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vm_ids</span><span class="p">:</span> <span class="n">List<span class="p">[</span>int<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/physical_machine.html#PhysicalMachine.allocate_vms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.PhysicalMachine.allocate_vms" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.vm_scheduling.PhysicalMachine.cpu_cores_allocated">
+<code class="sig-name descname">cpu_cores_allocated</code><em class="property"> = &lt;maro.backends.frame.NodeAttribute object&gt;</em><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.PhysicalMachine.cpu_cores_allocated" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.vm_scheduling.PhysicalMachine.cpu_cores_capacity">
+<code class="sig-name descname">cpu_cores_capacity</code><em class="property"> = &lt;maro.backends.frame.NodeAttribute object&gt;</em><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.PhysicalMachine.cpu_cores_capacity" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.vm_scheduling.PhysicalMachine.cpu_utilization">
+<code class="sig-name descname">cpu_utilization</code><em class="property"> = &lt;maro.backends.frame.NodeAttribute object&gt;</em><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.PhysicalMachine.cpu_utilization" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.PhysicalMachine.deallocate_vms">
+<code class="sig-name descname">deallocate_vms</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vm_ids</span><span class="p">:</span> <span class="n">List<span class="p">[</span>int<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/physical_machine.html#PhysicalMachine.deallocate_vms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.PhysicalMachine.deallocate_vms" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.vm_scheduling.PhysicalMachine.energy_consumption">
+<code class="sig-name descname">energy_consumption</code><em class="property"> = &lt;maro.backends.frame.NodeAttribute object&gt;</em><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.PhysicalMachine.energy_consumption" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.vm_scheduling.PhysicalMachine.id">
+<code class="sig-name descname">id</code><em class="property"> = &lt;maro.backends.frame.NodeAttribute object&gt;</em><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.PhysicalMachine.id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.PhysicalMachine.live_vms">
+<em class="property">property </em><code class="sig-name descname">live_vms</code><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.PhysicalMachine.live_vms" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.vm_scheduling.PhysicalMachine.memory_allocated">
+<code class="sig-name descname">memory_allocated</code><em class="property"> = &lt;maro.backends.frame.NodeAttribute object&gt;</em><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.PhysicalMachine.memory_allocated" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.vm_scheduling.PhysicalMachine.memory_capacity">
+<code class="sig-name descname">memory_capacity</code><em class="property"> = &lt;maro.backends.frame.NodeAttribute object&gt;</em><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.PhysicalMachine.memory_capacity" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.vm_scheduling.PhysicalMachine.oversubscribable">
+<code class="sig-name descname">oversubscribable</code><em class="property"> = &lt;maro.backends.frame.NodeAttribute object&gt;</em><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.PhysicalMachine.oversubscribable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.vm_scheduling.PhysicalMachine.pm_type">
+<code class="sig-name descname">pm_type</code><em class="property"> = &lt;maro.backends.frame.NodeAttribute object&gt;</em><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.PhysicalMachine.pm_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.PhysicalMachine.reset">
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/physical_machine.html#PhysicalMachine.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.PhysicalMachine.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset to default value.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.PhysicalMachine.set_init_state">
+<code class="sig-name descname">set_init_state</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">id</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">cpu_cores_capacity</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">memory_capacity</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">pm_type</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">oversubscribable</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.simulator.scenarios.vm_scheduling.enums.PmState" title="maro.simulator.scenarios.vm_scheduling.enums.PmState">maro.simulator.scenarios.vm_scheduling.enums.PmState</a></span> <span class="o">=</span> <span class="default_value">0</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/physical_machine.html#PhysicalMachine.set_init_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.PhysicalMachine.set_init_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set initialize state, that will be used after frame reset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>int</em>) – PM id, from 0 to N. N means the amount of PM, which can be set in config.</p></li>
+<li><p><strong>cpu_cores_capacity</strong> (<em>int</em>) – The capacity of cores of the PM, which can be set in config.</p></li>
+<li><p><strong>memory_capacity</strong> (<em>int</em>) – The capacity of memory of the PM, which can be set in config.</p></li>
+<li><p><strong>pm_type</strong> (<em>int</em>) – The type of the PM.</p></li>
+<li><p><strong>oversubscribable</strong> (<em>int</em>) – The state of the PM:
+- non-oversubscribable: -1.
+- empty: 0.
+- oversubscribable: 1.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.PhysicalMachine.update_cpu_utilization">
+<code class="sig-name descname">update_cpu_utilization</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vm</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.simulator.scenarios.vm_scheduling.virtual_machine.VirtualMachine" title="maro.simulator.scenarios.vm_scheduling.virtual_machine.VirtualMachine">maro.simulator.scenarios.vm_scheduling.virtual_machine.VirtualMachine</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">cpu_utilization</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/physical_machine.html#PhysicalMachine.update_cpu_utilization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.PhysicalMachine.update_cpu_utilization" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.simulator.scenarios.vm_scheduling.PmState">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.vm_scheduling.</code><code class="sig-name descname">PmState</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/enums.html#PmState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.PmState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.IntEnum</span></code></p>
+<p>PM oversubscription state, includes empty, oversubscribable, non-oversubscribable.</p>
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.vm_scheduling.PmState.EMPTY">
+<code class="sig-name descname">EMPTY</code><em class="property"> = 0</em><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.PmState.EMPTY" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.vm_scheduling.PmState.NON_OVERSUBSCRIBABLE">
+<code class="sig-name descname">NON_OVERSUBSCRIBABLE</code><em class="property"> = -1</em><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.PmState.NON_OVERSUBSCRIBABLE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.vm_scheduling.PmState.OVERSUBSCRIBABLE">
+<code class="sig-name descname">OVERSUBSCRIBABLE</code><em class="property"> = 1</em><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.PmState.OVERSUBSCRIBABLE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.simulator.scenarios.vm_scheduling.PostponeAction">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.vm_scheduling.</code><code class="sig-name descname">PostponeAction</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vm_id</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">postpone_step</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/common.html#PostponeAction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.PostponeAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.simulator.scenarios.vm_scheduling.common.Action" title="maro.simulator.scenarios.vm_scheduling.common.Action"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.simulator.scenarios.vm_scheduling.common.Action</span></code></a></p>
+<p>Postpone action object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vm_id</strong> (<em>int</em>) – The VM id.</p></li>
+<li><p><strong>postpone_step</strong> (<em>int</em>) – The number of times be postponed.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.simulator.scenarios.vm_scheduling.PostponeType">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.vm_scheduling.</code><code class="sig-name descname">PostponeType</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/enums.html#PostponeType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.PostponeType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>Postpone type.</p>
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.vm_scheduling.PostponeType.Agent">
+<code class="sig-name descname">Agent</code><em class="property"> = 'agent'</em><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.PostponeType.Agent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.vm_scheduling.PostponeType.Resource">
+<code class="sig-name descname">Resource</code><em class="property"> = 'resource'</em><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.PostponeType.Resource" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.simulator.scenarios.vm_scheduling.VirtualMachine">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.vm_scheduling.</code><code class="sig-name descname">VirtualMachine</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">id</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">cpu_cores_requirement</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">memory_requirement</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">lifetime</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">sub_id</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">deployment_id</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">category</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.simulator.scenarios.vm_scheduling.enums.VmCategory" title="maro.simulator.scenarios.vm_scheduling.enums.VmCategory">maro.simulator.scenarios.vm_scheduling.enums.VmCategory</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/virtual_machine.html#VirtualMachine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.VirtualMachine" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>VM object.</p>
+<p>The VM lifetime equals to the deletion tick - creation tick.
+For example:</p>
+<blockquote>
+<div><p>A VM’s cpu utilization is {tick: cpu_utilization} = {0: 0.1, 1: 0.4, 2: 0.2}.
+In our scenario, we define vm’s creation tick as 0, and deletion tick as 3.
+Its lifetime will be deletion tick - creation tick = 3 - 0 = 3</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>int</em>) – The VM id.</p></li>
+<li><p><strong>cpu_cores_requirement</strong> (<em>int</em>) – The amount of virtual cores requested by VM.</p></li>
+<li><p><strong>memory_requirement</strong> (<em>int</em>) – The memory requested by VM. The unit is (GBs).</p></li>
+<li><p><strong>lifetime</strong> (<em>int</em>) – The lifetime of the VM, that is, deletion tick - creation tick.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.VirtualMachine.add_utilization">
+<code class="sig-name descname">add_utilization</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cpu_utilization</span><span class="p">:</span> <span class="n">float</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/virtual_machine.html#VirtualMachine.add_utilization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.VirtualMachine.add_utilization" title="Permalink to this definition">¶</a></dt>
+<dd><p>VM CPU utilization list.</p>
+<p>In the cpu_readings_file, all CPU utilization of all VMs are sorted by the timestamp, indexed by the VM ID.
+At each tick, we only read the CPU utilization at specific timestamp (tick).
+Hence, this function is designed to append the CPU utilization to the end of the corresponding
+VM utilization series one by one.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.VirtualMachine.cpu_utilization">
+<em class="property">property </em><code class="sig-name descname">cpu_utilization</code><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.VirtualMachine.cpu_utilization" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.VirtualMachine.get_historical_utilization_series">
+<code class="sig-name descname">get_historical_utilization_series</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cur_tick</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>float<span class="p">]</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/virtual_machine.html#VirtualMachine.get_historical_utilization_series"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.VirtualMachine.get_historical_utilization_series" title="Permalink to this definition">¶</a></dt>
+<dd><p>“Only expose the CPU utilization series before the current tick.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.VirtualMachine.get_utilization">
+<code class="sig-name descname">get_utilization</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cur_tick</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; float<a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/virtual_machine.html#VirtualMachine.get_utilization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.VirtualMachine.get_utilization" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.simulator.scenarios.vm_scheduling.VmCategory">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.vm_scheduling.</code><code class="sig-name descname">VmCategory</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/enums.html#VmCategory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.VmCategory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.IntEnum</span></code></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.vm_scheduling.VmCategory.DELAY_INSENSITIVE">
+<code class="sig-name descname">DELAY_INSENSITIVE</code><em class="property"> = 0</em><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.VmCategory.DELAY_INSENSITIVE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.vm_scheduling.VmCategory.INTERACTIVE">
+<code class="sig-name descname">INTERACTIVE</code><em class="property"> = 1</em><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.VmCategory.INTERACTIVE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.vm_scheduling.VmCategory.UNKNOWN">
+<code class="sig-name descname">UNKNOWN</code><em class="property"> = 2</em><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.VmCategory.UNKNOWN" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.simulator.scenarios.vm_scheduling.VmRequestPayload">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.vm_scheduling.</code><code class="sig-name descname">VmRequestPayload</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vm_info</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.simulator.scenarios.vm_scheduling.virtual_machine.VirtualMachine" title="maro.simulator.scenarios.vm_scheduling.virtual_machine.VirtualMachine">maro.simulator.scenarios.vm_scheduling.virtual_machine.VirtualMachine</a></span></em>, <em class="sig-param"><span class="n">remaining_buffer_time</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/common.html#VmRequestPayload"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.VmRequestPayload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Payload for the VM requirement.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vm_info</strong> (<em>VirtualMachine</em>) – The VM information.</p></li>
+<li><p><strong>remaining_buffer_time</strong> (<em>int</em>) – The remaining buffer time.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.vm_scheduling.VmRequestPayload.summary_key">
+<code class="sig-name descname">summary_key</code><em class="property"> = ['vm_info', 'remaining_buffer_time']</em><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.VmRequestPayload.summary_key" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.simulator.scenarios.vm_scheduling.VmSchedulingBusinessEngine">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.vm_scheduling.</code><code class="sig-name descname">VmSchedulingBusinessEngine</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event_buffer</span><span class="p">:</span> <span class="n"><a class="reference internal" href="maro.event_buffer.html#maro.event_buffer.event_buffer.EventBuffer" title="maro.event_buffer.event_buffer.EventBuffer">maro.event_buffer.event_buffer.EventBuffer</a></span></em>, <em class="sig-param"><span class="n">topology</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">start_tick</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">max_tick</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">snapshot_resolution</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">max_snapshots</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">additional_options</span><span class="p">:</span> <span class="n">dict</span> <span class="o">=</span> <span class="default_value">{}</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/business_engine.html#VmSchedulingBusinessEngine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.VmSchedulingBusinessEngine" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="maro.simulator.scenarios.html#maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine" title="maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine</span></code></a></p>
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.VmSchedulingBusinessEngine.configs">
+<em class="property">property </em><code class="sig-name descname">configs</code><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.VmSchedulingBusinessEngine.configs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Current configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.VmSchedulingBusinessEngine.frame">
+<em class="property">property </em><code class="sig-name descname">frame</code><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.VmSchedulingBusinessEngine.frame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Current frame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="maro.backends.html#id16" title="maro.backends.frame.FrameBase">FrameBase</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.VmSchedulingBusinessEngine.get_agent_idx_list">
+<code class="sig-name descname">get_agent_idx_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>int<span class="p">]</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/business_engine.html#VmSchedulingBusinessEngine.get_agent_idx_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.VmSchedulingBusinessEngine.get_agent_idx_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a list of agent index.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.VmSchedulingBusinessEngine.get_event_payload_detail">
+<code class="sig-name descname">get_event_payload_detail</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; dict<a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/business_engine.html#VmSchedulingBusinessEngine.get_event_payload_detail"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.VmSchedulingBusinessEngine.get_event_payload_detail" title="Permalink to this definition">¶</a></dt>
+<dd><p>dict: Event payload details of current scenario.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.VmSchedulingBusinessEngine.get_metrics">
+<code class="sig-name descname">get_metrics</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="maro.simulator.scenarios.html#maro.simulator.scenarios.helpers.DocableDict" title="maro.simulator.scenarios.helpers.DocableDict">maro.simulator.scenarios.helpers.DocableDict</a><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/business_engine.html#VmSchedulingBusinessEngine.get_metrics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.VmSchedulingBusinessEngine.get_metrics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get current environment metrics information.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Metrics information.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="maro.simulator.scenarios.html#maro.simulator.scenarios.helpers.DocableDict" title="maro.simulator.scenarios.helpers.DocableDict">DocableDict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.VmSchedulingBusinessEngine.get_node_mapping">
+<code class="sig-name descname">get_node_mapping</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; dict<a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/business_engine.html#VmSchedulingBusinessEngine.get_node_mapping"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.VmSchedulingBusinessEngine.get_node_mapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>dict: Node mapping.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.VmSchedulingBusinessEngine.get_vm_cpu_utilization_series">
+<code class="sig-name descname">get_vm_cpu_utilization_series</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vm_id</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>float<span class="p">]</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/business_engine.html#VmSchedulingBusinessEngine.get_vm_cpu_utilization_series"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.VmSchedulingBusinessEngine.get_vm_cpu_utilization_series" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the CPU utilization series of the specific VM by the given ID.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.VmSchedulingBusinessEngine.post_step">
+<code class="sig-name descname">post_step</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tick</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/business_engine.html#VmSchedulingBusinessEngine.post_step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.VmSchedulingBusinessEngine.post_step" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method will be called at the end of each tick, used to post-process for each tick,
+for complex business logic with many events, it maybe not easy to determine
+if stop the scenario at the middle of tick, so this method is used to avoid this.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>tick</strong> (<em>int</em>) – Current tick.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>If simulator should stop simulation at current tick.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.VmSchedulingBusinessEngine.reset">
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/business_engine.html#VmSchedulingBusinessEngine.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.VmSchedulingBusinessEngine.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset internal states for episode.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.VmSchedulingBusinessEngine.snapshots">
+<em class="property">property </em><code class="sig-name descname">snapshots</code><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.VmSchedulingBusinessEngine.snapshots" title="Permalink to this definition">¶</a></dt>
+<dd><p>Current snapshot list.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="maro.backends.html#id32" title="maro.backends.frame.SnapshotList">SnapshotList</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.vm_scheduling.VmSchedulingBusinessEngine.step">
+<code class="sig-name descname">step</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tick</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/vm_scheduling/business_engine.html#VmSchedulingBusinessEngine.step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.vm_scheduling.VmSchedulingBusinessEngine.step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Push business to next step.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>tick</strong> (<em>int</em>) – Current tick to process.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+    <a class='left-prev' id="prev-link" href="maro.simulator.scenarios.citi_bike.html" title="previous page">maro.simulator.scenarios.citi_bike package</a>
+    <a class='right-next' id="next-link" href="maro.simulator.utils.html" title="next page">maro.simulator.utils package</a>
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../_static/js/index.js"></script>
+    
+  </body>
+</html>

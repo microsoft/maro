@@ -1,0 +1,506 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi Agent DQN for CIM &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Greedy Policy for Citi Bike" href="greedy_policy_citi_bike.html" />
+    <link rel="prev" title="Virtual Machine Scheduling (VM Scheduling)" href="../scenarios/vm_scheduling.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../index.html">
+  
+  <img src="../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="current nav sidenav_l1">
+ <li class="toctree-l1 current active">
+  <a class="current reference internal" href="#">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../apidoc/maro.html">
+   maro package
+  </a>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+        
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="../_sources/examples/multi_agent_dqn_cim.rst.txt"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.rst</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2Fexamples/multi_agent_dqn_cim.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        <a class="edit-button" href="https://github.com/microsoft/maro/edit/master/doc/source/examples/multi_agent_dqn_cim.rst"><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Edit this page"><i class="fas fa-pencil-alt"></i>suggest edit</button></a>
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <div class="tocsection onthispage pt-5 pb-3">
+            <i class="fas fa-list"></i> Contents
+        </div>
+        <nav id="bd-toc-nav">
+            <ul class="nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#state-shaper">
+   State Shaper
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#action-shaper">
+   Action Shaper
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#experience-shaper">
+   Experience Shaper
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#agent">
+   Agent
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#agent-manager">
+   Agent Manager
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#main-loop-with-actor-and-learner-single-process">
+   Main Loop with Actor and Learner (Single Process)
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#main-loop-with-actor-and-learner-distributed-multi-process">
+   Main Loop with Actor and Learner (Distributed/Multi-process)
+  </a>
+ </li>
+</ul>
+
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <div class="section" id="multi-agent-dqn-for-cim">
+<h1>Multi Agent DQN for CIM<a class="headerlink" href="#multi-agent-dqn-for-cim" title="Permalink to this headline">¶</a></h1>
+<p>This example demonstrates how to use MARO’s reinforcement learning (RL) toolkit to solve the
+<a class="reference external" href="https://maro.readthedocs.io/en/latest/scenarios/container_inventory_management.html">CIM</a> problem. It is formalized as a multi-agent reinforcement learning problem, where each port acts as a decision
+agent. The agents take actions independently, e.g., loading containers to vessels or discharging containers from vessels.</p>
+<div class="section" id="state-shaper">
+<h2>State Shaper<a class="headerlink" href="#state-shaper" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="https://maro.readthedocs.io/en/latest/key_components/rl_toolkit.html#shapers">State shaper</a> converts the environment
+observation to the model input state which includes temporal and spatial information. For this scenario, the model input
+state includes:</p>
+<ul class="simple">
+<li><p>Temporal information, including the past week’s information of ports and vessels, such as shortage on port and</p></li>
+</ul>
+<p>remaining space on vessel.
+- Spatial information, including related downstream port features.</p>
+</div>
+<div class="section" id="action-shaper">
+<h2>Action Shaper<a class="headerlink" href="#action-shaper" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="https://maro.readthedocs.io/en/latest/key_components/rl_toolkit.html#shapers">Action shaper</a> is used to convert an
+agent’s model output to an environment executable action. For this specific scenario, the action space consists of
+integers from -10 to 10, with -10 indicating loading 100% of the containers in the current inventory to the vessel and
+10 indicating discharging 100% of the containers on the vessel to the port.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">CIMActionShaper</span><span class="p">(</span><span class="n">ActionShaper</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_action</span><span class="p">,</span> <span class="n">decision_event</span><span class="p">,</span> <span class="n">snapshot_list</span><span class="p">):</span>
+        <span class="n">scope</span> <span class="o">=</span> <span class="n">decision_event</span><span class="o">.</span><span class="n">action_scope</span>
+        <span class="n">tick</span> <span class="o">=</span> <span class="n">decision_event</span><span class="o">.</span><span class="n">tick</span>
+        <span class="n">port_idx</span> <span class="o">=</span> <span class="n">decision_event</span><span class="o">.</span><span class="n">port_idx</span>
+        <span class="n">vessel_idx</span> <span class="o">=</span> <span class="n">decision_event</span><span class="o">.</span><span class="n">vessel_idx</span>
+
+        <span class="n">port_empty</span> <span class="o">=</span> <span class="n">snapshot_list</span><span class="p">[</span><span class="s2">&quot;ports&quot;</span><span class="p">][</span><span class="n">tick</span><span class="p">:</span> <span class="n">port_idx</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;empty&quot;</span><span class="p">,</span> <span class="s2">&quot;full&quot;</span><span class="p">,</span> <span class="s2">&quot;on_shipper&quot;</span><span class="p">,</span> <span class="s2">&quot;on_consignee&quot;</span><span class="p">]][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">vessel_remaining_space</span> <span class="o">=</span> <span class="n">snapshot_list</span><span class="p">[</span><span class="s2">&quot;vessels&quot;</span><span class="p">][</span><span class="n">tick</span><span class="p">:</span> <span class="n">vessel_idx</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;empty&quot;</span><span class="p">,</span> <span class="s2">&quot;full&quot;</span><span class="p">,</span> <span class="s2">&quot;remaining_space&quot;</span><span class="p">]][</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">early_discharge</span> <span class="o">=</span> <span class="n">snapshot_list</span><span class="p">[</span><span class="s2">&quot;vessels&quot;</span><span class="p">][</span><span class="n">tick</span><span class="p">:</span><span class="n">vessel_idx</span><span class="p">:</span> <span class="s2">&quot;early_discharge&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">model_action</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_action_space</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">model_action</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_zero_action_index</span><span class="p">:</span>
+            <span class="n">actual_action</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_action_space</span><span class="p">[</span><span class="n">model_action</span><span class="p">]</span> <span class="o">*</span> <span class="n">port_empty</span><span class="p">),</span> <span class="o">-</span><span class="n">vessel_remaining_space</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">model_action</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_zero_action_index</span><span class="p">:</span>
+            <span class="n">plan_action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_action_space</span><span class="p">[</span><span class="n">model_action</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">scope</span><span class="o">.</span><span class="n">discharge</span> <span class="o">+</span> <span class="n">early_discharge</span><span class="p">)</span> <span class="o">-</span> <span class="n">early_discharge</span>
+            <span class="n">actual_action</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="nb">round</span><span class="p">(</span><span class="n">plan_action</span><span class="p">)</span> <span class="k">if</span> <span class="n">plan_action</span> <span class="o">&gt;</span> <span class="mi">0</span>
+                <span class="k">else</span> <span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_action_space</span><span class="p">[</span><span class="n">model_action</span><span class="p">]</span> <span class="o">*</span> <span class="n">scope</span><span class="o">.</span><span class="n">discharge</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">actual_action</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">return</span> <span class="n">Action</span><span class="p">(</span><span class="n">vessel_idx</span><span class="p">,</span> <span class="n">port_idx</span><span class="p">,</span> <span class="n">actual_action</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="experience-shaper">
+<h2>Experience Shaper<a class="headerlink" href="#experience-shaper" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="https://maro.readthedocs.io/en/latest/key_components/rl_toolkit.html#shapers">Experience shaper</a> is used to convert
+an episode trajectory to trainable experiences for RL agents. For this specific scenario, the reward is a linear
+combination of fulfillment and shortage in a limited time window.</p>
+</div>
+<div class="section" id="agent">
+<h2>Agent<a class="headerlink" href="#agent" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="https://maro.readthedocs.io/en/latest/key_components/rl_toolkit.html#agent">Agent</a> is a combination of (RL)
+algorithm, experience pool, and a set of parameters that governs the training loop. For this scenario, the agent is the
+abstraction of a port. We choose DQN as our underlying learning algorithm with a TD-error-based sampling mechanism.</p>
+</div>
+<div class="section" id="agent-manager">
+<h2>Agent Manager<a class="headerlink" href="#agent-manager" title="Permalink to this headline">¶</a></h2>
+<p>The complexities of the environment can be isolated from the learning algorithm by using an
+<a class="reference external" href="https://maro.readthedocs.io/en/latest/key_components/rl_toolkit.html#agent-manager">Agent manager</a>
+to manage individual agents. We define a function to create the agents and an agent manager class
+that implements the <code class="docutils literal notranslate"><span class="pre">train</span></code> method where the newly obtained experiences are stored in the agents’
+experience pools before training, in accordance with the DQN algorithm.</p>
+</div>
+<div class="section" id="main-loop-with-actor-and-learner-single-process">
+<h2>Main Loop with Actor and Learner (Single Process)<a class="headerlink" href="#main-loop-with-actor-and-learner-single-process" title="Permalink to this headline">¶</a></h2>
+<p>This single-process workflow of a learning policy’s interaction with a MARO environment is comprised of:
+- Initializing an environment with specific scenario and topology parameters.
+- Defining scenario-specific components, e.g. shapers.
+- Creating agents and an agent manager.
+- Creating an <a class="reference external" href="https://maro.readthedocs.io/en/latest/key_components/rl_toolkit.html#learner-and-actor">actor</a> and a
+<a class="reference external" href="https://maro.readthedocs.io/en/latest/key_components/rl_toolkit.html#learner-and-actor">learner</a> to start the
+training process in which the agent manager interacts with the environment for collecting experiences and updating
+policies.</p>
+</div>
+<div class="section" id="main-loop-with-actor-and-learner-distributed-multi-process">
+<h2>Main Loop with Actor and Learner (Distributed/Multi-process)<a class="headerlink" href="#main-loop-with-actor-and-learner-distributed-multi-process" title="Permalink to this headline">¶</a></h2>
+<p>We demonstrate a single-learner and multi-actor topology where the learner drives the program by telling remote actors
+to perform roll-out tasks and using the results they sent back to improve the policies. The workflow usually involves
+launching a learner process and an actor process separately. Because training occurs on the learner side and inference
+occurs on the actor side, we need to create appropriate agent managers on both sides.</p>
+<p>On the actor side, the agent manager must be equipped with all shapers as well as an explorer. Thus, The code for
+creating an environment and an agent manager on the actor side is similar to that for the single-host version,
+except that it is necessary to set the AgentManagerMode to AgentManagerMode.INFERENCE. As in the single-process version, the environment
+and the agent manager are wrapped in a SimpleActor instance. To make the actor a distributed worker, we need to further
+wrap it in an ActorWorker instance. Finally, we launch the worker and it starts to listen to roll-out requests from the
+learner. The following code snippet shows the creation of an actor worker with a simple (local) actor wrapped inside.</p>
+<p>On the learner side, an agent manager in AgentManagerMode.TRAIN mode is required. However, it is not necessary to create shapers for an
+agent manager in AgentManagerMode.TRAIN mode. Instead of creating an actor, we create an actor proxy and wrap it inside the learner. This proxy
+serves as the communication interface for the learner and is responsible for sending roll-out requests to remote actor
+processes and receiving results. Calling the train method executes the usual training loop except that the actual
+roll-out is performed remotely. The code snippet below shows the creation of a learner with an actor proxy wrapped
+inside that communicates with 3 actors.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">agent_manager</span> <span class="o">=</span> <span class="n">DQNAgentManager</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;cim_learner&quot;</span><span class="p">,</span>
+    <span class="n">mode</span><span class="o">=</span><span class="n">AgentManagerMode</span><span class="o">.</span><span class="n">TRAIN</span><span class="p">,</span>
+    <span class="n">agent_dict</span><span class="o">=</span><span class="n">create_dqn_agents</span><span class="p">(</span><span class="n">agent_id_list</span><span class="p">),</span>
+    <span class="n">state_shaper</span><span class="o">=</span><span class="n">state_shaper</span><span class="p">,</span>
+    <span class="n">action_shaper</span><span class="o">=</span><span class="n">action_shaper</span><span class="p">,</span>
+    <span class="n">experience_shaper</span><span class="o">=</span><span class="n">experience_shaper</span>
+<span class="p">)</span>
+<span class="n">proxy_params</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;group_name&quot;</span><span class="p">:</span> <span class="s2">&quot;distributed_cim&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;expected_peers&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;actor&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">},</span>
+    <span class="s2">&quot;redis_address&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span> <span class="mi">6379</span><span class="p">),</span>
+    <span class="s2">&quot;max_retries&quot;</span><span class="p">:</span> <span class="mi">15</span>
+<span class="p">}</span>
+<span class="n">actor</span><span class="o">=</span><span class="n">ActorProxy</span><span class="p">(</span><span class="n">proxy_params</span><span class="o">=</span><span class="n">proxy_params</span><span class="p">,</span> <span class="n">experience_collecting_func</span><span class="o">=</span><span class="n">concat_experiences_by_agent</span><span class="p">),</span>
+<span class="n">scheduler</span> <span class="o">=</span> <span class="n">TwoPhaseLinearParameterScheduler</span><span class="p">(</span>
+    <span class="n">max_episode</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+    <span class="n">parameter_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;epsilon&quot;</span><span class="p">],</span>
+    <span class="n">split_ep</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+    <span class="n">start_values</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span>
+    <span class="n">mid_values</span><span class="o">=</span><span class="mf">0.32</span><span class="p">,</span>
+    <span class="n">end_values</span><span class="o">=.</span><span class="mi">0</span>
+<span class="p">)</span>
+<span class="n">learner</span> <span class="o">=</span> <span class="n">SimpleLearner</span><span class="p">(</span><span class="n">agent_manager</span><span class="p">,</span> <span class="n">actor</span><span class="p">,</span> <span class="n">scheduler</span><span class="p">)</span>
+<span class="n">learner</span><span class="o">.</span><span class="n">learn</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>All related code snippets are supported in <a class="reference external" href="https://hub.docker.com/r/arthursjiang/maro">maro playground</a>.</p>
+</div>
+</div>
+</div>
+
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+    <a class='left-prev' id="prev-link" href="../scenarios/vm_scheduling.html" title="previous page">Virtual Machine Scheduling (VM Scheduling)</a>
+    <a class='right-next' id="next-link" href="greedy_policy_citi_bike.html" title="next page">Greedy Policy for Citi Bike</a>
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../_static/js/index.js"></script>
+    
+  </body>
+</html>

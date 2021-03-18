@@ -1,0 +1,1385 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maro.simulator.scenarios.citi_bike package &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="maro.simulator.scenarios.vm_scheduling package" href="maro.simulator.scenarios.vm_scheduling.html" />
+    <link rel="prev" title="maro.simulator.scenarios.cim package" href="maro.simulator.scenarios.cim.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../index.html">
+  
+  <img src="../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="current nav sidenav_l1">
+ <li class="toctree-l1 current active">
+  <a class="reference internal" href="maro.html">
+   maro package
+  </a>
+  <ul class="current">
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.backends.html">
+     maro.backends package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.cli.html">
+     maro.cli package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.data_pipeline.html">
+       maro.cli.data_pipeline package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.envs.html">
+       maro.cli.envs package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.grass.html">
+       maro.cli.grass package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.grass.executors.html">
+         maro.cli.grass.executors package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.grass.utils.html">
+         maro.cli.grass.utils package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.inspector.html">
+       maro.cli.inspector package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.k8s.html">
+       maro.cli.k8s package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.k8s.executors.html">
+         maro.cli.k8s.executors package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.process.html">
+       maro.cli.process package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.process.utils.html">
+         maro.cli.process.utils package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.utils.html">
+       maro.cli.utils package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.utils.executors.html">
+         maro.cli.utils.executors package
+        </a>
+       </li>
+      </ul>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.communication.html">
+     maro.communication package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.communication.driver.html">
+       maro.communication.driver package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.communication.utils.html">
+       maro.communication.utils package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.data_lib.html">
+     maro.data_lib package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.data_lib.cim.html">
+       maro.data_lib.cim package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.event_buffer.html">
+     maro.event_buffer package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.forecasting.html">
+     maro.forecasting package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.rl.html">
+     maro.rl package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.actor.html">
+       maro.rl.actor package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.agent.html">
+       maro.rl.agent package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.algorithms.html">
+       maro.rl.algorithms package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.dist_topologies.html">
+       maro.rl.dist_topologies package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.exploration.html">
+       maro.rl.exploration package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.learner.html">
+       maro.rl.learner package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.models.html">
+       maro.rl.models package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.scheduling.html">
+       maro.rl.scheduling package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.shaping.html">
+       maro.rl.shaping package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.storage.html">
+       maro.rl.storage package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 current active">
+    <a class="reference internal" href="maro.simulator.html">
+     maro.simulator package
+    </a>
+    <ul class="current">
+     <li class="toctree-l3 current active">
+      <a class="reference internal" href="maro.simulator.scenarios.html">
+       maro.simulator.scenarios package
+      </a>
+      <ul class="current">
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.cim.html">
+         maro.simulator.scenarios.cim package
+        </a>
+       </li>
+       <li class="toctree-l4 current active">
+        <a class="current reference internal" href="#">
+         maro.simulator.scenarios.citi_bike package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.vm_scheduling.html">
+         maro.simulator.scenarios.vm_scheduling package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.simulator.utils.html">
+       maro.simulator.utils package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.utils.html">
+     maro.utils package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.utils.exception.html">
+       maro.utils.exception package
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+        
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="../_sources/apidoc/maro.simulator.scenarios.citi_bike.rst.txt"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.rst</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2Fapidoc/maro.simulator.scenarios.citi_bike.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        <a class="edit-button" href="https://github.com/microsoft/maro/edit/master/doc/source/apidoc/maro.simulator.scenarios.citi_bike.rst"><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Edit this page"><i class="fas fa-pencil-alt"></i>suggest edit</button></a>
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <div class="tocsection onthispage pt-5 pb-3">
+            <i class="fas fa-list"></i> Contents
+        </div>
+        <nav id="bd-toc-nav">
+            <ul class="nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#submodules">
+   Submodules
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.simulator.scenarios.citi_bike.adj_loader">
+   maro.simulator.scenarios.citi_bike.adj_loader module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.simulator.scenarios.citi_bike.business_engine">
+   maro.simulator.scenarios.citi_bike.business_engine module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.simulator.scenarios.citi_bike.common">
+   maro.simulator.scenarios.citi_bike.common module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.simulator.scenarios.citi_bike.decision_strategy">
+   maro.simulator.scenarios.citi_bike.decision_strategy module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.simulator.scenarios.citi_bike.events">
+   maro.simulator.scenarios.citi_bike.events module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.simulator.scenarios.citi_bike.frame_builder">
+   maro.simulator.scenarios.citi_bike.frame_builder module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.simulator.scenarios.citi_bike.station">
+   maro.simulator.scenarios.citi_bike.station module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.simulator.scenarios.citi_bike.stations_info">
+   maro.simulator.scenarios.citi_bike.stations_info module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.simulator.scenarios.citi_bike.weather_table">
+   maro.simulator.scenarios.citi_bike.weather_table module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.simulator.scenarios.citi_bike">
+   Module contents
+  </a>
+ </li>
+</ul>
+
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <div class="section" id="maro-simulator-scenarios-citi-bike-package">
+<h1>maro.simulator.scenarios.citi_bike package<a class="headerlink" href="#maro-simulator-scenarios-citi-bike-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-maro.simulator.scenarios.citi_bike.adj_loader">
+<span id="maro-simulator-scenarios-citi-bike-adj-loader-module"></span><h2>maro.simulator.scenarios.citi_bike.adj_loader module<a class="headerlink" href="#module-maro.simulator.scenarios.citi_bike.adj_loader" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="maro.simulator.scenarios.citi_bike.adj_loader.load_adj_from_csv">
+<code class="sig-prename descclassname">maro.simulator.scenarios.citi_bike.adj_loader.</code><code class="sig-name descname">load_adj_from_csv</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">skiprows</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">0</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/citi_bike/adj_loader.html#load_adj_from_csv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.adj_loader.load_adj_from_csv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read adj information from csv file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file</strong> (<em>str</em>) – Csv file to read.</p></li>
+<li><p><strong>skiprows</strong> (<em>int</em>) – Row number to skip.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A 2-dim list that contains all the rows and columns.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.simulator.scenarios.citi_bike.business_engine">
+<span id="maro-simulator-scenarios-citi-bike-business-engine-module"></span><h2>maro.simulator.scenarios.citi_bike.business_engine module<a class="headerlink" href="#module-maro.simulator.scenarios.citi_bike.business_engine" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.simulator.scenarios.citi_bike.business_engine.CitibikeBusinessEngine">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.citi_bike.business_engine.</code><code class="sig-name descname">CitibikeBusinessEngine</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event_buffer</span><span class="p">:</span> <span class="n"><a class="reference internal" href="maro.event_buffer.html#maro.event_buffer.event_buffer.EventBuffer" title="maro.event_buffer.event_buffer.EventBuffer">maro.event_buffer.event_buffer.EventBuffer</a></span></em>, <em class="sig-param"><span class="n">topology</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">start_tick</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">max_tick</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">snapshot_resolution</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">max_snapshots</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">additional_options</span><span class="p">:</span> <span class="n">dict</span> <span class="o">=</span> <span class="default_value">{}</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/citi_bike/business_engine.html#CitibikeBusinessEngine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.business_engine.CitibikeBusinessEngine" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="maro.simulator.scenarios.html#maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine" title="maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine</span></code></a></p>
+<dl class="py method">
+<dt id="maro.simulator.scenarios.citi_bike.business_engine.CitibikeBusinessEngine.configs">
+<em class="property">property </em><code class="sig-name descname">configs</code><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.business_engine.CitibikeBusinessEngine.configs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Current configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.citi_bike.business_engine.CitibikeBusinessEngine.frame">
+<em class="property">property </em><code class="sig-name descname">frame</code><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.business_engine.CitibikeBusinessEngine.frame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Current frame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="maro.backends.html#id16" title="maro.backends.frame.FrameBase">FrameBase</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.citi_bike.business_engine.CitibikeBusinessEngine.get_agent_idx_list">
+<code class="sig-name descname">get_agent_idx_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>int<span class="p">]</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/citi_bike/business_engine.html#CitibikeBusinessEngine.get_agent_idx_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.business_engine.CitibikeBusinessEngine.get_agent_idx_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a list of agent index.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>List of agent index.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.citi_bike.business_engine.CitibikeBusinessEngine.get_event_payload_detail">
+<code class="sig-name descname">get_event_payload_detail</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; dict<a class="reference internal" href="../_modules/maro/simulator/scenarios/citi_bike/business_engine.html#CitibikeBusinessEngine.get_event_payload_detail"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.business_engine.CitibikeBusinessEngine.get_event_payload_detail" title="Permalink to this definition">¶</a></dt>
+<dd><p>dict: Event payload details of current scenario.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.citi_bike.business_engine.CitibikeBusinessEngine.get_metrics">
+<code class="sig-name descname">get_metrics</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; dict<a class="reference internal" href="../_modules/maro/simulator/scenarios/citi_bike/business_engine.html#CitibikeBusinessEngine.get_metrics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.business_engine.CitibikeBusinessEngine.get_metrics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get current metrics information.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Call this method at different time will get different result.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Metrics information.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.citi_bike.business_engine.CitibikeBusinessEngine.get_node_mapping">
+<code class="sig-name descname">get_node_mapping</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; dict<a class="reference internal" href="../_modules/maro/simulator/scenarios/citi_bike/business_engine.html#CitibikeBusinessEngine.get_node_mapping"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.business_engine.CitibikeBusinessEngine.get_node_mapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>dict: Node mapping of current stations.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.citi_bike.business_engine.CitibikeBusinessEngine.post_step">
+<code class="sig-name descname">post_step</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tick</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/citi_bike/business_engine.html#CitibikeBusinessEngine.post_step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.business_engine.CitibikeBusinessEngine.post_step" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method will be called at the end of each tick, used to post-process for each tick,
+for complex business logic with many events, it maybe not easy to determine
+if stop the scenario at the middle of tick, so this method is used to avoid this.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>tick</strong> (<em>int</em>) – Current tick.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>If simulator should stop simulation at current tick.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.citi_bike.business_engine.CitibikeBusinessEngine.reset">
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/citi_bike/business_engine.html#CitibikeBusinessEngine.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.business_engine.CitibikeBusinessEngine.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset internal states for episode.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.citi_bike.business_engine.CitibikeBusinessEngine.snapshots">
+<em class="property">property </em><code class="sig-name descname">snapshots</code><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.business_engine.CitibikeBusinessEngine.snapshots" title="Permalink to this definition">¶</a></dt>
+<dd><p>Current snapshot list.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="maro.backends.html#id32" title="maro.backends.frame.SnapshotList">SnapshotList</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.citi_bike.business_engine.CitibikeBusinessEngine.step">
+<code class="sig-name descname">step</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tick</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/citi_bike/business_engine.html#CitibikeBusinessEngine.step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.business_engine.CitibikeBusinessEngine.step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Push business engine to next step.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>tick</strong> (<em>int</em>) – Current tick to process.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.simulator.scenarios.citi_bike.common">
+<span id="maro-simulator-scenarios-citi-bike-common-module"></span><h2>maro.simulator.scenarios.citi_bike.common module<a class="headerlink" href="#module-maro.simulator.scenarios.citi_bike.common" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.simulator.scenarios.citi_bike.common.Action">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.citi_bike.common.</code><code class="sig-name descname">Action</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">from_station_idx</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">to_station_idx</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">number</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/citi_bike/common.html#Action"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.common.Action" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Citi bike scenario action object, that used to pass action from agent to business engine.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>from_station_idx</strong> (<em>int</em>) – Which station will take this acion.</p></li>
+<li><p><strong>to_station_idx</strong> (<em>int</em>) – Which station is the target of this action.</p></li>
+<li><p><strong>number</strong> (<em>int</em>) – Bike number to transfer.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.simulator.scenarios.citi_bike.common.BikeReturnPayload">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.citi_bike.common.</code><code class="sig-name descname">BikeReturnPayload</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">from_station_idx</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">to_station_idx</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">number</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/citi_bike/common.html#BikeReturnPayload"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.common.BikeReturnPayload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Payload for bike return event.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>from_station_idx</strong> (<em>int</em>) – Which station (index) this bike come from.</p></li>
+<li><p><strong>to_station_idx</strong> (<em>int</em>) – Which station (index) this bike to.</p></li>
+<li><p><strong>number</strong> (<em>int</em>) – How many bikes for current trip requirement.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.citi_bike.common.BikeReturnPayload.summary_key">
+<code class="sig-name descname">summary_key</code><em class="property"> = ['from_station_idx', 'to_station_idx', 'number']</em><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.common.BikeReturnPayload.summary_key" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.simulator.scenarios.citi_bike.common.BikeTransferPayload">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.citi_bike.common.</code><code class="sig-name descname">BikeTransferPayload</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">from_station_idx</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">to_station_idx</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">number</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/citi_bike/common.html#BikeTransferPayload"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.common.BikeTransferPayload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Payload for bike transfer event.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>from_station_idx</strong> (<em>int</em>) – Which station (index) this bike come from.</p></li>
+<li><p><strong>to_station_idx</strong> (<em>int</em>) – Which station (index) this bike to.</p></li>
+<li><p><strong>number</strong> (<em>int</em>) – How many bikes for current trip requirement.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.citi_bike.common.BikeTransferPayload.summary_key">
+<code class="sig-name descname">summary_key</code><em class="property"> = ['from_station_idx', 'to_station_idx', 'number']</em><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.common.BikeTransferPayload.summary_key" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.simulator.scenarios.citi_bike.common.DecisionEvent">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.citi_bike.common.</code><code class="sig-name descname">DecisionEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">station_idx</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">tick</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">frame_index</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">action_scope_func</span><span class="p">:</span> <span class="n">callable</span></em>, <em class="sig-param"><span class="n">decision_type</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.simulator.scenarios.citi_bike.common.DecisionType" title="maro.simulator.scenarios.citi_bike.common.DecisionType">maro.simulator.scenarios.citi_bike.common.DecisionType</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/citi_bike/common.html#DecisionEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.common.DecisionEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Citi bike scenario decision event that contains station information for agent to choose action.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>station_idx</strong> (<em>int</em>) – Which station need an action.</p></li>
+<li><p><strong>tick</strong> (<em>int</em>) – Current simulator tick.</p></li>
+<li><p><strong>frame_index</strong> (<em>int</em>) – Frame index of current tick, used to query from snapshots.</p></li>
+<li><p><strong>action_scope_func</strong> (<em>callable</em>) – Function to retrieve latest action scope states.</p></li>
+<li><p><strong>decision_type</strong> (<em>DecisionType</em>) – The type of this decision.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.simulator.scenarios.citi_bike.common.DecisionEvent.action_scope">
+<em class="property">property </em><code class="sig-name descname">action_scope</code><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.common.DecisionEvent.action_scope" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dictionary that contains requirements of current and neighbor stations,
+key is the station index, value is the max demand or supply number.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.citi_bike.common.DecisionEvent.summary_key">
+<code class="sig-name descname">summary_key</code><em class="property"> = ['station_idx', 'tick', 'frame_index', 'type', 'action_scope']</em><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.common.DecisionEvent.summary_key" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.simulator.scenarios.citi_bike.common.DecisionType">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.citi_bike.common.</code><code class="sig-name descname">DecisionType</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/citi_bike/common.html#DecisionType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.common.DecisionType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>Station decision type.</p>
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.citi_bike.common.DecisionType.Demand">
+<code class="sig-name descname">Demand</code><em class="property"> = 'demand'</em><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.common.DecisionType.Demand" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.citi_bike.common.DecisionType.Supply">
+<code class="sig-name descname">Supply</code><em class="property"> = 'supply'</em><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.common.DecisionType.Supply" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.simulator.scenarios.citi_bike.common.ExtraCostMode">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.citi_bike.common.</code><code class="sig-name descname">ExtraCostMode</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/citi_bike/common.html#ExtraCostMode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.common.ExtraCostMode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>The mode to process extra cost.</p>
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.citi_bike.common.ExtraCostMode.Source">
+<code class="sig-name descname">Source</code><em class="property"> = 'source'</em><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.common.ExtraCostMode.Source" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.citi_bike.common.ExtraCostMode.Target">
+<code class="sig-name descname">Target</code><em class="property"> = 'target'</em><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.common.ExtraCostMode.Target" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.simulator.scenarios.citi_bike.decision_strategy">
+<span id="maro-simulator-scenarios-citi-bike-decision-strategy-module"></span><h2>maro.simulator.scenarios.citi_bike.decision_strategy module<a class="headerlink" href="#module-maro.simulator.scenarios.citi_bike.decision_strategy" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.simulator.scenarios.citi_bike.decision_strategy.BikeDecisionStrategy">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.citi_bike.decision_strategy.</code><code class="sig-name descname">BikeDecisionStrategy</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">stations</span><span class="p">:</span> <span class="n">list</span></em>, <em class="sig-param"><span class="n">distance_adj</span><span class="p">:</span> <span class="n"><a class="reference internal" href="maro.simulator.scenarios.html#maro.simulator.scenarios.matrix_accessor.MatrixAttributeAccessor" title="maro.simulator.scenarios.matrix_accessor.MatrixAttributeAccessor">maro.simulator.scenarios.matrix_accessor.MatrixAttributeAccessor</a></span></em>, <em class="sig-param"><span class="n">snapshots</span></em>, <em class="sig-param"><span class="n">options</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/citi_bike/decision_strategy.html#BikeDecisionStrategy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.decision_strategy.BikeDecisionStrategy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Helper to provide decision related logic.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>stations</strong> (<em>list</em>) – List for current stations.</p></li>
+<li><p><strong>distance_adj</strong> (<em>list</em>) – Distance adj for sorting.</p></li>
+<li><p><strong>snapshots</strong> (<em>SnapshotList</em>) – Snapshots used to query states.</p></li>
+<li><p><strong>options</strong> (<em>dict</em>) – Additional options from configuration file.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.simulator.scenarios.citi_bike.decision_strategy.BikeDecisionStrategy.action_scope">
+<code class="sig-name descname">action_scope</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">station_idx</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">decision_type</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.simulator.scenarios.citi_bike.common.DecisionType" title="maro.simulator.scenarios.citi_bike.common.DecisionType">maro.simulator.scenarios.citi_bike.common.DecisionType</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/citi_bike/decision_strategy.html#BikeDecisionStrategy.action_scope"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.decision_strategy.BikeDecisionStrategy.action_scope" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate action scopes for self and N neighbors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>station_idx</strong> (<em>int</em>) – Target station index.</p></li>
+<li><p><strong>decision_type</strong> (<em>DecisionType</em>) – Current decision type.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Dictionary that key is station index, value is the max supply/demand value.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.citi_bike.decision_strategy.BikeDecisionStrategy.get_stations_need_decision">
+<code class="sig-name descname">get_stations_need_decision</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tick</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; list<a class="reference internal" href="../_modules/maro/simulator/scenarios/citi_bike/decision_strategy.html#BikeDecisionStrategy.get_stations_need_decision"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.decision_strategy.BikeDecisionStrategy.get_stations_need_decision" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get stations that need to take an action from agent at current tick.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>tick</strong> (<em>int</em>) – Tick to check.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List of station indices who need action at this tick.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.citi_bike.decision_strategy.BikeDecisionStrategy.is_decision_tick">
+<code class="sig-name descname">is_decision_tick</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tick</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/maro/simulator/scenarios/citi_bike/decision_strategy.html#BikeDecisionStrategy.is_decision_tick"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.decision_strategy.BikeDecisionStrategy.is_decision_tick" title="Permalink to this definition">¶</a></dt>
+<dd><p>If it is time to generate a decision event.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>tick</strong> (<em>int</em>) – Tick to check.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>True if current tick should check deicion, or False.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.citi_bike.decision_strategy.BikeDecisionStrategy.move_to_neighbor">
+<code class="sig-name descname">move_to_neighbor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">src_station</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.simulator.scenarios.citi_bike.station.Station" title="maro.simulator.scenarios.citi_bike.station.Station">maro.simulator.scenarios.citi_bike.station.Station</a></span></em>, <em class="sig-param"><span class="n">cur_station</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.simulator.scenarios.citi_bike.station.Station" title="maro.simulator.scenarios.citi_bike.station.Station">maro.simulator.scenarios.citi_bike.station.Station</a></span></em>, <em class="sig-param"><span class="n">bike_number</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/citi_bike/decision_strategy.html#BikeDecisionStrategy.move_to_neighbor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.decision_strategy.BikeDecisionStrategy.move_to_neighbor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Move extra bikes to neighbor when transferred bikes more than available docks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>src_station</strong> (<em>Station</em>) – Which station current bike come from.</p></li>
+<li><p><strong>cur_station</strong> (<em>Station</em>) – Which station current bike arrive.</p></li>
+<li><p><strong>bike_number</strong> (<em>int</em>) – How many bikes need to move.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Since we have a full neighbors list now, we do not need the N-step way to move, just 1 for now,</p>
+</div>
+<p>we use distance (order index) as factor of extra cost now</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.citi_bike.decision_strategy.BikeDecisionStrategy.reset">
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/citi_bike/decision_strategy.html#BikeDecisionStrategy.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.decision_strategy.BikeDecisionStrategy.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset internal states.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.citi_bike.decision_strategy.BikeDecisionStrategy.transfer_time">
+<em class="property">property </em><code class="sig-name descname">transfer_time</code><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.decision_strategy.BikeDecisionStrategy.transfer_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transfer time from one station to another.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.simulator.scenarios.citi_bike.decision_strategy.DistanceFilter">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.citi_bike.decision_strategy.</code><code class="sig-name descname">DistanceFilter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">conf</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">strategy</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/citi_bike/decision_strategy.html#DistanceFilter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.decision_strategy.DistanceFilter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Filter neighbors by distance (from near to far), and return first N configured number of neighbors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>conf</strong> (<em>dict</em>) – Configuration of this filter.</p></li>
+<li><p><strong>strategy</strong> (<em>BikeDecisionStrategy</em>) – BikeDecisionStrategy instance to provide information.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.simulator.scenarios.citi_bike.decision_strategy.DistanceFilter.filter">
+<code class="sig-name descname">filter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">station_idx</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">deision_type</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.simulator.scenarios.citi_bike.common.DecisionType" title="maro.simulator.scenarios.citi_bike.common.DecisionType">maro.simulator.scenarios.citi_bike.common.DecisionType</a></span></em>, <em class="sig-param"><span class="n">source</span><span class="p">:</span> <span class="n">Dict<span class="p">[</span>int<span class="p">, </span>int<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; Dict<span class="p">[</span>int<span class="p">, </span>int<span class="p">]</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/citi_bike/decision_strategy.html#DistanceFilter.filter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.decision_strategy.DistanceFilter.filter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter neighbors by distance from neareat to farest.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>station_idx</strong> (<em>int</em>) – Station index to sort its neighbors.</p></li>
+<li><p><strong>deision_type</strong> (<em>DecisionType</em>) – Current decision type.</p></li>
+<li><p><strong>source</strong> (<em>dict</em>) – Input neighbors for sorting.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>N nearest neighbors.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.citi_bike.decision_strategy.DistanceFilter.reset">
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/citi_bike/decision_strategy.html#DistanceFilter.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.decision_strategy.DistanceFilter.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset internal states.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.simulator.scenarios.citi_bike.decision_strategy.RequirementsFilter">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.citi_bike.decision_strategy.</code><code class="sig-name descname">RequirementsFilter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">conf</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/citi_bike/decision_strategy.html#RequirementsFilter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.decision_strategy.RequirementsFilter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Filters by demand or supply requirement number, from more to less.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>conf</strong> (<em>dict</em>) – Configuration of this filter.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.simulator.scenarios.citi_bike.decision_strategy.RequirementsFilter.filter">
+<code class="sig-name descname">filter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">station_idx</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">deision_type</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.simulator.scenarios.citi_bike.common.DecisionType" title="maro.simulator.scenarios.citi_bike.common.DecisionType">maro.simulator.scenarios.citi_bike.common.DecisionType</a></span></em>, <em class="sig-param"><span class="n">source</span><span class="p">:</span> <span class="n">Dict<span class="p">[</span>int<span class="p">, </span>int<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; Dict<span class="p">[</span>int<span class="p">, </span>int<span class="p">]</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/citi_bike/decision_strategy.html#RequirementsFilter.filter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.decision_strategy.RequirementsFilter.filter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter neighbors by requirements number.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>station_idx</strong> (<em>int</em>) – Station index to sort its neighbors.</p></li>
+<li><p><strong>decision_type</strong> (<em>DecisionType</em>) – Current decision type.</p></li>
+<li><p><strong>source</strong> (<em>Dict[int, int]</em>) – Neighbors to sort.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>N neighors sorted by requirement.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.citi_bike.decision_strategy.RequirementsFilter.reset">
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/citi_bike/decision_strategy.html#RequirementsFilter.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.decision_strategy.RequirementsFilter.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset internal states.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.simulator.scenarios.citi_bike.decision_strategy.TripsWindowFilter">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.citi_bike.decision_strategy.</code><code class="sig-name descname">TripsWindowFilter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">conf</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">snapshot_list</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/citi_bike/decision_strategy.html#TripsWindowFilter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.decision_strategy.TripsWindowFilter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Filter neighbors by trip requirement in latest N windows.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This filter will cache its states, need to be reset before each episode.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>conf</strong> (<em>dict</em>) – Configuration of this fileter.</p></li>
+<li><p><strong>snapshot_list</strong> (<em>SnapshotList</em>) – Snapshots used to quering states.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.simulator.scenarios.citi_bike.decision_strategy.TripsWindowFilter.filter">
+<code class="sig-name descname">filter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">station_idx</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">decision_type</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.simulator.scenarios.citi_bike.common.DecisionType" title="maro.simulator.scenarios.citi_bike.common.DecisionType">maro.simulator.scenarios.citi_bike.common.DecisionType</a></span></em>, <em class="sig-param"><span class="n">source</span><span class="p">:</span> <span class="n">Dict<span class="p">[</span>int<span class="p">, </span>int<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; Dict<span class="p">[</span>int<span class="p">, </span>int<span class="p">]</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/citi_bike/decision_strategy.html#TripsWindowFilter.filter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.decision_strategy.TripsWindowFilter.filter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter neighbors by trip requirements in latest N windows.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>station_idx</strong> (<em>int</em>) – Station index to sort its neighbors.</p></li>
+<li><p><strong>decision_type</strong> (<em>DecisionType</em>) – Current decision type.</p></li>
+<li><p><strong>source</strong> (<em>Dict[int, int]</em>) – Neighbors to sort.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>N neighors sorted by requirement.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.citi_bike.decision_strategy.TripsWindowFilter.reset">
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/citi_bike/decision_strategy.html#TripsWindowFilter.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.decision_strategy.TripsWindowFilter.reset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.simulator.scenarios.citi_bike.events">
+<span id="maro-simulator-scenarios-citi-bike-events-module"></span><h2>maro.simulator.scenarios.citi_bike.events module<a class="headerlink" href="#module-maro.simulator.scenarios.citi_bike.events" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.simulator.scenarios.citi_bike.events.CitiBikeEvents">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.citi_bike.events.</code><code class="sig-name descname">CitiBikeEvents</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/citi_bike/events.html#CitiBikeEvents"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.events.CitiBikeEvents" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>Trip related events.</p>
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.citi_bike.events.CitiBikeEvents.DeliverBike">
+<code class="sig-name descname">DeliverBike</code><em class="property"> = 'deliver_bike'</em><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.events.CitiBikeEvents.DeliverBike" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.citi_bike.events.CitiBikeEvents.RebalanceBike">
+<code class="sig-name descname">RebalanceBike</code><em class="property"> = 'rebalance_bike'</em><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.events.CitiBikeEvents.RebalanceBike" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.citi_bike.events.CitiBikeEvents.RequireBike">
+<code class="sig-name descname">RequireBike</code><em class="property"> = 'require_bike'</em><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.events.CitiBikeEvents.RequireBike" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.citi_bike.events.CitiBikeEvents.ReturnBike">
+<code class="sig-name descname">ReturnBike</code><em class="property"> = 'return_bike'</em><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.events.CitiBikeEvents.ReturnBike" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.simulator.scenarios.citi_bike.frame_builder">
+<span id="maro-simulator-scenarios-citi-bike-frame-builder-module"></span><h2>maro.simulator.scenarios.citi_bike.frame_builder module<a class="headerlink" href="#module-maro.simulator.scenarios.citi_bike.frame_builder" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="maro.simulator.scenarios.citi_bike.frame_builder.build_frame">
+<code class="sig-prename descclassname">maro.simulator.scenarios.citi_bike.frame_builder.</code><code class="sig-name descname">build_frame</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">station_num</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">snapshots_num</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/citi_bike/frame_builder.html#build_frame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.frame_builder.build_frame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to build citi_bike Frame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>station_num</strong> (<em>int</em>) – Number of stations.</p></li>
+<li><p><strong>snapshot_num</strong> (<em>int</em>) – Number of in-memory snapshots.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Frame instance for citi-bike scenario.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>CitibikeFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.simulator.scenarios.citi_bike.station">
+<span id="maro-simulator-scenarios-citi-bike-station-module"></span><h2>maro.simulator.scenarios.citi_bike.station module<a class="headerlink" href="#module-maro.simulator.scenarios.citi_bike.station" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.simulator.scenarios.citi_bike.station.Station">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.citi_bike.station.</code><code class="sig-name descname">Station</code><a class="reference internal" href="../_modules/maro/simulator/scenarios/citi_bike/station.html#Station"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.station.Station" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="maro.backends.html#id29" title="maro.backends.frame.NodeBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.backends.frame.NodeBase</span></code></a></p>
+<p>Station node definition in frame.</p>
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.citi_bike.station.Station.bikes">
+<code class="sig-name descname">bikes</code><em class="property"> = &lt;maro.backends.frame.NodeAttribute object&gt;</em><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.station.Station.bikes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.citi_bike.station.Station.capacity">
+<code class="sig-name descname">capacity</code><em class="property"> = &lt;maro.backends.frame.NodeAttribute object&gt;</em><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.station.Station.capacity" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.citi_bike.station.Station.extra_cost">
+<code class="sig-name descname">extra_cost</code><em class="property"> = &lt;maro.backends.frame.NodeAttribute object&gt;</em><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.station.Station.extra_cost" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.citi_bike.station.Station.failed_return">
+<code class="sig-name descname">failed_return</code><em class="property"> = &lt;maro.backends.frame.NodeAttribute object&gt;</em><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.station.Station.failed_return" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.citi_bike.station.Station.fulfillment">
+<code class="sig-name descname">fulfillment</code><em class="property"> = &lt;maro.backends.frame.NodeAttribute object&gt;</em><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.station.Station.fulfillment" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.citi_bike.station.Station.holiday">
+<code class="sig-name descname">holiday</code><em class="property"> = &lt;maro.backends.frame.NodeAttribute object&gt;</em><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.station.Station.holiday" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.citi_bike.station.Station.id">
+<code class="sig-name descname">id</code><em class="property"> = &lt;maro.backends.frame.NodeAttribute object&gt;</em><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.station.Station.id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.citi_bike.station.Station.min_bikes">
+<code class="sig-name descname">min_bikes</code><em class="property"> = &lt;maro.backends.frame.NodeAttribute object&gt;</em><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.station.Station.min_bikes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.citi_bike.station.Station.reset">
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/citi_bike/station.html#Station.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.station.Station.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset to default value.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.citi_bike.station.Station.set_init_state">
+<code class="sig-name descname">set_init_state</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">bikes</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">capacity</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">id</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/citi_bike/station.html#Station.set_init_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.station.Station.set_init_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set initialize state, that will be used after frame reset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bikes</strong> (<em>int</em>) – Total bikes on this station.</p></li>
+<li><p><strong>capacity</strong> (<em>int</em>) – How many bikes this station can hold.</p></li>
+<li><p><strong>id</strong> (<em>int</em>) – Id of this station.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.citi_bike.station.Station.shortage">
+<code class="sig-name descname">shortage</code><em class="property"> = &lt;maro.backends.frame.NodeAttribute object&gt;</em><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.station.Station.shortage" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.citi_bike.station.Station.temperature">
+<code class="sig-name descname">temperature</code><em class="property"> = &lt;maro.backends.frame.NodeAttribute object&gt;</em><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.station.Station.temperature" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.citi_bike.station.Station.transfer_cost">
+<code class="sig-name descname">transfer_cost</code><em class="property"> = &lt;maro.backends.frame.NodeAttribute object&gt;</em><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.station.Station.transfer_cost" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.citi_bike.station.Station.trip_requirement">
+<code class="sig-name descname">trip_requirement</code><em class="property"> = &lt;maro.backends.frame.NodeAttribute object&gt;</em><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.station.Station.trip_requirement" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.citi_bike.station.Station.weather">
+<code class="sig-name descname">weather</code><em class="property"> = &lt;maro.backends.frame.NodeAttribute object&gt;</em><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.station.Station.weather" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.citi_bike.station.Station.weekday">
+<code class="sig-name descname">weekday</code><em class="property"> = &lt;maro.backends.frame.NodeAttribute object&gt;</em><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.station.Station.weekday" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.simulator.scenarios.citi_bike.station.gen_matrices_node_definition">
+<code class="sig-prename descclassname">maro.simulator.scenarios.citi_bike.station.</code><code class="sig-name descname">gen_matrices_node_definition</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">station_num</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/citi_bike/station.html#gen_matrices_node_definition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.station.gen_matrices_node_definition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to generate adj node definition, due to we need the numbers at runtime.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>station_num</strong> (<em>int</em>) – Total stations of current simulation.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Node definition class for matrices.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>type</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.simulator.scenarios.citi_bike.stations_info">
+<span id="maro-simulator-scenarios-citi-bike-stations-info-module"></span><h2>maro.simulator.scenarios.citi_bike.stations_info module<a class="headerlink" href="#module-maro.simulator.scenarios.citi_bike.stations_info" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.simulator.scenarios.citi_bike.stations_info.StationInfo">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.citi_bike.stations_info.</code><code class="sig-name descname">StationInfo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">index</span></em>, <em class="sig-param"><span class="n">bikes</span></em>, <em class="sig-param"><span class="n">capacity</span></em>, <em class="sig-param"><span class="n">id</span></em><span class="sig-paren">)</span><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.stations_info.StationInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="py method">
+<dt id="maro.simulator.scenarios.citi_bike.stations_info.StationInfo.bikes">
+<em class="property">property </em><code class="sig-name descname">bikes</code><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.stations_info.StationInfo.bikes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.citi_bike.stations_info.StationInfo.capacity">
+<em class="property">property </em><code class="sig-name descname">capacity</code><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.stations_info.StationInfo.capacity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.citi_bike.stations_info.StationInfo.id">
+<em class="property">property </em><code class="sig-name descname">id</code><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.stations_info.StationInfo.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.citi_bike.stations_info.StationInfo.index">
+<em class="property">property </em><code class="sig-name descname">index</code><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.stations_info.StationInfo.index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.simulator.scenarios.citi_bike.stations_info.get_station_info">
+<code class="sig-prename descclassname">maro.simulator.scenarios.citi_bike.stations_info.</code><code class="sig-name descname">get_station_info</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">station_state_file</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/citi_bike/stations_info.html#get_station_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.stations_info.get_station_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get stations information from specified csv file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>station_state_file</strong> (<em>str</em>) – File path that contains station initial state info.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List of station information.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.simulator.scenarios.citi_bike.weather_table">
+<span id="maro-simulator-scenarios-citi-bike-weather-table-module"></span><h2>maro.simulator.scenarios.citi_bike.weather_table module<a class="headerlink" href="#module-maro.simulator.scenarios.citi_bike.weather_table" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.simulator.scenarios.citi_bike.weather_table.WeatherTable">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.citi_bike.weather_table.</code><code class="sig-name descname">WeatherTable</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">timezone</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/citi_bike/weather_table.html#WeatherTable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.citi_bike.weather_table.WeatherTable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Value look-up table, used to query weather information by datetime.</p>
+<p>After initializing, this lut object can be used as a normal dictionary which key is the datetime object.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">weather_lut</span> <span class="o">=</span> <span class="n">WeatherTable</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">UTC</span><span class="p">)</span>
+
+<span class="c1"># Get weather at specified datetime, usually day leve.</span>
+<span class="n">weather</span> <span class="o">=</span> <span class="n">weather_lut</span><span class="p">[</span><span class="n">your_date</span><span class="p">]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file</strong> (<em>str</em>) – Binary file that contains weather information.</p></li>
+<li><p><strong>timezone</strong> (<em>object</em>) – Target timezone, used to convert timestamp from binary.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.simulator.scenarios.citi_bike">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-maro.simulator.scenarios.citi_bike" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+    <a class='left-prev' id="prev-link" href="maro.simulator.scenarios.cim.html" title="previous page">maro.simulator.scenarios.cim package</a>
+    <a class='right-next' id="next-link" href="maro.simulator.scenarios.vm_scheduling.html" title="next page">maro.simulator.scenarios.vm_scheduling package</a>
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../_static/js/index.js"></script>
+    
+  </body>
+</html>

@@ -1,0 +1,1096 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maro.cli.utils package &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="maro.cli.utils.executors package" href="maro.cli.utils.executors.html" />
+    <link rel="prev" title="maro.cli.process.utils package" href="maro.cli.process.utils.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../index.html">
+  
+  <img src="../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="current nav sidenav_l1">
+ <li class="toctree-l1 current active">
+  <a class="reference internal" href="maro.html">
+   maro package
+  </a>
+  <ul class="current">
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.backends.html">
+     maro.backends package
+    </a>
+   </li>
+   <li class="toctree-l2 current active">
+    <a class="reference internal" href="maro.cli.html">
+     maro.cli package
+    </a>
+    <ul class="current">
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.data_pipeline.html">
+       maro.cli.data_pipeline package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.envs.html">
+       maro.cli.envs package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.grass.html">
+       maro.cli.grass package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.grass.executors.html">
+         maro.cli.grass.executors package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.grass.utils.html">
+         maro.cli.grass.utils package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.inspector.html">
+       maro.cli.inspector package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.k8s.html">
+       maro.cli.k8s package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.k8s.executors.html">
+         maro.cli.k8s.executors package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.process.html">
+       maro.cli.process package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.process.utils.html">
+         maro.cli.process.utils package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3 current active">
+      <a class="current reference internal" href="#">
+       maro.cli.utils package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.utils.executors.html">
+         maro.cli.utils.executors package
+        </a>
+       </li>
+      </ul>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.communication.html">
+     maro.communication package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.communication.driver.html">
+       maro.communication.driver package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.communication.utils.html">
+       maro.communication.utils package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.data_lib.html">
+     maro.data_lib package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.data_lib.cim.html">
+       maro.data_lib.cim package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.event_buffer.html">
+     maro.event_buffer package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.forecasting.html">
+     maro.forecasting package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.rl.html">
+     maro.rl package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.actor.html">
+       maro.rl.actor package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.agent.html">
+       maro.rl.agent package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.algorithms.html">
+       maro.rl.algorithms package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.dist_topologies.html">
+       maro.rl.dist_topologies package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.exploration.html">
+       maro.rl.exploration package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.learner.html">
+       maro.rl.learner package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.models.html">
+       maro.rl.models package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.scheduling.html">
+       maro.rl.scheduling package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.shaping.html">
+       maro.rl.shaping package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.storage.html">
+       maro.rl.storage package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.simulator.html">
+     maro.simulator package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.simulator.scenarios.html">
+       maro.simulator.scenarios package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.cim.html">
+         maro.simulator.scenarios.cim package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.citi_bike.html">
+         maro.simulator.scenarios.citi_bike package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.vm_scheduling.html">
+         maro.simulator.scenarios.vm_scheduling package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.simulator.utils.html">
+       maro.simulator.utils package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.utils.html">
+     maro.utils package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.utils.exception.html">
+       maro.utils.exception package
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+        
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="../_sources/apidoc/maro.cli.utils.rst.txt"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.rst</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2Fapidoc/maro.cli.utils.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        <a class="edit-button" href="https://github.com/microsoft/maro/edit/master/doc/source/apidoc/maro.cli.utils.rst"><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Edit this page"><i class="fas fa-pencil-alt"></i>suggest edit</button></a>
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <div class="tocsection onthispage pt-5 pb-3">
+            <i class="fas fa-list"></i> Contents
+        </div>
+        <nav id="bd-toc-nav">
+            <ul class="nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#subpackages">
+   Subpackages
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#submodules">
+   Submodules
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.cli.utils.checkers">
+   maro.cli.utils.checkers module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.cli.utils.common">
+   maro.cli.utils.common module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.cli.utils.copy">
+   maro.cli.utils.copy module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.cli.utils.details">
+   maro.cli.utils.details module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.cli.utils.examples">
+   maro.cli.utils.examples module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.cli.utils.lock">
+   maro.cli.utils.lock module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.cli.utils.naming">
+   maro.cli.utils.naming module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.cli.utils.params">
+   maro.cli.utils.params module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.cli.utils.parser">
+   maro.cli.utils.parser module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.cli.utils.subprocess">
+   maro.cli.utils.subprocess module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.cli.utils.validation">
+   maro.cli.utils.validation module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.cli.utils">
+   Module contents
+  </a>
+ </li>
+</ul>
+
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <div class="section" id="maro-cli-utils-package">
+<h1>maro.cli.utils package<a class="headerlink" href="#maro-cli-utils-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="maro.cli.utils.executors.html">maro.cli.utils.executors package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="maro.cli.utils.executors.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.cli.utils.executors.html#module-maro.cli.utils.executors.azure_executor">maro.cli.utils.executors.azure_executor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.cli.utils.executors.html#module-maro.cli.utils.executors">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-maro.cli.utils.checkers">
+<span id="maro-cli-utils-checkers-module"></span><h2>maro.cli.utils.checkers module<a class="headerlink" href="#module-maro.cli.utils.checkers" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="maro.cli.utils.checkers.check_details_validity">
+<code class="sig-prename descclassname">maro.cli.utils.checkers.</code><code class="sig-name descname">check_details_validity</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">func</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/utils/checkers.html#check_details_validity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.utils.checkers.check_details_validity" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-maro.cli.utils.common">
+<span id="maro-cli-utils-common-module"></span><h2>maro.cli.utils.common module<a class="headerlink" href="#module-maro.cli.utils.common" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="maro.cli.utils.common.exit">
+<code class="sig-prename descclassname">maro.cli.utils.common.</code><code class="sig-name descname">exit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">state</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">0</span></em>, <em class="sig-param"><span class="n">msg</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/utils/common.html#exit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.utils.common.exit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exit and show msg in sys.stderr</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.cli.utils.copy">
+<span id="maro-cli-utils-copy-module"></span><h2>maro.cli.utils.copy module<a class="headerlink" href="#module-maro.cli.utils.copy" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="maro.cli.utils.copy.get_reformatted_source_path">
+<code class="sig-prename descclassname">maro.cli.utils.copy.</code><code class="sig-name descname">get_reformatted_source_path</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/utils/copy.html#get_reformatted_source_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.utils.copy.get_reformatted_source_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build source path without trailing ‘/’.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>path</strong> (<em>str</em>) – Original path.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Reformatted path.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.cli.utils.copy.get_reformatted_target_dir">
+<code class="sig-prename descclassname">maro.cli.utils.copy.</code><code class="sig-name descname">get_reformatted_target_dir</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/utils/copy.html#get_reformatted_target_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.utils.copy.get_reformatted_target_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get reformatted target dir with trailing ‘/’.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>path</strong> – (str): Original path.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Reformatted path.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.cli.utils.details">
+<span id="maro-cli-utils-details-module"></span><h2>maro.cli.utils.details module<a class="headerlink" href="#module-maro.cli.utils.details" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="maro.cli.utils.details.load_cluster_details">
+<code class="sig-prename descclassname">maro.cli.utils.details.</code><code class="sig-name descname">load_cluster_details</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cluster_name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">sync</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; dict<a class="reference internal" href="../_modules/maro/cli/utils/details.html#load_cluster_details"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.utils.details.load_cluster_details" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="maro.cli.utils.details.load_job_details">
+<code class="sig-prename descclassname">maro.cli.utils.details.</code><code class="sig-name descname">load_job_details</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cluster_name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">job_name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">sync</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; dict<a class="reference internal" href="../_modules/maro/cli/utils/details.html#load_job_details"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.utils.details.load_job_details" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="maro.cli.utils.details.load_schedule_details">
+<code class="sig-prename descclassname">maro.cli.utils.details.</code><code class="sig-name descname">load_schedule_details</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cluster_name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">schedule_name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">sync</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; dict<a class="reference internal" href="../_modules/maro/cli/utils/details.html#load_schedule_details"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.utils.details.load_schedule_details" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="maro.cli.utils.details.save_cluster_details">
+<code class="sig-prename descclassname">maro.cli.utils.details.</code><code class="sig-name descname">save_cluster_details</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cluster_name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">cluster_details</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">sync</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/maro/cli/utils/details.html#save_cluster_details"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.utils.details.save_cluster_details" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="maro.cli.utils.details.save_job_details">
+<code class="sig-prename descclassname">maro.cli.utils.details.</code><code class="sig-name descname">save_job_details</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cluster_name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">job_name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">job_details</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">sync</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/maro/cli/utils/details.html#save_job_details"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.utils.details.save_job_details" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="maro.cli.utils.details.save_schedule_details">
+<code class="sig-prename descclassname">maro.cli.utils.details.</code><code class="sig-name descname">save_schedule_details</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cluster_name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">schedule_name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">schedule_details</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">sync</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/maro/cli/utils/details.html#save_schedule_details"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.utils.details.save_schedule_details" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-maro.cli.utils.examples">
+<span id="maro-cli-utils-examples-module"></span><h2>maro.cli.utils.examples module<a class="headerlink" href="#module-maro.cli.utils.examples" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-maro.cli.utils.lock">
+<span id="maro-cli-utils-lock-module"></span><h2>maro.cli.utils.lock module<a class="headerlink" href="#module-maro.cli.utils.lock" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="maro.cli.utils.lock.acquire_lock">
+<code class="sig-prename descclassname">maro.cli.utils.lock.</code><code class="sig-name descname">acquire_lock</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cluster_name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">operation</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/utils/lock.html#acquire_lock"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.utils.lock.acquire_lock" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="maro.cli.utils.lock.load_lock_details">
+<code class="sig-prename descclassname">maro.cli.utils.lock.</code><code class="sig-name descname">load_lock_details</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cluster_name</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; dict<a class="reference internal" href="../_modules/maro/cli/utils/lock.html#load_lock_details"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.utils.lock.load_lock_details" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="maro.cli.utils.lock.lock">
+<code class="sig-prename descclassname">maro.cli.utils.lock.</code><code class="sig-name descname">lock</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">func</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/utils/lock.html#lock"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.utils.lock.lock" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="maro.cli.utils.lock.release_lock">
+<code class="sig-prename descclassname">maro.cli.utils.lock.</code><code class="sig-name descname">release_lock</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cluster_name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">operation</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/utils/lock.html#release_lock"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.utils.lock.release_lock" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="maro.cli.utils.lock.save_lock_details">
+<code class="sig-prename descclassname">maro.cli.utils.lock.</code><code class="sig-name descname">save_lock_details</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cluster_name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">details</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/maro/cli/utils/lock.html#save_lock_details"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.utils.lock.save_lock_details" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-maro.cli.utils.naming">
+<span id="maro-cli-utils-naming-module"></span><h2>maro.cli.utils.naming module<a class="headerlink" href="#module-maro.cli.utils.naming" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="maro.cli.utils.naming.generate_cluster_id">
+<code class="sig-prename descclassname">maro.cli.utils.naming.</code><code class="sig-name descname">generate_cluster_id</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/utils/naming.html#generate_cluster_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.utils.naming.generate_cluster_id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="maro.cli.utils.naming.generate_component_id">
+<code class="sig-prename descclassname">maro.cli.utils.naming.</code><code class="sig-name descname">generate_component_id</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/utils/naming.html#generate_component_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.utils.naming.generate_component_id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="maro.cli.utils.naming.generate_image_name">
+<code class="sig-prename descclassname">maro.cli.utils.naming.</code><code class="sig-name descname">generate_image_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/utils/naming.html#generate_image_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.utils.naming.generate_image_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="maro.cli.utils.naming.generate_job_id">
+<code class="sig-prename descclassname">maro.cli.utils.naming.</code><code class="sig-name descname">generate_job_id</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/utils/naming.html#generate_job_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.utils.naming.generate_job_id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="maro.cli.utils.naming.generate_name_with_md5">
+<code class="sig-prename descclassname">maro.cli.utils.naming.</code><code class="sig-name descname">generate_name_with_md5</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">prefix</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">key</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">md5_len</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">16</span></em><span class="sig-paren">)</span> &#x2192; str<a class="reference internal" href="../_modules/maro/cli/utils/naming.html#generate_name_with_md5"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.utils.naming.generate_name_with_md5" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="maro.cli.utils.naming.generate_name_with_uuid">
+<code class="sig-prename descclassname">maro.cli.utils.naming.</code><code class="sig-name descname">generate_name_with_uuid</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">prefix</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">uuid_len</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">16</span></em><span class="sig-paren">)</span> &#x2192; str<a class="reference internal" href="../_modules/maro/cli/utils/naming.html#generate_name_with_uuid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.utils.naming.generate_name_with_uuid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="maro.cli.utils.naming.generate_node_name">
+<code class="sig-prename descclassname">maro.cli.utils.naming.</code><code class="sig-name descname">generate_node_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/utils/naming.html#generate_node_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.utils.naming.generate_node_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="maro.cli.utils.naming.get_valid_file_name">
+<code class="sig-prename descclassname">maro.cli.utils.naming.</code><code class="sig-name descname">get_valid_file_name</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_name</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/utils/naming.html#get_valid_file_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.utils.naming.get_valid_file_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-maro.cli.utils.params">
+<span id="maro-cli-utils-params-module"></span><h2>maro.cli.utils.params module<a class="headerlink" href="#module-maro.cli.utils.params" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.cli.utils.params.GlobalParams">
+<em class="property">class </em><code class="sig-prename descclassname">maro.cli.utils.params.</code><code class="sig-name descname">GlobalParams</code><a class="reference internal" href="../_modules/maro/cli/utils/params.html#GlobalParams"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.utils.params.GlobalParams" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt id="maro.cli.utils.params.GlobalParams.DEFAULT_FLUENTD_PORT">
+<code class="sig-name descname">DEFAULT_FLUENTD_PORT</code><em class="property"> = 24224</em><a class="headerlink" href="#maro.cli.utils.params.GlobalParams.DEFAULT_FLUENTD_PORT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.cli.utils.params.GlobalParams.DEFAULT_REDIS_PORT">
+<code class="sig-name descname">DEFAULT_REDIS_PORT</code><em class="property"> = 6379</em><a class="headerlink" href="#maro.cli.utils.params.GlobalParams.DEFAULT_REDIS_PORT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.cli.utils.params.GlobalParams.DEFAULT_SSH_PORT">
+<code class="sig-name descname">DEFAULT_SSH_PORT</code><em class="property"> = 22</em><a class="headerlink" href="#maro.cli.utils.params.GlobalParams.DEFAULT_SSH_PORT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.cli.utils.params.GlobalParams.LOG_LEVEL">
+<code class="sig-name descname">LOG_LEVEL</code><em class="property"> = 20</em><a class="headerlink" href="#maro.cli.utils.params.GlobalParams.LOG_LEVEL" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.cli.utils.params.GlobalParams.PARALLELS">
+<code class="sig-name descname">PARALLELS</code><em class="property"> = 5</em><a class="headerlink" href="#maro.cli.utils.params.GlobalParams.PARALLELS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.cli.utils.params.GlobalPaths">
+<em class="property">class </em><code class="sig-prename descclassname">maro.cli.utils.params.</code><code class="sig-name descname">GlobalPaths</code><a class="reference internal" href="../_modules/maro/cli/utils/params.html#GlobalPaths"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.utils.params.GlobalPaths" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt id="maro.cli.utils.params.GlobalPaths.ABS_MARO_CLUSTERS">
+<code class="sig-name descname">ABS_MARO_CLUSTERS</code><em class="property"> = '/home/runner/.maro/clusters'</em><a class="headerlink" href="#maro.cli.utils.params.GlobalPaths.ABS_MARO_CLUSTERS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.cli.utils.params.GlobalPaths.ABS_MARO_DATA">
+<code class="sig-name descname">ABS_MARO_DATA</code><em class="property"> = '/home/runner/.maro/data'</em><a class="headerlink" href="#maro.cli.utils.params.GlobalPaths.ABS_MARO_DATA" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.cli.utils.params.GlobalPaths.ABS_MARO_GRASS_LIB">
+<code class="sig-name descname">ABS_MARO_GRASS_LIB</code><em class="property"> = '/home/runner/.maro/lib/grass'</em><a class="headerlink" href="#maro.cli.utils.params.GlobalPaths.ABS_MARO_GRASS_LIB" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.cli.utils.params.GlobalPaths.ABS_MARO_K8S_LIB">
+<code class="sig-name descname">ABS_MARO_K8S_LIB</code><em class="property"> = '/home/runner/.maro/lib/k8s'</em><a class="headerlink" href="#maro.cli.utils.params.GlobalPaths.ABS_MARO_K8S_LIB" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.cli.utils.params.GlobalPaths.ABS_MARO_LIB">
+<code class="sig-name descname">ABS_MARO_LIB</code><em class="property"> = '/home/runner/.maro/lib'</em><a class="headerlink" href="#maro.cli.utils.params.GlobalPaths.ABS_MARO_LIB" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.cli.utils.params.GlobalPaths.ABS_MARO_LOCAL_TMP">
+<code class="sig-name descname">ABS_MARO_LOCAL_TMP</code><em class="property"> = '/home/runner/.maro-local/tmp'</em><a class="headerlink" href="#maro.cli.utils.params.GlobalPaths.ABS_MARO_LOCAL_TMP" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.cli.utils.params.GlobalPaths.ABS_MARO_TEST">
+<code class="sig-name descname">ABS_MARO_TEST</code><em class="property"> = '/home/runner/.maro/test'</em><a class="headerlink" href="#maro.cli.utils.params.GlobalPaths.ABS_MARO_TEST" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.cli.utils.params.GlobalPaths.MARO_CLUSTERS">
+<code class="sig-name descname">MARO_CLUSTERS</code><em class="property"> = '~/.maro/clusters'</em><a class="headerlink" href="#maro.cli.utils.params.GlobalPaths.MARO_CLUSTERS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.cli.utils.params.GlobalPaths.MARO_DATA">
+<code class="sig-name descname">MARO_DATA</code><em class="property"> = '~/.maro/data'</em><a class="headerlink" href="#maro.cli.utils.params.GlobalPaths.MARO_DATA" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.cli.utils.params.GlobalPaths.MARO_GRASS_LIB">
+<code class="sig-name descname">MARO_GRASS_LIB</code><em class="property"> = '~/.maro/lib/grass'</em><a class="headerlink" href="#maro.cli.utils.params.GlobalPaths.MARO_GRASS_LIB" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.cli.utils.params.GlobalPaths.MARO_K8S_LIB">
+<code class="sig-name descname">MARO_K8S_LIB</code><em class="property"> = '~/.maro/lib/k8s'</em><a class="headerlink" href="#maro.cli.utils.params.GlobalPaths.MARO_K8S_LIB" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.cli.utils.params.GlobalPaths.MARO_LIB">
+<code class="sig-name descname">MARO_LIB</code><em class="property"> = '~/.maro/lib'</em><a class="headerlink" href="#maro.cli.utils.params.GlobalPaths.MARO_LIB" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.cli.utils.params.GlobalPaths.MARO_LOCAL_TMP">
+<code class="sig-name descname">MARO_LOCAL_TMP</code><em class="property"> = '~/.maro-local/tmp'</em><a class="headerlink" href="#maro.cli.utils.params.GlobalPaths.MARO_LOCAL_TMP" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.cli.utils.params.GlobalPaths.MARO_TEST">
+<code class="sig-name descname">MARO_TEST</code><em class="property"> = '~/.maro/test'</em><a class="headerlink" href="#maro.cli.utils.params.GlobalPaths.MARO_TEST" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.cli.utils.params.LocalPaths">
+<em class="property">class </em><code class="sig-prename descclassname">maro.cli.utils.params.</code><code class="sig-name descname">LocalPaths</code><a class="reference internal" href="../_modules/maro/cli/utils/params.html#LocalPaths"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.utils.params.LocalPaths" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Only use by maro process cli</p>
+<dl class="py attribute">
+<dt id="maro.cli.utils.params.LocalPaths.MARO_PROCESS">
+<code class="sig-name descname">MARO_PROCESS</code><em class="property"> = '~/.maro/process'</em><a class="headerlink" href="#maro.cli.utils.params.LocalPaths.MARO_PROCESS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.cli.utils.params.LocalPaths.MARO_PROCESS_AGENT">
+<code class="sig-name descname">MARO_PROCESS_AGENT</code><em class="property"> = '/home/runner/work/maro/maro/maro/cli/utils/../process/agent/job_agent.py'</em><a class="headerlink" href="#maro.cli.utils.params.LocalPaths.MARO_PROCESS_AGENT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.cli.utils.params.LocalPaths.MARO_PROCESS_DEPLOYMENT">
+<code class="sig-name descname">MARO_PROCESS_DEPLOYMENT</code><em class="property"> = '/home/runner/work/maro/maro/maro/cli/utils/../process/deployment'</em><a class="headerlink" href="#maro.cli.utils.params.LocalPaths.MARO_PROCESS_DEPLOYMENT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.cli.utils.params.LocalPaths.MARO_PROCESS_SETTING">
+<code class="sig-name descname">MARO_PROCESS_SETTING</code><em class="property"> = '~/.maro/process/setting.yml'</em><a class="headerlink" href="#maro.cli.utils.params.LocalPaths.MARO_PROCESS_SETTING" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.cli.utils.params.ProcessRedisName">
+<em class="property">class </em><code class="sig-prename descclassname">maro.cli.utils.params.</code><code class="sig-name descname">ProcessRedisName</code><a class="reference internal" href="../_modules/maro/cli/utils/params.html#ProcessRedisName"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.utils.params.ProcessRedisName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Record Redis elements name, and only for maro process</p>
+<dl class="py attribute">
+<dt id="maro.cli.utils.params.ProcessRedisName.JOB_DETAILS">
+<code class="sig-name descname">JOB_DETAILS</code><em class="property"> = 'process:job_details'</em><a class="headerlink" href="#maro.cli.utils.params.ProcessRedisName.JOB_DETAILS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.cli.utils.params.ProcessRedisName.KILLED_JOB_TICKETS">
+<code class="sig-name descname">KILLED_JOB_TICKETS</code><em class="property"> = 'process:killed_job_tickets'</em><a class="headerlink" href="#maro.cli.utils.params.ProcessRedisName.KILLED_JOB_TICKETS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.cli.utils.params.ProcessRedisName.PENDING_JOB_TICKETS">
+<code class="sig-name descname">PENDING_JOB_TICKETS</code><em class="property"> = 'process:pending_job_tickets'</em><a class="headerlink" href="#maro.cli.utils.params.ProcessRedisName.PENDING_JOB_TICKETS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.cli.utils.params.ProcessRedisName.RUNNING_JOB">
+<code class="sig-name descname">RUNNING_JOB</code><em class="property"> = 'process:running_job'</em><a class="headerlink" href="#maro.cli.utils.params.ProcessRedisName.RUNNING_JOB" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.cli.utils.params.ProcessRedisName.SETTING">
+<code class="sig-name descname">SETTING</code><em class="property"> = 'process:setting'</em><a class="headerlink" href="#maro.cli.utils.params.ProcessRedisName.SETTING" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.cli.utils.parser">
+<span id="maro-cli-utils-parser-module"></span><h2>maro.cli.utils.parser module<a class="headerlink" href="#module-maro.cli.utils.parser" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.cli.utils.parser.ArgumentParser">
+<em class="property">class </em><code class="sig-prename descclassname">maro.cli.utils.parser.</code><code class="sig-name descname">ArgumentParser</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">examples</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/utils/parser.html#ArgumentParser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.utils.parser.ArgumentParser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">argparse.ArgumentParser</span></code></p>
+<dl class="py method">
+<dt id="maro.cli.utils.parser.ArgumentParser.error">
+<code class="sig-name descname">error</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/utils/parser.html#ArgumentParser.error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.utils.parser.ArgumentParser.error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Customized error</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>message</strong> – error message from argparse</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.utils.parser.ArgumentParser.format_help">
+<code class="sig-name descname">format_help</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/utils/parser.html#ArgumentParser.format_help"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.utils.parser.ArgumentParser.format_help" title="Permalink to this definition">¶</a></dt>
+<dd><p>Customized format_help</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.cli.utils.parser.HelpFormatter">
+<em class="property">class </em><code class="sig-prename descclassname">maro.cli.utils.parser.</code><code class="sig-name descname">HelpFormatter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">prog</span></em>, <em class="sig-param"><span class="n">indent_increment</span><span class="o">=</span><span class="default_value">2</span></em>, <em class="sig-param"><span class="n">max_help_position</span><span class="o">=</span><span class="default_value">24</span></em>, <em class="sig-param"><span class="n">width</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/utils/parser.html#HelpFormatter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.utils.parser.HelpFormatter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">argparse.RawTextHelpFormatter</span></code></p>
+<dl class="py method">
+<dt id="maro.cli.utils.parser.HelpFormatter.add_usage">
+<code class="sig-name descname">add_usage</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">usage</span></em>, <em class="sig-param"><span class="n">actions</span></em>, <em class="sig-param"><span class="n">groups</span></em>, <em class="sig-param"><span class="n">prefix</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/utils/parser.html#HelpFormatter.add_usage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.utils.parser.HelpFormatter.add_usage" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.cli.utils.subprocess">
+<span id="maro-cli-utils-subprocess-module"></span><h2>maro.cli.utils.subprocess module<a class="headerlink" href="#module-maro.cli.utils.subprocess" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.cli.utils.subprocess.SubProcess">
+<em class="property">class </em><code class="sig-prename descclassname">maro.cli.utils.subprocess.</code><code class="sig-name descname">SubProcess</code><a class="reference internal" href="../_modules/maro/cli/utils/subprocess.html#SubProcess"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.utils.subprocess.SubProcess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt id="maro.cli.utils.subprocess.SubProcess.interactive_run">
+<em class="property">static </em><code class="sig-name descname">interactive_run</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">command</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/maro/cli/utils/subprocess.html#SubProcess.interactive_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.utils.subprocess.SubProcess.interactive_run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run one-time command with subprocess.popen() and print stdout output interactively.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>command</strong> (<em>str</em>) – command to be executed.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.cli.utils.subprocess.SubProcess.run">
+<em class="property">static </em><code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">command</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">timeout</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; str<a class="reference internal" href="../_modules/maro/cli/utils/subprocess.html#SubProcess.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.utils.subprocess.SubProcess.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run one-time command with subprocess.run().</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>command</strong> (<em>str</em>) – command to be executed.</p></li>
+<li><p><strong>timeout</strong> (<em>int</em>) – timeout in seconds.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>return stdout of the command.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.cli.utils.validation">
+<span id="maro-cli-utils-validation-module"></span><h2>maro.cli.utils.validation module<a class="headerlink" href="#module-maro.cli.utils.validation" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="maro.cli.utils.validation.get_from_dict">
+<code class="sig-prename descclassname">maro.cli.utils.validation.</code><code class="sig-name descname">get_from_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_dict</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">map_list</span><span class="p">:</span> <span class="n">list</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/utils/validation.html#get_from_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.utils.validation.get_from_dict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="maro.cli.utils.validation.get_map_list">
+<code class="sig-prename descclassname">maro.cli.utils.validation.</code><code class="sig-name descname">get_map_list</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">deep_diff_str</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/utils/validation.html#get_map_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.utils.validation.get_map_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="maro.cli.utils.validation.set_in_dict">
+<code class="sig-prename descclassname">maro.cli.utils.validation.</code><code class="sig-name descname">set_in_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_dict</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">map_list</span><span class="p">:</span> <span class="n">list</span></em>, <em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/utils/validation.html#set_in_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.utils.validation.set_in_dict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="maro.cli.utils.validation.validate_and_fill_dict">
+<code class="sig-prename descclassname">maro.cli.utils.validation.</code><code class="sig-name descname">validate_and_fill_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">template_dict</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">actual_dict</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">optional_key_to_value</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/cli/utils/validation.html#validate_and_fill_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.cli.utils.validation.validate_and_fill_dict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-maro.cli.utils">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-maro.cli.utils" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+    <a class='left-prev' id="prev-link" href="maro.cli.process.utils.html" title="previous page">maro.cli.process.utils package</a>
+    <a class='right-next' id="next-link" href="maro.cli.utils.executors.html" title="next page">maro.cli.utils.executors package</a>
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../_static/js/index.js"></script>
+    
+  </body>
+</html>

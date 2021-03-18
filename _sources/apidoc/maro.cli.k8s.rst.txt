@@ -1,0 +1,94 @@
+maro.cli.k8s package
+====================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   maro.cli.k8s.executors
+
+Submodules
+----------
+
+maro.cli.k8s.create module
+--------------------------
+
+.. automodule:: maro.cli.k8s.create
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.cli.k8s.data module
+------------------------
+
+.. automodule:: maro.cli.k8s.data
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.cli.k8s.delete module
+--------------------------
+
+.. automodule:: maro.cli.k8s.delete
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.cli.k8s.image module
+-------------------------
+
+.. automodule:: maro.cli.k8s.image
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.cli.k8s.job module
+-----------------------
+
+.. automodule:: maro.cli.k8s.job
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.cli.k8s.node module
+------------------------
+
+.. automodule:: maro.cli.k8s.node
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.cli.k8s.schedule module
+----------------------------
+
+.. automodule:: maro.cli.k8s.schedule
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.cli.k8s.status module
+--------------------------
+
+.. automodule:: maro.cli.k8s.status
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.cli.k8s.template module
+----------------------------
+
+.. automodule:: maro.cli.k8s.template
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: maro.cli.k8s
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,0 +1,574 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maro.cli.utils.executors.azure_executor &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../../../../../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../../../../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../../../../../" src="../../../../../_static/documentation_options.js"></script>
+    <script src="../../../../../_static/sphinx-book-theme.js"></script>
+    <script src="../../../../../_static/jquery.js"></script>
+    <script src="../../../../../_static/underscore.js"></script>
+    <script src="../../../../../_static/doctools.js"></script>
+    <script src="../../../../../_static/language_data.js"></script>
+    <script src="../../../../../_static/clipboard.min.js"></script>
+    <script src="../../../../../_static/copybutton.js"></script>
+    <script src="../../../../../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../../../../../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../../../../../index.html">
+  
+  <img src="../../../../../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../../../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../scenarios/container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../scenarios/citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../scenarios/vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../apidoc/maro.html">
+   maro package
+  </a>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2F_modules/maro/cli/utils/executors/azure_executor.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <nav id="bd-toc-nav">
+            
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <h1>Source code for maro.cli.utils.executors.azure_executor</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) Microsoft Corporation.</span>
+<span class="c1"># Licensed under the MIT license.</span>
+
+
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">json</span>
+
+<span class="kn">from</span> <span class="nn">maro.cli.utils.subprocess</span> <span class="kn">import</span> <span class="n">SubProcess</span>
+<span class="kn">from</span> <span class="nn">maro.utils.exception.cli_exception</span> <span class="kn">import</span> <span class="n">CommandExecutionError</span><span class="p">,</span> <span class="n">DeploymentError</span>
+<span class="kn">from</span> <span class="nn">maro.utils.logger</span> <span class="kn">import</span> <span class="n">CliLogger</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">CliLogger</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="AzureExecutor"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.utils.executors.html#maro.cli.utils.executors.azure_executor.AzureExecutor">[docs]</a><span class="k">class</span> <span class="nc">AzureExecutor</span><span class="p">:</span>
+
+    <span class="c1"># Account related</span>
+
+<div class="viewcode-block" id="AzureExecutor.set_subscription"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.utils.executors.html#maro.cli.utils.executors.azure_executor.AzureExecutor.set_subscription">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">set_subscription</span><span class="p">(</span><span class="n">subscription</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;az account set --subscription </span><span class="si">{</span><span class="n">subscription</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">)</span></div>
+
+    <span class="c1"># Resource Group related</span>
+
+<div class="viewcode-block" id="AzureExecutor.get_resource_group"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.utils.executors.html#maro.cli.utils.executors.azure_executor.AzureExecutor.get_resource_group">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_resource_group</span><span class="p">(</span><span class="n">resource_group</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;az group show --name </span><span class="si">{</span><span class="n">resource_group</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_str</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">return_str</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">CommandExecutionError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="AzureExecutor.create_resource_group"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.utils.executors.html#maro.cli.utils.executors.azure_executor.AzureExecutor.create_resource_group">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">create_resource_group</span><span class="p">(</span><span class="n">resource_group</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">location</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;az group create --name </span><span class="si">{</span><span class="n">resource_group</span><span class="si">}</span><span class="s2"> --location </span><span class="si">{</span><span class="n">location</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AzureExecutor.delete_resource_group"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.utils.executors.html#maro.cli.utils.executors.azure_executor.AzureExecutor.delete_resource_group">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">delete_resource_group</span><span class="p">(</span><span class="n">resource_group</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Delete a resource group without prompting.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            resource_group (str): Name of resource group.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;az group delete --yes --name </span><span class="si">{</span><span class="n">resource_group</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">)</span></div>
+
+    <span class="c1"># Resource related</span>
+
+<div class="viewcode-block" id="AzureExecutor.list_resources"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.utils.executors.html#maro.cli.utils.executors.azure_executor.AzureExecutor.list_resources">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">list_resources</span><span class="p">(</span><span class="n">resource_group</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;az resource list -g </span><span class="si">{</span><span class="n">resource_group</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">return_str</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">return_str</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AzureExecutor.delete_resources"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.utils.executors.html#maro.cli.utils.executors.azure_executor.AzureExecutor.delete_resources">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">delete_resources</span><span class="p">(</span><span class="n">resources</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;az resource delete --ids </span><span class="si">{</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">resources</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">)</span></div>
+
+    <span class="c1"># Deployment related</span>
+
+<div class="viewcode-block" id="AzureExecutor.start_deployment"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.utils.executors.html#maro.cli.utils.executors.azure_executor.AzureExecutor.start_deployment">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">start_deployment</span><span class="p">(</span><span class="n">resource_group</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">deployment_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">template_file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">parameters_file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;az deployment group create -g </span><span class="si">{</span><span class="n">resource_group</span><span class="si">}</span><span class="s2"> --name </span><span class="si">{</span><span class="n">deployment_name</span><span class="si">}</span><span class="s2"> &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;--template-file </span><span class="si">{</span><span class="n">template_file_path</span><span class="si">}</span><span class="s2"> --parameters </span><span class="si">{</span><span class="n">parameters_file_path</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">_</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">CommandExecutionError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">error</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">AzureExecutor</span><span class="o">.</span><span class="n">_get_valid_json</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">get_message</span><span class="p">()))[</span><span class="s2">&quot;error&quot;</span><span class="p">]</span>
+            <span class="k">raise</span> <span class="n">DeploymentError</span><span class="p">(</span><span class="n">error</span><span class="p">[</span><span class="s2">&quot;message&quot;</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="AzureExecutor.delete_deployment"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.utils.executors.html#maro.cli.utils.executors.azure_executor.AzureExecutor.delete_deployment">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">delete_deployment</span><span class="p">(</span><span class="n">resource_group</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">deployment_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;az deployment group delete -g </span><span class="si">{</span><span class="n">resource_group</span><span class="si">}</span><span class="s2"> --name </span><span class="si">{</span><span class="n">deployment_name</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">)</span></div>
+
+    <span class="c1"># VM related</span>
+
+<div class="viewcode-block" id="AzureExecutor.list_ip_addresses"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.utils.executors.html#maro.cli.utils.executors.azure_executor.AzureExecutor.list_ip_addresses">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">list_ip_addresses</span><span class="p">(</span><span class="n">resource_group</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">vm_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;az vm list-ip-addresses -g </span><span class="si">{</span><span class="n">resource_group</span><span class="si">}</span><span class="s2"> --name </span><span class="si">{</span><span class="n">vm_name</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">return_str</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">return_str</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AzureExecutor.start_vm"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.utils.executors.html#maro.cli.utils.executors.azure_executor.AzureExecutor.start_vm">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">start_vm</span><span class="p">(</span><span class="n">resource_group</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">vm_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;az vm start -g </span><span class="si">{</span><span class="n">resource_group</span><span class="si">}</span><span class="s2"> --name </span><span class="si">{</span><span class="n">vm_name</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AzureExecutor.stop_vm"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.utils.executors.html#maro.cli.utils.executors.azure_executor.AzureExecutor.stop_vm">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">stop_vm</span><span class="p">(</span><span class="n">resource_group</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">vm_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;az vm stop -g </span><span class="si">{</span><span class="n">resource_group</span><span class="si">}</span><span class="s2"> --name </span><span class="si">{</span><span class="n">vm_name</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AzureExecutor.list_vm_sizes"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.utils.executors.html#maro.cli.utils.executors.azure_executor.AzureExecutor.list_vm_sizes">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">list_vm_sizes</span><span class="p">(</span><span class="n">location</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;az vm list-sizes -l </span><span class="si">{</span><span class="n">location</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">return_str</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">return_str</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AzureExecutor.list_skus"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.utils.executors.html#maro.cli.utils.executors.azure_executor.AzureExecutor.list_skus">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">list_skus</span><span class="p">(</span><span class="n">vm_size</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">location</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;az vm list-skus -l </span><span class="si">{</span><span class="n">location</span><span class="si">}</span><span class="s2"> --all --size </span><span class="si">{</span><span class="n">vm_size</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">return_str</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">return_str</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AzureExecutor.get_sku"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.utils.executors.html#maro.cli.utils.executors.azure_executor.AzureExecutor.get_sku">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_sku</span><span class="p">(</span><span class="n">vm_size</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">location</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">skus</span> <span class="o">=</span> <span class="n">AzureExecutor</span><span class="o">.</span><span class="n">list_skus</span><span class="p">(</span><span class="n">vm_size</span><span class="o">=</span><span class="n">vm_size</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">sku</span> <span class="ow">in</span> <span class="n">skus</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">sku</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">vm_size</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">sku</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning_yellow</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SKU of </span><span class="si">{</span><span class="n">vm_size</span><span class="si">}</span><span class="s2"> is not found&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="AzureExecutor.deallocate_vm"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.utils.executors.html#maro.cli.utils.executors.azure_executor.AzureExecutor.deallocate_vm">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">deallocate_vm</span><span class="p">(</span><span class="n">resource_group</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">vm_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;az vm deallocate --resource-group </span><span class="si">{</span><span class="n">resource_group</span><span class="si">}</span><span class="s2"> --name </span><span class="si">{</span><span class="n">vm_name</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AzureExecutor.generalize_vm"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.utils.executors.html#maro.cli.utils.executors.azure_executor.AzureExecutor.generalize_vm">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">generalize_vm</span><span class="p">(</span><span class="n">resource_group</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">vm_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;az vm generalize --resource-group </span><span class="si">{</span><span class="n">resource_group</span><span class="si">}</span><span class="s2"> --name </span><span class="si">{</span><span class="n">vm_name</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">)</span></div>
+
+    <span class="c1"># Image related</span>
+
+<div class="viewcode-block" id="AzureExecutor.create_image_from_vm"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.utils.executors.html#maro.cli.utils.executors.azure_executor.AzureExecutor.create_image_from_vm">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">create_image_from_vm</span><span class="p">(</span><span class="n">resource_group</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">image_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">vm_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;az image create --resource-group </span><span class="si">{</span><span class="n">resource_group</span><span class="si">}</span><span class="s2"> --name </span><span class="si">{</span><span class="n">image_name</span><span class="si">}</span><span class="s2"> --source </span><span class="si">{</span><span class="n">vm_name</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AzureExecutor.get_image_resource_id"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.utils.executors.html#maro.cli.utils.executors.azure_executor.AzureExecutor.get_image_resource_id">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_image_resource_id</span><span class="p">(</span><span class="n">resource_group</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">image_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;az image show --resource-group </span><span class="si">{</span><span class="n">resource_group</span><span class="si">}</span><span class="s2"> --name </span><span class="si">{</span><span class="n">image_name</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">return_str</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">return_str</span><span class="p">)[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span></div>
+
+    <span class="c1"># AKS related</span>
+
+<div class="viewcode-block" id="AzureExecutor.load_aks_context"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.utils.executors.html#maro.cli.utils.executors.azure_executor.AzureExecutor.load_aks_context">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">load_aks_context</span><span class="p">(</span><span class="n">resource_group</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">aks_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;az aks get-credentials -g </span><span class="si">{</span><span class="n">resource_group</span><span class="si">}</span><span class="s2"> --name </span><span class="si">{</span><span class="n">aks_name</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AzureExecutor.get_aks"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.utils.executors.html#maro.cli.utils.executors.azure_executor.AzureExecutor.get_aks">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_aks</span><span class="p">(</span><span class="n">resource_group</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">aks_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;az aks show -g </span><span class="si">{</span><span class="n">resource_group</span><span class="si">}</span><span class="s2"> -n </span><span class="si">{</span><span class="n">aks_name</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">return_str</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">return_str</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AzureExecutor.attach_acr"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.utils.executors.html#maro.cli.utils.executors.azure_executor.AzureExecutor.attach_acr">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">attach_acr</span><span class="p">(</span><span class="n">resource_group</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">aks_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">acr_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;az aks update -g </span><span class="si">{</span><span class="n">resource_group</span><span class="si">}</span><span class="s2"> --name </span><span class="si">{</span><span class="n">aks_name</span><span class="si">}</span><span class="s2"> --attach-acr </span><span class="si">{</span><span class="n">acr_name</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AzureExecutor.list_nodepool"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.utils.executors.html#maro.cli.utils.executors.azure_executor.AzureExecutor.list_nodepool">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">list_nodepool</span><span class="p">(</span><span class="n">resource_group</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">aks_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;az aks nodepool list -g </span><span class="si">{</span><span class="n">resource_group</span><span class="si">}</span><span class="s2"> --cluster-name </span><span class="si">{</span><span class="n">aks_name</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">return_str</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">return_str</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AzureExecutor.add_nodepool"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.utils.executors.html#maro.cli.utils.executors.azure_executor.AzureExecutor.add_nodepool">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">add_nodepool</span><span class="p">(</span><span class="n">resource_group</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">aks_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">nodepool_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">node_count</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">node_size</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;az aks nodepool add &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;-g </span><span class="si">{</span><span class="n">resource_group</span><span class="si">}</span><span class="s2"> &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;--cluster-name </span><span class="si">{</span><span class="n">aks_name</span><span class="si">}</span><span class="s2"> &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;--name </span><span class="si">{</span><span class="n">nodepool_name</span><span class="si">}</span><span class="s2"> &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;--node-count </span><span class="si">{</span><span class="n">node_count</span><span class="si">}</span><span class="s2"> &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;--node-vm-size </span><span class="si">{</span><span class="n">node_size</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AzureExecutor.scale_nodepool"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.utils.executors.html#maro.cli.utils.executors.azure_executor.AzureExecutor.scale_nodepool">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">scale_nodepool</span><span class="p">(</span><span class="n">resource_group</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">aks_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">nodepool_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">node_count</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;az aks nodepool scale &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;-g </span><span class="si">{</span><span class="n">resource_group</span><span class="si">}</span><span class="s2"> &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;--cluster-name </span><span class="si">{</span><span class="n">aks_name</span><span class="si">}</span><span class="s2"> &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;--name </span><span class="si">{</span><span class="n">nodepool_name</span><span class="si">}</span><span class="s2"> &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;--node-count </span><span class="si">{</span><span class="n">node_count</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">)</span></div>
+
+    <span class="c1"># ACR related</span>
+
+<div class="viewcode-block" id="AzureExecutor.login_acr"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.utils.executors.html#maro.cli.utils.executors.azure_executor.AzureExecutor.login_acr">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">login_acr</span><span class="p">(</span><span class="n">acr_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;az acr login --name </span><span class="si">{</span><span class="n">acr_name</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AzureExecutor.list_acr_repositories"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.utils.executors.html#maro.cli.utils.executors.azure_executor.AzureExecutor.list_acr_repositories">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">list_acr_repositories</span><span class="p">(</span><span class="n">acr_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;az acr repository list -n </span><span class="si">{</span><span class="n">acr_name</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">return_str</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">return_str</span><span class="p">)</span></div>
+
+    <span class="c1"># Storage account related</span>
+
+<div class="viewcode-block" id="AzureExecutor.get_storage_account_keys"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.utils.executors.html#maro.cli.utils.executors.azure_executor.AzureExecutor.get_storage_account_keys">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_storage_account_keys</span><span class="p">(</span><span class="n">resource_group</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">storage_account_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;az storage account keys list -g </span><span class="si">{</span><span class="n">resource_group</span><span class="si">}</span><span class="s2"> --account-name </span><span class="si">{</span><span class="n">storage_account_name</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">return_str</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">return_str</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AzureExecutor.get_storage_account_sas"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.utils.executors.html#maro.cli.utils.executors.azure_executor.AzureExecutor.get_storage_account_sas">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_storage_account_sas</span><span class="p">(</span>
+        <span class="n">account_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">services</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;bqtf&quot;</span><span class="p">,</span>
+        <span class="n">resource_types</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;sco&quot;</span><span class="p">,</span>
+        <span class="n">permissions</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;rwdlacup&quot;</span><span class="p">,</span>
+        <span class="n">expiry</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span> <span class="o">+</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">365</span><span class="p">))</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">T%H:%M:%S&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;Z&quot;</span>
+    <span class="p">):</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;az storage account generate-sas --account-name </span><span class="si">{</span><span class="n">account_name</span><span class="si">}</span><span class="s2"> --services </span><span class="si">{</span><span class="n">services</span><span class="si">}</span><span class="s2"> &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;--resource-types </span><span class="si">{</span><span class="n">resource_types</span><span class="si">}</span><span class="s2"> --permissions </span><span class="si">{</span><span class="n">permissions</span><span class="si">}</span><span class="s2"> --expiry </span><span class="si">{</span><span class="n">expiry</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+        <span class="n">sas_str</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="o">=</span><span class="n">command</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">sas_str</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sas_str</span></div>
+
+<div class="viewcode-block" id="AzureExecutor.get_connection_string"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.utils.executors.html#maro.cli.utils.executors.azure_executor.AzureExecutor.get_connection_string">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_connection_string</span><span class="p">(</span><span class="n">storage_account_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the connection string for a storage account.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            storage_account_name: The storage account name.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: Connection string.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;az storage account show-connection-string --name </span><span class="si">{</span><span class="n">storage_account_name</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">return_str</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="o">=</span><span class="n">command</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">return_str</span><span class="p">)[</span><span class="s2">&quot;connectionString&quot;</span><span class="p">]</span></div>
+
+    <span class="c1"># Utils</span>
+
+<div class="viewcode-block" id="AzureExecutor.get_version"><a class="viewcode-back" href="../../../../../apidoc/maro.cli.utils.executors.html#maro.cli.utils.executors.azure_executor.AzureExecutor.get_version">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_version</span><span class="p">():</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="s2">&quot;az version&quot;</span>
+        <span class="n">return_str</span> <span class="o">=</span> <span class="n">SubProcess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">return_str</span><span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_get_valid_json</span><span class="p">(</span><span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">left_idx</span> <span class="o">=</span> <span class="n">message</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;{&quot;</span><span class="p">)</span>
+        <span class="n">right_idx</span> <span class="o">=</span> <span class="n">message</span><span class="o">.</span><span class="n">rindex</span><span class="p">(</span><span class="s2">&quot;}&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">message</span><span class="p">[</span><span class="n">left_idx</span><span class="p">:</span><span class="n">right_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span></div>
+</pre></div>
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../../../../../_static/js/index.js"></script>
+    
+  </body>
+</html>

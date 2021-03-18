@@ -1,0 +1,30 @@
+maro.rl.storage package
+=======================
+
+Submodules
+----------
+
+maro.rl.storage.abs\_store module
+---------------------------------
+
+.. automodule:: maro.rl.storage.abs_store
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.rl.storage.column\_based\_store module
+-------------------------------------------
+
+.. automodule:: maro.rl.storage.column_based_store
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: maro.rl.storage
+   :members:
+   :undoc-members:
+   :show-inheritance:

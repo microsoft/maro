@@ -1,0 +1,836 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maro.simulator.scenarios.citi_bike.business_engine &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../../../../../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../../../../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../../../../../" src="../../../../../_static/documentation_options.js"></script>
+    <script src="../../../../../_static/sphinx-book-theme.js"></script>
+    <script src="../../../../../_static/jquery.js"></script>
+    <script src="../../../../../_static/underscore.js"></script>
+    <script src="../../../../../_static/doctools.js"></script>
+    <script src="../../../../../_static/language_data.js"></script>
+    <script src="../../../../../_static/clipboard.min.js"></script>
+    <script src="../../../../../_static/copybutton.js"></script>
+    <script src="../../../../../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../../../../../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../../../../../index.html">
+  
+  <img src="../../../../../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../../../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../scenarios/container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../scenarios/citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../scenarios/vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../key_components/dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../../apidoc/maro.html">
+   maro package
+  </a>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2F_modules/maro/simulator/scenarios/citi_bike/business_engine.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <nav id="bd-toc-nav">
+            
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <h1>Source code for maro.simulator.scenarios.citi_bike.business_engine</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) Microsoft Corporation.</span>
+<span class="c1"># Licensed under the MIT license.</span>
+
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+
+<span class="kn">import</span> <span class="nn">holidays</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">dateutil.relativedelta</span> <span class="kn">import</span> <span class="n">relativedelta</span>
+<span class="kn">from</span> <span class="nn">dateutil.tz</span> <span class="kn">import</span> <span class="n">gettz</span>
+<span class="kn">from</span> <span class="nn">yaml</span> <span class="kn">import</span> <span class="n">safe_load</span>
+
+<span class="kn">from</span> <span class="nn">maro.backends.frame</span> <span class="kn">import</span> <span class="n">FrameBase</span><span class="p">,</span> <span class="n">SnapshotList</span>
+<span class="kn">from</span> <span class="nn">maro.cli.data_pipeline.citi_bike</span> <span class="kn">import</span> <span class="n">CitiBikeProcess</span>
+<span class="kn">from</span> <span class="nn">maro.cli.data_pipeline.utils</span> <span class="kn">import</span> <span class="n">chagne_file_path</span>
+<span class="kn">from</span> <span class="nn">maro.data_lib</span> <span class="kn">import</span> <span class="n">BinaryReader</span>
+<span class="kn">from</span> <span class="nn">maro.event_buffer</span> <span class="kn">import</span> <span class="n">AtomEvent</span><span class="p">,</span> <span class="n">EventBuffer</span><span class="p">,</span> <span class="n">MaroEvents</span>
+<span class="kn">from</span> <span class="nn">maro.simulator.scenarios</span> <span class="kn">import</span> <span class="n">AbsBusinessEngine</span>
+<span class="kn">from</span> <span class="nn">maro.simulator.scenarios.helpers</span> <span class="kn">import</span> <span class="n">DocableDict</span>
+<span class="kn">from</span> <span class="nn">maro.simulator.scenarios.matrix_accessor</span> <span class="kn">import</span> <span class="n">MatrixAttributeAccessor</span>
+<span class="kn">from</span> <span class="nn">maro.utils.exception.cli_exception</span> <span class="kn">import</span> <span class="n">CommandError</span>
+<span class="kn">from</span> <span class="nn">maro.utils.logger</span> <span class="kn">import</span> <span class="n">CliLogger</span>
+
+<span class="kn">from</span> <span class="nn">.adj_loader</span> <span class="kn">import</span> <span class="n">load_adj_from_csv</span>
+<span class="kn">from</span> <span class="nn">.common</span> <span class="kn">import</span> <span class="n">BikeReturnPayload</span><span class="p">,</span> <span class="n">BikeTransferPayload</span><span class="p">,</span> <span class="n">DecisionEvent</span>
+<span class="kn">from</span> <span class="nn">.decision_strategy</span> <span class="kn">import</span> <span class="n">BikeDecisionStrategy</span>
+<span class="kn">from</span> <span class="nn">.events</span> <span class="kn">import</span> <span class="n">CitiBikeEvents</span>
+<span class="kn">from</span> <span class="nn">.frame_builder</span> <span class="kn">import</span> <span class="n">build_frame</span>
+<span class="kn">from</span> <span class="nn">.station</span> <span class="kn">import</span> <span class="n">Station</span>
+<span class="kn">from</span> <span class="nn">.stations_info</span> <span class="kn">import</span> <span class="n">get_station_info</span>
+<span class="kn">from</span> <span class="nn">.weather_table</span> <span class="kn">import</span> <span class="n">WeatherTable</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">CliLogger</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="n">metrics_desc</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">Citi bike metrics used to provide statistics information at current point (may be in the middle of a tick).</span>
+<span class="s2">It contains following keys:</span>
+
+<span class="s2">trip_requirements (int): Accumulative trips until now.</span>
+<span class="s2">bike_shortage (int): Accumulative shortage until now.</span>
+<span class="s2">operation_number (int): Accumulative operation cost until now.</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="CitibikeBusinessEngine"><a class="viewcode-back" href="../../../../../apidoc/maro.simulator.scenarios.citi_bike.html#maro.simulator.scenarios.citi_bike.business_engine.CitibikeBusinessEngine">[docs]</a><span class="k">class</span> <span class="nc">CitibikeBusinessEngine</span><span class="p">(</span><span class="n">AbsBusinessEngine</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">event_buffer</span><span class="p">:</span> <span class="n">EventBuffer</span><span class="p">,</span> <span class="n">topology</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">start_tick</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">max_tick</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">snapshot_resolution</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">max_snapshots</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">additional_options</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="s2">&quot;citi_bike&quot;</span><span class="p">,</span> <span class="n">event_buffer</span><span class="p">,</span> <span class="n">topology</span><span class="p">,</span> <span class="n">start_tick</span><span class="p">,</span> <span class="n">max_tick</span><span class="p">,</span>
+            <span class="n">snapshot_resolution</span><span class="p">,</span> <span class="n">max_snapshots</span><span class="p">,</span> <span class="n">additional_options</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Trip binary reader.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_trip_reader</span><span class="p">:</span> <span class="n">BinaryReader</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Update self._config_path with current file path.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_config_root_path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span>
+
+        <span class="c1"># Holidays for US, as we are using NY data.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_us_holidays</span> <span class="o">=</span> <span class="n">holidays</span><span class="o">.</span><span class="n">US</span><span class="p">()</span>
+
+        <span class="c1"># Our stations list used for quick accessing.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stations</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Station</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_total_trips</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_total_shortages</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_total_operate_num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">frame</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FrameBase</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;FrameBase: Current frame.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frame</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">snapshots</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SnapshotList</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;SnapshotList: Current snapshot list.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_snapshots</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">configs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;dict: Current configuration.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_conf</span>
+
+<div class="viewcode-block" id="CitibikeBusinessEngine.step"><a class="viewcode-back" href="../../../../../apidoc/maro.simulator.scenarios.citi_bike.html#maro.simulator.scenarios.citi_bike.business_engine.CitibikeBusinessEngine.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tick</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Push business engine to next step.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            tick (int): Current tick to process.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># If we do not set auto event, then we need to push it manually.</span>
+        <span class="k">for</span> <span class="n">trip</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_item_picker</span><span class="o">.</span><span class="n">items</span><span class="p">(</span><span class="n">tick</span><span class="p">):</span>
+            <span class="c1"># Generate a trip event, to dispatch to related callback to process this requirement.</span>
+            <span class="n">trip_evt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_event_buffer</span><span class="o">.</span><span class="n">gen_atom_event</span><span class="p">(</span>
+                <span class="n">tick</span><span class="p">,</span> <span class="n">CitiBikeEvents</span><span class="o">.</span><span class="n">RequireBike</span><span class="p">,</span> <span class="n">payload</span><span class="o">=</span><span class="n">trip</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_event_buffer</span><span class="o">.</span><span class="n">insert_event</span><span class="p">(</span><span class="n">trip_evt</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decision_strategy</span><span class="o">.</span><span class="n">is_decision_tick</span><span class="p">(</span><span class="n">tick</span><span class="p">):</span>
+            <span class="c1"># Generate an event, so that we can do the checking after all the trip requirement processed.</span>
+            <span class="n">decition_checking_evt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_event_buffer</span><span class="o">.</span><span class="n">gen_atom_event</span><span class="p">(</span>
+                <span class="n">tick</span><span class="p">,</span> <span class="n">CitiBikeEvents</span><span class="o">.</span><span class="n">RebalanceBike</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_event_buffer</span><span class="o">.</span><span class="n">insert_event</span><span class="p">(</span><span class="n">decition_checking_evt</span><span class="p">)</span>
+
+        <span class="c1"># Update our additional features that not trip related.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_station_extra_features</span><span class="p">(</span><span class="n">tick</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CitibikeBusinessEngine.post_step"><a class="viewcode-back" href="../../../../../apidoc/maro.simulator.scenarios.citi_bike.html#maro.simulator.scenarios.citi_bike.business_engine.CitibikeBusinessEngine.post_step">[docs]</a>    <span class="k">def</span> <span class="nf">post_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tick</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="c1"># We following the snapshot_resolution settings to take snapshot.</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">tick</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_snapshot_resolution</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># NOTE: We should use frame_index method to get correct index in snapshot list.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">take_snapshot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frame_index</span><span class="p">(</span><span class="n">tick</span><span class="p">))</span>
+
+            <span class="c1"># We reset the station station each resolution.</span>
+            <span class="k">for</span> <span class="n">station</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stations</span><span class="p">:</span>
+                <span class="n">station</span><span class="o">.</span><span class="n">shortage</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">station</span><span class="o">.</span><span class="n">trip_requirement</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">station</span><span class="o">.</span><span class="n">extra_cost</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">station</span><span class="o">.</span><span class="n">transfer_cost</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">station</span><span class="o">.</span><span class="n">fulfillment</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">station</span><span class="o">.</span><span class="n">failed_return</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">station</span><span class="o">.</span><span class="n">min_bikes</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">bikes</span>
+
+        <span class="c1"># Stop current episode if we reach max tick.</span>
+        <span class="k">return</span> <span class="n">tick</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_tick</span></div>
+
+<div class="viewcode-block" id="CitibikeBusinessEngine.get_node_mapping"><a class="viewcode-back" href="../../../../../apidoc/maro.simulator.scenarios.citi_bike.html#maro.simulator.scenarios.citi_bike.business_engine.CitibikeBusinessEngine.get_node_mapping">[docs]</a>    <span class="k">def</span> <span class="nf">get_node_mapping</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;dict: Node mapping of current stations.&quot;&quot;&quot;</span>
+        <span class="n">node_mapping</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">station</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stations</span><span class="p">:</span>
+            <span class="n">node_mapping</span><span class="p">[</span><span class="n">station</span><span class="o">.</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">id</span>
+        <span class="k">return</span> <span class="n">node_mapping</span></div>
+
+<div class="viewcode-block" id="CitibikeBusinessEngine.get_event_payload_detail"><a class="viewcode-back" href="../../../../../apidoc/maro.simulator.scenarios.citi_bike.html#maro.simulator.scenarios.citi_bike.business_engine.CitibikeBusinessEngine.get_event_payload_detail">[docs]</a>    <span class="k">def</span> <span class="nf">get_event_payload_detail</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;dict: Event payload details of current scenario.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="n">CitiBikeEvents</span><span class="o">.</span><span class="n">RequireBike</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_trip_reader</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span>
+            <span class="n">CitiBikeEvents</span><span class="o">.</span><span class="n">ReturnBike</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">BikeReturnPayload</span><span class="o">.</span><span class="n">summary_key</span><span class="p">,</span>
+            <span class="n">CitiBikeEvents</span><span class="o">.</span><span class="n">RebalanceBike</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">DecisionEvent</span><span class="o">.</span><span class="n">summary_key</span><span class="p">,</span>
+            <span class="n">CitiBikeEvents</span><span class="o">.</span><span class="n">DeliverBike</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">BikeTransferPayload</span><span class="o">.</span><span class="n">summary_key</span>
+        <span class="p">}</span></div>
+
+<div class="viewcode-block" id="CitibikeBusinessEngine.reset"><a class="viewcode-back" href="../../../../../apidoc/maro.simulator.scenarios.citi_bike.html#maro.simulator.scenarios.citi_bike.business_engine.CitibikeBusinessEngine.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Reset internal states for episode.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_total_trips</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_total_operate_num</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_total_shortages</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_snapshots</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_trip_reader</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_item_picker</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_trip_reader</span><span class="o">.</span><span class="n">items_tick_picker</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_start_tick</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_tick</span><span class="p">,</span> <span class="n">time_unit</span><span class="o">=</span><span class="s2">&quot;m&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">station</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stations</span><span class="p">:</span>
+            <span class="n">station</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_matrices_node</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_decision_strategy</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_last_date</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="CitibikeBusinessEngine.get_agent_idx_list"><a class="viewcode-back" href="../../../../../apidoc/maro.simulator.scenarios.citi_bike.html#maro.simulator.scenarios.citi_bike.business_engine.CitibikeBusinessEngine.get_agent_idx_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_agent_idx_list</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Get a list of agent index.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list: List of agent index.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">station</span><span class="o">.</span><span class="n">index</span> <span class="k">for</span> <span class="n">station</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stations</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="CitibikeBusinessEngine.get_metrics"><a class="viewcode-back" href="../../../../../apidoc/maro.simulator.scenarios.citi_bike.html#maro.simulator.scenarios.citi_bike.business_engine.CitibikeBusinessEngine.get_metrics">[docs]</a>    <span class="k">def</span> <span class="nf">get_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Get current metrics information.</span>
+
+<span class="sd">        Note:</span>
+<span class="sd">            Call this method at different time will get different result.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            dict: Metrics information.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">DocableDict</span><span class="p">(</span>
+            <span class="n">metrics_desc</span><span class="p">,</span>
+            <span class="n">trip_requirements</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_total_trips</span><span class="p">,</span>
+            <span class="n">bike_shortage</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_total_shortages</span><span class="p">,</span>
+            <span class="n">operation_number</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_total_operate_num</span>
+        <span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Collect resource by order.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_item_picker</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_trip_reader</span><span class="p">:</span>
+            <span class="c1"># Close binary reader first, so that we can clean it correctly.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_trip_reader</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_load_configs</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_register_events</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_citi_bike_data_pipeline</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Time zone we used to transfer UTC to target time zone.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_time_zone</span> <span class="o">=</span> <span class="n">gettz</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_conf</span><span class="p">[</span><span class="s2">&quot;time_zone&quot;</span><span class="p">])</span>
+
+        <span class="c1"># Our weather table used to query weather by date.</span>
+        <span class="n">weather_data_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_conf</span><span class="p">[</span><span class="s2">&quot;weather_data&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">weather_data_path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;~&quot;</span><span class="p">):</span>
+            <span class="n">weather_data_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">weather_data_path</span><span class="p">)</span>
+
+        <span class="n">trip_data_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_conf</span><span class="p">[</span><span class="s2">&quot;trip_data&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">trip_data_path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;~&quot;</span><span class="p">):</span>
+            <span class="n">trip_data_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">trip_data_path</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">weather_data_path</span><span class="p">))</span> <span class="ow">or</span> <span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">trip_data_path</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_build_temp_data</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_weather_lut</span> <span class="o">=</span> <span class="n">WeatherTable</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_conf</span><span class="p">[</span><span class="s2">&quot;weather_data&quot;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time_zone</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_trip_reader</span> <span class="o">=</span> <span class="n">BinaryReader</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_conf</span><span class="p">[</span><span class="s2">&quot;trip_data&quot;</span><span class="p">])</span>
+
+        <span class="c1"># We keep this used to calculate real datetime to get weather and holiday info.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_trip_start_date</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_trip_reader</span><span class="o">.</span><span class="n">start_datetime</span>
+
+        <span class="c1"># Since binary data hold UTC timestamp, convert it into our target timezone.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_trip_start_date</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_trip_start_date</span><span class="o">.</span><span class="n">astimezone</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_time_zone</span><span class="p">)</span>
+
+        <span class="c1"># Used to cache last date we updated the station additional features to avoid to much time updating.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_last_date</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Filter data with tick range by minute (time_unit=&#39;m&#39;).</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_item_picker</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_trip_reader</span><span class="o">.</span><span class="n">items_tick_picker</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_start_tick</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_tick</span><span class="p">,</span> <span class="n">time_unit</span><span class="o">=</span><span class="s2">&quot;m&quot;</span><span class="p">)</span>
+
+        <span class="c1"># We use this to initializing frame and stations states.</span>
+        <span class="n">stations_states</span> <span class="o">=</span> <span class="n">get_station_info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_conf</span><span class="p">[</span><span class="s2">&quot;stations_init_data&quot;</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_frame</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">stations_states</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_stations</span><span class="p">(</span><span class="n">stations_states</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_adj_matrix</span><span class="p">()</span>
+
+        <span class="c1"># Our decision strategy to determine when we need an action.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_decision_strategy</span> <span class="o">=</span> <span class="n">BikeDecisionStrategy</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_stations</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_distance_adj</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_snapshots</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_conf</span><span class="p">[</span><span class="s2">&quot;decision&quot;</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">_load_configs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Load configurations&quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config_path</span><span class="p">,</span> <span class="s2">&quot;config.yml&quot;</span><span class="p">))</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_conf</span> <span class="o">=</span> <span class="n">safe_load</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_init_stations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stations_states</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="c1"># After frame initializing, it will help us create the station instances, let&#39;s create a reference.</span>
+        <span class="c1"># The attribute is added by frame that as same defined in frame definition.</span>
+
+        <span class="c1"># NOTE: This is the build in station list that index start from 0,</span>
+        <span class="c1"># we need to create a mapping for it, as our trip data only contains id.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">stations</span>
+
+        <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">stations_states</span><span class="p">:</span>
+            <span class="c1"># Get related station, and set the init states.</span>
+            <span class="n">station</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stations</span><span class="p">[</span><span class="n">state</span><span class="o">.</span><span class="n">index</span><span class="p">]</span>
+
+            <span class="n">station</span><span class="o">.</span><span class="n">set_init_state</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">bikes</span><span class="p">,</span> <span class="n">state</span><span class="o">.</span><span class="n">capacity</span><span class="p">,</span> <span class="n">state</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_init_adj_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Our distance adj. Assume that the adj is NxN without header.</span>
+        <span class="n">distance_adj</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">load_adj_from_csv</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_conf</span><span class="p">[</span><span class="s2">&quot;distance_adj_data&quot;</span><span class="p">],</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+
+        <span class="c1"># We only have one node here.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_matrices_node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">matrices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">station_num</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_stations</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_distance_adj</span> <span class="o">=</span> <span class="n">distance_adj</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">station_num</span><span class="p">,</span> <span class="n">station_num</span><span class="p">)</span>
+
+        <span class="c1"># Add wrapper to it to make it easy to use, with this we can get value by:</span>
+        <span class="c1"># 1. self._trips_adj[x, y].</span>
+        <span class="c1"># 2. self._trips_adj.get_row(0).</span>
+        <span class="c1"># 3. self._trips_adj.get_column(0).</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_trips_adj</span> <span class="o">=</span> <span class="n">MatrixAttributeAccessor</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_matrices_node</span><span class="p">,</span> <span class="s2">&quot;trips_adj&quot;</span><span class="p">,</span> <span class="n">station_num</span><span class="p">,</span> <span class="n">station_num</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_init_frame</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_num</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_frame</span> <span class="o">=</span> <span class="n">build_frame</span><span class="p">(</span><span class="n">station_num</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_max_snapshots</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_snapshots</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frame</span><span class="o">.</span><span class="n">snapshots</span>
+
+    <span class="k">def</span> <span class="nf">_register_events</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Register our own events and their callback handlers.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_event_buffer</span><span class="o">.</span><span class="n">register_event_handler</span><span class="p">(</span>
+            <span class="n">CitiBikeEvents</span><span class="o">.</span><span class="n">RequireBike</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_required_bike</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_event_buffer</span><span class="o">.</span><span class="n">register_event_handler</span><span class="p">(</span>
+            <span class="n">CitiBikeEvents</span><span class="o">.</span><span class="n">ReturnBike</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_bike_returned</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_event_buffer</span><span class="o">.</span><span class="n">register_event_handler</span><span class="p">(</span>
+            <span class="n">CitiBikeEvents</span><span class="o">.</span><span class="n">RebalanceBike</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_rebalance_bikes</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_event_buffer</span><span class="o">.</span><span class="n">register_event_handler</span><span class="p">(</span>
+            <span class="n">CitiBikeEvents</span><span class="o">.</span><span class="n">DeliverBike</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_bike_deliver</span><span class="p">)</span>
+
+        <span class="c1"># Decision event, predefined in event buffer.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_event_buffer</span><span class="o">.</span><span class="n">register_event_handler</span><span class="p">(</span>
+            <span class="n">MaroEvents</span><span class="o">.</span><span class="n">TAKE_ACTION</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_action_received</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_tick_2_date</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tick</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="c1"># Get current date to update additional info.</span>
+        <span class="c1"># NOTE: We do not need hour and minutes for now.</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_trip_start_date</span> <span class="o">+</span> <span class="n">relativedelta</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="n">tick</span><span class="p">))</span><span class="o">.</span><span class="n">date</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_update_station_extra_features</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tick</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update features that not related to trips.&quot;&quot;&quot;</span>
+        <span class="n">cur_datetime</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tick_2_date</span><span class="p">(</span><span class="n">tick</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_date</span> <span class="o">==</span> <span class="n">cur_datetime</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_last_date</span> <span class="o">=</span> <span class="n">cur_datetime</span>
+
+        <span class="n">weather_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_weather_lut</span><span class="p">[</span><span class="n">cur_datetime</span><span class="p">]</span>
+
+        <span class="n">weekday</span> <span class="o">=</span> <span class="n">cur_datetime</span><span class="o">.</span><span class="n">weekday</span><span class="p">()</span>
+        <span class="n">holiday</span> <span class="o">=</span> <span class="n">cur_datetime</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_us_holidays</span>
+
+        <span class="c1"># Default weather and temperature.</span>
+        <span class="n">weather</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">temperature</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="n">weather_info</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">weather</span> <span class="o">=</span> <span class="n">weather_info</span><span class="o">.</span><span class="n">weather</span>
+            <span class="n">temperature</span> <span class="o">=</span> <span class="n">weather_info</span><span class="o">.</span><span class="n">temp</span>
+
+        <span class="k">for</span> <span class="n">station</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stations</span><span class="p">:</span>
+            <span class="n">station</span><span class="o">.</span><span class="n">weekday</span> <span class="o">=</span> <span class="n">weekday</span>
+            <span class="n">station</span><span class="o">.</span><span class="n">holiday</span> <span class="o">=</span> <span class="n">holiday</span>
+            <span class="n">station</span><span class="o">.</span><span class="n">weather</span> <span class="o">=</span> <span class="n">weather</span>
+            <span class="n">station</span><span class="o">.</span><span class="n">temperature</span> <span class="o">=</span> <span class="n">temperature</span>
+
+    <span class="k">def</span> <span class="nf">_on_required_bike</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">:</span> <span class="n">AtomEvent</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Callback when there is a trip requirement generated.&quot;&quot;&quot;</span>
+
+        <span class="n">trip</span> <span class="o">=</span> <span class="n">evt</span><span class="o">.</span><span class="n">payload</span>
+        <span class="n">station_idx</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">trip</span><span class="o">.</span><span class="n">src_station</span>
+        <span class="n">station</span><span class="p">:</span> <span class="n">Station</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stations</span><span class="p">[</span><span class="n">station_idx</span><span class="p">]</span>
+        <span class="n">station_bikes</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">bikes</span>
+
+        <span class="c1"># Update trip count, each item only contains 1 requirement.</span>
+        <span class="n">station</span><span class="o">.</span><span class="n">trip_requirement</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="c1"># Statistics for metrics.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_total_trips</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_trips_adj</span><span class="p">[</span><span class="n">station_idx</span><span class="p">,</span> <span class="n">trip</span><span class="o">.</span><span class="n">dest_station</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="n">station_bikes</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">station</span><span class="o">.</span><span class="n">shortage</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_total_shortages</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">station</span><span class="o">.</span><span class="n">fulfillment</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">station</span><span class="o">.</span><span class="n">bikes</span> <span class="o">=</span> <span class="n">station_bikes</span> <span class="o">-</span> <span class="mi">1</span>
+
+            <span class="c1"># Generate a bike return event by end tick.</span>
+            <span class="n">return_payload</span> <span class="o">=</span> <span class="n">BikeReturnPayload</span><span class="p">(</span>
+                <span class="n">station_idx</span><span class="p">,</span> <span class="n">trip</span><span class="o">.</span><span class="n">dest_station</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+            <span class="c1"># Durations from csv file is in seconds, convert it into minutes.</span>
+            <span class="n">return_tick</span> <span class="o">=</span> <span class="n">evt</span><span class="o">.</span><span class="n">tick</span> <span class="o">+</span> <span class="n">trip</span><span class="o">.</span><span class="n">durations</span>
+
+            <span class="n">bike_return_evt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_event_buffer</span><span class="o">.</span><span class="n">gen_atom_event</span><span class="p">(</span>
+                <span class="n">return_tick</span><span class="p">,</span> <span class="n">CitiBikeEvents</span><span class="o">.</span><span class="n">ReturnBike</span><span class="p">,</span> <span class="n">payload</span><span class="o">=</span><span class="n">return_payload</span>
+            <span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_event_buffer</span><span class="o">.</span><span class="n">insert_event</span><span class="p">(</span><span class="n">bike_return_evt</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_on_bike_returned</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">:</span> <span class="n">AtomEvent</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Callback when there is a bike returned to a station.&quot;&quot;&quot;</span>
+        <span class="n">payload</span><span class="p">:</span> <span class="n">BikeReturnPayload</span> <span class="o">=</span> <span class="n">evt</span><span class="o">.</span><span class="n">payload</span>
+
+        <span class="n">station</span><span class="p">:</span> <span class="n">Station</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stations</span><span class="p">[</span><span class="n">payload</span><span class="o">.</span><span class="n">to_station_idx</span><span class="p">]</span>
+
+        <span class="n">station_bikes</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">bikes</span>
+        <span class="n">return_number</span> <span class="o">=</span> <span class="n">payload</span><span class="o">.</span><span class="n">number</span>
+
+        <span class="n">empty_docks</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">capacity</span> <span class="o">-</span> <span class="n">station_bikes</span>
+
+        <span class="n">max_accept_number</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">empty_docks</span><span class="p">,</span> <span class="n">return_number</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">max_accept_number</span> <span class="o">&lt;</span> <span class="n">return_number</span><span class="p">:</span>
+            <span class="n">src_station</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stations</span><span class="p">[</span><span class="n">payload</span><span class="o">.</span><span class="n">from_station_idx</span><span class="p">]</span>
+
+            <span class="n">additional_bikes</span> <span class="o">=</span> <span class="n">return_number</span> <span class="o">-</span> <span class="n">max_accept_number</span>
+
+            <span class="n">station</span><span class="o">.</span><span class="n">failed_return</span> <span class="o">+=</span> <span class="n">additional_bikes</span>
+
+            <span class="c1"># We have to move additional bikes to neighbors.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_decision_strategy</span><span class="o">.</span><span class="n">move_to_neighbor</span><span class="p">(</span>
+                <span class="n">src_station</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">additional_bikes</span><span class="p">)</span>
+
+        <span class="n">station</span><span class="o">.</span><span class="n">bikes</span> <span class="o">=</span> <span class="n">station_bikes</span> <span class="o">+</span> <span class="n">max_accept_number</span>
+
+    <span class="k">def</span> <span class="nf">_on_rebalance_bikes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">:</span> <span class="n">AtomEvent</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Callback when need to check if we should send decision event to agent.&quot;&quot;&quot;</span>
+
+        <span class="c1"># Get stations that need an action.</span>
+        <span class="n">stations_need_decision</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decision_strategy</span><span class="o">.</span><span class="n">get_stations_need_decision</span><span class="p">(</span>
+            <span class="n">evt</span><span class="o">.</span><span class="n">tick</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">stations_need_decision</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># Generate a decision event.</span>
+            <span class="k">for</span> <span class="n">station_idx</span><span class="p">,</span> <span class="n">decision_type</span> <span class="ow">in</span> <span class="n">stations_need_decision</span><span class="p">:</span>
+                <span class="n">decision_payload</span> <span class="o">=</span> <span class="n">DecisionEvent</span><span class="p">(</span>
+                    <span class="n">station_idx</span><span class="p">,</span> <span class="n">evt</span><span class="o">.</span><span class="n">tick</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">frame_index</span><span class="p">(</span><span class="n">evt</span><span class="o">.</span><span class="n">tick</span><span class="p">),</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_decision_strategy</span><span class="o">.</span><span class="n">action_scope</span><span class="p">,</span> <span class="n">decision_type</span>
+                <span class="p">)</span>
+
+                <span class="n">decision_evt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_event_buffer</span><span class="o">.</span><span class="n">gen_decision_event</span><span class="p">(</span>
+                    <span class="n">evt</span><span class="o">.</span><span class="n">tick</span><span class="p">,</span> <span class="n">decision_payload</span><span class="p">)</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">_event_buffer</span><span class="o">.</span><span class="n">insert_event</span><span class="p">(</span><span class="n">decision_evt</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_on_bike_deliver</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">:</span> <span class="n">AtomEvent</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Callback when our transferred bikes reach the destination.&quot;&quot;&quot;</span>
+        <span class="n">payload</span><span class="p">:</span> <span class="n">BikeTransferPayload</span> <span class="o">=</span> <span class="n">evt</span><span class="o">.</span><span class="n">payload</span>
+        <span class="n">station</span><span class="p">:</span> <span class="n">Station</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stations</span><span class="p">[</span><span class="n">payload</span><span class="o">.</span><span class="n">to_station_idx</span><span class="p">]</span>
+
+        <span class="n">station_bikes</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">bikes</span>
+        <span class="n">transfered_number</span> <span class="o">=</span> <span class="n">payload</span><span class="o">.</span><span class="n">number</span>
+
+        <span class="n">empty_docks</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">capacity</span> <span class="o">-</span> <span class="n">station_bikes</span>
+
+        <span class="n">max_accept_number</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">empty_docks</span><span class="p">,</span> <span class="n">transfered_number</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">max_accept_number</span> <span class="o">&lt;</span> <span class="n">transfered_number</span><span class="p">:</span>
+            <span class="n">src_station</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stations</span><span class="p">[</span><span class="n">payload</span><span class="o">.</span><span class="n">from_station_idx</span><span class="p">]</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_decision_strategy</span><span class="o">.</span><span class="n">move_to_neighbor</span><span class="p">(</span>
+                <span class="n">src_station</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">transfered_number</span> <span class="o">-</span> <span class="n">max_accept_number</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">max_accept_number</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">station</span><span class="o">.</span><span class="n">transfer_cost</span> <span class="o">+=</span> <span class="n">max_accept_number</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_total_operate_num</span> <span class="o">+=</span> <span class="n">max_accept_number</span>
+
+        <span class="n">station</span><span class="o">.</span><span class="n">bikes</span> <span class="o">=</span> <span class="n">station_bikes</span> <span class="o">+</span> <span class="n">max_accept_number</span>
+
+    <span class="k">def</span> <span class="nf">_on_action_received</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">:</span> <span class="n">AtomEvent</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Callback when we get an action from agent.&quot;&quot;&quot;</span>
+        <span class="n">action</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">evt</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">evt</span><span class="o">.</span><span class="n">payload</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="k">for</span> <span class="n">action</span> <span class="ow">in</span> <span class="n">evt</span><span class="o">.</span><span class="n">payload</span><span class="p">:</span>
+            <span class="n">from_station_idx</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">action</span><span class="o">.</span><span class="n">from_station_idx</span>
+            <span class="n">to_station_idx</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">action</span><span class="o">.</span><span class="n">to_station_idx</span>
+
+            <span class="c1"># Ignore invalid cell idx.</span>
+            <span class="k">if</span> <span class="n">from_station_idx</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">to_station_idx</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="n">station</span><span class="p">:</span> <span class="n">Station</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stations</span><span class="p">[</span><span class="n">from_station_idx</span><span class="p">]</span>
+            <span class="n">station_bikes</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">bikes</span>
+
+            <span class="n">executed_number</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">station_bikes</span><span class="p">,</span> <span class="n">action</span><span class="o">.</span><span class="n">number</span><span class="p">)</span>
+
+            <span class="c1"># Insert into event buffer if we have bikes to transfer.</span>
+            <span class="k">if</span> <span class="n">executed_number</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">station</span><span class="o">.</span><span class="n">bikes</span> <span class="o">=</span> <span class="n">station_bikes</span> <span class="o">-</span> <span class="n">executed_number</span>
+
+                <span class="n">payload</span> <span class="o">=</span> <span class="n">BikeTransferPayload</span><span class="p">(</span>
+                    <span class="n">from_station_idx</span><span class="p">,</span> <span class="n">to_station_idx</span><span class="p">,</span> <span class="n">executed_number</span><span class="p">)</span>
+
+                <span class="n">transfer_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decision_strategy</span><span class="o">.</span><span class="n">transfer_time</span>
+                <span class="n">transfer_evt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_event_buffer</span><span class="o">.</span><span class="n">gen_atom_event</span><span class="p">(</span>
+                    <span class="n">evt</span><span class="o">.</span><span class="n">tick</span> <span class="o">+</span> <span class="n">transfer_time</span><span class="p">,</span> <span class="n">CitiBikeEvents</span><span class="o">.</span><span class="n">DeliverBike</span><span class="p">,</span> <span class="n">payload</span>
+                <span class="p">)</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">_event_buffer</span><span class="o">.</span><span class="n">insert_event</span><span class="p">(</span><span class="n">transfer_evt</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_build_temp_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Build temporary data for predefined environment.&quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning_yellow</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Binary data files for scenario: citi_bike topology: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_topology</span><span class="si">}</span><span class="s2"> not found.&quot;</span><span class="p">)</span>
+        <span class="n">citi_bike_process</span> <span class="o">=</span> <span class="n">CitiBikeProcess</span><span class="p">(</span><span class="n">is_temp</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_topology</span> <span class="ow">in</span> <span class="n">citi_bike_process</span><span class="o">.</span><span class="n">topologies</span><span class="p">:</span>
+            <span class="n">pid</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getpid</span><span class="p">())</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning_yellow</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Generating temp binary data file for scenario: citi_bike topology: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_topology</span><span class="si">}</span><span class="s2"> pid: </span><span class="si">{</span><span class="n">pid</span><span class="si">}</span><span class="s2">. &quot;</span>
+                <span class="s2">&quot;If you want to keep the data, please use MARO CLI command &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;&#39;maro env data generate -s citi_bike -t </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_topology</span><span class="si">}</span><span class="s2">&#39; to generate the binary data files first.&quot;</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_citi_bike_data_pipeline</span> <span class="o">=</span> <span class="n">citi_bike_process</span><span class="o">.</span><span class="n">topologies</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_topology</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_citi_bike_data_pipeline</span><span class="o">.</span><span class="n">download</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_citi_bike_data_pipeline</span><span class="o">.</span><span class="n">clean</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_citi_bike_data_pipeline</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+            <span class="n">build_folders</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_citi_bike_data_pipeline</span><span class="o">.</span><span class="n">get_build_folders</span><span class="p">()</span>
+            <span class="n">trip_folder</span> <span class="o">=</span> <span class="n">build_folders</span><span class="p">[</span><span class="s2">&quot;trip&quot;</span><span class="p">]</span>
+            <span class="n">weather_folder</span> <span class="o">=</span> <span class="n">build_folders</span><span class="p">[</span><span class="s2">&quot;weather&quot;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_conf</span><span class="p">[</span><span class="s2">&quot;weather_data&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">chagne_file_path</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_conf</span><span class="p">[</span><span class="s2">&quot;weather_data&quot;</span><span class="p">],</span> <span class="n">weather_folder</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_conf</span><span class="p">[</span><span class="s2">&quot;trip_data&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">chagne_file_path</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_conf</span><span class="p">[</span><span class="s2">&quot;trip_data&quot;</span><span class="p">],</span> <span class="n">trip_folder</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_conf</span><span class="p">[</span><span class="s2">&quot;stations_init_data&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">chagne_file_path</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_conf</span><span class="p">[</span><span class="s2">&quot;stations_init_data&quot;</span><span class="p">],</span> <span class="n">trip_folder</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_conf</span><span class="p">[</span><span class="s2">&quot;distance_adj_data&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">chagne_file_path</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_conf</span><span class="p">[</span><span class="s2">&quot;distance_adj_data&quot;</span><span class="p">],</span> <span class="n">trip_folder</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">CommandError</span><span class="p">(</span>
+                <span class="s2">&quot;generate&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Can not generate data files for scenario: citi_bike topology: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_topology</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span></div>
+</pre></div>
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../../../../../_static/js/index.js"></script>
+    
+  </body>
+</html>

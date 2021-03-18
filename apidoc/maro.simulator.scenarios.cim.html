@@ -1,0 +1,1235 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maro.simulator.scenarios.cim package &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="maro.simulator.scenarios.citi_bike package" href="maro.simulator.scenarios.citi_bike.html" />
+    <link rel="prev" title="maro.simulator.scenarios package" href="maro.simulator.scenarios.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../index.html">
+  
+  <img src="../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="current nav sidenav_l1">
+ <li class="toctree-l1 current active">
+  <a class="reference internal" href="maro.html">
+   maro package
+  </a>
+  <ul class="current">
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.backends.html">
+     maro.backends package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.cli.html">
+     maro.cli package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.data_pipeline.html">
+       maro.cli.data_pipeline package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.envs.html">
+       maro.cli.envs package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.grass.html">
+       maro.cli.grass package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.grass.executors.html">
+         maro.cli.grass.executors package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.grass.utils.html">
+         maro.cli.grass.utils package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.inspector.html">
+       maro.cli.inspector package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.k8s.html">
+       maro.cli.k8s package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.k8s.executors.html">
+         maro.cli.k8s.executors package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.process.html">
+       maro.cli.process package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.process.utils.html">
+         maro.cli.process.utils package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.utils.html">
+       maro.cli.utils package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.utils.executors.html">
+         maro.cli.utils.executors package
+        </a>
+       </li>
+      </ul>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.communication.html">
+     maro.communication package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.communication.driver.html">
+       maro.communication.driver package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.communication.utils.html">
+       maro.communication.utils package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.data_lib.html">
+     maro.data_lib package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.data_lib.cim.html">
+       maro.data_lib.cim package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.event_buffer.html">
+     maro.event_buffer package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.forecasting.html">
+     maro.forecasting package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.rl.html">
+     maro.rl package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.actor.html">
+       maro.rl.actor package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.agent.html">
+       maro.rl.agent package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.algorithms.html">
+       maro.rl.algorithms package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.dist_topologies.html">
+       maro.rl.dist_topologies package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.exploration.html">
+       maro.rl.exploration package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.learner.html">
+       maro.rl.learner package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.models.html">
+       maro.rl.models package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.scheduling.html">
+       maro.rl.scheduling package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.shaping.html">
+       maro.rl.shaping package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.storage.html">
+       maro.rl.storage package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 current active">
+    <a class="reference internal" href="maro.simulator.html">
+     maro.simulator package
+    </a>
+    <ul class="current">
+     <li class="toctree-l3 current active">
+      <a class="reference internal" href="maro.simulator.scenarios.html">
+       maro.simulator.scenarios package
+      </a>
+      <ul class="current">
+       <li class="toctree-l4 current active">
+        <a class="current reference internal" href="#">
+         maro.simulator.scenarios.cim package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.citi_bike.html">
+         maro.simulator.scenarios.citi_bike package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.vm_scheduling.html">
+         maro.simulator.scenarios.vm_scheduling package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.simulator.utils.html">
+       maro.simulator.utils package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.utils.html">
+     maro.utils package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.utils.exception.html">
+       maro.utils.exception package
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+        
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="../_sources/apidoc/maro.simulator.scenarios.cim.rst.txt"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.rst</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2Fapidoc/maro.simulator.scenarios.cim.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        <a class="edit-button" href="https://github.com/microsoft/maro/edit/master/doc/source/apidoc/maro.simulator.scenarios.cim.rst"><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Edit this page"><i class="fas fa-pencil-alt"></i>suggest edit</button></a>
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <div class="tocsection onthispage pt-5 pb-3">
+            <i class="fas fa-list"></i> Contents
+        </div>
+        <nav id="bd-toc-nav">
+            <ul class="nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#submodules">
+   Submodules
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.simulator.scenarios.cim.business_engine">
+   maro.simulator.scenarios.cim.business_engine module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.simulator.scenarios.cim.common">
+   maro.simulator.scenarios.cim.common module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.simulator.scenarios.cim.event_payload">
+   maro.simulator.scenarios.cim.event_payload module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.simulator.scenarios.cim.events">
+   maro.simulator.scenarios.cim.events module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.simulator.scenarios.cim.frame_builder">
+   maro.simulator.scenarios.cim.frame_builder module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.simulator.scenarios.cim.matrix">
+   maro.simulator.scenarios.cim.matrix module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.simulator.scenarios.cim.port">
+   maro.simulator.scenarios.cim.port module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.simulator.scenarios.cim.ports_order_export">
+   maro.simulator.scenarios.cim.ports_order_export module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.simulator.scenarios.cim.vessel">
+   maro.simulator.scenarios.cim.vessel module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.simulator.scenarios.cim">
+   Module contents
+  </a>
+ </li>
+</ul>
+
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <div class="section" id="maro-simulator-scenarios-cim-package">
+<h1>maro.simulator.scenarios.cim package<a class="headerlink" href="#maro-simulator-scenarios-cim-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-maro.simulator.scenarios.cim.business_engine">
+<span id="maro-simulator-scenarios-cim-business-engine-module"></span><h2>maro.simulator.scenarios.cim.business_engine module<a class="headerlink" href="#module-maro.simulator.scenarios.cim.business_engine" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.simulator.scenarios.cim.business_engine.CimBusinessEngine">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.cim.business_engine.</code><code class="sig-name descname">CimBusinessEngine</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event_buffer</span><span class="p">:</span> <span class="n"><a class="reference internal" href="maro.event_buffer.html#maro.event_buffer.event_buffer.EventBuffer" title="maro.event_buffer.event_buffer.EventBuffer">maro.event_buffer.event_buffer.EventBuffer</a></span></em>, <em class="sig-param"><span class="n">topology</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">start_tick</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">max_tick</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">snapshot_resolution</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">max_snapshots</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">additional_options</span><span class="p">:</span> <span class="n">dict</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/cim/business_engine.html#CimBusinessEngine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.cim.business_engine.CimBusinessEngine" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="maro.simulator.scenarios.html#maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine" title="maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine</span></code></a></p>
+<p>Cim business engine, used simulate CIM related problem.</p>
+<dl class="py method">
+<dt id="maro.simulator.scenarios.cim.business_engine.CimBusinessEngine.action_scope">
+<code class="sig-name descname">action_scope</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">port_idx</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">vessel_idx</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#maro.simulator.scenarios.cim.common.ActionScope" title="maro.simulator.scenarios.cim.common.ActionScope">maro.simulator.scenarios.cim.common.ActionScope</a><a class="reference internal" href="../_modules/maro/simulator/scenarios/cim/business_engine.html#CimBusinessEngine.action_scope"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.cim.business_engine.CimBusinessEngine.action_scope" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the action scope of specified agent.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>port_idx</strong> (<em>int</em>) – Index of specified agent.</p></li>
+<li><p><strong>vessel_idx</strong> (<em>int</em>) – Index of specified vessel to take the action.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Contains load and discharge scope.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#maro.simulator.scenarios.cim.common.ActionScope" title="maro.simulator.scenarios.cim.common.ActionScope">ActionScope</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.cim.business_engine.CimBusinessEngine.configs">
+<em class="property">property </em><code class="sig-name descname">configs</code><a class="headerlink" href="#maro.simulator.scenarios.cim.business_engine.CimBusinessEngine.configs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configurations of CIM business engine.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.cim.business_engine.CimBusinessEngine.dump">
+<code class="sig-name descname">dump</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">folder</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/cim/business_engine.html#CimBusinessEngine.dump"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.cim.business_engine.CimBusinessEngine.dump" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dump something from business engine.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>folder</strong> (<em>str</em>) – Folder to place dumped files.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.cim.business_engine.CimBusinessEngine.early_discharge">
+<code class="sig-name descname">early_discharge</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vessel_idx</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; int<a class="reference internal" href="../_modules/maro/simulator/scenarios/cim/business_engine.html#CimBusinessEngine.early_discharge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.cim.business_engine.CimBusinessEngine.early_discharge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the early discharge number of specified vessel.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>vessel_idx</strong> (<em>int</em>) – Index of specified vessel.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.cim.business_engine.CimBusinessEngine.frame">
+<em class="property">property </em><code class="sig-name descname">frame</code><a class="headerlink" href="#maro.simulator.scenarios.cim.business_engine.CimBusinessEngine.frame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Frame of current business engine.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="maro.backends.html#id16" title="maro.backends.frame.FrameBase">FrameBase</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.cim.business_engine.CimBusinessEngine.get_agent_idx_list">
+<code class="sig-name descname">get_agent_idx_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; list<a class="reference internal" href="../_modules/maro/simulator/scenarios/cim/business_engine.html#CimBusinessEngine.get_agent_idx_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.cim.business_engine.CimBusinessEngine.get_agent_idx_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get port index list related with this environment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A list of port index.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.cim.business_engine.CimBusinessEngine.get_event_payload_detail">
+<code class="sig-name descname">get_event_payload_detail</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; dict<a class="reference internal" href="../_modules/maro/simulator/scenarios/cim/business_engine.html#CimBusinessEngine.get_event_payload_detail"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.cim.business_engine.CimBusinessEngine.get_event_payload_detail" title="Permalink to this definition">¶</a></dt>
+<dd><p>dict: Event payload details of current scenario.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.cim.business_engine.CimBusinessEngine.get_metrics">
+<code class="sig-name descname">get_metrics</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="maro.simulator.scenarios.html#maro.simulator.scenarios.helpers.DocableDict" title="maro.simulator.scenarios.helpers.DocableDict">maro.simulator.scenarios.helpers.DocableDict</a><a class="reference internal" href="../_modules/maro/simulator/scenarios/cim/business_engine.html#CimBusinessEngine.get_metrics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.cim.business_engine.CimBusinessEngine.get_metrics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get metrics information for cim scenario.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>dict</strong> – A dict that contains “perf”, “total_shortage” and “total_cost”,
+and can use help method to show help docs.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.cim.business_engine.CimBusinessEngine.get_node_mapping">
+<code class="sig-name descname">get_node_mapping</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; dict<a class="reference internal" href="../_modules/maro/simulator/scenarios/cim/business_engine.html#CimBusinessEngine.get_node_mapping"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.cim.business_engine.CimBusinessEngine.get_node_mapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get node name mappings related with this environment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Node name to index mapping dictionary.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.cim.business_engine.CimBusinessEngine.post_step">
+<code class="sig-name descname">post_step</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tick</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/cim/business_engine.html#CimBusinessEngine.post_step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.cim.business_engine.CimBusinessEngine.post_step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Post-process after each step.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>tick</strong> (<em>int</em>) – Tick to process.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.cim.business_engine.CimBusinessEngine.reset">
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/cim/business_engine.html#CimBusinessEngine.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.cim.business_engine.CimBusinessEngine.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset the business engine, it will reset frame value.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.cim.business_engine.CimBusinessEngine.snapshots">
+<em class="property">property </em><code class="sig-name descname">snapshots</code><a class="headerlink" href="#maro.simulator.scenarios.cim.business_engine.CimBusinessEngine.snapshots" title="Permalink to this definition">¶</a></dt>
+<dd><p>Snapshot list of current frame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="maro.backends.html#id32" title="maro.backends.frame.SnapshotList">SnapshotList</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.cim.business_engine.CimBusinessEngine.step">
+<code class="sig-name descname">step</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tick</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/cim/business_engine.html#CimBusinessEngine.step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.cim.business_engine.CimBusinessEngine.step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called at each tick to generate orders and arrival events.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>tick</strong> (<em>int</em>) – Tick to generate orders.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.simulator.scenarios.cim.common">
+<span id="maro-simulator-scenarios-cim-common-module"></span><h2>maro.simulator.scenarios.cim.common module<a class="headerlink" href="#module-maro.simulator.scenarios.cim.common" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.simulator.scenarios.cim.common.Action">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.cim.common.</code><code class="sig-name descname">Action</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vessel_idx</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">port_idx</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">quantity</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/cim/common.html#Action"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.cim.common.Action" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Action object that used to pass action from agent to business engine.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vessel_idx</strong> (<em>int</em>) – Which vessel will take action.</p></li>
+<li><p><strong>port_idx</strong> (<em>int</em>) – Which port will take action.</p></li>
+<li><p><strong>quantity</strong> (<em>int</em>) – How many containers can be moved from vessel to port (negative in reverse).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.cim.common.Action.summary_key">
+<code class="sig-name descname">summary_key</code><em class="property"> = ['port_idx', 'vessel_idx', 'quantity']</em><a class="headerlink" href="#maro.simulator.scenarios.cim.common.Action.summary_key" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.simulator.scenarios.cim.common.ActionScope">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.cim.common.</code><code class="sig-name descname">ActionScope</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">load</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">discharge</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/cim/common.html#ActionScope"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.cim.common.ActionScope" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Load and discharge scope for agent to generate decision.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>load</strong> (<em>int</em>) – Max number to load.</p></li>
+<li><p><strong>discharge</strong> (<em>int</em>) – Max number to discharge.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.simulator.scenarios.cim.common.DecisionEvent">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.cim.common.</code><code class="sig-name descname">DecisionEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tick</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">port_idx</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">vessel_idx</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">snapshot_list</span><span class="p">:</span> <span class="n"><a class="reference internal" href="maro.backends.html#id32" title="maro.backends.frame.SnapshotList">maro.backends.frame.SnapshotList</a></span></em>, <em class="sig-param"><span class="n">action_scope_func</span></em>, <em class="sig-param"><span class="n">early_discharge_func</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/cim/common.html#DecisionEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.cim.common.DecisionEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Decision event for agent.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tick</strong> (<em>int</em>) – On which tick we need an action.</p></li>
+<li><p><strong>port_idx</strong> (<em>int</em>) – Which port will take action.</p></li>
+<li><p><strong>vessel_idx</strong> (<em>int</em>) – Which vessel will take action.</p></li>
+<li><p><strong>snapshot_list</strong> (<em>int</em>) – Snapshots of the environment to input into the decision model.</p></li>
+<li><p><strong>action_scope_func</strong> (<em>Function</em>) – Function to calculate action scope, we use function here to make it
+getting the value as late as possible.</p></li>
+<li><p><strong>early_discharge_func</strong> (<em>Function</em>) – Function to fetch early discharge number of specified vessel, we
+use function here to make it getting the value as late as possible.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.simulator.scenarios.cim.common.DecisionEvent.action_scope">
+<em class="property">property </em><code class="sig-name descname">action_scope</code><a class="headerlink" href="#maro.simulator.scenarios.cim.common.DecisionEvent.action_scope" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load and discharge scope for agent to generate decision.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#maro.simulator.scenarios.cim.common.ActionScope" title="maro.simulator.scenarios.cim.common.ActionScope">ActionScope</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.cim.common.DecisionEvent.early_discharge">
+<em class="property">property </em><code class="sig-name descname">early_discharge</code><a class="headerlink" href="#maro.simulator.scenarios.cim.common.DecisionEvent.early_discharge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Early discharge number of corresponding vessel.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.cim.common.DecisionEvent.summary_key">
+<code class="sig-name descname">summary_key</code><em class="property"> = ['tick', 'port_idx', 'vessel_idx', 'snapshot_list', 'action_scope', 'early_discharge']</em><a class="headerlink" href="#maro.simulator.scenarios.cim.common.DecisionEvent.summary_key" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.simulator.scenarios.cim.common.VesselState">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.cim.common.</code><code class="sig-name descname">VesselState</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/cim/common.html#VesselState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.cim.common.VesselState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.IntEnum</span></code></p>
+<p>State of vessel.</p>
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.cim.common.VesselState.PARKING">
+<code class="sig-name descname">PARKING</code><em class="property"> = 0</em><a class="headerlink" href="#maro.simulator.scenarios.cim.common.VesselState.PARKING" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.cim.common.VesselState.SAILING">
+<code class="sig-name descname">SAILING</code><em class="property"> = 1</em><a class="headerlink" href="#maro.simulator.scenarios.cim.common.VesselState.SAILING" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.simulator.scenarios.cim.event_payload">
+<span id="maro-simulator-scenarios-cim-event-payload-module"></span><h2>maro.simulator.scenarios.cim.event_payload module<a class="headerlink" href="#module-maro.simulator.scenarios.cim.event_payload" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.simulator.scenarios.cim.event_payload.EmptyReturnPayload">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.cim.event_payload.</code><code class="sig-name descname">EmptyReturnPayload</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">port_idx</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">quantity</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/cim/event_payload.html#EmptyReturnPayload"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.cim.event_payload.EmptyReturnPayload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Payload object to hold information about the empty return event.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>port_idx</strong> (<em>int</em>) – Which port the empty containers are returned to.</p></li>
+<li><p><strong>quantity</strong> (<em>int</em>) – How many empty containers are returned.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.cim.event_payload.EmptyReturnPayload.summary_key">
+<code class="sig-name descname">summary_key</code><em class="property"> = ['port_idx', 'quantity']</em><a class="headerlink" href="#maro.simulator.scenarios.cim.event_payload.EmptyReturnPayload.summary_key" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.simulator.scenarios.cim.event_payload.LadenReturnPayload">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.cim.event_payload.</code><code class="sig-name descname">LadenReturnPayload</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">src_port_idx</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">dest_port_idx</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">quantity</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/cim/event_payload.html#LadenReturnPayload"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.cim.event_payload.LadenReturnPayload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Payload object to hold information about the full return event.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>src_port_idx</strong> (<em>int</em>) – The source port of the laden, i.e, the source port of the corresponding order.</p></li>
+<li><p><strong>dest_port_idx</strong> (<em>int</em>) – Which port the laden are to be sent, i.e, the destination port of the corresponding order.</p></li>
+<li><p><strong>quantity</strong> (<em>int</em>) – How many ladens/containers are returned.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.cim.event_payload.LadenReturnPayload.summary_key">
+<code class="sig-name descname">summary_key</code><em class="property"> = ['src_port_idx', 'dest_port_idx', 'quantity']</em><a class="headerlink" href="#maro.simulator.scenarios.cim.event_payload.LadenReturnPayload.summary_key" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.simulator.scenarios.cim.event_payload.VesselDischargePayload">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.cim.event_payload.</code><code class="sig-name descname">VesselDischargePayload</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vessel_idx</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">from_port_idx</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">port_idx</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">quantity</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/cim/event_payload.html#VesselDischargePayload"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.cim.event_payload.VesselDischargePayload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Payload object to hold information about container discharge.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vessel_idx</strong> (<em>int</em>) – Which vessel will discharge.</p></li>
+<li><p><strong>from_port_idx</strong> (<em>int</em>) – Which port sent the discharged containers.</p></li>
+<li><p><strong>port_idx</strong> (<em>int</em>) – Which port will receive the discharged containers.</p></li>
+<li><p><strong>quantity</strong> (<em>int</em>) – How many containers will be discharged.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.cim.event_payload.VesselDischargePayload.summary_key">
+<code class="sig-name descname">summary_key</code><em class="property"> = ['vessel_idx', 'port_idx', 'from_port_idx', 'quantity']</em><a class="headerlink" href="#maro.simulator.scenarios.cim.event_payload.VesselDischargePayload.summary_key" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.simulator.scenarios.cim.event_payload.VesselStatePayload">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.cim.event_payload.</code><code class="sig-name descname">VesselStatePayload</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">port_idx</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">vessel_idx</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/cim/event_payload.html#VesselStatePayload"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.cim.event_payload.VesselStatePayload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Payload object used to hold vessel state changes for event, including VESSEL_ARRIVAL and VESSEL_DEPARTURE.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>port_idx</strong> (<em>int</em>) – Which port the vessel at.</p></li>
+<li><p><strong>vessel_idx</strong> (<em>int</em>) – Which vessel’s state changed.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.cim.event_payload.VesselStatePayload.summary_key">
+<code class="sig-name descname">summary_key</code><em class="property"> = ['port_idx', 'vessel_idx']</em><a class="headerlink" href="#maro.simulator.scenarios.cim.event_payload.VesselStatePayload.summary_key" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.simulator.scenarios.cim.events">
+<span id="maro-simulator-scenarios-cim-events-module"></span><h2>maro.simulator.scenarios.cim.events module<a class="headerlink" href="#module-maro.simulator.scenarios.cim.events" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.simulator.scenarios.cim.events.Events">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.cim.events.</code><code class="sig-name descname">Events</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/cim/events.html#Events"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.cim.events.Events" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>Event type for CIM problem.</p>
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.cim.events.Events.DISCHARGE_EMPTY">
+<code class="sig-name descname">DISCHARGE_EMPTY</code><em class="property"> = 'discharge_empty'</em><a class="headerlink" href="#maro.simulator.scenarios.cim.events.Events.DISCHARGE_EMPTY" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.cim.events.Events.DISCHARGE_FULL">
+<code class="sig-name descname">DISCHARGE_FULL</code><em class="property"> = 'discharge_full'</em><a class="headerlink" href="#maro.simulator.scenarios.cim.events.Events.DISCHARGE_FULL" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.cim.events.Events.LOAD_EMPTY">
+<code class="sig-name descname">LOAD_EMPTY</code><em class="property"> = 'load_empty'</em><a class="headerlink" href="#maro.simulator.scenarios.cim.events.Events.LOAD_EMPTY" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.cim.events.Events.LOAD_FULL">
+<code class="sig-name descname">LOAD_FULL</code><em class="property"> = 'load_full'</em><a class="headerlink" href="#maro.simulator.scenarios.cim.events.Events.LOAD_FULL" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.cim.events.Events.ORDER">
+<code class="sig-name descname">ORDER</code><em class="property"> = 'order'</em><a class="headerlink" href="#maro.simulator.scenarios.cim.events.Events.ORDER" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.cim.events.Events.PENDING_DECISION">
+<code class="sig-name descname">PENDING_DECISION</code><em class="property"> = 'pending_decision'</em><a class="headerlink" href="#maro.simulator.scenarios.cim.events.Events.PENDING_DECISION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.cim.events.Events.RETURN_EMPTY">
+<code class="sig-name descname">RETURN_EMPTY</code><em class="property"> = 'return_empty'</em><a class="headerlink" href="#maro.simulator.scenarios.cim.events.Events.RETURN_EMPTY" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.cim.events.Events.RETURN_FULL">
+<code class="sig-name descname">RETURN_FULL</code><em class="property"> = 'return_full'</em><a class="headerlink" href="#maro.simulator.scenarios.cim.events.Events.RETURN_FULL" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.cim.events.Events.VESSEL_ARRIVAL">
+<code class="sig-name descname">VESSEL_ARRIVAL</code><em class="property"> = 'vessel_arrival'</em><a class="headerlink" href="#maro.simulator.scenarios.cim.events.Events.VESSEL_ARRIVAL" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.cim.events.Events.VESSEL_DEPARTURE">
+<code class="sig-name descname">VESSEL_DEPARTURE</code><em class="property"> = 'vessel_departure'</em><a class="headerlink" href="#maro.simulator.scenarios.cim.events.Events.VESSEL_DEPARTURE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.simulator.scenarios.cim.frame_builder">
+<span id="maro-simulator-scenarios-cim-frame-builder-module"></span><h2>maro.simulator.scenarios.cim.frame_builder module<a class="headerlink" href="#module-maro.simulator.scenarios.cim.frame_builder" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="maro.simulator.scenarios.cim.frame_builder.gen_cim_frame">
+<code class="sig-prename descclassname">maro.simulator.scenarios.cim.frame_builder.</code><code class="sig-name descname">gen_cim_frame</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">port_num</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">vessel_num</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">stop_nums</span><span class="p">:</span> <span class="n">tuple</span></em>, <em class="sig-param"><span class="n">snapshots_num</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/cim/frame_builder.html#gen_cim_frame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.cim.frame_builder.gen_cim_frame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Define and generate cim frame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>port_num</strong> (<em>int</em>) – Number of ports.</p></li>
+<li><p><strong>vessel_num</strong> (<em>int</em>) – Number of vessels.</p></li>
+<li><p><strong>stop_nums</strong> (<em>tuple</em>) – Past stops number and future stop number.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.simulator.scenarios.cim.matrix">
+<span id="maro-simulator-scenarios-cim-matrix-module"></span><h2>maro.simulator.scenarios.cim.matrix module<a class="headerlink" href="#module-maro.simulator.scenarios.cim.matrix" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="maro.simulator.scenarios.cim.matrix.gen_matrix">
+<code class="sig-prename descclassname">maro.simulator.scenarios.cim.matrix.</code><code class="sig-name descname">gen_matrix</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">port_num</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">vessel_num</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/cim/matrix.html#gen_matrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.cim.matrix.gen_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>A node that contains matrix in frame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>port_num</strong> (<em>int</em>) – Number of ports.</p></li>
+<li><p><strong>vessel_num</strong> (<em>int</em>) – Number of vessels.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Matrix class definition.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>type</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.simulator.scenarios.cim.port">
+<span id="maro-simulator-scenarios-cim-port-module"></span><h2>maro.simulator.scenarios.cim.port module<a class="headerlink" href="#module-maro.simulator.scenarios.cim.port" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.simulator.scenarios.cim.port.Port">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.cim.port.</code><code class="sig-name descname">Port</code><a class="reference internal" href="../_modules/maro/simulator/scenarios/cim/port.html#Port"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.cim.port.Port" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="maro.backends.html#id29" title="maro.backends.frame.NodeBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.backends.frame.NodeBase</span></code></a></p>
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.cim.port.Port.acc_booking">
+<code class="sig-name descname">acc_booking</code><em class="property"> = &lt;maro.backends.frame.NodeAttribute object&gt;</em><a class="headerlink" href="#maro.simulator.scenarios.cim.port.Port.acc_booking" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.cim.port.Port.acc_fulfillment">
+<code class="sig-name descname">acc_fulfillment</code><em class="property"> = &lt;maro.backends.frame.NodeAttribute object&gt;</em><a class="headerlink" href="#maro.simulator.scenarios.cim.port.Port.acc_fulfillment" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.cim.port.Port.acc_shortage">
+<code class="sig-name descname">acc_shortage</code><em class="property"> = &lt;maro.backends.frame.NodeAttribute object&gt;</em><a class="headerlink" href="#maro.simulator.scenarios.cim.port.Port.acc_shortage" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.cim.port.Port.booking">
+<code class="sig-name descname">booking</code><em class="property"> = &lt;maro.backends.frame.NodeAttribute object&gt;</em><a class="headerlink" href="#maro.simulator.scenarios.cim.port.Port.booking" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.cim.port.Port.capacity">
+<code class="sig-name descname">capacity</code><em class="property"> = &lt;maro.backends.frame.NodeAttribute object&gt;</em><a class="headerlink" href="#maro.simulator.scenarios.cim.port.Port.capacity" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.cim.port.Port.empty">
+<code class="sig-name descname">empty</code><em class="property"> = &lt;maro.backends.frame.NodeAttribute object&gt;</em><a class="headerlink" href="#maro.simulator.scenarios.cim.port.Port.empty" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.cim.port.Port.fulfillment">
+<code class="sig-name descname">fulfillment</code><em class="property"> = &lt;maro.backends.frame.NodeAttribute object&gt;</em><a class="headerlink" href="#maro.simulator.scenarios.cim.port.Port.fulfillment" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.cim.port.Port.full">
+<code class="sig-name descname">full</code><em class="property"> = &lt;maro.backends.frame.NodeAttribute object&gt;</em><a class="headerlink" href="#maro.simulator.scenarios.cim.port.Port.full" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.cim.port.Port.idx">
+<em class="property">property </em><code class="sig-name descname">idx</code><a class="headerlink" href="#maro.simulator.scenarios.cim.port.Port.idx" title="Permalink to this definition">¶</a></dt>
+<dd><p>Index of this port.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.cim.port.Port.name">
+<em class="property">property </em><code class="sig-name descname">name</code><a class="headerlink" href="#maro.simulator.scenarios.cim.port.Port.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Name of this port.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.cim.port.Port.on_consignee">
+<code class="sig-name descname">on_consignee</code><em class="property"> = &lt;maro.backends.frame.NodeAttribute object&gt;</em><a class="headerlink" href="#maro.simulator.scenarios.cim.port.Port.on_consignee" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.cim.port.Port.on_shipper">
+<code class="sig-name descname">on_shipper</code><em class="property"> = &lt;maro.backends.frame.NodeAttribute object&gt;</em><a class="headerlink" href="#maro.simulator.scenarios.cim.port.Port.on_shipper" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.cim.port.Port.reset">
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/cim/port.html#Port.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.cim.port.Port.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset port state to initializing.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Since frame reset will reset all the nodes’ attributes to 0, we need to
+call set_init_state to store correct initial value.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.cim.port.Port.set_init_state">
+<code class="sig-name descname">set_init_state</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">capacity</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">empty</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/cim/port.html#Port.set_init_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.cim.port.Port.set_init_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set initialize state for port, business engine will use these values to reset
+port at the end of each episode (reset).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Port name.</p></li>
+<li><p><strong>capacity</strong> (<em>int</em>) – Capacity of this port.</p></li>
+<li><p><strong>empty</strong> (<em>int</em>) – Default empty number on this port.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.cim.port.Port.shortage">
+<code class="sig-name descname">shortage</code><em class="property"> = &lt;maro.backends.frame.NodeAttribute object&gt;</em><a class="headerlink" href="#maro.simulator.scenarios.cim.port.Port.shortage" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.simulator.scenarios.cim.port.Port.transfer_cost">
+<code class="sig-name descname">transfer_cost</code><em class="property"> = &lt;maro.backends.frame.NodeAttribute object&gt;</em><a class="headerlink" href="#maro.simulator.scenarios.cim.port.Port.transfer_cost" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.simulator.scenarios.cim.ports_order_export">
+<span id="maro-simulator-scenarios-cim-ports-order-export-module"></span><h2>maro.simulator.scenarios.cim.ports_order_export module<a class="headerlink" href="#module-maro.simulator.scenarios.cim.ports_order_export" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.simulator.scenarios.cim.ports_order_export.PortOrderExporter">
+<em class="property">class </em><code class="sig-prename descclassname">maro.simulator.scenarios.cim.ports_order_export.</code><code class="sig-name descname">PortOrderExporter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">enabled</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/cim/ports_order_export.html#PortOrderExporter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.cim.ports_order_export.PortOrderExporter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Utils used to export full’s source and target.</p>
+<dl class="py method">
+<dt id="maro.simulator.scenarios.cim.ports_order_export.PortOrderExporter.add">
+<code class="sig-name descname">add</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">order</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/cim/ports_order_export.html#PortOrderExporter.add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.cim.ports_order_export.PortOrderExporter.add" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add an order to export, it will be ignored if export is disabled.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>order</strong> (<em>object</em>) – Order to export.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.simulator.scenarios.cim.ports_order_export.PortOrderExporter.dump">
+<code class="sig-name descname">dump</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">folder</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/cim/ports_order_export.html#PortOrderExporter.dump"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.cim.ports_order_export.PortOrderExporter.dump" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dump current orders to csv.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>folder</strong> (<em>str</em>) – Folder to hold dump file.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.simulator.scenarios.cim.vessel">
+<span id="maro-simulator-scenarios-cim-vessel-module"></span><h2>maro.simulator.scenarios.cim.vessel module<a class="headerlink" href="#module-maro.simulator.scenarios.cim.vessel" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="maro.simulator.scenarios.cim.vessel.gen_vessel_definition">
+<code class="sig-prename descclassname">maro.simulator.scenarios.cim.vessel.</code><code class="sig-name descname">gen_vessel_definition</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">stop_nums</span><span class="p">:</span> <span class="n">tuple</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/simulator/scenarios/cim/vessel.html#gen_vessel_definition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.simulator.scenarios.cim.vessel.gen_vessel_definition" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-maro.simulator.scenarios.cim">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-maro.simulator.scenarios.cim" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+    <a class='left-prev' id="prev-link" href="maro.simulator.scenarios.html" title="previous page">maro.simulator.scenarios package</a>
+    <a class='right-next' id="next-link" href="maro.simulator.scenarios.citi_bike.html" title="next page">maro.simulator.scenarios.citi_bike package</a>
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../_static/js/index.js"></script>
+    
+  </body>
+</html>

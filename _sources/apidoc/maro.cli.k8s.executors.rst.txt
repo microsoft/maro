@@ -1,0 +1,22 @@
+maro.cli.k8s.executors package
+==============================
+
+Submodules
+----------
+
+maro.cli.k8s.executors.k8s\_aks\_executor module
+------------------------------------------------
+
+.. automodule:: maro.cli.k8s.executors.k8s_aks_executor
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: maro.cli.k8s.executors
+   :members:
+   :undoc-members:
+   :show-inheritance:

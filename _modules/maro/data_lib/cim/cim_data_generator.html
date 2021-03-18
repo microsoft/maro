@@ -1,0 +1,494 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maro.data_lib.cim.cim_data_generator &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../../../../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../../../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/sphinx-book-theme.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/language_data.js"></script>
+    <script src="../../../../_static/clipboard.min.js"></script>
+    <script src="../../../../_static/copybutton.js"></script>
+    <script src="../../../../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../../../../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../../../../index.html">
+  
+  <img src="../../../../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../scenarios/container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../scenarios/citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../scenarios/vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../apidoc/maro.html">
+   maro package
+  </a>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2F_modules/maro/data_lib/cim/cim_data_generator.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <nav id="bd-toc-nav">
+            
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <h1>Source code for maro.data_lib.cim.cim_data_generator</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) Microsoft Corporation.</span>
+<span class="c1"># Licensed under the MIT license.</span>
+
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">ceil</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+
+<span class="kn">from</span> <span class="nn">yaml</span> <span class="kn">import</span> <span class="n">safe_load</span>
+
+<span class="kn">from</span> <span class="nn">maro.simulator.utils</span> <span class="kn">import</span> <span class="n">seed</span>
+<span class="kn">from</span> <span class="nn">maro.utils.exception.data_lib_exeption</span> <span class="kn">import</span> <span class="n">CimGeneratorInvalidParkingDuration</span>
+
+<span class="kn">from</span> <span class="nn">.entities</span> <span class="kn">import</span> <span class="n">CimDataCollection</span><span class="p">,</span> <span class="n">OrderGenerateMode</span><span class="p">,</span> <span class="n">Stop</span>
+<span class="kn">from</span> <span class="nn">.global_order_proportion</span> <span class="kn">import</span> <span class="n">GlobalOrderProportion</span>
+<span class="kn">from</span> <span class="nn">.port_parser</span> <span class="kn">import</span> <span class="n">PortsParser</span>
+<span class="kn">from</span> <span class="nn">.route_parser</span> <span class="kn">import</span> <span class="n">RoutesParser</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">apply_noise</span><span class="p">,</span> <span class="n">route_init_rand</span>
+<span class="kn">from</span> <span class="nn">.vessel_parser</span> <span class="kn">import</span> <span class="n">VesselsParser</span>
+
+<span class="n">CIM_GENERATOR_VERSION</span> <span class="o">=</span> <span class="mh">0x000001</span>
+
+
+<div class="viewcode-block" id="CimDataGenerator"><a class="viewcode-back" href="../../../../apidoc/maro.data_lib.cim.html#maro.data_lib.cim.cim_data_generator.CimDataGenerator">[docs]</a><span class="k">class</span> <span class="nc">CimDataGenerator</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Utility to generate cim data from configuration file.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># parsers</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ports_parser</span> <span class="o">=</span> <span class="n">PortsParser</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_vessels_parser</span> <span class="o">=</span> <span class="n">VesselsParser</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_routes_parser</span> <span class="o">=</span> <span class="n">RoutesParser</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_global_order_proportion</span> <span class="o">=</span> <span class="n">GlobalOrderProportion</span><span class="p">()</span>
+
+<div class="viewcode-block" id="CimDataGenerator.gen_data"><a class="viewcode-back" href="../../../../apidoc/maro.data_lib.cim.html#maro.data_lib.cim.cim_data_generator.CimDataGenerator.gen_data">[docs]</a>    <span class="k">def</span> <span class="nf">gen_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">max_tick</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">start_tick</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CimDataCollection</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Generate data with specified configurations.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            config_file(str): File of configuration (yaml).</span>
+<span class="sd">            max_tick(int): Max tick to generate.</span>
+<span class="sd">            start_tick(int): Start tick to generate.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            CimDataCollection: Data collection contains all cim data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># read config</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">config_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+            <span class="n">conf</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">safe_load</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span>
+
+        <span class="n">topology_seed</span> <span class="o">=</span> <span class="n">conf</span><span class="p">[</span><span class="s2">&quot;seed&quot;</span><span class="p">]</span>
+
+        <span class="c1"># set seed to generate data</span>
+        <span class="n">seed</span><span class="p">(</span><span class="n">topology_seed</span><span class="p">)</span>
+
+        <span class="c1"># misc configurations</span>
+        <span class="n">total_containers</span> <span class="o">=</span> <span class="n">conf</span><span class="p">[</span><span class="s2">&quot;total_containers&quot;</span><span class="p">]</span>
+        <span class="n">past_stop_number</span><span class="p">,</span> <span class="n">future_stop_number</span> <span class="o">=</span> <span class="n">conf</span><span class="p">[</span><span class="s2">&quot;stop_number&quot;</span><span class="p">]</span>
+        <span class="n">cntr_volumes</span> <span class="o">=</span> <span class="n">conf</span><span class="p">[</span><span class="s2">&quot;container_volumes&quot;</span><span class="p">]</span>
+        <span class="n">order_mode</span> <span class="o">=</span> <span class="n">OrderGenerateMode</span><span class="p">(</span><span class="n">conf</span><span class="p">[</span><span class="s2">&quot;order_generate_mode&quot;</span><span class="p">])</span>
+
+        <span class="c1"># parse configurations</span>
+        <span class="n">vessel_mapping</span><span class="p">,</span> <span class="n">vessels_setting</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vessels_parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">conf</span><span class="p">[</span><span class="s2">&quot;vessels&quot;</span><span class="p">])</span>
+        <span class="n">port_mapping</span><span class="p">,</span> <span class="n">ports_setting</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ports_parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">conf</span><span class="p">[</span><span class="s2">&quot;ports&quot;</span><span class="p">],</span> <span class="n">total_containers</span><span class="p">)</span>
+        <span class="n">route_mapping</span><span class="p">,</span> <span class="n">routes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_routes_parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">conf</span><span class="p">[</span><span class="s2">&quot;routes&quot;</span><span class="p">])</span>
+        <span class="n">global_order_proportion</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_global_order_proportion</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span>
+            <span class="n">conf</span><span class="p">[</span><span class="s2">&quot;container_usage_proportion&quot;</span><span class="p">],</span>
+            <span class="n">total_containers</span><span class="p">,</span> <span class="n">start_tick</span><span class="o">=</span><span class="n">start_tick</span><span class="p">,</span> <span class="n">max_tick</span><span class="o">=</span><span class="n">max_tick</span><span class="p">)</span>
+
+        <span class="c1"># extend routes with specified tick range</span>
+        <span class="n">vessels_stops</span><span class="p">,</span> <span class="n">vessel_period_no_noise</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extend_route</span><span class="p">(</span>
+            <span class="n">future_stop_number</span><span class="p">,</span> <span class="n">max_tick</span><span class="p">,</span> <span class="n">vessels_setting</span><span class="p">,</span> <span class="n">ports_setting</span><span class="p">,</span> <span class="n">port_mapping</span><span class="p">,</span> <span class="n">routes</span><span class="p">,</span> <span class="n">route_mapping</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">CimDataCollection</span><span class="p">(</span>
+            <span class="n">total_containers</span><span class="p">,</span>
+            <span class="n">past_stop_number</span><span class="p">,</span>
+            <span class="n">future_stop_number</span><span class="p">,</span>
+            <span class="n">cntr_volumes</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">order_mode</span><span class="p">,</span>
+            <span class="n">ports_setting</span><span class="p">,</span>
+            <span class="n">port_mapping</span><span class="p">,</span>
+            <span class="n">vessels_setting</span><span class="p">,</span>
+            <span class="n">vessel_mapping</span><span class="p">,</span>
+            <span class="n">vessels_stops</span><span class="p">,</span>
+            <span class="n">global_order_proportion</span><span class="p">,</span>
+            <span class="n">routes</span><span class="p">,</span>
+            <span class="n">route_mapping</span><span class="p">,</span>
+            <span class="n">vessel_period_no_noise</span><span class="p">,</span>
+            <span class="n">max_tick</span><span class="p">,</span>
+            <span class="n">topology_seed</span><span class="p">,</span>
+            <span class="n">CIM_GENERATOR_VERSION</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_extend_route</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">future_stop_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">max_tick</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">vessels_setting</span><span class="p">,</span> <span class="n">ports_setting</span><span class="p">,</span> <span class="n">port_mapping</span><span class="p">,</span> <span class="n">routes</span><span class="p">,</span> <span class="n">route_mapping</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Extend route with specified tick range.&quot;&quot;&quot;</span>
+
+        <span class="n">vessels_stops</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Stop</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">vessel_period_no_noise</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># fill the result stops with empty list</span>
+        <span class="c1"># NOTE: not using [[]] * N</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vessels_setting</span><span class="p">)):</span>
+            <span class="n">vessels_stops</span><span class="o">.</span><span class="n">append</span><span class="p">([])</span>
+
+        <span class="c1"># extend for each vessel</span>
+        <span class="k">for</span> <span class="n">vessel_setting</span> <span class="ow">in</span> <span class="n">vessels_setting</span><span class="p">:</span>
+            <span class="n">route_name</span> <span class="o">=</span> <span class="n">vessel_setting</span><span class="o">.</span><span class="n">route_name</span>
+
+            <span class="c1"># route definition points from configuration</span>
+            <span class="n">route_points</span> <span class="o">=</span> <span class="n">routes</span><span class="p">[</span><span class="n">route_mapping</span><span class="p">[</span><span class="n">route_name</span><span class="p">]]</span>
+            <span class="n">route_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">route_points</span><span class="p">)</span>
+
+            <span class="n">loc_idx_in_route</span> <span class="o">=</span> <span class="mi">0</span>
+
+            <span class="c1"># find the start point</span>
+            <span class="k">while</span> <span class="n">route_points</span><span class="p">[</span><span class="n">loc_idx_in_route</span><span class="p">]</span><span class="o">.</span><span class="n">port_name</span> <span class="o">!=</span> <span class="n">vessel_setting</span><span class="o">.</span><span class="n">start_port_name</span><span class="p">:</span>
+                <span class="n">loc_idx_in_route</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="c1"># update initial value fields</span>
+            <span class="n">speed</span> <span class="o">=</span> <span class="n">vessel_setting</span><span class="o">.</span><span class="n">sailing_speed</span>
+            <span class="n">speed_noise</span> <span class="o">=</span> <span class="n">vessel_setting</span><span class="o">.</span><span class="n">sailing_noise</span>
+            <span class="n">duration</span> <span class="o">=</span> <span class="n">vessel_setting</span><span class="o">.</span><span class="n">parking_duration</span>
+            <span class="n">duration_noise</span> <span class="o">=</span> <span class="n">vessel_setting</span><span class="o">.</span><span class="n">parking_noise</span>
+
+            <span class="n">tick</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">period_no_noise</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">extra_stop_counter</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">stop_index</span> <span class="o">=</span> <span class="mi">0</span>
+
+            <span class="c1"># unpack the route by max tick and future stop number</span>
+            <span class="k">while</span> <span class="n">extra_stop_counter</span> <span class="o">&lt;=</span> <span class="n">future_stop_number</span><span class="p">:</span>
+                <span class="n">cur_route_point</span> <span class="o">=</span> <span class="n">route_points</span><span class="p">[</span><span class="n">loc_idx_in_route</span><span class="p">]</span>
+                <span class="n">port_idx</span> <span class="o">=</span> <span class="n">port_mapping</span><span class="p">[</span><span class="n">cur_route_point</span><span class="o">.</span><span class="n">port_name</span><span class="p">]</span>
+
+                <span class="c1"># apply noise to parking duration</span>
+                <span class="n">parking_duration</span> <span class="o">=</span> <span class="n">ceil</span><span class="p">(</span><span class="n">apply_noise</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span> <span class="n">duration_noise</span><span class="p">,</span> <span class="n">route_init_rand</span><span class="p">))</span>
+
+                <span class="k">if</span> <span class="n">parking_duration</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">CimGeneratorInvalidParkingDuration</span><span class="p">()</span>
+
+                <span class="c1"># a new stop</span>
+                <span class="n">stop</span> <span class="o">=</span> <span class="n">Stop</span><span class="p">(</span><span class="n">stop_index</span><span class="p">,</span>
+                            <span class="n">tick</span><span class="p">,</span>
+                            <span class="n">tick</span> <span class="o">+</span> <span class="n">parking_duration</span><span class="p">,</span>
+                            <span class="n">port_idx</span><span class="p">,</span>
+                            <span class="n">vessel_setting</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+
+                <span class="c1"># append to current vessels stops list</span>
+                <span class="n">vessels_stops</span><span class="p">[</span><span class="n">vessel_setting</span><span class="o">.</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">stop</span><span class="p">)</span>
+
+                <span class="c1"># use distance and speed (all with noise) to calculate tick of arrival and departure</span>
+                <span class="n">distance</span> <span class="o">=</span> <span class="n">cur_route_point</span><span class="o">.</span><span class="n">distance</span>
+
+                <span class="c1"># apply noise to speed</span>
+                <span class="n">noised_speed</span> <span class="o">=</span> <span class="n">apply_noise</span><span class="p">(</span><span class="n">speed</span><span class="p">,</span> <span class="n">speed_noise</span><span class="p">,</span> <span class="n">route_init_rand</span><span class="p">)</span>
+                <span class="n">sailing_duration</span> <span class="o">=</span> <span class="n">ceil</span><span class="p">(</span><span class="n">distance</span> <span class="o">/</span> <span class="n">noised_speed</span><span class="p">)</span>
+
+                <span class="c1"># next tick</span>
+                <span class="n">tick</span> <span class="o">+=</span> <span class="n">parking_duration</span> <span class="o">+</span> <span class="n">sailing_duration</span>
+
+                <span class="c1"># sailing durations without noise</span>
+                <span class="n">whole_duration_no_noise</span> <span class="o">=</span> <span class="n">duration</span> <span class="o">+</span> <span class="n">ceil</span><span class="p">(</span><span class="n">distance</span> <span class="o">/</span> <span class="n">speed</span><span class="p">)</span>
+
+                <span class="c1"># only add period at 1st route circle</span>
+                <span class="n">period_no_noise</span> <span class="o">+=</span> <span class="p">(</span><span class="n">whole_duration_no_noise</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span>
+                    <span class="n">vessels_stops</span><span class="p">[</span><span class="n">vessel_setting</span><span class="o">.</span><span class="n">index</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="n">route_length</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
+
+                <span class="c1"># next location index</span>
+                <span class="n">loc_idx_in_route</span> <span class="o">=</span> <span class="p">(</span><span class="n">loc_idx_in_route</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="n">route_length</span>
+
+                <span class="c1"># counter to append extra stops which after max tick for future predict</span>
+                <span class="n">extra_stop_counter</span> <span class="o">+=</span> <span class="p">(</span><span class="mi">1</span> <span class="k">if</span> <span class="n">tick</span> <span class="o">&gt;</span> <span class="n">max_tick</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
+
+                <span class="n">stop_index</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="n">vessel_period_no_noise</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">period_no_noise</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">vessels_stops</span><span class="p">,</span> <span class="n">vessel_period_no_noise</span></div>
+</pre></div>
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../../../../_static/js/index.js"></script>
+    
+  </body>
+</html>

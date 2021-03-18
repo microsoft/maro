@@ -1,0 +1,509 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maro.simulator.scenarios.abs_business_engine &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../../../../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../../../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/sphinx-book-theme.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/language_data.js"></script>
+    <script src="../../../../_static/clipboard.min.js"></script>
+    <script src="../../../../_static/copybutton.js"></script>
+    <script src="../../../../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../../../../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../../../../index.html">
+  
+  <img src="../../../../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../scenarios/container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../scenarios/citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../scenarios/vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../apidoc/maro.html">
+   maro package
+  </a>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2F_modules/maro/simulator/scenarios/abs_business_engine.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <nav id="bd-toc-nav">
+            
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <h1>Source code for maro.simulator.scenarios.abs_business_engine</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) Microsoft Corporation.</span>
+<span class="c1"># Licensed under the MIT license.</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">from</span> <span class="nn">maro.backends.frame</span> <span class="kn">import</span> <span class="n">FrameBase</span><span class="p">,</span> <span class="n">SnapshotList</span>
+<span class="kn">from</span> <span class="nn">maro.event_buffer</span> <span class="kn">import</span> <span class="n">EventBuffer</span>
+<span class="kn">from</span> <span class="nn">maro.simulator.utils.common</span> <span class="kn">import</span> <span class="n">tick_to_frame_index</span><span class="p">,</span> <span class="n">total_frames</span>
+
+
+<div class="viewcode-block" id="AbsBusinessEngine"><a class="viewcode-back" href="../../../../apidoc/maro.simulator.scenarios.html#maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine">[docs]</a><span class="k">class</span> <span class="nc">AbsBusinessEngine</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract class for all the business engine, a business engine is the core part of a scenario,</span>
+<span class="sd">    used to hold all related logics.</span>
+
+<span class="sd">    A business engine should have a name that used to identify it, built-in scenarios also use it to</span>
+<span class="sd">    find built-in topologies.</span>
+
+<span class="sd">    The core part of business engine is the step and post_step methods:</span>
+
+<span class="sd">    1. step: Will be called one time at each tick.</span>
+<span class="sd">    2. post_step: Will be called at the end of each tick after all the events being processed, \</span>
+<span class="sd">    simulator use the return value of this method (bool), to decide if it should stop simulation. \</span>
+<span class="sd">    This is also a good place to check business final state of current tick if you follow event-driven pattern.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        event_buffer (EventBuffer): Used to process events.</span>
+<span class="sd">        topology (str): Config name.</span>
+<span class="sd">        start_tick (int): Start tick of this business engine.</span>
+<span class="sd">        max_tick (int): Max tick of this business engine.</span>
+<span class="sd">        snapshot_resolution (int): Frequency to take a snapshot.</span>
+<span class="sd">        max_snapshots(int): Max number of in-memory snapshots, default is None that means max number of snapshots.</span>
+<span class="sd">        addition_options (dict): Additional options for this business engine from outside.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">scenario_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">event_buffer</span><span class="p">:</span> <span class="n">EventBuffer</span><span class="p">,</span> <span class="n">topology</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">start_tick</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">max_tick</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">snapshot_resolution</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">max_snapshots</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">additional_options</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_scenario_name</span> <span class="o">=</span> <span class="n">scenario_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_topology</span> <span class="o">=</span> <span class="n">topology</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_event_buffer</span> <span class="o">=</span> <span class="n">event_buffer</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_start_tick</span> <span class="o">=</span> <span class="n">start_tick</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_max_tick</span> <span class="o">=</span> <span class="n">max_tick</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_snapshot_resolution</span> <span class="o">=</span> <span class="n">snapshot_resolution</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_max_snapshots</span> <span class="o">=</span> <span class="n">max_snapshots</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_additional_options</span> <span class="o">=</span> <span class="n">additional_options</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_config_path</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">assert</span> <span class="n">start_tick</span> <span class="o">&gt;=</span> <span class="mi">0</span>
+        <span class="k">assert</span> <span class="n">max_tick</span> <span class="o">&gt;</span> <span class="n">start_tick</span>
+        <span class="k">assert</span> <span class="n">max_snapshots</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">max_snapshots</span> <span class="o">&gt;</span> <span class="mi">0</span>
+
+    <span class="nd">@property</span>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">frame</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FrameBase</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;FrameBase: Frame instance of current business engine.&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@property</span>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">snapshots</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SnapshotList</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;SnapshotList: Snapshot list of current frame, this is used to expose querying interface for outside.&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+<div class="viewcode-block" id="AbsBusinessEngine.frame_index"><a class="viewcode-back" href="../../../../apidoc/maro.simulator.scenarios.html#maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine.frame_index">[docs]</a>    <span class="k">def</span> <span class="nf">frame_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tick</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Helper method for child class, used to get index of frame in snapshot list for specified tick.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            tick (int): Tick to calculate frame index.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            int: Frame index in snapshot list of specified tick.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">tick_to_frame_index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_start_tick</span><span class="p">,</span> <span class="n">tick</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_snapshot_resolution</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AbsBusinessEngine.calc_max_snapshots"><a class="viewcode-back" href="../../../../apidoc/maro.simulator.scenarios.html#maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine.calc_max_snapshots">[docs]</a>    <span class="k">def</span> <span class="nf">calc_max_snapshots</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Helper method to calculate total snapshot should be in snapshot list with parameters passed via constructor.</span>
+
+<span class="sd">        NOTE:</span>
+<span class="sd">            This method will return max number that can contains all the frame state to the end.</span>
+<span class="sd">            You can use a small size to hold states, when hit the limitation, oldest one will be overwrote.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            int: Max snapshot number for current configuration.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_snapshots</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_snapshots</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> \
+            <span class="k">else</span> <span class="n">total_frames</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_start_tick</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_tick</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_snapshot_resolution</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AbsBusinessEngine.update_config_root_path"><a class="viewcode-back" href="../../../../apidoc/maro.simulator.scenarios.html#maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine.update_config_root_path">[docs]</a>    <span class="k">def</span> <span class="nf">update_config_root_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">business_engine_file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Helper method used to update the config path with business engine path if you</span>
+<span class="sd">        follow the way to load configuration file as built-in scenarios.</span>
+
+<span class="sd">        This method assuming that all the configuration (topologies) is under their scenario folder,</span>
+<span class="sd">        and named as topologies, each topology is one folder.</span>
+
+<span class="sd">        NOTE:</span>
+<span class="sd">            You can use your own way to place the configuration files, and ignore this.</span>
+
+<span class="sd">        Examples:</span>
+
+<span class="sd">            .. code-block:: python</span>
+
+<span class="sd">                # Define a business engine.</span>
+<span class="sd">                class MyBusinessEngine(AbsBusinessEngine):</span>
+<span class="sd">                    def __init__(self, *args, **kwargs):</span>
+<span class="sd">                        super().__init__(&quot;my_be&quot;, *args, **kwargs)</span>
+
+<span class="sd">                        # Use __file__ as parameter.</span>
+<span class="sd">                        self.update_config_root_path(__file__)</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            business_engine_file_path(str): Full path of real business engine file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_topology</span><span class="p">:</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_topology</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="n">path</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+                <span class="c1"># if topology is a existing path, then use it as config root path</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_config_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_topology</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">be_file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">business_engine_file_path</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_config_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">be_file_path</span><span class="p">,</span> <span class="s2">&quot;topologies&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_topology</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AbsBusinessEngine.step"><a class="viewcode-back" href="../../../../apidoc/maro.simulator.scenarios.html#maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine.step">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tick</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method that is called at each tick, usually used to trigger business logic at current tick.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            tick (int): Current tick from simulator.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">configs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;dict: Configurations of this business engine.&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+<div class="viewcode-block" id="AbsBusinessEngine.reset"><a class="viewcode-back" href="../../../../apidoc/maro.simulator.scenarios.html#maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine.reset">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Reset states business engine.&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="AbsBusinessEngine.post_step"><a class="viewcode-back" href="../../../../apidoc/maro.simulator.scenarios.html#maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine.post_step">[docs]</a>    <span class="k">def</span> <span class="nf">post_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tick</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;This method will be called at the end of each tick, used to post-process for each tick,</span>
+<span class="sd">        for complex business logic with many events, it maybe not easy to determine</span>
+<span class="sd">        if stop the scenario at the middle of tick, so this method is used to avoid this.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            tick (int): Current tick.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            bool: If simulator should stop simulation at current tick.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="AbsBusinessEngine.get_node_mapping"><a class="viewcode-back" href="../../../../apidoc/maro.simulator.scenarios.html#maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine.get_node_mapping">[docs]</a>    <span class="k">def</span> <span class="nf">get_node_mapping</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Get mapping for nodes, like index-&gt;name or index-&gt;id, may different for scenarios.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            dict: Key is node index, value is decided by scenario, usually is name or id.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{}</span></div>
+
+<div class="viewcode-block" id="AbsBusinessEngine.get_event_payload_detail"><a class="viewcode-back" href="../../../../apidoc/maro.simulator.scenarios.html#maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine.get_event_payload_detail">[docs]</a>    <span class="k">def</span> <span class="nf">get_event_payload_detail</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Get payload keys for all kinds of event.</span>
+
+<span class="sd">        For the performance of the simulator, some event payload has no corresponding Python object.</span>
+<span class="sd">        This mapping is provided for your convenience in such case.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            dict: Key is the event type in string format, value is a list of available keys.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{}</span></div>
+
+<div class="viewcode-block" id="AbsBusinessEngine.get_metrics"><a class="viewcode-back" href="../../../../apidoc/maro.simulator.scenarios.html#maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine.get_metrics">[docs]</a>    <span class="k">def</span> <span class="nf">get_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Get statistics information, may different for scenarios.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            dict: Dictionary about metrics, content and format determined by business engine.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{}</span></div>
+
+<div class="viewcode-block" id="AbsBusinessEngine.dump"><a class="viewcode-back" href="../../../../apidoc/maro.simulator.scenarios.html#maro.simulator.scenarios.abs_business_engine.AbsBusinessEngine.dump">[docs]</a>    <span class="k">def</span> <span class="nf">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">folder</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Dump something from business engine.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            folder (str): Folder to place dumped files.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div></div>
+</pre></div>
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../../../../_static/js/index.js"></script>
+    
+  </body>
+</html>

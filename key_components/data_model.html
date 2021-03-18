@@ -1,0 +1,626 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Model &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Event Buffer" href="event_buffer.html" />
+    <link rel="prev" title="Simulation Toolkit" href="simulation_toolkit.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../index.html">
+  
+  <img src="../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="current nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1 current active">
+  <a class="current reference internal" href="#">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../apidoc/maro.html">
+   maro package
+  </a>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+        
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="../_sources/key_components/data_model.rst.txt"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.rst</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2Fkey_components/data_model.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        <a class="edit-button" href="https://github.com/microsoft/maro/edit/master/doc/source/key_components/data_model.rst"><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Edit this page"><i class="fas fa-pencil-alt"></i>suggest edit</button></a>
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <div class="tocsection onthispage pt-5 pb-3">
+            <i class="fas fa-list"></i> Contents
+        </div>
+        <nav id="bd-toc-nav">
+            <ul class="nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#key-concepts">
+   Key Concepts
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#id1">
+   Use Case
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#supported-attribute-data-type">
+   Supported Attribute Data Type
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#advanced-features">
+   Advanced Features
+  </a>
+ </li>
+</ul>
+
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <div class="section" id="data-model">
+<h1>Data Model<a class="headerlink" href="#data-model" title="Permalink to this headline">¶</a></h1>
+<p>The data model of MARO provides a declarative interface. We choose Python as
+the frontend language for saving development cost, and we take C as
+the backend language for improving the execution reference. What’s more,
+the backend store is a pluggable design, user can choose different backend
+implementation based on their real performance requirement and device limitation.</p>
+<p>Currenty there are two data model backend implementation: static and dynamic.
+Static implementation used Numpy as its data store, do not support dynamic
+attribute length, the advance of this version is that its memory size is same as its
+declaration.
+Dynamic implementation is hand-craft c++.
+It supports dynamic attribute (list) which will take more memory than the static implementation
+but is faster for querying snapshot states and accessing attributes.</p>
+<div class="section" id="key-concepts">
+<h2>Key Concepts<a class="headerlink" href="#key-concepts" title="Permalink to this headline">¶</a></h2>
+<a class="reference external image-reference" href="../images/simulator/key_concepts.svg"><img alt="Key Concepts" src="../_images/key_concepts.svg" width="220" /></a>
+<p>As shown in the figure above, there are some key concepts in the data model:</p>
+<ul class="simple">
+<li><p><strong>Node</strong> is the abstraction of the resource holder, which is usually the major
+business instance of the scenario (i.e. vessels and ports in CIM scenario). A
+node usually has various attributes to present the business nature.</p></li>
+<li><p><strong>(Slot) Attribute</strong> is the abstraction of business properties for the
+scenarios-specific resource holder (node). The attributes of a node could be
+declared as different data types based on the real requirements. Furthermore,
+for each attribute, a <code class="docutils literal notranslate"><span class="pre">slot</span></code> feature is provided to support the fixed-size array.
+The <code class="docutils literal notranslate"><span class="pre">slot</span></code> number can indicate the attribute values (e.g. the three different
+container types in CIM scenario) or the detailed categories (e.g. the ten specific
+products in the <a class="reference external" href="#use-case">Use Case</a> below). By default, the <code class="docutils literal notranslate"><span class="pre">slot</span></code> value is one.
+As for the dynamic backend implementation, an attribute can be marked as is_list or is_const to identify
+it is a list attribute or a const attribute respectively.
+A list attribute’s default slot number is 0, and can be increased as demand, max number is 2^32.
+A const attribute is designed for the value that will not change after initialization,
+e.g. the capacity of a port/station. The value is shared between frames and will not be copied
+when taking a snapshot.</p></li>
+<li><p><strong>Frame</strong> is the collection of all nodes in the environment. The historical frames
+present the aggregated state of the environment during a specific period, while
+the current frame hosts the latest state of the environment at the current time point.</p></li>
+<li><p><strong>Snapshot List</strong> is the dumped frames based on a pre-defined resolution.
+It captures the aggregated changes of the environment between the dump points.</p></li>
+</ul>
+</div>
+<div class="section" id="id1">
+<h2>Use Case<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p>Below is the declaration of a retail frame, which includes warehouse and store nodes.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">maro.backends.backend</span> <span class="kn">import</span> <span class="n">AttributeType</span>
+<span class="kn">from</span> <span class="nn">maro.backends.frame</span> <span class="kn">import</span> <span class="n">node</span><span class="p">,</span> <span class="n">NodeAttribute</span><span class="p">,</span> <span class="n">NodeBase</span><span class="p">,</span> <span class="n">FrameNode</span><span class="p">,</span> <span class="n">FrameBase</span>
+
+<span class="n">TOTAL_PRODUCT_CATEGORIES</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">TOTAL_STORES</span> <span class="o">=</span> <span class="mi">8</span>
+<span class="n">TOTAL_WAREHOUSES</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="n">TOTAL_SNAPSHOT</span> <span class="o">=</span> <span class="mi">100</span>
+
+
+<span class="nd">@node</span><span class="p">(</span><span class="s2">&quot;warehouse&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">Warehouse</span><span class="p">(</span><span class="n">NodeBase</span><span class="p">):</span>
+    <span class="n">inventories</span> <span class="o">=</span> <span class="n">NodeAttribute</span><span class="p">(</span><span class="n">AttributeType</span><span class="o">.</span><span class="n">Int</span><span class="p">,</span> <span class="n">TOTAL_PRODUCT_CATEGORIES</span><span class="p">)</span>
+    <span class="n">shortages</span> <span class="o">=</span> <span class="n">NodeAttribute</span><span class="p">(</span><span class="n">AttributeType</span><span class="o">.</span><span class="n">Int</span><span class="p">,</span> <span class="n">TOTAL_PRODUCT_CATEGORIES</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_inventories</span> <span class="o">=</span> <span class="p">[</span><span class="mi">100</span> <span class="o">*</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">TOTAL_PRODUCT_CATEGORIES</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_shortages</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">TOTAL_PRODUCT_CATEGORIES</span>
+
+    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inventories</span><span class="p">[:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_inventories</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shortages</span><span class="p">[:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_shortages</span>
+
+
+<span class="nd">@node</span><span class="p">(</span><span class="s2">&quot;store&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">Store</span><span class="p">(</span><span class="n">NodeBase</span><span class="p">):</span>
+    <span class="n">inventories</span> <span class="o">=</span> <span class="n">NodeAttribute</span><span class="p">(</span><span class="n">AttributeType</span><span class="o">.</span><span class="n">Int</span><span class="p">,</span> <span class="n">TOTAL_PRODUCT_CATEGORIES</span><span class="p">)</span>
+    <span class="n">shortages</span> <span class="o">=</span> <span class="n">NodeAttribute</span><span class="p">(</span><span class="n">AttributeType</span><span class="o">.</span><span class="n">Int</span><span class="p">,</span> <span class="n">TOTAL_PRODUCT_CATEGORIES</span><span class="p">)</span>
+    <span class="n">sales</span> <span class="o">=</span> <span class="n">NodeAttribute</span><span class="p">(</span><span class="n">AttributeType</span><span class="o">.</span><span class="n">Int</span><span class="p">,</span> <span class="n">TOTAL_PRODUCT_CATEGORIES</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_inventories</span> <span class="o">=</span> <span class="p">[</span><span class="mi">10</span> <span class="o">*</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">TOTAL_PRODUCT_CATEGORIES</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_shortages</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">TOTAL_PRODUCT_CATEGORIES</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_sales</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">TOTAL_PRODUCT_CATEGORIES</span>
+
+    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inventories</span><span class="p">[:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_inventories</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shortages</span><span class="p">[:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_shortages</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sales</span><span class="p">[:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_sales</span>
+
+
+<span class="k">class</span> <span class="nc">RetailFrame</span><span class="p">(</span><span class="n">FrameBase</span><span class="p">):</span>
+    <span class="n">warehouses</span> <span class="o">=</span> <span class="n">FrameNode</span><span class="p">(</span><span class="n">Warehouse</span><span class="p">,</span> <span class="n">TOTAL_WAREHOUSES</span><span class="p">)</span>
+    <span class="n">stores</span> <span class="o">=</span> <span class="n">FrameNode</span><span class="p">(</span><span class="n">Store</span><span class="p">,</span> <span class="n">TOTAL_STORES</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># If your actual frame number was more than the total snapshot number, the old snapshots would be rolling replaced.</span>
+        <span class="c1"># You can select a backend implementation that will fit your requirement.</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">enable_snapshot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">total_snapshot</span><span class="o">=</span><span class="n">TOTAL_SNAPSHOT</span><span class="p">,</span> <span class="n">backend_name</span><span class="o">=</span><span class="s2">&quot;static/dynamic&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p>The operations on the retail frame.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">retail_frame</span> <span class="o">=</span> <span class="n">RetailFrame</span><span class="p">()</span>
+
+<span class="c1"># Fulfill the initialization values to the backend memory.</span>
+<span class="k">for</span> <span class="n">store</span> <span class="ow">in</span> <span class="n">retail_frame</span><span class="o">.</span><span class="n">stores</span><span class="p">:</span>
+    <span class="n">store</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+<span class="c1"># Fulfill the initialization values to the backend memory.</span>
+<span class="k">for</span> <span class="n">warehouse</span> <span class="ow">in</span> <span class="n">retail_frame</span><span class="o">.</span><span class="n">warehouses</span><span class="p">:</span>
+    <span class="n">warehouse</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+<span class="c1"># Take a snapshot of the first tick frame.</span>
+<span class="n">retail_frame</span><span class="o">.</span><span class="n">take_snapshot</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">snapshot_list</span> <span class="o">=</span> <span class="n">retail_frame</span><span class="o">.</span><span class="n">snapshots</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Max snapshot list capacity: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">snapshot_list</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Query sales, inventory information of all stores at first tick, len(snapshot_list[&quot;store&quot;]) equals to TOTAL_STORES.</span>
+<span class="n">all_stores_info</span> <span class="o">=</span> <span class="n">snapshot_list</span><span class="p">[</span><span class="s2">&quot;store&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">::[</span><span class="s2">&quot;sales&quot;</span><span class="p">,</span> <span class="s2">&quot;inventories&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">TOTAL_STORES</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;All stores information at first tick (numpy array): </span><span class="si">{</span><span class="n">all_stores_info</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Query shortage information of first store at first tick.</span>
+<span class="n">first_store_shortage</span> <span class="o">=</span> <span class="n">snapshot_list</span><span class="p">[</span><span class="s2">&quot;store&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">0</span><span class="p">:</span><span class="s2">&quot;shortages&quot;</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;First store shortages at first tick (numpy array): </span><span class="si">{</span><span class="n">first_store_shortage</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Query inventory information of all warehouses at first tick, len(snapshot_list[&quot;warehouse&quot;]) equals to TOTAL_WAREHOUSES.</span>
+<span class="n">all_warehouses_info</span> <span class="o">=</span> <span class="n">snapshot_list</span><span class="p">[</span><span class="s2">&quot;warehouse&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">::</span><span class="s2">&quot;inventories&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">TOTAL_WAREHOUSES</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;All warehouses information at first tick (numpy array): </span><span class="si">{</span><span class="n">all_warehouses_info</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Add fake shortages to first store.</span>
+<span class="n">retail_frame</span><span class="o">.</span><span class="n">stores</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shortages</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">TOTAL_PRODUCT_CATEGORIES</span><span class="p">)]</span>
+<span class="n">retail_frame</span><span class="o">.</span><span class="n">take_snapshot</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># Query shortage information of first and second store at first and second tick.</span>
+<span class="n">store_shortage_history</span> <span class="o">=</span> <span class="n">snapshot_list</span><span class="p">[</span><span class="s2">&quot;store&quot;</span><span class="p">][[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]:</span> <span class="s2">&quot;shortages&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;First and second store shortage history at the first and second tick (numpy array): </span><span class="si">{</span><span class="n">store_shortage_history</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</div>
+<div class="section" id="supported-attribute-data-type">
+<h2>Supported Attribute Data Type<a class="headerlink" href="#supported-attribute-data-type" title="Permalink to this headline">¶</a></h2>
+<p>All supported data types for the attribute of the node:</p>
+<table class="colwidths-given table">
+<colgroup>
+<col style="width: 23%" />
+<col style="width: 23%" />
+<col style="width: 55%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Attribute Data Type</p></th>
+<th class="head"><p>C Type</p></th>
+<th class="head"><p>Range</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Attribute.Byte</p></td>
+<td><p>char</p></td>
+<td><p>-128 .. 127</p></td>
+</tr>
+<tr class="row-odd"><td><p>Attribute.UByte</p></td>
+<td><p>unsigned char</p></td>
+<td><p>0 .. 255</p></td>
+</tr>
+<tr class="row-even"><td><p>Attribute.Short (i2)</p></td>
+<td><p>short</p></td>
+<td><p>-32,768 .. 32,767</p></td>
+</tr>
+<tr class="row-odd"><td><p>Attribute.UShort</p></td>
+<td><p>unsigned short</p></td>
+<td><p>0 .. 65,535</p></td>
+</tr>
+<tr class="row-even"><td><p>Attribute.Int (i4)</p></td>
+<td><p>int32_t</p></td>
+<td><p>-2,147,483,648 .. 2,147,483,647</p></td>
+</tr>
+<tr class="row-odd"><td><p>Attribute.UInt (i4)</p></td>
+<td><p>uint32_t</p></td>
+<td><p>0 .. 4,294,967,295</p></td>
+</tr>
+<tr class="row-even"><td><p>Attribute.Long (i8)</p></td>
+<td><p>int64_t</p></td>
+<td><p>-9,223,372,036,854,775,808 .. 9,223,372,036,854,775,807</p></td>
+</tr>
+<tr class="row-odd"><td><p>Attribute.ULong (i8)</p></td>
+<td><p>uint64_t</p></td>
+<td><p>0 .. 18,446,744,073,709,551,615</p></td>
+</tr>
+<tr class="row-even"><td><p>Attribute.Float (f)</p></td>
+<td><p>float</p></td>
+<td><p>-3.4E38 .. 3.4E38</p></td>
+</tr>
+<tr class="row-odd"><td><p>Attribute.Double (d)</p></td>
+<td><p>double</p></td>
+<td><p>-1.7E308 .. 1.7E308</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="advanced-features">
+<h2>Advanced Features<a class="headerlink" href="#advanced-features" title="Permalink to this headline">¶</a></h2>
+<p>For better data access, we also provide some advanced features, including:</p>
+<ul>
+<li><p><strong>Attribute value change handler</strong>: It is a hook function for the value change
+event on a specific attribute. The member function with the
+<code class="docutils literal notranslate"><span class="pre">_on_{attribute_name}_changed</span></code> naming pattern will be automatically invoked when
+the related attribute value changed. Below is the example code:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">maro.backends.frame</span> <span class="kn">import</span> <span class="n">node</span><span class="p">,</span> <span class="n">NodeBase</span><span class="p">,</span> <span class="n">NodeAttribute</span>
+
+<span class="nd">@node</span><span class="p">(</span><span class="s2">&quot;test_node&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">TestNode</span><span class="p">(</span><span class="n">NodeBase</span><span class="p">):</span>
+    <span class="n">test_attribute</span> <span class="o">=</span> <span class="n">NodeAttribute</span><span class="p">(</span><span class="s2">&quot;i&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_on_test_attribute_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="k">pass</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Snapshot list slicing</strong>: It provides a slicing interface for querying
+temporal (frame), spatial (node), intra-node (attribute) information. Both a
+single index and an index list are supported for querying specific frame(s),
+node(s), and attribute(s), while the empty means querying all. The return value
+is a flattened 1-dimension NumPy array, which aligns with the slicing order as below:</p>
+<a class="reference external image-reference" href="../images/simulator/snapshot_list_slicing.svg"><img alt="Snapshot List Slicing" src="../_images/snapshot_list_slicing.svg" /></a>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">snapshot_list</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">snapshot_list</span>
+
+<span class="c1"># Get max size of snapshots (in memory).</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Max snapshot size: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">snapshot_list</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Get snapshots of a specific node type.</span>
+<span class="n">test_nodes_snapshots</span> <span class="o">=</span> <span class="n">snapshot_list</span><span class="p">[</span><span class="s2">&quot;test_nodes&quot;</span><span class="p">]</span>
+
+<span class="c1"># Get node instance amount.</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of test_nodes in the frame: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">test_nodes_snapshots</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Query one attribute on all frames and nodes.</span>
+<span class="n">states</span> <span class="o">=</span> <span class="n">test_nodes_snapshots</span><span class="p">[::</span><span class="s2">&quot;int_attribute&quot;</span><span class="p">]</span>
+
+<span class="c1"># Query two attributes on all frames and nodes.</span>
+<span class="n">states</span> <span class="o">=</span> <span class="n">test_nodes_snapshots</span><span class="p">[::[</span><span class="s2">&quot;int_attribute&quot;</span><span class="p">,</span> <span class="s2">&quot;float_attribute&quot;</span><span class="p">]]</span>
+
+<span class="c1"># Query one attribute on all frame and the first node.</span>
+<span class="n">states</span> <span class="o">=</span> <span class="n">test_nodes_snapshots</span><span class="p">[:</span><span class="mi">0</span><span class="p">:</span><span class="s2">&quot;int_attribute&quot;</span><span class="p">]</span>
+
+<span class="c1"># Query attribute by node index list.</span>
+<span class="n">states</span> <span class="o">=</span> <span class="n">test_nodes_snapshots</span><span class="p">[:[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]:</span><span class="s2">&quot;int_attribute&quot;</span><span class="p">]</span>
+
+<span class="c1"># Query one attribute on the first frame and the first node.</span>
+<span class="n">states</span> <span class="o">=</span> <span class="n">test_nodes_snapshots</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">0</span><span class="p">:</span><span class="s2">&quot;int_attribute&quot;</span><span class="p">]</span>
+
+<span class="c1"># Query attribute by frame index list.</span>
+<span class="n">states</span> <span class="o">=</span> <span class="n">test_nodes_snapshots</span><span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]:</span> <span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;int_attribute&quot;</span><span class="p">]</span>
+
+<span class="c1"># The querying states is different between static and dynamic implementation</span>
+<span class="c1"># Static implementation will return a 1-dim numpy array, as the shape is known according to the parameters.</span>
+<span class="c1"># Dynamic implementation will return a 4-dim numpy array, that shape is (ticks, node_indices, attributes, slots).</span>
+<span class="c1"># Usually we can just flatten the state from dynamic implementation, then it will be same as static implementation,</span>
+<span class="c1"># except for list attributes.</span>
+<span class="c1"># List attribute only support one tick, one node index and one attribute name to query, cannot mix with normal attributes</span>
+<span class="n">states</span> <span class="o">=</span> <span class="n">test_nodes_snapshots</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span> <span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;list_attribute&quot;</span><span class="p">]</span>
+
+<span class="c1"># Also with dynamic implementation, we can get the const attributes which is shared between snapshot list, even without</span>
+<span class="c1"># any snapshot (need to provided one tick for padding).</span>
+<span class="n">states</span> <span class="o">=</span> <span class="n">test_nodes_snapshots</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]:</span> <span class="p">[</span><span class="s2">&quot;const_attribute&quot;</span><span class="p">,</span> <span class="s2">&quot;const_attribute_2&quot;</span><span class="p">]]</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</div>
+</div>
+
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+    <a class='left-prev' id="prev-link" href="simulation_toolkit.html" title="previous page">Simulation Toolkit</a>
+    <a class='right-next' id="next-link" href="event_buffer.html" title="next page">Event Buffer</a>
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../_static/js/index.js"></script>
+    
+  </body>
+</html>

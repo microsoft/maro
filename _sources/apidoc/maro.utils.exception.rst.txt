@@ -1,0 +1,78 @@
+maro.utils.exception package
+============================
+
+Submodules
+----------
+
+maro.utils.exception.backends\_exception module
+-----------------------------------------------
+
+.. automodule:: maro.utils.exception.backends_exception
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.utils.exception.base\_exception module
+-------------------------------------------
+
+.. automodule:: maro.utils.exception.base_exception
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.utils.exception.cli\_exception module
+------------------------------------------
+
+.. automodule:: maro.utils.exception.cli_exception
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.utils.exception.communication\_exception module
+----------------------------------------------------
+
+.. automodule:: maro.utils.exception.communication_exception
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.utils.exception.data\_lib\_exeption module
+-----------------------------------------------
+
+.. automodule:: maro.utils.exception.data_lib_exeption
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.utils.exception.error\_code module
+---------------------------------------
+
+.. automodule:: maro.utils.exception.error_code
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.utils.exception.rl\_toolkit\_exception module
+--------------------------------------------------
+
+.. automodule:: maro.utils.exception.rl_toolkit_exception
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.utils.exception.simulator\_exception module
+------------------------------------------------
+
+.. automodule:: maro.utils.exception.simulator_exception
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: maro.utils.exception
+   :members:
+   :undoc-members:
+   :show-inheritance:

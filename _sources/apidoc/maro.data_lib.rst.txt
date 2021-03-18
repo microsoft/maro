@@ -1,0 +1,62 @@
+maro.data\_lib package
+======================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   maro.data_lib.cim
+
+Submodules
+----------
+
+maro.data\_lib.binary\_converter module
+---------------------------------------
+
+.. automodule:: maro.data_lib.binary_converter
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.data\_lib.binary\_reader module
+------------------------------------
+
+.. automodule:: maro.data_lib.binary_reader
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.data\_lib.common module
+----------------------------
+
+.. automodule:: maro.data_lib.common
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.data\_lib.dump\_csv\_converter module
+------------------------------------------
+
+.. automodule:: maro.data_lib.dump_csv_converter
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.data\_lib.item\_meta module
+--------------------------------
+
+.. automodule:: maro.data_lib.item_meta
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: maro.data_lib
+   :members:
+   :undoc-members:
+   :show-inheritance:

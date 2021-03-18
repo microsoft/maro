@@ -1,0 +1,1012 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maro.communication.proxy &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../../../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/sphinx-book-theme.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../_static/clipboard.min.js"></script>
+    <script src="../../../_static/copybutton.js"></script>
+    <script src="../../../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../../../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../../../index.html">
+  
+  <img src="../../../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../scenarios/container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../scenarios/citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../scenarios/vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../key_components/dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../apidoc/maro.html">
+   maro package
+  </a>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2F_modules/maro/communication/proxy.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <nav id="bd-toc-nav">
+            
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <h1>Source code for maro.communication.proxy</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) Microsoft Corporation.</span>
+<span class="c1"># Licensed under the MIT license.</span>
+
+<span class="c1"># native lib</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">signal</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span><span class="p">,</span> <span class="n">deque</span><span class="p">,</span> <span class="n">namedtuple</span>
+<span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="c1"># third party lib</span>
+<span class="kn">import</span> <span class="nn">redis</span>
+
+<span class="c1"># private lib</span>
+<span class="kn">from</span> <span class="nn">maro.utils</span> <span class="kn">import</span> <span class="n">DummyLogger</span><span class="p">,</span> <span class="n">InternalLogger</span>
+<span class="kn">from</span> <span class="nn">maro.utils.exception.communication_exception</span> <span class="kn">import</span> <span class="n">InformationUncompletedError</span><span class="p">,</span> <span class="n">PeersMissError</span><span class="p">,</span> <span class="n">PendingToSend</span>
+<span class="kn">from</span> <span class="nn">maro.utils.exit_code</span> <span class="kn">import</span> <span class="n">KILL_ALL_EXIT_CODE</span><span class="p">,</span> <span class="n">NON_RESTART_EXIT_CODE</span>
+
+<span class="kn">from</span> <span class="nn">.driver</span> <span class="kn">import</span> <span class="n">DriverType</span><span class="p">,</span> <span class="n">ZmqDriver</span>
+<span class="kn">from</span> <span class="nn">.message</span> <span class="kn">import</span> <span class="n">Message</span><span class="p">,</span> <span class="n">NotificationSessionStage</span><span class="p">,</span> <span class="n">SessionMessage</span><span class="p">,</span> <span class="n">SessionType</span><span class="p">,</span> <span class="n">TaskSessionStage</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">default_parameters</span>
+
+<span class="n">_PEER_INFO</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s2">&quot;PEER_INFO&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;hash_table_name&quot;</span><span class="p">,</span> <span class="s2">&quot;expected_number&quot;</span><span class="p">])</span>
+<span class="n">HOST</span> <span class="o">=</span> <span class="n">default_parameters</span><span class="o">.</span><span class="n">proxy</span><span class="o">.</span><span class="n">redis</span><span class="o">.</span><span class="n">host</span>
+<span class="n">PORT</span> <span class="o">=</span> <span class="n">default_parameters</span><span class="o">.</span><span class="n">proxy</span><span class="o">.</span><span class="n">redis</span><span class="o">.</span><span class="n">port</span>
+<span class="n">MAX_RETRIES</span> <span class="o">=</span> <span class="n">default_parameters</span><span class="o">.</span><span class="n">proxy</span><span class="o">.</span><span class="n">redis</span><span class="o">.</span><span class="n">max_retries</span>
+<span class="n">BASE_RETRY_INTERVAL</span> <span class="o">=</span> <span class="n">default_parameters</span><span class="o">.</span><span class="n">proxy</span><span class="o">.</span><span class="n">redis</span><span class="o">.</span><span class="n">base_retry_interval</span>
+<span class="n">DELAY_FOR_SLOW_JOINER</span> <span class="o">=</span> <span class="n">default_parameters</span><span class="o">.</span><span class="n">proxy</span><span class="o">.</span><span class="n">delay_for_slow_joiner</span>
+<span class="n">ENABLE_REJOIN</span> <span class="o">=</span> <span class="n">default_parameters</span><span class="o">.</span><span class="n">proxy</span><span class="o">.</span><span class="n">peer_rejoin</span><span class="o">.</span><span class="n">enable</span>  <span class="c1"># Only enable at real k8s cluster or grass cluster</span>
+<span class="n">PEERS_CATCH_LIFETIME</span> <span class="o">=</span> <span class="n">default_parameters</span><span class="o">.</span><span class="n">proxy</span><span class="o">.</span><span class="n">peer_rejoin</span><span class="o">.</span><span class="n">peers_catch_lifetime</span>
+<span class="n">ENABLE_MESSAGE_CACHE_FOR_REJOIN</span> <span class="o">=</span> <span class="n">default_parameters</span><span class="o">.</span><span class="n">proxy</span><span class="o">.</span><span class="n">peer_rejoin</span><span class="o">.</span><span class="n">enable_message_cache</span>
+<span class="n">TIMEOUT_FOR_MINIMAL_PEER_NUMBER</span> <span class="o">=</span> <span class="n">default_parameters</span><span class="o">.</span><span class="n">proxy</span><span class="o">.</span><span class="n">peer_rejoin</span><span class="o">.</span><span class="n">timeout_for_minimal_peer_number</span>
+<span class="n">MINIMAL_PEERS</span> <span class="o">=</span> <span class="n">default_parameters</span><span class="o">.</span><span class="n">proxy</span><span class="o">.</span><span class="n">peer_rejoin</span><span class="o">.</span><span class="n">minimal_peers</span>
+<span class="n">IS_REMOVE_FAILED_CONTAINER</span> <span class="o">=</span> <span class="n">default_parameters</span><span class="o">.</span><span class="n">proxy</span><span class="o">.</span><span class="n">peer_rejoin</span><span class="o">.</span><span class="n">is_remove_failed_container</span>
+<span class="n">MAX_REJOIN_TIMES</span> <span class="o">=</span> <span class="n">default_parameters</span><span class="o">.</span><span class="n">proxy</span><span class="o">.</span><span class="n">peer_rejoin</span><span class="o">.</span><span class="n">max_rejoin_times</span>
+<span class="n">MAX_LENGTH_FOR_MESSAGE_CACHE</span> <span class="o">=</span> <span class="n">default_parameters</span><span class="o">.</span><span class="n">proxy</span><span class="o">.</span><span class="n">peer_rejoin</span><span class="o">.</span><span class="n">max_length_for_message_cache</span>
+
+
+<div class="viewcode-block" id="Proxy"><a class="viewcode-back" href="../../../apidoc/maro.communication.html#maro.communication.proxy.Proxy">[docs]</a><span class="k">class</span> <span class="nc">Proxy</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;The communication module is responsible for receiving and sending messages.</span>
+
+<span class="sd">    There are three ways of sending messages: ``send``, ``scatter``, and ``broadcast``. Also, there are two ways to</span>
+<span class="sd">    receive messages from other peers: ``receive`` and ``receive_by_id``.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        group_name (str): Identifier for the group of all distributed components.</span>
+<span class="sd">        component_type (str): Component&#39;s type in the current group.</span>
+<span class="sd">        expected_peers (Dict): Dict of peers&#39; information which contains peer type and expected number.</span>
+<span class="sd">            E.g. Dict[&#39;learner&#39;: 1, &#39;actor&#39;: 2]</span>
+<span class="sd">        driver_type (Enum): A type of communication driver class uses to communicate with other components.</span>
+<span class="sd">            Defaults to ``DriverType.ZMQ``.</span>
+<span class="sd">        driver_parameters (Dict): The arguments for communication driver class initial. Defaults to None.</span>
+<span class="sd">        redis_address (Tuple): Hostname and port of the Redis server. Defaults to (&quot;localhost&quot;, 6379).</span>
+<span class="sd">        max_retries (int): Maximum number of retries before raising an exception. Defaults to 5.</span>
+<span class="sd">        retry_interval_base_value (float): The time interval between attempts. Defaults to 0.1.</span>
+<span class="sd">        log_enable (bool): Open internal logger or not. Defaults to True.</span>
+<span class="sd">        enable_rejoin (bool): Allow peers rejoin or not. Defaults to False, and must use with maro cli.</span>
+<span class="sd">        minimal_peers Union[int, dict]: The minimal number of peers for each peer type.</span>
+<span class="sd">        peers_catch_lifetime (int): The lifetime for onboard peers&#39; information.</span>
+<span class="sd">        enable_message_cache_for_rejoin (bool): Enable message cache for failed peers or not. Default to False.</span>
+<span class="sd">        max_length_for_message_cache (int): The maximal number of cached messages.</span>
+<span class="sd">        timeout_for_minimal_peer_number (int): The timeout of waiting enough alive peers.</span>
+<span class="sd">        is_remove_failed_container (bool): Enable remove failed containers automatically or not. Default to False.</span>
+<span class="sd">        max_rejoin_times (int): The maximal retry times for one peer rejoins.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">group_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">component_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">expected_peers</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">driver_type</span><span class="p">:</span> <span class="n">DriverType</span> <span class="o">=</span> <span class="n">DriverType</span><span class="o">.</span><span class="n">ZMQ</span><span class="p">,</span>
+        <span class="n">driver_parameters</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">redis_address</span><span class="p">:</span> <span class="n">Tuple</span> <span class="o">=</span> <span class="p">(</span><span class="n">HOST</span><span class="p">,</span> <span class="n">PORT</span><span class="p">),</span>
+        <span class="n">max_retries</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">MAX_RETRIES</span><span class="p">,</span>
+        <span class="n">retry_interval_base_value</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">BASE_RETRY_INTERVAL</span><span class="p">,</span>
+        <span class="n">log_enable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">enable_rejoin</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">ENABLE_REJOIN</span><span class="p">,</span>
+        <span class="n">minimal_peers</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="n">MINIMAL_PEERS</span><span class="p">,</span>
+        <span class="n">peers_catch_lifetime</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">PEERS_CATCH_LIFETIME</span><span class="p">,</span>
+        <span class="n">enable_message_cache_for_rejoin</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">ENABLE_MESSAGE_CACHE_FOR_REJOIN</span><span class="p">,</span>
+        <span class="n">max_length_for_message_cache</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">MAX_LENGTH_FOR_MESSAGE_CACHE</span><span class="p">,</span>
+        <span class="n">timeout_for_minimal_peer_number</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">TIMEOUT_FOR_MINIMAL_PEER_NUMBER</span><span class="p">,</span>
+        <span class="n">is_remove_failed_container</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">IS_REMOVE_FAILED_CONTAINER</span><span class="p">,</span>
+        <span class="n">max_rejoin_times</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">MAX_REJOIN_TIMES</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_group_name</span> <span class="o">=</span> <span class="n">group_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_component_type</span> <span class="o">=</span> <span class="n">component_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_redis_hash_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_group_name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_component_type</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;COMPONENT_NAME&quot;</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;COMPONENT_NAME&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">unique_id</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid1</span><span class="p">())</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_component_type</span><span class="si">}</span><span class="s2">_proxy_</span><span class="si">{</span><span class="n">unique_id</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_max_retries</span> <span class="o">=</span> <span class="n">max_retries</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_retry_interval_base_value</span> <span class="o">=</span> <span class="n">retry_interval_base_value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log_enable</span> <span class="o">=</span> <span class="n">log_enable</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span> <span class="o">=</span> <span class="n">InternalLogger</span><span class="p">(</span><span class="n">component_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_log_enable</span> <span class="k">else</span> <span class="n">DummyLogger</span><span class="p">()</span>
+
+        <span class="c1"># TODO:In multiprocess with spawn start method, the driver must be initiated before the Redis.</span>
+        <span class="c1"># Otherwise it will cause Error 9: Bad File Descriptor in proxy.__del__(). Root cause not found.</span>
+        <span class="c1"># Initialize the driver.</span>
+        <span class="k">if</span> <span class="n">driver_type</span> <span class="o">==</span> <span class="n">DriverType</span><span class="o">.</span><span class="n">ZMQ</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_driver</span> <span class="o">=</span> <span class="n">ZmqDriver</span><span class="p">(</span>
+                <span class="n">component_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_component_type</span><span class="p">,</span> <span class="o">**</span><span class="n">driver_parameters</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_logger</span>
+            <span class="p">)</span> <span class="k">if</span> <span class="n">driver_parameters</span> <span class="k">else</span> <span class="n">ZmqDriver</span><span class="p">(</span><span class="n">component_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_component_type</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported driver type </span><span class="si">{</span><span class="n">driver_type</span><span class="si">}</span><span class="s2">, please use DriverType class.&quot;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">NON_RESTART_EXIT_CODE</span><span class="p">)</span>
+
+        <span class="c1"># Initialize the Redis.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_redis_connection</span> <span class="o">=</span> <span class="n">redis</span><span class="o">.</span><span class="n">Redis</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="n">redis_address</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">port</span><span class="o">=</span><span class="n">redis_address</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">socket_keepalive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_redis_connection</span><span class="o">.</span><span class="n">ping</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="si">}</span><span class="s2"> failure to connect to redis server due to </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">NON_RESTART_EXIT_CODE</span><span class="p">)</span>
+
+        <span class="c1"># Record the peer&#39;s redis information.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_peers_info_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">peer_type</span><span class="p">,</span> <span class="n">number</span> <span class="ow">in</span> <span class="n">expected_peers</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_peers_info_dict</span><span class="p">[</span><span class="n">peer_type</span><span class="p">]</span> <span class="o">=</span> <span class="n">_PEER_INFO</span><span class="p">(</span>
+                <span class="n">hash_table_name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_group_name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">peer_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">expected_number</span><span class="o">=</span><span class="n">number</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_onboard_peer_dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
+
+        <span class="c1"># Temporary store the message.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_message_cache</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+
+        <span class="c1"># Parameters for dynamic peers.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_enable_rejoin</span> <span class="o">=</span> <span class="n">enable_rejoin</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_remove_failed_container</span> <span class="o">=</span> <span class="n">is_remove_failed_container</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_max_rejoin_times</span> <span class="o">=</span> <span class="n">max_rejoin_times</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_enable_rejoin</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_peers_catch_lifetime</span> <span class="o">=</span> <span class="n">peers_catch_lifetime</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_timeout_for_minimal_peer_number</span> <span class="o">=</span> <span class="n">timeout_for_minimal_peer_number</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_enable_message_cache</span> <span class="o">=</span> <span class="n">enable_message_cache_for_rejoin</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_enable_message_cache</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_message_cache_for_exited_peers</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span>
+                    <span class="k">lambda</span><span class="p">:</span> <span class="n">deque</span><span class="p">([],</span> <span class="n">maxlen</span><span class="o">=</span><span class="n">max_length_for_message_cache</span><span class="p">)</span>
+                <span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">minimal_peers</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_minimal_peers</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="n">peer_type</span><span class="p">:</span> <span class="nb">max</span><span class="p">(</span><span class="n">minimal_peers</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">peer_type</span><span class="p">,</span> <span class="n">peer_info</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_peers_info_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                <span class="p">}</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">minimal_peers</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_minimal_peers</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="n">peer_type</span><span class="p">:</span> <span class="nb">max</span><span class="p">(</span><span class="n">minimal_peers</span><span class="p">[</span><span class="n">peer_type</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">peer_type</span><span class="p">,</span> <span class="n">peer_info</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_peers_info_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                <span class="p">}</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Unsupported minimal peers type, please use integer or dict.&quot;</span><span class="p">)</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">NON_RESTART_EXIT_CODE</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_join</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_signal_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">signum</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_redis_connection</span><span class="o">.</span><span class="n">hdel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_redis_hash_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="si">}</span><span class="s2"> received Signal: </span><span class="si">{</span><span class="n">signum</span><span class="si">}</span><span class="s2"> at frame: </span><span class="si">{</span><span class="n">frame</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">signum</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_join</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Join the communication network for the experiment given by experiment_name with ID given by name.</span>
+
+<span class="sd">        Specifically, it gets sockets&#39; address for receiving (pulling) messages from its driver and uploads</span>
+<span class="sd">        the receiving address to the Redis server. It then attempts to collect remote peers&#39; receiving address</span>
+<span class="sd">        by querying the Redis server. Finally, ask its driver to connect remote peers using those receiving address.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_register_redis</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_get_peers_list</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_build_connection</span><span class="p">()</span>
+        <span class="c1"># TODO: Handle slow joiner for PUB/SUB.</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">DELAY_FOR_SLOW_JOINER</span><span class="p">)</span>
+
+        <span class="c1"># Build component-container-mapping for dynamic component in k8s/grass cluster.</span>
+        <span class="k">if</span> <span class="s2">&quot;JOB_ID&quot;</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span> <span class="ow">and</span> <span class="s2">&quot;CONTAINER_NAME&quot;</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
+            <span class="n">container_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;CONTAINER_NAME&quot;</span><span class="p">)</span>
+            <span class="n">job_id</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;JOB_ID&quot;</span><span class="p">)</span>
+            <span class="n">rejoin_config</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;rejoin:enable&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_enable_rejoin</span><span class="p">),</span>
+                <span class="s2">&quot;rejoin:max_restart_times&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_rejoin_times</span><span class="p">,</span>
+                <span class="s2">&quot;is_remove_failed_container&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_is_remove_failed_container</span><span class="p">)</span>
+            <span class="p">}</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_redis_connection</span><span class="o">.</span><span class="n">hmset</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;job:</span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s2">:runtime_details&quot;</span><span class="p">,</span> <span class="n">rejoin_config</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_enable_rejoin</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_redis_connection</span><span class="o">.</span><span class="n">hset</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;job:</span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s2">:rejoin_component_name_to_container_name&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">,</span> <span class="n">container_name</span>
+                <span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_redis_connection</span><span class="o">.</span><span class="n">hdel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_redis_hash_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_driver</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_register_redis</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Self-registration on Redis and driver initialization.</span>
+
+<span class="sd">        Redis store structure:</span>
+<span class="sd">        Hash Table: name: group name + peer&#39;s type,</span>
+<span class="sd">                    table (Dict[]): The key of table is the peer&#39;s name,</span>
+<span class="sd">                                    the value of table is the peer&#39;s socket address.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_redis_connection</span><span class="o">.</span><span class="n">hset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_redis_hash_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">,</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_driver</span><span class="o">.</span><span class="n">address</span><span class="p">))</span>
+
+        <span class="c1"># Handle interrupt signal for clearing Redis record.</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGINT</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_signal_handler</span><span class="p">)</span>
+            <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGTERM</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_signal_handler</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                <span class="s2">&quot;Signal detector disable. This may cause dirty data to be left in the Redis! &quot;</span>
+                <span class="s2">&quot;To avoid this, please use multiprocess or make sure it can exit successfully.&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;Due to </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_peers_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;To collect all peers&#39; name in the same group (group name) from Redis.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_peers_info_dict</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">PeersMissError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cannot get </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="si">}</span><span class="se">\&#39;</span><span class="s2">s peers.&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">peer_type</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_peers_info_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">peer_hash_name</span><span class="p">,</span> <span class="n">peer_number</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_peers_info_dict</span><span class="p">[</span><span class="n">peer_type</span><span class="p">]</span>
+            <span class="n">retry_number</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">expected_peers_name</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">while</span> <span class="n">retry_number</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_retries</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_redis_connection</span><span class="o">.</span><span class="n">hlen</span><span class="p">(</span><span class="n">peer_hash_name</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">peer_number</span><span class="p">:</span>
+                    <span class="n">expected_peers_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_redis_connection</span><span class="o">.</span><span class="n">hkeys</span><span class="p">(</span><span class="n">peer_hash_name</span><span class="p">)</span>
+                    <span class="n">expected_peers_name</span> <span class="o">=</span> <span class="p">[</span><span class="n">peer</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span> <span class="k">for</span> <span class="n">peer</span> <span class="ow">in</span> <span class="n">expected_peers_name</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">expected_peers_name</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">peer_number</span><span class="p">:</span>
+                        <span class="n">expected_peers_name</span> <span class="o">=</span> <span class="n">expected_peers_name</span><span class="p">[:</span><span class="n">peer_number</span><span class="p">]</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="si">}</span><span class="s2"> successfully get all </span><span class="si">{</span><span class="n">peer_type</span><span class="si">}</span><span class="se">\&#39;</span><span class="s2">s name.&quot;</span><span class="p">)</span>
+                    <span class="k">break</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="si">}</span><span class="s2"> failed to get </span><span class="si">{</span><span class="n">peer_type</span><span class="si">}</span><span class="se">\&#39;</span><span class="s2">s name. Retrying in &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_retry_interval_base_value</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="n">retry_number</span><span class="p">)</span><span class="si">}</span><span class="s2"> seconds.&quot;</span>
+                    <span class="p">)</span>
+                    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_retry_interval_base_value</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="n">retry_number</span><span class="p">))</span>
+                    <span class="n">retry_number</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">expected_peers_name</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">InformationUncompletedError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="si">}</span><span class="s2"> failure to get enough number of </span><span class="si">{</span><span class="n">peer_type</span><span class="si">}</span><span class="s2"> from redis.&quot;</span>
+                <span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_onboard_peer_dict</span><span class="p">[</span><span class="n">peer_type</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">peer_name</span><span class="p">:</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">peer_name</span> <span class="ow">in</span> <span class="n">expected_peers_name</span><span class="p">}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_onboard_peers_start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_build_connection</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Grabbing all peers&#39; address from Redis, and connect all peers in driver.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">peer_type</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_peers_info_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">name_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_onboard_peer_dict</span><span class="p">[</span><span class="n">peer_type</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">peers_socket_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_redis_connection</span><span class="o">.</span><span class="n">hmget</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_peers_info_dict</span><span class="p">[</span><span class="n">peer_type</span><span class="p">]</span><span class="o">.</span><span class="n">hash_table_name</span><span class="p">,</span>
+                    <span class="n">name_list</span>
+                <span class="p">)</span>
+                <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">peer_name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">name_list</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_onboard_peer_dict</span><span class="p">[</span><span class="n">peer_type</span><span class="p">][</span><span class="n">peer_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">peers_socket_value</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="si">}</span><span class="s2"> successfully get </span><span class="si">{</span><span class="n">peer_name</span><span class="si">}</span><span class="se">\&#39;</span><span class="s2">s socket address&quot;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">InformationUncompletedError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="si">}</span><span class="s2"> failed to get </span><span class="si">{</span><span class="n">name_list</span><span class="si">}</span><span class="se">\&#39;</span><span class="s2">s address. Due to </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_driver</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_onboard_peer_dict</span><span class="p">[</span><span class="n">peer_type</span><span class="p">])</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">group_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;str: Identifier for the group of all communication components.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_group_name</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">component_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;str: Unique identifier in the current group.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">component_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;str: Component&#39;s type in the current group.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_component_type</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">peers_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Dict: The ``Dict`` of all connected peers&#39; names, stored by peer type.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="n">peer_type</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_onboard_peer_dict</span><span class="p">[</span><span class="n">peer_type</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="k">for</span> <span class="n">peer_type</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_peers_info_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="p">}</span>
+
+<div class="viewcode-block" id="Proxy.receive"><a class="viewcode-back" href="../../../apidoc/maro.communication.html#maro.communication.proxy.Proxy.receive">[docs]</a>    <span class="k">def</span> <span class="nf">receive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">is_continuous</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Receive messages from communication driver.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            is_continuous (bool): Continuously receive message or not. Defaults to True.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_driver</span><span class="o">.</span><span class="n">receive</span><span class="p">(</span><span class="n">is_continuous</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Proxy.receive_by_id"><a class="viewcode-back" href="../../../apidoc/maro.communication.html#maro.communication.proxy.Proxy.receive_by_id">[docs]</a>    <span class="k">def</span> <span class="nf">receive_by_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session_ids</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Message</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Receive target messages from communication driver.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            session_id_list List[str]: List of ``session_id``.</span>
+<span class="sd">                E.g. [&#39;0_learner0_actor0&#39;, &#39;1_learner1_actor1&#39;, ...].</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Message]: List of received messages.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Pre-process session ids.</span>
+        <span class="n">pending_session_id_list</span><span class="p">,</span> <span class="n">received_messages</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">session_ids</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">pending_session_id_list</span> <span class="o">=</span> <span class="n">session_ids</span><span class="p">[:]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># The input may be None, if enable peer rejoin.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unrecognized session id </span><span class="si">{</span><span class="n">session_ids</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">[]</span>
+
+        <span class="c1"># Check message cache for saved messages.</span>
+        <span class="k">for</span> <span class="n">msg_key</span> <span class="ow">in</span> <span class="n">session_ids</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">msg_key</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_message_cache</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+                <span class="k">for</span> <span class="n">msg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_message_cache</span><span class="p">[</span><span class="n">msg_key</span><span class="p">]:</span>
+                    <span class="n">pending_session_id_list</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">msg_key</span><span class="p">)</span>
+                    <span class="n">received_messages</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_message_cache</span><span class="p">[</span><span class="n">msg_key</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">pending_session_id_list</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">received_messages</span>
+
+        <span class="c1"># Wait for incoming messages.</span>
+        <span class="k">for</span> <span class="n">msg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_driver</span><span class="o">.</span><span class="n">receive</span><span class="p">():</span>
+            <span class="n">msg_key</span> <span class="o">=</span> <span class="n">msg</span><span class="o">.</span><span class="n">session_id</span>
+
+            <span class="k">if</span> <span class="n">msg_key</span> <span class="ow">in</span> <span class="n">pending_session_id_list</span><span class="p">:</span>
+                <span class="n">pending_session_id_list</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">msg_key</span><span class="p">)</span>
+                <span class="n">received_messages</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_message_cache</span><span class="p">[</span><span class="n">msg_key</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">pending_session_id_list</span><span class="p">:</span>
+                <span class="k">break</span>
+
+        <span class="k">return</span> <span class="n">received_messages</span></div>
+
+    <span class="k">def</span> <span class="nf">_scatter</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Enum</span><span class="p">],</span> <span class="n">session_type</span><span class="p">:</span> <span class="n">SessionType</span><span class="p">,</span> <span class="n">destination_payload_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Scatters a list of data to peers, and return list of session id.&quot;&quot;&quot;</span>
+        <span class="n">session_id_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">destination</span><span class="p">,</span> <span class="n">payload</span> <span class="ow">in</span> <span class="n">destination_payload_list</span><span class="p">:</span>
+            <span class="n">message</span> <span class="o">=</span> <span class="n">SessionMessage</span><span class="p">(</span>
+                <span class="n">tag</span><span class="o">=</span><span class="n">tag</span><span class="p">,</span>
+                <span class="n">source</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">,</span>
+                <span class="n">destination</span><span class="o">=</span><span class="n">destination</span><span class="p">,</span>
+                <span class="n">session_id</span><span class="o">=</span><span class="n">session_id</span><span class="p">,</span>
+                <span class="n">payload</span><span class="o">=</span><span class="n">payload</span><span class="p">,</span>
+                <span class="n">session_type</span><span class="o">=</span><span class="n">session_type</span>
+            <span class="p">)</span>
+            <span class="n">send_result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">isend</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">send_result</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">session_id_list</span> <span class="o">+=</span> <span class="n">send_result</span>
+
+        <span class="k">return</span> <span class="n">session_id_list</span>
+
+<div class="viewcode-block" id="Proxy.scatter"><a class="viewcode-back" href="../../../apidoc/maro.communication.html#maro.communication.proxy.Proxy.scatter">[docs]</a>    <span class="k">def</span> <span class="nf">scatter</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Enum</span><span class="p">],</span> <span class="n">session_type</span><span class="p">:</span> <span class="n">SessionType</span><span class="p">,</span> <span class="n">destination_payload_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Message</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Scatters a list of data to peers, and return replied messages.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            tag (str|Enum): Message&#39;s tag.</span>
+<span class="sd">            session_type (Enum): Message&#39;s session type.</span>
+<span class="sd">            destination_payload_list ([Tuple(str, object)]): The destination-payload list.</span>
+<span class="sd">                The first item of the tuple in list is the message destination,</span>
+<span class="sd">                and the second item of the tuple in list is the message payload.</span>
+<span class="sd">            session_id (str): Message&#39;s session id. Defaults to None.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Message]: List of replied message.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">receive_by_id</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_scatter</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="n">session_type</span><span class="p">,</span> <span class="n">destination_payload_list</span><span class="p">,</span> <span class="n">session_id</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Proxy.iscatter"><a class="viewcode-back" href="../../../apidoc/maro.communication.html#maro.communication.proxy.Proxy.iscatter">[docs]</a>    <span class="k">def</span> <span class="nf">iscatter</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Enum</span><span class="p">],</span> <span class="n">session_type</span><span class="p">:</span> <span class="n">SessionType</span><span class="p">,</span> <span class="n">destination_payload_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Scatters a list of data to peers, and return list of message id.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            tag (str|Enum): Message&#39;s tag.</span>
+<span class="sd">            session_type (Enum): Message&#39;s session type.</span>
+<span class="sd">            destination_payload_list ([Tuple(str, object)]): The destination-payload list.</span>
+<span class="sd">                The first item of the tuple in list is the message&#39;s destination,</span>
+<span class="sd">                and the second item of the tuple in list is the message&#39;s payload.</span>
+<span class="sd">            session_id (str): Message&#39;s session id. Defaults to None.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[str]: List of message&#39;s session id.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scatter</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="n">session_type</span><span class="p">,</span> <span class="n">destination_payload_list</span><span class="p">,</span> <span class="n">session_id</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_broadcast</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">component_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tag</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Enum</span><span class="p">],</span> <span class="n">session_type</span><span class="p">:</span> <span class="n">SessionType</span><span class="p">,</span>
+        <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">payload</span><span class="o">=</span><span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Broadcast message to all peers, and return list of session id.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">component_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_onboard_peer_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;peer_type: </span><span class="si">{</span><span class="n">component_type</span><span class="si">}</span><span class="s2"> cannot be recognized. Please check the input of proxy.broadcast.&quot;</span>
+            <span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">NON_RESTART_EXIT_CODE</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_enable_rejoin</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_rejoin</span><span class="p">(</span><span class="n">component_type</span><span class="p">)</span>
+
+        <span class="n">message</span> <span class="o">=</span> <span class="n">SessionMessage</span><span class="p">(</span>
+            <span class="n">tag</span><span class="o">=</span><span class="n">tag</span><span class="p">,</span>
+            <span class="n">source</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">,</span>
+            <span class="n">destination</span><span class="o">=</span><span class="n">component_type</span><span class="p">,</span>
+            <span class="n">payload</span><span class="o">=</span><span class="n">payload</span><span class="p">,</span>
+            <span class="n">session_id</span><span class="o">=</span><span class="n">session_id</span><span class="p">,</span>
+            <span class="n">session_type</span><span class="o">=</span><span class="n">session_type</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_driver</span><span class="o">.</span><span class="n">broadcast</span><span class="p">(</span><span class="n">component_type</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">[</span><span class="n">message</span><span class="o">.</span><span class="n">session_id</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_onboard_peer_dict</span><span class="p">[</span><span class="n">component_type</span><span class="p">])</span>
+
+<div class="viewcode-block" id="Proxy.broadcast"><a class="viewcode-back" href="../../../apidoc/maro.communication.html#maro.communication.proxy.Proxy.broadcast">[docs]</a>    <span class="k">def</span> <span class="nf">broadcast</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">component_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tag</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Enum</span><span class="p">],</span> <span class="n">session_type</span><span class="p">:</span> <span class="n">SessionType</span><span class="p">,</span>
+        <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">payload</span><span class="o">=</span><span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Message</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Broadcast message to all peers, and return all replied messages.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            component_type (str): Broadcast to all peers in this type.</span>
+<span class="sd">            tag (str|Enum): Message&#39;s tag.</span>
+<span class="sd">            session_type (Enum): Message&#39;s session type.</span>
+<span class="sd">            session_id (str): Message&#39;s session id. Defaults to None.</span>
+<span class="sd">            payload (object): The true data. Defaults to None.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Message]: List of replied messages.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">receive_by_id</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_broadcast</span><span class="p">(</span><span class="n">component_type</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">session_type</span><span class="p">,</span> <span class="n">session_id</span><span class="p">,</span> <span class="n">payload</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Proxy.ibroadcast"><a class="viewcode-back" href="../../../apidoc/maro.communication.html#maro.communication.proxy.Proxy.ibroadcast">[docs]</a>    <span class="k">def</span> <span class="nf">ibroadcast</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">component_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tag</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Enum</span><span class="p">],</span> <span class="n">session_type</span><span class="p">:</span> <span class="n">SessionType</span><span class="p">,</span>
+        <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">payload</span><span class="o">=</span><span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Broadcast message to all subscribers, and return list of message&#39;s session id.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            component_type (str): Broadcast to all peers in this type.</span>
+<span class="sd">            tag (str|Enum): Message&#39;s tag.</span>
+<span class="sd">            session_type (Enum): Message&#39;s session type.</span>
+<span class="sd">            session_id (str): Message&#39;s session id. Defaults to None.</span>
+<span class="sd">            payload (object): The true data. Defaults to None.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[str]: List of message&#39;s session id which related to the replied message.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_broadcast</span><span class="p">(</span><span class="n">component_type</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">session_type</span><span class="p">,</span> <span class="n">session_id</span><span class="p">,</span> <span class="n">payload</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_send</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">Message</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Send a message to a remote peer.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            message: Message to be sent.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Union[List[str], None]: The list of message&#39;s session id;</span>
+<span class="sd">                If enable rejoin, it will return None when sending message to the failed peers;</span>
+<span class="sd">                If enable rejoin and message cache, it may return list of session id which from</span>
+<span class="sd">                the pending messages in message cache.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">session_id</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_enable_rejoin</span><span class="p">:</span>
+            <span class="n">peer_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_peer_type</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">destination</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_rejoin</span><span class="p">(</span><span class="n">peer_type</span><span class="p">)</span>
+
+            <span class="c1"># Check message cache.</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_enable_message_cache</span>
+                <span class="ow">and</span> <span class="n">message</span><span class="o">.</span><span class="n">destination</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_onboard_peer_dict</span><span class="p">[</span><span class="n">peer_type</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+                <span class="ow">and</span> <span class="n">message</span><span class="o">.</span><span class="n">destination</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_message_cache_for_exited_peers</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+            <span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Sending pending message to </span><span class="si">{</span><span class="n">message</span><span class="o">.</span><span class="n">destination</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">pending_message</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_message_cache_for_exited_peers</span><span class="p">[</span><span class="n">message</span><span class="o">.</span><span class="n">destination</span><span class="p">]:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_driver</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">pending_message</span><span class="p">)</span>
+                    <span class="n">session_id</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pending_message</span><span class="o">.</span><span class="n">session_id</span><span class="p">)</span>
+                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_message_cache_for_exited_peers</span><span class="p">[</span><span class="n">message</span><span class="o">.</span><span class="n">destination</span><span class="p">]</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">session_id</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_driver</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">session_id</span>
+        <span class="k">except</span> <span class="n">PendingToSend</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2"> Peer </span><span class="si">{</span><span class="n">message</span><span class="o">.</span><span class="n">destination</span><span class="si">}</span><span class="s2"> exited, but still have enough peers.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_enable_message_cache</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_push_message_to_message_cache</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Proxy.isend"><a class="viewcode-back" href="../../../apidoc/maro.communication.html#maro.communication.proxy.Proxy.isend">[docs]</a>    <span class="k">def</span> <span class="nf">isend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">Message</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Send a message to a remote peer.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            message: Message to be sent.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Union[List[str], None]: The list of message&#39;s session id;</span>
+<span class="sd">                If enable rejoin, it will return None when sending message to the failed peers.</span>
+<span class="sd">                If enable rejoin and message cache, it may return list of session id which from</span>
+<span class="sd">                the pending messages.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_send</span><span class="p">(</span><span class="n">message</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Proxy.send"><a class="viewcode-back" href="../../../apidoc/maro.communication.html#maro.communication.proxy.Proxy.send">[docs]</a>    <span class="k">def</span> <span class="nf">send</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">Message</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Message</span><span class="p">],</span> <span class="kc">None</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Send a message to a remote peer.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            message: Message to be sent.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Union[List[Message], None]: The list of received message;</span>
+<span class="sd">                If enable rejoin, it will return None when sending message to the failed peers.</span>
+<span class="sd">                If enable rejoin and message cache, it may return list of messages which from</span>
+<span class="sd">                the pending messages.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">receive_by_id</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_send</span><span class="p">(</span><span class="n">message</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Proxy.reply"><a class="viewcode-back" href="../../../apidoc/maro.communication.html#maro.communication.proxy.Proxy.reply">[docs]</a>    <span class="k">def</span> <span class="nf">reply</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">received_message</span><span class="p">:</span> <span class="n">SessionMessage</span><span class="p">,</span> <span class="n">tag</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Enum</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">payload</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ack_reply</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Reply a received message.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            received_message (Message): The message need to reply.</span>
+<span class="sd">            tag (str|Enum): New message tag, if None, keeps the original message&#39;s tag. Defaults to None.</span>
+<span class="sd">            payload (object): New message payload, if None, keeps the original message&#39;s payload. Defaults to None.</span>
+<span class="sd">            ack_reply (bool): If True, it is acknowledge reply. Defaults to False.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[str]: Message belonged session id.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">received_message</span><span class="o">.</span><span class="n">session_type</span> <span class="o">==</span> <span class="n">SessionType</span><span class="o">.</span><span class="n">TASK</span><span class="p">:</span>
+            <span class="n">session_stage</span> <span class="o">=</span> <span class="n">TaskSessionStage</span><span class="o">.</span><span class="n">RECEIVE</span> <span class="k">if</span> <span class="n">ack_reply</span> <span class="k">else</span> <span class="n">TaskSessionStage</span><span class="o">.</span><span class="n">COMPLETE</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">session_stage</span> <span class="o">=</span> <span class="n">NotificationSessionStage</span><span class="o">.</span><span class="n">RECEIVE</span>
+
+        <span class="n">replied_message</span> <span class="o">=</span> <span class="n">SessionMessage</span><span class="p">(</span>
+            <span class="n">tag</span><span class="o">=</span><span class="n">tag</span> <span class="k">if</span> <span class="n">tag</span> <span class="k">else</span> <span class="n">received_message</span><span class="o">.</span><span class="n">tag</span><span class="p">,</span>
+            <span class="n">source</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">,</span>
+            <span class="n">destination</span><span class="o">=</span><span class="n">received_message</span><span class="o">.</span><span class="n">source</span><span class="p">,</span>
+            <span class="n">session_id</span><span class="o">=</span><span class="n">received_message</span><span class="o">.</span><span class="n">session_id</span><span class="p">,</span>
+            <span class="n">payload</span><span class="o">=</span><span class="n">payload</span><span class="p">,</span>
+            <span class="n">session_stage</span><span class="o">=</span><span class="n">session_stage</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">isend</span><span class="p">(</span><span class="n">replied_message</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Proxy.forward"><a class="viewcode-back" href="../../../apidoc/maro.communication.html#maro.communication.proxy.Proxy.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">received_message</span><span class="p">:</span> <span class="n">SessionMessage</span><span class="p">,</span> <span class="n">destination</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tag</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Enum</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">payload</span><span class="o">=</span><span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Forward a received message.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            received_message (Message): The message need to forward.</span>
+<span class="sd">            destination (str): The receiver of message.</span>
+<span class="sd">            tag (str|Enum): New message tag, if None, keeps the original message&#39;s tag. Defaults to None.</span>
+<span class="sd">            payload (object): Message payload, if None, keeps the original message&#39;s payload. Defaults to None.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[str]: Message belonged session id.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">forward_message</span> <span class="o">=</span> <span class="n">SessionMessage</span><span class="p">(</span>
+            <span class="n">tag</span><span class="o">=</span><span class="n">tag</span> <span class="k">if</span> <span class="n">tag</span> <span class="k">else</span> <span class="n">received_message</span><span class="o">.</span><span class="n">tag</span><span class="p">,</span>
+            <span class="n">source</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">,</span>
+            <span class="n">destination</span><span class="o">=</span><span class="n">destination</span><span class="p">,</span>
+            <span class="n">session_id</span><span class="o">=</span><span class="n">received_message</span><span class="o">.</span><span class="n">session_id</span><span class="p">,</span>
+            <span class="n">payload</span><span class="o">=</span><span class="n">payload</span> <span class="k">if</span> <span class="n">payload</span> <span class="k">else</span> <span class="n">received_message</span><span class="o">.</span><span class="n">payload</span><span class="p">,</span>
+            <span class="n">session_stage</span><span class="o">=</span><span class="n">received_message</span><span class="o">.</span><span class="n">session_stage</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">isend</span><span class="p">(</span><span class="n">forward_message</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_check_peers_update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compare the peers&#39; information on local with the peers&#39; information on Redis.</span>
+
+<span class="sd">        For the different between two peers information dict&#39;s key (peer_name):</span>
+<span class="sd">            If some peers only appear on Redis, the proxy will connect with those peers;</span>
+<span class="sd">            If some peers only appear on local, the proxy will disconnect with those peers;</span>
+<span class="sd">        For the different between two peers information dict&#39;s value (peers_socket_address):</span>
+<span class="sd">            If some peers&#39; information is different between Redis and local, the proxy will update those</span>
+<span class="sd">            peers (driver disconnect with the local information and connect with the peer&#39;s information on Redis).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">peer_type</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_peers_info_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="c1"># onboard_peers_dict_on_redis is the newest peers&#39; information from the Redis.</span>
+            <span class="n">onboard_peers_dict_on_redis</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_redis_connection</span><span class="o">.</span><span class="n">hgetall</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_peers_info_dict</span><span class="p">[</span><span class="n">peer_type</span><span class="p">]</span><span class="o">.</span><span class="n">hash_table_name</span>
+            <span class="p">)</span>
+            <span class="n">onboard_peers_dict_on_redis</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">key</span><span class="o">.</span><span class="n">decode</span><span class="p">():</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">onboard_peers_dict_on_redis</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="p">}</span>
+
+            <span class="c1"># Mappings (instances of dict) compare equal if and only if they have equal (key, value) pairs.</span>
+            <span class="c1"># Equality comparison of the keys and values enforces reflexivity.</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_onboard_peer_dict</span><span class="p">[</span><span class="n">peer_type</span><span class="p">]</span> <span class="o">!=</span> <span class="n">onboard_peers_dict_on_redis</span><span class="p">:</span>
+                <span class="n">union_peer_name</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_onboard_peer_dict</span><span class="p">[</span><span class="n">peer_type</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> \
+                    <span class="nb">list</span><span class="p">(</span><span class="n">onboard_peers_dict_on_redis</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+                <span class="k">for</span> <span class="n">peer_name</span> <span class="ow">in</span> <span class="n">union_peer_name</span><span class="p">:</span>
+                    <span class="c1"># Add new peers (new key added on redis).</span>
+                    <span class="k">if</span> <span class="n">peer_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_onboard_peer_dict</span><span class="p">[</span><span class="n">peer_type</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PEER_REJOIN: New peer </span><span class="si">{</span><span class="n">peer_name</span><span class="si">}</span><span class="s2"> join.&quot;</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_driver</span><span class="o">.</span><span class="n">connect</span><span class="p">({</span><span class="n">peer_name</span><span class="p">:</span> <span class="n">onboard_peers_dict_on_redis</span><span class="p">[</span><span class="n">peer_name</span><span class="p">]})</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_onboard_peer_dict</span><span class="p">[</span><span class="n">peer_type</span><span class="p">][</span><span class="n">peer_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">onboard_peers_dict_on_redis</span><span class="p">[</span><span class="n">peer_name</span><span class="p">]</span>
+                    <span class="c1"># Delete out of date peers (old key deleted on local)</span>
+                    <span class="k">elif</span> <span class="n">peer_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">onboard_peers_dict_on_redis</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PEER_REJOIN: Peer </span><span class="si">{</span><span class="n">peer_name</span><span class="si">}</span><span class="s2"> exited.&quot;</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_driver</span><span class="o">.</span><span class="n">disconnect</span><span class="p">({</span><span class="n">peer_name</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_onboard_peer_dict</span><span class="p">[</span><span class="n">peer_type</span><span class="p">][</span><span class="n">peer_name</span><span class="p">]})</span>
+                        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_onboard_peer_dict</span><span class="p">[</span><span class="n">peer_type</span><span class="p">][</span><span class="n">peer_name</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="c1"># Peer&#39;s ip/port updated, re-connect (value update on redis).</span>
+                        <span class="k">if</span> <span class="n">onboard_peers_dict_on_redis</span><span class="p">[</span><span class="n">peer_name</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_onboard_peer_dict</span><span class="p">[</span><span class="n">peer_type</span><span class="p">][</span><span class="n">peer_name</span><span class="p">]:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PEER_REJOIN: Peer </span><span class="si">{</span><span class="n">peer_name</span><span class="si">}</span><span class="s2"> rejoin.&quot;</span><span class="p">)</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_driver</span><span class="o">.</span><span class="n">disconnect</span><span class="p">({</span><span class="n">peer_name</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_onboard_peer_dict</span><span class="p">[</span><span class="n">peer_type</span><span class="p">][</span><span class="n">peer_name</span><span class="p">]})</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_driver</span><span class="o">.</span><span class="n">connect</span><span class="p">({</span><span class="n">peer_name</span><span class="p">:</span> <span class="n">onboard_peers_dict_on_redis</span><span class="p">[</span><span class="n">peer_name</span><span class="p">]})</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_onboard_peer_dict</span><span class="p">[</span><span class="n">peer_type</span><span class="p">][</span><span class="n">peer_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">onboard_peers_dict_on_redis</span><span class="p">[</span><span class="n">peer_name</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_rejoin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">peer_type</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The logic about proxy rejoin.</span>
+
+<span class="sd">        Update onboard peers with the peers on Redis, if onboard peers expired.</span>
+<span class="sd">        If there are not enough peers for the given peer type, block until peers rejoin or timeout.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">current_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">current_time</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_onboard_peers_start_time</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_peers_catch_lifetime</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_check_peers_update</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_onboard_peers_start_time</span> <span class="o">=</span> <span class="n">current_time</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_onboard_peer_dict</span><span class="p">[</span><span class="n">peer_type</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_minimal_peers</span><span class="p">[</span><span class="n">peer_type</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_wait_for_minimal_peer_number</span><span class="p">(</span><span class="n">peer_type</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_wait_for_minimal_peer_number</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">peer_type</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Blocking until there are enough peers for the given peer type.&quot;&quot;&quot;</span>
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+        <span class="k">while</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timeout_for_minimal_peer_number</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;No enough peers in </span><span class="si">{</span><span class="n">peer_type</span><span class="si">}</span><span class="s2">! Wait for some peer restart. Remaining time: &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">start_time</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timeout_for_minimal_peer_number</span> <span class="o">-</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_check_peers_update</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_onboard_peer_dict</span><span class="p">[</span><span class="n">peer_type</span><span class="p">])</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_minimal_peers</span><span class="p">[</span><span class="n">peer_type</span><span class="p">]:</span>
+                <span class="k">return</span>
+
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_peers_catch_lifetime</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failure to get enough peers for </span><span class="si">{</span><span class="n">peer_type</span><span class="si">}</span><span class="s2">. All components will exited.&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">KILL_ALL_EXIT_CODE</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Proxy.get_peer_type"><a class="viewcode-back" href="../../../apidoc/maro.communication.html#maro.communication.proxy.Proxy.get_peer_type">[docs]</a>    <span class="k">def</span> <span class="nf">get_peer_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">peer_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Get peer type from given peer name.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            peer_name (str): The component name of a peer, which form by peer_type and UUID.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: The component type of a peer in current group.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># peer_name is consist by peer_type + &#39;_proxy_&#39; + UUID where UUID is only compose by digits and letters.</span>
+        <span class="c1"># So the peer_type must be the part before last &#39;_proxy_&#39;.</span>
+        <span class="n">peer_type</span> <span class="o">=</span> <span class="n">peer_name</span><span class="p">[:</span><span class="n">peer_name</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;_proxy_&quot;</span><span class="p">)]</span>
+
+        <span class="k">if</span> <span class="n">peer_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_onboard_peer_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The message&#39;s destination </span><span class="si">{</span><span class="n">peer_name</span><span class="si">}</span><span class="s2"> does not belong to any recognized peer type. &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;Please check the input of message.&quot;</span>
+            <span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">NON_RESTART_EXIT_CODE</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">peer_type</span></div>
+
+    <span class="k">def</span> <span class="nf">_push_message_to_message_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">Message</span><span class="p">):</span>
+        <span class="n">peer_name</span> <span class="o">=</span> <span class="n">message</span><span class="o">.</span><span class="n">destination</span>
+        <span class="k">for</span> <span class="n">pending_message</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_message_cache_for_exited_peers</span><span class="p">[</span><span class="n">peer_name</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">pending_message</span><span class="o">.</span><span class="n">message_id</span> <span class="o">==</span> <span class="n">message</span><span class="o">.</span><span class="n">message_id</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">message</span><span class="o">.</span><span class="n">message_id</span><span class="si">}</span><span class="s2"> has been added in the message cache.&quot;</span><span class="p">)</span>
+                <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_message_cache_for_exited_peers</span><span class="p">[</span><span class="n">peer_name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Temporarily save message </span><span class="si">{</span><span class="n">message</span><span class="o">.</span><span class="n">session_id</span><span class="si">}</span><span class="s2"> to message cache.&quot;</span><span class="p">)</span></div>
+</pre></div>
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../../../_static/js/index.js"></script>
+    
+  </body>
+</html>

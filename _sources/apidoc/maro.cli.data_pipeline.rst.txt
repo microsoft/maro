@@ -1,0 +1,54 @@
+maro.cli.data\_pipeline package
+===============================
+
+Submodules
+----------
+
+maro.cli.data\_pipeline.base module
+-----------------------------------
+
+.. automodule:: maro.cli.data_pipeline.base
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.cli.data\_pipeline.citi\_bike module
+-----------------------------------------
+
+.. automodule:: maro.cli.data_pipeline.citi_bike
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.cli.data\_pipeline.data\_process module
+--------------------------------------------
+
+.. automodule:: maro.cli.data_pipeline.data_process
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.cli.data\_pipeline.utils module
+------------------------------------
+
+.. automodule:: maro.cli.data_pipeline.utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.cli.data\_pipeline.vm\_scheduling module
+---------------------------------------------
+
+.. automodule:: maro.cli.data_pipeline.vm_scheduling
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: maro.cli.data_pipeline
+   :members:
+   :undoc-members:
+   :show-inheritance:

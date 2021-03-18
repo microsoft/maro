@@ -1,0 +1,729 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maro.cli.inspector.dashboard_helper &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../../../../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../../../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/sphinx-book-theme.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/language_data.js"></script>
+    <script src="../../../../_static/clipboard.min.js"></script>
+    <script src="../../../../_static/copybutton.js"></script>
+    <script src="../../../../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../../../../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../../../../index.html">
+  
+  <img src="../../../../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../scenarios/container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../scenarios/citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../scenarios/vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../apidoc/maro.html">
+   maro package
+  </a>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2F_modules/maro/cli/inspector/dashboard_helper.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <nav id="bd-toc-nav">
+            
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <h1>Source code for maro.cli.inspector.dashboard_helper</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) Microsoft Corporation.</span>
+<span class="c1"># Licensed under the MIT license.</span>
+
+<span class="kn">import</span> <span class="nn">math</span>
+
+<span class="kn">import</span> <span class="nn">altair</span> <span class="k">as</span> <span class="nn">alt</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">streamlit</span> <span class="k">as</span> <span class="nn">st</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+
+<span class="kn">from</span> <span class="nn">maro.cli.inspector.params</span> <span class="kn">import</span> <span class="n">CIMItemOption</span><span class="p">,</span> <span class="n">CITIBIKEItemOption</span><span class="p">,</span> <span class="n">GlobalScenarios</span>
+
+<span class="c1"># Pre-defined CSS style of inserted HTML elements.</span>
+<span class="n">title_html</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">&lt;style&gt;</span>
+<span class="s2">    .title h1{</span>
+<span class="s2">        font-size: 30px;</span>
+<span class="s2">        color: black;</span>
+<span class="s2">        background-size: 600vw 600vw;</span>
+<span class="s2">        animation: slide 10s linear infinite forwards;</span>
+<span class="s2">        margin-left: 100px;</span>
+<span class="s2">        text-align: left;</span>
+<span class="s2">        margin-left: 50px;</span>
+<span class="s2">    }</span>
+<span class="s2">    .title h3{</span>
+<span class="s2">        font-size: 20px;</span>
+<span class="s2">        color: grey;</span>
+<span class="s2">        background-size: 600vw 600vw;</span>
+<span class="s2">        animation: slide 10s linear infinite forwards;</span>
+<span class="s2">        text-align: center</span>
+<span class="s2">    }</span>
+<span class="s2">    @keyframes slide {</span>
+<span class="s2">        0%{</span>
+<span class="s2">        background-position-x: 0%;</span>
+<span class="s2">        }</span>
+<span class="s2">        100%{</span>
+<span class="s2">        background-position-x: 600vw;</span>
+<span class="s2">        }</span>
+<span class="s2">    }</span>
+<span class="s2">&lt;/style&gt;</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="render_h1_title"><a class="viewcode-back" href="../../../../apidoc/maro.cli.inspector.html#maro.cli.inspector.dashboard_helper.render_h1_title">[docs]</a><span class="k">def</span> <span class="nf">render_h1_title</span><span class="p">(</span><span class="n">content</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Flexible display of content according to predefined styles.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        Content (str): Content to be showed on dashboard.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">html_title</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">title_html</span><span class="si">}</span><span class="s2"> &lt;div class=&#39;title&#39;&gt;&lt;h1&gt;</span><span class="si">{</span><span class="n">content</span><span class="si">}</span><span class="s2">&lt;/h1&gt;&lt;/div&gt;&quot;</span>
+    <span class="n">st</span><span class="o">.</span><span class="n">markdown</span><span class="p">(</span><span class="n">html_title</span><span class="p">,</span> <span class="n">unsafe_allow_html</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="render_h3_title"><a class="viewcode-back" href="../../../../apidoc/maro.cli.inspector.html#maro.cli.inspector.dashboard_helper.render_h3_title">[docs]</a><span class="k">def</span> <span class="nf">render_h3_title</span><span class="p">(</span><span class="n">content</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Flexible display of content according to predefined styles.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        Content (str): Content to be showed on dashboard.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">html_title</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">title_html</span><span class="si">}</span><span class="s2"> &lt;div class=&#39;title&#39;&gt;&lt;h3&gt;</span><span class="si">{</span><span class="n">content</span><span class="si">}</span><span class="s2">&lt;/h3&gt;&lt;/div&gt;&quot;</span>
+    <span class="n">st</span><span class="o">.</span><span class="n">markdown</span><span class="p">(</span><span class="n">html_title</span><span class="p">,</span> <span class="n">unsafe_allow_html</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_sample_ratio_selection_list"><a class="viewcode-back" href="../../../../apidoc/maro.cli.inspector.html#maro.cli.inspector.dashboard_helper.get_sample_ratio_selection_list">[docs]</a><span class="k">def</span> <span class="nf">get_sample_ratio_selection_list</span><span class="p">(</span><span class="n">data_num</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Get sample ratio list with current data_num.</span>
+
+<span class="sd">    Note: Number 0,1 must be included in the return value.</span>
+<span class="sd">    Because it is essential for user to select sample ratio at 0/1.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        data_num (int): Number of data to be sampled.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        List(float): The sample ratio list for user to select, which is a list range from 0 to 1.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">[</span><span class="nb">round</span><span class="p">(</span><span class="n">i</span> <span class="o">/</span> <span class="n">data_num</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">data_num</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span></div>
+
+
+<div class="viewcode-block" id="get_sample_index_list"><a class="viewcode-back" href="../../../../apidoc/maro.cli.inspector.html#maro.cli.inspector.dashboard_helper.get_sample_index_list">[docs]</a><span class="k">def</span> <span class="nf">get_sample_index_list</span><span class="p">(</span><span class="n">data_num</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">sample_ratio</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Get the index list of sampled data.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        data_num (int): Number of data to be sampled.</span>
+<span class="sd">        sample_ratio (float): The sample ratio selected by user.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        List[float]: The list of sampled data index list, which is a list range from 0 to data_num.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">sample_ratio</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">data_num</span><span class="p">,</span> <span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">sample_ratio</span><span class="p">)))</span></div>
+
+
+<div class="viewcode-block" id="get_filtered_formula_and_data"><a class="viewcode-back" href="../../../../apidoc/maro.cli.inspector.html#maro.cli.inspector.dashboard_helper.get_filtered_formula_and_data">[docs]</a><span class="k">def</span> <span class="nf">get_filtered_formula_and_data</span><span class="p">(</span>
+    <span class="n">scenario</span><span class="p">:</span> <span class="n">GlobalScenarios</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">attribute_option_candidates</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Get calculated formula and whole data.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        scenario (GlobalScenarios): Type of input scenario detail.</span>
+<span class="sd">        data (pd.Dataframe): Original data.</span>
+<span class="sd">        attribute_option_candidates (List[str]): All options for users to choose.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: The data and attributes after formula calculation.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">data_generate</span> <span class="o">=</span> <span class="n">_formula_define</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">data_generate</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data_generate</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">]</span>
+        <span class="n">attribute_option_candidates</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data_generate</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">])</span>
+
+    <span class="n">attribute_option</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">multiselect</span><span class="p">(</span>
+        <span class="n">label</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">,</span>
+        <span class="n">options</span><span class="o">=</span><span class="n">attribute_option_candidates</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="n">attribute_option_candidates</span>
+    <span class="p">)</span>
+    <span class="n">attribute_option</span> <span class="o">=</span> <span class="n">_get_attribute_option</span><span class="p">(</span><span class="n">scenario</span><span class="p">,</span> <span class="n">attribute_option</span><span class="p">,</span> <span class="n">attribute_option_candidates</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="n">data</span><span class="p">,</span> <span class="s2">&quot;attribute_option&quot;</span><span class="p">:</span> <span class="n">attribute_option</span><span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="read_detail_csv"><a class="viewcode-back" href="../../../../apidoc/maro.cli.inspector.html#maro.cli.inspector.dashboard_helper.read_detail_csv">[docs]</a><span class="nd">@st</span><span class="o">.</span><span class="n">cache</span><span class="p">(</span><span class="n">allow_output_mutation</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">read_detail_csv</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Read detail csv with cache.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        path (str): Path of file to be read.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        pd.Dataframe: Data in CSV file. Cached in local memory.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="generate_by_snapshot_top_summary"><a class="viewcode-back" href="../../../../apidoc/maro.cli.inspector.html#maro.cli.inspector.dashboard_helper.generate_by_snapshot_top_summary">[docs]</a><span class="k">def</span> <span class="nf">generate_by_snapshot_top_summary</span><span class="p">(</span>
+    <span class="n">attr_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">top_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">attribute</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">snapshot_index</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Generate top-k resource holders and their according summary data.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        attr_name (str): Name of attributes needed to be summarized.</span>
+<span class="sd">        data (pd.Dataframe): Data of selected column and snapshot_index.</span>
+<span class="sd">        top_number (int): Number of top summaries.</span>
+<span class="sd">        attribute (str): Attributes needed to be displayed on plot.</span>
+<span class="sd">        snapshot_index (int): Index of snapshot.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">snapshot_index</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="n">render_h3_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Snapshot-</span><span class="si">{</span><span class="n">snapshot_index</span><span class="si">}</span><span class="s2">: Top </span><span class="si">{</span><span class="n">top_number</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">attribute</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">render_h3_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Top </span><span class="si">{</span><span class="n">top_number</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">attribute</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[[</span><span class="n">attr_name</span><span class="p">,</span> <span class="n">attribute</span><span class="p">]]</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="n">attribute</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">top_number</span><span class="p">)</span>
+    <span class="n">data</span><span class="p">[</span><span class="s2">&quot;counter&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+    <span class="n">data</span><span class="p">[</span><span class="n">attr_name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+        <span class="nb">map</span><span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">x</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">y</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;counter&quot;</span><span class="p">],</span>
+            <span class="n">data</span><span class="p">[</span><span class="n">attr_name</span><span class="p">]</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">bars</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">mark_bar</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+        <span class="n">x</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">attribute</span><span class="si">}</span><span class="s2">:Q&quot;</span><span class="p">,</span>
+        <span class="n">y</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">attr_name</span><span class="si">}</span><span class="s2">:O&quot;</span><span class="p">,</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">700</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">240</span>
+    <span class="p">)</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">bars</span><span class="o">.</span><span class="n">mark_text</span><span class="p">(</span>
+        <span class="n">align</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span>
+        <span class="n">baseline</span><span class="o">=</span><span class="s2">&quot;middle&quot;</span><span class="p">,</span>
+        <span class="n">dx</span><span class="o">=</span><span class="mi">3</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+        <span class="n">text</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">attribute</span><span class="si">}</span><span class="s2">:Q&quot;</span>
+    <span class="p">)</span>
+    <span class="n">st</span><span class="o">.</span><span class="n">altair_chart</span><span class="p">(</span><span class="n">bars</span> <span class="o">+</span> <span class="n">text</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_get_attribute_option</span><span class="p">(</span>
+    <span class="n">scenario</span><span class="p">:</span> <span class="n">GlobalScenarios</span><span class="p">,</span> <span class="n">attribute_option</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">attribute_option_candidates</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Convert selected attribute options into column.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        scenario (GlobalScenarios): Name of scenario</span>
+<span class="sd">        attribute_option (List[str]): User-selected attributes list.</span>
+<span class="sd">        attribute_option_candidates (List[str]): Pre-defined attributes list.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        List[str]: Translated attribute list,</span>
+<span class="sd">            which contains no user-selected attributes, but only pre-defined attributes.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">attribute_option_res</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">scenario</span> <span class="o">==</span> <span class="n">GlobalScenarios</span><span class="o">.</span><span class="n">CITI_BIKE</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">attribute_option</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">item</span> <span class="o">==</span> <span class="s2">&quot;All&quot;</span><span class="p">:</span>
+                <span class="n">attribute_option_candidates</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s2">&quot;All&quot;</span><span class="p">)</span>
+                <span class="n">attribute_option_candidates</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s2">&quot;Requirement Info&quot;</span><span class="p">)</span>
+                <span class="n">attribute_option_candidates</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s2">&quot;Station Info&quot;</span><span class="p">)</span>
+                <span class="n">attribute_option_res</span> <span class="o">=</span> <span class="n">attribute_option_candidates</span>
+                <span class="k">break</span>
+            <span class="k">elif</span> <span class="n">item</span> <span class="o">==</span> <span class="s2">&quot;Requirement Info&quot;</span><span class="p">:</span>
+                <span class="n">attribute_option_res</span> <span class="o">=</span> <span class="n">attribute_option_res</span> <span class="o">+</span> <span class="n">CITIBIKEItemOption</span><span class="o">.</span><span class="n">requirement_info</span>
+            <span class="k">elif</span> <span class="n">item</span> <span class="o">==</span> <span class="s2">&quot;Station Info&quot;</span><span class="p">:</span>
+                <span class="n">attribute_option_res</span> <span class="o">=</span> <span class="n">attribute_option_res</span> <span class="o">+</span> <span class="n">CITIBIKEItemOption</span><span class="o">.</span><span class="n">station_info</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">attribute_option_res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">attribute_option_res</span>
+
+    <span class="k">if</span> <span class="n">scenario</span> <span class="o">==</span> <span class="n">GlobalScenarios</span><span class="o">.</span><span class="n">CIM</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">attribute_option</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">item</span> <span class="o">==</span> <span class="s2">&quot;All&quot;</span><span class="p">:</span>
+                <span class="n">attribute_option_candidates</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s2">&quot;All&quot;</span><span class="p">)</span>
+                <span class="n">attribute_option_candidates</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s2">&quot;Booking Info&quot;</span><span class="p">)</span>
+                <span class="n">attribute_option_candidates</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s2">&quot;Port Info&quot;</span><span class="p">)</span>
+                <span class="n">attribute_option_res</span> <span class="o">=</span> <span class="n">attribute_option_candidates</span>
+                <span class="k">break</span>
+            <span class="k">elif</span> <span class="n">item</span> <span class="o">==</span> <span class="s2">&quot;Booking Info&quot;</span><span class="p">:</span>
+                <span class="n">attribute_option_res</span> <span class="o">=</span> <span class="n">attribute_option_res</span> <span class="o">+</span> <span class="n">CIMItemOption</span><span class="o">.</span><span class="n">booking_info</span>
+            <span class="k">elif</span> <span class="n">item</span> <span class="o">==</span> <span class="s2">&quot;Port Info&quot;</span><span class="p">:</span>
+                <span class="n">attribute_option_res</span> <span class="o">=</span> <span class="n">attribute_option_res</span> <span class="o">+</span> <span class="n">CIMItemOption</span><span class="o">.</span><span class="n">port_info</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">attribute_option_res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">attribute_option_res</span>
+
+
+<span class="k">def</span> <span class="nf">_formula_define</span><span class="p">(</span><span class="n">data_original</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Define formula and get output.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        data_original (pd.Dataframe): Original data to be calculated with selected formula.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: Name and output of selected formula and original data.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">st</span><span class="o">.</span><span class="n">sidebar</span><span class="o">.</span><span class="n">markdown</span><span class="p">(</span><span class="s2">&quot;***&quot;</span><span class="p">)</span>
+    <span class="n">formula_select</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">sidebar</span><span class="o">.</span><span class="n">selectbox</span><span class="p">(</span>
+        <span class="n">label</span><span class="o">=</span><span class="s2">&quot;formula:&quot;</span><span class="p">,</span>
+        <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;a+b&quot;</span><span class="p">,</span> <span class="s2">&quot;a-b&quot;</span><span class="p">,</span> <span class="s2">&quot;a/b&quot;</span><span class="p">,</span> <span class="s2">&quot;a*b&quot;</span><span class="p">,</span> <span class="s2">&quot;sqrt(a)&quot;</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">paras</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">sidebar</span><span class="o">.</span><span class="n">text_input</span><span class="p">(</span><span class="s2">&quot;parameters separated by ;&quot;</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">paras</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;;&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">formula_select</span> <span class="o">==</span> <span class="s2">&quot;a+b&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_judge_data_length</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="k">return</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">data_right</span> <span class="o">=</span> <span class="n">_judge_append_data</span><span class="p">(</span><span class="n">data_original</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">res</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">data_right</span><span class="p">:</span>
+                <span class="n">data_original</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">+</span><span class="si">{</span><span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+                    <span class="nb">map</span><span class="p">(</span>
+                        <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span><span class="p">,</span>
+                        <span class="n">data_original</span><span class="p">[</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span>
+                        <span class="n">data_original</span><span class="p">[</span><span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+                        <span class="p">)</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="n">data_original</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">+</span><span class="si">{</span><span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">}</span>
+        <span class="k">return</span> <span class="n">data</span>
+
+    <span class="k">if</span> <span class="n">formula_select</span> <span class="o">==</span> <span class="s2">&quot;a-b&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_judge_data_length</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="k">return</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">data_right</span> <span class="o">=</span> <span class="n">_judge_append_data</span><span class="p">(</span><span class="n">data_original</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">res</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">data_right</span><span class="p">:</span>
+                <span class="n">data_original</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+                    <span class="nb">map</span><span class="p">(</span>
+                        <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">x</span> <span class="o">-</span> <span class="n">y</span><span class="p">,</span>
+                        <span class="n">data_original</span><span class="p">[</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span>
+                        <span class="n">data_original</span><span class="p">[</span><span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="n">data_original</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">}</span>
+        <span class="k">return</span> <span class="n">data</span>
+
+    <span class="k">if</span> <span class="n">formula_select</span> <span class="o">==</span> <span class="s2">&quot;a*b&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_judge_data_length</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="k">return</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">data_right</span> <span class="o">=</span> <span class="n">_judge_append_data</span><span class="p">(</span><span class="n">data_original</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">res</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">data_right</span><span class="p">:</span>
+                <span class="n">data_original</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">*</span><span class="si">{</span><span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+                    <span class="nb">map</span><span class="p">(</span>
+                        <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span><span class="p">,</span>
+                        <span class="n">data_original</span><span class="p">[</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span>
+                        <span class="n">data_original</span><span class="p">[</span><span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="n">data_original</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">*</span><span class="si">{</span><span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">}</span>
+        <span class="k">return</span> <span class="n">data</span>
+
+    <span class="k">if</span> <span class="n">formula_select</span> <span class="o">==</span> <span class="s2">&quot;a/b&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_judge_data_length</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="k">return</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">data_right</span> <span class="o">=</span> <span class="n">_judge_append_data</span><span class="p">(</span><span class="n">data_original</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">res</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">data_right</span><span class="p">:</span>
+                <span class="n">data_original</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+                    <span class="nb">map</span><span class="p">(</span>
+                        <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span><span class="p">,</span>
+                        <span class="n">data_original</span><span class="p">[</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span>
+                        <span class="n">data_original</span><span class="p">[</span><span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="n">data_original</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">}</span>
+        <span class="k">return</span> <span class="n">data</span>
+
+    <span class="k">if</span> <span class="n">formula_select</span> <span class="o">==</span> <span class="s2">&quot;sqrt(a)&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_judge_data_length</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">return</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">data_right</span> <span class="o">=</span> <span class="n">_judge_append_data</span><span class="p">(</span><span class="n">data_original</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">res</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">data_right</span><span class="p">:</span>
+                <span class="n">data_original</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;sqrt(</span><span class="si">{</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+                    <span class="nb">map</span><span class="p">(</span>
+                        <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x</span><span class="p">),</span>
+                        <span class="n">data_original</span><span class="p">[</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+                        <span class="p">)</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="n">data_original</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;sqrt(</span><span class="si">{</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">}</span>
+        <span class="k">return</span> <span class="n">data</span>
+
+
+<span class="k">def</span> <span class="nf">_judge_data_length</span><span class="p">(</span><span class="n">res</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">formula_length</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Judge whether the length of input data meet the requirements.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        res (list): User-input data.</span>
+<span class="sd">        formula_length (int): Supposed length of input data with selected formula.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        bool: Whether the length of data meet the requirements of formula.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">res</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">res</span><span class="p">)</span> <span class="o">!=</span> <span class="n">formula_length</span><span class="p">:</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;input parameter number wrong&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="kc">True</span>
+
+
+<span class="k">def</span> <span class="nf">_judge_append_data</span><span class="p">(</span><span class="n">data_head</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">res</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Judge whether input is feasible to selected formula.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        data_head (List[str]): Column list of origin data.</span>
+<span class="sd">        res (List[str]): Column names texted by user.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        bool: Whether the column list texted by user is reasonable or not.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">data_right</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">res</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">item</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data_head</span><span class="p">:</span>
+            <span class="n">data_right</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;parameter name:</span><span class="si">{</span><span class="n">item</span><span class="si">}</span><span class="s2"> not exist&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">data_right</span>
+
+
+<span class="k">def</span> <span class="nf">_get_sampled_epoch_range</span><span class="p">(</span><span class="n">epoch_num</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">sample_ratio</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;For inter plot, generate sampled data list based on range &amp; sample ratio.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        epoch_num (int): Total number of epoches,</span>
+<span class="sd">            i.e. the total number of data folders since there is a folder per epoch.</span>
+<span class="sd">        sample_ratio (float): Sampling ratio.</span>
+<span class="sd">            e.g. If sample_ratio = 0.3, and sample data range = [0, 10],</span>
+<span class="sd">            down_pooling_list = [0, 0.3, 0.6, 0.9]</span>
+<span class="sd">            down_pooling_range = [0, 3, 6, 9]</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        List[float]: List of sampled epoch index.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">start_epoch</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">sidebar</span><span class="o">.</span><span class="n">number_input</span><span class="p">(</span>
+        <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Start Epoch&quot;</span><span class="p">,</span>
+        <span class="n">min_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">max_value</span><span class="o">=</span><span class="n">epoch_num</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">value</span><span class="o">=</span><span class="mi">0</span>
+    <span class="p">)</span>
+    <span class="n">end_epoch</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">sidebar</span><span class="o">.</span><span class="n">number_input</span><span class="p">(</span>
+        <span class="n">label</span><span class="o">=</span><span class="s2">&quot;End Epoch&quot;</span><span class="p">,</span>
+        <span class="n">min_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">max_value</span><span class="o">=</span><span class="n">epoch_num</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">value</span><span class="o">=</span><span class="n">epoch_num</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="p">)</span>
+    <span class="n">down_pooling_num</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">sidebar</span><span class="o">.</span><span class="n">select_slider</span><span class="p">(</span>
+        <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Epoch Sampling Ratio&quot;</span><span class="p">,</span>
+        <span class="n">options</span><span class="o">=</span><span class="n">sample_ratio</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">down_pooling_num</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">start_epoch</span><span class="p">,</span> <span class="n">end_epoch</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">down_pooling_num</span><span class="p">)))</span>
+</pre></div>
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../../../../_static/js/index.js"></script>
+    
+  </body>
+</html>

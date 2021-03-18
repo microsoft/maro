@@ -1,0 +1,22 @@
+maro.cli.envs package
+=====================
+
+Submodules
+----------
+
+maro.cli.envs.list\_available module
+------------------------------------
+
+.. automodule:: maro.cli.envs.list_available
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: maro.cli.envs
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,0 +1,1275 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Container Inventory Management (CIM) &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Bike Repositioning (Citi Bike)" href="citi_bike.html" />
+    <link rel="prev" title="Multi-processes Localhost Provisioning" href="../installation/multi_processes_localhost_provisioning.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../index.html">
+  
+  <img src="../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="current nav sidenav_l1">
+ <li class="toctree-l1 current active">
+  <a class="current reference internal" href="#">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../apidoc/maro.html">
+   maro package
+  </a>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+        
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="../_sources/scenarios/container_inventory_management.rst.txt"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.rst</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2Fscenarios/container_inventory_management.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        <a class="edit-button" href="https://github.com/microsoft/maro/edit/master/doc/source/scenarios/container_inventory_management.rst"><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Edit this page"><i class="fas fa-pencil-alt"></i>suggest edit</button></a>
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <div class="tocsection onthispage pt-5 pb-3">
+            <i class="fas fa-list"></i> Contents
+        </div>
+        <nav id="bd-toc-nav">
+            <ul class="nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#resource-flow">
+   Resource Flow
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#order">
+     Order
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#container-repositioning">
+     Container Repositioning
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#topologies">
+   Topologies
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#toy-topologies">
+     Toy Topologies
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#global-topologies">
+     Global Topologies
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#naive-baseline">
+     Naive Baseline
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#no-repositioning">
+       No Repositioning
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#random-repositioning">
+       Random Repositioning
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#quick-start">
+   Quick Start
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#data-preparation">
+     Data Preparation
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#environment-interface">
+     Environment Interface
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#decisionevent">
+       DecisionEvent
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#action">
+       Action
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#example">
+     Example
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#visualization">
+   Visualization
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#inter-epoch-view">
+     Inter-epoch view
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#intra-epoch-view">
+     Intra-epoch view
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#accumulated-data">
+       Accumulated Data
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#detail-data">
+       Detail Data
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <div class="section" id="container-inventory-management-cim">
+<h1>Container Inventory Management (CIM)<a class="headerlink" href="#container-inventory-management-cim" title="Permalink to this headline">¶</a></h1>
+<p>The Container Inventory Management (CIM) scenario simulates a common problem of
+container shipping in marine transportation. Imagine an international market:
+The goods are packed in containers and shipped by vessels from the exporting
+country to the importing country. As a result of the imbalanced global trade,
+the volume of available containers in different ports may not match their needs.
+In other words, some ports will have excess containers while some ports may be
+in short. Therefore, We can use the excess capacity on vessels to reposition
+empty containers to alleviate this imbalance.</p>
+<div class="section" id="resource-flow">
+<h2>Resource Flow<a class="headerlink" href="#resource-flow" title="Permalink to this headline">¶</a></h2>
+<p>In this scenario, the <strong>container</strong> is the central resource. Two events will
+trigger the movement of the container:</p>
+<ul class="simple">
+<li><p>The first one is the order, which will lead to the transportation of goods from
+the source port to the destination port.</p></li>
+<li><p>The second one is the repositioning operation. It is used to rebalance the
+container distribution worldwide.</p></li>
+</ul>
+<a class="reference external image-reference" href="../images/scenario/cim.container_flow.svg"><img alt="The Life Cycle of the Container" src="../_images/cim.container_flow.svg" /></a>
+<div class="section" id="order">
+<h3>Order<a class="headerlink" href="#order" title="Permalink to this headline">¶</a></h3>
+<p>To simulate a real market, we assume that there will be a certain number of orders
+from some ports to other ports every day. And the total order number of each day
+is generated according to a predefined distribution. These orders are then allocated
+to each export port in a relatively fixed proportion, and each export port will
+have a relatively fixed number of import ports as customers. The order distribution
+and the proportion of order allocation are specified in the topology and can be
+customized based on different requirements.</p>
+<p>An order will trigger a life cycle of a container, as shown in the figure above,
+a life cycle is defined as follows:</p>
+<ul class="simple">
+<li><p>Once an order is generated, an empty container of the corresponding export port
+(source port) will be released to the shipper.</p></li>
+<li><p>The shipper will fill the container with cargo which turns it into a laden and
+then return it to the port after a few days.</p></li>
+<li><p>Loading occurs when the vessel arrives at this port.</p></li>
+<li><p>After several days of sailing, the vessel will finally arrive at the corresponding
+import port (destination port) where the discharging of the laden happens.</p></li>
+<li><p>Then the laden will be released to the consignee, and the consignee will take
+out the cargo in it, which turns it into an empty container again.</p></li>
+<li><p>Finally, the consignee returns it as an available container for the import port
+in a few days.</p></li>
+</ul>
+</div>
+<div class="section" id="container-repositioning">
+<h3>Container Repositioning<a class="headerlink" href="#container-repositioning" title="Permalink to this headline">¶</a></h3>
+<p>As mentioned above, to rebalance the container distribution, the agent in each
+port will decide how to reposition the empty containers every time a vessel
+arrives at the port. The decision consists of two parts:</p>
+<ul class="simple">
+<li><p>Whether to take a <code class="docutils literal notranslate"><span class="pre">discharge</span></code> operation or a <code class="docutils literal notranslate"><span class="pre">load</span></code> operation;</p></li>
+<li><p>The number of containers to discharge/load.</p></li>
+</ul>
+<p>The export-oriented ports (e.g. the ports in China) show a clearly high demand
+feature, and usually require additional supply of empty containers. These ports
+will tend to discharge empty containers from the vessel if feasible. While the
+import-oriented ports have a significant surplus feature, that usually receive
+many empty container from the consignee. So the imported-oriented ports will tend
+to load the surplus empty containers into the vessel if there is free capacity.</p>
+<p>The specific quantity to operate for a <code class="docutils literal notranslate"><span class="pre">discharge</span></code> action is limited by the
+remaining space in the port and the total number of empty containers in the vessel.
+Similarly, a <code class="docutils literal notranslate"><span class="pre">load</span></code> action is limited by the remaining space in the vessel and
+the total number of empty containers in the port. Of course, a good decision will
+not only consider the self future supply and demand situation, but also the needs
+and situation of the upstream and downstream ports.</p>
+</div>
+</div>
+<div class="section" id="topologies">
+<h2>Topologies<a class="headerlink" href="#topologies" title="Permalink to this headline">¶</a></h2>
+<p>To provide an exploration road map from easy to difficult, two kinds of topologies
+are designed and provided in CIM scenario. Toy topologies provide simplified
+environments for algorithm debugging and will show some typical relationships
+between ports to users. We hope these will provide users with some insights to
+know more and deeper about this scenario. While the global topologies are based
+on the real-world data, and are bigger and more complicated to present the real
+problem.</p>
+<div class="section" id="toy-topologies">
+<h3>Toy Topologies<a class="headerlink" href="#toy-topologies" title="Permalink to this headline">¶</a></h3>
+<a class="reference external image-reference" href="../images/scenario/cim.toys.svg"><img alt="CIM toy topologies" src="../_images/cim.toys.svg" /></a>
+<p><em>(In these topologies, the solid lines indicate the service route (voyage) among
+ports, while the dashed lines indicate the container flow triggered by orders.)</em></p>
+<p><strong>toy.4p_ssdd_l0.D</strong>: There are four ports in this topology. According to the orders,
+D1 and D2 are simple demanders (the port requiring additional empty containers)
+while S2 is a simple supplier (the port with surplus empty containers). Although
+S1 is a simple destination port, it’s at the intersection of two service routes,
+which makes it a special port in this topology. To achieve the global optimum,
+S1 must learn to distinguish the service routes and take service route specific
+repositioning operations.</p>
+<p><strong>toy.5p_ssddd_l0.D</strong>: There are five ports in this topology. According to the orders,
+D1 and D2 are simple demanders while S1 and S2 are simple suppliers. As a port
+in the intersection of service routes, although the supply and demand of port T1
+can reach a state of self-balancing, it still plays an important role for the
+global optimum. The best repositioning policy for port T1 is to transfer the
+surplus empty containers from the left service route to the right one. Also, the
+port D1 and D2 should learn to discharge only the quantity they need and leave the
+surplus ones to other ports.</p>
+<p><strong>toy.6p_sssbdd_l0.D</strong>: There are six ports in this topology. Similar to toy.5p_ssddd,
+in this topology, there are simple demanders D1 and D2, simple suppliers S1 and
+S2, and self-balancing ports T1 and T2. More difficult than in toy.5p_ssddd,
+more transfers should be taken to reposition the surplus empty containers from
+the left most service route to the right most one, which means a multi-steps
+solution that involving more ports is required.</p>
+</div>
+<div class="section" id="global-topologies">
+<h3>Global Topologies<a class="headerlink" href="#global-topologies" title="Permalink to this headline">¶</a></h3>
+<p><strong>global_trade.22p_l0.D</strong>: This is a topology designed based on the real-world data.
+The order generation model in this topology is built based on the trade data from
+<a class="reference external" href="https://data.wto.org/">WTO</a>. According to the query results in WTO from January
+2019 to October 2019, The ports with large trade volume are selected, and the
+proportion of each port as the source of orders is directly proportional to the
+export volume of the country it belongs to, while the proportion as the destination
+is proportional to the import volume.
+In this scenario, there are much more ports, much more service routes. And most
+ports no longer have a simple supply/demand feature. The cooperation among ports
+is much more complex and it is difficult to find an efficient repositioning policy
+manually.</p>
+<a class="reference external image-reference" href="../images/scenario/cim.global_trade.svg"><img alt="global_trade.22p" src="../_images/cim.global_trade.svg" /></a>
+<p><em>(To make it clearer, the figure above only shows the service routes among ports.)</em></p>
+</div>
+<div class="section" id="naive-baseline">
+<h3>Naive Baseline<a class="headerlink" href="#naive-baseline" title="Permalink to this headline">¶</a></h3>
+<p>Below are the final environment metrics of the method <em>no repositioning</em> and
+<em>random repositioning</em> in different topologies. For each experiment, we setup
+the environment and test for a duration of 1120 ticks (days).</p>
+<div class="section" id="no-repositioning">
+<h4>No Repositioning<a class="headerlink" href="#no-repositioning" title="Permalink to this headline">¶</a></h4>
+<table class="table">
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Topology</p></th>
+<th class="head"><p>Total Requirement</p></th>
+<th class="head"><p>Resource Shortage</p></th>
+<th class="head"><p>Repositioning Number</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>toy.4p_ssdd_l0.0</p></td>
+<td><p>2,240,000</p></td>
+<td><p>2,190,000</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>toy.4p_ssdd_l0.1</p></td>
+<td><p>2,240,000</p></td>
+<td><p>2,190,000</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p>toy.4p_ssdd_l0.2</p></td>
+<td><p>2,240,000</p></td>
+<td><p>2,190,000</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>toy.4p_ssdd_l0.3</p></td>
+<td><p>2,239,460</p></td>
+<td><p>2,189,460</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p>toy.4p_ssdd_l0.4</p></td>
+<td><p>2,244,068</p></td>
+<td><p>2,194,068</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>toy.4p_ssdd_l0.5</p></td>
+<td><p>2,244,068</p></td>
+<td><p>2,194,068</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p>toy.4p_ssdd_l0.6</p></td>
+<td><p>2,244,068</p></td>
+<td><p>2,194,068</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>toy.4p_ssdd_l0.7</p></td>
+<td><p>2,244,068</p></td>
+<td><p>2,194,068</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p>toy.4p_ssdd_l0.8</p></td>
+<td><p>2,241,716</p></td>
+<td><p>2,191,716</p></td>
+<td><p>0</p></td>
+</tr>
+</tbody>
+</table>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<table class="table">
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Topology</p></th>
+<th class="head"><p>Total Requirement</p></th>
+<th class="head"><p>Resource Shortage</p></th>
+<th class="head"><p>Repositioning Number</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>toy.5p_ssddd_l0.0</p></td>
+<td><p>2,240,000</p></td>
+<td><p>2,140,000</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>toy.5p_ssddd_l0.1</p></td>
+<td><p>2,240,000</p></td>
+<td><p>2,140,000</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p>toy.5p_ssddd_l0.2</p></td>
+<td><p>2,240,000</p></td>
+<td><p>2,140,000</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>toy.5p_ssddd_l0.3</p></td>
+<td><p>2,239,460</p></td>
+<td><p>2,139,460</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p>toy.5p_ssddd_l0.4</p></td>
+<td><p>2,244,068</p></td>
+<td><p>2,144,068</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>toy.5p_ssddd_l0.5</p></td>
+<td><p>2,244,068</p></td>
+<td><p>2,144,068</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p>toy.5p_ssddd_l0.6</p></td>
+<td><p>2,244,068</p></td>
+<td><p>2,144,068</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>toy.5p_ssddd_l0.7</p></td>
+<td><p>2,244,068</p></td>
+<td><p>2,144,068</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p>toy.5p_ssddd_l0.8</p></td>
+<td><p>2,241,716</p></td>
+<td><p>2,141,716</p></td>
+<td><p>0</p></td>
+</tr>
+</tbody>
+</table>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<table class="table">
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Topology</p></th>
+<th class="head"><p>Total Requirement</p></th>
+<th class="head"><p>Resource Shortage</p></th>
+<th class="head"><p>Repositioning Number</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>toy.6p_sssbdd_l0.0</p></td>
+<td><p>2,240,000</p></td>
+<td><p>2,087,000</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>toy.6p_sssbdd_l0.1</p></td>
+<td><p>2,240,000</p></td>
+<td><p>2,087,000</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p>toy.6p_sssbdd_l0.2</p></td>
+<td><p>2,240,000</p></td>
+<td><p>2,087,000</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>toy.6p_sssbdd_l0.3</p></td>
+<td><p>2,239,460</p></td>
+<td><p>2,086,460</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p>toy.6p_sssbdd_l0.4</p></td>
+<td><p>2,244,068</p></td>
+<td><p>2,091,068</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>toy.6p_sssbdd_l0.5</p></td>
+<td><p>2,244,068</p></td>
+<td><p>2,091,068</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p>toy.6p_sssbdd_l0.6</p></td>
+<td><p>2,244,068</p></td>
+<td><p>2,091,068</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>toy.6p_sssbdd_l0.7</p></td>
+<td><p>2,244,068</p></td>
+<td><p>2,091,068</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p>toy.6p_sssbdd_l0.8</p></td>
+<td><p>2,241,716</p></td>
+<td><p>2,088,716</p></td>
+<td><p>0</p></td>
+</tr>
+</tbody>
+</table>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<table class="table">
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Topology</p></th>
+<th class="head"><p>Total Requirement</p></th>
+<th class="head"><p>Resource Shortage</p></th>
+<th class="head"><p>Repositioning Number</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>global_trade.22p_l0.0</p></td>
+<td><p>2,240,000</p></td>
+<td><p>1,028,481</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>global_trade.22p_l0.1</p></td>
+<td><p>2,240,000</p></td>
+<td><p>1,081,935</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p>global_trade.22p_l0.2</p></td>
+<td><p>2,240,000</p></td>
+<td><p>1,083,358</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>global_trade.22p_l0.3</p></td>
+<td><p>2,239,460</p></td>
+<td><p>1,085,212</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p>global_trade.22p_l0.4</p></td>
+<td><p>2,244,068</p></td>
+<td><p>1,089,628</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>global_trade.22p_l0.5</p></td>
+<td><p>2,244,068</p></td>
+<td><p>1,102,913</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p>global_trade.22p_l0.6</p></td>
+<td><p>2,244,068</p></td>
+<td><p>1,122,092</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>global_trade.22p_l0.7</p></td>
+<td><p>2,244,068</p></td>
+<td><p>1,162,108</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p>global_trade.22p_l0.8</p></td>
+<td><p>2,241,716</p></td>
+<td><p>1,161,714</p></td>
+<td><p>0</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="random-repositioning">
+<h4>Random Repositioning<a class="headerlink" href="#random-repositioning" title="Permalink to this headline">¶</a></h4>
+<table class="table">
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Topology</p></th>
+<th class="head"><p>Total Requirement</p></th>
+<th class="head"><p>Resource Shortage</p></th>
+<th class="head"><p>Repositioning Number</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>toy.4p_ssdd_l0.0</p></td>
+<td><p>2,240,000</p></td>
+<td><p>1,497,138 <span class="math notranslate nohighlight">\(\pm\)</span>  30,423</p></td>
+<td><p>4,185,080 <span class="math notranslate nohighlight">\(\pm\)</span> 185,140</p></td>
+</tr>
+<tr class="row-odd"><td><p>toy.4p_ssdd_l0.1</p></td>
+<td><p>2,240,000</p></td>
+<td><p>1,623,710 <span class="math notranslate nohighlight">\(\pm\)</span>  36,421</p></td>
+<td><p>2,018,360 <span class="math notranslate nohighlight">\(\pm\)</span>  36,700</p></td>
+</tr>
+<tr class="row-even"><td><p>toy.4p_ssdd_l0.2</p></td>
+<td><p>2,240,000</p></td>
+<td><p>1,501,466 <span class="math notranslate nohighlight">\(\pm\)</span>  48,566</p></td>
+<td><p>2,145,180 <span class="math notranslate nohighlight">\(\pm\)</span>  90,300</p></td>
+</tr>
+<tr class="row-odd"><td><p>toy.4p_ssdd_l0.3</p></td>
+<td><p>2,239,460</p></td>
+<td><p>1,577,011 <span class="math notranslate nohighlight">\(\pm\)</span>  35,109</p></td>
+<td><p>2,098,500 <span class="math notranslate nohighlight">\(\pm\)</span>  35,120</p></td>
+</tr>
+<tr class="row-even"><td><p>toy.4p_ssdd_l0.4</p></td>
+<td><p>2,244,068</p></td>
+<td><p>1,501,835 <span class="math notranslate nohighlight">\(\pm\)</span> 103,196</p></td>
+<td><p>2,180,480 <span class="math notranslate nohighlight">\(\pm\)</span>  33,020</p></td>
+</tr>
+<tr class="row-odd"><td><p>toy.4p_ssdd_l0.5</p></td>
+<td><p>2,244,068</p></td>
+<td><p>1,546,227 <span class="math notranslate nohighlight">\(\pm\)</span>  81,107</p></td>
+<td><p>2,077,320 <span class="math notranslate nohighlight">\(\pm\)</span> 113,740</p></td>
+</tr>
+<tr class="row-even"><td><p>toy.4p_ssdd_l0.6</p></td>
+<td><p>2,244,068</p></td>
+<td><p>1,578,863 <span class="math notranslate nohighlight">\(\pm\)</span> 127,815</p></td>
+<td><p>2,220,720 <span class="math notranslate nohighlight">\(\pm\)</span> 106,660</p></td>
+</tr>
+<tr class="row-odd"><td><p>toy.4p_ssdd_l0.7</p></td>
+<td><p>2,244,068</p></td>
+<td><p>1,519,495 <span class="math notranslate nohighlight">\(\pm\)</span>  60,555</p></td>
+<td><p>2,441,480 <span class="math notranslate nohighlight">\(\pm\)</span>  79,700</p></td>
+</tr>
+<tr class="row-even"><td><p>toy.4p_ssdd_l0.8</p></td>
+<td><p>2,241,716</p></td>
+<td><p>1,603,063 <span class="math notranslate nohighlight">\(\pm\)</span> 109,149</p></td>
+<td><p>2,518,920 <span class="math notranslate nohighlight">\(\pm\)</span> 193,200</p></td>
+</tr>
+</tbody>
+</table>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<table class="table">
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Topology</p></th>
+<th class="head"><p>Total Requirement</p></th>
+<th class="head"><p>Resource Shortage</p></th>
+<th class="head"><p>Repositioning Number</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>toy.5p_ssddd_l0.0</p></td>
+<td><p>2,240,000</p></td>
+<td><p>1,371,021 <span class="math notranslate nohighlight">\(\pm\)</span>  34,619</p></td>
+<td><p>3,966,120 <span class="math notranslate nohighlight">\(\pm\)</span> 138,960</p></td>
+</tr>
+<tr class="row-odd"><td><p>toy.5p_ssddd_l0.1</p></td>
+<td><p>2,240,000</p></td>
+<td><p>1,720,068 <span class="math notranslate nohighlight">\(\pm\)</span>  18,939</p></td>
+<td><p>1,550,280 <span class="math notranslate nohighlight">\(\pm\)</span>  25,600</p></td>
+</tr>
+<tr class="row-even"><td><p>toy.5p_ssddd_l0.2</p></td>
+<td><p>2,240,000</p></td>
+<td><p>1,716,435 <span class="math notranslate nohighlight">\(\pm\)</span>  15,499</p></td>
+<td><p>1,496,860 <span class="math notranslate nohighlight">\(\pm\)</span>  31,260</p></td>
+</tr>
+<tr class="row-odd"><td><p>toy.5p_ssddd_l0.3</p></td>
+<td><p>2,239,460</p></td>
+<td><p>1,700,456 <span class="math notranslate nohighlight">\(\pm\)</span>  26,510</p></td>
+<td><p>1,586,640 <span class="math notranslate nohighlight">\(\pm\)</span>  11,500</p></td>
+</tr>
+<tr class="row-even"><td><p>toy.5p_ssddd_l0.4</p></td>
+<td><p>2,244,068</p></td>
+<td><p>1,663,139 <span class="math notranslate nohighlight">\(\pm\)</span>  34,244</p></td>
+<td><p>1,594,160 <span class="math notranslate nohighlight">\(\pm\)</span> 103,040</p></td>
+</tr>
+<tr class="row-odd"><td><p>toy.5p_ssddd_l0.5</p></td>
+<td><p>2,244,068</p></td>
+<td><p>1,681,519 <span class="math notranslate nohighlight">\(\pm\)</span> 107,863</p></td>
+<td><p>1,635,360 <span class="math notranslate nohighlight">\(\pm\)</span>  61,880</p></td>
+</tr>
+<tr class="row-even"><td><p>toy.5p_ssddd_l0.6</p></td>
+<td><p>2,244,068</p></td>
+<td><p>1,660,330 <span class="math notranslate nohighlight">\(\pm\)</span>  38,318</p></td>
+<td><p>1,630,060 <span class="math notranslate nohighlight">\(\pm\)</span>  81,580</p></td>
+</tr>
+<tr class="row-odd"><td><p>toy.5p_ssddd_l0.7</p></td>
+<td><p>2,244,068</p></td>
+<td><p>1,709,022 <span class="math notranslate nohighlight">\(\pm\)</span>  31,440</p></td>
+<td><p>1,854,340 <span class="math notranslate nohighlight">\(\pm\)</span> 167,080</p></td>
+</tr>
+<tr class="row-even"><td><p>toy.5p_ssddd_l0.8</p></td>
+<td><p>2,241,716</p></td>
+<td><p>1,763,950 <span class="math notranslate nohighlight">\(\pm\)</span>  73,935</p></td>
+<td><p>1,858,420 <span class="math notranslate nohighlight">\(\pm\)</span>  60,680</p></td>
+</tr>
+</tbody>
+</table>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<table class="table">
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Topology</p></th>
+<th class="head"><p>Total Requirement</p></th>
+<th class="head"><p>Resource Shortage</p></th>
+<th class="head"><p>Repositioning Number</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>toy.6p_sssbdd_l0.0</p></td>
+<td><p>2,240,000</p></td>
+<td><p>1,529,774 <span class="math notranslate nohighlight">\(\pm\)</span> 73,104</p></td>
+<td><p>3,989,560 <span class="math notranslate nohighlight">\(\pm\)</span> 232,740</p></td>
+</tr>
+<tr class="row-odd"><td><p>toy.6p_sssbdd_l0.1</p></td>
+<td><p>2,240,000</p></td>
+<td><p>1,736,385 <span class="math notranslate nohighlight">\(\pm\)</span> 16,736</p></td>
+<td><p>1,122,120 <span class="math notranslate nohighlight">\(\pm\)</span>  28,960</p></td>
+</tr>
+<tr class="row-even"><td><p>toy.6p_sssbdd_l0.2</p></td>
+<td><p>2,240,000</p></td>
+<td><p>1,765,945 <span class="math notranslate nohighlight">\(\pm\)</span>  4,680</p></td>
+<td><p>1,052,520 <span class="math notranslate nohighlight">\(\pm\)</span>  44,020</p></td>
+</tr>
+<tr class="row-odd"><td><p>toy.6p_sssbdd_l0.3</p></td>
+<td><p>2,239,460</p></td>
+<td><p>1,811,987 <span class="math notranslate nohighlight">\(\pm\)</span> 15,436</p></td>
+<td><p>998,740 <span class="math notranslate nohighlight">\(\pm\)</span>  69,680</p></td>
+</tr>
+<tr class="row-even"><td><p>toy.6p_sssbdd_l0.4</p></td>
+<td><p>2,244,068</p></td>
+<td><p>1,783,362 <span class="math notranslate nohighlight">\(\pm\)</span> 39,122</p></td>
+<td><p>1,059,860 <span class="math notranslate nohighlight">\(\pm\)</span>  49,100</p></td>
+</tr>
+<tr class="row-odd"><td><p>toy.6p_sssbdd_l0.5</p></td>
+<td><p>2,244,068</p></td>
+<td><p>1,755,551 <span class="math notranslate nohighlight">\(\pm\)</span> 44,855</p></td>
+<td><p>1,101,100 <span class="math notranslate nohighlight">\(\pm\)</span>  55,180</p></td>
+</tr>
+<tr class="row-even"><td><p>toy.6p_sssbdd_l0.6</p></td>
+<td><p>2,244,068</p></td>
+<td><p>1,830,504 <span class="math notranslate nohighlight">\(\pm\)</span> 10,690</p></td>
+<td><p>1,141,660 <span class="math notranslate nohighlight">\(\pm\)</span>  10,520</p></td>
+</tr>
+<tr class="row-odd"><td><p>toy.6p_sssbdd_l0.7</p></td>
+<td><p>2,244,068</p></td>
+<td><p>1,742,129 <span class="math notranslate nohighlight">\(\pm\)</span> 23,910</p></td>
+<td><p>1,311,420 <span class="math notranslate nohighlight">\(\pm\)</span>  64,560</p></td>
+</tr>
+<tr class="row-even"><td><p>toy.6p_sssbdd_l0.8</p></td>
+<td><p>2,241,716</p></td>
+<td><p>1,761,283 <span class="math notranslate nohighlight">\(\pm\)</span> 22,338</p></td>
+<td><p>1,336,540 <span class="math notranslate nohighlight">\(\pm\)</span>  30,020</p></td>
+</tr>
+</tbody>
+</table>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<table class="table">
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Topology</p></th>
+<th class="head"><p>Total Requirement</p></th>
+<th class="head"><p>Resource Shortage</p></th>
+<th class="head"><p>Repositioning Number</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>global_trade.22p_l0.0</p></td>
+<td><p>2,240,000</p></td>
+<td><p>1,010,009 <span class="math notranslate nohighlight">\(\pm\)</span> 20,942</p></td>
+<td><p>548,240 <span class="math notranslate nohighlight">\(\pm\)</span>  14,600</p></td>
+</tr>
+<tr class="row-odd"><td><p>global_trade.22p_l0.1</p></td>
+<td><p>2,240,000</p></td>
+<td><p>1,027,395 <span class="math notranslate nohighlight">\(\pm\)</span> 19,183</p></td>
+<td><p>188,160 <span class="math notranslate nohighlight">\(\pm\)</span>  12,940</p></td>
+</tr>
+<tr class="row-even"><td><p>global_trade.22p_l0.2</p></td>
+<td><p>2,240,000</p></td>
+<td><p>1,035,851 <span class="math notranslate nohighlight">\(\pm\)</span>  4,352</p></td>
+<td><p>181,240 <span class="math notranslate nohighlight">\(\pm\)</span>   5,240</p></td>
+</tr>
+<tr class="row-odd"><td><p>global_trade.22p_l0.3</p></td>
+<td><p>2,239,460</p></td>
+<td><p>1,032,480 <span class="math notranslate nohighlight">\(\pm\)</span>  1,332</p></td>
+<td><p>190,220 <span class="math notranslate nohighlight">\(\pm\)</span>   8,920</p></td>
+</tr>
+<tr class="row-even"><td><p>global_trade.22p_l0.4</p></td>
+<td><p>2,244,068</p></td>
+<td><p>1,034,412 <span class="math notranslate nohighlight">\(\pm\)</span> 11,689</p></td>
+<td><p>186,080 <span class="math notranslate nohighlight">\(\pm\)</span>   6,280</p></td>
+</tr>
+<tr class="row-odd"><td><p>global_trade.22p_l0.5</p></td>
+<td><p>2,244,068</p></td>
+<td><p>1,042,869 <span class="math notranslate nohighlight">\(\pm\)</span> 16,146</p></td>
+<td><p>188,720 <span class="math notranslate nohighlight">\(\pm\)</span>   7,880</p></td>
+</tr>
+<tr class="row-even"><td><p>global_trade.22p_l0.6</p></td>
+<td><p>2,244,068</p></td>
+<td><p>1,096,502 <span class="math notranslate nohighlight">\(\pm\)</span> 26,896</p></td>
+<td><p>302,280 <span class="math notranslate nohighlight">\(\pm\)</span>  27,540</p></td>
+</tr>
+<tr class="row-odd"><td><p>global_trade.22p_l0.7</p></td>
+<td><p>2,244,068</p></td>
+<td><p>1,144,981 <span class="math notranslate nohighlight">\(\pm\)</span>  5,355</p></td>
+<td><p>283,520 <span class="math notranslate nohighlight">\(\pm\)</span>  25,700</p></td>
+</tr>
+<tr class="row-even"><td><p>global_trade.22p_l0.8</p></td>
+<td><p>2,241,716</p></td>
+<td><p>1,154,184 <span class="math notranslate nohighlight">\(\pm\)</span>  7,043</p></td>
+<td><p>270,960 <span class="math notranslate nohighlight">\(\pm\)</span>   2,240</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="section" id="quick-start">
+<h2>Quick Start<a class="headerlink" href="#quick-start" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="data-preparation">
+<h3>Data Preparation<a class="headerlink" href="#data-preparation" title="Permalink to this headline">¶</a></h3>
+<p>To start a simulation in CIM scenario, no extra data processing is needed. You
+can just specify the scenario and the topology when initialize an environment and
+enjoy your exploration in this scenario.</p>
+</div>
+<div class="section" id="environment-interface">
+<h3>Environment Interface<a class="headerlink" href="#environment-interface" title="Permalink to this headline">¶</a></h3>
+<p>Before starting interaction with the environment, we need to know the definition
+of <code class="docutils literal notranslate"><span class="pre">DecisionEvent</span></code> and <code class="docutils literal notranslate"><span class="pre">Action</span></code> in CIM scenario first. Besides, you can query the
+environment <a class="reference external" href="../key_components/data_model.html#advanced-features">snapshot list</a>
+to get more detailed information for the decision making.</p>
+<div class="section" id="decisionevent">
+<h4>DecisionEvent<a class="headerlink" href="#decisionevent" title="Permalink to this headline">¶</a></h4>
+<p>Once the environment need the agent’s response to promote the simulation, it will
+throw an <code class="docutils literal notranslate"><span class="pre">DecisionEvent</span></code>. In the scenario of CIM, the information of each
+<code class="docutils literal notranslate"><span class="pre">DecisionEvent</span></code> is listed as below:</p>
+<ul class="simple">
+<li><p><strong>tick</strong> (int): The corresponding tick.</p></li>
+<li><p><strong>port_idx</strong> (int): The id of the port/agent that needs to respond to the
+environment.</p></li>
+<li><p><strong>vessel_idx</strong> (int): The id of the vessel/operation object of the port/agent.</p></li>
+<li><p><strong>action_scope</strong> (ActionScope): ActionScope has two attributes:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">load</span></code> indicates the maximum quantity that can be loaded from the port the
+vessel.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">discharge</span></code> indicates the maximum quantity that can be discharged from the
+vessel to the port.</p></li>
+</ul>
+</li>
+<li><p><strong>early_discharge</strong> (int): When the available capacity in the vessel is not
+enough to load the ladens, some of the empty containers in the vessel will be
+early discharged to free the space. The quantity of empty containers that have
+been early discharged due to the laden loading is recorded in this field.</p></li>
+</ul>
+</div>
+<div class="section" id="action">
+<h4>Action<a class="headerlink" href="#action" title="Permalink to this headline">¶</a></h4>
+<p>Once we get a <code class="docutils literal notranslate"><span class="pre">DecisionEvent</span></code> from the environment, we should respond with an
+<code class="docutils literal notranslate"><span class="pre">Action</span></code>. Valid <code class="docutils literal notranslate"><span class="pre">Action</span></code> could be:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">None</span></code>, which means do nothing.</p></li>
+<li><p>A valid <code class="docutils literal notranslate"><span class="pre">Action</span></code> instance, including:</p>
+<ul>
+<li><p><strong>vessel_idx</strong> (int): The id of the vessel/operation object of the port/agent.</p></li>
+<li><p><strong>port_idx</strong> (int): The id of the port/agent that take this action.</p></li>
+<li><p><strong>quantity</strong> (int): The sign of this value denotes different meanings:</p>
+<ul>
+<li><p>Positive quantity means discharging empty containers from vessel to port.</p></li>
+<li><p>Negative quantity means loading empty containers from port to vessel.</p></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="example">
+<h3>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h3>
+<p>Here we will show you a simple example of interaction with the environment in
+random mode, we hope this could help you learn how to use the environment interfaces:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">maro.simulator</span> <span class="kn">import</span> <span class="n">Env</span>
+<span class="kn">from</span> <span class="nn">maro.simulator.scenarios.cim.common</span> <span class="kn">import</span> <span class="n">Action</span><span class="p">,</span> <span class="n">DecisionEvent</span>
+
+<span class="kn">import</span> <span class="nn">random</span>
+
+<span class="c1"># Initialize an environment of CIM scenario, with a specific topology.</span>
+<span class="c1"># In Container Inventory Management, 1 tick means 1 day, durations=100 here indicates a length of 100 days.</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">Env</span><span class="p">(</span><span class="n">scenario</span><span class="o">=</span><span class="s2">&quot;cim&quot;</span><span class="p">,</span> <span class="n">topology</span><span class="o">=</span><span class="s2">&quot;toy.5p_ssddd_l0.0&quot;</span><span class="p">,</span> <span class="n">start_tick</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">durations</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+
+<span class="c1"># Query for the environment summary, the business instances and intra-instance attributes</span>
+<span class="c1"># will be listed in the output for your reference.</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">summary</span><span class="p">)</span>
+
+<span class="n">metrics</span><span class="p">:</span> <span class="nb">object</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="n">decision_event</span><span class="p">:</span> <span class="n">DecisionEvent</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="n">is_done</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="n">action</span><span class="p">:</span> <span class="n">Action</span> <span class="o">=</span> <span class="kc">None</span>
+
+<span class="n">num_episode</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="k">for</span> <span class="n">ep</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_episode</span><span class="p">):</span>
+    <span class="c1"># Gym-like step function.</span>
+    <span class="n">metrics</span><span class="p">,</span> <span class="n">decision_event</span><span class="p">,</span> <span class="n">is_done</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">while</span> <span class="ow">not</span> <span class="n">is_done</span><span class="p">:</span>
+        <span class="n">past_week_ticks</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">decision_event</span><span class="o">.</span><span class="n">tick</span> <span class="o">-</span> <span class="mi">7</span><span class="p">,</span> <span class="n">decision_event</span><span class="o">.</span><span class="n">tick</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="n">decision_port_idx</span> <span class="o">=</span> <span class="n">decision_event</span><span class="o">.</span><span class="n">port_idx</span>
+        <span class="n">intr_port_infos</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;booking&quot;</span><span class="p">,</span> <span class="s2">&quot;empty&quot;</span><span class="p">,</span> <span class="s2">&quot;shortage&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Query the snapshot list of this environment to get the information of</span>
+        <span class="c1"># the booking, empty, shortage of the decision port in the past week.</span>
+        <span class="n">past_week_info</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">snapshot_list</span><span class="p">[</span><span class="s2">&quot;ports&quot;</span><span class="p">][</span>
+            <span class="n">past_week_ticks</span> <span class="p">:</span> <span class="n">decision_port_idx</span> <span class="p">:</span> <span class="n">intr_port_infos</span>
+        <span class="p">]</span>
+
+        <span class="c1"># Generate a random Action according to the action_scope in DecisionEvent.</span>
+        <span class="n">random_quantity</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span>
+            <span class="o">-</span><span class="n">decision_event</span><span class="o">.</span><span class="n">action_scope</span><span class="o">.</span><span class="n">load</span><span class="p">,</span>
+            <span class="n">decision_event</span><span class="o">.</span><span class="n">action_scope</span><span class="o">.</span><span class="n">discharge</span>
+        <span class="p">)</span>
+        <span class="n">action</span> <span class="o">=</span> <span class="n">Action</span><span class="p">(</span>
+            <span class="n">vessel_idx</span><span class="o">=</span><span class="n">decision_event</span><span class="o">.</span><span class="n">vessel_idx</span><span class="p">,</span>
+            <span class="n">port_idx</span><span class="o">=</span><span class="n">decision_event</span><span class="o">.</span><span class="n">port_idx</span><span class="p">,</span>
+            <span class="n">quantity</span><span class="o">=</span><span class="n">random_quantity</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Drive the environment with the random action.</span>
+        <span class="n">metrics</span><span class="p">,</span> <span class="n">decision_event</span><span class="p">,</span> <span class="n">is_done</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
+
+    <span class="c1"># Query for the environment business metrics at the end of each episode,</span>
+    <span class="c1"># it is usually users&#39; optimized object in CIM scenario (usually includes multi-target).</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ep: </span><span class="si">{</span><span class="n">ep</span><span class="si">}</span><span class="s2">, environment metrics: </span><span class="si">{</span><span class="n">env</span><span class="o">.</span><span class="n">metrics</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Jump to <a class="reference external" href="https://github.com/microsoft/maro/tree/master/notebooks/container_inventory_management/interact_with_environment.ipynb">this notebook</a>
+for a quick experience.</p>
+</div>
+</div>
+<div class="section" id="visualization">
+<h2>Visualization<a class="headerlink" href="#visualization" title="Permalink to this headline">¶</a></h2>
+<p>The resource holders in this scenario is the port and vessel.
+In order to facilitate users to select specific data and
+observe the overall or partial data trend, the
+visualization tool provides data selection options in two dimensions:
+Inter-epoch view &amp; Intra-epoch view.</p>
+<div class="section" id="inter-epoch-view">
+<h3>Inter-epoch view<a class="headerlink" href="#inter-epoch-view" title="Permalink to this headline">¶</a></h3>
+<p>To change “Start Epoch” and “End Epoch”, user could specify the selected
+data range. To change “Epoch Sampling Ratio”, user could change the
+sampling rate of selected data.</p>
+<img alt="cim_inter_epoch" src="../_images/cim_inter_epoch.gif" />
+</div>
+<div class="section" id="intra-epoch-view">
+<h3>Intra-epoch view<a class="headerlink" href="#intra-epoch-view" title="Permalink to this headline">¶</a></h3>
+<p>This part shows the data under a selected epoch. By scrolling the
+slider, users can select different epochs. Furthermore, this part of
+data is divided into two dimensions: by snapshot and by port according
+to time and space. In terms of data display, according to the different
+types of attributes, it is divided into two levels: accumulated data
+(accumulated attributes. e.g. acc_fulfillment) and detail data.</p>
+<p>If user choose to view information by ports, attributes of the selected
+port would be displayed.</p>
+<img alt="cim_intra_epoch_by_ports" src="../_images/cim_intra_epoch_by_ports.gif" />
+<p>If user choose to view data by snapshots, attributes of selected
+snapshot would be displayed. The charts and data involved in this part
+are relatively rich, and we will introduce them by level.</p>
+<div class="section" id="accumulated-data">
+<h4>Accumulated Data<a class="headerlink" href="#accumulated-data" title="Permalink to this headline">¶</a></h4>
+<p>This part includes the transfer volume heat map, bar chart of port
+accumulated attributes and top-k ports of different attributes.</p>
+<p>As shown in the following example, the x-axis and y-axis of transfer
+volume heat map refers to terminal port index and start port index
+respectively. The rect refers to the volume of cargoes transfer from
+start port to terminal port. By changing the snapshot index, user could
+view the dynamic changes in the volume of cargo delivered by the port
+over time in the current epoch.</p>
+<p>The bar chart of Port Accumulated Attributes displays the global change of
+ports.</p>
+<img alt="cim_intra_epoch_by_snapshot_acc_data" src="../_images/cim_intra_epoch_by_snapshot_acc_data.gif" />
+</div>
+<div class="section" id="detail-data">
+<h4>Detail Data<a class="headerlink" href="#detail-data" title="Permalink to this headline">¶</a></h4>
+<p>Since the cargoes is transported through vessels, information of vessels
+could be viewed by snapshot. Same as ports, user could change the sampling rate of vessels.</p>
+<img alt="cim_intra_epoch_by_snapshot_detail_data" src="../_images/cim_intra_epoch_by_snapshot_detail_data.gif" />
+</div>
+</div>
+</div>
+</div>
+
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+    <a class='left-prev' id="prev-link" href="../installation/multi_processes_localhost_provisioning.html" title="previous page">Multi-processes Localhost Provisioning</a>
+    <a class='right-next' id="next-link" href="citi_bike.html" title="next page">Bike Repositioning (Citi Bike)</a>
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../_static/js/index.js"></script>
+    
+  </body>
+</html>

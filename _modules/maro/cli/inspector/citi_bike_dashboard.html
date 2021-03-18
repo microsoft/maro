@@ -1,0 +1,653 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maro.cli.inspector.citi_bike_dashboard &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../../../../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../../../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/sphinx-book-theme.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/language_data.js"></script>
+    <script src="../../../../_static/clipboard.min.js"></script>
+    <script src="../../../../_static/copybutton.js"></script>
+    <script src="../../../../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../../../../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../../../../index.html">
+  
+  <img src="../../../../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../scenarios/container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../scenarios/citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../scenarios/vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../key_components/dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../../../apidoc/maro.html">
+   maro package
+  </a>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2F_modules/maro/cli/inspector/citi_bike_dashboard.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <nav id="bd-toc-nav">
+            
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <h1>Source code for maro.cli.inspector.citi_bike_dashboard</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) Microsoft Corporation.</span>
+<span class="c1"># Licensed under the MIT license.</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">import</span> <span class="nn">altair</span> <span class="k">as</span> <span class="nn">alt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">streamlit</span> <span class="k">as</span> <span class="nn">st</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+
+<span class="kn">import</span> <span class="nn">maro.cli.inspector.dashboard_helper</span> <span class="k">as</span> <span class="nn">helper</span>
+
+<span class="kn">from</span> <span class="nn">.params</span> <span class="kn">import</span> <span class="n">CITIBIKEItemOption</span><span class="p">,</span> <span class="n">GlobalFileNames</span><span class="p">,</span> <span class="n">GlobalScenarios</span>
+<span class="kn">from</span> <span class="nn">.visualization_choice</span> <span class="kn">import</span> <span class="n">CitiBikeIntraViewChoice</span><span class="p">,</span> <span class="n">PanelViewChoice</span>
+
+
+<div class="viewcode-block" id="start_citi_bike_dashboard"><a class="viewcode-back" href="../../../../apidoc/maro.cli.inspector.html#maro.cli.inspector.citi_bike_dashboard.start_citi_bike_dashboard">[docs]</a><span class="k">def</span> <span class="nf">start_citi_bike_dashboard</span><span class="p">(</span><span class="n">source_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">epoch_num</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Entrance of Citi_Bike dashboard.</span>
+
+<span class="sd">    Expected folder structure of Scenario Citi Bike:</span>
+<span class="sd">    -source_path</span>
+<span class="sd">        --epoch_0: Data of each epoch.</span>
+<span class="sd">            --stations.csv: Record stations&#39; attributes in this file.</span>
+<span class="sd">            --matrices.csv: Record transfer volume information in this file.</span>
+<span class="sd">            --stations_summary.csv: Record the summary data of current epoch.</span>
+<span class="sd">        ………………</span>
+<span class="sd">        --epoch_{epoch_num-1}</span>
+<span class="sd">        --manifest.yml: Record basic info like scenario name, name of index_name_mapping file.</span>
+<span class="sd">        --full_stations.json: Record the relationship between ports&#39; index and name.</span>
+<span class="sd">        --stations_summary.csv: Record cross-epoch summary data.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        source_path (str): The root path of the dumped snapshots data for the corresponding experiment.</span>
+<span class="sd">        epoch_num (int): Total number of epoches,</span>
+<span class="sd">            i.e. the total number of data folders since there is a folder per epoch.</span>
+<span class="sd">        prefix (str): Prefix of data folders.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">epoch_num</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">option</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">sidebar</span><span class="o">.</span><span class="n">selectbox</span><span class="p">(</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Data Type&quot;</span><span class="p">,</span>
+            <span class="n">options</span><span class="o">=</span><span class="n">PanelViewChoice</span><span class="o">.</span><span class="n">_member_names_</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">option</span> <span class="o">==</span> <span class="n">PanelViewChoice</span><span class="o">.</span><span class="n">Inter_Epoch</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+            <span class="n">render_inter_view</span><span class="p">(</span><span class="n">source_path</span><span class="p">,</span> <span class="n">epoch_num</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">option</span> <span class="o">==</span> <span class="n">PanelViewChoice</span><span class="o">.</span><span class="n">Intra_Epoch</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+            <span class="n">render_intra_view</span><span class="p">(</span><span class="n">source_path</span><span class="p">,</span> <span class="n">epoch_num</span><span class="p">,</span> <span class="n">prefix</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">pass</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">render_intra_view</span><span class="p">(</span><span class="n">source_path</span><span class="p">,</span> <span class="n">epoch_num</span><span class="p">,</span> <span class="n">prefix</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="render_inter_view"><a class="viewcode-back" href="../../../../apidoc/maro.cli.inspector.html#maro.cli.inspector.citi_bike_dashboard.render_inter_view">[docs]</a><span class="k">def</span> <span class="nf">render_inter_view</span><span class="p">(</span><span class="n">source_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">epoch_num</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Render the cross-epoch infomartion chart of Citi Bike data.</span>
+
+<span class="sd">    This part would be displayed only if epoch_num &gt; 1.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        source_path (str): The root path of the dumped snapshots data for the corresponding experiment.</span>
+<span class="sd">        epoch_num (int): Total number of epoches,</span>
+<span class="sd">            i.e. the total number of data folders since there is a folder per epoch.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">helper</span><span class="o">.</span><span class="n">render_h1_title</span><span class="p">(</span><span class="s2">&quot;Citi Bike Inter Epoch Data&quot;</span><span class="p">)</span>
+    <span class="n">sample_ratio</span> <span class="o">=</span> <span class="n">helper</span><span class="o">.</span><span class="n">get_sample_ratio_selection_list</span><span class="p">(</span><span class="n">epoch_num</span><span class="p">)</span>
+    <span class="c1"># Get epoch sample number.</span>
+    <span class="n">down_pooling_range</span> <span class="o">=</span> <span class="n">helper</span><span class="o">.</span><span class="n">_get_sampled_epoch_range</span><span class="p">(</span><span class="n">epoch_num</span><span class="p">,</span> <span class="n">sample_ratio</span><span class="p">)</span>
+    <span class="n">attribute_option_candidates</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">CITIBIKEItemOption</span><span class="o">.</span><span class="n">quick_info</span> <span class="o">+</span> <span class="n">CITIBIKEItemOption</span><span class="o">.</span><span class="n">requirement_info</span> <span class="o">+</span> <span class="n">CITIBIKEItemOption</span><span class="o">.</span><span class="n">station_info</span>
+    <span class="p">)</span>
+    <span class="c1"># Generate data.</span>
+    <span class="n">data_summary</span> <span class="o">=</span> <span class="n">helper</span><span class="o">.</span><span class="n">read_detail_csv</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">source_path</span><span class="p">,</span> <span class="n">GlobalFileNames</span><span class="o">.</span><span class="n">stations_sum</span><span class="p">)</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">down_pooling_range</span><span class="p">]</span>
+    <span class="c1"># Get formula and selected data.</span>
+    <span class="n">data_formula</span> <span class="o">=</span> <span class="n">helper</span><span class="o">.</span><span class="n">get_filtered_formula_and_data</span><span class="p">(</span>
+        <span class="n">GlobalScenarios</span><span class="o">.</span><span class="n">CITI_BIKE</span><span class="p">,</span> <span class="n">data_summary</span><span class="p">,</span> <span class="n">attribute_option_candidates</span>
+    <span class="p">)</span>
+    <span class="n">_generate_inter_view_panel</span><span class="p">(</span>
+        <span class="n">data_formula</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">][</span><span class="n">data_formula</span><span class="p">[</span><span class="s2">&quot;attribute_option&quot;</span><span class="p">]],</span>
+        <span class="n">down_pooling_range</span>
+    <span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_generate_inter_view_panel</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">down_pooling_range</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]):</span>
+    <span class="sd">&quot;&quot;&quot;Generate inter-view i.e. cross-epoch summary data plot.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        data (pd.Dataframe): Original data.</span>
+<span class="sd">        down_pooling_range (List[float]): Sampling data index list.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">data</span><span class="p">[</span><span class="s2">&quot;Epoch Index&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">down_pooling_range</span><span class="p">)</span>
+    <span class="n">data_melt</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">melt</span><span class="p">(</span><span class="s2">&quot;Epoch Index&quot;</span><span class="p">,</span> <span class="n">var_name</span><span class="o">=</span><span class="s2">&quot;Attributes&quot;</span><span class="p">,</span> <span class="n">value_name</span><span class="o">=</span><span class="s2">&quot;Count&quot;</span><span class="p">)</span>
+
+    <span class="n">inter_line_chart</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">data_melt</span><span class="p">)</span><span class="o">.</span><span class="n">mark_line</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+        <span class="n">x</span><span class="o">=</span><span class="s2">&quot;Epoch Index&quot;</span><span class="p">,</span>
+        <span class="n">y</span><span class="o">=</span><span class="s2">&quot;Count&quot;</span><span class="p">,</span>
+        <span class="n">color</span><span class="o">=</span><span class="s2">&quot;Attributes&quot;</span><span class="p">,</span>
+        <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Attributes&quot;</span><span class="p">,</span> <span class="s2">&quot;Count&quot;</span><span class="p">,</span> <span class="s2">&quot;Epoch Index&quot;</span><span class="p">]</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">700</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">380</span>
+    <span class="p">)</span>
+    <span class="n">st</span><span class="o">.</span><span class="n">altair_chart</span><span class="p">(</span><span class="n">inter_line_chart</span><span class="p">)</span>
+
+    <span class="n">inter_bar_chart</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">data_melt</span><span class="p">)</span><span class="o">.</span><span class="n">mark_bar</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+        <span class="n">x</span><span class="o">=</span><span class="s2">&quot;Epoch Index:N&quot;</span><span class="p">,</span>
+        <span class="n">y</span><span class="o">=</span><span class="s2">&quot;Count:Q&quot;</span><span class="p">,</span>
+        <span class="n">color</span><span class="o">=</span><span class="s2">&quot;Attributes:N&quot;</span><span class="p">,</span>
+        <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Attributes&quot;</span><span class="p">,</span> <span class="s2">&quot;Count&quot;</span><span class="p">,</span> <span class="s2">&quot;Epoch Index&quot;</span><span class="p">]</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">700</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">380</span>
+    <span class="p">)</span>
+    <span class="n">st</span><span class="o">.</span><span class="n">altair_chart</span><span class="p">(</span><span class="n">inter_bar_chart</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="render_intra_view"><a class="viewcode-back" href="../../../../apidoc/maro.cli.inspector.html#maro.cli.inspector.citi_bike_dashboard.render_intra_view">[docs]</a><span class="k">def</span> <span class="nf">render_intra_view</span><span class="p">(</span><span class="n">source_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">epoch_num</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Show Citi Bike intra-view plot.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        source_path (str): The root path of the dumped snapshots data for the corresponding experiment.</span>
+<span class="sd">        epoch_num (int): Total number of epoches,</span>
+<span class="sd">            i.e. the total number of data folders since there is a folder per epoch.</span>
+<span class="sd">        prefix (str): Prefix of data folders.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">selected_epoch</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="n">epoch_num</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">selected_epoch</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">sidebar</span><span class="o">.</span><span class="n">select_slider</span><span class="p">(</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Choose an Epoch:&quot;</span><span class="p">,</span>
+            <span class="n">options</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">epoch_num</span><span class="p">))</span>
+        <span class="p">)</span>
+    <span class="n">helper</span><span class="o">.</span><span class="n">render_h1_title</span><span class="p">(</span><span class="s2">&quot;Citi Bike Intra Epoch Data&quot;</span><span class="p">)</span>
+    <span class="n">data_stations</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">source_path</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}{</span><span class="n">selected_epoch</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;stations.csv&quot;</span><span class="p">))</span>
+    <span class="n">view_option</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">sidebar</span><span class="o">.</span><span class="n">selectbox</span><span class="p">(</span>
+        <span class="n">label</span><span class="o">=</span><span class="s2">&quot;By station/snapshot:&quot;</span><span class="p">,</span>
+        <span class="n">options</span><span class="o">=</span><span class="n">CitiBikeIntraViewChoice</span><span class="o">.</span><span class="n">_member_names_</span>
+    <span class="p">)</span>
+    <span class="n">stations_num</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data_stations</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
+    <span class="n">stations_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">stations_num</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="n">snapshot_num</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data_stations</span><span class="p">[</span><span class="s2">&quot;frame_index&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
+    <span class="n">snapshots_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">snapshot_num</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+    <span class="n">index_name_conversion</span> <span class="o">=</span> <span class="n">helper</span><span class="o">.</span><span class="n">read_detail_csv</span><span class="p">(</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">source_path</span><span class="p">,</span>
+            <span class="n">GlobalFileNames</span><span class="o">.</span><span class="n">name_convert</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">attribute_option_candidates</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">CITIBIKEItemOption</span><span class="o">.</span><span class="n">quick_info</span> <span class="o">+</span> <span class="n">CITIBIKEItemOption</span><span class="o">.</span><span class="n">requirement_info</span> <span class="o">+</span> <span class="n">CITIBIKEItemOption</span><span class="o">.</span><span class="n">station_info</span>
+    <span class="p">)</span>
+    <span class="n">st</span><span class="o">.</span><span class="n">sidebar</span><span class="o">.</span><span class="n">markdown</span><span class="p">(</span><span class="s2">&quot;***&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Filter by station index.</span>
+    <span class="c1"># Display the change of snapshot within 1 station.</span>
+    <span class="n">render_top_k_summary</span><span class="p">(</span><span class="n">source_path</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">selected_epoch</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">view_option</span> <span class="o">==</span> <span class="n">CitiBikeIntraViewChoice</span><span class="o">.</span><span class="n">by_station</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+        <span class="n">_generate_intra_view_by_station</span><span class="p">(</span>
+            <span class="n">data_stations</span><span class="p">,</span> <span class="n">index_name_conversion</span><span class="p">,</span> <span class="n">attribute_option_candidates</span><span class="p">,</span> <span class="n">stations_index</span><span class="p">,</span> <span class="n">snapshot_num</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Filter by snapshot index.</span>
+    <span class="c1"># Display all station information within 1 snapshot.</span>
+    <span class="k">elif</span> <span class="n">view_option</span> <span class="o">==</span> <span class="n">CitiBikeIntraViewChoice</span><span class="o">.</span><span class="n">by_snapshot</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+        <span class="n">_generate_intra_view_by_snapshot</span><span class="p">(</span>
+            <span class="n">data_stations</span><span class="p">,</span> <span class="n">index_name_conversion</span><span class="p">,</span> <span class="n">attribute_option_candidates</span><span class="p">,</span>
+            <span class="n">snapshots_index</span><span class="p">,</span> <span class="n">snapshot_num</span><span class="p">,</span> <span class="n">stations_num</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="render_top_k_summary"><a class="viewcode-back" href="../../../../apidoc/maro.cli.inspector.html#maro.cli.inspector.citi_bike_dashboard.render_top_k_summary">[docs]</a><span class="k">def</span> <span class="nf">render_top_k_summary</span><span class="p">(</span><span class="n">source_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">epoch_index</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Show top-k summary plot.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        source_path (str): The root path of the dumped snapshots data for the corresponding experiment.</span>
+<span class="sd">        prefix (str): Prefix of data folders.</span>
+<span class="sd">        epoch_index (int): The index of selected epoch.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">helper</span><span class="o">.</span><span class="n">render_h3_title</span><span class="p">(</span><span class="s2">&quot;Cike Bike Top K&quot;</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">helper</span><span class="o">.</span><span class="n">read_detail_csv</span><span class="p">(</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">source_path</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}{</span><span class="n">epoch_index</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">GlobalFileNames</span><span class="o">.</span><span class="n">stations_sum</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="c1"># Convert index to station name.</span>
+    <span class="n">index_name_conversion</span> <span class="o">=</span> <span class="n">helper</span><span class="o">.</span><span class="n">read_detail_csv</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">source_path</span><span class="p">,</span> <span class="n">GlobalFileNames</span><span class="o">.</span><span class="n">name_convert</span><span class="p">))</span>
+    <span class="n">data</span><span class="p">[</span><span class="s2">&quot;station name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+        <span class="nb">map</span><span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">index_name_conversion</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">9</span><span class="p">:])][</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="c1"># Generate top summary.</span>
+    <span class="n">top_number</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">select_slider</span><span class="p">(</span>
+        <span class="s2">&quot;Select Top K&quot;</span><span class="p">,</span>
+        <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+    <span class="p">)</span>
+    <span class="n">top_attributes</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;bikes&quot;</span><span class="p">,</span> <span class="s2">&quot;trip_requirement&quot;</span><span class="p">,</span> <span class="s2">&quot;fulfillment&quot;</span><span class="p">,</span> <span class="s2">&quot;fulfillment_ratio&quot;</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">top_attributes</span><span class="p">:</span>
+        <span class="n">helper</span><span class="o">.</span><span class="n">generate_by_snapshot_top_summary</span><span class="p">(</span><span class="s2">&quot;station name&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">top_number</span><span class="p">),</span> <span class="n">item</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_generate_intra_view_by_snapshot</span><span class="p">(</span>
+    <span class="n">data_stations</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">index_name_conversion</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">attribute_option_candidates</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">snapshots_index</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">snapshot_num</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">stations_num</span><span class="p">:</span> <span class="nb">int</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Show Citi Bike intra-view data by snapshot.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        data_stations (pd.Dataframe): Filtered Data.</span>
+<span class="sd">        index_name_conversion (pd.Dataframe): Relationship between index and name.</span>
+<span class="sd">        attribute_option_candidates (List[str]): All options for users to choose.</span>
+<span class="sd">        snapshots_index (List[int]): Sampled snapshot index list.</span>
+<span class="sd">        snapshot_num (int): Number of snapshots.</span>
+<span class="sd">        stations_num (int): Number of stations.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Get selected snapshot index.</span>
+    <span class="n">selected_snapshot</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">sidebar</span><span class="o">.</span><span class="n">select_slider</span><span class="p">(</span>
+        <span class="n">label</span><span class="o">=</span><span class="s2">&quot;snapshot index&quot;</span><span class="p">,</span>
+        <span class="n">options</span><span class="o">=</span><span class="n">snapshots_index</span>
+    <span class="p">)</span>
+    <span class="n">helper</span><span class="o">.</span><span class="n">render_h3_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Snapshot-</span><span class="si">{</span><span class="n">selected_snapshot</span><span class="si">}</span><span class="s2">:  Detail Data&quot;</span><span class="p">)</span>
+    <span class="c1"># Get according data with selected snapshot.</span>
+    <span class="n">data_filtered</span> <span class="o">=</span> <span class="n">data_stations</span><span class="p">[</span><span class="n">data_stations</span><span class="p">[</span><span class="s2">&quot;frame_index&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">selected_snapshot</span><span class="p">]</span>
+    <span class="c1"># Get increasing rate.</span>
+    <span class="n">sample_ratio</span> <span class="o">=</span> <span class="n">helper</span><span class="o">.</span><span class="n">get_sample_ratio_selection_list</span><span class="p">(</span><span class="n">stations_num</span><span class="p">)</span>
+    <span class="c1"># Get sample rate (between 0-1).</span>
+    <span class="n">selected_station_sample_ratio</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">sidebar</span><span class="o">.</span><span class="n">select_slider</span><span class="p">(</span>
+        <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Station Sampling Ratio&quot;</span><span class="p">,</span>
+        <span class="n">options</span><span class="o">=</span><span class="n">sample_ratio</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Get formula input and output.</span>
+    <span class="n">data_formula</span> <span class="o">=</span> <span class="n">helper</span><span class="o">.</span><span class="n">get_filtered_formula_and_data</span><span class="p">(</span>
+        <span class="n">GlobalScenarios</span><span class="o">.</span><span class="n">CITI_BIKE</span><span class="p">,</span> <span class="n">data_filtered</span><span class="p">,</span> <span class="n">attribute_option_candidates</span>
+    <span class="p">)</span>
+    <span class="c1"># Get sampled data and get station name.</span>
+    <span class="n">down_pooling_sample_list</span> <span class="o">=</span> <span class="n">helper</span><span class="o">.</span><span class="n">get_sample_index_list</span><span class="p">(</span><span class="n">stations_num</span><span class="p">,</span> <span class="n">selected_station_sample_ratio</span><span class="p">)</span>
+
+    <span class="n">attribute_option</span> <span class="o">=</span> <span class="n">data_formula</span><span class="p">[</span><span class="s2">&quot;attribute_option&quot;</span><span class="p">]</span>
+    <span class="n">attribute_option</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">selected_station_sample_ratio</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">empty_head</span> <span class="o">=</span> <span class="n">attribute_option</span>
+        <span class="n">empty_head</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Station Name&quot;</span><span class="p">)</span>
+        <span class="n">data_filtered</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">empty_head</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">data_filtered</span> <span class="o">=</span> <span class="n">data_formula</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">][</span><span class="n">attribute_option</span><span class="p">]</span>
+        <span class="n">data_filtered</span> <span class="o">=</span> <span class="n">data_filtered</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">down_pooling_sample_list</span><span class="p">]</span>
+        <span class="n">data_filtered</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_filtered</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">9</span><span class="p">:]))</span>
+        <span class="n">data_filtered</span><span class="p">[</span><span class="s2">&quot;Station Name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_filtered</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">index_name_conversion</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)]</span>
+        <span class="p">)</span>
+    <span class="n">data_melt</span> <span class="o">=</span> <span class="n">data_filtered</span><span class="o">.</span><span class="n">melt</span><span class="p">(</span>
+        <span class="p">[</span><span class="s2">&quot;Station Name&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">],</span>
+        <span class="n">var_name</span><span class="o">=</span><span class="s2">&quot;Attributes&quot;</span><span class="p">,</span>
+        <span class="n">value_name</span><span class="o">=</span><span class="s2">&quot;Count&quot;</span>
+    <span class="p">)</span>
+    <span class="n">intra_snapshot_line_chart</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">data_melt</span><span class="p">)</span><span class="o">.</span><span class="n">mark_bar</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+        <span class="n">x</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s2">&quot;name:N&quot;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Axis</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Name&quot;</span><span class="p">)),</span>
+        <span class="n">y</span><span class="o">=</span><span class="s2">&quot;Count:Q&quot;</span><span class="p">,</span>
+        <span class="n">color</span><span class="o">=</span><span class="s2">&quot;Attributes:N&quot;</span><span class="p">,</span>
+        <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Attributes&quot;</span><span class="p">,</span> <span class="s2">&quot;Count&quot;</span><span class="p">,</span> <span class="s2">&quot;Station Name&quot;</span><span class="p">],</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">700</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">380</span>
+    <span class="p">)</span>
+    <span class="n">st</span><span class="o">.</span><span class="n">altair_chart</span><span class="p">(</span><span class="n">intra_snapshot_line_chart</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_generate_intra_view_by_station</span><span class="p">(</span>
+    <span class="n">data_stations</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">index_name_conversion</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">attribute_option_candidates</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">stations_index</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">snapshot_num</span><span class="p">:</span> <span class="nb">int</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Show Citi Bike intra-view data by station.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        data_stations (pd.Dataframe): Filtered station data.</span>
+<span class="sd">        index_name_conversion (pd.Dataframe): Relationship between index and name.</span>
+<span class="sd">        attribute_option_candidates (List[str]): All options for users to choose.</span>
+<span class="sd">        stations_index (List[int]):  List of station index.</span>
+<span class="sd">        snapshot_num (int): Number of snapshots.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">selected_station</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">sidebar</span><span class="o">.</span><span class="n">select_slider</span><span class="p">(</span>
+        <span class="n">label</span><span class="o">=</span><span class="s2">&quot;station index&quot;</span><span class="p">,</span>
+        <span class="n">options</span><span class="o">=</span><span class="n">stations_index</span>
+    <span class="p">)</span>
+    <span class="n">helper</span><span class="o">.</span><span class="n">render_h3_title</span><span class="p">(</span><span class="n">index_name_conversion</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">selected_station</span><span class="p">)][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot; Detail Data&quot;</span><span class="p">)</span>
+    <span class="c1"># Filter data by station index.</span>
+    <span class="n">data_filtered</span> <span class="o">=</span> <span class="n">data_stations</span><span class="p">[</span><span class="n">data_stations</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="sa">f</span><span class="s2">&quot;stations_</span><span class="si">{</span><span class="n">selected_station</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span>
+    <span class="n">snapshot_sample_ratio_list</span> <span class="o">=</span> <span class="n">helper</span><span class="o">.</span><span class="n">get_sample_ratio_selection_list</span><span class="p">(</span><span class="n">snapshot_num</span><span class="p">)</span>
+    <span class="n">selected_snapshot_sample_ratio</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">sidebar</span><span class="o">.</span><span class="n">select_slider</span><span class="p">(</span>
+        <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Snapshot Sampling Ratio:&quot;</span><span class="p">,</span>
+        <span class="n">options</span><span class="o">=</span><span class="n">snapshot_sample_ratio_list</span>
+    <span class="p">)</span>
+    <span class="c1"># Get formula input and output.</span>
+    <span class="n">data_formula</span> <span class="o">=</span> <span class="n">helper</span><span class="o">.</span><span class="n">get_filtered_formula_and_data</span><span class="p">(</span>
+        <span class="n">GlobalScenarios</span><span class="o">.</span><span class="n">CITI_BIKE</span><span class="p">,</span> <span class="n">data_filtered</span><span class="p">,</span> <span class="n">attribute_option_candidates</span>
+    <span class="p">)</span>
+
+    <span class="n">attribute_option</span> <span class="o">=</span> <span class="n">data_formula</span><span class="p">[</span><span class="s2">&quot;attribute_option&quot;</span><span class="p">]</span>
+    <span class="n">attribute_option</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;frame_index&quot;</span><span class="p">)</span>
+    <span class="n">data_filtered</span> <span class="o">=</span> <span class="n">data_formula</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">][</span><span class="n">attribute_option</span><span class="p">]</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">down_pooling_sample_list</span> <span class="o">=</span> <span class="n">helper</span><span class="o">.</span><span class="n">get_sample_index_list</span><span class="p">(</span><span class="n">snapshot_num</span><span class="p">,</span> <span class="n">selected_snapshot_sample_ratio</span><span class="p">)</span>
+    <span class="n">data_filtered</span> <span class="o">=</span> <span class="n">data_filtered</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">down_pooling_sample_list</span><span class="p">]</span>
+    <span class="n">data_filtered</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+        <span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;frame_index&quot;</span><span class="p">:</span> <span class="s2">&quot;snapshot_index&quot;</span><span class="p">},</span>
+        <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="n">data_melt</span> <span class="o">=</span> <span class="n">data_filtered</span><span class="o">.</span><span class="n">melt</span><span class="p">(</span>
+        <span class="s2">&quot;snapshot_index&quot;</span><span class="p">,</span>
+        <span class="n">var_name</span><span class="o">=</span><span class="s2">&quot;Attributes&quot;</span><span class="p">,</span>
+        <span class="n">value_name</span><span class="o">=</span><span class="s2">&quot;Count&quot;</span>
+    <span class="p">)</span>
+    <span class="n">intra_station_line_chart</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">data_melt</span><span class="p">)</span><span class="o">.</span><span class="n">mark_line</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+        <span class="n">x</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s2">&quot;snapshot_index&quot;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Axis</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Snapshot Index&quot;</span><span class="p">)),</span>
+        <span class="n">y</span><span class="o">=</span><span class="s2">&quot;Count&quot;</span><span class="p">,</span>
+        <span class="n">color</span><span class="o">=</span><span class="s2">&quot;Attributes&quot;</span><span class="p">,</span>
+        <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Attributes&quot;</span><span class="p">,</span> <span class="s2">&quot;Count&quot;</span><span class="p">,</span> <span class="s2">&quot;snapshot_index&quot;</span><span class="p">]</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">700</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">380</span>
+    <span class="p">)</span>
+    <span class="n">st</span><span class="o">.</span><span class="n">altair_chart</span><span class="p">(</span><span class="n">intra_station_line_chart</span><span class="p">)</span>
+
+    <span class="n">intra_station_bar_chart</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">Chart</span><span class="p">(</span><span class="n">data_melt</span><span class="p">)</span><span class="o">.</span><span class="n">mark_bar</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+        <span class="n">x</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s2">&quot;snapshot_index:N&quot;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">alt</span><span class="o">.</span><span class="n">Axis</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Snapshot Index&quot;</span><span class="p">)),</span>
+        <span class="n">y</span><span class="o">=</span><span class="s2">&quot;Count:Q&quot;</span><span class="p">,</span>
+        <span class="n">color</span><span class="o">=</span><span class="s2">&quot;Attributes:N&quot;</span><span class="p">,</span>
+        <span class="n">tooltip</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Attributes&quot;</span><span class="p">,</span> <span class="s2">&quot;Count&quot;</span><span class="p">,</span> <span class="s2">&quot;snapshot_index&quot;</span><span class="p">]</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">properties</span><span class="p">(</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">700</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">380</span>
+    <span class="p">)</span>
+    <span class="n">st</span><span class="o">.</span><span class="n">altair_chart</span><span class="p">(</span><span class="n">intra_station_bar_chart</span><span class="p">)</span>
+</pre></div>
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../../../../_static/js/index.js"></script>
+    
+  </body>
+</html>

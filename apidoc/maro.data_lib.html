@@ -1,0 +1,1298 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maro.data_lib package &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="maro.data_lib.cim package" href="maro.data_lib.cim.html" />
+    <link rel="prev" title="maro.communication.utils package" href="maro.communication.utils.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../index.html">
+  
+  <img src="../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="current nav sidenav_l1">
+ <li class="toctree-l1 current active">
+  <a class="reference internal" href="maro.html">
+   maro package
+  </a>
+  <ul class="current">
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.backends.html">
+     maro.backends package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.cli.html">
+     maro.cli package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.data_pipeline.html">
+       maro.cli.data_pipeline package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.envs.html">
+       maro.cli.envs package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.grass.html">
+       maro.cli.grass package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.grass.executors.html">
+         maro.cli.grass.executors package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.grass.utils.html">
+         maro.cli.grass.utils package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.inspector.html">
+       maro.cli.inspector package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.k8s.html">
+       maro.cli.k8s package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.k8s.executors.html">
+         maro.cli.k8s.executors package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.process.html">
+       maro.cli.process package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.process.utils.html">
+         maro.cli.process.utils package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.utils.html">
+       maro.cli.utils package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.utils.executors.html">
+         maro.cli.utils.executors package
+        </a>
+       </li>
+      </ul>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.communication.html">
+     maro.communication package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.communication.driver.html">
+       maro.communication.driver package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.communication.utils.html">
+       maro.communication.utils package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 current active">
+    <a class="current reference internal" href="#">
+     maro.data_lib package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.data_lib.cim.html">
+       maro.data_lib.cim package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.event_buffer.html">
+     maro.event_buffer package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.forecasting.html">
+     maro.forecasting package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.rl.html">
+     maro.rl package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.actor.html">
+       maro.rl.actor package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.agent.html">
+       maro.rl.agent package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.algorithms.html">
+       maro.rl.algorithms package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.dist_topologies.html">
+       maro.rl.dist_topologies package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.exploration.html">
+       maro.rl.exploration package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.learner.html">
+       maro.rl.learner package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.models.html">
+       maro.rl.models package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.scheduling.html">
+       maro.rl.scheduling package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.shaping.html">
+       maro.rl.shaping package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.storage.html">
+       maro.rl.storage package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.simulator.html">
+     maro.simulator package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.simulator.scenarios.html">
+       maro.simulator.scenarios package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.cim.html">
+         maro.simulator.scenarios.cim package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.citi_bike.html">
+         maro.simulator.scenarios.citi_bike package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.vm_scheduling.html">
+         maro.simulator.scenarios.vm_scheduling package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.simulator.utils.html">
+       maro.simulator.utils package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.utils.html">
+     maro.utils package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.utils.exception.html">
+       maro.utils.exception package
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+        
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="../_sources/apidoc/maro.data_lib.rst.txt"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.rst</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2Fapidoc/maro.data_lib.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        <a class="edit-button" href="https://github.com/microsoft/maro/edit/master/doc/source/apidoc/maro.data_lib.rst"><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Edit this page"><i class="fas fa-pencil-alt"></i>suggest edit</button></a>
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <div class="tocsection onthispage pt-5 pb-3">
+            <i class="fas fa-list"></i> Contents
+        </div>
+        <nav id="bd-toc-nav">
+            <ul class="nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#subpackages">
+   Subpackages
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#submodules">
+   Submodules
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.data_lib.binary_converter">
+   maro.data_lib.binary_converter module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.data_lib.binary_reader">
+   maro.data_lib.binary_reader module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.data_lib.common">
+   maro.data_lib.common module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.data_lib.dump_csv_converter">
+   maro.data_lib.dump_csv_converter module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.data_lib.item_meta">
+   maro.data_lib.item_meta module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.data_lib">
+   Module contents
+  </a>
+ </li>
+</ul>
+
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <div class="section" id="maro-data-lib-package">
+<h1>maro.data_lib package<a class="headerlink" href="#maro-data-lib-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="maro.data_lib.cim.html">maro.data_lib.cim package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="maro.data_lib.cim.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.data_lib.cim.html#module-maro.data_lib.cim.cim_data_container">maro.data_lib.cim.cim_data_container module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.data_lib.cim.html#module-maro.data_lib.cim.cim_data_container_helpers">maro.data_lib.cim.cim_data_container_helpers module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.data_lib.cim.html#module-maro.data_lib.cim.cim_data_dump">maro.data_lib.cim.cim_data_dump module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.data_lib.cim.html#module-maro.data_lib.cim.cim_data_generator">maro.data_lib.cim.cim_data_generator module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.data_lib.cim.html#module-maro.data_lib.cim.cim_data_loader">maro.data_lib.cim.cim_data_loader module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.data_lib.cim.html#module-maro.data_lib.cim.entities">maro.data_lib.cim.entities module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.data_lib.cim.html#module-maro.data_lib.cim.global_order_proportion">maro.data_lib.cim.global_order_proportion module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.data_lib.cim.html#module-maro.data_lib.cim.port_buffer_tick_wrapper">maro.data_lib.cim.port_buffer_tick_wrapper module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.data_lib.cim.html#module-maro.data_lib.cim.port_parser">maro.data_lib.cim.port_parser module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.data_lib.cim.html#module-maro.data_lib.cim.route_parser">maro.data_lib.cim.route_parser module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.data_lib.cim.html#module-maro.data_lib.cim.utils">maro.data_lib.cim.utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.data_lib.cim.html#module-maro.data_lib.cim.vessel_future_stops_prediction">maro.data_lib.cim.vessel_future_stops_prediction module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.data_lib.cim.html#module-maro.data_lib.cim.vessel_parser">maro.data_lib.cim.vessel_parser module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.data_lib.cim.html#module-maro.data_lib.cim.vessel_past_stops_wrapper">maro.data_lib.cim.vessel_past_stops_wrapper module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.data_lib.cim.html#module-maro.data_lib.cim.vessel_reachable_stops_wrapper">maro.data_lib.cim.vessel_reachable_stops_wrapper module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.data_lib.cim.html#module-maro.data_lib.cim.vessel_sailing_plan_wrapper">maro.data_lib.cim.vessel_sailing_plan_wrapper module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.data_lib.cim.html#module-maro.data_lib.cim.vessel_stop_wrapper">maro.data_lib.cim.vessel_stop_wrapper module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.data_lib.cim.html#module-maro.data_lib.cim">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-maro.data_lib.binary_converter">
+<span id="maro-data-lib-binary-converter-module"></span><h2>maro.data_lib.binary_converter module<a class="headerlink" href="#module-maro.data_lib.binary_converter" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.data_lib.binary_converter.BinaryConverter">
+<em class="property">class </em><code class="sig-prename descclassname">maro.data_lib.binary_converter.</code><code class="sig-name descname">BinaryConverter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">output_file</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">meta_file</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">utc_start_timestamp</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/binary_converter.html#BinaryConverter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.binary_converter.BinaryConverter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Convert csv file into binary with specified meta.</p>
+<p>The output binary file composed with:</p>
+<ol class="arabic simple">
+<li><p>header: file type, start/end time etc.</p></li>
+<li><p>meta: meta content after validation.</p></li>
+<li><p>items.</p></li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>output_file</strong> (<em>str</em>) – Output binary file full path.</p></li>
+<li><p><strong>meta_file</strong> (<em>str</em>) – Path to the meta file (yaml).</p></li>
+<li><p><strong>utc_start_timestamp</strong> (<em>int</em>) – Start timestamp in UTC which will be considered as tick 0,
+used to adjust the data reader pipeline.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.data_lib.binary_converter.BinaryConverter.add_csv">
+<code class="sig-name descname">add_csv</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">csv_file</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/binary_converter.html#BinaryConverter.add_csv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.binary_converter.BinaryConverter.add_csv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert specified csv file into current binary file, this converter will not sort the item.
+This method can be called several times to convert multiple csv file into one binary,
+the order will be same as calling sequence.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>csv_file</strong> (<em>str</em>) – Csv to convert.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.binary_converter.BinaryConverter.flush">
+<code class="sig-name descname">flush</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/binary_converter.html#BinaryConverter.flush"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.binary_converter.BinaryConverter.flush" title="Permalink to this definition">¶</a></dt>
+<dd><p>Flush the result into output file.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.data_lib.binary_reader">
+<span id="maro-data-lib-binary-reader-module"></span><h2>maro.data_lib.binary_reader module<a class="headerlink" href="#module-maro.data_lib.binary_reader" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.data_lib.binary_reader.BinaryReader">
+<em class="property">class </em><code class="sig-prename descclassname">maro.data_lib.binary_reader.</code><code class="sig-name descname">BinaryReader</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">enable_value_adjust</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">buffer_size</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">100</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/binary_reader.html#BinaryReader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.binary_reader.BinaryReader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Read binary file converted by csv converter.</p>
+<p class="rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">reader</span> <span class="o">=</span> <span class="n">BinaryReader</span><span class="p">(</span><span class="n">bin_file</span><span class="p">)</span>
+
+<span class="c1"># Read items in between 0-10 minute (relative to binary start time).</span>
+<span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">reader</span><span class="o">.</span><span class="n">items</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">time_unit</span><span class="o">=</span><span class="s2">&quot;m&quot;</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+
+<span class="c1"># Or get a picker that support query by tick sequentially.</span>
+<span class="n">picker</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">items_tick_picker</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">time_unit</span><span class="o">=</span><span class="s2">&quot;m&quot;</span><span class="p">):</span>
+
+<span class="k">for</span> <span class="n">tick</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">picker</span><span class="o">.</span><span class="n">items</span><span class="p">(</span><span class="n">tick</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_path</strong> (<em>str</em>) – Binary file path to read.</p></li>
+<li><p><strong>enable_value_adjust</strong> (<em>bool</em>) – If reader should adjust the value of fields that enabled
+‘value_adjust’ feature in meta randomly.</p></li>
+<li><p><strong>buffer_size</strong> (<em>int</em>) – Size of in-memory buffer.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.data_lib.binary_reader.BinaryReader.close">
+<code class="sig-name descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/binary_reader.html#BinaryReader.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.binary_reader.BinaryReader.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Close file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.binary_reader.BinaryReader.end_datetime">
+<em class="property">property </em><code class="sig-name descname">end_datetime</code><a class="headerlink" href="#maro.data_lib.binary_reader.BinaryReader.end_datetime" title="Permalink to this definition">¶</a></dt>
+<dd><p>End datetime of this file (UTC).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>datetime</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.binary_reader.BinaryReader.items">
+<code class="sig-name descname">items</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">start_time_offset</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">0</span></em>, <em class="sig-param"><span class="n">end_time_offset</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">time_unit</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'s'</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/binary_reader.html#BinaryReader.items"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.binary_reader.BinaryReader.items" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get all items in specified time range.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>start_time_offset</strong> (<em>int</em>) – Specified the which tick (in seconds) to start.</p></li>
+<li><p><strong>end_time_offset</strong> (<em>int</em>) – Specified the end tick (in seconds) to start.</p></li>
+<li><p><strong>time_unit</strong> (<em>str</em>) – Unit of time used to calculate offset, ‘s’: seconds, ‘m’: minute, ‘h’: hour, ‘d’: day.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Returns</dt><dd><p>interable: Items in specified range.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.binary_reader.BinaryReader.items_tick_picker">
+<code class="sig-name descname">items_tick_picker</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">start_time_offset</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">0</span></em>, <em class="sig-param"><span class="n">end_time_offset</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">time_unit</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'s'</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/binary_reader.html#BinaryReader.items_tick_picker"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.binary_reader.BinaryReader.items_tick_picker" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter items by specified time range, and then pick by tick sequentially.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>start_time_offset</strong> (<em>int</em>) – Specified the which tick (in seconds) to start.</p></li>
+<li><p><strong>end_time_offset</strong> (<em>int</em>) – Specified the end tick (in seconds) to start.</p></li>
+<li><p><strong>time_unit</strong> (<em>str</em>) – Unit of time used to calculate offset, ‘s’: seconds, ‘m’: minute, ‘h’: hour, ‘d’: day.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A picker object that support get items by tick in specified range.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#maro.data_lib.ItemTickPicker" title="maro.data_lib.ItemTickPicker">ItemTickPicker</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.binary_reader.BinaryReader.meta">
+<em class="property">property </em><code class="sig-name descname">meta</code><a class="headerlink" href="#maro.data_lib.binary_reader.BinaryReader.meta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Meta data in binary file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#maro.data_lib.item_meta.BinaryMeta" title="maro.data_lib.item_meta.BinaryMeta">BinaryMeta</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.binary_reader.BinaryReader.reset">
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/binary_reader.html#BinaryReader.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.binary_reader.BinaryReader.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset binary reader.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.binary_reader.BinaryReader.start_datetime">
+<em class="property">property </em><code class="sig-name descname">start_datetime</code><a class="headerlink" href="#maro.data_lib.binary_reader.BinaryReader.start_datetime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start datetime of this file (UTC).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>datetime</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.data_lib.common">
+<span id="maro-data-lib-common-module"></span><h2>maro.data_lib.common module<a class="headerlink" href="#module-maro.data_lib.common" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.data_lib.common.FileHeader">
+<em class="property">class </em><code class="sig-prename descclassname">maro.data_lib.common.</code><code class="sig-name descname">FileHeader</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">file_type</span></em>, <em class="sig-param"><span class="n">version</span></em>, <em class="sig-param"><span class="n">item_count</span></em>, <em class="sig-param"><span class="n">item_size</span></em>, <em class="sig-param"><span class="n">meta_offset</span></em>, <em class="sig-param"><span class="n">meta_size</span></em>, <em class="sig-param"><span class="n">data_offset</span></em>, <em class="sig-param"><span class="n">data_size</span></em>, <em class="sig-param"><span class="n">starttime</span></em>, <em class="sig-param"><span class="n">endtime</span></em><span class="sig-paren">)</span><a class="headerlink" href="#maro.data_lib.common.FileHeader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="py method">
+<dt id="maro.data_lib.common.FileHeader.data_offset">
+<em class="property">property </em><code class="sig-name descname">data_offset</code><a class="headerlink" href="#maro.data_lib.common.FileHeader.data_offset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 7</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.common.FileHeader.data_size">
+<em class="property">property </em><code class="sig-name descname">data_size</code><a class="headerlink" href="#maro.data_lib.common.FileHeader.data_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 8</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.common.FileHeader.endtime">
+<em class="property">property </em><code class="sig-name descname">endtime</code><a class="headerlink" href="#maro.data_lib.common.FileHeader.endtime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 10</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.common.FileHeader.file_type">
+<em class="property">property </em><code class="sig-name descname">file_type</code><a class="headerlink" href="#maro.data_lib.common.FileHeader.file_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.common.FileHeader.item_count">
+<em class="property">property </em><code class="sig-name descname">item_count</code><a class="headerlink" href="#maro.data_lib.common.FileHeader.item_count" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.common.FileHeader.item_size">
+<em class="property">property </em><code class="sig-name descname">item_size</code><a class="headerlink" href="#maro.data_lib.common.FileHeader.item_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 4</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.common.FileHeader.meta_offset">
+<em class="property">property </em><code class="sig-name descname">meta_offset</code><a class="headerlink" href="#maro.data_lib.common.FileHeader.meta_offset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 5</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.common.FileHeader.meta_size">
+<em class="property">property </em><code class="sig-name descname">meta_size</code><a class="headerlink" href="#maro.data_lib.common.FileHeader.meta_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 6</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.common.FileHeader.name">
+<em class="property">property </em><code class="sig-name descname">name</code><a class="headerlink" href="#maro.data_lib.common.FileHeader.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.common.FileHeader.starttime">
+<em class="property">property </em><code class="sig-name descname">starttime</code><a class="headerlink" href="#maro.data_lib.common.FileHeader.starttime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 9</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.common.FileHeader.version">
+<em class="property">property </em><code class="sig-name descname">version</code><a class="headerlink" href="#maro.data_lib.common.FileHeader.version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.data_lib.dump_csv_converter">
+<span id="maro-data-lib-dump-csv-converter-module"></span><h2>maro.data_lib.dump_csv_converter module<a class="headerlink" href="#module-maro.data_lib.dump_csv_converter" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.data_lib.dump_csv_converter.DumpConverter">
+<em class="property">class </em><code class="sig-prename descclassname">maro.data_lib.dump_csv_converter.</code><code class="sig-name descname">DumpConverter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">parent_path</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">scenario_name</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">prefix</span><span class="o">=</span><span class="default_value">'epoch_'</span></em>, <em class="sig-param"><span class="n">serial</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/dump_csv_converter.html#DumpConverter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.dump_csv_converter.DumpConverter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This class is used for convert binary snapshot dump content to CSV format.</p>
+<dl class="py method">
+<dt id="maro.data_lib.dump_csv_converter.DumpConverter.clear_raw_data">
+<code class="sig-name descname">clear_raw_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/dump_csv_converter.html#DumpConverter.clear_raw_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.dump_csv_converter.DumpConverter.clear_raw_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.dump_csv_converter.DumpConverter.current_serial">
+<em class="property">property </em><code class="sig-name descname">current_serial</code><a class="headerlink" href="#maro.data_lib.dump_csv_converter.DumpConverter.current_serial" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.dump_csv_converter.DumpConverter.dump_descsion_events">
+<code class="sig-name descname">dump_descsion_events</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">decision_events</span></em>, <em class="sig-param"><span class="n">start_tick</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">resolution</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/dump_csv_converter.html#DumpConverter.dump_descsion_events"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.dump_csv_converter.DumpConverter.dump_descsion_events" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.dump_csv_converter.DumpConverter.dump_folder">
+<em class="property">property </em><code class="sig-name descname">dump_folder</code><a class="headerlink" href="#maro.data_lib.dump_csv_converter.DumpConverter.dump_folder" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.dump_csv_converter.DumpConverter.get_column_info">
+<code class="sig-name descname">get_column_info</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/dump_csv_converter.html#DumpConverter.get_column_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.dump_csv_converter.DumpConverter.get_column_info" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.dump_csv_converter.DumpConverter.get_new_snapshot_folder">
+<code class="sig-name descname">get_new_snapshot_folder</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/dump_csv_converter.html#DumpConverter.get_new_snapshot_folder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.dump_csv_converter.DumpConverter.get_new_snapshot_folder" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.dump_csv_converter.DumpConverter.process_data">
+<code class="sig-name descname">process_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config_data</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/dump_csv_converter.html#DumpConverter.process_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.dump_csv_converter.DumpConverter.process_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.dump_csv_converter.DumpConverter.reset_folder_path">
+<code class="sig-name descname">reset_folder_path</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/dump_csv_converter.html#DumpConverter.reset_folder_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.dump_csv_converter.DumpConverter.reset_folder_path" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.dump_csv_converter.DumpConverter.save_manifest_file">
+<code class="sig-name descname">save_manifest_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config_data</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/dump_csv_converter.html#DumpConverter.save_manifest_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.dump_csv_converter.DumpConverter.save_manifest_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.dump_csv_converter.DumpConverter.scenario_name">
+<em class="property">property </em><code class="sig-name descname">scenario_name</code><a class="headerlink" href="#maro.data_lib.dump_csv_converter.DumpConverter.scenario_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.dump_csv_converter.DumpConverter.start_processing">
+<code class="sig-name descname">start_processing</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config_data</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/dump_csv_converter.html#DumpConverter.start_processing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.dump_csv_converter.DumpConverter.start_processing" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.data_lib.item_meta">
+<span id="maro-data-lib-item-meta-module"></span><h2>maro.data_lib.item_meta module<a class="headerlink" href="#module-maro.data_lib.item_meta" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.data_lib.item_meta.BinaryMeta">
+<em class="property">class </em><code class="sig-prename descclassname">maro.data_lib.item_meta.</code><code class="sig-name descname">BinaryMeta</code><a class="reference internal" href="../_modules/maro/data_lib/item_meta.html#BinaryMeta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.item_meta.BinaryMeta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Meta for binary file.</p>
+<dl class="py method">
+<dt id="maro.data_lib.item_meta.BinaryMeta.columns">
+<em class="property">property </em><code class="sig-name descname">columns</code><a class="headerlink" href="#maro.data_lib.item_meta.BinaryMeta.columns" title="Permalink to this definition">¶</a></dt>
+<dd><p>Columns to extract.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.item_meta.BinaryMeta.default_event_name">
+<em class="property">property </em><code class="sig-name descname">default_event_name</code><a class="headerlink" href="#maro.data_lib.item_meta.BinaryMeta.default_event_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Default event name, if no value matched.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.item_meta.BinaryMeta.event_attr_name">
+<em class="property">property </em><code class="sig-name descname">event_attr_name</code><a class="headerlink" href="#maro.data_lib.item_meta.BinaryMeta.event_attr_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Event attribute name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.item_meta.BinaryMeta.events">
+<em class="property">property </em><code class="sig-name descname">events</code><a class="headerlink" href="#maro.data_lib.item_meta.BinaryMeta.events" title="Permalink to this definition">¶</a></dt>
+<dd><p>Events definition.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>List[Event]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.item_meta.BinaryMeta.from_bytes">
+<code class="sig-name descname">from_bytes</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">meta_bytes</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>bytes<span class="p">, </span>bytearray<span class="p">, </span>memoryview<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/item_meta.html#BinaryMeta.from_bytes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.item_meta.BinaryMeta.from_bytes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct meta from bytes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>meta_bytes</strong> (<em>Union[bytes, bytearray, memoryview]</em>) – Bytes content of meta.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.item_meta.BinaryMeta.from_dict">
+<code class="sig-name descname">from_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">meta_dict</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/item_meta.html#BinaryMeta.from_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.item_meta.BinaryMeta.from_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct meta from dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>meta_dict</strong> (<em>dict</em>) – Meta dictionary.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.item_meta.BinaryMeta.from_file">
+<code class="sig-name descname">from_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/item_meta.html#BinaryMeta.from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.item_meta.BinaryMeta.from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read meta from yaml file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.item_meta.BinaryMeta.get_item_values">
+<code class="sig-name descname">get_item_values</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">row</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span> &#x2192; Union<span class="p">[</span>list<span class="p">, </span>tuple<span class="p">]</span><a class="reference internal" href="../_modules/maro/data_lib/item_meta.html#BinaryMeta.get_item_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.item_meta.BinaryMeta.get_item_values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve value for item.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>row</strong> (<em>dict</em>) – A row that from a csv file.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Get value for configured attributes from dict.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Union[list, tuple]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.item_meta.BinaryMeta.item_from_bytes">
+<code class="sig-name descname">item_from_bytes</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">item_bytes</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>bytes<span class="p">, </span>bytearray<span class="p">, </span>memoryview<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">adjust_value</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/item_meta.html#BinaryMeta.item_from_bytes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.item_meta.BinaryMeta.item_from_bytes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert bytes into item (namedtuple).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>item_bytes</strong> (<em>Union[bytes, bytearray, memoryview]</em>) – Item byte content.</p></li>
+<li><p><strong>adjust_value</strong> (<em>bool</em>) – If need to adjust value for attributes that enabled this feature.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Result item tuple.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>namedtuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.item_meta.BinaryMeta.item_size">
+<em class="property">property </em><code class="sig-name descname">item_size</code><a class="headerlink" href="#maro.data_lib.item_meta.BinaryMeta.item_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Item binary size (in bytes).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.item_meta.BinaryMeta.item_to_bytes">
+<code class="sig-name descname">item_to_bytes</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">item_values</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>tuple<span class="p">, </span>list<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">out_bytes</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>memoryview<span class="p">, </span>bytearray<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; int<a class="reference internal" href="../_modules/maro/data_lib/item_meta.html#BinaryMeta.item_to_bytes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.item_meta.BinaryMeta.item_to_bytes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert item into bytes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>item_values</strong> (<em>Union[tuple, list]</em>) – Value of attributes used to construct item.</p></li>
+<li><p><strong>out_bytes</strong> (<em>Union[memoryview, bytearray]</em>) – Item bytes content.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Result item size.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.item_meta.BinaryMeta.items">
+<code class="sig-name descname">items</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; dict<a class="reference internal" href="../_modules/maro/data_lib/item_meta.html#BinaryMeta.items"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.item_meta.BinaryMeta.items" title="Permalink to this definition">¶</a></dt>
+<dd><p>dict: Attribute items.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.item_meta.BinaryMeta.time_zone">
+<em class="property">property </em><code class="sig-name descname">time_zone</code><a class="headerlink" href="#maro.data_lib.item_meta.BinaryMeta.time_zone" title="Permalink to this definition">¶</a></dt>
+<dd><p>Time zone of this meta, used to correct timestamp.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.item_meta.BinaryMeta.to_bytes">
+<code class="sig-name descname">to_bytes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/item_meta.html#BinaryMeta.to_bytes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.item_meta.BinaryMeta.to_bytes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert meta into bytes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Bytes content of current meta.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>bytes</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.data_lib">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-maro.data_lib" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.data_lib.BinaryConverter">
+<em class="property">class </em><code class="sig-prename descclassname">maro.data_lib.</code><code class="sig-name descname">BinaryConverter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">output_file</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">meta_file</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">utc_start_timestamp</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/binary_converter.html#BinaryConverter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.BinaryConverter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Convert csv file into binary with specified meta.</p>
+<p>The output binary file composed with:</p>
+<ol class="arabic simple">
+<li><p>header: file type, start/end time etc.</p></li>
+<li><p>meta: meta content after validation.</p></li>
+<li><p>items.</p></li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>output_file</strong> (<em>str</em>) – Output binary file full path.</p></li>
+<li><p><strong>meta_file</strong> (<em>str</em>) – Path to the meta file (yaml).</p></li>
+<li><p><strong>utc_start_timestamp</strong> (<em>int</em>) – Start timestamp in UTC which will be considered as tick 0,
+used to adjust the data reader pipeline.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.data_lib.BinaryConverter.add_csv">
+<code class="sig-name descname">add_csv</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">csv_file</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/binary_converter.html#BinaryConverter.add_csv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.BinaryConverter.add_csv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert specified csv file into current binary file, this converter will not sort the item.
+This method can be called several times to convert multiple csv file into one binary,
+the order will be same as calling sequence.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>csv_file</strong> (<em>str</em>) – Csv to convert.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.BinaryConverter.flush">
+<code class="sig-name descname">flush</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/binary_converter.html#BinaryConverter.flush"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.BinaryConverter.flush" title="Permalink to this definition">¶</a></dt>
+<dd><p>Flush the result into output file.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.data_lib.BinaryReader">
+<em class="property">class </em><code class="sig-prename descclassname">maro.data_lib.</code><code class="sig-name descname">BinaryReader</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">enable_value_adjust</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">buffer_size</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">100</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/binary_reader.html#BinaryReader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.BinaryReader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Read binary file converted by csv converter.</p>
+<p class="rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">reader</span> <span class="o">=</span> <span class="n">BinaryReader</span><span class="p">(</span><span class="n">bin_file</span><span class="p">)</span>
+
+<span class="c1"># Read items in between 0-10 minute (relative to binary start time).</span>
+<span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">reader</span><span class="o">.</span><span class="n">items</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">time_unit</span><span class="o">=</span><span class="s2">&quot;m&quot;</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+
+<span class="c1"># Or get a picker that support query by tick sequentially.</span>
+<span class="n">picker</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">items_tick_picker</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">time_unit</span><span class="o">=</span><span class="s2">&quot;m&quot;</span><span class="p">):</span>
+
+<span class="k">for</span> <span class="n">tick</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">picker</span><span class="o">.</span><span class="n">items</span><span class="p">(</span><span class="n">tick</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_path</strong> (<em>str</em>) – Binary file path to read.</p></li>
+<li><p><strong>enable_value_adjust</strong> (<em>bool</em>) – If reader should adjust the value of fields that enabled
+‘value_adjust’ feature in meta randomly.</p></li>
+<li><p><strong>buffer_size</strong> (<em>int</em>) – Size of in-memory buffer.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.data_lib.BinaryReader.close">
+<code class="sig-name descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/binary_reader.html#BinaryReader.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.BinaryReader.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Close file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.BinaryReader.end_datetime">
+<em class="property">property </em><code class="sig-name descname">end_datetime</code><a class="headerlink" href="#maro.data_lib.BinaryReader.end_datetime" title="Permalink to this definition">¶</a></dt>
+<dd><p>End datetime of this file (UTC).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>datetime</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.BinaryReader.items">
+<code class="sig-name descname">items</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">start_time_offset</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">0</span></em>, <em class="sig-param"><span class="n">end_time_offset</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">time_unit</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'s'</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/binary_reader.html#BinaryReader.items"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.BinaryReader.items" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get all items in specified time range.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>start_time_offset</strong> (<em>int</em>) – Specified the which tick (in seconds) to start.</p></li>
+<li><p><strong>end_time_offset</strong> (<em>int</em>) – Specified the end tick (in seconds) to start.</p></li>
+<li><p><strong>time_unit</strong> (<em>str</em>) – Unit of time used to calculate offset, ‘s’: seconds, ‘m’: minute, ‘h’: hour, ‘d’: day.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Returns</dt><dd><p>interable: Items in specified range.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.BinaryReader.items_tick_picker">
+<code class="sig-name descname">items_tick_picker</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">start_time_offset</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">0</span></em>, <em class="sig-param"><span class="n">end_time_offset</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">time_unit</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'s'</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/binary_reader.html#BinaryReader.items_tick_picker"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.BinaryReader.items_tick_picker" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter items by specified time range, and then pick by tick sequentially.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>start_time_offset</strong> (<em>int</em>) – Specified the which tick (in seconds) to start.</p></li>
+<li><p><strong>end_time_offset</strong> (<em>int</em>) – Specified the end tick (in seconds) to start.</p></li>
+<li><p><strong>time_unit</strong> (<em>str</em>) – Unit of time used to calculate offset, ‘s’: seconds, ‘m’: minute, ‘h’: hour, ‘d’: day.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A picker object that support get items by tick in specified range.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#maro.data_lib.ItemTickPicker" title="maro.data_lib.ItemTickPicker">ItemTickPicker</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.BinaryReader.meta">
+<em class="property">property </em><code class="sig-name descname">meta</code><a class="headerlink" href="#maro.data_lib.BinaryReader.meta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Meta data in binary file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#maro.data_lib.item_meta.BinaryMeta" title="maro.data_lib.item_meta.BinaryMeta">BinaryMeta</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.BinaryReader.reset">
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/binary_reader.html#BinaryReader.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.BinaryReader.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset binary reader.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.data_lib.BinaryReader.start_datetime">
+<em class="property">property </em><code class="sig-name descname">start_datetime</code><a class="headerlink" href="#maro.data_lib.BinaryReader.start_datetime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start datetime of this file (UTC).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>datetime</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.data_lib.ItemTickPicker">
+<em class="property">class </em><code class="sig-prename descclassname">maro.data_lib.</code><code class="sig-name descname">ItemTickPicker</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">item_generaotr</span></em>, <em class="sig-param"><span class="n">starttime</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">time_unit</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/binary_reader.html#ItemTickPicker"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.ItemTickPicker" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Wrapper to support get items by tick.</p>
+<dl class="py method">
+<dt id="maro.data_lib.ItemTickPicker.items">
+<code class="sig-name descname">items</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tick</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/data_lib/binary_reader.html#ItemTickPicker.items"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.data_lib.ItemTickPicker.items" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get items for specified ticks.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This method will compare timestamp of item to pick.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+    <a class='left-prev' id="prev-link" href="maro.communication.utils.html" title="previous page">maro.communication.utils package</a>
+    <a class='right-next' id="next-link" href="maro.data_lib.cim.html" title="next page">maro.data_lib.cim package</a>
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../_static/js/index.js"></script>
+    
+  </body>
+</html>

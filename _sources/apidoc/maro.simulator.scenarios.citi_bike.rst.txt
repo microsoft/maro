@@ -1,0 +1,86 @@
+maro.simulator.scenarios.citi\_bike package
+===========================================
+
+Submodules
+----------
+
+maro.simulator.scenarios.citi\_bike.adj\_loader module
+------------------------------------------------------
+
+.. automodule:: maro.simulator.scenarios.citi_bike.adj_loader
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.simulator.scenarios.citi\_bike.business\_engine module
+-----------------------------------------------------------
+
+.. automodule:: maro.simulator.scenarios.citi_bike.business_engine
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.simulator.scenarios.citi\_bike.common module
+-------------------------------------------------
+
+.. automodule:: maro.simulator.scenarios.citi_bike.common
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.simulator.scenarios.citi\_bike.decision\_strategy module
+-------------------------------------------------------------
+
+.. automodule:: maro.simulator.scenarios.citi_bike.decision_strategy
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.simulator.scenarios.citi\_bike.events module
+-------------------------------------------------
+
+.. automodule:: maro.simulator.scenarios.citi_bike.events
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.simulator.scenarios.citi\_bike.frame\_builder module
+---------------------------------------------------------
+
+.. automodule:: maro.simulator.scenarios.citi_bike.frame_builder
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.simulator.scenarios.citi\_bike.station module
+--------------------------------------------------
+
+.. automodule:: maro.simulator.scenarios.citi_bike.station
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.simulator.scenarios.citi\_bike.stations\_info module
+---------------------------------------------------------
+
+.. automodule:: maro.simulator.scenarios.citi_bike.stations_info
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.simulator.scenarios.citi\_bike.weather\_table module
+---------------------------------------------------------
+
+.. automodule:: maro.simulator.scenarios.citi_bike.weather_table
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: maro.simulator.scenarios.citi_bike
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,0 +1,1356 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maro.utils package &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="maro.utils.exception package" href="maro.utils.exception.html" />
+    <link rel="prev" title="maro.simulator.utils package" href="maro.simulator.utils.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../index.html">
+  
+  <img src="../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="current nav sidenav_l1">
+ <li class="toctree-l1 current active">
+  <a class="reference internal" href="maro.html">
+   maro package
+  </a>
+  <ul class="current">
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.backends.html">
+     maro.backends package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.cli.html">
+     maro.cli package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.data_pipeline.html">
+       maro.cli.data_pipeline package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.envs.html">
+       maro.cli.envs package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.grass.html">
+       maro.cli.grass package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.grass.executors.html">
+         maro.cli.grass.executors package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.grass.utils.html">
+         maro.cli.grass.utils package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.inspector.html">
+       maro.cli.inspector package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.k8s.html">
+       maro.cli.k8s package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.k8s.executors.html">
+         maro.cli.k8s.executors package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.process.html">
+       maro.cli.process package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.process.utils.html">
+         maro.cli.process.utils package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.utils.html">
+       maro.cli.utils package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.utils.executors.html">
+         maro.cli.utils.executors package
+        </a>
+       </li>
+      </ul>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.communication.html">
+     maro.communication package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.communication.driver.html">
+       maro.communication.driver package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.communication.utils.html">
+       maro.communication.utils package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.data_lib.html">
+     maro.data_lib package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.data_lib.cim.html">
+       maro.data_lib.cim package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.event_buffer.html">
+     maro.event_buffer package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.forecasting.html">
+     maro.forecasting package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.rl.html">
+     maro.rl package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.actor.html">
+       maro.rl.actor package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.agent.html">
+       maro.rl.agent package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.algorithms.html">
+       maro.rl.algorithms package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.dist_topologies.html">
+       maro.rl.dist_topologies package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.exploration.html">
+       maro.rl.exploration package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.learner.html">
+       maro.rl.learner package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.models.html">
+       maro.rl.models package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.scheduling.html">
+       maro.rl.scheduling package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.shaping.html">
+       maro.rl.shaping package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.storage.html">
+       maro.rl.storage package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.simulator.html">
+     maro.simulator package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.simulator.scenarios.html">
+       maro.simulator.scenarios package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.cim.html">
+         maro.simulator.scenarios.cim package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.citi_bike.html">
+         maro.simulator.scenarios.citi_bike package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.vm_scheduling.html">
+         maro.simulator.scenarios.vm_scheduling package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.simulator.utils.html">
+       maro.simulator.utils package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 current active">
+    <a class="current reference internal" href="#">
+     maro.utils package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.utils.exception.html">
+       maro.utils.exception package
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+        
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="../_sources/apidoc/maro.utils.rst.txt"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.rst</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2Fapidoc/maro.utils.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        <a class="edit-button" href="https://github.com/microsoft/maro/edit/master/doc/source/apidoc/maro.utils.rst"><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Edit this page"><i class="fas fa-pencil-alt"></i>suggest edit</button></a>
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <div class="tocsection onthispage pt-5 pb-3">
+            <i class="fas fa-list"></i> Contents
+        </div>
+        <nav id="bd-toc-nav">
+            <ul class="nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#subpackages">
+   Subpackages
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#submodules">
+   Submodules
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.utils.checkpoint">
+   maro.utils.checkpoint module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.utils.exit_code">
+   maro.utils.exit_code module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.utils.logger">
+   maro.utils.logger module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#maro-utils-remote-debug-module">
+   maro.utils.remote_debug module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.utils.utils">
+   maro.utils.utils module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.utils">
+   Module contents
+  </a>
+ </li>
+</ul>
+
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <div class="section" id="maro-utils-package">
+<h1>maro.utils package<a class="headerlink" href="#maro-utils-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="maro.utils.exception.html">maro.utils.exception package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="maro.utils.exception.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.utils.exception.html#module-maro.utils.exception.backends_exception">maro.utils.exception.backends_exception module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.utils.exception.html#module-maro.utils.exception.base_exception">maro.utils.exception.base_exception module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.utils.exception.html#module-maro.utils.exception.cli_exception">maro.utils.exception.cli_exception module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.utils.exception.html#module-maro.utils.exception.communication_exception">maro.utils.exception.communication_exception module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.utils.exception.html#module-maro.utils.exception.data_lib_exeption">maro.utils.exception.data_lib_exeption module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.utils.exception.html#module-maro.utils.exception.error_code">maro.utils.exception.error_code module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.utils.exception.html#module-maro.utils.exception.rl_toolkit_exception">maro.utils.exception.rl_toolkit_exception module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.utils.exception.html#module-maro.utils.exception.simulator_exception">maro.utils.exception.simulator_exception module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.utils.exception.html#module-maro.utils.exception">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-maro.utils.checkpoint">
+<span id="maro-utils-checkpoint-module"></span><h2>maro.utils.checkpoint module<a class="headerlink" href="#module-maro.utils.checkpoint" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.utils.checkpoint.AbsCheckpoint">
+<em class="property">class </em><code class="sig-prename descclassname">maro.utils.checkpoint.</code><code class="sig-name descname">AbsCheckpoint</code><a class="reference internal" href="../_modules/maro/utils/checkpoint.html#AbsCheckpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.checkpoint.AbsCheckpoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<dl class="py method">
+<dt id="maro.utils.checkpoint.AbsCheckpoint.exists">
+<em class="property">abstract </em><code class="sig-name descname">exists</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/checkpoint.html#AbsCheckpoint.exists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.checkpoint.AbsCheckpoint.exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns if key exists.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>key</strong> (<em>str</em>) – The key of the k-v pair.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>True if key exists, else false.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.utils.checkpoint.AbsCheckpoint.get">
+<em class="property">abstract </em><code class="sig-name descname">get</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/checkpoint.html#AbsCheckpoint.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.checkpoint.AbsCheckpoint.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the value with the key.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>key</strong> (<em>str</em>) – The key of the k-v pair.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Value in bytes.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bytes</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.utils.checkpoint.AbsCheckpoint.set">
+<em class="property">abstract </em><code class="sig-name descname">set</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">value</span><span class="p">:</span> <span class="n">bytes</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/checkpoint.html#AbsCheckpoint.set"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.checkpoint.AbsCheckpoint.set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set key to hold the value in bytes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<em>str</em>) – The key of the k-v pair.</p></li>
+<li><p><strong>value</strong> (<em>bytes</em>) – The value of the k-v pair.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.utils.checkpoint.AzureBlobCheckpoint">
+<em class="property">class </em><code class="sig-prename descclassname">maro.utils.checkpoint.</code><code class="sig-name descname">AzureBlobCheckpoint</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">conn_str</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">container_name</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/checkpoint.html#AzureBlobCheckpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.checkpoint.AzureBlobCheckpoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.checkpoint.AbsCheckpoint" title="maro.utils.checkpoint.AbsCheckpoint"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.checkpoint.AbsCheckpoint</span></code></a></p>
+<p>Checkpoint module base on AzureBlob.</p>
+<p>Make sure you have the permission to access the Blob Service.</p>
+<dl class="py method">
+<dt id="maro.utils.checkpoint.AzureBlobCheckpoint.exists">
+<code class="sig-name descname">exists</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/maro/utils/checkpoint.html#AzureBlobCheckpoint.exists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.checkpoint.AzureBlobCheckpoint.exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns if key exists.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>key</strong> (<em>str</em>) – The key of the k-v pair.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>True if key exists, else false.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.utils.checkpoint.AzureBlobCheckpoint.get">
+<code class="sig-name descname">get</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; bytes<a class="reference internal" href="../_modules/maro/utils/checkpoint.html#AzureBlobCheckpoint.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.checkpoint.AzureBlobCheckpoint.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the value with the key.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>key</strong> (<em>str</em>) – The key of the k-v pair.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Value in bytes.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bytes</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.utils.checkpoint.AzureBlobCheckpoint.set">
+<code class="sig-name descname">set</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">value</span><span class="p">:</span> <span class="n">bytes</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/maro/utils/checkpoint.html#AzureBlobCheckpoint.set"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.checkpoint.AzureBlobCheckpoint.set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set key to hold the value in bytes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<em>str</em>) – The key of the k-v pair.</p></li>
+<li><p><strong>value</strong> (<em>bytes</em>) – The value of the k-v pair.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.utils.checkpoint.ServerCheckpoint">
+<em class="property">class </em><code class="sig-prename descclassname">maro.utils.checkpoint.</code><code class="sig-name descname">ServerCheckpoint</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">remote_dir</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">admin_username</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">ip_address</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">port</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">22</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/checkpoint.html#ServerCheckpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.checkpoint.ServerCheckpoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.checkpoint.AbsCheckpoint" title="maro.utils.checkpoint.AbsCheckpoint"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.checkpoint.AbsCheckpoint</span></code></a></p>
+<p>Checkpoint module base on SFTP.</p>
+<p>Make sure you have the permission to access the target folder of the target server.</p>
+<dl class="py method">
+<dt id="maro.utils.checkpoint.ServerCheckpoint.exists">
+<code class="sig-name descname">exists</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/maro/utils/checkpoint.html#ServerCheckpoint.exists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.checkpoint.ServerCheckpoint.exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns if key exists.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>key</strong> (<em>str</em>) – The key of the k-v pair.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>True if key exists, else false.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.utils.checkpoint.ServerCheckpoint.get">
+<code class="sig-name descname">get</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; bytes<a class="reference internal" href="../_modules/maro/utils/checkpoint.html#ServerCheckpoint.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.checkpoint.ServerCheckpoint.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the value with the key.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>key</strong> (<em>str</em>) – The key of the k-v pair.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Value in bytes.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bytes</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.utils.checkpoint.ServerCheckpoint.set">
+<code class="sig-name descname">set</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">value</span><span class="p">:</span> <span class="n">bytes</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/checkpoint.html#ServerCheckpoint.set"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.checkpoint.ServerCheckpoint.set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set key to hold the value in bytes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<em>str</em>) – The key of the k-v pair.</p></li>
+<li><p><strong>value</strong> (<em>bytes</em>) – The value of the k-v pair.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.utils.exit_code">
+<span id="maro-utils-exit-code-module"></span><h2>maro.utils.exit_code module<a class="headerlink" href="#module-maro.utils.exit_code" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-maro.utils.logger">
+<span id="maro-utils-logger-module"></span><h2>maro.utils.logger module<a class="headerlink" href="#module-maro.utils.logger" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.utils.logger.CliLogger">
+<em class="property">class </em><code class="sig-prename descclassname">maro.utils.logger.</code><code class="sig-name descname">CliLogger</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/logger.html#CliLogger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.logger.CliLogger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>An internal logger for CLI logging.</p>
+<p>It maintains a singleton logger in a CLI command lifecycle.
+The logger is inited at the very beginning, and use different logging formats based on the <code class="docutils literal notranslate"><span class="pre">--debug</span></code> argument.</p>
+<dl class="py method">
+<dt id="maro.utils.logger.CliLogger.debug">
+<code class="sig-name descname">debug</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/maro/utils/logger.html#CliLogger.debug"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.logger.CliLogger.debug" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">logger.debug()</span></code> with passive init.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>message</strong> (<em>str</em>) – logged message.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.utils.logger.CliLogger.debug_green">
+<code class="sig-name descname">debug_green</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/maro/utils/logger.html#CliLogger.debug_green"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.logger.CliLogger.debug_green" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">logger.debug()</span></code> with color green and passive init.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>message</strong> (<em>str</em>) – logged message.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.utils.logger.CliLogger.debug_yellow">
+<code class="sig-name descname">debug_yellow</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/maro/utils/logger.html#CliLogger.debug_yellow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.logger.CliLogger.debug_yellow" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">logger.debug()</span></code> with color yellow and passive init.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>message</strong> (<em>str</em>) – logged message.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.utils.logger.CliLogger.error">
+<code class="sig-name descname">error</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/maro/utils/logger.html#CliLogger.error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.logger.CliLogger.error" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">logger.error()</span></code> with passive init.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>message</strong> (<em>str</em>) – logged message.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.utils.logger.CliLogger.error_red">
+<code class="sig-name descname">error_red</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/maro/utils/logger.html#CliLogger.error_red"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.logger.CliLogger.error_red" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">logger.error()</span></code> with color red and passive init.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>message</strong> (<em>str</em>) – logged message.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.utils.logger.CliLogger.info">
+<code class="sig-name descname">info</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/maro/utils/logger.html#CliLogger.info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.logger.CliLogger.info" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">logger.info()</span></code> with passive init.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>message</strong> (<em>str</em>) – logged message.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.utils.logger.CliLogger.info_green">
+<code class="sig-name descname">info_green</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/maro/utils/logger.html#CliLogger.info_green"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.logger.CliLogger.info_green" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">logger.info()</span></code> with color green and passive init.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>message</strong> (<em>str</em>) – logged message.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.utils.logger.CliLogger.passive_init">
+<code class="sig-name descname">passive_init</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/maro/utils/logger.html#CliLogger.passive_init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.logger.CliLogger.passive_init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Init a new <code class="docutils literal notranslate"><span class="pre">CliLogger</span></code> if current logger is not matched with the parameters.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.utils.logger.CliLogger.warning">
+<code class="sig-name descname">warning</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/maro/utils/logger.html#CliLogger.warning"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.logger.CliLogger.warning" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">logger.warning()</span></code> with passive init.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>message</strong> (<em>str</em>) – logged message.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.utils.logger.CliLogger.warning_yellow">
+<code class="sig-name descname">warning_yellow</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/maro/utils/logger.html#CliLogger.warning_yellow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.logger.CliLogger.warning_yellow" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">logger.warning()</span></code> with color yellow and passive init.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>message</strong> (<em>str</em>) – logged message.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.utils.logger.DummyLogger">
+<em class="property">class </em><code class="sig-prename descclassname">maro.utils.logger.</code><code class="sig-name descname">DummyLogger</code><a class="reference internal" href="../_modules/maro/utils/logger.html#DummyLogger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.logger.DummyLogger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A dummy Logger, which is used when disabling logs.</p>
+<dl class="py method">
+<dt id="maro.utils.logger.DummyLogger.critical">
+<code class="sig-name descname">critical</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/logger.html#DummyLogger.critical"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.logger.DummyLogger.critical" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.utils.logger.DummyLogger.debug">
+<code class="sig-name descname">debug</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/logger.html#DummyLogger.debug"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.logger.DummyLogger.debug" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.utils.logger.DummyLogger.error">
+<code class="sig-name descname">error</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/logger.html#DummyLogger.error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.logger.DummyLogger.error" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.utils.logger.DummyLogger.info">
+<code class="sig-name descname">info</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/logger.html#DummyLogger.info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.logger.DummyLogger.info" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.utils.logger.DummyLogger.warn">
+<code class="sig-name descname">warn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/logger.html#DummyLogger.warn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.logger.DummyLogger.warn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.utils.logger.InternalLogger">
+<em class="property">class </em><code class="sig-prename descclassname">maro.utils.logger.</code><code class="sig-name descname">InternalLogger</code><span class="sig-paren">(</span><em class="sig-param">component_name: str</em>, <em class="sig-param">tag: str = 'maro_internal'</em>, <em class="sig-param">format_: maro.utils.logger.LogFormat = &lt;LogFormat.internal: 3&gt;</em>, <em class="sig-param">dump_folder: str = None</em>, <em class="sig-param">dump_mode: str = 'a'</em>, <em class="sig-param">extension_name: str = 'log'</em>, <em class="sig-param">auto_timestamp: bool = False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/logger.html#InternalLogger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.logger.InternalLogger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.logger.Logger" title="maro.utils.logger.Logger"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.logger.Logger</span></code></a></p>
+<p>An internal logger uses for recording the internal system’s log.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.utils.logger.LogFormat">
+<em class="property">class </em><code class="sig-prename descclassname">maro.utils.logger.</code><code class="sig-name descname">LogFormat</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/logger.html#LogFormat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.logger.LogFormat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>The Enum class of the log format.</p>
+<p class="rubric">Example</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">LogFormat.full</span></code>: full time | host | user | pid | tag | level | msg</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LogFormat.simple</span></code>: simple time | tag | level | msg</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LogFormat.cli_debug</span></code> : simple time | level | msg</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LogFormat.cli_info</span></code> (file): simple time | level | msg</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LogFormat.cli_info</span></code> (stdout):  msg</p></li>
+</ul>
+<dl class="py attribute">
+<dt id="maro.utils.logger.LogFormat.cli_debug">
+<code class="sig-name descname">cli_debug</code><em class="property"> = 4</em><a class="headerlink" href="#maro.utils.logger.LogFormat.cli_debug" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.utils.logger.LogFormat.cli_info">
+<code class="sig-name descname">cli_info</code><em class="property"> = 5</em><a class="headerlink" href="#maro.utils.logger.LogFormat.cli_info" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.utils.logger.LogFormat.full">
+<code class="sig-name descname">full</code><em class="property"> = 1</em><a class="headerlink" href="#maro.utils.logger.LogFormat.full" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.utils.logger.LogFormat.internal">
+<code class="sig-name descname">internal</code><em class="property"> = 3</em><a class="headerlink" href="#maro.utils.logger.LogFormat.internal" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.utils.logger.LogFormat.none">
+<code class="sig-name descname">none</code><em class="property"> = 6</em><a class="headerlink" href="#maro.utils.logger.LogFormat.none" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.utils.logger.LogFormat.simple">
+<code class="sig-name descname">simple</code><em class="property"> = 2</em><a class="headerlink" href="#maro.utils.logger.LogFormat.simple" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.utils.logger.Logger">
+<em class="property">class </em><code class="sig-prename descclassname">maro.utils.logger.</code><code class="sig-name descname">Logger</code><span class="sig-paren">(</span><em class="sig-param">tag: str</em>, <em class="sig-param">format_: maro.utils.logger.LogFormat = &lt;LogFormat.full: 1&gt;</em>, <em class="sig-param">dump_folder: str = ''</em>, <em class="sig-param">dump_mode: str = 'w'</em>, <em class="sig-param">extension_name: str = 'log'</em>, <em class="sig-param">auto_timestamp: bool = True</em>, <em class="sig-param">stdout_level='INFO'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/logger.html#Logger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.logger.Logger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A simple wrapper for logging.</p>
+<p>The Logger hosts a file handler and a stdout handler. The file handler is set
+to <code class="docutils literal notranslate"><span class="pre">DEBUG</span></code> level and will dump all the logging info to the given <code class="docutils literal notranslate"><span class="pre">dump_folder</span></code>.
+The logging level of the stdout handler is decided by the <code class="docutils literal notranslate"><span class="pre">stdout_level</span></code>,
+and can be redirected by setting the environment variable <code class="docutils literal notranslate"><span class="pre">LOG_LEVEL</span></code>.
+Supported <code class="docutils literal notranslate"><span class="pre">LOG_LEVEL</span></code> includes: <code class="docutils literal notranslate"><span class="pre">DEBUG</span></code>, <code class="docutils literal notranslate"><span class="pre">INFO</span></code>, <code class="docutils literal notranslate"><span class="pre">WARN</span></code>, <code class="docutils literal notranslate"><span class="pre">ERROR</span></code>,
+<code class="docutils literal notranslate"><span class="pre">CRITICAL</span></code>, <code class="docutils literal notranslate"><span class="pre">PROCESS</span></code>.</p>
+<p class="rubric">Example</p>
+<p><code class="docutils literal notranslate"><span class="pre">$</span> <span class="pre">export</span> <span class="pre">LOG_LEVEL=INFO</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tag</strong> (<em>str</em>) – Log tag for stream and file output.</p></li>
+<li><p><strong>format_</strong> (<em>LogFormat</em>) – Predefined formatter. Defaults to <code class="docutils literal notranslate"><span class="pre">LogFormat.full</span></code>.</p></li>
+<li><p><strong>dump_folder</strong> (<em>str</em>) – Log dumped folder. Defaults to the current folder.
+The dumped log level is <code class="docutils literal notranslate"><span class="pre">logging.DEBUG</span></code>. The full path of the
+dumped log file is <cite>dump_folder/tag.log</cite>.</p></li>
+<li><p><strong>dump_mode</strong> (<em>str</em>) – Write log file mode. Defaults to <code class="docutils literal notranslate"><span class="pre">w</span></code>. Use <code class="docutils literal notranslate"><span class="pre">a</span></code> to
+append log.</p></li>
+<li><p><strong>extension_name</strong> (<em>str</em>) – Final dumped file extension name. Defaults to <cite>log</cite>.</p></li>
+<li><p><strong>auto_timestamp</strong> (<em>bool</em>) – Add a timestamp to the dumped log file name or not.
+E.g: <cite>tag.1574953673.137387.log</cite>.</p></li>
+<li><p><strong>stdout_level</strong> (<em>str</em>) – the logging level of the stdout handler. Defaults to
+<code class="docutils literal notranslate"><span class="pre">DEBUG</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.utils.logger.Logger.critical">
+<code class="sig-name descname">critical</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/logger.html#Logger.critical"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.logger.Logger.critical" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.utils.logger.Logger.debug">
+<code class="sig-name descname">debug</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/logger.html#Logger.debug"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.logger.Logger.debug" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.utils.logger.Logger.error">
+<code class="sig-name descname">error</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/logger.html#Logger.error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.logger.Logger.error" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.utils.logger.Logger.info">
+<code class="sig-name descname">info</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/logger.html#Logger.info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.logger.Logger.info" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.utils.logger.Logger.warn">
+<code class="sig-name descname">warn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/logger.html#Logger.warn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.logger.Logger.warn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.utils.logger.msgformat">
+<code class="sig-prename descclassname">maro.utils.logger.</code><code class="sig-name descname">msgformat</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">logfunc</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/logger.html#msgformat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.logger.msgformat" title="Permalink to this definition">¶</a></dt>
+<dd><p>The decorator used to construct the log msg.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="maro-utils-remote-debug-module">
+<h2>maro.utils.remote_debug module<a class="headerlink" href="#maro-utils-remote-debug-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-maro.utils.utils">
+<span id="maro-utils-utils-module"></span><h2>maro.utils.utils module<a class="headerlink" href="#module-maro.utils.utils" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.utils.utils.DottableDict">
+<em class="property">class </em><code class="sig-prename descclassname">maro.utils.utils.</code><code class="sig-name descname">DottableDict</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/utils.html#DottableDict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.utils.DottableDict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></p>
+<p>A wrapper to dictionary to make possible to key as property.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.utils.utils.check_deployment_status">
+<code class="sig-prename descclassname">maro.utils.utils.</code><code class="sig-name descname">check_deployment_status</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/maro/utils/utils.html#check_deployment_status"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.utils.check_deployment_status" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if re-deployment is needed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>If need to re-deploy then True, else False.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.utils.utils.clone">
+<code class="sig-prename descclassname">maro.utils.utils.</code><code class="sig-name descname">clone</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obj</span><span class="p">:</span> <span class="n">any</span></em><span class="sig-paren">)</span> &#x2192; any<a class="reference internal" href="../_modules/maro/utils/utils.html#clone"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.utils.clone" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clone an object with pickle dumps and loads.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>obj</strong> (<em>any</em>) – The object to clone.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The clone of the object.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>any</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.utils.utils.convert_dottable">
+<code class="sig-prename descclassname">maro.utils.utils.</code><code class="sig-name descname">convert_dottable</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">natural_dict</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#maro.utils.utils.DottableDict" title="maro.utils.utils.DottableDict">maro.utils.utils.DottableDict</a><a class="reference internal" href="../_modules/maro/utils/utils.html#convert_dottable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.utils.convert_dottable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a dictionary to DottableDict.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>natural_dict</strong> (<em>dict</em>) – Dictionary to convert to DottableDict.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Dottable object.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#maro.utils.utils.DottableDict" title="maro.utils.utils.DottableDict">DottableDict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.utils.utils.deploy">
+<code class="sig-prename descclassname">maro.utils.utils.</code><code class="sig-name descname">deploy</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">hide_info</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/utils.html#deploy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.utils.deploy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deploy the meta files, and lib files of MARO to <cite>~/.maro</cite>.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>hide_info</strong> (<em>bool</em>) – (optional) If True, will not display any information,</p>
+<p>else info and error logs will be shown.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.utils.utils.set_seeds">
+<code class="sig-prename descclassname">maro.utils.utils.</code><code class="sig-name descname">set_seeds</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">seed</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/utils.html#set_seeds"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.utils.set_seeds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the seeds of <code class="docutils literal notranslate"><span class="pre">Torch</span></code>, <code class="docutils literal notranslate"><span class="pre">np.random</span></code> and <code class="docutils literal notranslate"><span class="pre">random</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>seed</strong> – Value of the seed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.utils">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-maro.utils" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.utils.DottableDict">
+<em class="property">class </em><code class="sig-prename descclassname">maro.utils.</code><code class="sig-name descname">DottableDict</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/utils.html#DottableDict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.DottableDict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></p>
+<p>A wrapper to dictionary to make possible to key as property.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.utils.DummyLogger">
+<em class="property">class </em><code class="sig-prename descclassname">maro.utils.</code><code class="sig-name descname">DummyLogger</code><a class="reference internal" href="../_modules/maro/utils/logger.html#DummyLogger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.DummyLogger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A dummy Logger, which is used when disabling logs.</p>
+<dl class="py method">
+<dt id="maro.utils.DummyLogger.critical">
+<code class="sig-name descname">critical</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/logger.html#DummyLogger.critical"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.DummyLogger.critical" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.utils.DummyLogger.debug">
+<code class="sig-name descname">debug</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/logger.html#DummyLogger.debug"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.DummyLogger.debug" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.utils.DummyLogger.error">
+<code class="sig-name descname">error</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/logger.html#DummyLogger.error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.DummyLogger.error" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.utils.DummyLogger.info">
+<code class="sig-name descname">info</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/logger.html#DummyLogger.info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.DummyLogger.info" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.utils.DummyLogger.warn">
+<code class="sig-name descname">warn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/logger.html#DummyLogger.warn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.DummyLogger.warn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.utils.InternalLogger">
+<em class="property">class </em><code class="sig-prename descclassname">maro.utils.</code><code class="sig-name descname">InternalLogger</code><span class="sig-paren">(</span><em class="sig-param">component_name: str</em>, <em class="sig-param">tag: str = 'maro_internal'</em>, <em class="sig-param">format_: maro.utils.logger.LogFormat = &lt;LogFormat.internal: 3&gt;</em>, <em class="sig-param">dump_folder: str = None</em>, <em class="sig-param">dump_mode: str = 'a'</em>, <em class="sig-param">extension_name: str = 'log'</em>, <em class="sig-param">auto_timestamp: bool = False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/logger.html#InternalLogger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.InternalLogger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.utils.logger.Logger" title="maro.utils.logger.Logger"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.utils.logger.Logger</span></code></a></p>
+<p>An internal logger uses for recording the internal system’s log.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.utils.LogFormat">
+<em class="property">class </em><code class="sig-prename descclassname">maro.utils.</code><code class="sig-name descname">LogFormat</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/logger.html#LogFormat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.LogFormat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>The Enum class of the log format.</p>
+<p class="rubric">Example</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">LogFormat.full</span></code>: full time | host | user | pid | tag | level | msg</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LogFormat.simple</span></code>: simple time | tag | level | msg</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LogFormat.cli_debug</span></code> : simple time | level | msg</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LogFormat.cli_info</span></code> (file): simple time | level | msg</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LogFormat.cli_info</span></code> (stdout):  msg</p></li>
+</ul>
+<dl class="py attribute">
+<dt id="maro.utils.LogFormat.cli_debug">
+<code class="sig-name descname">cli_debug</code><em class="property"> = 4</em><a class="headerlink" href="#maro.utils.LogFormat.cli_debug" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.utils.LogFormat.cli_info">
+<code class="sig-name descname">cli_info</code><em class="property"> = 5</em><a class="headerlink" href="#maro.utils.LogFormat.cli_info" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.utils.LogFormat.full">
+<code class="sig-name descname">full</code><em class="property"> = 1</em><a class="headerlink" href="#maro.utils.LogFormat.full" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.utils.LogFormat.internal">
+<code class="sig-name descname">internal</code><em class="property"> = 3</em><a class="headerlink" href="#maro.utils.LogFormat.internal" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.utils.LogFormat.none">
+<code class="sig-name descname">none</code><em class="property"> = 6</em><a class="headerlink" href="#maro.utils.LogFormat.none" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.utils.LogFormat.simple">
+<code class="sig-name descname">simple</code><em class="property"> = 2</em><a class="headerlink" href="#maro.utils.LogFormat.simple" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.utils.Logger">
+<em class="property">class </em><code class="sig-prename descclassname">maro.utils.</code><code class="sig-name descname">Logger</code><span class="sig-paren">(</span><em class="sig-param">tag: str</em>, <em class="sig-param">format_: maro.utils.logger.LogFormat = &lt;LogFormat.full: 1&gt;</em>, <em class="sig-param">dump_folder: str = ''</em>, <em class="sig-param">dump_mode: str = 'w'</em>, <em class="sig-param">extension_name: str = 'log'</em>, <em class="sig-param">auto_timestamp: bool = True</em>, <em class="sig-param">stdout_level='INFO'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/logger.html#Logger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.Logger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A simple wrapper for logging.</p>
+<p>The Logger hosts a file handler and a stdout handler. The file handler is set
+to <code class="docutils literal notranslate"><span class="pre">DEBUG</span></code> level and will dump all the logging info to the given <code class="docutils literal notranslate"><span class="pre">dump_folder</span></code>.
+The logging level of the stdout handler is decided by the <code class="docutils literal notranslate"><span class="pre">stdout_level</span></code>,
+and can be redirected by setting the environment variable <code class="docutils literal notranslate"><span class="pre">LOG_LEVEL</span></code>.
+Supported <code class="docutils literal notranslate"><span class="pre">LOG_LEVEL</span></code> includes: <code class="docutils literal notranslate"><span class="pre">DEBUG</span></code>, <code class="docutils literal notranslate"><span class="pre">INFO</span></code>, <code class="docutils literal notranslate"><span class="pre">WARN</span></code>, <code class="docutils literal notranslate"><span class="pre">ERROR</span></code>,
+<code class="docutils literal notranslate"><span class="pre">CRITICAL</span></code>, <code class="docutils literal notranslate"><span class="pre">PROCESS</span></code>.</p>
+<p class="rubric">Example</p>
+<p><code class="docutils literal notranslate"><span class="pre">$</span> <span class="pre">export</span> <span class="pre">LOG_LEVEL=INFO</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tag</strong> (<em>str</em>) – Log tag for stream and file output.</p></li>
+<li><p><strong>format_</strong> (<em>LogFormat</em>) – Predefined formatter. Defaults to <code class="docutils literal notranslate"><span class="pre">LogFormat.full</span></code>.</p></li>
+<li><p><strong>dump_folder</strong> (<em>str</em>) – Log dumped folder. Defaults to the current folder.
+The dumped log level is <code class="docutils literal notranslate"><span class="pre">logging.DEBUG</span></code>. The full path of the
+dumped log file is <cite>dump_folder/tag.log</cite>.</p></li>
+<li><p><strong>dump_mode</strong> (<em>str</em>) – Write log file mode. Defaults to <code class="docutils literal notranslate"><span class="pre">w</span></code>. Use <code class="docutils literal notranslate"><span class="pre">a</span></code> to
+append log.</p></li>
+<li><p><strong>extension_name</strong> (<em>str</em>) – Final dumped file extension name. Defaults to <cite>log</cite>.</p></li>
+<li><p><strong>auto_timestamp</strong> (<em>bool</em>) – Add a timestamp to the dumped log file name or not.
+E.g: <cite>tag.1574953673.137387.log</cite>.</p></li>
+<li><p><strong>stdout_level</strong> (<em>str</em>) – the logging level of the stdout handler. Defaults to
+<code class="docutils literal notranslate"><span class="pre">DEBUG</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.utils.Logger.critical">
+<code class="sig-name descname">critical</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/logger.html#Logger.critical"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.Logger.critical" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.utils.Logger.debug">
+<code class="sig-name descname">debug</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/logger.html#Logger.debug"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.Logger.debug" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.utils.Logger.error">
+<code class="sig-name descname">error</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/logger.html#Logger.error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.Logger.error" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.utils.Logger.info">
+<code class="sig-name descname">info</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/logger.html#Logger.info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.Logger.info" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="maro.utils.Logger.warn">
+<code class="sig-name descname">warn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/logger.html#Logger.warn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.Logger.warn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.utils.clone">
+<code class="sig-prename descclassname">maro.utils.</code><code class="sig-name descname">clone</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obj</span><span class="p">:</span> <span class="n">any</span></em><span class="sig-paren">)</span> &#x2192; any<a class="reference internal" href="../_modules/maro/utils/utils.html#clone"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.clone" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clone an object with pickle dumps and loads.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>obj</strong> (<em>any</em>) – The object to clone.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The clone of the object.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>any</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.utils.convert_dottable">
+<code class="sig-prename descclassname">maro.utils.</code><code class="sig-name descname">convert_dottable</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">natural_dict</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#maro.utils.utils.DottableDict" title="maro.utils.utils.DottableDict">maro.utils.utils.DottableDict</a><a class="reference internal" href="../_modules/maro/utils/utils.html#convert_dottable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.convert_dottable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a dictionary to DottableDict.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>natural_dict</strong> (<em>dict</em>) – Dictionary to convert to DottableDict.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Dottable object.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#maro.utils.utils.DottableDict" title="maro.utils.utils.DottableDict">DottableDict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.utils.set_seeds">
+<code class="sig-prename descclassname">maro.utils.</code><code class="sig-name descname">set_seeds</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">seed</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/utils/utils.html#set_seeds"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.utils.set_seeds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the seeds of <code class="docutils literal notranslate"><span class="pre">Torch</span></code>, <code class="docutils literal notranslate"><span class="pre">np.random</span></code> and <code class="docutils literal notranslate"><span class="pre">random</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>seed</strong> – Value of the seed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+    <a class='left-prev' id="prev-link" href="maro.simulator.utils.html" title="previous page">maro.simulator.utils package</a>
+    <a class='right-next' id="next-link" href="maro.utils.exception.html" title="next page">maro.utils.exception package</a>
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../_static/js/index.js"></script>
+    
+  </body>
+</html>

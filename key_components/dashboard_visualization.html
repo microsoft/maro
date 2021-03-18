@@ -1,0 +1,572 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Visualization &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="maro package" href="../apidoc/maro.html" />
+    <link rel="prev" title="Distributed Orchestration" href="orchestration.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../index.html">
+  
+  <img src="../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="current nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1 current active">
+  <a class="current reference internal" href="#">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../apidoc/maro.html">
+   maro package
+  </a>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+        
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="../_sources/key_components/dashboard_visualization.rst.txt"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.rst</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2Fkey_components/dashboard_visualization.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        <a class="edit-button" href="https://github.com/microsoft/maro/edit/master/doc/source/key_components/dashboard_visualization.rst"><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Edit this page"><i class="fas fa-pencil-alt"></i>suggest edit</button></a>
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <div class="tocsection onthispage pt-5 pb-3">
+            <i class="fas fa-list"></i> Contents
+        </div>
+        <nav id="bd-toc-nav">
+            <ul class="nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#dependency">
+   Dependency
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#how-to-use">
+   How to Use?
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#generate-dumped-data">
+     Generate dumped data
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#launch-visualization-tool">
+     Launch Visualization Tool
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#feature-list">
+   Feature List
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#intra-epoch-view">
+     Intra-epoch view
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#epoch-snapshot-resource-holder-index-selection">
+       Epoch/Snapshot/Resource Holder Index Selection
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#snapshot-resource-holder-sampling-ratio-selection">
+       Snapshot/Resource Holder Sampling Ratio Selection
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#formula-calculation">
+       Formula Calculation
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#inter-epoch-view">
+     Inter-epoch view
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#epoch-sampling-ratio-selection">
+       Epoch Sampling Ratio Selection
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#id1">
+       Formula Calculation
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#examples">
+   Examples
+  </a>
+ </li>
+</ul>
+
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <div class="section" id="dashboard-visualization">
+<h1>Dashboard Visualization<a class="headerlink" href="#dashboard-visualization" title="Permalink to this headline">¶</a></h1>
+<p>Env-dashboard is a post-experimental visualization tool, aims to provide
+more intuitive environment information, which will guide the design of
+the algorithm and continually fine-tuning.</p>
+<p>Currently, the visualization of senario <strong>Container Inventory Management</strong>
+and <strong>Citi Bike</strong> are supported.</p>
+<div class="section" id="dependency">
+<h2>Dependency<a class="headerlink" href="#dependency" title="Permalink to this headline">¶</a></h2>
+<p>Module <strong>streamlit</strong> and <strong>altair</strong> should be pre-installed.</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://www.streamlit.io/">streamlit</a></p></li>
+<li><p><a class="reference external" href="https://altair-viz.github.io/">altair</a></p></li>
+</ul>
+<p>Install them with:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>pip install streamlit altair
+</pre></div>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="how-to-use">
+<h2>How to Use?<a class="headerlink" href="#how-to-use" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="generate-dumped-data">
+<h3>Generate dumped data<a class="headerlink" href="#generate-dumped-data" title="Permalink to this headline">¶</a></h3>
+<p>The dumped data from environment is the data source of visualization.
+To generate data, user needs to specify the parameter <strong>options</strong> when creating Env object.
+Type of value of this parameter should be Dictionary.</p>
+<p>If user does not need to dump data, then there is no need to pass value to
+this parameter.
+If the value for key “enable-dump-snapshot” of this parameter is an empty string,
+data would be dumped to the folder which start the command.
+If user specifies the value for key “enable-dump-snapshot” of this parameter with the
+path of a local file folder, data would be dumped to this folder.</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nv">opts_have_path</span> <span class="o">=</span> <span class="o">{</span><span class="s2">&quot;enable-dump-snapshot&quot;</span>: <span class="s2">&quot;./dump_data&quot;</span><span class="o">}</span>
+
+<span class="nv">opts_have_no_path</span> <span class="o">=</span> <span class="o">{</span><span class="s2">&quot;enable-dump-snapshot&quot;</span>: <span class="s2">&quot;&quot;</span><span class="o">}</span>
+
+<span class="c1"># dump data to folder ./dump_data.</span>
+<span class="nv">env</span> <span class="o">=</span> Env<span class="o">(</span><span class="nv">scenario</span><span class="o">=</span><span class="s2">&quot;cim&quot;</span>, <span class="nv">topology</span><span class="o">=</span><span class="s2">&quot;toy.5p_ssddd_l0.0&quot;</span>,
+      <span class="nv">start_tick</span><span class="o">=</span><span class="m">0</span>, <span class="nv">durations</span><span class="o">=</span><span class="m">100</span>, <span class="nv">options</span><span class="o">=</span>opts_have_path<span class="o">)</span>
+
+<span class="c1"># dump data to the folder which run the command.</span>
+<span class="nv">env</span> <span class="o">=</span> Env<span class="o">(</span><span class="nv">scenario</span><span class="o">=</span><span class="s2">&quot;cim&quot;</span>, <span class="nv">topology</span><span class="o">=</span><span class="s2">&quot;toy.5p_ssddd_l0.0&quot;</span>,
+      <span class="nv">start_tick</span><span class="o">=</span><span class="m">0</span>, <span class="nv">durations</span><span class="o">=</span><span class="m">100</span>, <span class="nv">options</span><span class="o">=</span>opts_have_no_path<span class="o">)</span>
+</pre></div>
+</div>
+<hr class="docutils" />
+<p>Data would be dumped automatically when the Env object is initialized.</p>
+<p>For more details about Environment, please refer to
+<a class="reference external" href="simulation_toolkit.html">Environment</a>.</p>
+</div>
+<div class="section" id="launch-visualization-tool">
+<h3>Launch Visualization Tool<a class="headerlink" href="#launch-visualization-tool" title="Permalink to this headline">¶</a></h3>
+<p>To start this visualization tool, user need to input command following the format:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>maro inspector env --source <span class="o">{</span>source<span class="se">\_</span>folder<span class="se">\_</span>path<span class="o">}</span> --force <span class="o">{</span>true/false<span class="o">}</span>
+</pre></div>
+</div>
+<hr class="docutils" />
+<p>e.g.</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>maro inspector env --source_path .<span class="se">\m</span>aro<span class="se">\d</span>umper_files --force <span class="nb">false</span>
+</pre></div>
+</div>
+<hr class="docutils" />
+<p>Parameter <strong>force</strong> refers to regenerate cross-epoch summary data or not, default value is ‘true’.
+Parameter <strong>source_path</strong> refers to the path of dumped snapshot files.
+The expected structure of file folder should be like this:</p>
+<p>Folder Structure</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>./LOCAL_DUMPER_DATA_FOLDER
+    epoch_#                         <span class="c1"># folders to restore data of each epoch.</span>
+        <span class="o">{</span>resource_holder<span class="o">}</span>.csv       <span class="c1"># attributes of current epoch.</span>
+   manifest.yml                     <span class="c1"># basic info like scenario name, number of epoches.</span>
+   index_name_mapping file        <span class="c1"># relationship between an index and its name of resource holders.</span>
+   <span class="o">{</span>resource_holder<span class="o">}</span>_summary.csv    <span class="c1"># cross-epoch summary information.</span>
+</pre></div>
+</div>
+<hr class="docutils" />
+<p>If any file is missed compared with the expected folder structure
+displayed above, the command line would prompt users with an error message.
+The visualization tool looks for the free port to launch page in sequence, starting with port 8501.
+The command line would print out the selected port.</p>
+</div>
+</div>
+<div class="section" id="feature-list">
+<h2>Feature List<a class="headerlink" href="#feature-list" title="Permalink to this headline">¶</a></h2>
+<p>Basically, each scenario has 2 parts of visualization: intra-epoch view
+and inter-epoch view. User could switch between them freely.</p>
+<div class="section" id="intra-epoch-view">
+<h3>Intra-epoch view<a class="headerlink" href="#intra-epoch-view" title="Permalink to this headline">¶</a></h3>
+<p>User could view detailed information of selected resource holder or tick
+under this mode. In order for users to better understand the data, we
+separate the data into time dimension and space dimension. Users could view
+both the value of a resource holder’s property over time and the state of
+all resource holders at a selected time (e.g. tick).</p>
+<p>Content of intra-epoch view is varied between senarios. For example, in senario
+container_inventory_management, the attributes of resource holders are relatively
+complex. Thus, this view is divided into two parts: Accumulated Attributes and Detail Attributes.
+The former one includes the heat map of transfer volume, top-k attributes summary,
+accumulated attributes summary. The latter one includes the chart of two resource holders:
+Port and Vessel attributes in the scenario container_inventory_management.
+Detailed introduction please refer to
+<a class="reference external" href="../scenarios/container_inventory_management.html#Visualization">Container Inventory Management Visualization</a>.</p>
+<p>The content of senario citi_Bike is much simpler,
+mainly including top-k attributes summary and the chart of resource holder:
+Station in senario citi_bike.
+Detailed introduction please refer to
+<a class="reference external" href="../scenarios/citi_bike.html#Visualization">Citi Bike Visualization</a>.</p>
+<div class="section" id="epoch-snapshot-resource-holder-index-selection">
+<h4>Epoch/Snapshot/Resource Holder Index Selection<a class="headerlink" href="#epoch-snapshot-resource-holder-index-selection" title="Permalink to this headline">¶</a></h4>
+<p>To view the details of a resource holder or a tick, user could select
+the specific index of epoch/snapshot/resource holder by sliding the slider
+on the left side of page.</p>
+<img alt="epoch_resource_holder_index_selection" src="../_images/epoch_resource_holder_index_selection.gif" />
+</div>
+<div class="section" id="snapshot-resource-holder-sampling-ratio-selection">
+<h4>Snapshot/Resource Holder Sampling Ratio Selection<a class="headerlink" href="#snapshot-resource-holder-sampling-ratio-selection" title="Permalink to this headline">¶</a></h4>
+<p>To view trends in the data, or to weed out excess information, user could
+select the sampling ratio of snapshot/resource holder by sliding to
+change the number of data to be displayed.</p>
+<img alt="snapshot_sampling_ratio_selection" src="../_images/snapshot_sampling_ratio_selection.gif" />
+</div>
+<div class="section" id="formula-calculation">
+<h4>Formula Calculation<a class="headerlink" href="#formula-calculation" title="Permalink to this headline">¶</a></h4>
+<p>User could generate their own attributes by using pre-defined formulas.
+The results of the formula calculation could be reused as the input
+parameter of formula.</p>
+<img alt="formula_calculation" src="../_images/formula_calculation.gif" />
+</div>
+</div>
+<div class="section" id="inter-epoch-view">
+<h3>Inter-epoch view<a class="headerlink" href="#inter-epoch-view" title="Permalink to this headline">¶</a></h3>
+<p>User could view cross-epoch information in this view.
+In order to make users intuitively observe the results of the iterative
+algorithm, such as whether the results converge as expected, we extracted
+important attributes of resource holder from each epoch as a summary of
+the current epoch and display them centrally in this view.
+Users are free to choose the interval they care about and the sampling
+rate within the selected interval. Line chart and bar chart can
+effectively help users to know the results of the experiment.</p>
+<div class="section" id="epoch-sampling-ratio-selection">
+<h4>Epoch Sampling Ratio Selection<a class="headerlink" href="#epoch-sampling-ratio-selection" title="Permalink to this headline">¶</a></h4>
+<p>To view trends in the data, or to weed out excess information, user could
+select the sampling ratio of epoch by sliding to
+change the number of data to be displayed.</p>
+<img alt="epoch_sampling_ratio" src="../_images/epoch_sampling_ratio.gif" />
+</div>
+<div class="section" id="id1">
+<h4>Formula Calculation<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h4>
+<p>Please refer to <a class="reference external" href="#FeatureList#Intra_epochView#FormulaCalculation">Formula Calculation</a>.</p>
+</div>
+</div>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<p>Examples of each scenarios please refer to docs of each scenarios:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="../scenarios/container_inventory_management.html#Visualization">Container Inventory Management</a>.</p></li>
+<li><p><a class="reference external" href="../scenarios/citi_bike.html#Visualization">Citi Bike</a>.</p></li>
+</ul>
+</div>
+</div>
+
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+    <a class='left-prev' id="prev-link" href="orchestration.html" title="previous page">Distributed Orchestration</a>
+    <a class='right-next' id="next-link" href="../apidoc/maro.html" title="next page">maro package</a>
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../_static/js/index.js"></script>
+    
+  </body>
+</html>

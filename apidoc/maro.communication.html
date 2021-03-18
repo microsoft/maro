@@ -1,0 +1,1856 @@
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maro.communication package &#8212; latest</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../_static/sphinx-book-theme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/sphinx-book-theme.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="shortcut icon" href="../_static/fav32x32.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="maro.communication.driver package" href="maro.communication.driver.html" />
+    <link rel="prev" title="maro.cli.utils.executors package" href="maro.cli.utils.executors.html" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+
+
+
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+<a class="navbar-brand text-wrap" href="../index.html">
+  
+  <img src="../_static/logo.svg" class="logo" alt="logo">
+  
+  
+  <h1 class="site-logo" id="site-title">latest</h1>
+  
+</a>
+</div>
+
+<form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../index.html">
+   What is MARO?
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/pip_install.html">
+   Package
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/playground.html">
+   Playground Docker Image
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_azure.html">
+   Grass Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/k8s_cluster_provisioning_on_azure.html">
+   K8S Cluster Provisioning on Azure
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/grass_cluster_provisioning_on_premises.html">
+   Grass Cluster Provisioning in On-Premises Environment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation/multi_processes_localhost_provisioning.html">
+   Multi-processes Localhost Provisioning
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Scenarios
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/container_inventory_management.html">
+   Container Inventory Management (CIM)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/citi_bike.html">
+   Bike Repositioning (Citi Bike)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../scenarios/vm_scheduling.html">
+   Virtual Machine Scheduling (VM Scheduling)
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Examples
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/multi_agent_dqn_cim.html">
+   Multi Agent DQN for CIM
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples/greedy_policy_citi_bike.html">
+   Greedy Policy for Citi Bike
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  Key Components
+ </span>
+</p>
+<ul class="nav sidenav_l1">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/simulation_toolkit.html">
+   Simulation Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/data_model.html">
+   Data Model
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/event_buffer.html">
+   Event Buffer
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/business_engine.html">
+   Business Engine
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/rl_toolkit.html">
+   RL Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/distributed_toolkit.html">
+   Distributed Toolkit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/communication.html">
+   Distributed Communication
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/orchestration.html">
+   Distributed Orchestration
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../key_components/dashboard_visualization.html">
+   Dashboard Visualization
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documents
+ </span>
+</p>
+<ul class="current nav sidenav_l1">
+ <li class="toctree-l1 current active">
+  <a class="reference internal" href="maro.html">
+   maro package
+  </a>
+  <ul class="current">
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.backends.html">
+     maro.backends package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.cli.html">
+     maro.cli package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.data_pipeline.html">
+       maro.cli.data_pipeline package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.envs.html">
+       maro.cli.envs package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.grass.html">
+       maro.cli.grass package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.grass.executors.html">
+         maro.cli.grass.executors package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.grass.utils.html">
+         maro.cli.grass.utils package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.inspector.html">
+       maro.cli.inspector package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.k8s.html">
+       maro.cli.k8s package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.k8s.executors.html">
+         maro.cli.k8s.executors package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.process.html">
+       maro.cli.process package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.process.utils.html">
+         maro.cli.process.utils package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.cli.utils.html">
+       maro.cli.utils package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.cli.utils.executors.html">
+         maro.cli.utils.executors package
+        </a>
+       </li>
+      </ul>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 current active">
+    <a class="current reference internal" href="#">
+     maro.communication package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.communication.driver.html">
+       maro.communication.driver package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.communication.utils.html">
+       maro.communication.utils package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.data_lib.html">
+     maro.data_lib package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.data_lib.cim.html">
+       maro.data_lib.cim package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.event_buffer.html">
+     maro.event_buffer package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.forecasting.html">
+     maro.forecasting package
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.rl.html">
+     maro.rl package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.actor.html">
+       maro.rl.actor package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.agent.html">
+       maro.rl.agent package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.algorithms.html">
+       maro.rl.algorithms package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.dist_topologies.html">
+       maro.rl.dist_topologies package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.exploration.html">
+       maro.rl.exploration package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.learner.html">
+       maro.rl.learner package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.models.html">
+       maro.rl.models package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.scheduling.html">
+       maro.rl.scheduling package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.shaping.html">
+       maro.rl.shaping package
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.rl.storage.html">
+       maro.rl.storage package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.simulator.html">
+     maro.simulator package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.simulator.scenarios.html">
+       maro.simulator.scenarios package
+      </a>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.cim.html">
+         maro.simulator.scenarios.cim package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.citi_bike.html">
+         maro.simulator.scenarios.citi_bike package
+        </a>
+       </li>
+       <li class="toctree-l4">
+        <a class="reference internal" href="maro.simulator.scenarios.vm_scheduling.html">
+         maro.simulator.scenarios.vm_scheduling package
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.simulator.utils.html">
+       maro.simulator.utils package
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="maro.utils.html">
+     maro.utils package
+    </a>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="maro.utils.exception.html">
+       maro.utils.exception package
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+</nav>
+
+ <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="row topbar fixed-top container-xl">
+    <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show">
+    </div>
+    <div class="col pl-2 topbar-main">
+        
+        <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+            data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+            aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+            title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+            <i class="fas fa-bars"></i>
+            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        
+        <div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+        
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="../_sources/apidoc/maro.communication.rst.txt"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.rst</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+    
+</div>
+        <!-- Source interaction buttons -->
+
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn"
+        aria-label="Connect with source repository"><i class="fab fa-github"></i></button>
+    <div class="dropdown-buttons sourcebuttons">
+        <a class="repository-button"
+            href="https://github.com/microsoft/maro"><button type="button" class="btn btn-secondary topbarbtn"
+                data-toggle="tooltip" data-placement="left" title="Source repository"><i
+                    class="fab fa-github"></i>repository</button></a>
+        <a class="issues-button"
+            href="https://github.com/microsoft/maro/issues/new?title=Issue%20on%20page%20%2Fapidoc/maro.communication.html&body=Your%20issue%20content%20here."><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Open an issue"><i class="fas fa-lightbulb"></i>open issue</button></a>
+        <a class="edit-button" href="https://github.com/microsoft/maro/edit/master/doc/source/apidoc/maro.communication.rst"><button
+                type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip" data-placement="left"
+                title="Edit this page"><i class="fas fa-pencil-alt"></i>suggest edit</button></a>
+    </div>
+</div>
+
+
+        <!-- Full screen (wrap in <a> to have style consistency -->
+        <a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+                data-placement="bottom" onclick="toggleFullScreen()" title="Fullscreen mode"><i
+                    class="fas fa-expand"></i></button></a>
+
+        <!-- Launch buttons -->
+
+    </div>
+
+    <!-- Table of contents -->
+    <div class="d-none d-md-block col-md-2 bd-toc show">
+        <div class="tocsection onthispage pt-5 pb-3">
+            <i class="fas fa-list"></i> Contents
+        </div>
+        <nav id="bd-toc-nav">
+            <ul class="nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#subpackages">
+   Subpackages
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#submodules">
+   Submodules
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.communication.dist_decorator">
+   maro.communication.dist_decorator module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.communication.message">
+   maro.communication.message module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.communication.proxy">
+   maro.communication.proxy module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.communication.registry_table">
+   maro.communication.registry_table module
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-maro.communication">
+   Module contents
+  </a>
+ </li>
+</ul>
+
+        </nav>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
+  <div class="section" id="maro-communication-package">
+<h1>maro.communication package<a class="headerlink" href="#maro-communication-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="maro.communication.driver.html">maro.communication.driver package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="maro.communication.driver.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.communication.driver.html#module-maro.communication.driver.abs_driver">maro.communication.driver.abs_driver module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.communication.driver.html#module-maro.communication.driver.driver_type">maro.communication.driver.driver_type module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.communication.driver.html#module-maro.communication.driver.zmq_driver">maro.communication.driver.zmq_driver module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.communication.driver.html#module-maro.communication.driver">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="maro.communication.utils.html">maro.communication.utils package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="maro.communication.utils.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.communication.utils.html#module-maro.communication.utils.default_parameters">maro.communication.utils.default_parameters module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.communication.utils.html#module-maro.communication.utils.generate_session_id">maro.communication.utils.generate_session_id module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="maro.communication.utils.html#module-maro.communication.utils">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-maro.communication.dist_decorator">
+<span id="maro-communication-dist-decorator-module"></span><h2>maro.communication.dist_decorator module<a class="headerlink" href="#module-maro.communication.dist_decorator" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="maro.communication.dist_decorator.dist">
+<code class="sig-prename descclassname">maro.communication.dist_decorator.</code><code class="sig-name descname">dist</code><span class="sig-paren">(</span><em class="sig-param">proxy: maro.communication.proxy.Proxy</em>, <em class="sig-param">handler_dict: {&lt;class 'object'&gt;: typing.Callable}</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/communication/dist_decorator.html#dist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.dist_decorator.dist" title="Permalink to this definition">¶</a></dt>
+<dd><p>A decorator used to inject a <code class="docutils literal notranslate"><span class="pre">communication</span> <span class="pre">module</span></code> and <code class="docutils literal notranslate"><span class="pre">message</span> <span class="pre">handlers</span></code>
+to a local class so that it can be run in distributed mode.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.communication.message">
+<span id="maro-communication-message-module"></span><h2>maro.communication.message module<a class="headerlink" href="#module-maro.communication.message" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.communication.message.Message">
+<em class="property">class </em><code class="sig-prename descclassname">maro.communication.message.</code><code class="sig-name descname">Message</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tag</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span>enum.Enum<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">source</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">destination</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">payload</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">session_id</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/communication/message.html#Message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.message.Message" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>General Message for hosting payload between receiver and sender.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tag</strong> (<em>str|Enum</em>) – Message tag, which is customized by the user, for specific application logic.</p></li>
+<li><p><strong>source</strong> (<em>str</em>) – The sender of message.</p></li>
+<li><p><strong>destination</strong> (<em>str</em>) – The receiver of message.</p></li>
+<li><p><strong>payload</strong> (<em>object</em>) – Message payload, such as model parameters, experiences, etc. Defaults to None.</p></li>
+<li><p><strong>session_id</strong> (<em>str</em>) – Message belonged session id, it will be generated automatically by default, you can use it
+to group message based on your application logic.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.communication.message.NotificationSessionStage">
+<em class="property">class </em><code class="sig-prename descclassname">maro.communication.message.</code><code class="sig-name descname">NotificationSessionStage</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/communication/message.html#NotificationSessionStage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.message.NotificationSessionStage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>Notification session stages.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">REQUEST</span></code>: Notification session stage 1.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RECEIVE</span></code>: Notification session stage 2.</p></li>
+</ul>
+<dl class="py attribute">
+<dt id="maro.communication.message.NotificationSessionStage.RECEIVE">
+<code class="sig-name descname">RECEIVE</code><em class="property"> = 'notification_receive'</em><a class="headerlink" href="#maro.communication.message.NotificationSessionStage.RECEIVE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.communication.message.NotificationSessionStage.REQUEST">
+<code class="sig-name descname">REQUEST</code><em class="property"> = 'notification_request'</em><a class="headerlink" href="#maro.communication.message.NotificationSessionStage.REQUEST" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.communication.message.SessionMessage">
+<em class="property">class </em><code class="sig-prename descclassname">maro.communication.message.</code><code class="sig-name descname">SessionMessage</code><span class="sig-paren">(</span><em class="sig-param">tag: Union[str, enum.Enum], source: str, destination: str, payload=None, session_id: str = None, session_type: maro.communication.message.SessionType = &lt;SessionType.TASK: 'task'&gt;, session_stage=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/communication/message.html#SessionMessage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.message.SessionMessage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.communication.message.Message" title="maro.communication.message.Message"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.communication.message.Message</span></code></a></p>
+<p>The session message class.</p>
+<p>It is used by a specific session, which will contain session stage to support more complex application logic.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>session_type</strong> (<em>Enum</em>) – It indicates the current session type.</p></li>
+<li><p><strong>session_stage</strong> (<em>Enum</em>) – It indicates the current session stage.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.communication.message.SessionType">
+<em class="property">class </em><code class="sig-prename descclassname">maro.communication.message.</code><code class="sig-name descname">SessionType</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/communication/message.html#SessionType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.message.SessionType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>Communication session categories.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">TASK</span></code>: Task session is used to trigger remote job(s).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">NOTIFICATION</span></code>: Notification session is used to sync information to peers.</p></li>
+</ul>
+<dl class="py attribute">
+<dt id="maro.communication.message.SessionType.NOTIFICATION">
+<code class="sig-name descname">NOTIFICATION</code><em class="property"> = 'notification'</em><a class="headerlink" href="#maro.communication.message.SessionType.NOTIFICATION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.communication.message.SessionType.TASK">
+<code class="sig-name descname">TASK</code><em class="property"> = 'task'</em><a class="headerlink" href="#maro.communication.message.SessionType.TASK" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.communication.message.TaskSessionStage">
+<em class="property">class </em><code class="sig-prename descclassname">maro.communication.message.</code><code class="sig-name descname">TaskSessionStage</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/communication/message.html#TaskSessionStage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.message.TaskSessionStage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>Task session stages.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">REQUEST</span></code>: Task session stage 1.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RECEIVE</span></code>: Task session stage 2.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">COMPLETE</span></code>: Task session stage 3.</p></li>
+</ul>
+<dl class="py attribute">
+<dt id="maro.communication.message.TaskSessionStage.COMPLETE">
+<code class="sig-name descname">COMPLETE</code><em class="property"> = 'task_complete'</em><a class="headerlink" href="#maro.communication.message.TaskSessionStage.COMPLETE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.communication.message.TaskSessionStage.RECEIVE">
+<code class="sig-name descname">RECEIVE</code><em class="property"> = 'task_receive'</em><a class="headerlink" href="#maro.communication.message.TaskSessionStage.RECEIVE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.communication.message.TaskSessionStage.REQUEST">
+<code class="sig-name descname">REQUEST</code><em class="property"> = 'task_request'</em><a class="headerlink" href="#maro.communication.message.TaskSessionStage.REQUEST" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.communication.proxy">
+<span id="maro-communication-proxy-module"></span><h2>maro.communication.proxy module<a class="headerlink" href="#module-maro.communication.proxy" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.communication.proxy.Proxy">
+<em class="property">class </em><code class="sig-prename descclassname">maro.communication.proxy.</code><code class="sig-name descname">Proxy</code><span class="sig-paren">(</span><em class="sig-param">group_name: str</em>, <em class="sig-param">component_type: str</em>, <em class="sig-param">expected_peers: dict</em>, <em class="sig-param">driver_type: maro.communication.driver.driver_type.DriverType = &lt;DriverType.ZMQ: 'zmq_driver'&gt;</em>, <em class="sig-param">driver_parameters: dict = None</em>, <em class="sig-param">redis_address: Tuple = ('localhost'</em>, <em class="sig-param">6379)</em>, <em class="sig-param">max_retries: int = 10</em>, <em class="sig-param">retry_interval_base_value: float = 0.1</em>, <em class="sig-param">log_enable: bool = True</em>, <em class="sig-param">enable_rejoin: bool = False</em>, <em class="sig-param">minimal_peers: Union[int</em>, <em class="sig-param">dict] = 1</em>, <em class="sig-param">peers_catch_lifetime: int = 10</em>, <em class="sig-param">enable_message_cache_for_rejoin: bool = False</em>, <em class="sig-param">max_length_for_message_cache: int = 1024</em>, <em class="sig-param">timeout_for_minimal_peer_number: int = 300</em>, <em class="sig-param">is_remove_failed_container: bool = False</em>, <em class="sig-param">max_rejoin_times: int = 5</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/communication/proxy.html#Proxy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.proxy.Proxy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>The communication module is responsible for receiving and sending messages.</p>
+<p>There are three ways of sending messages: <code class="docutils literal notranslate"><span class="pre">send</span></code>, <code class="docutils literal notranslate"><span class="pre">scatter</span></code>, and <code class="docutils literal notranslate"><span class="pre">broadcast</span></code>. Also, there are two ways to
+receive messages from other peers: <code class="docutils literal notranslate"><span class="pre">receive</span></code> and <code class="docutils literal notranslate"><span class="pre">receive_by_id</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>group_name</strong> (<em>str</em>) – Identifier for the group of all distributed components.</p></li>
+<li><p><strong>component_type</strong> (<em>str</em>) – Component’s type in the current group.</p></li>
+<li><p><strong>expected_peers</strong> (<em>Dict</em>) – Dict of peers’ information which contains peer type and expected number.
+E.g. Dict[‘learner’: 1, ‘actor’: 2]</p></li>
+<li><p><strong>driver_type</strong> (<em>Enum</em>) – A type of communication driver class uses to communicate with other components.
+Defaults to <code class="docutils literal notranslate"><span class="pre">DriverType.ZMQ</span></code>.</p></li>
+<li><p><strong>driver_parameters</strong> (<em>Dict</em>) – The arguments for communication driver class initial. Defaults to None.</p></li>
+<li><p><strong>redis_address</strong> (<em>Tuple</em>) – Hostname and port of the Redis server. Defaults to (“localhost”, 6379).</p></li>
+<li><p><strong>max_retries</strong> (<em>int</em>) – Maximum number of retries before raising an exception. Defaults to 5.</p></li>
+<li><p><strong>retry_interval_base_value</strong> (<em>float</em>) – The time interval between attempts. Defaults to 0.1.</p></li>
+<li><p><strong>log_enable</strong> (<em>bool</em>) – Open internal logger or not. Defaults to True.</p></li>
+<li><p><strong>enable_rejoin</strong> (<em>bool</em>) – Allow peers rejoin or not. Defaults to False, and must use with maro cli.</p></li>
+<li><p><strong>minimal_peers Union[int, dict]</strong> – The minimal number of peers for each peer type.</p></li>
+<li><p><strong>peers_catch_lifetime</strong> (<em>int</em>) – The lifetime for onboard peers’ information.</p></li>
+<li><p><strong>enable_message_cache_for_rejoin</strong> (<em>bool</em>) – Enable message cache for failed peers or not. Default to False.</p></li>
+<li><p><strong>max_length_for_message_cache</strong> (<em>int</em>) – The maximal number of cached messages.</p></li>
+<li><p><strong>timeout_for_minimal_peer_number</strong> (<em>int</em>) – The timeout of waiting enough alive peers.</p></li>
+<li><p><strong>is_remove_failed_container</strong> (<em>bool</em>) – Enable remove failed containers automatically or not. Default to False.</p></li>
+<li><p><strong>max_rejoin_times</strong> (<em>int</em>) – The maximal retry times for one peer rejoins.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.communication.proxy.Proxy.broadcast">
+<code class="sig-name descname">broadcast</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">component_type</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">tag</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span>enum.Enum<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">session_type</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.communication.message.SessionType" title="maro.communication.message.SessionType">maro.communication.message.SessionType</a></span></em>, <em class="sig-param"><span class="n">session_id</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">payload</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span><a class="reference internal" href="#maro.communication.message.Message" title="maro.communication.message.Message">maro.communication.message.Message</a><span class="p">]</span><a class="reference internal" href="../_modules/maro/communication/proxy.html#Proxy.broadcast"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.proxy.Proxy.broadcast" title="Permalink to this definition">¶</a></dt>
+<dd><p>Broadcast message to all peers, and return all replied messages.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>component_type</strong> (<em>str</em>) – Broadcast to all peers in this type.</p></li>
+<li><p><strong>tag</strong> (<em>str|Enum</em>) – Message’s tag.</p></li>
+<li><p><strong>session_type</strong> (<em>Enum</em>) – Message’s session type.</p></li>
+<li><p><strong>session_id</strong> (<em>str</em>) – Message’s session id. Defaults to None.</p></li>
+<li><p><strong>payload</strong> (<em>object</em>) – The true data. Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List of replied messages.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List[<a class="reference internal" href="#maro.communication.message.Message" title="maro.communication.message.Message">Message</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.communication.proxy.Proxy.component_name">
+<em class="property">property </em><code class="sig-name descname">component_name</code><a class="headerlink" href="#maro.communication.proxy.Proxy.component_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unique identifier in the current group.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.communication.proxy.Proxy.component_type">
+<em class="property">property </em><code class="sig-name descname">component_type</code><a class="headerlink" href="#maro.communication.proxy.Proxy.component_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Component’s type in the current group.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.communication.proxy.Proxy.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">received_message</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.communication.message.SessionMessage" title="maro.communication.message.SessionMessage">maro.communication.message.SessionMessage</a></span></em>, <em class="sig-param"><span class="n">destination</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">tag</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span>enum.Enum<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">payload</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>str<span class="p">]</span><a class="reference internal" href="../_modules/maro/communication/proxy.html#Proxy.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.proxy.Proxy.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward a received message.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>received_message</strong> (<em>Message</em>) – The message need to forward.</p></li>
+<li><p><strong>destination</strong> (<em>str</em>) – The receiver of message.</p></li>
+<li><p><strong>tag</strong> (<em>str|Enum</em>) – New message tag, if None, keeps the original message’s tag. Defaults to None.</p></li>
+<li><p><strong>payload</strong> (<em>object</em>) – Message payload, if None, keeps the original message’s payload. Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Message belonged session id.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.communication.proxy.Proxy.get_peer_type">
+<code class="sig-name descname">get_peer_type</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">peer_name</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; str<a class="reference internal" href="../_modules/maro/communication/proxy.html#Proxy.get_peer_type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.proxy.Proxy.get_peer_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get peer type from given peer name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>peer_name</strong> (<em>str</em>) – The component name of a peer, which form by peer_type and UUID.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The component type of a peer in current group.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.communication.proxy.Proxy.group_name">
+<em class="property">property </em><code class="sig-name descname">group_name</code><a class="headerlink" href="#maro.communication.proxy.Proxy.group_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Identifier for the group of all communication components.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.communication.proxy.Proxy.ibroadcast">
+<code class="sig-name descname">ibroadcast</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">component_type</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">tag</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span>enum.Enum<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">session_type</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.communication.message.SessionType" title="maro.communication.message.SessionType">maro.communication.message.SessionType</a></span></em>, <em class="sig-param"><span class="n">session_id</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">payload</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>str<span class="p">]</span><a class="reference internal" href="../_modules/maro/communication/proxy.html#Proxy.ibroadcast"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.proxy.Proxy.ibroadcast" title="Permalink to this definition">¶</a></dt>
+<dd><p>Broadcast message to all subscribers, and return list of message’s session id.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>component_type</strong> (<em>str</em>) – Broadcast to all peers in this type.</p></li>
+<li><p><strong>tag</strong> (<em>str|Enum</em>) – Message’s tag.</p></li>
+<li><p><strong>session_type</strong> (<em>Enum</em>) – Message’s session type.</p></li>
+<li><p><strong>session_id</strong> (<em>str</em>) – Message’s session id. Defaults to None.</p></li>
+<li><p><strong>payload</strong> (<em>object</em>) – The true data. Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List of message’s session id which related to the replied message.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.communication.proxy.Proxy.iscatter">
+<code class="sig-name descname">iscatter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tag</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span>enum.Enum<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">session_type</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.communication.message.SessionType" title="maro.communication.message.SessionType">maro.communication.message.SessionType</a></span></em>, <em class="sig-param"><span class="n">destination_payload_list</span><span class="p">:</span> <span class="n">list</span></em>, <em class="sig-param"><span class="n">session_id</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>str<span class="p">]</span><a class="reference internal" href="../_modules/maro/communication/proxy.html#Proxy.iscatter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.proxy.Proxy.iscatter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Scatters a list of data to peers, and return list of message id.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tag</strong> (<em>str|Enum</em>) – Message’s tag.</p></li>
+<li><p><strong>session_type</strong> (<em>Enum</em>) – Message’s session type.</p></li>
+<li><p><strong>destination_payload_list</strong> (<em>[Tuple(str, object)]</em>) – The destination-payload list.
+The first item of the tuple in list is the message’s destination,
+and the second item of the tuple in list is the message’s payload.</p></li>
+<li><p><strong>session_id</strong> (<em>str</em>) – Message’s session id. Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List of message’s session id.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.communication.proxy.Proxy.isend">
+<code class="sig-name descname">isend</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.communication.message.Message" title="maro.communication.message.Message">maro.communication.message.Message</a></span></em><span class="sig-paren">)</span> &#x2192; Optional<span class="p">[</span>List<span class="p">[</span>str<span class="p">]</span><span class="p">]</span><a class="reference internal" href="../_modules/maro/communication/proxy.html#Proxy.isend"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.proxy.Proxy.isend" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send a message to a remote peer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>message</strong> – Message to be sent.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>The list of message’s session id;</dt><dd><p>If enable rejoin, it will return None when sending message to the failed peers.
+If enable rejoin and message cache, it may return list of session id which from
+the pending messages.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Union[List[str], None]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.communication.proxy.Proxy.peers_name">
+<em class="property">property </em><code class="sig-name descname">peers_name</code><a class="headerlink" href="#maro.communication.proxy.Proxy.peers_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>The <code class="docutils literal notranslate"><span class="pre">Dict</span></code> of all connected peers’ names, stored by peer type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.communication.proxy.Proxy.receive">
+<code class="sig-name descname">receive</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">is_continuous</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/communication/proxy.html#Proxy.receive"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.proxy.Proxy.receive" title="Permalink to this definition">¶</a></dt>
+<dd><p>Receive messages from communication driver.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>is_continuous</strong> (<em>bool</em>) – Continuously receive message or not. Defaults to True.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.communication.proxy.Proxy.receive_by_id">
+<code class="sig-name descname">receive_by_id</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">session_ids</span><span class="p">:</span> <span class="n">list</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span><a class="reference internal" href="#maro.communication.message.Message" title="maro.communication.message.Message">maro.communication.message.Message</a><span class="p">]</span><a class="reference internal" href="../_modules/maro/communication/proxy.html#Proxy.receive_by_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.proxy.Proxy.receive_by_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Receive target messages from communication driver.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>session_id_list List[str]</strong> – List of <code class="docutils literal notranslate"><span class="pre">session_id</span></code>.
+E.g. [‘0_learner0_actor0’, ‘1_learner1_actor1’, …].</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List of received messages.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List[<a class="reference internal" href="#maro.communication.message.Message" title="maro.communication.message.Message">Message</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.communication.proxy.Proxy.reply">
+<code class="sig-name descname">reply</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">received_message</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.communication.message.SessionMessage" title="maro.communication.message.SessionMessage">maro.communication.message.SessionMessage</a></span></em>, <em class="sig-param"><span class="n">tag</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span>enum.Enum<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">payload</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">ack_reply</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>str<span class="p">]</span><a class="reference internal" href="../_modules/maro/communication/proxy.html#Proxy.reply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.proxy.Proxy.reply" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reply a received message.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>received_message</strong> (<em>Message</em>) – The message need to reply.</p></li>
+<li><p><strong>tag</strong> (<em>str|Enum</em>) – New message tag, if None, keeps the original message’s tag. Defaults to None.</p></li>
+<li><p><strong>payload</strong> (<em>object</em>) – New message payload, if None, keeps the original message’s payload. Defaults to None.</p></li>
+<li><p><strong>ack_reply</strong> (<em>bool</em>) – If True, it is acknowledge reply. Defaults to False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Message belonged session id.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.communication.proxy.Proxy.scatter">
+<code class="sig-name descname">scatter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tag</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span>enum.Enum<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">session_type</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.communication.message.SessionType" title="maro.communication.message.SessionType">maro.communication.message.SessionType</a></span></em>, <em class="sig-param"><span class="n">destination_payload_list</span><span class="p">:</span> <span class="n">list</span></em>, <em class="sig-param"><span class="n">session_id</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span><a class="reference internal" href="#maro.communication.message.Message" title="maro.communication.message.Message">maro.communication.message.Message</a><span class="p">]</span><a class="reference internal" href="../_modules/maro/communication/proxy.html#Proxy.scatter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.proxy.Proxy.scatter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Scatters a list of data to peers, and return replied messages.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tag</strong> (<em>str|Enum</em>) – Message’s tag.</p></li>
+<li><p><strong>session_type</strong> (<em>Enum</em>) – Message’s session type.</p></li>
+<li><p><strong>destination_payload_list</strong> (<em>[Tuple(str, object)]</em>) – The destination-payload list.
+The first item of the tuple in list is the message destination,
+and the second item of the tuple in list is the message payload.</p></li>
+<li><p><strong>session_id</strong> (<em>str</em>) – Message’s session id. Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List of replied message.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List[<a class="reference internal" href="#maro.communication.message.Message" title="maro.communication.message.Message">Message</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.communication.proxy.Proxy.send">
+<code class="sig-name descname">send</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.communication.message.Message" title="maro.communication.message.Message">maro.communication.message.Message</a></span></em><span class="sig-paren">)</span> &#x2192; Optional<span class="p">[</span>List<span class="p">[</span><a class="reference internal" href="#maro.communication.message.Message" title="maro.communication.message.Message">maro.communication.message.Message</a><span class="p">]</span><span class="p">]</span><a class="reference internal" href="../_modules/maro/communication/proxy.html#Proxy.send"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.proxy.Proxy.send" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send a message to a remote peer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>message</strong> – Message to be sent.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>The list of received message;</dt><dd><p>If enable rejoin, it will return None when sending message to the failed peers.
+If enable rejoin and message cache, it may return list of messages which from
+the pending messages.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Union[List[<a class="reference internal" href="#maro.communication.message.Message" title="maro.communication.message.Message">Message</a>], None]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.communication.registry_table">
+<span id="maro-communication-registry-table-module"></span><h2>maro.communication.registry_table module<a class="headerlink" href="#module-maro.communication.registry_table" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.communication.registry_table.ConditionalEvent">
+<em class="property">class </em><code class="sig-prename descclassname">maro.communication.registry_table.</code><code class="sig-name descname">ConditionalEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span>Tuple<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">peers_name</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>property<span class="p">, </span>dict<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/communication/registry_table.html#ConditionalEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.registry_table.ConditionalEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>The description of the messages’ combination.</p>
+<p>The conditional event can be composed of any number of unit conditional events and end with an Operation.
+For unit conditional event, It must be three parts and divided by <code class="docutils literal notranslate"><span class="pre">:</span></code>:</p>
+<ul class="simple">
+<li><p>The first part of unit event represent the message’s source. E.g. <code class="docutils literal notranslate"><span class="pre">learner</span></code> or <code class="docutils literal notranslate"><span class="pre">*</span></code>.</p></li>
+<li><p>The second part of unit event represent the message’s type. E.g. <code class="docutils literal notranslate"><span class="pre">experience</span></code> or <code class="docutils literal notranslate"><span class="pre">*</span></code>.</p></li>
+<li><p>The third part of unit event represent how much messages needed. E.g. <code class="docutils literal notranslate"><span class="pre">1</span></code> or <code class="docutils literal notranslate"><span class="pre">90%</span></code>.</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Do not use special symbol in the unit event, such as <code class="docutils literal notranslate"><span class="pre">,</span></code>, <code class="docutils literal notranslate"><span class="pre">(</span></code>, <code class="docutils literal notranslate"><span class="pre">)</span></code>.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>event</strong> (<em>str|Tuple</em>) – The description of the requisite messages’ combination.
+E.g. “actor:rollout:1” or (“learner:rollout:1”, “learner:update:1”, “AND”).</p></li>
+<li><p><strong>peers_name</strong> (<em>dict|property</em>) – The property function which returns the newest peer’s name dict from proxy,
+or the Dict with the key (peer type) and the value (peer name list).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.communication.registry_table.ConditionalEvent.get_qualified_message">
+<code class="sig-name descname">get_qualified_message</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span><a class="reference internal" href="#maro.communication.message.Message" title="maro.communication.message.Message">maro.communication.message.Message</a><span class="p">]</span><a class="reference internal" href="../_modules/maro/communication/registry_table.html#ConditionalEvent.get_qualified_message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.registry_table.ConditionalEvent.get_qualified_message" title="Permalink to this definition">¶</a></dt>
+<dd><p>Self-inspection of conditional event, if satisfied, pop qualified messages.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>List of qualified messages.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>List[<a class="reference internal" href="#maro.communication.message.Message" title="maro.communication.message.Message">Message</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.communication.registry_table.ConditionalEvent.push_message">
+<code class="sig-name descname">push_message</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.communication.message.Message" title="maro.communication.message.Message">maro.communication.message.Message</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/communication/registry_table.html#ConditionalEvent.push_message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.registry_table.ConditionalEvent.push_message" title="Permalink to this definition">¶</a></dt>
+<dd><p>Push message to all satisfied unit conditional events.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>message</strong> (<em>Message</em>) – Received message.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.communication.registry_table.Operation">
+<em class="property">class </em><code class="sig-prename descclassname">maro.communication.registry_table.</code><code class="sig-name descname">Operation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/communication/registry_table.html#Operation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.registry_table.Operation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>The Enum class of the logic operations.</p>
+<dl class="py attribute">
+<dt id="maro.communication.registry_table.Operation.AND">
+<code class="sig-name descname">AND</code><em class="property"> = 'AND'</em><a class="headerlink" href="#maro.communication.registry_table.Operation.AND" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.communication.registry_table.Operation.OR">
+<code class="sig-name descname">OR</code><em class="property"> = 'OR'</em><a class="headerlink" href="#maro.communication.registry_table.Operation.OR" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.communication.registry_table.RegisterTable">
+<em class="property">class </em><code class="sig-prename descclassname">maro.communication.registry_table.</code><code class="sig-name descname">RegisterTable</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">peers_name</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>property<span class="p">, </span>dict<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/communication/registry_table.html#RegisterTable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.registry_table.RegisterTable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>The RegisterTable is responsible for matching <code class="docutils literal notranslate"><span class="pre">conditional</span> <span class="pre">events</span></code> and user-defined <code class="docutils literal notranslate"><span class="pre">message</span> <span class="pre">handlers</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>peers_name</strong> (<em>dict|property</em>) – The property function which returns the newest peer’s name dict from proxy,
+or the Dict with the key (peer type) and the value (peers name list).</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.communication.registry_table.RegisterTable.get">
+<code class="sig-name descname">get</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>Tuple<span class="p">[</span>callable<span class="p">, </span>List<span class="p">[</span><a class="reference internal" href="#maro.communication.message.Message" title="maro.communication.message.Message">maro.communication.message.Message</a><span class="p">]</span><span class="p">]</span><span class="p">]</span><a class="reference internal" href="../_modules/maro/communication/registry_table.html#RegisterTable.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.registry_table.RegisterTable.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>If any <code class="docutils literal notranslate"><span class="pre">conditional</span> <span class="pre">event</span></code> has been satisfied, return the requisite message list and
+the correlational handler function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The list of triggered handler functions and messages.
+E.g. [(handle_function_1, [messages]), (handle_function_2, [messages])]</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>List[Tuple[callable, List[<a class="reference internal" href="#maro.communication.message.Message" title="maro.communication.message.Message">Message</a>]]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.communication.registry_table.RegisterTable.push">
+<code class="sig-name descname">push</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.communication.message.Message" title="maro.communication.message.Message">maro.communication.message.Message</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/communication/registry_table.html#RegisterTable.push"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.registry_table.RegisterTable.push" title="Permalink to this definition">¶</a></dt>
+<dd><p>Push message into all <code class="docutils literal notranslate"><span class="pre">conditional</span> <span class="pre">events</span></code> which register in the Registry Table.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>message</strong> (<em>Message</em>) – Received message.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.communication.registry_table.RegisterTable.register_event_handler">
+<code class="sig-name descname">register_event_handler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span>tuple<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">handler_fn</span><span class="p">:</span> <span class="n">callable</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/communication/registry_table.html#RegisterTable.register_event_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.registry_table.RegisterTable.register_event_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register conditional event in the RegisterTable, and create a dict which match <code class="docutils literal notranslate"><span class="pre">message</span> <span class="pre">handler</span></code> and
+<code class="docutils literal notranslate"><span class="pre">conditional</span> <span class="pre">event</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>event</strong> (<em>str|Tuple</em>) – The description of the requisite messages’ combination,</p></li>
+<li><p><strong>handler_fn</strong> (<em>callable</em>) – The user-define function which usually uses to handle incoming messages.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.communication.registry_table.SuffixTree">
+<em class="property">class </em><code class="sig-prename descclassname">maro.communication.registry_table.</code><code class="sig-name descname">SuffixTree</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">nodes</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/communication/registry_table.html#SuffixTree"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.registry_table.SuffixTree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>The suffix tree uses to decompose the conditional event.</p>
+<p>For the unit conditional event, the <code class="docutils literal notranslate"><span class="pre">SuffixTree.value</span></code> is the unit conditional event;
+For the conditional event, the <code class="docutils literal notranslate"><span class="pre">SuffixTree.value</span></code> is one of the <code class="docutils literal notranslate"><span class="pre">Operation</span></code>, and the
+<code class="docutils literal notranslate"><span class="pre">SuffixTree.nodes</span></code> is the list of the unit conditional event.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> (<em>Operation|str</em>) – Event operation: <code class="docutils literal notranslate"><span class="pre">Operation.AND</span></code> or <code class="docutils literal notranslate"><span class="pre">Operation.OR</span></code>, or the unit conditional event.</p></li>
+<li><p><strong>nodes List[SuffixTree]</strong> – List of the SuffixTrees.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-maro.communication">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-maro.communication" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="maro.communication.AbsDriver">
+<em class="property">class </em><code class="sig-prename descclassname">maro.communication.</code><code class="sig-name descname">AbsDriver</code><a class="reference internal" href="../_modules/maro/communication/driver/abs_driver.html#AbsDriver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.AbsDriver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<p>Abstract class of the communication driver.</p>
+<dl class="py method">
+<dt id="maro.communication.AbsDriver.address">
+<em class="property">abstract property </em><code class="sig-name descname">address</code><a class="headerlink" href="#maro.communication.AbsDriver.address" title="Permalink to this definition">¶</a></dt>
+<dd><p>The socket’s address. Based on the real socket driver, it usually be a <code class="docutils literal notranslate"><span class="pre">Dict</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.communication.AbsDriver.broadcast">
+<em class="property">abstract </em><code class="sig-name descname">broadcast</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">component_type</span></em>, <em class="sig-param"><span class="n">message</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/communication/driver/abs_driver.html#AbsDriver.broadcast"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.AbsDriver.broadcast" title="Permalink to this definition">¶</a></dt>
+<dd><p>Broadcast send message.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.communication.AbsDriver.close">
+<em class="property">abstract </em><code class="sig-name descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/communication/driver/abs_driver.html#AbsDriver.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.AbsDriver.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Close all sockets.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.communication.AbsDriver.connect">
+<em class="property">abstract </em><code class="sig-name descname">connect</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">peers_address</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/communication/driver/abs_driver.html#AbsDriver.connect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.AbsDriver.connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build the connection with other peers which is given by the peer address.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>peers_address</strong> – The store of peers’ socket address. Based on the real socket driver,
+the peers’ socket address usually be a <code class="docutils literal notranslate"><span class="pre">Dict</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.communication.AbsDriver.receive">
+<em class="property">abstract </em><code class="sig-name descname">receive</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/communication/driver/abs_driver.html#AbsDriver.receive"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.AbsDriver.receive" title="Permalink to this definition">¶</a></dt>
+<dd><p>Receive message.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.communication.AbsDriver.send">
+<em class="property">abstract </em><code class="sig-name descname">send</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/communication/driver/abs_driver.html#AbsDriver.send"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.AbsDriver.send" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unicast send message.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.communication.DriverType">
+<em class="property">class </em><code class="sig-prename descclassname">maro.communication.</code><code class="sig-name descname">DriverType</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/communication/driver/driver_type.html#DriverType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.DriverType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>Communication driver categories.</p>
+<ul class="simple">
+<li><p>ZMQ: The communication driver mode based on <code class="docutils literal notranslate"><span class="pre">ZMQ</span></code>.</p></li>
+</ul>
+<dl class="py attribute">
+<dt id="maro.communication.DriverType.ZMQ">
+<code class="sig-name descname">ZMQ</code><em class="property"> = 'zmq_driver'</em><a class="headerlink" href="#maro.communication.DriverType.ZMQ" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.communication.Message">
+<em class="property">class </em><code class="sig-prename descclassname">maro.communication.</code><code class="sig-name descname">Message</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tag</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span>enum.Enum<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">source</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">destination</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">payload</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">session_id</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/communication/message.html#Message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.Message" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>General Message for hosting payload between receiver and sender.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tag</strong> (<em>str|Enum</em>) – Message tag, which is customized by the user, for specific application logic.</p></li>
+<li><p><strong>source</strong> (<em>str</em>) – The sender of message.</p></li>
+<li><p><strong>destination</strong> (<em>str</em>) – The receiver of message.</p></li>
+<li><p><strong>payload</strong> (<em>object</em>) – Message payload, such as model parameters, experiences, etc. Defaults to None.</p></li>
+<li><p><strong>session_id</strong> (<em>str</em>) – Message belonged session id, it will be generated automatically by default, you can use it
+to group message based on your application logic.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.communication.NotificationSessionStage">
+<em class="property">class </em><code class="sig-prename descclassname">maro.communication.</code><code class="sig-name descname">NotificationSessionStage</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/communication/message.html#NotificationSessionStage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.NotificationSessionStage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>Notification session stages.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">REQUEST</span></code>: Notification session stage 1.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RECEIVE</span></code>: Notification session stage 2.</p></li>
+</ul>
+<dl class="py attribute">
+<dt id="maro.communication.NotificationSessionStage.RECEIVE">
+<code class="sig-name descname">RECEIVE</code><em class="property"> = 'notification_receive'</em><a class="headerlink" href="#maro.communication.NotificationSessionStage.RECEIVE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.communication.NotificationSessionStage.REQUEST">
+<code class="sig-name descname">REQUEST</code><em class="property"> = 'notification_request'</em><a class="headerlink" href="#maro.communication.NotificationSessionStage.REQUEST" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.communication.Proxy">
+<em class="property">class </em><code class="sig-prename descclassname">maro.communication.</code><code class="sig-name descname">Proxy</code><span class="sig-paren">(</span><em class="sig-param">group_name: str</em>, <em class="sig-param">component_type: str</em>, <em class="sig-param">expected_peers: dict</em>, <em class="sig-param">driver_type: maro.communication.driver.driver_type.DriverType = &lt;DriverType.ZMQ: 'zmq_driver'&gt;</em>, <em class="sig-param">driver_parameters: dict = None</em>, <em class="sig-param">redis_address: Tuple = ('localhost'</em>, <em class="sig-param">6379)</em>, <em class="sig-param">max_retries: int = 10</em>, <em class="sig-param">retry_interval_base_value: float = 0.1</em>, <em class="sig-param">log_enable: bool = True</em>, <em class="sig-param">enable_rejoin: bool = False</em>, <em class="sig-param">minimal_peers: Union[int</em>, <em class="sig-param">dict] = 1</em>, <em class="sig-param">peers_catch_lifetime: int = 10</em>, <em class="sig-param">enable_message_cache_for_rejoin: bool = False</em>, <em class="sig-param">max_length_for_message_cache: int = 1024</em>, <em class="sig-param">timeout_for_minimal_peer_number: int = 300</em>, <em class="sig-param">is_remove_failed_container: bool = False</em>, <em class="sig-param">max_rejoin_times: int = 5</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/communication/proxy.html#Proxy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.Proxy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>The communication module is responsible for receiving and sending messages.</p>
+<p>There are three ways of sending messages: <code class="docutils literal notranslate"><span class="pre">send</span></code>, <code class="docutils literal notranslate"><span class="pre">scatter</span></code>, and <code class="docutils literal notranslate"><span class="pre">broadcast</span></code>. Also, there are two ways to
+receive messages from other peers: <code class="docutils literal notranslate"><span class="pre">receive</span></code> and <code class="docutils literal notranslate"><span class="pre">receive_by_id</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>group_name</strong> (<em>str</em>) – Identifier for the group of all distributed components.</p></li>
+<li><p><strong>component_type</strong> (<em>str</em>) – Component’s type in the current group.</p></li>
+<li><p><strong>expected_peers</strong> (<em>Dict</em>) – Dict of peers’ information which contains peer type and expected number.
+E.g. Dict[‘learner’: 1, ‘actor’: 2]</p></li>
+<li><p><strong>driver_type</strong> (<em>Enum</em>) – A type of communication driver class uses to communicate with other components.
+Defaults to <code class="docutils literal notranslate"><span class="pre">DriverType.ZMQ</span></code>.</p></li>
+<li><p><strong>driver_parameters</strong> (<em>Dict</em>) – The arguments for communication driver class initial. Defaults to None.</p></li>
+<li><p><strong>redis_address</strong> (<em>Tuple</em>) – Hostname and port of the Redis server. Defaults to (“localhost”, 6379).</p></li>
+<li><p><strong>max_retries</strong> (<em>int</em>) – Maximum number of retries before raising an exception. Defaults to 5.</p></li>
+<li><p><strong>retry_interval_base_value</strong> (<em>float</em>) – The time interval between attempts. Defaults to 0.1.</p></li>
+<li><p><strong>log_enable</strong> (<em>bool</em>) – Open internal logger or not. Defaults to True.</p></li>
+<li><p><strong>enable_rejoin</strong> (<em>bool</em>) – Allow peers rejoin or not. Defaults to False, and must use with maro cli.</p></li>
+<li><p><strong>minimal_peers Union[int, dict]</strong> – The minimal number of peers for each peer type.</p></li>
+<li><p><strong>peers_catch_lifetime</strong> (<em>int</em>) – The lifetime for onboard peers’ information.</p></li>
+<li><p><strong>enable_message_cache_for_rejoin</strong> (<em>bool</em>) – Enable message cache for failed peers or not. Default to False.</p></li>
+<li><p><strong>max_length_for_message_cache</strong> (<em>int</em>) – The maximal number of cached messages.</p></li>
+<li><p><strong>timeout_for_minimal_peer_number</strong> (<em>int</em>) – The timeout of waiting enough alive peers.</p></li>
+<li><p><strong>is_remove_failed_container</strong> (<em>bool</em>) – Enable remove failed containers automatically or not. Default to False.</p></li>
+<li><p><strong>max_rejoin_times</strong> (<em>int</em>) – The maximal retry times for one peer rejoins.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.communication.Proxy.broadcast">
+<code class="sig-name descname">broadcast</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">component_type</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">tag</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span>enum.Enum<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">session_type</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.communication.message.SessionType" title="maro.communication.message.SessionType">maro.communication.message.SessionType</a></span></em>, <em class="sig-param"><span class="n">session_id</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">payload</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span><a class="reference internal" href="#maro.communication.message.Message" title="maro.communication.message.Message">maro.communication.message.Message</a><span class="p">]</span><a class="reference internal" href="../_modules/maro/communication/proxy.html#Proxy.broadcast"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.Proxy.broadcast" title="Permalink to this definition">¶</a></dt>
+<dd><p>Broadcast message to all peers, and return all replied messages.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>component_type</strong> (<em>str</em>) – Broadcast to all peers in this type.</p></li>
+<li><p><strong>tag</strong> (<em>str|Enum</em>) – Message’s tag.</p></li>
+<li><p><strong>session_type</strong> (<em>Enum</em>) – Message’s session type.</p></li>
+<li><p><strong>session_id</strong> (<em>str</em>) – Message’s session id. Defaults to None.</p></li>
+<li><p><strong>payload</strong> (<em>object</em>) – The true data. Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List of replied messages.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List[<a class="reference internal" href="#maro.communication.message.Message" title="maro.communication.message.Message">Message</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.communication.Proxy.component_name">
+<em class="property">property </em><code class="sig-name descname">component_name</code><a class="headerlink" href="#maro.communication.Proxy.component_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unique identifier in the current group.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.communication.Proxy.component_type">
+<em class="property">property </em><code class="sig-name descname">component_type</code><a class="headerlink" href="#maro.communication.Proxy.component_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Component’s type in the current group.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.communication.Proxy.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">received_message</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.communication.message.SessionMessage" title="maro.communication.message.SessionMessage">maro.communication.message.SessionMessage</a></span></em>, <em class="sig-param"><span class="n">destination</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">tag</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span>enum.Enum<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">payload</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>str<span class="p">]</span><a class="reference internal" href="../_modules/maro/communication/proxy.html#Proxy.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.Proxy.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward a received message.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>received_message</strong> (<em>Message</em>) – The message need to forward.</p></li>
+<li><p><strong>destination</strong> (<em>str</em>) – The receiver of message.</p></li>
+<li><p><strong>tag</strong> (<em>str|Enum</em>) – New message tag, if None, keeps the original message’s tag. Defaults to None.</p></li>
+<li><p><strong>payload</strong> (<em>object</em>) – Message payload, if None, keeps the original message’s payload. Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Message belonged session id.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.communication.Proxy.get_peer_type">
+<code class="sig-name descname">get_peer_type</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">peer_name</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; str<a class="reference internal" href="../_modules/maro/communication/proxy.html#Proxy.get_peer_type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.Proxy.get_peer_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get peer type from given peer name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>peer_name</strong> (<em>str</em>) – The component name of a peer, which form by peer_type and UUID.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The component type of a peer in current group.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.communication.Proxy.group_name">
+<em class="property">property </em><code class="sig-name descname">group_name</code><a class="headerlink" href="#maro.communication.Proxy.group_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Identifier for the group of all communication components.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.communication.Proxy.ibroadcast">
+<code class="sig-name descname">ibroadcast</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">component_type</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">tag</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span>enum.Enum<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">session_type</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.communication.message.SessionType" title="maro.communication.message.SessionType">maro.communication.message.SessionType</a></span></em>, <em class="sig-param"><span class="n">session_id</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">payload</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>str<span class="p">]</span><a class="reference internal" href="../_modules/maro/communication/proxy.html#Proxy.ibroadcast"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.Proxy.ibroadcast" title="Permalink to this definition">¶</a></dt>
+<dd><p>Broadcast message to all subscribers, and return list of message’s session id.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>component_type</strong> (<em>str</em>) – Broadcast to all peers in this type.</p></li>
+<li><p><strong>tag</strong> (<em>str|Enum</em>) – Message’s tag.</p></li>
+<li><p><strong>session_type</strong> (<em>Enum</em>) – Message’s session type.</p></li>
+<li><p><strong>session_id</strong> (<em>str</em>) – Message’s session id. Defaults to None.</p></li>
+<li><p><strong>payload</strong> (<em>object</em>) – The true data. Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List of message’s session id which related to the replied message.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.communication.Proxy.iscatter">
+<code class="sig-name descname">iscatter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tag</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span>enum.Enum<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">session_type</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.communication.message.SessionType" title="maro.communication.message.SessionType">maro.communication.message.SessionType</a></span></em>, <em class="sig-param"><span class="n">destination_payload_list</span><span class="p">:</span> <span class="n">list</span></em>, <em class="sig-param"><span class="n">session_id</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>str<span class="p">]</span><a class="reference internal" href="../_modules/maro/communication/proxy.html#Proxy.iscatter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.Proxy.iscatter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Scatters a list of data to peers, and return list of message id.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tag</strong> (<em>str|Enum</em>) – Message’s tag.</p></li>
+<li><p><strong>session_type</strong> (<em>Enum</em>) – Message’s session type.</p></li>
+<li><p><strong>destination_payload_list</strong> (<em>[Tuple(str, object)]</em>) – The destination-payload list.
+The first item of the tuple in list is the message’s destination,
+and the second item of the tuple in list is the message’s payload.</p></li>
+<li><p><strong>session_id</strong> (<em>str</em>) – Message’s session id. Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List of message’s session id.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.communication.Proxy.isend">
+<code class="sig-name descname">isend</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.communication.message.Message" title="maro.communication.message.Message">maro.communication.message.Message</a></span></em><span class="sig-paren">)</span> &#x2192; Optional<span class="p">[</span>List<span class="p">[</span>str<span class="p">]</span><span class="p">]</span><a class="reference internal" href="../_modules/maro/communication/proxy.html#Proxy.isend"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.Proxy.isend" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send a message to a remote peer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>message</strong> – Message to be sent.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>The list of message’s session id;</dt><dd><p>If enable rejoin, it will return None when sending message to the failed peers.
+If enable rejoin and message cache, it may return list of session id which from
+the pending messages.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Union[List[str], None]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.communication.Proxy.peers_name">
+<em class="property">property </em><code class="sig-name descname">peers_name</code><a class="headerlink" href="#maro.communication.Proxy.peers_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>The <code class="docutils literal notranslate"><span class="pre">Dict</span></code> of all connected peers’ names, stored by peer type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.communication.Proxy.receive">
+<code class="sig-name descname">receive</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">is_continuous</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/communication/proxy.html#Proxy.receive"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.Proxy.receive" title="Permalink to this definition">¶</a></dt>
+<dd><p>Receive messages from communication driver.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>is_continuous</strong> (<em>bool</em>) – Continuously receive message or not. Defaults to True.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.communication.Proxy.receive_by_id">
+<code class="sig-name descname">receive_by_id</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">session_ids</span><span class="p">:</span> <span class="n">list</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span><a class="reference internal" href="#maro.communication.message.Message" title="maro.communication.message.Message">maro.communication.message.Message</a><span class="p">]</span><a class="reference internal" href="../_modules/maro/communication/proxy.html#Proxy.receive_by_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.Proxy.receive_by_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Receive target messages from communication driver.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>session_id_list List[str]</strong> – List of <code class="docutils literal notranslate"><span class="pre">session_id</span></code>.
+E.g. [‘0_learner0_actor0’, ‘1_learner1_actor1’, …].</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List of received messages.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List[<a class="reference internal" href="#maro.communication.message.Message" title="maro.communication.message.Message">Message</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.communication.Proxy.reply">
+<code class="sig-name descname">reply</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">received_message</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.communication.message.SessionMessage" title="maro.communication.message.SessionMessage">maro.communication.message.SessionMessage</a></span></em>, <em class="sig-param"><span class="n">tag</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span>enum.Enum<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">payload</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">ack_reply</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>str<span class="p">]</span><a class="reference internal" href="../_modules/maro/communication/proxy.html#Proxy.reply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.Proxy.reply" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reply a received message.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>received_message</strong> (<em>Message</em>) – The message need to reply.</p></li>
+<li><p><strong>tag</strong> (<em>str|Enum</em>) – New message tag, if None, keeps the original message’s tag. Defaults to None.</p></li>
+<li><p><strong>payload</strong> (<em>object</em>) – New message payload, if None, keeps the original message’s payload. Defaults to None.</p></li>
+<li><p><strong>ack_reply</strong> (<em>bool</em>) – If True, it is acknowledge reply. Defaults to False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Message belonged session id.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.communication.Proxy.scatter">
+<code class="sig-name descname">scatter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tag</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span>enum.Enum<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">session_type</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.communication.message.SessionType" title="maro.communication.message.SessionType">maro.communication.message.SessionType</a></span></em>, <em class="sig-param"><span class="n">destination_payload_list</span><span class="p">:</span> <span class="n">list</span></em>, <em class="sig-param"><span class="n">session_id</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span><a class="reference internal" href="#maro.communication.message.Message" title="maro.communication.message.Message">maro.communication.message.Message</a><span class="p">]</span><a class="reference internal" href="../_modules/maro/communication/proxy.html#Proxy.scatter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.Proxy.scatter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Scatters a list of data to peers, and return replied messages.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tag</strong> (<em>str|Enum</em>) – Message’s tag.</p></li>
+<li><p><strong>session_type</strong> (<em>Enum</em>) – Message’s session type.</p></li>
+<li><p><strong>destination_payload_list</strong> (<em>[Tuple(str, object)]</em>) – The destination-payload list.
+The first item of the tuple in list is the message destination,
+and the second item of the tuple in list is the message payload.</p></li>
+<li><p><strong>session_id</strong> (<em>str</em>) – Message’s session id. Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List of replied message.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List[<a class="reference internal" href="#maro.communication.message.Message" title="maro.communication.message.Message">Message</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.communication.Proxy.send">
+<code class="sig-name descname">send</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.communication.message.Message" title="maro.communication.message.Message">maro.communication.message.Message</a></span></em><span class="sig-paren">)</span> &#x2192; Optional<span class="p">[</span>List<span class="p">[</span><a class="reference internal" href="#maro.communication.message.Message" title="maro.communication.message.Message">maro.communication.message.Message</a><span class="p">]</span><span class="p">]</span><a class="reference internal" href="../_modules/maro/communication/proxy.html#Proxy.send"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.Proxy.send" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send a message to a remote peer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>message</strong> – Message to be sent.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>The list of received message;</dt><dd><p>If enable rejoin, it will return None when sending message to the failed peers.
+If enable rejoin and message cache, it may return list of messages which from
+the pending messages.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Union[List[<a class="reference internal" href="#maro.communication.message.Message" title="maro.communication.message.Message">Message</a>], None]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.communication.RegisterTable">
+<em class="property">class </em><code class="sig-prename descclassname">maro.communication.</code><code class="sig-name descname">RegisterTable</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">peers_name</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>property<span class="p">, </span>dict<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/communication/registry_table.html#RegisterTable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.RegisterTable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>The RegisterTable is responsible for matching <code class="docutils literal notranslate"><span class="pre">conditional</span> <span class="pre">events</span></code> and user-defined <code class="docutils literal notranslate"><span class="pre">message</span> <span class="pre">handlers</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>peers_name</strong> (<em>dict|property</em>) – The property function which returns the newest peer’s name dict from proxy,
+or the Dict with the key (peer type) and the value (peers name list).</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.communication.RegisterTable.get">
+<code class="sig-name descname">get</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>Tuple<span class="p">[</span>callable<span class="p">, </span>List<span class="p">[</span><a class="reference internal" href="#maro.communication.message.Message" title="maro.communication.message.Message">maro.communication.message.Message</a><span class="p">]</span><span class="p">]</span><span class="p">]</span><a class="reference internal" href="../_modules/maro/communication/registry_table.html#RegisterTable.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.RegisterTable.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>If any <code class="docutils literal notranslate"><span class="pre">conditional</span> <span class="pre">event</span></code> has been satisfied, return the requisite message list and
+the correlational handler function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The list of triggered handler functions and messages.
+E.g. [(handle_function_1, [messages]), (handle_function_2, [messages])]</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>List[Tuple[callable, List[<a class="reference internal" href="#maro.communication.message.Message" title="maro.communication.message.Message">Message</a>]]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.communication.RegisterTable.push">
+<code class="sig-name descname">push</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.communication.message.Message" title="maro.communication.message.Message">maro.communication.message.Message</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/communication/registry_table.html#RegisterTable.push"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.RegisterTable.push" title="Permalink to this definition">¶</a></dt>
+<dd><p>Push message into all <code class="docutils literal notranslate"><span class="pre">conditional</span> <span class="pre">events</span></code> which register in the Registry Table.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>message</strong> (<em>Message</em>) – Received message.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.communication.RegisterTable.register_event_handler">
+<code class="sig-name descname">register_event_handler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span>tuple<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">handler_fn</span><span class="p">:</span> <span class="n">callable</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/communication/registry_table.html#RegisterTable.register_event_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.RegisterTable.register_event_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register conditional event in the RegisterTable, and create a dict which match <code class="docutils literal notranslate"><span class="pre">message</span> <span class="pre">handler</span></code> and
+<code class="docutils literal notranslate"><span class="pre">conditional</span> <span class="pre">event</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>event</strong> (<em>str|Tuple</em>) – The description of the requisite messages’ combination,</p></li>
+<li><p><strong>handler_fn</strong> (<em>callable</em>) – The user-define function which usually uses to handle incoming messages.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.communication.SessionMessage">
+<em class="property">class </em><code class="sig-prename descclassname">maro.communication.</code><code class="sig-name descname">SessionMessage</code><span class="sig-paren">(</span><em class="sig-param">tag: Union[str, enum.Enum], source: str, destination: str, payload=None, session_id: str = None, session_type: maro.communication.message.SessionType = &lt;SessionType.TASK: 'task'&gt;, session_stage=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/communication/message.html#SessionMessage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.SessionMessage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#maro.communication.message.Message" title="maro.communication.message.Message"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.communication.message.Message</span></code></a></p>
+<p>The session message class.</p>
+<p>It is used by a specific session, which will contain session stage to support more complex application logic.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>session_type</strong> (<em>Enum</em>) – It indicates the current session type.</p></li>
+<li><p><strong>session_stage</strong> (<em>Enum</em>) – It indicates the current session stage.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.communication.SessionType">
+<em class="property">class </em><code class="sig-prename descclassname">maro.communication.</code><code class="sig-name descname">SessionType</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/communication/message.html#SessionType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.SessionType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>Communication session categories.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">TASK</span></code>: Task session is used to trigger remote job(s).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">NOTIFICATION</span></code>: Notification session is used to sync information to peers.</p></li>
+</ul>
+<dl class="py attribute">
+<dt id="maro.communication.SessionType.NOTIFICATION">
+<code class="sig-name descname">NOTIFICATION</code><em class="property"> = 'notification'</em><a class="headerlink" href="#maro.communication.SessionType.NOTIFICATION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.communication.SessionType.TASK">
+<code class="sig-name descname">TASK</code><em class="property"> = 'task'</em><a class="headerlink" href="#maro.communication.SessionType.TASK" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.communication.TaskSessionStage">
+<em class="property">class </em><code class="sig-prename descclassname">maro.communication.</code><code class="sig-name descname">TaskSessionStage</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/communication/message.html#TaskSessionStage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.TaskSessionStage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>Task session stages.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">REQUEST</span></code>: Task session stage 1.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RECEIVE</span></code>: Task session stage 2.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">COMPLETE</span></code>: Task session stage 3.</p></li>
+</ul>
+<dl class="py attribute">
+<dt id="maro.communication.TaskSessionStage.COMPLETE">
+<code class="sig-name descname">COMPLETE</code><em class="property"> = 'task_complete'</em><a class="headerlink" href="#maro.communication.TaskSessionStage.COMPLETE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.communication.TaskSessionStage.RECEIVE">
+<code class="sig-name descname">RECEIVE</code><em class="property"> = 'task_receive'</em><a class="headerlink" href="#maro.communication.TaskSessionStage.RECEIVE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="maro.communication.TaskSessionStage.REQUEST">
+<code class="sig-name descname">REQUEST</code><em class="property"> = 'task_request'</em><a class="headerlink" href="#maro.communication.TaskSessionStage.REQUEST" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="maro.communication.ZmqDriver">
+<em class="property">class </em><code class="sig-prename descclassname">maro.communication.</code><code class="sig-name descname">ZmqDriver</code><span class="sig-paren">(</span><em class="sig-param">component_type: str</em>, <em class="sig-param">protocol: str = 'tcp'</em>, <em class="sig-param">send_timeout: int = -1</em>, <em class="sig-param">receive_timeout: int = -1</em>, <em class="sig-param">logger=&lt;maro.utils.logger.DummyLogger object&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/communication/driver/zmq_driver.html#ZmqDriver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.ZmqDriver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="maro.communication.driver.html#maro.communication.driver.abs_driver.AbsDriver" title="maro.communication.driver.abs_driver.AbsDriver"><code class="xref py py-class docutils literal notranslate"><span class="pre">maro.communication.driver.abs_driver.AbsDriver</span></code></a></p>
+<p>The communication driver based on <code class="docutils literal notranslate"><span class="pre">ZMQ</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>component_type</strong> (<em>str</em>) – Component type in the current group.</p></li>
+<li><p><strong>protocol</strong> (<em>str</em>) – The underlying transport-layer protocol for transferring messages. Defaults to tcp.</p></li>
+<li><p><strong>send_timeout</strong> (<em>int</em>) – The timeout in milliseconds for sending message. If -1, no timeout (infinite).
+Defaults to -1.</p></li>
+<li><p><strong>receive_timeout</strong> (<em>int</em>) – The timeout in milliseconds for receiving message. If -1, no timeout (infinite).
+Defaults to -1.</p></li>
+<li><p><strong>logger</strong> – The logger instance or DummyLogger. Defaults to DummyLogger().</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="maro.communication.ZmqDriver.address">
+<em class="property">property </em><code class="sig-name descname">address</code><a class="headerlink" href="#maro.communication.ZmqDriver.address" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The sockets’ address Dict of <code class="docutils literal notranslate"><span class="pre">zmq.PULL</span></code> socket and <code class="docutils literal notranslate"><span class="pre">zmq.SUB</span></code> socket.
+The key of dict is the socket’s type, while the value of dict is socket’s ip address,
+which forms by protocol+ip+port.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Dict[int, str]</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<p>Dict{zmq.PULL: “<a class="reference external" href="tcp://0.0.0.0:1234">tcp://0.0.0.0:1234</a>”, zmq.SUB: “<a class="reference external" href="tcp://0.0.0.0:1235">tcp://0.0.0.0:1235</a>”}</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.communication.ZmqDriver.broadcast">
+<code class="sig-name descname">broadcast</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">topic</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">message</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.communication.message.Message" title="maro.communication.message.Message">maro.communication.message.Message</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/communication/driver/zmq_driver.html#ZmqDriver.broadcast"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.ZmqDriver.broadcast" title="Permalink to this definition">¶</a></dt>
+<dd><p>Broadcast message.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>topic</strong> (<em>str</em>) – The topic of broadcast.</p></li>
+<li><p><strong>message</strong> (<em>class</em>) – Message to be sent.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.communication.ZmqDriver.close">
+<code class="sig-name descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/communication/driver/zmq_driver.html#ZmqDriver.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.ZmqDriver.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Close ZMQ context and sockets.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.communication.ZmqDriver.connect">
+<code class="sig-name descname">connect</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">peers_address_dict</span><span class="p">:</span> <span class="n">Dict<span class="p">[</span>str<span class="p">, </span>Dict<span class="p">[</span>str<span class="p">, </span>str<span class="p">]</span><span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/communication/driver/zmq_driver.html#ZmqDriver.connect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.ZmqDriver.connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build a connection with all peers in peers socket address.</p>
+<p>Set up the unicast sender which is <code class="docutils literal notranslate"><span class="pre">zmq.PUSH</span></code> socket and the broadcast sender which is <code class="docutils literal notranslate"><span class="pre">zmq.PUB</span></code> socket.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>peers_address_dict</strong> (<em>Dict[str, Dict[str, str]]</em>) – Peers’ socket address dict.
+The key of dict is the peer’s name, while the value of dict is the peer’s socket connection address.
+E.g. Dict{‘peer1’, Dict[zmq.PULL, ‘<a class="reference external" href="tcp://0.0.0.0:1234">tcp://0.0.0.0:1234</a>’]}.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.communication.ZmqDriver.disconnect">
+<code class="sig-name descname">disconnect</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">peers_address_dict</span><span class="p">:</span> <span class="n">Dict<span class="p">[</span>str<span class="p">, </span>Dict<span class="p">[</span>str<span class="p">, </span>str<span class="p">]</span><span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/communication/driver/zmq_driver.html#ZmqDriver.disconnect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.ZmqDriver.disconnect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Disconnect with all peers in peers socket address.</p>
+<p>Disconnect and delete the unicast sender which is <code class="docutils literal notranslate"><span class="pre">zmq.PUSH</span></code> socket for the peers in dict.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>peers_address_dict</strong> (<em>Dict[str, Dict[str, str]]</em>) – Peers’ socket address dict.
+The key of dict is the peer’s name, while the value of dict is the peer’s socket connection address.
+E.g. Dict{‘peer1’, Dict[zmq.PULL, ‘<a class="reference external" href="tcp://0.0.0.0:1234">tcp://0.0.0.0:1234</a>’]}.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.communication.ZmqDriver.receive">
+<code class="sig-name descname">receive</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">is_continuous</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/communication/driver/zmq_driver.html#ZmqDriver.receive"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.ZmqDriver.receive" title="Permalink to this definition">¶</a></dt>
+<dd><p>Receive message from <code class="docutils literal notranslate"><span class="pre">zmq.POLLER</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>is_continuous</strong> (<em>bool</em>) – Continuously receive message or not. Defaults to True.</p>
+</dd>
+<dt class="field-even">Yields</dt>
+<dd class="field-even"><p><em>recv_message (Message)</em> – The received message from the poller.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="maro.communication.ZmqDriver.send">
+<code class="sig-name descname">send</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#maro.communication.message.Message" title="maro.communication.message.Message">maro.communication.message.Message</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/communication/driver/zmq_driver.html#ZmqDriver.send"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.ZmqDriver.send" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send message.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>message</strong> (<em>class</em>) – Message to be sent.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="maro.communication.dist">
+<code class="sig-prename descclassname">maro.communication.</code><code class="sig-name descname">dist</code><span class="sig-paren">(</span><em class="sig-param">proxy: maro.communication.proxy.Proxy</em>, <em class="sig-param">handler_dict: {&lt;class 'object'&gt;: typing.Callable}</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/maro/communication/dist_decorator.html#dist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maro.communication.dist" title="Permalink to this definition">¶</a></dt>
+<dd><p>A decorator used to inject a <code class="docutils literal notranslate"><span class="pre">communication</span> <span class="pre">module</span></code> and <code class="docutils literal notranslate"><span class="pre">message</span> <span class="pre">handlers</span></code>
+to a local class so that it can be run in distributed mode.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+              </div>
+              
+        </div>
+    </div>
+    
+    
+    <div class='prev-next-bottom'>
+        
+    <a class='left-prev' id="prev-link" href="maro.cli.utils.executors.html" title="previous page">maro.cli.utils.executors package</a>
+    <a class='right-next' id="next-link" href="maro.communication.driver.html" title="next page">maro.communication.driver package</a>
+
+    </div>
+    <footer class="footer mt-5 mt-md-0">
+    <div class="container">
+      <p>
+        
+          By MARO Team<br/>
+        
+            &copy; Copyright 2020 Microsoft.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
+      </div>
+    </div>
+
+    <script src="../_static/js/index.js"></script>
+    
+  </body>
+</html>
