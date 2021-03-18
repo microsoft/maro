@@ -3,7 +3,6 @@
 
 import io
 import os
-import sys
 import numpy
 
 # NOTE: DO NOT change the import order, as sometimes there is a conflict between setuptools and distutils,
@@ -14,11 +13,6 @@ from distutils.core import setup
 from distutils.extension import Extension
 
 from maro import __version__
-
-compile_flag = '-std=c++11'
-
-if sys.platform == "win32":
-    compile_flag = '/std:c++14'
 
 # Set environment variable to skip deployment process of MARO
 os.environ["SKIP_DEPLOYMENT"] = "TRUE"
@@ -45,7 +39,7 @@ extensions.append(
     Extension(
         f"{BASE_MODULE_NAME}.backend",
         sources=[f"{BASE_SRC_PATH}/backend.cpp"],
-        extra_compile_args=[compile_flag])
+        extra_compile_args=['-std=c++11'])
 )
 
 
@@ -56,7 +50,7 @@ extensions.append(
         f"{BASE_MODULE_NAME}.np_backend",
         sources=[f"{BASE_SRC_PATH}/np_backend.cpp"],
         include_dirs=include_dirs,
-        extra_compile_args=[compile_flag])
+        extra_compile_args=['-std=c++11'])
 )
 
 # raw implementation
@@ -66,7 +60,7 @@ extensions.append(
         f"{BASE_MODULE_NAME}.raw_backend",
         sources=[f"{BASE_SRC_PATH}/raw_backend.cpp"],
         include_dirs=include_dirs,
-        extra_compile_args=[compile_flag])
+        extra_compile_args=['-std=c++11'])
 )
 
 # frame
@@ -75,7 +69,7 @@ extensions.append(
         f"{BASE_MODULE_NAME}.frame",
         sources=[f"{BASE_SRC_PATH}/frame.cpp"],
         include_dirs=include_dirs,
-        extra_compile_args=[compile_flag])
+        extra_compile_args=['-std=c++11'])
 )
 
 
@@ -140,8 +134,7 @@ setup(
         "paramiko==2.7.2",
         "kubernetes==12.0.1",
         "prompt_toolkit==2.0.10",
-        "stringcase==1.2.0",
-        "tcod==11.19.3"
+        "stringcase==1.2.0"
     ],
     entry_points={
         "console_scripts": [
