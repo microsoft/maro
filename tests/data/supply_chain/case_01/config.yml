@@ -37,7 +37,7 @@ skus: &sku_definitions
     name: "sku1"
     output_units_per_lot: 1
     bom:
-      sku3: 1
+      sku3: 2
 
   - id: 2
     name: "sku2"
@@ -77,14 +77,14 @@ world:
       definition_ref: "SupplierFacility"
       skus:
         sku1:
-          init_in_stock: 50
+          init_in_stock: 96
           delay_order_penalty: 10
           product_unit_cost: 1
           type: "production"
           cost: 10
           price: 100
         sku3:
-          init_in_stock: 80
+          init_in_stock: 100
           delay_order_penalty: 10
           type: "material"
           cost: 10

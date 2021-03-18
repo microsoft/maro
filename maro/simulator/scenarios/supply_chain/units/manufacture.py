@@ -90,6 +90,7 @@ class ManufactureUnit(SkuUnit):
     def post_step(self, tick: int):
         if self.manufacture_number > 0:
             self.data_model.manufacturing_number = 0
+            self.manufacture_number = 0
 
         if self.action is not None:
             self.data_model.production_rate = 0

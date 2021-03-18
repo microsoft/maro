@@ -75,9 +75,11 @@ class SellerUnit(SkuUnit):
 
         if self.sold > 0:
             self.data_model.sold = 0
+            self.sold = 0
 
         if self.demand > 0:
             self.data_model.demand = 0
+            self.demand = 0
 
     def reset(self):
         super(SellerUnit, self).reset()
