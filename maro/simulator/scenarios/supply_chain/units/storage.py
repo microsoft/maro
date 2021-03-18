@@ -119,7 +119,6 @@ class StorageUnit(UnitBase):
             self.product_list.append(sku.id)
             self.product_number.append(sku.init_in_stock)
 
-        # TODO: init data model
         self.remaining_space = self.capacity
 
         for index, product_id in enumerate(self.product_list):
