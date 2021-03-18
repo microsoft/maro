@@ -5,7 +5,7 @@ import numpy as np
 
 from maro.simulator import Env
 from maro.simulator.scenarios.supply_chain import ManufactureAction
-
+from maro.simulator.scenarios.supply_chain import StorageUnit
 
 def build_env(case_name: str, durations: int):
     case_folder = os.path.join("tests", "data", "supply_chain", case_name)
@@ -340,6 +340,93 @@ class MyTestCase(unittest.TestCase):
 
         # 4 sku1 cost 4*2 source material (sku3)
         self.assertEqual(100 - 4 * 2, product_dict[SKU3_ID])
+
+    """
+    Storage test:
+
+    . take available
+        . enough
+        . not enough
+    . try add products
+        . meet whole storage capacity limitation
+            . fail if all
+            . not fail if all
+        . meet avg storage limitation
+            .fail if all
+            . not fail if all
+        . enough space
+    . try take products
+        . have enough
+        . not enough
+    . get product number
+
+    """
+
+    def test_storage_take_available(self):
+        env = build_env("case_01", 100)
+
+        env.step(None)
+
+        storage_nodes = env.snapshot_list["storage"]
+        storage_features = ("id", "capacity", "remaining_space")
+
+        # find first storage unit id
+        storage_unit_id = storage_nodes[env.frame_index:0:"id"].flatten().astype(np.int)[0]
+
+        # get the unit reference from env internal
+        storage_unit: StorageUnit = env._business_engine.world.get_entity(storage_unit_id)
+
+        storage_states = storage_nodes[env.frame_index:0:storage_features].flatten().astype(np.int)
+
+        capacity = storage_states[1]
+        init_remaining_space = storage_states[2]
+
+        init_product_dict = get_product_dict_from_storage(env, env.frame_index, 0)
+
+        # call take_available for each product in storage.
+        products_taken = {}
+        for product_id, product_number in init_product_dict.items():
+            num = np.random.randint(0, product_number)
+            actual_num = storage_unit.take_available(product_id, num)
+
+            # we should get the number we want.
+            self.assertEqual(num, actual_num)
+
+            products_taken[product_id] = num
+
+        # check if internal state correct
+        for product_id, num in products_taken.items():
+            remaining_num = storage_unit.product_number[storage_unit.product_index_mapping[product_id]]
+
+            self.assertEqual(init_product_dict[product_id] - num, remaining_num)
+
+        # call env.step will cause states write into snapshot
+        env.step(None)
+
+        product_dict = get_product_dict_from_storage(env, env.frame_index, 0)
+
+        for product_id, num in products_taken.items():
+            remaining_num = product_dict[product_id]
+
+            self.assertEqual(init_product_dict[product_id] - num, remaining_num)
+
+        # then take more than exist number for 1st product(sku)
+        lot_taken_product_id, lot_taken_product_number = product_dict.popitem()
+
+        lot_taken_product_number += 100
+
+        actual_num = storage_unit.take_available(lot_taken_product_id, lot_taken_product_number)
+
+        # we should get all available
+        self.assertEqual(actual_num, lot_taken_product_number - 100)
+
+        # take snapshot
+        env.step(None)
+
+        product_dict = get_product_dict_from_storage(env, env.frame_index, 0)
+
+        # the product number should be 0, as we took all available
+        self.assertEqual(0, product_dict[lot_taken_product_id])
 
 
 if __name__ == '__main__':
