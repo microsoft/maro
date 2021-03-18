@@ -6,11 +6,13 @@ import copy
 import json
 
 from redis import Redis
-from time import sleep
+import time
 
 from nni.tuner import Tuner
+from maro.utils.logger import CliLogger
 
 
+logger = CliLogger(name=__name__)
 _parameter_id = 0
 
 def _get_parameter_id():
@@ -61,16 +63,16 @@ class Dispatcher():
                     job_detail['name'] = 'tuner-{}-job-{}'.format(self.tuner_job_name, parameter_ids[i])
                     param = json.dumps(parameters[i])
                     for key, value in job_detail['components'].items():
-                        value['command'] = 'export FINAL_RESULT_KEY={} && export JOB_NAME={} && export REDIS_HOST={} && export REDIS_PORT= {} && {}'.format(
+                        value['command'] = 'bash -c "FINAL_RESULT_KEY={} JOB_NAME={} REDIS_HOST={} REDIS_PORT={} {}"'.format(
                                             self.redis_key_final_metric, job_detail['name'], self.redis_host, self.redis_port, value['command'].format(param))
                     self._tuner_push_pending_job(job_detail)
-            sleep(5)
+            time.sleep(5)
 
     def _check_metric_value(self):
         metric_value_dict = self.redis_connection.hgetall(self.redis_key_final_metric)
         parameter_ids = list(self.parameter_dict.keys())
         for key in parameter_ids:
-            job_key = 'tuner-{}-job-{}'.format(self.tuner_job_name, key).encode()
+            job_key = 'tuner-{}-job-{}'.format(self.tuner_job_name, key)
             if job_key in metric_value_dict:
                 # assume the metric is float
                 self.tuner.receive_trial_result(key, self.parameter_dict[key], float(metric_value_dict[job_key]))
@@ -79,6 +81,7 @@ class Dispatcher():
 
     def _tuner_push_pending_job(self, job_details: dict):
         job_name = job_details['name']
+        job_details = self._completed_local_job_deployment(job_details)
         # Push job details to redis
         self.redis_connection.hset(
             '{}:job_details'.format(self.cluster_name),
@@ -106,3 +109,19 @@ class Dispatcher():
             self.tuner_job_name,
             json.dumps(tuner_detail)
         )
+
+    def _completed_local_job_deployment(self, deployment: dict):
+        total_cpu, total_memory, total_gpu = 0, 0, 0
+        for component_type, component_dict in deployment["components"].items():
+            total_cpu += int(component_dict["num"]) * int(component_dict["resources"]["cpu"])
+            total_memory += int(component_dict["num"]) * int(component_dict["resources"]["memory"][:-1])
+            total_gpu += int(component_dict["num"]) * int(component_dict["resources"]["gpu"])
+        deployment["total_request_resource"] = {
+            "cpu": total_cpu,
+            "memory": total_memory,
+            "gpu": total_gpu
+        }
+
+        deployment["status"] = 'pending'
+
+        return deployment

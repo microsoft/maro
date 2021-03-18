@@ -8,8 +8,6 @@ import os
 from redis import Redis
 from typing import Any
 
-from ..cli.utils.details_reader import DetailsReader
-
 
 def report_final_result(result: Any):
     host = os.environ['REDIS_HOST']

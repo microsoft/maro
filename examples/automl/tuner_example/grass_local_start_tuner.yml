@@ -3,10 +3,10 @@ name: MyTunerJobName # str: name of the tuner job
 
 components: # component config
   tuner:
-    image: msranni/nni:latest
+    image: tunertest:v0.1
     resources:
-      cpu: 2 # int: cpu requirement (unit: cores)
-      memory: 1024m # str: memory requirement (unit: MB)
+      cpu: 1 # int: cpu requirement (unit: cores)
+      memory: 512m # str: memory requirement (unit: MB)
       gpu: 0 # int: gpu requirement (units: cards)
     num: 1 # int: number of this component
     mount:

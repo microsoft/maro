@@ -6,8 +6,8 @@ import json
 import yaml
 from redis import Redis
 
+from maro.utils.logger import CliLogger
 from .dispatcher import Dispatcher
-from ..cli.utils.details_reader import DetailsReader
 
 '''
 from nni.tuner import Tuner
@@ -23,7 +23,7 @@ from nni.algorithms.hpo.ppo_tuner import PPOTuner
 from nni.algorithms.hpo.regularized_evolution_tuner import RegularizedEvolutionTuner
 from nni.algorithms.hpo.smac_tuner import SMACTuner
 '''
-
+logger = CliLogger(name=__name__)
 
 def choose_tuner(tuner_name: str, tuner_args: dict):
     if tuner_name == 'GridSearch':
@@ -41,6 +41,7 @@ def choose_tuner(tuner_name: str, tuner_args: dict):
 
 
 if __name__ == "__main__":
+    logger.info('starting runer...')
     with open('tuner_config.yml', 'r') as f:
         tuner_config = yaml.safe_load(f)
 
@@ -54,7 +55,7 @@ if __name__ == "__main__":
     redis_host = tuner_config['redis_host']
     redis_port = tuner_config['redis_port']
 
-    print('starting tuner...')
+    logger.info('starting tuner...')
     tuner = choose_tuner(tuner_name, tuner_args)
 
     with open(search_space_path, 'r') as fr:
@@ -63,5 +64,5 @@ if __name__ == "__main__":
     tuner.update_search_space(search_space=search_space)
 
     dispatcher = Dispatcher(tuner, redis_host, redis_port, tuner_job_name, cluster_name, job_temp)
-    print('starting dispatcher...')
+    logger.info('starting dispatcher...')
     dispatcher.run()
