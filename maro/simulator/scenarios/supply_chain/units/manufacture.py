@@ -27,19 +27,17 @@ class ManufactureUnit(SkuUnit):
     def initialize(self):
         super(ManufactureUnit, self).initialize()
 
-        # TODO: add storage id to data model.
-        product_unit_cost = self.config.get("product_unit_cost", 0)
+        facility_sku_info = self.facility.skus[self.product_id]
 
         self.data_model.initialize(
-            product_unit_cost=product_unit_cost,
+            product_unit_cost=facility_sku_info.product_unit_cost,
             storage_id=self.facility.storage.id
         )
 
-        # Grab bom of current production.
-        sku = self.world.get_sku_by_id(self.product_id)
+        global_sku_info = self.world.get_sku_by_id(self.product_id)
 
-        self.bom = sku.bom
-        self.output_units_per_lot = sku.output_units_per_lot
+        self.bom = global_sku_info.bom
+        self.output_units_per_lot = global_sku_info.output_units_per_lot
 
         if len(self.bom) > 0:
             self.input_units_per_lot = sum(self.bom.values())

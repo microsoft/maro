@@ -115,7 +115,7 @@ world:
         sku4:
           init_in_stock: 50
           delay_order_penalty: 10
-          product_unit_cost: 1
+          product_unit_cost: 4
           type: "production"
           cost: 10
           price: 100
