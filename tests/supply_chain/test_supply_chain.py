@@ -7,6 +7,7 @@ from maro.simulator import Env
 from maro.simulator.scenarios.supply_chain import ManufactureAction
 from maro.simulator.scenarios.supply_chain import StorageUnit
 
+
 def build_env(case_name: str, durations: int):
     case_folder = os.path.join("tests", "data", "supply_chain", case_name)
 
@@ -351,9 +352,6 @@ class MyTestCase(unittest.TestCase):
         . meet whole storage capacity limitation
             . fail if all
             . not fail if all
-        . meet avg storage limitation
-            .fail if all
-            . not fail if all
         . enough space
     . try take products
         . have enough
@@ -427,6 +425,141 @@ class MyTestCase(unittest.TestCase):
 
         # the product number should be 0, as we took all available
         self.assertEqual(0, product_dict[lot_taken_product_id])
+
+    def test_storage_try_add_products(self):
+        """
+        NOTE:
+            try_add_products method do not check avg storage capacity checking, so we will ignore it here.
+
+        """
+        env = build_env("case_01", 100)
+
+        env.step(None)
+
+        storage_nodes = env.snapshot_list["storage"]
+        storage_features = ("id", "capacity", "remaining_space")
+
+        # find first storage unit id
+        storage_unit_id = storage_nodes[env.frame_index:0:"id"].flatten().astype(np.int)[0]
+
+        # get the unit reference from env internal
+        storage_unit: StorageUnit = env._business_engine.world.get_entity(storage_unit_id)
+
+        storage_states = storage_nodes[env.frame_index:0:storage_features].flatten().astype(np.int)
+
+        capacity = storage_states[1]
+        init_remaining_space = storage_states[2]
+
+        init_product_dict = get_product_dict_from_storage(env, env.frame_index, 0)
+
+        first_product_id = [id for id in init_product_dict.keys()][0]
+
+        # try put products out of capacity with all_or_nothing == True
+        products_to_put = {}
+
+        avg_max_product_number = init_remaining_space // len(init_product_dict)
+
+        for product_id in init_product_dict.keys():
+            products_to_put[product_id] = avg_max_product_number + 1
+
+        result = storage_unit.try_add_products(products_to_put, all_or_nothing=True)
+
+        # the method will return an empty dictionary if fail to add
+        self.assertEqual(0, len(result))
+
+        # so remaining space should not change
+        self.assertEqual(init_remaining_space, storage_unit.remaining_space)
+
+        # each product number should be same as before
+        for product_id, product_number in init_product_dict.items():
+            self.assertEqual(product_number,
+                             storage_unit.product_number[storage_unit.product_index_mapping[product_id]])
+
+        # if we set all_or_nothing=False, then part of the product will be added to storage, and cause remaining space being 0
+        result = storage_unit.try_add_products(products_to_put, all_or_nothing=False)
+
+        self.assertEqual(0, storage_unit.remaining_space)
+
+        # take snapshot
+        env.step(None)
+
+        storage_states = storage_nodes[env.frame_index:0:storage_features].flatten().astype(np.int)
+
+        # remaining space in snapshot should be 0
+        self.assertEqual(0, storage_states[2])
+
+        product_dict = get_product_dict_from_storage(env, env.frame_index, 0)
+
+        # total product number should be same as capacity
+        self.assertEqual(capacity, sum(product_dict.values()))
+
+        ####################################################
+        ####################################################
+        # reset the env for next case
+        env.reset()
+
+        # check the state after reset
+        self.assertEqual(capacity, storage_unit.capacity)
+        self.assertEqual(init_remaining_space, storage_unit.remaining_space)
+
+        for product_id, product_number in init_product_dict.items():
+            self.assertEqual(product_number,
+                             storage_unit.product_number[storage_unit.product_index_mapping[product_id]])
+
+    def test_storage_try_take_products(self):
+        env = build_env("case_01", 100)
+
+        env.step(None)
+
+        storage_nodes = env.snapshot_list["storage"]
+        storage_features = ("id", "capacity", "remaining_space")
+
+        # find first storage unit id
+        storage_unit_id = storage_nodes[env.frame_index:0:"id"].flatten().astype(np.int)[0]
+
+        # get the unit reference from env internal
+        storage_unit: StorageUnit = env._business_engine.world.get_entity(storage_unit_id)
+
+        storage_states = storage_nodes[env.frame_index:0:storage_features].flatten().astype(np.int)
+
+        capacity = storage_states[1]
+        init_remaining_space = storage_states[2]
+
+        init_product_dict = get_product_dict_from_storage(env, env.frame_index, 0)
+
+        product_to_take = {}
+
+        for product_id, product_number in init_product_dict.items():
+            product_to_take[product_id] = product_number + 1
+
+        # which this setting, it will return false, as no enough product for ous
+        self.assertFalse(storage_unit.try_take_products(product_to_take))
+
+        # so remaining space and product number should same as before
+        self.assertEqual(init_remaining_space, storage_unit.remaining_space)
+
+        for product_id,product_number in init_product_dict.items():
+            self.assertEqual(product_number, storage_unit.product_number[storage_unit.product_index_mapping[product_id]])
+
+        # try to get all products
+        for product_id, product_number in product_to_take.items():
+            product_to_take[product_id] = product_number - 1
+
+        self.assertTrue(storage_unit.try_take_products(product_to_take))
+
+        # now the remaining space should be same as capacity as we take all
+        self.assertEqual(capacity, storage_unit.remaining_space)
+
+        # take snapshot
+        env.step(None)
+
+        storage_states = storage_nodes[env.frame_index:0:storage_features].flatten().astype(np.int)
+
+        # remaining space should be same as capacity in snapshot
+        self.assertEqual(storage_states[1], storage_states[2])
+
+    def test_storage_get_product_number(self):
+        pass
 
 
 if __name__ == '__main__':
