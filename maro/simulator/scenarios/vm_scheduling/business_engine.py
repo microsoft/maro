@@ -29,11 +29,11 @@ VM scheduling metrics used provide statistics information until now.
 It contains following keys:
 
 total_vm_requests (int): Total VM requests.
-total_incomes (float): Accumulative total incomes at current tick
+total_incomes (float): Accumulative total incomes at current tick (unit: dollar).
                         (if there is overload phenomenon happened, return the money for each failed VM).
-energy_consumption_cost (float): Accumulative energy consumption cost at current tick.
-total_profit (float): Accumulative total profit at current tick (total_incomes-energy_consumption_cost).
-total_energy_consumption (float): Accumulative total PM energy consumption.
+energy_consumption_cost (float): Accumulative energy consumption cost at current tick (unit: dollar).
+total_profit (float): Accumulative total profit at current tick (total_incomes-energy_consumption_cost) (unit: dollar).
+total_energy_consumption (float): Accumulative total PM energy consumption (unit: KW).
 successful_allocation (int): Accumulative successful VM allocation until now.
 successful_completion (int): Accumulative successful completion of tasks.
 failed_allocation (int): Accumulative failed VM allocation until now.
@@ -126,7 +126,6 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._price_per_memory_per_hour: float = self._config.PRICE_PER_MEMORY_PER_HOUR
         self._unit_energy_price_per_kwh: float = self._config.UNIT_ENERGY_PRICE_PER_KWH
         self._power_usage_efficiency: float = self._config.POWER_USAGE_EFFICIENCY
-        self._w_per_kw: int = 1000
 
         # Load PM related configs.
         self._region_amount: int = sum(
@@ -511,7 +510,6 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             # Update the energy consumption cost.
             pm_cost = (
                 pm.energy_consumption
-                / self._w_per_kw
                 * self._unit_energy_price_per_kwh
                 * self._power_usage_efficiency
             )
@@ -698,7 +696,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             idle_power + (busy_power - idle_power) * (2 * cpu_utilization - pow(cpu_utilization, power))
         )
 
-        return energy_consumption_per_hour / self._ticks_per_hour
+        return (energy_consumption_per_hour / self._ticks_per_hour) / 1000
 
     def _postpone_vm_request(self, postpone_type: PostponeType, vm_id: int, remaining_buffer_time: int):
         """Postpone VM request."""

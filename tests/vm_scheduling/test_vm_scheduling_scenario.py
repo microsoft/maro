@@ -131,35 +131,33 @@ class TestRegion(unittest.TestCase):
 class TestPriceModel(unittest.TestCase):
 
     def setUp(self):
-        config_path = "tests/vm_scheduling/env_config.yml"
-        with io.open(config_path, "r") as in_file:
-            raw_config = yaml.safe_load(in_file)
-            config = convert_dottable(raw_config)
         env = Env(
-            scenario=config.env.scenario,
-            topology=config.env.topology,
-            start_tick=config.env.start_tick,
-            durations=config.env.durations,
-            snapshot_resolution=config.env.resolution
+            scenario="vm_scheduling",
+            topology="azure.2019.toy",
+            start_tick=0,
+            durations=5,
+            snapshot_resolution=1
         )
         metrics, decision_event, is_done = env.step(None)
-        action = AllocateAction(
-            vm_id=decision_event.vm_id,
-            pm_id=decision_event.valid_pms[0]
-        )
-        self.metrics, decision_event, is_done = env.step(action)
+
+        while not is_done:
+            action = AllocateAction(
+                vm_id=decision_event.vm_id,
+                pm_id=decision_event.valid_pms[0]
+            )
+            self.metrics, decision_event, is_done = env.step(action)
 
     def test_price(self):
         total_incomes = self.metrics['total_incomes']
-        expected = 0.067
+        expected = 0.185
         self.assertLess(abs(expected - total_incomes), 0.01)
 
         energy_consumption_cost = self.metrics['energy_consumption_cost']
-        expected = 0.238
+        expected = 0.595
         self.assertLess(abs(expected - energy_consumption_cost), 0.01)
 
         total_profit = self.metrics['total_profit']
-        expected = -0.17
+        expected = -0.410
         self.assertLess(abs(expected - total_profit), 0.01)
 
 

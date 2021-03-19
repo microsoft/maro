@@ -56,6 +56,7 @@ class VirtualMachine:
         self.deletion_tick: int = -1
 
     def get_income_till_now(self, cur_tick: int):
+        """Get the VM's income which contains income from [creation_tick, current_tick). """
         return self.unit_price * (cur_tick - self.creation_tick)
 
     @property
