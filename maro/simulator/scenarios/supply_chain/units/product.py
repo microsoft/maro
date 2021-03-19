@@ -97,6 +97,7 @@ class ProductUnit(SkuUnit):
                 sku_type = getattr(sku, "type", None)
 
                 product_unit: ProductUnit = world.build_unit_by_type(ProductUnit, facility, facility)
+                product_unit.product_id = sku_id
 
                 for child_name in ("manufacture", "consumer", "seller"):
                     conf = config.get(child_name, None)
@@ -105,7 +106,7 @@ class ProductUnit(SkuUnit):
                         # Ignore manufacture unit if it is not for a production, even it is configured in config.
                         if sku_type != "production" and child_name == "manufacture":
                             continue
-                            
+
                         if sku_type == "production" and child_name == "consumer":
                             continue
 

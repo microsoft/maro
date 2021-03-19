@@ -81,7 +81,7 @@ class MyTestCase(unittest.TestCase):
                 sku3_storage_id = state[5]
 
         # try to find sku3's storage from env.summary
-        sku3_storage_index = env.summary["node_mapping"]["mapping"][sku3_storage_id][1]
+        sku3_storage_index = env.summary["node_mapping"]["entity_mapping"][sku3_storage_id][1]
 
         storage_states = storage_nodes[env.frame_index:sku3_storage_index:storage_features].flatten().astype(np.int)
 
@@ -187,7 +187,7 @@ class MyTestCase(unittest.TestCase):
                 sku4_storage_id = state[5]
 
         # try to find sku4's storage from env.summary
-        sku4_storage_index = env.summary["node_mapping"]["mapping"][sku4_storage_id][1]
+        sku4_storage_index = env.summary["node_mapping"]["entity_mapping"][sku4_storage_id][1]
 
         # the storage should be same as initialized (50 + 0).
         storage_states = storage_nodes[env.frame_index:sku4_storage_index:storage_features].flatten().astype(np.int)
@@ -284,7 +284,7 @@ class MyTestCase(unittest.TestCase):
                 sku1_manufacture_id = state[0]
                 sku1_storage_id = state[5]
 
-        sku1_storage_index = env.summary["node_mapping"]["mapping"][sku1_storage_id][1]
+        sku1_storage_index = env.summary["node_mapping"]["entity_mapping"][sku1_storage_id][1]
 
         ############################### TICK: 1 ######################################
 
@@ -538,8 +538,9 @@ class MyTestCase(unittest.TestCase):
         # so remaining space and product number should same as before
         self.assertEqual(init_remaining_space, storage_unit.remaining_space)
 
-        for product_id,product_number in init_product_dict.items():
-            self.assertEqual(product_number, storage_unit.product_number[storage_unit.product_index_mapping[product_id]])
+        for product_id, product_number in init_product_dict.items():
+            self.assertEqual(product_number,
+                             storage_unit.product_number[storage_unit.product_index_mapping[product_id]])
 
         # try to get all products
         for product_id, product_number in product_to_take.items():
@@ -573,10 +574,11 @@ class MyTestCase(unittest.TestCase):
         storage_unit: StorageUnit = env._business_engine.world.get_entity(storage_unit_id)
 
         init_product_dict = get_product_dict_from_storage(env, env.frame_index, 0)
-        print(init_product_dict)
+
         # number in object should be same with states
         for product_id, product_number in init_product_dict.items():
-            self.assertEqual(product_number, storage_unit.product_number[storage_unit.product_index_mapping[product_id]])
+            self.assertEqual(product_number,
+                             storage_unit.product_number[storage_unit.product_index_mapping[product_id]])
 
         # should not change even after reset
         env.reset()
@@ -584,15 +586,37 @@ class MyTestCase(unittest.TestCase):
 
         init_product_dict = get_product_dict_from_storage(env, env.frame_index, 0)
 
-        print(init_product_dict)
-
-        print(storage_unit.product_list)
-        print(storage_unit.product_number)
-        print(storage_unit.product_index_mapping)
-
         # number in object should be same with states
         for product_id, product_number in init_product_dict.items():
-            self.assertEqual(product_number, storage_unit.product_number[storage_unit.product_index_mapping[product_id]])
+            self.assertEqual(product_number,
+                             storage_unit.product_number[storage_unit.product_index_mapping[product_id]])
+
+    """
+
+    Consumer test:
+
+    . initial state
+    . state after reset
+    . set_action directly from code
+    . set_action by env.step
+    . call on_order_reception directly to simulation order arrived
+    . call update_open_orders directly
+
+    """
+
+    def test_consumer_init_state(self):
+        """
+        NOTE: we will use consumer on Supplier_SKU1, as it contains a source for sku3 (Supplier_SKU3)
+        """
+        env = build_env("case_01", 100)
+
+        print(env.summary)
+        # we can get the consumer from env.summary
+        consumer_unit = None
+
+        for facility_id, facility_defail in env.summary["node_mapping"]["facilities"].items():
+            pass
+
 
 if __name__ == '__main__':
     unittest.main()

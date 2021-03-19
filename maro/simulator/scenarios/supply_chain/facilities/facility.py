@@ -104,10 +104,10 @@ class FacilityBase(ABC):
                 product.reset()
 
     def get_node_info(self) -> dict:
-        products_info = []
+        products_info = {}
 
         for product_id, product in self.products.items():
-            products_info.append(product.get_unit_info())
+            products_info[product_id] = product.get_unit_info()
 
         return {
             "id": self.id,

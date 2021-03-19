@@ -336,17 +336,16 @@ class World:
 
         id2index_mapping = {}
 
-        for facility in facility_info_dict.values():
-            for units in facility["units"].values():
-                if type(units) is dict:
-                    id2index_mapping[units["id"]] = (units["node_name"], units["node_index"])
-                elif type(units) is list:
-                    for unit in units:
-                        id2index_mapping[unit["id"]] = (unit["node_name"], unit["node_index"])
+        for entity_id, entity in self.entities.items():
+            if entity.data_model is not None:
+                id2index_mapping[entity_id] = (entity.data_model_name, entity.data_model_index)
+            else:
+                id2index_mapping[entity_id] = (None, None)
 
         return {
-            "mapping": id2index_mapping,
-            "detail": facility_info_dict
+            "entity_mapping": id2index_mapping,
+            "skus": {sku.name: sku.id for sku in self._sku_collection.values()},
+            "facilities": facility_info_dict
         }
 
     def _register_data_model(self, alias: str) -> int:

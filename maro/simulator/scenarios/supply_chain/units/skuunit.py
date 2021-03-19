@@ -16,3 +16,10 @@ class SkuUnit(UnitBase):
 
         if self.data_model is not None:
             self.data_model.set_product_id(self.product_id, self.parent.id)
+
+    def get_unit_info(self) -> dict:
+        info = super(SkuUnit, self).get_unit_info()
+
+        info["sku_id"] = self.product_id
+
+        return info
