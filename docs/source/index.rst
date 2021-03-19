@@ -115,6 +115,7 @@ Contents
     key_components/communication.rst
     key_components/orchestration.rst
     key_components/dashboard_visualization.rst
+    key_components/geographic_visualization.rst
 
 .. toctree::
     :maxdepth: 2

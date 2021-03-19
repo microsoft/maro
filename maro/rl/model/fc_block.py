@@ -18,7 +18,7 @@ class FullyConnectedBlock(AbsBlock):
         output_dim (int): Network output dimension.
         hidden_dims ([int]): Dimensions of hidden layers. Its length is the number of hidden layers.
         activation: A ``torch.nn`` activation type. If None, there will be no activation. Defaults to LeakyReLU.
-        is_head (bool): If true, this block will be the top block of the full model and the top layer of this block
+        head (bool): If true, this block will be the top block of the full model and the top layer of this block
             will be the final output layer. Defaults to False.
         softmax (bool): If true, the output of the net will be a softmax transformation of the top layer's
             output. Defaults to False.
@@ -35,7 +35,7 @@ class FullyConnectedBlock(AbsBlock):
         output_dim: int,
         hidden_dims: [int],
         activation=nn.LeakyReLU,
-        is_head: bool = False,
+        head: bool = False,
         softmax: bool = False,
         batch_norm: bool = False,
         skip_connection: bool = False,
@@ -50,7 +50,7 @@ class FullyConnectedBlock(AbsBlock):
 
         # network features
         self._activation = activation
-        self._is_head = is_head
+        self._head = head
         self._softmax = nn.Softmax(dim=1) if softmax else None
         self._batch_norm = batch_norm
         self._dropout_p = dropout_p
@@ -67,7 +67,7 @@ class FullyConnectedBlock(AbsBlock):
         dims = [self._input_dim] + self._hidden_dims
         layers = [self._build_layer(in_dim, out_dim) for in_dim, out_dim in zip(dims, dims[1:])]
         # top layer
-        layers.append(self._build_layer(dims[-1], self._output_dim, is_head=self._is_head))
+        layers.append(self._build_layer(dims[-1], self._output_dim, head=self._head))
 
         self._net = nn.Sequential(*layers)
 
@@ -96,7 +96,7 @@ class FullyConnectedBlock(AbsBlock):
     def output_dim(self):
         return self._output_dim
 
-    def _build_layer(self, input_dim, output_dim, is_head: bool = False):
+    def _build_layer(self, input_dim, output_dim, head: bool = False):
         """Build basic layer.
 
         BN -> Linear -> Activation -> Dropout
@@ -105,8 +105,8 @@ class FullyConnectedBlock(AbsBlock):
         if self._batch_norm:
             components.append(("batch_norm", nn.BatchNorm1d(input_dim)))
         components.append(("linear", nn.Linear(input_dim, output_dim)))
-        if not is_head and self._activation is not None:
+        if not head and self._activation is not None:
             components.append(("activation", self._activation()))
-        if not is_head and self._dropout_p:
+        if not head and self._dropout_p:
             components.append(("dropout", nn.Dropout(p=self._dropout_p)))
         return nn.Sequential(OrderedDict(components))
