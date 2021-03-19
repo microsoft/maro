@@ -1,4 +1,18 @@
 
+normal_vehicle: &normal_vehicle
+  class: "VehicleUnit"
+  config:
+    patient: 100
+
+normal_distribution: &normal_distribution
+  class: "DistributionUnit"
+  children:
+    vehicles:
+      - *normal_vehicle
+      - *normal_vehicle
+  config:
+    unit_price: 1
+
 
 facility_definitions:
   SupplierFacility: &supplier_facility
@@ -14,7 +28,8 @@ facility_definitions:
             class: "ConsumerUnit"
           manufacture:
             class: "ManufactureUnit"
-
+      distribution:
+        class: "DistributionUnit"
 
 small_storage: &small_storage
   config:
@@ -74,6 +89,7 @@ world:
           order_cost: 0
       children:
         storage: *small_storage
+        distribution: *normal_distribution
     - name: "Supplier_SKU1"
       definition_ref: "SupplierFacility"
       skus:
@@ -94,6 +110,7 @@ world:
           order_cost: 200
       children:
         storage: *midium_storage
+        distribution: *normal_distribution
     - name: "Supplier_SKU2"
       definition_ref: "SupplierFacility"
       skus:
@@ -114,6 +131,7 @@ world:
           order_cost: 200
       children:
         storage: *midium_storage
+        distribution: *normal_distribution
     - name: "Supplier_SKU4"
       definition_ref: "SupplierFacility"
       skus:
@@ -134,6 +152,7 @@ world:
           order_cost: 200
       children:
         storage: *midium_storage
+        distribution: *normal_distribution
 
   topology:
     Supplier_SKU1:

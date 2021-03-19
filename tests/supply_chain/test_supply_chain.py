@@ -4,7 +4,7 @@ import unittest
 import numpy as np
 
 from maro.simulator import Env
-from maro.simulator.scenarios.supply_chain import ManufactureAction
+from maro.simulator.scenarios.supply_chain import ManufactureAction, ConsumerAction
 from maro.simulator.scenarios.supply_chain import StorageUnit, ConsumerUnit, FacilityBase
 
 
@@ -648,7 +648,6 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(SKU3_ID, sku3_consumer_unit.data_model.product_id)
         self.assertEqual(sku3_consumer_unit_id, sku3_consumer_unit.data_model.id)
         self.assertEqual(sku3_product_unit_id, sku3_consumer_unit.data_model.product_unit_id)
-        self.assertEqual(0, sku3_consumer_unit.data_model.consumer_product_id)
         self.assertEqual(0, sku3_consumer_unit.data_model.source_id)
         self.assertEqual(0, sku3_consumer_unit.data_model.quantity)
         self.assertEqual(0, sku3_consumer_unit.data_model.vlt)
@@ -673,7 +672,6 @@ class MyTestCase(unittest.TestCase):
             "order_cost",
             "total_purchased",
             "total_received",
-            "consumer_product_id",
             "source_id",
             "quantity",
             "vlt",
@@ -692,6 +690,142 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(sku3_consumer_unit_id, states[0])
         self.assertEqual(SKU3_ID, states[2])
 
+        cur_sources = consumer_nodes[env.frame_index:sku3_consumer_data_model_index:"sources"].flatten().astype(np.int)
+
+        # only one source according to configuration
+        self.assertEqual(1, len(cur_sources))
+        self.assertEqual(sku3_supplier_faiclity_id, cur_sources[0])
+
+        env.reset()
+        env.step(None)
+
+        states = consumer_nodes[env.frame_index:sku3_consumer_data_model_index:features].flatten().astype(np.int)
+
+        # Nothing happened at tick 0, so most states will be 0
+        self.assertTrue((states[4:] == 0).all())
+
+        self.assertEqual(sku3_consumer_unit_id, states[0])
+        self.assertEqual(SKU3_ID, states[2])
+
+        cur_sources = consumer_nodes[env.frame_index:sku3_consumer_data_model_index:"sources"].flatten().astype(np.int)
+
+        # only one source according to configuration
+        self.assertEqual(1, len(cur_sources))
+        self.assertEqual(sku3_supplier_faiclity_id, cur_sources[0])
+
+    def test_consumer_action(self):
+        env = build_env("case_01", 100)
+
+        sku3_consumer_unit: ConsumerUnit
+        sku3_supplier_faiclity_id: int
+        sku3_consumer_data_model_index: int
+        sku3_product_unit_id: int
+
+        for facility_id, facility_defail in env.summary["node_mapping"]["facilities"].items():
+            if facility_defail["name"] == "Supplier_SKU1":
+                sku3_consumer_unit_id = facility_defail["units"]["products"][SKU3_ID]["consumer"]["id"]
+
+                sku3_consumer_unit = env._business_engine.world.get_entity(sku3_consumer_unit_id)
+                sku3_product_unit_id = facility_defail["units"]["products"][SKU3_ID]["id"]
+
+            if facility_defail["name"] == "Supplier_SKU3":
+                sku3_supplier_faiclity_id = facility_defail["id"]
+
+        sku3_consumer_data_model_index = env.summary["node_mapping"]["entity_mapping"][sku3_consumer_unit_id][1]
+
+        # zero quantity will be ignore
+        action_with_zero = ConsumerAction(sku3_consumer_unit_id, SKU3_ID, sku3_supplier_faiclity_id, 0, 1)
+
+        action = ConsumerAction(sku3_consumer_unit_id, SKU3_ID, sku3_supplier_faiclity_id, 10, 1)
+
+        sku3_consumer_unit.set_action(action_with_zero)
+
+        env.step(None)
+
+        features = (
+            "id",
+            "facility_id",
+            "product_id",
+            "order_cost",
+            "total_purchased",
+            "total_received",
+            "product_id",
+            "source_id",
+            "quantity",
+            "vlt",
+            "purchased",
+            "received",
+            "order_product_cost"
+        )
+
+        consumer_nodes = env.snapshot_list["consumer"]
+
+        states = consumer_nodes[env.frame_index:sku3_consumer_data_model_index:features].flatten().astype(np.int)
+
+        # Nothing happened at tick 0, at the action will be recorded
+        self.assertEqual(action_with_zero.product_id, states[6])
+        self.assertEqual(action_with_zero.source_id, states[7])
+        self.assertEqual(action_with_zero.quantity, states[8])
+        self.assertEqual(action_with_zero.vlt, states[9])
+        self.assertTrue((states[[4, 5, 10, 11, 12]] == 0).all())
+
+        self.assertEqual(sku3_consumer_unit_id, states[0])
+        self.assertEqual(SKU3_ID, states[2])
+
+        cur_sources = consumer_nodes[env.frame_index:sku3_consumer_data_model_index:"sources"].flatten().astype(np.int)
+
+        # only one source according to configuration
+        self.assertEqual(1, len(cur_sources))
+        self.assertEqual(sku3_supplier_faiclity_id, cur_sources[0])
+
+        # NOTE: we cannot set_action directly here, as post_step will clear the action before starting next tick
+        env.step({action.id: action})
+
+        self.assertEqual(action.quantity, sku3_consumer_unit.purchased)
+        self.assertEqual(0, sku3_consumer_unit.received)
+
+        states = consumer_nodes[env.frame_index:sku3_consumer_data_model_index:features].flatten().astype(np.int)
+
+        # action field should be recorded
+        self.assertEqual(action.product_id, states[6])
+        self.assertEqual(action.source_id, states[7])
+        self.assertEqual(action.quantity, states[8])
+        self.assertEqual(action.vlt, states[9])
+
+        # total purchased should be same as purchased at this tick.
+        self.assertEqual(action.quantity, states[4])
+
+        # no received now
+        self.assertEqual(0, states[5])
+
+        # purchased same as quantity
+        self.assertEqual(action.quantity, states[10])
+
+        # no receives
+        self.assertEqual(0, states[11])
+
+        # same action for next step, so total_XXX will be changed to double
+        env.step({action.id: action})
+
+        states = consumer_nodes[env.frame_index:sku3_consumer_data_model_index:features].flatten().astype(np.int)
+
+        # action field should be recorded
+        self.assertEqual(action.product_id, states[6])
+        self.assertEqual(action.source_id, states[7])
+        self.assertEqual(action.quantity, states[8])
+        self.assertEqual(action.vlt, states[9])
+
+        # total purchased should be same as purchased at this tick.
+        self.assertEqual(action.quantity * 2, states[4])
+
+        # no received now
+        self.assertEqual(0, states[5])
+
+        # purchased same as quantity
+        self.assertEqual(action.quantity, states[10])
+
+        # no receives
+        self.assertEqual(0, states[11])
 
 if __name__ == '__main__':
     unittest.main()

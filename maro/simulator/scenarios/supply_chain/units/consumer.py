@@ -92,14 +92,14 @@ class ConsumerUnit(SkuUnit):
 
     def step(self, tick: int):
         # NOTE: id == 0 means invalid,as our id is 1 based.
-        if self.action is None or self.action.quantity <= 0 or self.action.consumer_product_id <= 0 or self.action.source_id == 0:
+        if self.action is None or self.action.quantity <= 0 or self.action.product_id <= 0 or self.action.source_id == 0:
             return
 
         # NOTE: we are using product unit as destination,
         # so we expect the action.source_id is and id of product unit
-        self.update_open_orders(self.action.source_id, self.action.consumer_product_id, self.action.quantity)
+        self.update_open_orders(self.action.source_id, self.action.product_id, self.action.quantity)
 
-        order = Order(self.facility, self.action.consumer_product_id, self.action.quantity, self.action.vlt)
+        order = Order(self.facility, self.action.product_id, self.action.quantity, self.action.vlt)
 
         source_facility = self.world.get_facility_by_id(self.action.source_id)
 

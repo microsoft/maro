@@ -18,7 +18,6 @@ class ConsumerDataModel(SkuDataModel):
     total_received = NodeAttribute(AttributeType.UInt)
 
     # action states
-    consumer_product_id = NodeAttribute(AttributeType.UInt)
     source_id = NodeAttribute(AttributeType.UInt)
     quantity = NodeAttribute(AttributeType.UInt)
     vlt = NodeAttribute(AttributeType.UShort)
