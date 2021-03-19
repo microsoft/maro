@@ -520,6 +520,18 @@ class TestFrame(unittest.TestCase):
         self.assertEqual(0, len(n1.a1))
         self.assertEqual(0, len(n1.a4))
 
+        # then append value to each list attribute to test if value will be mixed
+        n1.a1.append(10)
+        n1.a1.append(20)
+
+        n1.a4.append(100)
+        n1.a4.append(200)
+
+        self.assertEqual(10, n1.a1[0])
+        self.assertEqual(20, n1.a1[1])
+        self.assertEqual(100, n1.a4[0])
+        self.assertEqual(200, n1.a4[1])
+
     def test_list_attribute_with_large_size(self):
         @node("test")
         class TestNode(NodeBase):
