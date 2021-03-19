@@ -271,6 +271,25 @@ namespace maro
           list.clear();
         }
 
+        UINT list_index = 0;
+
+        for (auto& attr_def : _attribute_definitions)
+        {
+          if (attr_def.is_list)
+          {
+            // Assign each attribute with the index of actual list.
+            for (NODE_INDEX i = 0; i < _defined_node_number; i++)
+            {
+              auto& target_attr = _dynamic_block[_dynamic_size_per_node * i + attr_def.offset];
+
+              // Save the index of list in list store.
+              target_attr = list_index;
+
+              list_index++;
+            }
+          }
+        }
+
         // Reset bitset masks.
         _node_instance_masks.resize(_defined_node_number);
         _node_instance_masks.reset(true);
@@ -413,7 +432,7 @@ namespace maro
 
           const auto list_index = target_attr.get_value<ATTR_UINT>();
 
-          // Then get the actual list reference for furthure operation.
+          // Then get the actual list reference for further operation.
           auto& target_list = _list_store[list_index];
 
           return target_list[slot_index];
