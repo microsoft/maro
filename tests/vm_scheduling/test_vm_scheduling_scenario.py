@@ -133,7 +133,7 @@ class TestPriceModel(unittest.TestCase):
     def setUp(self):
         env = Env(
             scenario="vm_scheduling",
-            topology="azure.2019.toy",
+            topology="tests/data/vm_scheduling/azure.2019.toy",
             start_tick=0,
             durations=5,
             snapshot_resolution=1
