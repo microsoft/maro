@@ -827,5 +827,48 @@ class MyTestCase(unittest.TestCase):
         # no receives
         self.assertEqual(0, states[11])
 
+    def test_consumer_on_order_reception(self):
+        env = build_env("case_01", 100)
+
+        sku3_consumer_unit: ConsumerUnit
+        sku3_supplier_facility_id: int
+        sku3_consumer_data_model_index: int
+        sku3_product_unit_id: int
+
+        for facility_id, facility_defail in env.summary["node_mapping"]["facilities"].items():
+            if facility_defail["name"] == "Supplier_SKU1":
+                sku3_consumer_unit_id = facility_defail["units"]["products"][SKU3_ID]["consumer"]["id"]
+
+                sku3_consumer_unit = env._business_engine.world.get_entity(sku3_consumer_unit_id)
+                sku3_product_unit_id = facility_defail["units"]["products"][SKU3_ID]["id"]
+
+            if facility_defail["name"] == "Supplier_SKU3":
+                sku3_supplier_facility_id = facility_defail["id"]
+
+        sku3_consumer_data_model_index = env.summary["node_mapping"]["entity_mapping"][sku3_consumer_unit_id][1]
+
+        action = ConsumerAction(sku3_consumer_unit_id, SKU3_ID, sku3_supplier_facility_id, 10, 1)
+
+        # 1st step must none action
+        env.step(None)
+
+        env.step({action.id: action})
+
+        # simulate purchased product is arrived by vehicle unit
+        sku3_consumer_unit.on_order_reception(sku3_supplier_facility_id, SKU3_ID, 10, 10)
+
+        # now all order is done
+        self.assertEqual(0, sku3_consumer_unit.open_orders[sku3_supplier_facility_id][SKU3_ID])
+        self.assertEqual(10, sku3_consumer_unit.received)
+
+        env.step(None)
+
+        consumer_nodes = env.snapshot_list["consumer"]
+        states = consumer_nodes[env.frame_index:sku3_consumer_data_model_index:"received"].flatten().astype(np.int)
+
+        # NOTE: we cannot test the received state by calling on_order_reception directly,
+        # as it will be cleared by env.step, do it on vehicle unit test.
+
+
 if __name__ == '__main__':
     unittest.main()

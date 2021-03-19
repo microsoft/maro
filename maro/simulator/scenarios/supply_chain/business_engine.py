@@ -112,7 +112,7 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
     def _on_action_received(self, event):
         action = event.payload
 
-        if action is not None and len(action) > 0:
+        if action is not None and type(action) == dict and len(action) > 0:
             self._action_cache = action
 
     def _dispatch_action(self):
