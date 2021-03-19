@@ -14,7 +14,7 @@ class SupplierFacility(FacilityBase):
 
     SkuInfo = namedtuple(
         "SkuInfo",
-        ("name", "id", "init_in_stock", "type", "cost", "price", "delay_order_penalty", "product_unit_cost")
+        ("name", "id", "init_in_stock", "type", "cost", "price", "delay_order_penalty", "product_unit_cost", "order_cost")
     )
 
     # Storage unit of this facility.
@@ -40,7 +40,8 @@ class SupplierFacility(FacilityBase):
                 sku_config.get("cost", 0),
                 sku_config.get("price", 0),
                 sku_config.get("delay_order_penalty", 0),
-                sku_config.get("product_unit_cost", 1)
+                sku_config.get("product_unit_cost", 1),
+                sku_config.get("order_cost", 0)
             )
 
             self.skus[sku.id] = sku_info

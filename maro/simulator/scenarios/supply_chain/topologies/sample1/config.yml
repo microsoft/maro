@@ -69,6 +69,8 @@ normal_distribution: &normal_distribution
     vehicles:
       - *normal_vehicle
       - *normal_vehicle
+  config:
+    unit_price: 1
 
 small_storage: &small_storage
   # config of data model of this unit
@@ -126,6 +128,7 @@ world:
           init_in_stock: 100
           delay_order_penalty: 10
           product_unit_cost: 1
+          order_cost: 0
           type: "production" # production means this is the output production of this facility
           cost": 10
           price": 10
@@ -148,12 +151,14 @@ world:
           type: "production"
           cost: 10
           price: 100
+          order_cost: 0
         sku3:
           init_in_stock: 100
           delay_order_penalty: 10
           type: "material"
           cost: 10
           price: 100
+          order_cost: 200
 
       children:
         storage: *small_storage
@@ -167,14 +172,17 @@ world:
           init_stock: 1000
           delay_order_penalty: 10
           price: 100
+          order_cost: 200
         sku2:
           init_stock: 1000
           delay_order_penalty: 10
           price: 100
+          order_cost: 200
         sku3:
           init_stock: 1000
           delay_order_penalty: 10
           price: 100
+          order_cost: 200
 
       children:
         storage: *huge_storage
@@ -190,18 +198,21 @@ world:
           init_in_stock: 100
           sale_gamma: 100
           backlog_ratio: 0.1 # optional
+          order_cost: 200
         sku3:
           price: 200
           cost: 10
           init_in_stock: 100
           sale_gamma: 100
           backlog_ratio: 0.1
+          order_cost: 200
         sku2:
           price: 100
           cost: 10
           init_in_stock: 100
           sale_gamma: 100
           backlog_ratio: 0.1
+          order_cost: 200
 
       children:
         storage: *midium_storage

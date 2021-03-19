@@ -5,7 +5,7 @@ import numpy as np
 
 from maro.simulator import Env
 from maro.simulator.scenarios.supply_chain import ManufactureAction
-from maro.simulator.scenarios.supply_chain import StorageUnit
+from maro.simulator.scenarios.supply_chain import StorageUnit, ConsumerUnit, FacilityBase
 
 
 def build_env(case_name: str, durations: int):
@@ -610,12 +610,87 @@ class MyTestCase(unittest.TestCase):
         """
         env = build_env("case_01", 100)
 
-        print(env.summary)
+        # print(env.summary)
         # we can get the consumer from env.summary
-        consumer_unit = None
+
+        # NOTE: though we are test with sku1, but the consumer is for sku3, as it is the source material from source
+        sku3_consumer_unit: ConsumerUnit
+        sku3_supplier_faiclity_id: int
+        sku3_consumer_data_model_index: int
+        sku3_product_unit_id: int
 
         for facility_id, facility_defail in env.summary["node_mapping"]["facilities"].items():
-            pass
+            if facility_defail["name"] == "Supplier_SKU1":
+                # try to find sku3 consumer
+                sku3_consumer_unit_id = facility_defail["units"]["products"][SKU3_ID]["consumer"]["id"]
+
+                sku3_consumer_unit = env._business_engine.world.get_entity(sku3_consumer_unit_id)
+                sku3_product_unit_id = facility_defail["units"]["products"][SKU3_ID]["id"]
+
+            if facility_defail["name"] == "Supplier_SKU3":
+                sku3_supplier_faiclity_id = facility_defail["id"]
+
+        sku3_consumer_data_model_index = env.summary["node_mapping"]["entity_mapping"][sku3_consumer_unit_id][1]
+
+        # check initial state
+        self.assertEqual(0, sku3_consumer_unit.received)
+        self.assertEqual(0, sku3_consumer_unit.purchased)
+        self.assertEqual(0, sku3_consumer_unit.order_cost)
+        self.assertEqual(SKU3_ID, sku3_consumer_unit.product_id)
+
+        # check data model state
+        # order cost from configuration
+        self.assertEqual(200, sku3_consumer_unit.data_model.order_cost)
+        self.assertEqual(0, sku3_consumer_unit.data_model.total_purchased)
+        self.assertEqual(0, sku3_consumer_unit.data_model.total_received)
+
+        # NOTE: 0 is an invalid(initial) id
+        self.assertEqual(SKU3_ID, sku3_consumer_unit.data_model.product_id)
+        self.assertEqual(sku3_consumer_unit_id, sku3_consumer_unit.data_model.id)
+        self.assertEqual(sku3_product_unit_id, sku3_consumer_unit.data_model.product_unit_id)
+        self.assertEqual(0, sku3_consumer_unit.data_model.consumer_product_id)
+        self.assertEqual(0, sku3_consumer_unit.data_model.source_id)
+        self.assertEqual(0, sku3_consumer_unit.data_model.quantity)
+        self.assertEqual(0, sku3_consumer_unit.data_model.vlt)
+        self.assertEqual(0, sku3_consumer_unit.data_model.purchased)
+        self.assertEqual(0, sku3_consumer_unit.data_model.received)
+        self.assertEqual(0, sku3_consumer_unit.data_model.order_product_cost)
+
+        # check sources
+        for source_facility_id in sku3_consumer_unit.sources:
+            source_facility: FacilityBase = env._business_engine.world.get_facility_by_id(source_facility_id)
+
+            # check if source facility contains the sku3 config
+            self.assertTrue(SKU3_ID in source_facility.skus)
+
+        env.step(None)
+
+        # check state
+        features = (
+            "id",
+            "facility_id",
+            "product_id",
+            "order_cost",
+            "total_purchased",
+            "total_received",
+            "consumer_product_id",
+            "source_id",
+            "quantity",
+            "vlt",
+            "purchased",
+            "received",
+            "order_product_cost"
+        )
+
+        consumer_nodes = env.snapshot_list["consumer"]
+
+        states = consumer_nodes[env.frame_index:sku3_consumer_data_model_index:features].flatten().astype(np.int)
+
+        # Nothing happened at tick 0, so most states will be 0
+        self.assertTrue((states[4:] == 0).all())
+
+        self.assertEqual(sku3_consumer_unit_id, states[0])
+        self.assertEqual(SKU3_ID, states[2])
 
 
 if __name__ == '__main__':

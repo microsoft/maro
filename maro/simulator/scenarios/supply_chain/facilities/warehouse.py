@@ -12,7 +12,7 @@ from .facility import FacilityBase
 class WarehouseFacility(FacilityBase):
     """Warehouse facility that used to storage products, composed with storage, distribution and product units."""
 
-    SkuInfo = namedtuple("SkuInfo", ("name", "init_in_stock", "id", "price", "delay_order_penalty"))
+    SkuInfo = namedtuple("SkuInfo", ("name", "init_in_stock", "id", "price", "delay_order_penalty", "order_cost"))
 
     # Storage unit for this facility, must be a sub class of StorageUnit.
     storage: StorageUnit = None
@@ -35,7 +35,8 @@ class WarehouseFacility(FacilityBase):
                 sku_config["init_stock"],
                 sku.id,
                 sku_config.get("price", 0),
-                sku_config.get("delay_order_penalty", 0)
+                sku_config.get("delay_order_penalty", 0),
+                sku_config.get("order_cost", 0)
             )
 
             self.skus[sku.id] = sku_info

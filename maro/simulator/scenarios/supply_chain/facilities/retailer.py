@@ -12,7 +12,7 @@ from .facility import FacilityBase
 class RetailerFacility(FacilityBase):
     """Retail facility used to generate order from upstream, and sell products by demand."""
 
-    SkuInfo = namedtuple("SkuInfo", ("name", "id", "price", "cost", "init_in_stock", "sale_gamma"))
+    SkuInfo = namedtuple("SkuInfo", ("name", "id", "price", "cost", "init_in_stock", "sale_gamma", "order_cost"))
 
     # Product unit list of this facility.
     products: List[ProductUnit]
@@ -32,7 +32,8 @@ class RetailerFacility(FacilityBase):
                 sku_config.get("price", 0),
                 sku_config.get("cost", 0),
                 sku_config["init_in_stock"],
-                sku_config["sale_gamma"]
+                sku_config["sale_gamma"],
+                sku_config.get("order_cost", 0)
             )
 
             self.skus[sku.id] = sku_info

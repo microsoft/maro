@@ -75,6 +75,8 @@ class DistributionUnit(UnitBase):
 
         self._init_data_model()
 
+        self.data_model.initialize(self.config.get("unit_price", 0))
+
     def step(self, tick: int):
         for vehicle in self.vehicles:
             # If we have vehicle not on the way and there is any pending order

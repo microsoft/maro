@@ -247,6 +247,8 @@ class World:
         unit.facility = facility
         unit.world = self
 
+        self.entities[unit.id] = unit
+
         return unit
 
     def build_unit(self, facility: FacilityBase, parent: Union[FacilityBase, UnitBase], config: dict) -> UnitBase:

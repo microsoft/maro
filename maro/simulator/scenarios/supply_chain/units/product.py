@@ -99,6 +99,8 @@ class ProductUnit(SkuUnit):
                 product_unit: ProductUnit = world.build_unit_by_type(ProductUnit, facility, facility)
                 product_unit.product_id = sku_id
 
+                product_unit.parse_configs(config)
+
                 for child_name in ("manufacture", "consumer", "seller"):
                     conf = config.get(child_name, None)
 

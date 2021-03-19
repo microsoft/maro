@@ -54,6 +54,10 @@ class ConsumerUnit(SkuUnit):
     def initialize(self):
         super(ConsumerUnit, self).initialize()
 
+        sku = self.facility.skus[self.product_id]
+
+        self.data_model.initialize(order_cost=sku.order_cost)
+
         if self.facility.upstreams is not None:
             # Construct sources from facility's upstreams.
             sources = self.facility.upstreams.get(self.product_id, None)
