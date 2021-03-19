@@ -374,7 +374,7 @@ cdef class _NodeAttributeAccessor:
             self._cb(value)
 
     def __len__(self):
-        return self._slot_number
+        return self._backend.get_slot_number(self._node_index, self._attr_type)
 
     def on_value_changed(self, cb):
         """Set the value changed callback."""
