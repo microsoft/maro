@@ -1,112 +1,109 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import sys
-from typing import Union
+from typing import Callable, Union
 
 from maro.communication import Message, Proxy
 from maro.rl.agent import AbsAgent, MultiAgentWrapper
-from maro.simulator import Env
+from maro.rl.storage import SimpleStore
+from maro.rl.utils import get_sars
 from maro.utils import InternalLogger
 
 from .message_enums import MessageTag, PayloadKey
+from .trajectory import AbsTrajectory
 
 
 class Actor(object):
     """Actor class that performs roll-out tasks.
 
     Args:
-        env (Env): An environment instance.
+        trajectory (AbsTrajectory): An ``AbsTrajectory`` instance with an env wrapped inside.
         agent (Union[AbsAgent, MultiAgentWrapper]): Agent that interacts with the environment.
-        mode (str): One of "local" and "distributed". Defaults to "local".
+        group (str): Identifier of the group to which the actor belongs. It must be the same group name
+            assigned to the learner (and decision clients, if any).
+        proxy_options (dict): Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
+            for details. Defaults to None.
+        sync_size (int): 
     """
     def __init__(
         self,
-        env: Env,
+        trajectory: AbsTrajectory,
         agent: Union[AbsAgent, MultiAgentWrapper],
-        trajectory_cls,
-        trajectory_kwargs: dict = None
+        group: str = None,
+        proxy_options: dict = None,
+        experience_sync_interval: int = None
     ):
-        super().__init__()
-        self.env = env
+        self.trajectory = trajectory
         self.agent = agent
-        if trajectory_kwargs is None:
-            trajectory_kwargs = {}
-        self.trajectory = trajectory_cls(self.env, **trajectory_kwargs)
-
+        self.experience_pool = SimpleStore(["S", "A", "R", "S_", "loss"])
+        if group is not None:
+            if proxy_options is None:
+                proxy_options = {}
+            self._proxy = Proxy(group, "actor", {"actor_proxy": 1}, **proxy_options)
+            self._experience_sync_interval = experience_sync_interval
+            self._logger = InternalLogger(self._proxy.name)
+        self.exp_sync = bool(getattr(self, "_experience_sync_interval", None))
+        
     def roll_out(self, index: int, training: bool = True, model_by_agent: dict = None, exploration_params=None):
-        """Perform one episode of roll-out.
-        Args:
-            index (int): Externally designated index to identify the roll-out round.
-            training (bool): If true, the roll-out is for training purposes, which usually means
-                some kind of training data, e.g., experiences, needs to be collected. Defaults to True.
-            model_by_agent (dict): Models to use for inference. Defaults to None.
-            exploration_params: Exploration parameters to use for the current roll-out. Defaults to None.
-        Returns:
-            Data collected during the episode.
-        """
-        self.env.reset()
         self.trajectory.reset()
+        if not training:
+            self.trajectory.record_path = False  # no need to record the trajectory if roll-out is not for training
+
+        # Load models and exploration parameters
         if model_by_agent:
             self.agent.load_model(model_by_agent)
         if exploration_params:
             self.agent.set_exploration_params(exploration_params)
 
-        _, event, is_done = self.env.step(None)
-        while not is_done:
-            state_by_agent = self.trajectory.get_state(event)
-            action_by_agent = self.agent.choose_action(state_by_agent)
-            env_action = self.trajectory.get_action(action_by_agent, event)
-            if len(env_action) == 1:
-                env_action = list(env_action.values())[0]
-            _, next_event, is_done = self.env.step(env_action)
-            reward = self.trajectory.get_reward()
-            self.trajectory.on_env_feedback(
-                event, state_by_agent, action_by_agent, reward if reward is not None else self.env.metrics
-            )
-            event = next_event
+        state = self.trajectory.start(rollout_index=index)  # get initial state
+        while state:
+            action = self.agent.choose_action(state)
+            state = self.trajectory.step(action)
+            if training and self.exp_sync and len(self.trajectory.states) == self._experience_sync_interval:
+                exp = get_sars(self.trajectory.states, self.trajectory.actions, self.trajectory.rewards)
+                self.trajectory.flush()
+                self._proxy.isend(
+                    Message(
+                        MessageTag.EXPERIENCE, self._proxy.name, self._proxy.peers_name["actor_proxy"][0],
+                        payload={PayloadKey.ROLLOUT_INDEX: index, PayloadKey.EXPERIENCE: exp}
+                    )
+                )
 
-        return self.env.metrics, self.trajectory.on_finish() if training else None
+            self.trajectory.on_env_feedback()
 
-    def as_worker(self, group: str, proxy_options=None):
-        """Executes an event loop where roll-outs are performed on demand from a remote learner.
+        self.trajectory.on_finish()
+        # If no experience syncing, the experience pool needs to be populated.
+        if training and not self._experience_sync_interval:
+            if isinstance(self.agent, AbsAgent):
+                self.experience_pool.put(get_sars(*self.trajectory.path, multi_agent=False))
+            else: 
+                for agent_id, exp in get_sars(*self.trajectory.path).items():
+                    self.experience_pool[agent_id].put(exp)
 
-        Args:
-            group (str): Identifier of the group to which the actor belongs. It must be the same group name
-                assigned to the learner (and decision clients, if any).
-            proxy_options (dict): Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
-                for details. Defaults to None.
-        """
-        if proxy_options is None:
-            proxy_options = {}
-        proxy = Proxy(group, "actor", {"learner": 1}, **proxy_options)
-        logger = InternalLogger(proxy.name)
-        for msg in proxy.receive():
+        return self.trajectory.env.metrics 
+    
+    def run(self):
+        assert hasattr(self, "_proxy"), "No proxy found. The `group` parameter should not be None at init."
+        for msg in self._proxy.receive():
             if msg.tag == MessageTag.EXIT:
-                logger.info("Exiting...")
-                sys.exit(0)
+                self._logger.info("Exiting...")
+                break
             elif msg.tag == MessageTag.ROLLOUT:
                 ep = msg.payload[PayloadKey.ROLLOUT_INDEX]
-                logger.info(f"Rolling out ({ep})...")
-                metrics, rollout_data = self.roll_out(
+                self._logger.info(f"Rolling out ({ep})...")
+                metrics = self.roll_out(
                     ep,
                     training=msg.payload[PayloadKey.TRAINING],
                     model_by_agent=msg.payload[PayloadKey.MODEL],
                     exploration_params=msg.payload[PayloadKey.EXPLORATION_PARAMS]
                 )
-                if rollout_data is None:
-                    logger.info(f"Roll-out {ep} aborted")
-                else:
-                    logger.info(f"Roll-out {ep} finished")
-                    rollout_finish_msg = Message(
-                        MessageTag.FINISHED,
-                        proxy.name,
-                        proxy.peers_name["learner"][0],
-                        payload={
-                            PayloadKey.ROLLOUT_INDEX: ep,
-                            PayloadKey.METRICS: metrics,
-                            PayloadKey.DETAILS: rollout_data
-                        }
+                self._logger.info(f"Roll-out {ep} finished")
+                payload = {PayloadKey.ROLLOUT_INDEX: ep, PayloadKey.METRICS: metrics}
+                if msg.payload[PayloadKey.TRAINING] and not self.exp_sync:
+                    payload[PayloadKey.EXPERIENCE] = self.experience_pool
+                self._proxy.isend(
+                    Message(
+                        MessageTag.FINISHED, self._proxy.name, self._proxy.peers_name["actor_proxy"][0],
+                        payload=payload
                     )
-                    proxy.isend(rollout_finish_msg)
-                self.env.reset()
+                )

@@ -40,26 +40,14 @@ class SimpleStore(AbsStore):
         self._keys = keys
         self._capacity = capacity
         self._overwrite_type = overwrite_type
-        self._store = {key: [] if self._capacity < 0 else [None] * self._capacity for key in keys}
+        self.data = {key: [] if self._capacity < 0 else [None] * self._capacity for key in keys}
         self._size = 0
-        self._iter_index = 0
 
     def __len__(self):
         return self._size
 
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        if self._iter_index >= self._size:
-            self._iter_index = 0
-            raise StopIteration
-        index = self._iter_index
-        self._iter_index += 1
-        return {k: lst[index] for k, lst in self._store.items()}
-
     def __getitem__(self, index: int):
-        return {k: lst[index] for k, lst in self._store.items()}
+        return {k: lst[index] for k, lst in self.data.items()}
 
     @property
     def keys(self):
@@ -80,7 +68,7 @@ class SimpleStore(AbsStore):
         return self._overwrite_type
 
     def get(self, indexes: [int]) -> dict:
-        return {k: [self._store[k][i] for i in indexes] for k in self._store}
+        return {k: [self.data[k][i] for i in indexes] for k in self.data}
 
     def put(self, contents: Dict[str, List], overwrite_indexes: list = None) -> List[int]:
         """Put new contents in the store.
@@ -95,14 +83,14 @@ class SimpleStore(AbsStore):
         Returns:
             The indexes where the newly added entries reside in the store.
         """
-        if len(self._store) > 0 and list(contents.keys()) != self._keys:
+        if len(self.data) > 0 and list(contents.keys()) != self._keys:
             raise StoreMisalignment(f"expected keys {self._keys}, got {list(contents.keys())}")
         self.validate(contents)
         added = contents[next(iter(contents))]
         added_size = len(added) if isinstance(added, list) else 1
         if self._capacity < 0:
             for key, val in contents.items():
-                self._store[key].extend(val)
+                self.data[key].extend(val)
             self._size += added_size
             return list(range(self._size - added_size, self._size))
         else:
@@ -126,7 +114,7 @@ class SimpleStore(AbsStore):
         self.validate(contents)
         for key, val in contents.items():
             for index, value in zip(indexes, val):
-                self._store[key][index] = value
+                self.data[key][index] = value
 
         return indexes
 
@@ -198,7 +186,7 @@ class SimpleStore(AbsStore):
         Returns:
             Sampled indexes and the corresponding objects.
         """
-        weights = np.asarray(self._store[key][:self._size] if self._size < self._capacity else self._store[key])
+        weights = np.asarray(self.data[key][:self._size] if self._size < self._capacity else self.data[key])
         indexes = np.random.choice(self._size, size=size, replace=replace, p=weights / np.sum(weights))
         return indexes, self.get(indexes)
 
@@ -218,24 +206,23 @@ class SimpleStore(AbsStore):
 
         indexes = range(self._size)
         for key, size in zip(keys, sizes):
-            weights = np.asarray([self._store[key][i] for i in indexes])
+            weights = np.asarray([self.data[key][i] for i in indexes])
             indexes = np.random.choice(indexes, size=size, replace=replace, p=weights / np.sum(weights))
 
         return indexes, self.get(indexes)
 
     def clear(self):
         """Empty the store."""
-        self._store = {key: [] if self._capacity < 0 else [None] * self._capacity for key in self._keys}
+        self.data = {key: [] if self._capacity < 0 else [None] * self._capacity for key in self._keys}
         self._size = 0
-        self._iter_index = 0
 
     def dumps(self):
         """Return a deep copy of store contents."""
-        return clone(dict(self._store))
+        return clone(dict(self.data))
 
     def get_by_key(self, key):
         """Get the contents of the store corresponding to ``key``."""
-        return self._store[key]
+        return self.data[key]
 
     def _get_update_indexes(self, added_size: int, overwrite_indexes=None):
         if added_size > self._capacity:
@@ -268,3 +255,24 @@ class SimpleStore(AbsStore):
         reference_val = contents[list(contents.keys())[0]]
         if any(len(val) != len(reference_val) for val in contents.values()):
             raise StoreMisalignment("values of contents should consist of lists of the same length")
+
+    @staticmethod
+    def concatenate(stores: List[SimpleStore], capacity: int = -1, overwrite_type: OverwriteType = None):
+        """Concatenate a list of stores with the same keys.
+        
+        The resulting store is of unbounded capacity.
+
+        Args:
+            stores (List[SimpleStore]): List of stores to be concatenated.
+        """
+        if not stores:
+            return
+        expected_keys = stores[0].data.keys
+        if any(store.data.keys() != expected_keys for store in stores):
+            raise ValueError("Stores must have the exact same keys to be concatenated")
+
+        ret_store = SimpleStore(list(expected_keys))
+        for store in stores:
+            ret_store.put(store.data)
+
+        return ret_store

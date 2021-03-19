@@ -26,20 +26,6 @@ def get_dqn_agent():
     return DQN(q_model, DQNConfig(**agent_config["hyper_params"]))
 
 
-class CIMTrajectoryForDQN(CIMTrajectory):
-    def on_finish(self):
-        exp_by_agent = defaultdict(lambda: defaultdict(list))
-        for i in range(len(self.trajectory["state"]) - 1):
-            agent_id = list(self.trajectory["state"][i].keys())[0]
-            exp = exp_by_agent[agent_id]
-            exp["S"].append(self.trajectory["state"][i][agent_id])
-            exp["A"].append(self.trajectory["action"][i][agent_id])
-            exp["R"].append(self.get_offline_reward(self.trajectory["event"][i]))
-            exp["S_"].append(list(self.trajectory["state"][i + 1].values())[0])
-
-        return dict(exp_by_agent)
-
-
 def cim_dqn_learner():
     env = Env(**training_config["env"])
     agent = MultiAgentWrapper({name: get_dqn_agent() for name in env.agent_idx_list})
@@ -54,9 +40,10 @@ def cim_dqn_learner():
 
 def cim_dqn_actor():
     env = Env(**training_config["env"])
+    trajectory = CIMTrajectory(env, **common_config)
     agent = MultiAgentWrapper({name: get_dqn_agent() for name in env.agent_idx_list})
-    actor = Actor(env, agent, CIMTrajectoryForDQN, trajectory_kwargs=common_config)
-    actor.as_worker(training_config["group"])
+    actor = Actor(trajectory, agent, group=training_config["group"])
+    actor.run()
 
 
 if __name__ == "__main__":

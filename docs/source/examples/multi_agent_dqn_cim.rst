@@ -143,7 +143,7 @@ from the learner.
         env = Env(**training_config["env"])
         agent = MultiAgentWrapper({name: get_dqn_agent() for name in env.agent_idx_list})
         actor = Actor(env, agent, CIMTrajectoryForDQN, trajectory_kwargs=common_config)
-        actor.as_worker(training_config["group"])
+        actor.worker(training_config["group"])
 
 The learner's side requires a concrete learner class that inherits from ``AbsLearner`` and implements the ``run``
 method which contains the main training loop. Here the implementation is similar to the single-threaded version

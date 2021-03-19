@@ -2,14 +2,13 @@
 # Licensed under the MIT license.
 
 from abc import ABC, abstractmethod
-from typing import Union
+from typing import Callable, Union
 
 from numpy import asarray
 
 from maro.rl.agent import AbsAgent, MultiAgentWrapper
 from maro.rl.scheduling import Scheduler
 from maro.rl.storage import SimpleStore
-from maro.rl.utils import ExperienceCollectionUtils
 from maro.utils import InternalLogger
 
 from .actor import Actor
@@ -55,15 +54,10 @@ class OnPolicyLearner(AbsLearner):
 
     def run(self):
         for ep in range(self.max_episode):
-            env_metrics, exp = self.actor.roll_out(
+            env_metrics = self.actor.roll_out(
                 ep, model_by_agent=self.agent.dump_model() if isinstance(self.actor, ActorProxy) else None
             )
             self.logger.info(f"ep-{ep}: {env_metrics}")
-            exp = ExperienceCollectionUtils.stack(
-                exp,
-                is_single_source=isinstance(self.actor, Actor),
-                is_single_agent=isinstance(self.agent, AbsAgent)
-            )
             if isinstance(self.agent, AbsAgent):
                 for e in exp:
                     self.agent.learn(*e["args"], **e.get("kwargs", {}))
@@ -95,12 +89,6 @@ class OffPolicyLearner(AbsLearner):
     ):
         super().__init__(actor, agent=agent)
         self.scheduler = scheduler
-        if isinstance(self.agent, AbsAgent):
-            self.experience_pool = SimpleStore(["S", "A", "R", "S_", "loss"])
-        else:
-            self.experience_pool = {
-                agent: SimpleStore(["S", "A", "R", "S_", "loss"]) for agent in self.agent.agent_dict
-            }
         self.train_iter = train_iter
         self.min_experiences_to_train = min_experiences_to_train
         self.batch_size = batch_size
@@ -109,39 +97,26 @@ class OffPolicyLearner(AbsLearner):
     def run(self):
         for exploration_params in self.scheduler:
             rollout_index = self.scheduler.iter
-            env_metrics, exp = self.actor.roll_out(
+            env_metrics = self.actor.roll_out(
                 rollout_index,
                 model_by_agent=self.agent.dump_model() if isinstance(self.actor, ActorProxy) else None,
                 exploration_params=exploration_params
             )
             self.logger.info(f"ep-{rollout_index}: {env_metrics} ({exploration_params})")
 
-            # store experiences in the experience pool.
-            exp = ExperienceCollectionUtils.concat(
-                exp,
-                is_single_source=isinstance(self.actor, Actor),
-                is_single_agent=isinstance(self.agent, AbsAgent)
-            )
             if isinstance(self.agent, AbsAgent):
-                exp.update({"loss": [MAX_LOSS] * len(list(exp.values())[0])})
-                self.experience_pool.put(exp)
-                for i in range(self.train_iter):
+                for _ in range(self.train_iter):
                     batch, idx = self.get_batch()
                     loss = self.agent.learn(*batch)
-                    self.experience_pool.update(idx, {"loss": list(loss)})
+                    self.actor.experience_pool.update(idx, {"loss": list(loss)})
             else:
-                for agent_id, ex in exp.items():
-                    # ensure new experiences are sampled with the highest priority
-                    ex.update({"loss": [MAX_LOSS] * len(list(ex.values())[0])})
-                    self.experience_pool[agent_id].put(ex)
-
-                for i in range(self.train_iter):
+                for _ in range(self.train_iter):
                     batch_by_agent, idx_by_agent = self.get_batch()
                     loss_by_agent = {
                         agent_id: self.agent[agent_id].learn(*batch) for agent_id, batch in batch_by_agent.items()
                     }
                     for agent_id, loss in loss_by_agent.items():
-                        self.experience_pool[agent_id].update(idx_by_agent[agent_id], {"loss": list(loss)})
+                        self.actor.experience_pool[agent_id].update(idx_by_agent[agent_id], {"loss": list(loss)})
 
             self.logger.info("Agent learning finished")
 
@@ -151,23 +126,23 @@ class OffPolicyLearner(AbsLearner):
 
     def get_batch(self):
         if isinstance(self.agent, AbsAgent):
-            if len(self.experience_pool) < self.min_experiences_to_train:
+            if len(self.actor.experience_pool) < self.min_experiences_to_train:
                 return None, None
             if self.prioritized_sampling_by_loss:
-                indexes, sample = self.experience_pool.sample_by_key("loss", self.batch_size)
+                indexes, sample = self.actor.experience_pool.sample_by_key("loss", self.batch_size)
             else:
-                indexes, sample = self.experience_pool.sample(self.batch_size)
+                indexes, sample = self.actor.experience_pool.sample(self.batch_size)
             batch = asarray(sample["S"]), asarray(sample["A"]), asarray(sample["R"]), asarray(sample["S_"])
             return batch, indexes
         else:
             idx, batch = {}, {}
-            for agent_id, pool in self.experience_pool.items():
+            for agent_id, pool in self.actor.experience_pool.items():
                 if len(pool) < self.min_experiences_to_train:
                     continue
                 if self.prioritized_sampling_by_loss:
-                    indexes, sample = self.experience_pool[agent_id].sample_by_key("loss", self.batch_size)
+                    indexes, sample = self.actor.experience_pool[agent_id].sample_by_key("loss", self.batch_size)
                 else:
-                    indexes, sample = self.experience_pool[agent_id].sample(self.batch_size)
+                    indexes, sample = self.actor.experience_pool[agent_id].sample(self.batch_size)
                 batch[agent_id] = (
                     asarray(sample["S"]), asarray(sample["A"]), asarray(sample["R"]), asarray(sample["S_"])
                 )

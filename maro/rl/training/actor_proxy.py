@@ -4,6 +4,7 @@
 from typing import List
 
 from maro.communication import Message, Proxy, RegisterTable, SessionType
+from maro.rl.storage import SimpleStore
 from maro.utils import InternalLogger
 
 from .message_enums import MessageTag, PayloadKey
@@ -28,11 +29,10 @@ class ActorProxy(object):
         update_trigger: str = None,
         proxy_options: dict = None
     ):
-        self.agent = None
         peers = {"actor": num_actors}
         if proxy_options is None:
             proxy_options = {}
-        self._proxy = Proxy(group_name, "learner", peers, **proxy_options)
+        self._proxy = Proxy(group_name, "actor_proxy", peers, **proxy_options)
         self._actors = self._proxy.peers_name["actor"]  # remote actor ID's
         self._registry_table = RegisterTable(self._proxy.peers_name)
         if update_trigger is None:
@@ -40,6 +40,7 @@ class ActorProxy(object):
         self._registry_table.register_event_handler(
             f"actor:{MessageTag.FINISHED.value}:{update_trigger}", self._on_rollout_finish
         )
+        self.experience_pool = SimpleStore(["S", "A", "R", "S_", "loss"])
         self.logger = InternalLogger("ACTOR_PROXY")
 
     def roll_out(self, index: int, training: bool = True, model_by_agent: dict = None, exploration_params=None):
@@ -73,15 +74,18 @@ class ActorProxy(object):
                 # the next episode.
                 result = self._registry_table.push(msg)
                 if result:
-                    env_metrics, details = result[0]
+                    env_metrics = result[0]
                     break
+            elif msg.tag == MessageTag.EXPERIENCE:
+                self.experience_pool.put(msg.payload[PayloadKey.EXPERIENCE])
 
-        return env_metrics, details
+        return env_metrics
 
     def _on_rollout_finish(self, messages: List[Message]):
         metrics = {msg.source: msg.payload[PayloadKey.METRICS] for msg in messages}
-        details = {msg.source: msg.payload[PayloadKey.DETAILS] for msg in messages}
-        return metrics, details
+        if PayloadKey.EXPERIENCE in messages[0].payload:
+            self.experience_pool = SimpleStore.concatenate([msg.payload[PayloadKey.EXPERIENCE] for msg in messages])
+        return metrics
 
     def terminate(self):
         """Tell the remote actors to exit."""

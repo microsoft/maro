@@ -5,7 +5,7 @@ from collections import defaultdict
 
 import numpy as np
 
-from maro.rl import Trajectory
+from maro.rl import AbsTrajectory
 from maro.simulator.scenarios.cim.common import Action, ActionType
 
 common_config = {
@@ -26,7 +26,7 @@ common_config = {
 }
 
 
-class CIMTrajectory(Trajectory):
+class CIMTrajectory(AbsTrajectory):
     def __init__(
         self, env, *, port_attributes, vessel_attributes, action_space, look_back, max_ports_downstream,
         reward_time_window, fulfillment_factor, shortage_factor, time_decay,
@@ -76,24 +76,21 @@ class CIMTrajectory(Trajectory):
 
         return {port: Action(vessel, port, actual_action, action_type)}
 
-    def get_offline_reward(self, event):
-        port_snapshots = self.env.snapshot_list["ports"]
-        start_tick = event.tick + 1
-        ticks = list(range(start_tick, start_tick + self.reward_time_window))
+    def on_finish(self):
+        """Compute offline rewards."""
+        for i, event in enumerate(self.events):
+            port_snapshots = self.env.snapshot_list["ports"]
+            start_tick = event.tick + 1
+            ticks = list(range(start_tick, start_tick + self.reward_time_window))
 
-        future_fulfillment = port_snapshots[ticks::"fulfillment"]
-        future_shortage = port_snapshots[ticks::"shortage"]
-        decay_list = [
-            self.time_decay ** i for i in range(self.reward_time_window)
-            for _ in range(future_fulfillment.shape[0] // self.reward_time_window)
-        ]
+            future_fulfillment = port_snapshots[ticks::"fulfillment"]
+            future_shortage = port_snapshots[ticks::"shortage"]
+            decay_list = [
+                self.time_decay ** i for i in range(self.reward_time_window)
+                for _ in range(future_fulfillment.shape[0] // self.reward_time_window)
+            ]
 
-        tot_fulfillment = np.dot(future_fulfillment, decay_list)
-        tot_shortage = np.dot(future_shortage, decay_list)
-
-        return np.float32(self.fulfillment_factor * tot_fulfillment - self.shortage_factor * tot_shortage)
-
-    def on_env_feedback(self, event, state_by_agent, action_by_agent, reward):
-        self.trajectory["event"].append(event)
-        self.trajectory["state"].append(state_by_agent)
-        self.trajectory["action"].append(action_by_agent)
+            self.rewards[i] = np.float32(
+                self.fulfillment_factor * np.dot(future_fulfillment, decay_list) - 
+                self.shortage_factor * np.dot(future_shortage, decay_list)
+            )

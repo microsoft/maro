@@ -53,7 +53,8 @@ class CIMTrajectoryForAC(CIMTrajectory):
 if __name__ == "__main__":
     set_seeds(1024)  # for reproducibility
     env = Env(**training_config["env"])
+    trajectory = CIMTrajectoryForAC(env, **common_config)
     agent = MultiAgentWrapper({name: get_ac_agent() for name in env.agent_idx_list})
-    actor = Actor(env, agent, CIMTrajectoryForAC, trajectory_kwargs=common_config)  # local actor
+    actor = Actor(trajectory, agent)  # local actor
     learner = OnPolicyLearner(actor, training_config["max_episode"])
     learner.run()
