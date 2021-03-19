@@ -559,8 +559,40 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(storage_states[1], storage_states[2])
 
     def test_storage_get_product_number(self):
-        pass
+        env = build_env("case_01", 100)
 
+        env.step(None)
+
+        storage_nodes = env.snapshot_list["storage"]
+        storage_features = ("id", "capacity", "remaining_space")
+
+        # find first storage unit id
+        storage_unit_id = storage_nodes[env.frame_index:0:"id"].flatten().astype(np.int)[0]
+
+        # get the unit reference from env internal
+        storage_unit: StorageUnit = env._business_engine.world.get_entity(storage_unit_id)
+
+        init_product_dict = get_product_dict_from_storage(env, env.frame_index, 0)
+        print(init_product_dict)
+        # number in object should be same with states
+        for product_id, product_number in init_product_dict.items():
+            self.assertEqual(product_number, storage_unit.product_number[storage_unit.product_index_mapping[product_id]])
+
+        # should not change even after reset
+        env.reset()
+        env.step(None)
+
+        init_product_dict = get_product_dict_from_storage(env, env.frame_index, 0)
+
+        print(init_product_dict)
+
+        print(storage_unit.product_list)
+        print(storage_unit.product_number)
+        print(storage_unit.product_index_mapping)
+
+        # number in object should be same with states
+        for product_id, product_number in init_product_dict.items():
+            self.assertEqual(product_number, storage_unit.product_number[storage_unit.product_index_mapping[product_id]])
 
 if __name__ == '__main__':
     unittest.main()
