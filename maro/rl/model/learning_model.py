@@ -28,7 +28,7 @@ class OptimOption:
         self.scheduler_params = scheduler_params
 
 
-class AbsLearningModel(nn.Module):
+class AbsCoreModel(nn.Module):
     """Trainable model that consists of multiple network components.
 
     Args:
@@ -49,96 +49,81 @@ class AbsLearningModel(nn.Module):
         super().__init__()
         self._component = component if isinstance(component, nn.Module) else nn.ModuleDict(component)
         if optim_option is None:
-            self._optimizer = None
-            self._scheduler = None
+            self.optimizer = None
+            self.scheduler = None
             self.eval()
             for param in self.parameters():
                 param.requires_grad = False
         else:
             if isinstance(optim_option, dict):
-                self._optimizer = {}
+                self.optimizer = {}
                 for name, opt in optim_option.items():
-                    self._optimizer[name] = opt.optim_cls(self._component[name].parameters(), **opt.optim_params)
+                    self.optimizer[name] = opt.optim_cls(self._component[name].parameters(), **opt.optim_params)
                     if opt.scheduler_cls:
-                        self._scheduler[name] = opt.scheduler_cls(self._optimizer[name], **opt.scheduler_params)
+                        self.scheduler[name] = opt.scheduler_cls(self.optimizer[name], **opt.scheduler_params)
             else:
-                self._optimizer = optim_option.optim_cls(self.parameters(), **optim_option.optim_params)
+                self.optimizer = optim_option.optim_cls(self.parameters(), **optim_option.optim_params)
                 if optim_option.scheduler_cls:
-                    self._scheduler = optim_option.scheduler_cls(self._optimizer, **optim_option.scheduler_params)
-
-    def __getstate__(self):
-        dic = self.__dict__.copy()
-        dic["_optimizer"] = None
-        return dic
-
-    def __setstate__(self, dic: dict):
-        self.__dict__ = dic
+                    self.scheduler = optim_option.scheduler_cls(self.optimizer, **optim_option.scheduler_params)
 
     @property
-    def is_trainable(self) -> bool:
-        return self._optimizer is not None
+    def trainable(self) -> bool:
+        return self.optimizer is not None
 
     @abstractmethod
     def forward(self, *args, **kwargs):
         raise NotImplementedError
 
-    def learn(self, loss):
+    def step(self, loss):
         """Use the loss to back-propagate gradients and apply them to the underlying parameters."""
-        if self._optimizer is None:
+        if self.optimizer is None:
             raise MissingOptimizer("No optimizer registered to the model")
-        if isinstance(self._optimizer, dict):
-            for optimizer in self._optimizer.values():
+        if isinstance(self.optimizer, dict):
+            for optimizer in self.optimizer.values():
                 optimizer.zero_grad()
         else:
-            self._optimizer.zero_grad()
+            self.optimizer.zero_grad()
 
         # Obtain gradients through back-propagation
         loss.backward()
 
         # Apply gradients
-        if isinstance(self._optimizer, dict):
-            for optimizer in self._optimizer.values():
+        if isinstance(self.optimizer, dict):
+            for optimizer in self.optimizer.values():
                 optimizer.step()
         else:
-            self._optimizer.step()
+            self.optimizer.step()
 
     def update_learning_rate(self, component_name: Union[str, List[str]] = None):
-        if not isinstance(self._scheduler, dict):
-            self._scheduler.step()
+        if not isinstance(self.scheduler, dict):
+            self.scheduler.step()
         elif isinstance(component_name, str):
-            if component_name not in self._scheduler:
+            if component_name not in self.scheduler:
                 raise KeyError(f"Component {component_name} does not have a learning rate scheduler")
-            self._scheduler[component_name].step()
+            self.scheduler[component_name].step()
         elif isinstance(component_name, list):
             for key in component_name:
-                if key not in self._scheduler:
+                if key not in self.scheduler:
                     raise KeyError(f"Component {key} does not have a learning rate scheduler")
-                self._scheduler[key].step()
+                self.scheduler[key].step()
         else:
-            for sch in self._scheduler.values():
+            for sch in self.scheduler.values():
                 sch.step()
 
     def soft_update(self, other_model: nn.Module, tau: float):
         for params, other_params in zip(self.parameters(), other_model.parameters()):
             params.data = (1 - tau) * params.data + tau * other_params.data
 
-    def copy(self):
-        return clone(self)
+    def copy(self, with_optimizer: bool = False):
+        model_copy = clone(self)
+        if not with_optimizer:
+            model_copy.optimizer = None
+            model_copy.scheduler = None
 
-    def load(self, state_dict):
-        self.load_state_dict(state_dict)
-
-    def dump(self):
-        return self.state_dict()
-
-    def load_from_file(self, path: str):
-        self.load_state_dict(torch.load(path))
-
-    def dump_to_file(self, path: str):
-        torch.save(self.state_dict(), path)
+        return model_copy
 
 
-class SimpleMultiHeadModel(AbsLearningModel):
+class SimpleMultiHeadModel(AbsCoreModel):
     """A compound network structure that consists of multiple task heads and an optional shared stack.
 
     Args:
@@ -187,7 +172,7 @@ class SimpleMultiHeadModel(AbsLearningModel):
         else:
             return self._component[task_name](inputs)
 
-    def forward(self, inputs, task_name: Union[str, List[str]] = None, is_training: bool = True):
+    def forward(self, inputs, task_name: Union[str, List[str]] = None, training: bool = True):
         """Feedforward computations for the given head(s).
 
         Args:
@@ -198,14 +183,14 @@ class SimpleMultiHeadModel(AbsLearningModel):
                 returned in the form of a dictionary; 2) if task_name is a list, the outputs from the task modules
                 specified in the list will be returned in the form of a dictionary; 3) if this is a single string,
                 the output from the corresponding task module will be returned.
-            is_training (bool): If true, all torch submodules will be set to training mode, and auto-differentiation
+            training (bool): If true, all torch submodules will be set to training mode, and auto-differentiation
                 will be turned on. Defaults to True.
 
         Returns:
             Outputs from the required head(s).
         """
-        self.train(mode=is_training)
-        if is_training:
+        self.train(mode=training)
+        if training:
             return self._forward(inputs, task_name)
 
         with torch.no_grad():

@@ -212,6 +212,11 @@ class ConditionalEvent:
 
         return message_list
 
+    def clear(self):
+        """Clear all messages from cache."""
+        for message_cache in self._unit_event_message_dict.values():
+            message_cache.clear()
+
 
 class RegisterTable:
     """The RegisterTable is responsible for matching ``conditional events`` and user-defined ``message handlers``.
@@ -236,14 +241,24 @@ class RegisterTable:
         event = ConditionalEvent(event, self._peers_name)
         self._event_handler_dict[event] = handler_fn
 
-    def push(self, message: Message):
-        """Push message into all ``conditional events`` which register in the Registry Table.
+    def push(self, message: Message, auto_trigger: bool = True):
+        """
+        Push a newly received message into the corresponding unit event cache. If some conditional event is
+        satisfied and ``auto_trigger`` is true, the set of messages forming the satisfied conditional event
+        will be processed by the corresponding handler functions.
 
         Args:
             message (Message): Received message.
+            auto_trigger (bool): If true, the set of messages forming the satisfied conditional event will be
+                processed by the corresponding handler functions.
         """
-        for event in self._event_handler_dict.keys():
+        for event in self._event_handler_dict:
             event.push_message(message)
+
+        if auto_trigger:
+            satisfied = self.get()
+            if satisfied:
+                return [handler_fn(cached_messages) for handler_fn, cached_messages in satisfied]
 
     def get(self) -> List[Tuple[callable, List[Message]]]:
         """If any ``conditional event`` has been satisfied, return the requisite message list and
@@ -259,9 +274,11 @@ class RegisterTable:
             message_list = event.get_qualified_message()
 
             if message_list:
-                if len(message_list) == 1:
-                    satisfied_handler_fn.append((handler_fn, message_list[0]))
-                else:
-                    satisfied_handler_fn.append((handler_fn, message_list))
+                satisfied_handler_fn.append((handler_fn, message_list))
 
         return satisfied_handler_fn
+
+    def clear(self):
+        """Clear all messages from conditional event caches."""
+        for event in self._event_handler_dict:
+            event.clear()

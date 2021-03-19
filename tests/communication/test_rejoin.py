@@ -34,13 +34,13 @@ def actor_init(queue, redis_port):
     for msg in proxy.receive(is_continuous=True):
         print(f"receive message from master. {msg.tag}")
         if msg.tag == "cont":
-            proxy.reply(received_message=msg, tag="recv", payload="successful receive!")
+            proxy.reply(message=msg, tag="recv", payload="successful receive!")
         elif msg.tag == "stop":
-            proxy.reply(received_message=msg, tag="recv", payload=f"{proxy.component_name} exited!")
-            queue.put(proxy.component_name)
+            proxy.reply(message=msg, tag="recv", payload=f"{proxy.name} exited!")
+            queue.put(proxy.name)
             break
         elif msg.tag == "finish":
-            proxy.reply(received_message=msg, tag="recv", payload=f"{proxy.component_name} finish!")
+            proxy.reply(message=msg, tag="recv", payload=f"{proxy.name} finish!")
             sys.exit(0)
 
     proxy.__del__()
@@ -111,7 +111,7 @@ class TestRejoin(unittest.TestCase):
         # Disconnect one peer.
         disconnect_message = SessionMessage(
             tag="stop",
-            source=TestRejoin.master_proxy.component_name,
+            source=TestRejoin.master_proxy.name,
             destination=TestRejoin.peers[1],
             payload=None,
             session_type=SessionType.TASK

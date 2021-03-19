@@ -5,6 +5,7 @@
 import os
 from math import ceil, floor
 
+import numpy as np
 from yaml import safe_load
 
 from maro.backends.frame import FrameBase, SnapshotList
@@ -13,6 +14,7 @@ from maro.event_buffer import AtomEvent, CascadeEvent, EventBuffer, MaroEvents
 from maro.simulator.scenarios import AbsBusinessEngine
 from maro.simulator.scenarios.helpers import DocableDict
 from maro.simulator.scenarios.matrix_accessor import MatrixAttributeAccessor
+from maro.streamit import streamit
 
 from .common import Action, ActionScope, ActionType, DecisionEvent
 from .event_payload import EmptyReturnPayload, LadenReturnPayload, VesselDischargePayload, VesselStatePayload
@@ -82,6 +84,8 @@ class CimBusinessEngine(AbsBusinessEngine):
 
         # As we already unpack the route to the max tick, we can insert all departure events at the beginning.
         self._load_departure_events()
+
+        self._stream_base_info()
 
     @property
     def configs(self):
@@ -184,6 +188,8 @@ class CimBusinessEngine(AbsBusinessEngine):
         Args:
             tick (int): Tick to process.
         """
+        self._stream_data()
+
         if (tick + 1) % self._snapshot_resolution == 0:
             # Update acc_fulfillment before take snapshot.
             for port in self._ports:
@@ -643,3 +649,60 @@ class CimBusinessEngine(AbsBusinessEngine):
                 port.transfer_cost += move_num
 
                 self._vessel_plans[vessel_idx, port_idx] += self._data_cntr.vessel_period[vessel_idx]
+
+    def _stream_base_info(self):
+        if streamit:
+            streamit.info(self._scenario_name, self._topology, self._max_tick)
+            streamit.complex("config", self._config)
+
+    def _stream_data(self):
+        if streamit:
+            port_number = len(self._ports)
+            vessel_number = len(self._vessels)
+
+            for port in self._ports:
+                streamit.data(
+                    "port_details", index=port.index, capacity=port.capacity, empty=port.empty, full=port.full,
+                    on_shipper=port.on_shipper, on_consignee=port.on_consignee, shortage=port.shortage,
+                    acc_shortage=port.acc_shortage, booking=port.booking, acc_booking=port.acc_booking,
+                    fulfillment=port.fulfillment, acc_fulfillment=port.acc_fulfillment, transfer_cost=port.transfer_cost
+                )
+
+            for vessel in self._vessels:
+                streamit.data(
+                    "vessel_details", index=vessel.index, capacity=vessel.capacity, empty=vessel.empty,
+                    full=vessel.full, remaining_space=vessel.remaining_space, early_discharge=vessel.early_discharge,
+                    route_idx=vessel.route_idx, last_loc_idx=vessel.last_loc_idx, next_loc_idx=vessel.next_loc_idx,
+                    past_stop_list=vessel.past_stop_list[:], past_stop_tick_list=vessel.past_stop_tick_list[:],
+                    future_stop_list=vessel.future_stop_list[:], future_stop_tick_list=vessel.future_stop_tick_list[:]
+                )
+
+            vessel_plans = np.array(self._vessel_plans[:]).reshape(vessel_number, port_number)
+
+            a, b = np.where(vessel_plans > -1)
+
+            for vessel_index, port_index in list(zip(a, b)):
+                streamit.data(
+                    "vessel_plans", vessel_index=vessel_index,
+                    port_index=port_index, planed_arrival_tick=vessel_plans[vessel_index, port_index]
+                )
+
+            full_on_ports = np.array(self._full_on_ports[:]).reshape(port_number, port_number)
+
+            a, b = np.where(full_on_ports > 0)
+
+            for from_port_index, to_port_index in list(zip(a, b)):
+                streamit.data(
+                    "full_on_ports", from_port_index=from_port_index,
+                    dest_port_index=to_port_index, quantity=full_on_ports[from_port_index, to_port_index]
+                )
+
+            full_on_vessels = np.array(self._full_on_vessels[:]).reshape(vessel_number, port_number)
+
+            a, b = np.where(full_on_vessels > 0)
+
+            for vessel_index, port_index in list(zip(a, b)):
+                streamit.data(
+                    "full_on_vessels", vessel_index=vessel_index, port_index=port_index,
+                    quantity=full_on_vessels[vessel_index, port_index]
+                )

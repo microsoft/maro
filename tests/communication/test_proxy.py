@@ -34,7 +34,7 @@ class TestProxy(unittest.TestCase):
 
             for task in as_completed(all_tasks):
                 result = task.result()
-                if "master" in result.component_name:
+                if "master" in result.name:
                     cls.master_proxy = result
                 else:
                     cls.worker_proxies.append(result)
@@ -49,8 +49,8 @@ class TestProxy(unittest.TestCase):
         for worker_proxy in TestProxy.worker_proxies:
             send_msg = SessionMessage(
                 tag="unit_test",
-                source=TestProxy.master_proxy.component_name,
-                destination=worker_proxy.component_name,
+                source=TestProxy.master_proxy.name,
+                destination=worker_proxy.name,
                 payload="hello_world!"
             )
             TestProxy.master_proxy.isend(send_msg)
@@ -61,7 +61,7 @@ class TestProxy(unittest.TestCase):
     def test_scatter(self):
         scatter_payload = ["worker_1", "worker_2", "worker_3", "worker_4", "worker_5"]
         destination_payload_list = [
-            (worker_proxy.component_name, scatter_payload[i])
+            (worker_proxy.name, scatter_payload[i])
             for i, worker_proxy in enumerate(TestProxy.worker_proxies)
         ]
 
@@ -95,14 +95,14 @@ class TestProxy(unittest.TestCase):
         for worker_proxy in TestProxy.worker_proxies:
             send_msg = SessionMessage(
                 tag="unit_test",
-                source=TestProxy.master_proxy.component_name,
-                destination=worker_proxy.component_name,
+                source=TestProxy.master_proxy.name,
+                destination=worker_proxy.name,
                 payload="hello "
             )
             session_id_list = TestProxy.master_proxy.isend(send_msg)
 
             for receive_message in worker_proxy.receive(is_continuous=False):
-                worker_proxy.reply(received_message=receive_message, tag="unit_test", payload="world!")
+                worker_proxy.reply(message=receive_message, tag="unit_test", payload="world!")
 
             replied_msg_list = TestProxy.master_proxy.receive_by_id(session_id_list)
             self.assertEqual(send_msg.payload + replied_msg_list[0].payload, "hello world!")
