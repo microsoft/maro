@@ -5,7 +5,8 @@ import numpy as np
 
 from maro.simulator import Env
 from maro.simulator.scenarios.supply_chain import ManufactureAction, ConsumerAction
-from maro.simulator.scenarios.supply_chain import StorageUnit, ConsumerUnit, FacilityBase, VehicleUnit
+from maro.simulator.scenarios.supply_chain.units.order import Order
+from maro.simulator.scenarios.supply_chain import StorageUnit, ConsumerUnit, FacilityBase, VehicleUnit, DistributionUnit
 
 
 def build_env(case_name: str, durations: int):
@@ -1253,18 +1254,117 @@ class MyTestCase(unittest.TestCase):
     Distribution unit test:
 
     . initial state
+    . place order
     . dispatch orders without available vehicle
     . dispatch order with vehicle
     """
 
     def test_distribution_unit_initial_state(self):
-        pass
+        env = build_env("case_02", 100)
+
+        # try to find first vehicle unit of Supplier
+        dist_unit: DistributionUnit
+        dest_facility: FacilityBase
+
+        for id, info in env.summary["node_mapping"]["facilities"].items():
+            if info["name"] == "Supplier_SKU3":
+                dist_unit = env._business_engine.world.get_entity(info["units"]["distribution"]["id"])
+
+            if info["name"] == "Warehouse_001":
+                dest_facility = env._business_engine.world.get_facility_by_id(info["id"])
+
+        self.assertEqual(0, len(dist_unit.order_queue))
+        self.assertEqual(1, len(dist_unit.product_index_mapping))
+        self.assertDictEqual({3:0}, dist_unit.product_index_mapping)
+        self.assertEqual(1, len(dist_unit.product_list))
+        self.assertListEqual([3], dist_unit.product_list)
+
+        # from configuration
+        self.assertEqual(1, dist_unit.data_model.unit_price)
+        self.assertListEqual([3], list(dist_unit.data_model.product_list[:]))
+        self.assertListEqual([0], list(dist_unit.data_model.delay_order_penalty))
+
+        # reset
+        env.reset()
+
+        self.assertEqual(0, len(dist_unit.order_queue))
+        self.assertEqual(1, len(dist_unit.product_index_mapping))
+        self.assertDictEqual({3:0}, dist_unit.product_index_mapping)
+        self.assertEqual(1, len(dist_unit.product_list))
+        self.assertListEqual([3], dist_unit.product_list)
+
+        # from configuration
+        self.assertEqual(1, dist_unit.data_model.unit_price)
+        self.assertListEqual([3], list(dist_unit.data_model.product_list[:]))
+        self.assertListEqual([0], list(dist_unit.data_model.delay_order_penalty))
 
     def test_distribution_unit_dispatch_order(self):
-        pass
+        env = build_env("case_02", 100)
 
-    def test_distribution_unit_dispatch_order_no_vehicle(self):
-        pass
+        # try to find first vehicle unit of Supplier
+        dist_unit: DistributionUnit
+        dest_facility: FacilityBase
+
+        for id, info in env.summary["node_mapping"]["facilities"].items():
+            if info["name"] == "Supplier_SKU3":
+                dist_unit = env._business_engine.world.get_entity(info["units"]["distribution"]["id"])
+
+            if info["name"] == "Warehouse_001":
+                dest_facility = env._business_engine.world.get_facility_by_id(info["id"])
+
+        first_vehicle: VehicleUnit = dist_unit.vehicles[0]
+
+        order = Order(dest_facility, SKU3_ID, 10, 2)
+
+        dist_unit.place_order(order)
+
+        # check if order is saved
+        self.assertEqual(1, len(dist_unit.order_queue))
+
+        # check get pending order correct
+        pending_order = dist_unit.get_pending_order()
+
+        self.assertDictEqual({3:10}, pending_order)
+
+        # same as vehicle schedule case, distribution will try to schedule this order to vehicles from beginning to end
+        # so it will dispatch this order to first vehicle
+        env.step(None)
+
+        self.assertEqual(dest_facility, first_vehicle.destination)
+        self.assertEqual(10, first_vehicle.quantity)
+        self.assertEqual(2, first_vehicle.velocity)
+        self.assertEqual(SKU3_ID, first_vehicle.product_id)
+
+        # since we already test vehicle unit, do not check the it again here
+
+        # add another order to check pending order
+        dist_unit.place_order(order)
+
+        pending_order = dist_unit.get_pending_order()
+
+        self.assertDictEqual({3:10}, pending_order)
+
+        # another order, will cause the pending order increase
+        dist_unit.place_order(order)
+
+        pending_order = dist_unit.get_pending_order()
+
+        # 2 pending orders
+        self.assertDictEqual({3:20}, pending_order)
+
+        # now we have only one available vehicle, 2 pending order
+        # next step will cause delay_order_penalty
+        env.step(None)
+
+        second_vehicle = dist_unit.vehicles[1]
+
+        self.assertEqual(dest_facility, second_vehicle.destination)
+        self.assertEqual(10, second_vehicle.quantity)
+        self.assertEqual(2, second_vehicle.velocity)
+        self.assertEqual(SKU3_ID, second_vehicle.product_id)
+
+        # from configuration
+        self.assertEqual(20, dist_unit.data_model.delay_order_penalty[0])
 
     """
     Seller unit test:

@@ -55,7 +55,7 @@ class DistributionUnit(UnitBase):
 
                 # TODO: states related, enable it later if needed.
                 # product_index = self.product_index_mapping[order.product_id]
-                # self.data.check_in_price[product_index] += order_total_price
+                # self.data_model.check_in_price[product_index] += order_total_price
 
                 return order_total_price
 
@@ -80,7 +80,7 @@ class DistributionUnit(UnitBase):
     def step(self, tick: int):
         for vehicle in self.vehicles:
             # If we have vehicle not on the way and there is any pending order
-            if len(self.order_queue) > 0 and vehicle.location == 0:
+            if len(self.order_queue) > 0 and vehicle.quantity == 0:
                 order = self.order_queue.popleft()
 
                 # Schedule a job for available vehicle.
