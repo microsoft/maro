@@ -5,8 +5,9 @@ import numpy as np
 
 from maro.simulator import Env
 from maro.simulator.scenarios.supply_chain import ManufactureAction, ConsumerAction
+from maro.simulator.scenarios.supply_chain import StorageUnit, ConsumerUnit, FacilityBase, VehicleUnit, \
+    DistributionUnit, SellerUnit
 from maro.simulator.scenarios.supply_chain.units.order import Order
-from maro.simulator.scenarios.supply_chain import StorageUnit, ConsumerUnit, FacilityBase, VehicleUnit, DistributionUnit
 
 
 def build_env(case_name: str, durations: int):
@@ -1135,8 +1136,8 @@ class MyTestCase(unittest.TestCase):
         for i in range(10 - 1):
             env.step(None)
 
-            self.assertEqual(10 - 1 - (i+1), vehicle_unit.patient)
-            self.assertEqual(10 - 1 - (i+1), vehicle_unit.data_model.patient)
+            self.assertEqual(10 - 1 - (i + 1), vehicle_unit.patient)
+            self.assertEqual(10 - 1 - (i + 1), vehicle_unit.data_model.patient)
 
         vehicle_nodes = env.snapshot_list["vehicle"]
         features = (
@@ -1155,12 +1156,12 @@ class MyTestCase(unittest.TestCase):
 
         # check the patient history
         self.assertEqual(10, len(states))
-        self.assertListEqual([9,8,7,6,5,4,3,2,1,0], list(states))
+        self.assertListEqual([9, 8, 7, 6, 5, 4, 3, 2, 1, 0], list(states))
 
         states = vehicle_nodes[:vehicle_unit.data_model_index:"payload"].flatten().astype(np.int)
 
         # no payload from start to now
-        self.assertListEqual([0]*10, list(states))
+        self.assertListEqual([0] * 10, list(states))
 
         # push env to next step, vehicle will be reset to initial state
         env.step(None)
@@ -1237,11 +1238,11 @@ class MyTestCase(unittest.TestCase):
         # then it will unload 100 - 10 - 10 - 10 = 70 products, as this is the remaining space of destination storage
         # so then it will keep waiting to unload remaining 10
         payload_states = vehicle_nodes[:vehicle_unit.data_model_index:"payload"].flatten().astype(np.int)
-        self.assertListEqual([80]*4 + [10] * 96, list(payload_states))
+        self.assertListEqual([80] * 4 + [10] * 96, list(payload_states))
 
         # other states should not be reset as it not finish it task
         quantity_states = vehicle_nodes[:vehicle_unit.data_model_index:"requested_quantity"].flatten().astype(np.int)
-        self.assertListEqual([80]*100, list(quantity_states))
+        self.assertListEqual([80] * 100, list(quantity_states))
 
         # same situation as payload
         steps_states = vehicle_nodes[:vehicle_unit.data_model_index:"steps"].flatten().astype(np.int)
@@ -1275,7 +1276,7 @@ class MyTestCase(unittest.TestCase):
 
         self.assertEqual(0, len(dist_unit.order_queue))
         self.assertEqual(1, len(dist_unit.product_index_mapping))
-        self.assertDictEqual({3:0}, dist_unit.product_index_mapping)
+        self.assertDictEqual({3: 0}, dist_unit.product_index_mapping)
         self.assertEqual(1, len(dist_unit.product_list))
         self.assertListEqual([3], dist_unit.product_list)
 
@@ -1289,7 +1290,7 @@ class MyTestCase(unittest.TestCase):
 
         self.assertEqual(0, len(dist_unit.order_queue))
         self.assertEqual(1, len(dist_unit.product_index_mapping))
-        self.assertDictEqual({3:0}, dist_unit.product_index_mapping)
+        self.assertDictEqual({3: 0}, dist_unit.product_index_mapping)
         self.assertEqual(1, len(dist_unit.product_list))
         self.assertListEqual([3], dist_unit.product_list)
 
@@ -1324,7 +1325,7 @@ class MyTestCase(unittest.TestCase):
         # check get pending order correct
         pending_order = dist_unit.get_pending_order()
 
-        self.assertDictEqual({3:10}, pending_order)
+        self.assertDictEqual({3: 10}, pending_order)
 
         # same as vehicle schedule case, distribution will try to schedule this order to vehicles from beginning to end
         # so it will dispatch this order to first vehicle
@@ -1342,7 +1343,7 @@ class MyTestCase(unittest.TestCase):
 
         pending_order = dist_unit.get_pending_order()
 
-        self.assertDictEqual({3:10}, pending_order)
+        self.assertDictEqual({3: 10}, pending_order)
 
         # another order, will cause the pending order increase
         dist_unit.place_order(order)
@@ -1350,7 +1351,7 @@ class MyTestCase(unittest.TestCase):
         pending_order = dist_unit.get_pending_order()
 
         # 2 pending orders
-        self.assertDictEqual({3:20}, pending_order)
+        self.assertDictEqual({3: 20}, pending_order)
 
         # now we have only one available vehicle, 2 pending order
         # next step will cause delay_order_penalty
@@ -1368,9 +1369,179 @@ class MyTestCase(unittest.TestCase):
 
     """
     Seller unit test:
+        . initial state
         . with a customized seller unit
         . with built in one
     """
+
+    def test_seller_unit_initial_states(self):
+        env = build_env("case_02", 100)
+
+        # find seller for sku3 from retailer facility
+        sell_unit: SellerUnit
+        source_facility: FacilityBase
+
+        for id, info in env.summary["node_mapping"]["facilities"].items():
+            if info["name"] == "Retailer_001":
+                for pid, pdetail in info["units"]["products"].items():
+                    if pdetail["sku_id"] == SKU3_ID:
+                        sell_unit = env._business_engine.world.get_entity(pdetail["seller"]["id"])
+
+            if info["name"] == "Warehouse_001":
+                source_facility = env._business_engine.world.get_facility_by_id(info["id"])
+
+        # from configuration
+        self.assertEqual(10, sell_unit.gamma)
+        self.assertEqual(100, sell_unit.durations)
+        self.assertEqual(100, len(sell_unit.demand_distribution))
+        self.assertEqual(0, sell_unit.sold)
+        self.assertEqual(0, sell_unit.demand)
+        self.assertEqual(0, sell_unit.total_sold)
+        self.assertEqual(SKU3_ID, sell_unit.product_id)
+
+        #
+        self.assertEqual(0, sell_unit.data_model.sold)
+        self.assertEqual(0, sell_unit.data_model.demand)
+        self.assertEqual(0, sell_unit.data_model.total_sold)
+        self.assertEqual(SKU3_ID, sell_unit.product_id)
+
+        env.reset()
+
+        # from configuration
+        self.assertEqual(10, sell_unit.gamma)
+        self.assertEqual(100, sell_unit.durations)
+        self.assertEqual(100, len(sell_unit.demand_distribution))
+        self.assertEqual(0, sell_unit.sold)
+        self.assertEqual(0, sell_unit.demand)
+        self.assertEqual(0, sell_unit.total_sold)
+        self.assertEqual(SKU3_ID, sell_unit.product_id)
+
+        #
+        self.assertEqual(0, sell_unit.data_model.sold)
+        self.assertEqual(0, sell_unit.data_model.demand)
+        self.assertEqual(0, sell_unit.data_model.total_sold)
+        self.assertEqual(SKU3_ID, sell_unit.product_id)
+
+    def test_seller_unit_demand_states(self):
+        env = build_env("case_02", 100)
+
+        # find seller for sku3 from retailer facility
+        sell_unit: SellerUnit
+        source_facility: FacilityBase
+
+        for id, info in env.summary["node_mapping"]["facilities"].items():
+            if info["name"] == "Retailer_001":
+                for pid, pdetail in info["units"]["products"].items():
+                    if pdetail["sku_id"] == SKU3_ID:
+                        sell_unit = env._business_engine.world.get_entity(pdetail["seller"]["id"])
+
+            if info["name"] == "Warehouse_001":
+                source_facility = env._business_engine.world.get_facility_by_id(info["id"])
+
+        SKU3_INIT_NUMBER = sell_unit.facility.skus[SKU3_ID].init_in_stock
+
+        env.step(None)
+
+        # seller unit will try to count down the product number base on demand
+        # default seller use gamma distribution on each tick
+        demand = sell_unit.demand_distribution[0]
+
+        # demand should be same with original
+        self.assertEqual(demand, sell_unit.demand)
+        self.assertEqual(demand, sell_unit.data_model.demand)
+
+        actual_sold = min(demand, SKU3_INIT_NUMBER)
+        # sold may be not same as demand, depend on remaining number in storage
+        self.assertEqual(actual_sold, sell_unit.sold)
+        self.assertEqual(actual_sold, sell_unit.data_model.sold)
+        self.assertEqual(actual_sold, sell_unit.total_sold)
+        self.assertEqual(actual_sold, sell_unit.data_model.total_sold)
+
+        states = env.snapshot_list["seller"][
+                 env.frame_index:sell_unit.data_model_index:("sold", "demand", "total_sold")].flatten().astype(np.int)
+
+        self.assertEqual(actual_sold, states[0])
+        self.assertEqual(demand, states[1])
+        self.assertEqual(actual_sold, states[2])
+
+        # move to next step to check if state is correct
+        env.step(None)
+
+        demand = sell_unit.demand_distribution[1]
+
+        # demand should be same with original
+        self.assertEqual(demand, sell_unit.demand)
+        self.assertEqual(demand, sell_unit.data_model.demand)
+
+        actual_sold_2 = min(demand, SKU3_INIT_NUMBER - actual_sold)
+
+        # sold may be not same as demand, depend on remaining number in storage
+        self.assertEqual(actual_sold_2, sell_unit.sold)
+        self.assertEqual(actual_sold_2, sell_unit.data_model.sold)
+        self.assertEqual(actual_sold + actual_sold_2, sell_unit.total_sold)
+        self.assertEqual(actual_sold + actual_sold_2, sell_unit.data_model.total_sold)
+
+        states = env.snapshot_list["seller"][
+                 env.frame_index:sell_unit.data_model_index:("sold", "demand", "total_sold")].flatten().astype(np.int)
+
+        self.assertEqual(actual_sold_2, states[0])
+        self.assertEqual(demand, states[1])
+        self.assertEqual(actual_sold + actual_sold_2, states[2])
+
+    def test_seller_unit_customized(self):
+        env = build_env("case_03", 100)
+
+        # find seller for sku3 from retailer facility
+        sell_unit: SellerUnit
+        source_facility: FacilityBase
+
+        for id, info in env.summary["node_mapping"]["facilities"].items():
+            if info["name"] == "Retailer_001":
+                for pid, pdetail in info["units"]["products"].items():
+                    if pdetail["sku_id"] == SKU3_ID:
+                        sell_unit = env._business_engine.world.get_entity(pdetail["seller"]["id"])
+
+            if info["name"] == "Warehouse_001":
+                source_facility = env._business_engine.world.get_facility_by_id(info["id"])
+
+        # NOTE:
+        # this simple seller unit return demands that same as current tick
+        env.step(None)
+
+        # so tick 0 will have demand == 0
+        # from configuration
+        self.assertEqual(0, sell_unit.sold)
+        self.assertEqual(0, sell_unit.demand)
+        self.assertEqual(0, sell_unit.total_sold)
+        self.assertEqual(SKU3_ID, sell_unit.product_id)
+
+        #
+        self.assertEqual(0, sell_unit.data_model.sold)
+        self.assertEqual(0, sell_unit.data_model.demand)
+        self.assertEqual(0, sell_unit.data_model.total_sold)
+        self.assertEqual(SKU3_ID, sell_unit.product_id)
+
+        is_done = False
+
+        while not is_done:
+            _, _, is_done = env.step(None)
+
+        # check demand history, it should be same as tick
+        seller_nodes = env.snapshot_list["seller"]
+
+        demand_states = seller_nodes[:sell_unit.data_model_index:"demand"].flatten().astype(np.int)
+
+        self.assertListEqual([i for i in range(100)], list(demand_states))
+
+        # check sold states
+        # it should be 0 after tick 4
+        sold_states = seller_nodes[:sell_unit.data_model_index:"sold"].flatten().astype(np.int)
+        self.assertListEqual([0, 1, 2, 3, 4] + [0] * 95, list(sold_states))
+
+        # total sold
+        total_sold_states = seller_nodes[:sell_unit.data_model_index:"total_sold"].flatten().astype(np.int)
+        # total sold will keep same after tick 4
+        self.assertListEqual([0, 1, 3, 6, 10] + [10] * 95, list(total_sold_states))
 
 
 if __name__ == '__main__':
