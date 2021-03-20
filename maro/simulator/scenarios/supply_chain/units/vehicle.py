@@ -34,11 +34,10 @@ class VehicleUnit(UnitBase):
         # Current location in the path.
         self.location = 0
 
-        # Id of destination.
-        self.destination_id = 0
-
         # Velocity.
         self.velocity = 0
+        self.quantity = 0
+        self.patient = 0
 
     def schedule(self, destination: object, product_id: int, quantity: int, vlt: int):
         """Schedule a job for this vehicle.
@@ -50,6 +49,7 @@ class VehicleUnit(UnitBase):
             vlt (int): Velocity of vehicle.
         """
         # Keep these in states, we will not update it until we reach the destination or cancelled.
+        self.data_model.source = self.facility.id
         self.data_model.destination = destination.id
         self.data_model.product_id = product_id
         self.data_model.requested_quantity = quantity
@@ -58,9 +58,7 @@ class VehicleUnit(UnitBase):
         # Cache.
         self.product_id = product_id
         self.destination = destination
-
-        # Keep the patient, reset it after product unloaded.
-        self.max_patient = self.data_model.patient
+        self.quantity = quantity
 
         # Find the path from current entity to target.
         self.path = self.world.find_path(
@@ -75,11 +73,14 @@ class VehicleUnit(UnitBase):
 
         # Steps to destination.
         self.steps = len(self.path) // vlt
+        self.data_model.steps = self.steps
 
         # We are waiting for product loading.
         self.location = 0
 
         self.velocity = vlt
+
+        self.patient = self.max_patient
 
     def try_load(self, quantity: int) -> bool:
         """Try to load specified number of scheduled product.
@@ -95,8 +96,6 @@ class VehicleUnit(UnitBase):
 
             return True
         else:
-            self.data_model.patient -= 1
-
             return False
 
     def try_unload(self):
@@ -117,11 +116,7 @@ class VehicleUnit(UnitBase):
                 self.payload
             )
 
-            # Reset the state.
-            self.data_model.payload = 0
             self.payload = 0
-            self.data_model.patient = self.max_patient
-            self.data_model.position[:] = -1
 
     def initialize(self):
         super(VehicleUnit, self).initialize()
@@ -132,6 +127,7 @@ class VehicleUnit(UnitBase):
         self.data_model.initialize(patient=patient, unit_transport_cost=unit_transport_cost)
 
         self.data_model.position[:] = -1
+        self.max_patient = patient
 
     def step(self, tick: int):
         # If we have not arrive at destination yet.
@@ -139,28 +135,22 @@ class VehicleUnit(UnitBase):
             # if we still not loaded enough productions yet.
             if self.location == 0 and self.payload == 0:
                 # then try to load by requested.
-                request_quantity = self.data_model.requested_quantity
 
-                if self.try_load(request_quantity):
+                if self.try_load(self.quantity):
                     # NOTE: here we return to simulate loading
                     return
                 else:
-                    self.data_model.patient -= 1
+                    self.patient -= 1
 
                     # Failed to load, check the patient.
-                    if self.data_model.patient < 0:
+                    if self.patient < 0:
                         self.destination.products[self.product_id].consumer.update_open_orders(
                             self.facility.id,
                             self.product_id,
-                            -request_quantity
+                            -self.quantity
                         )
 
-                        # reset
-                        self.steps = 0
-                        self.location = 0
-                        self.destination = None
-                        self.destination_id = 0
-
+                        self._reset_internal_states()
                         self._reset_data_model()
 
             # Moving to destination
@@ -169,8 +159,9 @@ class VehicleUnit(UnitBase):
 
                 self.location += self.velocity
                 self.steps -= 1
+                self.data_model.steps = self.steps
 
-                if self.location > len(self.path):
+                if self.location >= len(self.path):
                     self.location = len(self.path) - 1
 
                 self.data_model.position[:] = self.path[self.location]
@@ -183,36 +174,37 @@ class VehicleUnit(UnitBase):
 
                 # back to source if we unload all
                 if self.payload == 0:
-                    self.destination = None
-                    self.destination_id = 0
-                    self.steps = 0
-                    self.location = 0
-                    self.destination = 0
-
-                    # Reset data model
+                    self._reset_internal_states()
                     self._reset_data_model()
 
     def flush_states(self):
         if self.payload > 0:
             self.data_model.payload = self.payload
 
-        if self.steps > 0:
-            self.data_model.steps = self.steps
+        # Flush if we have an order.
+        if self.quantity > 0:
+            self.data_model.patient = self.patient
 
     def reset(self):
         super(VehicleUnit, self).reset()
 
+        self._reset_internal_states()
+        self._reset_data_model()
+
+    def _reset_internal_states(self):
         self.destination = None
-        self.destination_id = 0
-        self.max_patient = None
         self.path = None
         self.payload = 0
         self.product_id = 0
         self.steps = 0
         self.location = 0
+        self.quantity = 0
+        self.velocity = 0
+        self.patient = self.max_patient
 
     def _reset_data_model(self):
         # Reset data model.
+        self.data_model.source = 0
         self.data_model.steps = 0
         self.data_model.destination = 0
         self.data_model.product_id = 0

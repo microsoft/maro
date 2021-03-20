@@ -103,11 +103,19 @@ class DistributionUnit(UnitBase):
 
             self.data_model.delay_order_penalty[product_index] += sku.delay_order_penalty
 
+    def flush_states(self):
+        for vehicle in self.vehicles:
+            vehicle.flush_states()
+
     def reset(self):
         super(DistributionUnit, self).reset()
 
         self.order_queue.clear()
         self._init_data_model()
+
+        # Reset vehicles.
+        for vehicle in self.vehicles:
+            vehicle.reset()
 
     def _init_data_model(self):
         for product_id in self.product_list:

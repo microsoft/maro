@@ -99,6 +99,9 @@ class FacilityBase(ABC):
         if self.storage is not None:
             self.storage.reset()
 
+        if self.distribution is not None:
+            self.distribution.reset()
+
         if self.products is not None:
             for product in self.products.values():
                 product.reset()

@@ -105,5 +105,6 @@ class UnitBase:
             "id": self.id,
             "node_name": type(self.data_model).__node_name__,
             "node_index": self.data_model_index,
-            "class": type(self)
+            "class": type(self),
+            "children": None if self.children is None else [c.get_unit_info() for c in self.children]
         }

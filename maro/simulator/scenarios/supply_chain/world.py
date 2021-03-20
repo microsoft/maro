@@ -295,10 +295,15 @@ class World:
             children_conf = config.get("children", None)
 
             if children_conf:
+                unit_instance.children = []
+
                 for child_name, child_conf in children_conf.items():
                     # If child configuration is a dict, then we add it as a property by name (key).
                     if type(child_conf) == dict:
-                        setattr(unit_instance, child_name, self.build_unit(facility, unit_instance, child_conf))
+                        child_instance = self.build_unit(facility, unit_instance, child_conf)
+
+                        setattr(unit_instance, child_name, child_instance)
+                        unit_instance.children.append(child_instance)
                     elif type(child_conf) == list:
                         # If child configuration is a list, then will treat it as list property, named same as key.
                         child_list = []
@@ -306,6 +311,7 @@ class World:
                             child_list.append(self.build_unit(facility, unit_instance, conf))
 
                         setattr(unit_instance, child_name, child_list)
+                        unit_instance.children.extend(child_list)
 
             return unit_instance
         else:

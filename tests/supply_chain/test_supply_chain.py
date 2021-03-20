@@ -5,7 +5,7 @@ import numpy as np
 
 from maro.simulator import Env
 from maro.simulator.scenarios.supply_chain import ManufactureAction, ConsumerAction
-from maro.simulator.scenarios.supply_chain import StorageUnit, ConsumerUnit, FacilityBase
+from maro.simulator.scenarios.supply_chain import StorageUnit, ConsumerUnit, FacilityBase, VehicleUnit
 
 
 def build_env(case_name: str, durations: int):
@@ -868,6 +868,343 @@ class MyTestCase(unittest.TestCase):
 
         # NOTE: we cannot test the received state by calling on_order_reception directly,
         # as it will be cleared by env.step, do it on vehicle unit test.
+
+    """
+    Vehicle unit test:
+
+    . initial state
+    . if vehicle arrive at destination within special vlt
+    . schedule job
+    . try_load until patient <= 0 to cancel the schedule
+    . try_load until patient > 0 to load order
+    . try_unload
+        . target storage cannot take all
+        . target storage can take all
+    """
+
+    def test_vehicle_unit_state(self):
+        env = build_env("case_02", 100)
+
+        # try to find first vehicle unit we meet
+        vehicle_unit: VehicleUnit
+        vehicle_unit_id: int
+        vehicle_unit_data_model_index: int
+
+        for id, info in env.summary["node_mapping"]["entity_mapping"].items():
+            if info[0] == "vehicle":
+                vehicle_unit_id = id
+                vehicle_unit = env._business_engine.world.get_entity(id)
+                vehicle_unit_data_model_index = vehicle_unit.data_model_index
+
+                break
+
+        # check initial state according to configuration file
+        self.assertEqual(10, vehicle_unit.max_patient)
+        self.assertEqual(10, vehicle_unit.data_model.patient)
+
+        self.assertEqual(0, vehicle_unit.quantity)
+        # not destination at first
+        self.assertIsNone(vehicle_unit.destination)
+        # no path
+        self.assertIsNone(vehicle_unit.path)
+        # no product
+        self.assertEqual(0, vehicle_unit.product_id)
+        # no steps
+        self.assertEqual(0, vehicle_unit.steps)
+        #
+        self.assertEqual(0, vehicle_unit.payload)
+        #
+        self.assertIsNone(vehicle_unit.product)
+        #
+        self.assertEqual(0, vehicle_unit.location)
+        #
+        self.assertEqual(0, vehicle_unit.velocity)
+
+        # state in frame
+        self.assertEqual(0, vehicle_unit.data_model.source)
+        self.assertEqual(0, vehicle_unit.data_model.destination)
+        self.assertEqual(0, vehicle_unit.data_model.payload)
+        self.assertEqual(0, vehicle_unit.data_model.product_id)
+        self.assertEqual(0, vehicle_unit.data_model.requested_quantity)
+        self.assertEqual(0, vehicle_unit.data_model.steps)
+        self.assertEqual(12, vehicle_unit.data_model.unit_transport_cost)
+        self.assertListEqual([-1, -1], vehicle_unit.data_model.position[:])
+
+        # reset to check again
+        env.step(None)
+        env.reset()
+
+        # check initial state according to configuration file
+        self.assertEqual(10, vehicle_unit.max_patient)
+        self.assertEqual(10, vehicle_unit.data_model.patient)
+
+        # not destination at first
+        self.assertIsNone(vehicle_unit.destination)
+        # no path
+        self.assertIsNone(vehicle_unit.path)
+        # no product
+        self.assertEqual(0, vehicle_unit.product_id)
+        # no steps
+        self.assertEqual(0, vehicle_unit.steps)
+        #
+        self.assertEqual(0, vehicle_unit.payload)
+        #
+        self.assertIsNone(vehicle_unit.product)
+        #
+        self.assertEqual(0, vehicle_unit.location)
+        #
+        self.assertEqual(0, vehicle_unit.velocity)
+        #
+        self.assertEqual(0, vehicle_unit.quantity)
+
+        # state in frame
+        self.assertEqual(0, vehicle_unit.data_model.source)
+        self.assertEqual(0, vehicle_unit.data_model.destination)
+        self.assertEqual(0, vehicle_unit.data_model.payload)
+        self.assertEqual(0, vehicle_unit.data_model.product_id)
+        self.assertEqual(0, vehicle_unit.data_model.requested_quantity)
+        self.assertEqual(0, vehicle_unit.data_model.steps)
+        self.assertEqual(12, vehicle_unit.data_model.unit_transport_cost)
+        self.assertListEqual([-1, -1], vehicle_unit.data_model.position[:])
+
+    def test_vehicle_unit_schedule(self):
+        env = build_env("case_02", 100)
+
+        # try to find first vehicle unit of Supplier
+        vehicle_unit: VehicleUnit
+        dest_facility: FacilityBase
+
+        for id, info in env.summary["node_mapping"]["facilities"].items():
+            if info["name"] == "Supplier_SKU3":
+                for v in info["units"]["distribution"]["children"]:
+                    vehicle_unit = env._business_engine.world.get_entity(v["id"])
+
+            if info["name"] == "Warehouse_001":
+                dest_facility = env._business_engine.world.get_facility_by_id(info["id"])
+
+        # make sure the upstream in the only one supplier in config
+        self.assertEqual(1, len(dest_facility.upstreams))
+        self.assertEqual(1, len(dest_facility.upstreams[SKU3_ID]))
+
+        # schedule job vehicle unit manually, from supplier to warehouse
+        vehicle_unit.schedule(dest_facility, SKU3_ID, 20, 2)
+
+        # step to take snapshot
+        env.step(None)
+
+        vehicle_nodes = env.snapshot_list["vehicle"]
+
+        # check internal states
+        self.assertEqual(dest_facility, vehicle_unit.destination)
+        self.assertEqual(SKU3_ID, vehicle_unit.product_id)
+        self.assertEqual(20, vehicle_unit.quantity)
+        self.assertEqual(2, vehicle_unit.velocity)
+        # 6/2
+        self.assertEqual(3, vehicle_unit.steps)
+
+        features = (
+            "id",
+            "facility_id",
+            "source",
+            "destination",
+            "payload",
+            "product_id",
+            "requested_quantity",
+            "steps",
+            "unit_transport_cost"
+        )
+
+        states = vehicle_nodes[env.frame_index:vehicle_unit.data_model_index:features].flatten().astype(np.int)
+
+        # source id
+        self.assertEqual(vehicle_unit.facility.id, states[2])
+        # destination
+        self.assertEqual(dest_facility.id, states[3])
+        # payload should be 20, as we already env.step
+        self.assertEqual(20, states[4])
+        # product id
+        self.assertEqual(SKU3_ID, states[5])
+        # quantity
+        self.assertEqual(20, states[6])
+        # steps
+        self.assertEqual(3, states[7])
+
+        # push the vehicle on the way
+        env.step(None)
+
+        states = vehicle_nodes[env.frame_index:vehicle_unit.data_model_index:features].flatten().astype(np.int)
+
+        # source id
+        self.assertEqual(vehicle_unit.facility.id, states[2])
+        # destination
+        self.assertEqual(dest_facility.id, states[3])
+        # payload
+        self.assertEqual(20, states[4])
+        # product id
+        self.assertEqual(SKU3_ID, states[5])
+        # quantity
+        self.assertEqual(20, states[6])
+        # steps, one step forward (vlt=2)
+        self.assertEqual(2, states[7])
+
+        env.step(None)
+
+        states = vehicle_nodes[env.frame_index:vehicle_unit.data_model_index:features].flatten().astype(np.int)
+
+        # steps, one step forward (vlt=2)
+        self.assertEqual(1, states[7])
+
+        env.step(None)
+
+        states = vehicle_nodes[env.frame_index:vehicle_unit.data_model_index:features].flatten().astype(np.int)
+
+        # steps, one step forward (vlt=2)
+        self.assertEqual(0, states[7])
+
+        pos = vehicle_nodes[env.frame_index:vehicle_unit.data_model_index:"position"].flatten().astype(np.int)
+
+        # the position should be (0, 0) (warehouse)
+        self.assertListEqual([0, 0], list(pos))
+
+        # next step vehicle will try to unload the products
+        env.step(None)
+
+        states = vehicle_nodes[env.frame_index:vehicle_unit.data_model_index:features].flatten().astype(np.int)
+
+        # the product is unloaded, vehicle states will be reset to initial
+        # not destination at first
+        self.assertIsNone(vehicle_unit.destination)
+        self.assertIsNone(vehicle_unit.path)
+        self.assertEqual(0, vehicle_unit.product_id)
+        self.assertEqual(0, vehicle_unit.steps)
+        self.assertEqual(0, vehicle_unit.payload)
+        self.assertIsNone(vehicle_unit.product)
+        self.assertEqual(0, vehicle_unit.location)
+        self.assertEqual(0, vehicle_unit.velocity)
+        self.assertEqual(0, vehicle_unit.quantity)
+
+        # check states
+
+        self.assertEqual(0, states[2])
+        self.assertEqual(0, states[3])
+        self.assertEqual(0, states[4])
+        self.assertEqual(0, states[5])
+        self.assertEqual(0, states[6])
+        self.assertEqual(0, states[7])
+        self.assertEqual(12, vehicle_unit.data_model.unit_transport_cost)
+
+        pos = vehicle_nodes[env.frame_index:vehicle_unit.data_model_index:"position"].flatten().astype(np.int)
+        self.assertListEqual([-1, -1], list(pos))
+
+    def test_vehicle_unit_no_patient(self):
+        """
+        NOTE: with patient is tried in above case after schedule the job
+        """
+        env = build_env("case_02", 100)
+
+        # try to find first vehicle unit of Supplier
+        vehicle_unit: VehicleUnit
+        dest_facility: FacilityBase
+
+        for id, info in env.summary["node_mapping"]["facilities"].items():
+            if info["name"] == "Supplier_SKU3":
+                for v in info["units"]["distribution"]["children"]:
+                    vehicle_unit = env._business_engine.world.get_entity(v["id"])
+
+            if info["name"] == "Warehouse_001":
+                dest_facility = env._business_engine.world.get_facility_by_id(info["id"])
+
+        # there is 80 sku3 in supplier, lets schedule a job for 100, to make sure it will fail to try load
+        vehicle_unit.schedule(dest_facility, SKU3_ID, 100, 3)
+
+        # push env to next step
+        env.step(None)
+
+        self.assertEqual(100, vehicle_unit.quantity)
+
+        # the patient will -1 as no enough product so load
+        self.assertEqual(10 - 1, vehicle_unit.patient)
+        self.assertEqual(10 - 1, vehicle_unit.data_model.patient)
+
+        # no payload
+        self.assertEqual(0, vehicle_unit.payload)
+        self.assertEqual(0, vehicle_unit.data_model.payload)
+
+        # step 9 ticks, patient will be 0
+        for i in range(10 - 1):
+            env.step(None)
+
+            self.assertEqual(10 - 1 - (i+1), vehicle_unit.patient)
+            self.assertEqual(10 - 1 - (i+1), vehicle_unit.data_model.patient)
+
+        vehicle_nodes = env.snapshot_list["vehicle"]
+        features = (
+            "id",
+            "facility_id",
+            "source",
+            "destination",
+            "payload",
+            "product_id",
+            "requested_quantity",
+            "steps",
+            "unit_transport_cost"
+        )
+
+        states = vehicle_nodes[:vehicle_unit.data_model_index:"patient"].flatten().astype(np.int)
+
+        # check the patient history
+        self.assertEqual(10, len(states))
+        self.assertListEqual([9,8,7,6,5,4,3,2,1,0], list(states))
+
+        states = vehicle_nodes[:vehicle_unit.data_model_index:"payload"].flatten().astype(np.int)
+
+        # no payload from start to now
+        self.assertListEqual([0]*10, list(states))
+
+        # push env to next step, vehicle will be reset to initial state
+        env.step(None)
+
+        states = vehicle_nodes[env.frame_index:vehicle_unit.data_model_index:features].flatten().astype(np.int)
+
+        # the product is unloaded, vehicle states will be reset to initial
+        # not destination at first
+        self.assertIsNone(vehicle_unit.destination)
+        self.assertIsNone(vehicle_unit.path)
+        self.assertEqual(0, vehicle_unit.product_id)
+        self.assertEqual(0, vehicle_unit.steps)
+        self.assertEqual(0, vehicle_unit.payload)
+        self.assertIsNone(vehicle_unit.product)
+        self.assertEqual(0, vehicle_unit.location)
+        self.assertEqual(0, vehicle_unit.velocity)
+        self.assertEqual(0, vehicle_unit.quantity)
+
+        # check states
+
+        self.assertEqual(0, states[2])
+        self.assertEqual(0, states[3])
+        self.assertEqual(0, states[4])
+        self.assertEqual(0, states[5])
+        self.assertEqual(0, states[6])
+        self.assertEqual(0, states[7])
+        self.assertEqual(12, vehicle_unit.data_model.unit_transport_cost)
+
+        pos = vehicle_nodes[env.frame_index:vehicle_unit.data_model_index:"position"].flatten().astype(np.int)
+        self.assertListEqual([-1, -1], list(pos))
+
+
+    """
+    Distribution unit test:
+
+    . initial state
+    . dispatch orders without available vehicle
+    . dispatch order with vehicle
+    """
+
+    """
+    Seller unit test:
+        . with a customized seller unit
+        . with built in one
+    """
 
 
 if __name__ == '__main__':
