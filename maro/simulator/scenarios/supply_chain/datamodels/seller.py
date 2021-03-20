@@ -32,12 +32,10 @@ class SellerDataModel(SkuDataModel):
         super(SellerDataModel, self).__init__()
 
         self._unit_price = 0
-        self._sale_gamma = 0
         self._backlog_ratio = 0
 
-    def initialize(self, unit_price: int = 0, sale_gamma: int = 0, backlog_ratio: int = 0):
+    def initialize(self, unit_price: int = 0, backlog_ratio: int = 0):
         self._unit_price = unit_price
-        self._sale_gamma = sale_gamma
         self._backlog_ratio = backlog_ratio
 
         self.reset()
@@ -46,5 +44,4 @@ class SellerDataModel(SkuDataModel):
         super(SellerDataModel, self).reset()
 
         self.unit_price = self._unit_price
-        self.sale_gamma = self._sale_gamma
         self.backlog_ratio = self._backlog_ratio

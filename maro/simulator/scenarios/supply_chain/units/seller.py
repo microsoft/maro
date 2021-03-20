@@ -23,7 +23,6 @@ class SellerUnit(SkuUnit):
         self.sold = 0
         self.demand = 0
         self.total_sold = 0
-        self.product_id = 0
 
     def market_demand(self, tick: int) -> int:
         """Generate market demand for current tick.
@@ -34,18 +33,19 @@ class SellerUnit(SkuUnit):
         Returns:
             int: Demand number.
         """
-        return int(self.demand_distribution[tick])
+        return self.demand_distribution[tick]
 
     def initialize(self):
         super(SellerUnit, self).initialize()
 
-        unit_price = self.config.get("unit_price", 0)
-        self.gamma = self.config.get("sale_gamma", 0)
-        backlog_ratio = self.config.get("backlog_ratio", 1)
+        sku = self.facility.skus[self.product_id]
+
+        unit_price = sku.price
+        self.gamma = sku.sale_gamma
+        backlog_ratio = sku.backlog_ratio
 
         self.data_model.initialize(
             unit_price=unit_price,
-            sale_gamma=self.gamma,
             backlog_ratio=backlog_ratio
         )
 
@@ -53,7 +53,7 @@ class SellerUnit(SkuUnit):
 
         # Generate demand distribution of this episode.
         for _ in range(self.durations):
-            self.demand_distribution.append(np.random.gamma(self.gamma))
+            self.demand_distribution.append(int(np.random.gamma(self.gamma)))
 
     def step(self, tick: int):
         demand = self.market_demand(tick)
