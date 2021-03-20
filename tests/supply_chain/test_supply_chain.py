@@ -1191,6 +1191,63 @@ class MyTestCase(unittest.TestCase):
         pos = vehicle_nodes[env.frame_index:vehicle_unit.data_model_index:"position"].flatten().astype(np.int)
         self.assertListEqual([-1, -1], list(pos))
 
+    def test_vehicle_unit_cannot_unload_at_destination(self):
+        """
+        NOTE: If vehicle cannot unload at destination, it will keep waiting, until success to unload.
+
+        """
+        env = build_env("case_02", 100)
+
+        # try to find first vehicle unit of Supplier
+        vehicle_unit: VehicleUnit
+        dest_facility: FacilityBase
+
+        for id, info in env.summary["node_mapping"]["facilities"].items():
+            if info["name"] == "Supplier_SKU3":
+                for v in info["units"]["distribution"]["children"]:
+                    vehicle_unit = env._business_engine.world.get_entity(v["id"])
+
+            if info["name"] == "Warehouse_001":
+                dest_facility = env._business_engine.world.get_facility_by_id(info["id"])
+
+        # move all 80 sku3 to destination, will cause vehicle keep waiting there
+        vehicle_unit.schedule(dest_facility, SKU3_ID, 80, 2)
+
+        # step to the end.
+        is_done = False
+
+        while not is_done:
+            _, _, is_done = env.step(None)
+
+        vehicle_nodes = env.snapshot_list["vehicle"]
+        features = (
+            "id",
+            "facility_id",
+            "source",
+            "destination",
+            "payload",
+            "product_id",
+            "requested_quantity",
+            "steps",
+            "unit_transport_cost"
+        )
+
+        # payload should be 80 for first 4 ticks, as it is on the way
+        # then it will unload 100 - 10 - 10 - 10 = 70 products, as this is the remaining space of destination storage
+        # so then it will keep waiting to unload remaining 10
+        payload_states = vehicle_nodes[:vehicle_unit.data_model_index:"payload"].flatten().astype(np.int)
+        self.assertListEqual([80]*4 + [10] * 96, list(payload_states))
+
+        # other states should not be reset as it not finish it task
+        quantity_states = vehicle_nodes[:vehicle_unit.data_model_index:"requested_quantity"].flatten().astype(np.int)
+        self.assertListEqual([80]*100, list(quantity_states))
+
+        # same situation as payload
+        steps_states = vehicle_nodes[:vehicle_unit.data_model_index:"steps"].flatten().astype(np.int)
+        self.assertListEqual([3, 2, 1] + [0] * 97, list(steps_states))
+
+        destination_states = vehicle_nodes[:vehicle_unit.data_model_index:"destination"].flatten().astype(np.int)
+        self.assertListEqual([dest_facility.id] * 100, list(destination_states))
 
     """
     Distribution unit test:
@@ -1199,6 +1256,15 @@ class MyTestCase(unittest.TestCase):
     . dispatch orders without available vehicle
     . dispatch order with vehicle
     """
+
+    def test_distribution_unit_initial_state(self):
+        pass
+
+    def test_distribution_unit_dispatch_order(self):
+        pass
+
+    def test_distribution_unit_dispatch_order_no_vehicle(self):
+        pass
 
     """
     Seller unit test:

@@ -116,7 +116,7 @@ class VehicleUnit(UnitBase):
                 self.payload
             )
 
-            self.payload = 0
+            self.payload -= unloaded_units
 
     def initialize(self):
         super(VehicleUnit, self).initialize()
