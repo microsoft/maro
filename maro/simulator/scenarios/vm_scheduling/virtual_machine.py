@@ -29,7 +29,8 @@ class VirtualMachine:
         lifetime: int,
         sub_id: int,
         deployment_id: int,
-        category: VmCategory
+        category: VmCategory,
+        unit_price: float
     ):
         # VM Requirement parameters.
         self.id: int = id
@@ -43,6 +44,9 @@ class VirtualMachine:
         # The category of the VM. Now includes Delay-insensitive: 0, Interactive: 1, and Unknown: 2.
         self.category: VmCategory = category
 
+        # The unit price of the VM.
+        self.unit_price: float = unit_price
+
         # VM utilization list with VM cpu utilization(%) in corresponding tick.
         self._utilization_series: List[float] = []
         # The physical machine Id that the VM is assigned.
@@ -50,6 +54,10 @@ class VirtualMachine:
         self._cpu_utilization: float = 0.0
         self.creation_tick: int = -1
         self.deletion_tick: int = -1
+
+    def get_income_till_now(self, cur_tick: int):
+        """Get the VM's income which contains income from [creation_tick, current_tick). """
+        return self.unit_price * (cur_tick - self.creation_tick)
 
     @property
     def cpu_utilization(self) -> float:
