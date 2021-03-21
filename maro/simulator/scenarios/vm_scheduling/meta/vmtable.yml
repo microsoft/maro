@@ -1,0 +1,34 @@
+events:
+  REQUIREMENTS:
+    display_name: "vm_required"
+
+  "default": "REQUIREMENTS"
+
+entity:
+  vm_id:
+    column: 'vmid'
+    dtype: 'i'
+  sub_id:
+    column: 'subscriptionid'
+    dtype: 'i'
+  deploy_id:
+    column: 'deploymentid'
+    dtype: 'i'
+  timestamp:
+    column: 'vmcreated'
+    dtype: 'i'
+  vm_lifetime:
+    column: 'lifetime'
+    dtype: 'i'
+  vm_deleted:
+    column: 'vmdeleted'
+    dtype: 'i'
+  vm_category:
+    column: 'vmcategory'
+    dtype: 'i'
+  vm_cpu_cores:
+    column: 'vmcorecountbucket'
+    dtype: 'i'
+  vm_memory:
+    column: 'vmmemorybucket'
+    dtype: 'i'

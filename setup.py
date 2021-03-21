@@ -3,8 +3,14 @@
 
 import io
 import os
+import numpy
 
-from setuptools import Extension, find_packages, setup
+# NOTE: DO NOT change the import order, as sometimes there is a conflict between setuptools and distutils,
+# it will cause following error:
+# error: each element of 'ext_modules' option must be an Extension instance or 2-tuple
+from setuptools import find_packages
+from distutils.core import setup
+from distutils.extension import Extension
 
 from maro import __version__
 
@@ -25,10 +31,6 @@ compile_conditions = {}
 # CURRENTLY we using environment variables to specified compiling conditions
 # TODO: used command line arguments instead
 
-# specified frame backend
-FRAME_BACKEND = os.environ.get("FRAME_BACKEND", "NUMPY")  # NUMPY or empty
-
-
 # include dirs for frame and its backend
 include_dirs = []
 
@@ -36,37 +38,38 @@ include_dirs = []
 extensions.append(
     Extension(
         f"{BASE_MODULE_NAME}.backend",
-        sources=[f"{BASE_SRC_PATH}/backend.c"])
+        sources=[f"{BASE_SRC_PATH}/backend.cpp"],
+        extra_compile_args=['-std=c++11'])
 )
 
-if FRAME_BACKEND == "NUMPY":
-    import numpy
 
-    include_dirs.append(numpy.get_include())
+include_dirs.append(numpy.get_include())
 
-    extensions.append(
-        Extension(
-            f"{BASE_MODULE_NAME}.np_backend",
-            sources=[f"{BASE_SRC_PATH}/np_backend.c"],
-            define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")],
-            include_dirs=include_dirs)
-    )
-else:
-    # raw implementation
-    # NOTE: not implemented now
-    extensions.append(
-        Extension(
-            f"{BASE_MODULE_NAME}.raw_backend",
-            sources=[f"{BASE_SRC_PATH}/raw_backend.c"])
-    )
+extensions.append(
+    Extension(
+        f"{BASE_MODULE_NAME}.np_backend",
+        sources=[f"{BASE_SRC_PATH}/np_backend.cpp"],
+        include_dirs=include_dirs,
+        extra_compile_args=['-std=c++11'])
+)
+
+# raw implementation
+# NOTE: not implemented now
+extensions.append(
+    Extension(
+        f"{BASE_MODULE_NAME}.raw_backend",
+        sources=[f"{BASE_SRC_PATH}/raw_backend.cpp"],
+        include_dirs=include_dirs,
+        extra_compile_args=['-std=c++11'])
+)
 
 # frame
 extensions.append(
     Extension(
         f"{BASE_MODULE_NAME}.frame",
-        sources=[f"{BASE_SRC_PATH}/frame.c"],
-        define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")],
-        include_dirs=include_dirs)
+        sources=[f"{BASE_SRC_PATH}/frame.cpp"],
+        include_dirs=include_dirs,
+        extra_compile_args=['-std=c++11'])
 )
 
 
@@ -123,18 +126,19 @@ setup(
         "requests==2.24.0",
         "psutil==5.7.2",
         "deepdiff==5.0.2",
-        "azure-storage-blob==12.3.2",
+        "azure-storage-blob==12.6.0",
         "azure-storage-common==2.1.0",
         "geopy==2.0.0",
         "pandas==0.25.3",
-        "PyYAML==5.3.1"
+        "PyYAML==5.3.1",
+        "paramiko==2.7.2"
     ],
     entry_points={
         "console_scripts": [
             "maro=maro.cli.maro:main",
         ]
     },
-    packages=find_packages(exclude=["examples", "examples.*"]),
+    packages=find_packages(exclude=["tests", "tests.*", "examples", "examples.*"]),
     include_package_data=True,
     package_data={
         "maro.simulator.scenarios.cim": ["topologies/*/*.yml", "meta/*.yml"],

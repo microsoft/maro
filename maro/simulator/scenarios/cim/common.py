@@ -8,63 +8,9 @@ from maro.backends.frame import SnapshotList
 
 
 class VesselState(IntEnum):
-    """State of vessel.
-    """
+    """State of vessel."""
     PARKING = 0
     SAILING = 1
-
-
-class CimEventType(IntEnum):
-    """Event type for CIM problem.
-    """
-    RELEASE_EMPTY = 10
-    RETURN_FULL = 11
-    LOAD_FULL = 12
-    DISCHARGE_FULL = 13
-    RELEASE_FULL = 14
-    RETURN_EMPTY = 15
-    ORDER = 16
-    VESSEL_ARRIVAL = 17
-    VESSEL_DEPARTURE = 18
-    PENDING_DECISION = 19
-    LOAD_EMPTY = 20
-    DISCHARGE_EMPTY = 21
-
-
-# used for arrival and departure cascade event
-class VesselStatePayload:
-    """Payload object used to hold vessel state changes for event.
-
-    Args:
-        port_idx (int): Which port the vessel at.
-        vessel_idx (int): Which vessel's state changed.
-    """
-    def __init__(self, port_idx: int, vessel_idx: int):
-
-        self.port_idx = port_idx
-        self.vessel_idx = vessel_idx
-
-    def __repr__(self):
-        return f"VesselStatePayload {{ port: {self.port_idx}, vessel: {self.vessel_idx} }}"
-
-
-class VesselDischargePayload:
-    """Payload object to hold information about container discharge.
-
-    Args:
-        vessel_idx (int): Which vessel will discharge.
-        from_port_idx (int): Which port sent the discharged containers.
-        port_idx (int): Which port will receive the discharged containers.
-        quantity (int): How many containers will be discharged.
-    """
-    def __init__(self, vessel_idx: int, from_port_idx: int, port_idx: int, quantity: int):
-        self.vessel_idx = vessel_idx
-        self.from_port_idx = from_port_idx
-        self.port_idx = port_idx
-        self.quantity = quantity
-
-    def __repr__(self):
-        return f"VesselDischargePayload {{ vessel: {self.vessel_idx}, port: {self.port_idx}, qty: {self.quantity} }}"
 
 
 class Action:
@@ -75,6 +21,7 @@ class Action:
         port_idx (int): Which port will take action.
         quantity (int): How many containers can be moved from vessel to port (negative in reverse).
     """
+    summary_key = ["port_idx", "vessel_idx", "quantity"]
 
     def __init__(self, vessel_idx: int, port_idx: int, quantity: int):
         self.vessel_idx = vessel_idx
@@ -120,6 +67,8 @@ class DecisionEvent:
         early_discharge_func (Function): Function to fetch early discharge number of specified vessel, we
             use function here to make it getting the value as late as possible.
     """
+    summary_key = ["tick", "port_idx", "vessel_idx", "snapshot_list", "action_scope", "early_discharge"]
+
     def __init__(
         self, tick: int, port_idx: int, vessel_idx: int, snapshot_list: SnapshotList,
         action_scope_func, early_discharge_func

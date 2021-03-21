@@ -1,0 +1,24 @@
+mode: k8s/aks
+name: MyJobName # str: name of the training job
+
+components: # component config
+  actor:
+    image: MyImageName # str: name of the training image
+    resources:
+      cpu: 2 # int: cpu requirement (unit: cores)
+      memory: 4096M # str: memory requirement (unit: MB)
+      gpu: 0 # int: gpu requirement (units: cards)
+    num: 5 # int: number of this component
+    mount:
+      target: /mnt/data # str: target directory for user data, see "maro grass data push" for reference
+    command: ["python", "/mnt/data/run_actor.py"] # list: command to be executed
+  learner:
+    image: MyImageName
+    resources:
+      cpu: 4
+      memory: 8192M
+      gpu: 0
+    num: 1
+    mount:
+      target: /mnt/data
+    command: ["python", "/mnt/data/run_learner.py"]

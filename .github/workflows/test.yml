@@ -30,7 +30,7 @@ jobs:
 
     - name: Compile cython files
       run: |
-        cython ./maro/backends/backend.pyx ./maro/backends/np_backend.pyx ./maro/backends/raw_backend.pyx ./maro/backends/frame.pyx -3 -E FRAME_BACKEND=NUMPY,NODES_MEMORY_LAYOUT=ONE_BLOCK -X embedsignature=True
+        cython ./maro/backends/backend.pyx ./maro/backends/np_backend.pyx ./maro/backends/raw_backend.pyx ./maro/backends/frame.pyx --cplus -3 -E NODES_MEMORY_LAYOUT=ONE_BLOCK -X embedsignature=True
 
     - name: Build maro inplace
       run: |
@@ -78,5 +78,5 @@ jobs:
         flags: unittests
         env_vars: OS,PYTHON
         name: maro-code-coverage
-        fail_ci_if_error: true
+        fail_ci_if_error: false
         path_to_write_report: ./codecov_report.gz

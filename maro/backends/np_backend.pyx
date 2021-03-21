@@ -2,7 +2,8 @@
 # Licensed under the MIT license.
 
 #cython: language_level=3
-# distutils: define_macros=NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION
+#distutils: language = c++
+#distutils: define_macros=NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION
 
 import os
 
@@ -11,7 +12,23 @@ cimport numpy as np
 cimport cython
 
 from cpython cimport bool
-from maro.backends.backend cimport BackendAbc, SnapshotListAbc
+from maro.backends.backend cimport (BackendAbc, SnapshotListAbc, AttributeType,
+    INT, UINT, ULONG, USHORT, NODE_TYPE, ATTR_TYPE, NODE_INDEX, SLOT_INDEX)
+
+
+# Attribute data type mapping.
+attribute_type_mapping = {
+    AttributeType.Byte: "b",
+    AttributeType.UByte: "B",
+    AttributeType.Short: "h",
+    AttributeType.UShort: "H",
+    AttributeType.Int: "i",
+    AttributeType.UInt: "I",
+    AttributeType.Long: "q",
+    AttributeType.ULong: "Q",
+    AttributeType.Float: "f",
+    AttributeType.Double: "d"
+}
 
 
 IF NODES_MEMORY_LAYOUT == "ONE_BLOCK":
@@ -29,7 +46,7 @@ IF NODES_MEMORY_LAYOUT == "ONE_BLOCK":
         PyTypeObject PyArray_Type
 
         np.ndarray PyArray_SimpleNewFromData(int nd, np.npy_intp * dims, int typenum, void* data)
-        
+
         np.ndarray PyArray_NewFromDescr(PyTypeObject* subtype, np.dtype descr, int nd, np.npy_intp* dims, np.npy_intp* strides, void* data, int flags, object obj)
 
 
@@ -37,7 +54,7 @@ IF NODES_MEMORY_LAYOUT == "ONE_BLOCK":
 cdef int MMAP_BUFFER_SIZE = 100
 
 
-# TODO: 
+# TODO:
 # 1. add dtype in header, to make it easy to read
 # 2. add tick for each snapshot
 cdef class NPBufferedMmap:
@@ -63,11 +80,27 @@ cdef class NPBufferedMmap:
         if self._current_record_number >= self._buffer_size:
             self.reload()
 
-    cdef void reload(self) except *:
+    cdef void reload(self) except +:
         """Reload the file with offset to avoid memmap size limitation"""
         self._data_arr = np.memmap(self._path, self._dtype, "w+", offset=self._offset, shape=(self._buffer_size, self._node_number))
 
         self._offset += self._dtype.itemsize * self._buffer_size * self._node_number
+
+
+cdef class NodeInfo:
+    """Internal structure to hold node info."""
+    cdef:
+        public NODE_TYPE type
+        public str name
+        public NODE_INDEX number
+
+    def __cinit__(self, str name, NODE_TYPE type, NODE_INDEX number):
+        self.name = name
+        self.type = type
+        self.number = number
+
+    def __repr__(self):
+        return f"<NodeInfo name: {self.name}, type: {self.type}, number: {self.number}>"
 
 
 cdef class AttrInfo:
@@ -75,11 +108,15 @@ cdef class AttrInfo:
     cdef:
         public str name
         public str dtype
-        public int slot_number
+        public ATTR_TYPE type
+        public NODE_TYPE node_type
+        public SLOT_INDEX slot_number
 
-    def __cinit__(self, str name, str dtype, int slot_number):
+    def __cinit__(self, str name, ATTR_TYPE type, NODE_TYPE node_type, str dtype, SLOT_INDEX slot_number):
         self.name = name
         self.dtype = dtype
+        self.type = type
+        self.node_type = node_type
         self.slot_number = slot_number
 
     def gen_numpy_dtype(self):
@@ -89,119 +126,130 @@ cdef class AttrInfo:
         else:
             return (self.name, self.dtype, self.slot_number)
 
+    def __repr__(self):
+        return f"<AttrInfo name: {self.name}, type: {self.type}, node_type: {self.node_type}, slot_number: {self.slot_number}>"
 
 cdef class NumpyBackend(BackendAbc):
     def __cinit__(self):
-        self._node_num_dict = {}
+        self._nodes_list = []
+        self._attrs_list = []
+        self._node_attr_dict = {}
         self._node_data_dict = {}
 
-        # 2 dict for attribute for different scenario querying
-        self._node_attr_dict = {} # node_name -> attribute list
-        self._node_attr_lut = {} # (node_name, attr_name) -> attribute
-
-    def __dealloc__(self):
-        """Clear resources before deleted"""
-        IF NODES_MEMORY_LAYOUT == "ONE_BLOCK":
-            self._node_data_dict = None
-
-            PyMem_Free(self._data)
-        ELSE:
-            pass
-
-    cdef dict get_node_info(self):
-        cdef str node_name
-        cdef int node_number
-        cdef dict node_info = {}
-        cdef list attrs
-
-        for node_name, node_number in self._node_num_dict.items():
-            attrs = self._node_attr_dict[node_name]
-
-            node_info[node_name]= {
-                "number": node_number,
-                "attributes": {attr.name:
-                    {
-                        "type": attr.dtype, 
-                        "slots": attr.slot_number
-                    } for attr in attrs}
-            }
-
-        return node_info
-
-    cdef void add_node(self, str name, int number) except *:
+    cdef NODE_TYPE add_node(self, str name, NODE_INDEX number) except +:
         """Add a new node type with name and number in backend"""
-        # TODO: less than 1 checking
-        self._node_num_dict[name] = number
-        self._node_attr_dict[name] = []
+        cdef NodeInfo new_node = NodeInfo(name, len(self._nodes_list), number)
 
-    cdef void add_attr(self, str node_name, str attr_name, str dtype, int slot_num) except *:
+        self._nodes_list.append(new_node)
+        self._node_attr_dict[new_node.type] = []
+
+        return new_node.type
+
+    cdef ATTR_TYPE add_attr(self, NODE_TYPE node_type, str attr_name, bytes dtype, SLOT_INDEX slot_num, bool is_const, bool is_list) except +:
         """Add a new attribute for specified node with data type and slot number"""
-        # TODO: type checking, slot_number checking
-        cdef AttrInfo ai = AttrInfo(attr_name, dtype, slot_num)
+        if node_type >= len(self._nodes_list):
+            raise Exception("Invalid node type.")
 
-        self._node_attr_dict[node_name].append(ai)
+        cdef str _dtype = attribute_type_mapping[dtype]
 
-        self._node_attr_lut[(node_name, attr_name)] = ai
+        cdef NodeInfo node = self._nodes_list[node_type]
+        cdef AttrInfo new_attr = AttrInfo(attr_name, len(self._attrs_list), node.type, dtype.decode(), slot_num)
 
-    cdef void set_attr_value(self, str node_name, int node_index, str attr_name, int slot_index, value)  except *:
+        self._attrs_list.append(new_attr)
+        self._node_attr_dict[node_type].append(new_attr)
+
+        return new_attr.type
+
+    cdef void set_attr_value(self, NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX slot_index, object value) except +:
         """Set specified attribute value"""
-        cdef np.ndarray attr_array = self._node_data_dict[node_name][attr_name]
-        cdef AttrInfo attr = self._node_attr_lut[(node_name, attr_name)]
+        if attr_type >= len(self._attrs_list):
+            raise Exception("Invalid attribute type.")
+
+        cdef AttrInfo attr = self._attrs_list[attr_type]
+
+        if attr.node_type >= len(self._nodes_list):
+            raise Exception("Invalid node type.")
+
+        cdef NodeInfo node = self._nodes_list[attr.node_type]
+
+        if node_index >= node.number:
+            raise Exception("Invalid node index.")
+
+        cdef np.ndarray attr_array = self._node_data_dict[attr.node_type][attr.name]
 
         if attr.slot_number > 1:
             attr_array[0][node_index, slot_index] = value
         else:
             attr_array[0][node_index] = value
 
-    cdef object get_attr_value(self, str node_name, int node_index, str attr_name, int slot_index):
+    cdef object get_attr_value(self, NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX slot_index) except +:
         """Get specified attribute value"""
-        cdef np.ndarray attr_array = self._node_data_dict[node_name][attr_name]
-        cdef AttrInfo attr = self._node_attr_lut[(node_name, attr_name)]
+        if attr_type >= len(self._attrs_list):
+            raise Exception("Invalid attribute type.")
+
+        cdef AttrInfo attr = self._attrs_list[attr_type]
+
+        if attr.node_type >= len(self._nodes_list):
+            raise Exception("Invalid node type.")
+
+        cdef NodeInfo node = self._nodes_list[attr.node_type]
+
+        if node_index >= node.number:
+            raise Exception("Invalid node index.")
+
+        cdef np.ndarray attr_array = self._node_data_dict[attr.node_type][attr.name]
 
         if attr.slot_number > 1:
             return attr_array[0][node_index, slot_index]
         else:
             return attr_array[0][node_index]
 
-    cdef void set_attr_values(self, str node_name, int node_index, str attr_name, int[:] slot_index, list value)  except *:
-        cdef np.ndarray attr_array = self._node_data_dict[node_name][attr_name]
-        cdef AttrInfo attr = self._node_attr_lut[(node_name, attr_name)]
+    cdef void set_attr_values(self, NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX[:] slot_index, list value) except +:
+        cdef AttrInfo attr = self._attrs_list[attr_type]
+        cdef np.ndarray attr_array = self._node_data_dict[attr.node_type][attr.name]
 
         if attr.slot_number == 1:
             attr_array[0][node_index, slot_index[0]] = value[0]
         else:
-            attr_array[0][node_index, slot_index] = value 
+            attr_array[0][node_index, slot_index] = value
 
-    cdef object[object, ndim=1] get_attr_values(self, str node_name, int node_index, str attr_name, int[:] slot_indices):
-        cdef np.ndarray attr_array = self._node_data_dict[node_name][attr_name]
-        cdef AttrInfo attr = self._node_attr_lut[(node_name, attr_name)]
+    cdef list get_attr_values(self, NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX[:] slot_indices) except +:
+        cdef AttrInfo attr = self._attrs_list[attr_type]
+        cdef np.ndarray attr_array = self._node_data_dict[attr.node_type][attr.name]
 
         if attr.slot_number == 1:
-            return attr_array[0][node_index, slot_indices[0]]
+            return attr_array[0][node_index, slot_indices[0]].tolist()
         else:
-            return attr_array[0][node_index, slot_indices]
+            return attr_array[0][node_index, slot_indices].tolist()
 
-
-    cdef void setup(self, bool enable_snapshot, int total_snapshot, dict options) except *:
+    cdef void setup(self, bool enable_snapshot, USHORT total_snapshot, dict options) except +:
         """Set up the numpy backend"""
         self._is_snapshot_enabled = enable_snapshot
 
-        cdef int snapshot_number = 0
+        cdef UINT snapshot_number = 0
         cdef str node_name
+        cdef NODE_TYPE node_type
+        cdef ATTR_TYPE attr_type
         cdef list node_attrs
         cdef np.dtype data_type
-        cdef int node_number
+        cdef UINT node_number
         cdef AttrInfo ai
+        cdef NodeInfo ni
         cdef tuple shape
-        cdef int max_tick = 0
+        cdef UINT max_tick = 0
 
         IF NODES_MEMORY_LAYOUT == "ONE_BLOCK":
-            self._data_size = 0 # total memory size we need to hold nodes in both frame and snapshot list
-            node_info = {} # temp node information, as we need several steps to build backend
+            # Total memory size we need to hold nodes in both frame and snapshot list
+            self._data_size = 0
+            # Temp node information, as we need several steps to build backend
+            node_info = {}
 
-        for node_name, node_attrs in self._node_attr_dict.items():
-            node_number = self._node_num_dict[node_name]
-            dtype = np.dtype([ai.gen_numpy_dtype() for ai in node_attrs])
+        for node_type, node_attrs in self._node_attr_dict.items():
+            ni = self._nodes_list[node_type]
+
+            node_number = ni.number
+
+            data_type = np.dtype([ai.gen_numpy_dtype() for ai in node_attrs])
 
             # for each node, we keep frame and snapshot in one big numpy array
             # 1st slot is the node's frame data
@@ -213,19 +261,19 @@ cdef class NumpyBackend(BackendAbc):
                 shape = (snapshot_number + 1, node_number)
             else:
                 shape = (1, node_number)
-            
+
             IF NODES_MEMORY_LAYOUT == "ONE_BLOCK":
                 # for ONE_BLOCK mode, we only calculate total size we need to allocate memory
                 # shape, data type, beginning of this node
-                # NOTE: we have to keep data type here, or it will be collected by GC at sometime, 
+                # NOTE: we have to keep data type here, or it will be collected by GC at sometime,
                 # then will cause numpy array cannot get the reference
                 # , we will increase he reference later
-                node_info[node_name] = (shape, dtype, self._data_size)
+                node_info[node_type] = (shape, data_type, self._data_size)
 
-                self._data_size += shape[0] * shape[1] * dtype.itemsize
+                self._data_size += shape[0] * shape[1] * data_type.itemsize
             ELSE:
                 # one memory block for each node
-                self._node_data_dict[node_name] = np.zeros(shape, dtype)
+                self._node_data_dict[node_type] = np.zeros(shape, data_type)
 
         IF NODES_MEMORY_LAYOUT == "ONE_BLOCK":
             # allocate memory, and construct numpy array with numpy c api
@@ -239,35 +287,77 @@ cdef class NumpyBackend(BackendAbc):
             cdef int offset
             cdef np.npy_intp np_dims[2]
 
-            for node_name, info in node_info.items():
+            for node_type, info in node_info.items():
                 shape = info[0]
-                dtype = info[1]
+                data_type = info[1]
                 offset = info[2]
 
                 np_dims[0] = shape[0]
                 np_dims[1] = shape[1]
 
-                self._node_data_dict[node_name] = PyArray_NewFromDescr(&PyArray_Type, dtype, 2, np_dims, NULL, &self._data[offset], np.NPY_ARRAY_C_CONTIGUOUS | np.NPY_ARRAY_WRITEABLE, None)
+                self._node_data_dict[node_type] = PyArray_NewFromDescr(&PyArray_Type, data_type, 2, np_dims, NULL, &self._data[offset], np.NPY_ARRAY_C_CONTIGUOUS | np.NPY_ARRAY_WRITEABLE, None)
 
-                # NOTE: we have to increate the reference count of related dtype, 
+                # NOTE: we have to increate the reference count of related dtype,
                 # or it will cause seg fault
-                Py_INCREF(dtype)
+                Py_INCREF(data_type)
 
         if enable_snapshot:
             self.snapshots = NPSnapshotList(self, snapshot_number + 1)
 
-    cdef void reset(self) except *:
+    def __dealloc__(self):
+        """Clear resources before deleted"""
+        IF NODES_MEMORY_LAYOUT == "ONE_BLOCK":
+            self._node_data_dict = None
+
+            PyMem_Free(self._data)
+        ELSE:
+            pass
+
+    cdef dict get_node_info(self) except +:
+        cdef dict node_info = {}
+
+        cdef NODE_TYPE node_type
+        cdef list node_attrs
+
+        for node_type, node_attrs in self._node_attr_dict.items():
+            node = self._nodes_list[node_type]
+
+            node_info[node.name] = {
+                "number": node.number,
+                "attributes": {
+                    attr.name: {
+                        "type": attr.dtype,
+                        "slots": attr.slot_number
+                    } for attr in node_attrs
+                }
+            }
+
+        return node_info
+
+
+    cdef void reset(self) except +:
         """Reset all the attributes value"""
-        cdef str node_name
+        cdef NODE_TYPE node_type
         cdef AttrInfo attr_info
         cdef np.ndarray data_arr
-        
-        for node_name, data_arr in self._node_data_dict.items():
+
+        for node_type, data_arr in self._node_data_dict.items():
             # we have to reset by each attribute
-            for attr_info in self._node_attr_dict[node_name]:
+            for attr_info in self._node_attr_dict[node_type]:
                 # we only reset frame here, without snapshot list
                 data_arr[0][attr_info.name] = 0
 
+    cdef void dump(self, str folder) except +:
+        for node_type, data_arr in self._node_data_dict.items():
+            node = self._nodes_list[node_type]
+            node_name = node.name
+            filename = os.path.join(folder, node_name + ".npy")
+            descFilename = os.path.join(folder, node_name + ".meta")
+            with open(filename, "wb+") as f:
+                np.save(f, data_arr)
+            with open(descFilename, "wt+") as f:
+                f.write(",".join([ai.name for ai in self._node_attr_dict[node_type]]) + "\n")
+                f.write(",".join([str(ai.slot_number) for ai in self._node_attr_dict[node_type]]))
 
 # TODO:
 # 1. dump as csv
@@ -281,20 +371,30 @@ cdef class NPSnapshotList(SnapshotListAbc):
 
         self._tick2index_dict = {}
         self._index2tick_dict = {}
+        self._node_name2type_dict = {}
         self._cur_index = 0
         self._max_size = max_size
         self._is_history_enabled = False
         self._history_dict = {}
 
-    cdef list get_frame_index_list(self):
-        return list(self._index2tick_dict.values())
+        for node in backend._nodes_list:
+            self._node_name2type_dict[node.name] = node.type
 
-    cdef void take_snapshot(self, int tick) except *:
+    cdef NODE_INDEX get_node_number(self, NODE_TYPE node_type) except +:
+        cdef NodeInfo node = self._backend._nodes_list[node_type]
+
+        return node.number
+
+    cdef list get_frame_index_list(self) except +:
+        return list(self._tick2index_dict.keys())
+
+    cdef void take_snapshot(self, INT tick) except +:
         """Take snapshot for current backend"""
-        cdef str node_name
+        cdef NODE_TYPE node_type
+        cdef NodeInfo ni
         cdef np.ndarray data_arr
-        cdef int target_index = 0
-        cdef int old_tick # old tick to be removed
+        cdef UINT target_index = 0
+        cdef INT old_tick # old tick to be removed
 
         # check if we are overriding exist snapshot, or not inserted yet
         if tick not in self._tick2index_dict:
@@ -314,26 +414,25 @@ cdef class NPSnapshotList(SnapshotListAbc):
 
             if old_tick in self._tick2index_dict:
                 del self._tick2index_dict[old_tick]
-        
+
         # recording will copy data at 1st row into _cur_index row
-        for node_name, data_arr in self._backend._node_data_dict.items():
+        for node_type, data_arr in self._backend._node_data_dict.items():
+            ni = self._backend._nodes_list[node_type]
             data_arr[target_index] = data_arr[0]
 
             if self._is_history_enabled:
-                self._history_dict[node_name].record(data_arr[0])
+                self._history_dict[ni.name].record(data_arr[0])
 
         self._index2tick_dict[target_index] = tick
 
         self._tick2index_dict[tick] = target_index
 
-    cdef query(self, str node_name, list ticks, list node_index_list, list attr_name_list):
-        cdef int tick
-        cdef int data_index
-        cdef int node_index
-        cdef str attr_name
+    cdef query(self, NODE_TYPE node_type, list ticks, list node_index_list, list attr_list) except +:
+        cdef UINT tick
+        cdef NODE_INDEX node_index
+        cdef ATTR_TYPE attr_type
         cdef AttrInfo attr
-
-        cdef np.ndarray data_arr = self._backend._node_data_dict[node_name]
+        cdef np.ndarray data_arr = self._backend._node_data_dict[node_type]
 
         # TODO: how about use a pre-allocate np array instead concat?
         cdef list retq = []
@@ -342,56 +441,59 @@ cdef class NPSnapshotList(SnapshotListAbc):
             ticks = [t for t in self._tick2index_dict.keys()][-(self._max_size-1):]
 
         if len(node_index_list) == 0:
-            node_index_list = [i for i in range(self._backend._node_num_dict[node_name])]
+            node_index_list = [i for i in range(self._backend._nodes_list[node_type].number)]
 
         # querying by tick attribute
         for tick in ticks:
             for node_index in node_index_list:
-                for attr_name in attr_name_list:
+                for attr_type in attr_list:
+                    attr = self._backend._attrs_list[attr_type]
+
                     # since we have a clear tick to index mapping, do not need additional checking here
                     if tick in self._tick2index_dict:
-                        retq.append(data_arr[attr_name][self._tick2index_dict[tick], node_index].astype("f").flatten())
+                        retq.append(data_arr[attr.name][self._tick2index_dict[tick], node_index].astype("f").flatten())
                     else:
                         # padding for tick which not exist
-                        attr = self._backend._node_attr_lut[(node_name, attr_name)]
-                        retq.append(np.zeros(attr.slot_number, dtype='f'))              
+                        retq.append(np.zeros(attr.slot_number, dtype='f'))
 
         return np.concatenate(retq)
 
-    cdef void enable_history(self, str history_folder) except *:
+    cdef void enable_history(self, str history_folder) except +:
         """Enable history recording, used to save all the snapshots into file"""
         if self._is_history_enabled:
             return
 
-        self._is_history_enabled = True 
+        self._is_history_enabled = True
 
-        cdef str node_name
+        cdef NODE_TYPE node_type
+        cdef NodeInfo ni
         cdef str dump_path
         cdef np.ndarray data_arr
 
-        for node_name, data_arr in self._backend._node_data_dict.items():
-            dump_path = os.path.join(history_folder, f"{node_name}.bin")
+        for node_type, data_arr in self._backend._node_data_dict.items():
+            ni = self._backend._nodes_list[node_type]
+            dump_path = os.path.join(history_folder, f"{ni.name}.bin")
 
-            self._history_dict[node_name] = NPBufferedMmap(dump_path, data_arr.dtype, self._backend._node_num_dict[node_name])
-        
-    cdef void reset(self) except *:
+            self._history_dict[ni.name] = NPBufferedMmap(dump_path, data_arr.dtype, ni.number)
+
+    cdef void reset(self) except +:
         """Reset snapshot list"""
         self._cur_index = 0
         self._tick2index_dict.clear()
         self._index2tick_dict.clear()
         self._history_dict.clear()
 
-        cdef str node_name
+        cdef NODE_TYPE node_type
         cdef AttrInfo attr_info
         cdef np.ndarray data_arr
-        
-        for node_name, data_arr in self._backend._node_data_dict.items():
+
+        for node_type, data_arr in self._backend._node_data_dict.items():
             # we have to reset by each attribute
-            for attr_info in self._backend._node_attr_dict[node_name]:
+            for attr_info in self._backend._node_attr_dict[node_type]:
                 # we only reset frame here, without snapshot list
                 data_arr[1:][attr_info.name] = 0
 
         # NOTE: we do not reset the history file here, so the file will keep increasing
 
     def __len__(self):
-        return self._max_size - 1
+        return len(self._index2tick_dict)
