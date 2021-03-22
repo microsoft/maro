@@ -71,7 +71,7 @@ To start this visualization tool, user need to input command following the forma
 
 .. code-block:: sh
 
-    maro inspector env --source {source\_folder\_path} --force {true/false}
+    maro inspector dashboard --source_path {source\_folder\_path} --force {true/false}
 
 ----
 
@@ -79,7 +79,7 @@ e.g.
 
 .. code-block:: sh
 
-    maro inspector env --source_path .\maro\dumper_files --force false
+    maro inspector dashboard --source_path .\maro\dumper_files --force false
 
 ----
 
