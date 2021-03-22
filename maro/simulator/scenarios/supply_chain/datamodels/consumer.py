@@ -3,7 +3,7 @@
 
 
 from maro.backends.backend import AttributeType
-from maro.backends.frame import node, NodeAttribute
+from maro.backends.frame import NodeAttribute, node
 
 from .skumodel import SkuDataModel
 

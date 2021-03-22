@@ -3,7 +3,7 @@
 
 
 import warnings
-from collections import defaultdict, Counter
+from collections import Counter, defaultdict
 
 from .order import Order
 from .skuunit import SkuUnit
@@ -92,7 +92,7 @@ class ConsumerUnit(SkuUnit):
 
     def step(self, tick: int):
         # NOTE: id == 0 means invalid,as our id is 1 based.
-        if self.action is None or self.action.quantity <= 0 or self.action.product_id <= 0 or self.action.source_id == 0:
+        if not self.action or self.action.quantity <= 0 or self.action.product_id <= 0 or self.action.source_id == 0:
             return
 
         # NOTE: we are using product unit as destination,

@@ -3,7 +3,7 @@
 
 from typing import List, Tuple
 
-from maro.backends.frame import NodeBase, FrameBase, FrameNode
+from maro.backends.frame import FrameBase, FrameNode, NodeBase
 
 
 def build_frame(enable_snapshot: bool, total_snapshots: int, nodes: List[Tuple[NodeBase, str, int]]):

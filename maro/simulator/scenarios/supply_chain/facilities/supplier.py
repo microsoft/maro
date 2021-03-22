@@ -5,7 +5,10 @@
 from collections import namedtuple
 from typing import List
 
-from maro.simulator.scenarios.supply_chain.units import StorageUnit, DistributionUnit, ProductUnit
+from maro.simulator.scenarios.supply_chain.units import (DistributionUnit,
+                                                         ProductUnit,
+                                                         StorageUnit)
+
 from .facility import FacilityBase
 
 
@@ -14,7 +17,17 @@ class SupplierFacility(FacilityBase):
 
     SkuInfo = namedtuple(
         "SkuInfo",
-        ("name", "id", "init_in_stock", "type", "cost", "price", "delay_order_penalty", "product_unit_cost", "order_cost")
+        (
+            "name",
+            "id",
+            "init_in_stock",
+            "type",
+            "cost",
+            "price",
+            "delay_order_penalty",
+            "product_unit_cost",
+            "order_cost"
+        )
     )
 
     # Storage unit of this facility.

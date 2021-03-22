@@ -5,7 +5,10 @@
 from collections import namedtuple
 from typing import List
 
-from maro.simulator.scenarios.supply_chain.units import StorageUnit, DistributionUnit, ProductUnit
+from maro.simulator.scenarios.supply_chain.units import (DistributionUnit,
+                                                         ProductUnit,
+                                                         StorageUnit)
+
 from .facility import FacilityBase
 
 

@@ -2,10 +2,8 @@
 # Licensed under the MIT license.
 
 
-from abc import abstractmethod
-
 from maro.backends.backend import AttributeType
-from maro.backends.frame import NodeBase, NodeAttribute
+from maro.backends.frame import NodeAttribute, NodeBase
 
 
 class DataModelBase(NodeBase):

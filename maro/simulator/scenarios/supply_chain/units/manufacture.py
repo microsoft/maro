@@ -3,6 +3,7 @@
 
 
 from maro.simulator.scenarios.supply_chain.actions import ManufactureAction
+
 from .skuunit import SkuUnit
 
 
@@ -68,8 +69,10 @@ class ManufactureUnit(SkuUnit):
                 for source_sku_id, source_sku_cost_number in self.bom.items():
                     source_sku_available_number = self.facility.storage.get_product_number(source_sku_id)
 
-                    max_number_to_procedure = min(source_sku_available_number // source_sku_cost_number,
-                                                  max_number_to_procedure)
+                    max_number_to_procedure = min(
+                        source_sku_available_number // source_sku_cost_number,
+                        max_number_to_procedure
+                        )
 
                     if max_number_to_procedure <= 0:
                         break

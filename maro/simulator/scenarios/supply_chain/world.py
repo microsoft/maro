@@ -3,15 +3,17 @@
 
 
 from collections import namedtuple
-from typing import List, Union, Tuple
+from typing import List, Tuple, Union
 
 import numpy as np
-from maro.backends.frame import FrameBase
 from tcod.path import AStar
+
+from maro.backends.frame import FrameBase
 
 from .facilities import FacilityBase
 from .frame_builder import build_frame
-from .parser import SupplyChainConfiguration, DataModelDef, UnitDef, FacilityDef
+from .parser import (DataModelDef, FacilityDef, SupplyChainConfiguration,
+                     UnitDef)
 from .units import UnitBase
 
 SkuInfo = namedtuple("SkuInfo", ("name", "id", "bom", "output_units_per_lot"))
@@ -239,7 +241,7 @@ class World:
         # 0 for 2nd parameters means disable diagonal movement, so just up, right, down or left.
         self._path_finder = AStar(cost_grid, 0)
 
-    def build_unit_by_type(self, unit_type: type, parent: Union[FacilityBase, UnitBase], facility: FacilityBase) -> UnitBase:
+    def build_unit_by_type(self, unit_type: type, parent: Union[FacilityBase, UnitBase], facility: FacilityBase):
         unit = unit_type()
 
         unit.id = self._gen_id()

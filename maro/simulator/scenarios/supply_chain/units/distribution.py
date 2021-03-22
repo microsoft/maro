@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 
-from collections import deque, defaultdict
+from collections import defaultdict, deque
 from typing import Dict
 
 from .order import Order
