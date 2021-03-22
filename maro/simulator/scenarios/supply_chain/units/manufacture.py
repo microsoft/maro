@@ -72,7 +72,7 @@ class ManufactureUnit(SkuUnit):
                     max_number_to_procedure = min(
                         source_sku_available_number // source_sku_cost_number,
                         max_number_to_procedure
-                        )
+                    )
 
                     if max_number_to_procedure <= 0:
                         break

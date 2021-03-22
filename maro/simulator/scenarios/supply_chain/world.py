@@ -12,8 +12,7 @@ from maro.backends.frame import FrameBase
 
 from .facilities import FacilityBase
 from .frame_builder import build_frame
-from .parser import (DataModelDef, FacilityDef, SupplyChainConfiguration,
-                     UnitDef)
+from .parser import DataModelDef, FacilityDef, SupplyChainConfiguration, UnitDef
 from .units import UnitBase
 
 SkuInfo = namedtuple("SkuInfo", ("name", "id", "bom", "output_units_per_lot"))

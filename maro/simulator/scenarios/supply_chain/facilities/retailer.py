@@ -5,8 +5,7 @@
 from collections import namedtuple
 from typing import List
 
-from maro.simulator.scenarios.supply_chain.units import (ProductUnit,
-                                                         StorageUnit)
+from maro.simulator.scenarios.supply_chain.units import ProductUnit, StorageUnit
 
 from .facility import FacilityBase
 
@@ -25,8 +24,8 @@ class RetailerFacility(FacilityBase):
             "sale_gamma",
             "order_cost",
             "backlog_ratio"
-            )
         )
+    )
 
     # Product unit list of this facility.
     products: List[ProductUnit]

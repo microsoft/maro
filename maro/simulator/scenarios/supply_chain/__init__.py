@@ -3,9 +3,13 @@
 
 
 from .actions import ConsumerAction, ManufactureAction
-from .datamodels import (ConsumerDataModel, DistributionDataModel,
-                         ManufactureDataModel, SellerDataModel,
-                         StorageDataModel, VehicleDataModel)
+from .datamodels import (
+    ConsumerDataModel,
+    DistributionDataModel,
+    ManufactureDataModel,
+    SellerDataModel,
+    StorageDataModel,
+    VehicleDataModel
+)
 from .facilities import RetailerFacility, SupplierFacility, WarehouseFacility
-from .units import (ProductUnit, SellerUnit, SkuUnit, StorageUnit, UnitBase,
-                    VehicleUnit)
+from .units import ProductUnit, SellerUnit, SkuUnit, StorageUnit, UnitBase, VehicleUnit
