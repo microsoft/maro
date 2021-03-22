@@ -6,7 +6,6 @@ from collections import namedtuple
 from typing import List, Tuple, Union
 
 import networkx as nx
-import numpy as np
 
 from maro.backends.frame import FrameBase
 
@@ -234,7 +233,7 @@ class World:
             pos = tuple(pos)
 
             # Neighbors to facility will have hight cost.
-            for npos in ((pos[0]-1, pos[1]), (pos[0]+1, pos[1]), (pos[0], pos[1]-1), (pos[0], pos[1]+1)):
+            for npos in ((pos[0] - 1, pos[1]), (pos[0] + 1, pos[1]), (pos[0], pos[1] - 1), (pos[0], pos[1] + 1)):
                 if npos[0] >= 0 and npos[0] < grid_width and npos[1] >= 0 and npos[1] < grid_height:
                     edge_weights[(npos, pos)] = 4
 
