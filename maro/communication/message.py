@@ -2,18 +2,11 @@
 # Licensed under the MIT license.
 
 # native lib
-import sys
 import uuid
 from enum import Enum
 from typing import Union
 
-# private lib
-from maro.utils import InternalLogger
-from maro.utils.exit_code import NON_RESTART_EXIT_CODE
-
 from .utils import session_id_generator
-
-logger = InternalLogger(component_name="message")
 
 
 class SessionType(Enum):
@@ -113,5 +106,4 @@ class SessionMessage(Message):
         elif self.session_type == SessionType.NOTIFICATION:
             self.session_stage = session_stage if session_stage else NotificationSessionStage.REQUEST
         else:
-            logger.error(f"Receive unrecognized session type {self.session_type}, please use the SessionType class.")
-            sys.exit(NON_RESTART_EXIT_CODE)
+            raise KeyError(f'Unsupported session type {self.session_type}.')
