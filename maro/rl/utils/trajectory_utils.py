@@ -10,8 +10,10 @@ import torch.nn.functional as F
 
 MAX_LOSS = 1e8
 
-def get_sars(states: list, actions: list, rewards: list, multi_agent: bool = True) -> dict:
-    """Extract experiences from a trajectory.
+def get_sars(states: list, actions: list, rewards: list) -> dict:
+    """Extract experiences from a multi-agent trajectory.
+
+    The top-level keys for each state and action will be treated as agent IDs during the extraction.
 
     Args:
         states (list): List of states traversed during a roll-out episode (in order).
@@ -21,39 +23,30 @@ def get_sars(states: list, actions: list, rewards: list, multi_agent: bool = Tru
     Returns:
         Experiences for training, grouped by agent ID.
     """
-    if multi_agent:
-        sars = {}
-        for state, action, reward in zip(states, actions, rewards):
-            for agent_id in state:
-                exp = sars.setdefault(agent_id, {"S": [], "A": [], "R": [], "S_": [], "loss": []})
-                exp["S"].append(state[agent_id])
-                exp["A"].append(action[agent_id])
-                exp["R"].append(reward)
-                exp["loss"].append(MAX_LOSS)
+    sars = {}
+    for state, action, reward in zip(states, actions, rewards):
+        assert state.keys() == action.keys(), f"state keys: {list(state.keys())}, action keys: {list(action.keys())}"
+        for agent_id in state:
+            exp = sars.setdefault(agent_id, {"S": [], "A": [], "R": [], "S_": [], "loss": []})
+            exp["S"].append(state[agent_id])
+            exp["A"].append(action[agent_id])
+            exp["R"].append(reward)
+            exp["loss"].append(MAX_LOSS)
 
-        for exp in sars.values():
-            exp["S_"] = exp["S"][1:]
-            exp["S"].pop()
+    if len(states) == len(actions) + 1:
+        for agent_id in states[-1]:
+            if agent_id in sars:
+                sars[agent_id]["S"].append(states[-1][agent_id])
+
+    for exp in sars.values():
+        exp["S_"] = exp["S"][1:]
+        exp["S"].pop()
+        if len(exp["S"]) == len(exp["A"]) - 1:
             exp["A"].pop()
             exp["R"].pop()
             exp["loss"].pop()
 
-        return sars
-    else:
-        sars = {"S": [], "A": [], "R": [], "S_": [], "loss": []}
-        for state, action, reward in zip(states, actions, rewards):
-            sars["S"].append(state)
-            sars["A"].append(action)
-            sars["R"].append(reward)
-            sars["loss"].append(MAX_LOSS)
-
-        sars["S_"] = exp["S"][1:]
-        sars["S"].pop()
-        sars["A"].pop()
-        sars["R"].pop()
-        sars["loss"].pop()
-
-        return sars
+    return sars
 
 
 def get_truncated_cumulative_reward(

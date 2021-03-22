@@ -255,24 +255,3 @@ class SimpleStore(AbsStore):
         reference_val = contents[list(contents.keys())[0]]
         if any(len(val) != len(reference_val) for val in contents.values()):
             raise StoreMisalignment("values of contents should consist of lists of the same length")
-
-    @staticmethod
-    def concatenate(stores: List[SimpleStore], capacity: int = -1, overwrite_type: OverwriteType = None):
-        """Concatenate a list of stores with the same keys.
-        
-        The resulting store is of unbounded capacity.
-
-        Args:
-            stores (List[SimpleStore]): List of stores to be concatenated.
-        """
-        if not stores:
-            return
-        expected_keys = stores[0].data.keys
-        if any(store.data.keys() != expected_keys for store in stores):
-            raise ValueError("Stores must have the exact same keys to be concatenated")
-
-        ret_store = SimpleStore(list(expected_keys))
-        for store in stores:
-            ret_store.put(store.data)
-
-        return ret_store

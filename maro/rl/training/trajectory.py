@@ -8,12 +8,13 @@ from typing import Callable
 
 from maro.communication import Message, Proxy
 
-from .message_enums import MessageTag, PayloadKey
+from .message_enums import MsgTag, MsgKey
 
 
 class AbsTrajectory(ABC):
     def __init__(self, env, record_path: bool = True):
         self.env = env
+        self.step_index = None
         self.events = []
         self.states = []
         self.actions = []
@@ -21,6 +22,7 @@ class AbsTrajectory(ABC):
         self.record_path = record_path
 
     def start(self, rollout_index: int = None):
+        self.step_index = 0
         _, event, _ = self.env.step(None)
         state = self.get_state(event)
         if self.record_path:
@@ -45,6 +47,7 @@ class AbsTrajectory(ABC):
 
     def step(self, action):
         assert self.events, "start() must be called first."
+        self.step_index += 1
         env_action = self.get_action(action, self.events[-1])
         if len(env_action) == 1:
             env_action = list(env_action.values())[0]
@@ -52,6 +55,7 @@ class AbsTrajectory(ABC):
         if self.record_path:
             self.actions.append(action)
             self.rewards.append(self.get_reward())
+        assert len(self.events) == len(self.states) == len(self.actions) == len(self.rewards)
         if not done:
             state = self.get_state(event)
             if self.record_path:
@@ -67,13 +71,13 @@ class AbsTrajectory(ABC):
 
     def reset(self):
         self.env.reset()
-        self.events = []
-        self.states = []
-        self.actions = []
-        self.rewards = []
+        self.events.clear()
+        self.states.clear()
+        self.actions.clear()
+        self.rewards.clear()
 
     def flush(self):
-        self.events = self.events[-1:]
-        self.states = self.states[-1:]
-        self.actions = self.actions[-1:]
-        self.rewards = self.rewards[-1:]
+        self.events = self.events[-1:] if len(self.events) == len(self.actions) + 1 else []
+        self.states = self.states[-1:] if len(self.states) == len(self.actions) + 1 else []
+        self.actions.clear()
+        self.rewards.clear()

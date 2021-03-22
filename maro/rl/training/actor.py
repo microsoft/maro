@@ -9,7 +9,7 @@ from maro.rl.storage import SimpleStore
 from maro.rl.utils import get_sars
 from maro.utils import InternalLogger
 
-from .message_enums import MessageTag, PayloadKey
+from .message_enums import MsgTag, MsgKey
 from .trajectory import AbsTrajectory
 
 
@@ -23,7 +23,9 @@ class Actor(object):
             assigned to the learner (and decision clients, if any).
         proxy_options (dict): Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
             for details. Defaults to None.
-        sync_size (int): 
+        trajectory_sync_interval (int): Number of roll-out steps between trajectory syncing calls.
+        experience_getter (Callable): Custom function to extract experiences from a trajectory for training.
+            If None, ``get_sars`` will be used. Defaults to None.
     """
     def __init__(
         self,
@@ -31,19 +33,25 @@ class Actor(object):
         agent: Union[AbsAgent, MultiAgentWrapper],
         group: str = None,
         proxy_options: dict = None,
-        experience_sync_interval: int = None
+        trajectory_sync_interval: int = None,
+        experience_getter: Callable = get_sars
     ):
         self.trajectory = trajectory
-        self.agent = agent
-        self.experience_pool = SimpleStore(["S", "A", "R", "S_", "loss"])
+        self.agent = MultiAgentWrapper(agent) if isinstance(agent, AbsAgent) else agent
         if group is not None:
             if proxy_options is None:
                 proxy_options = {}
             self._proxy = Proxy(group, "actor", {"actor_proxy": 1}, **proxy_options)
-            self._experience_sync_interval = experience_sync_interval
+            self._trajectory_sync_interval = trajectory_sync_interval
             self._logger = InternalLogger(self._proxy.name)
-        self.exp_sync = bool(getattr(self, "_experience_sync_interval", None))
-        
+
+        # Under local mode or disributed mode without experience syncing, an experience pool needs to be created.
+        if group is None or not self._trajectory_sync_interval:
+            self.experience_pool = {
+                agent_id: SimpleStore(["S", "A", "R", "S_", "loss"]) for agent_id in self.agent.agent_dict
+            }
+            self.experience_getter = experience_getter
+
     def roll_out(self, index: int, training: bool = True, model_by_agent: dict = None, exploration_params=None):
         self.trajectory.reset()
         if not training:
@@ -59,51 +67,51 @@ class Actor(object):
         while state:
             action = self.agent.choose_action(state)
             state = self.trajectory.step(action)
-            if training and self.exp_sync and len(self.trajectory.states) == self._experience_sync_interval:
-                exp = get_sars(self.trajectory.states, self.trajectory.actions, self.trajectory.rewards)
-                self.trajectory.flush()
-                self._proxy.isend(
-                    Message(
-                        MessageTag.EXPERIENCE, self._proxy.name, self._proxy.peers_name["actor_proxy"][0],
-                        payload={PayloadKey.ROLLOUT_INDEX: index, PayloadKey.EXPERIENCE: exp}
-                    )
-                )
-
+            if training and hasattr(self, "_proxy") and not hasattr(self, "experience_pool"): 
+                self._sync_trajectory(index)
             self.trajectory.on_env_feedback()
 
         self.trajectory.on_finish()
         # If no experience syncing, the experience pool needs to be populated.
-        if training and not self._experience_sync_interval:
-            if isinstance(self.agent, AbsAgent):
-                self.experience_pool.put(get_sars(*self.trajectory.path, multi_agent=False))
-            else: 
-                for agent_id, exp in get_sars(*self.trajectory.path).items():
-                    self.experience_pool[agent_id].put(exp)
+        if training and hasattr(self, "experience_pool"):
+            for agent_id, exp in self.experience_getter(*self.trajectory.path).items():
+                self.experience_pool[agent_id].put(exp)
+                print(agent_id, len(self.experience_pool[agent_id]))
 
         return self.trajectory.env.metrics 
-    
+
     def run(self):
         assert hasattr(self, "_proxy"), "No proxy found. The `group` parameter should not be None at init."
         for msg in self._proxy.receive():
-            if msg.tag == MessageTag.EXIT:
+            if msg.tag == MsgTag.EXIT:
                 self._logger.info("Exiting...")
                 break
-            elif msg.tag == MessageTag.ROLLOUT:
-                ep = msg.payload[PayloadKey.ROLLOUT_INDEX]
+            elif msg.tag == MsgTag.ROLLOUT:
+                ep = msg.body[MsgKey.ROLLOUT_INDEX]
                 self._logger.info(f"Rolling out ({ep})...")
                 metrics = self.roll_out(
                     ep,
-                    training=msg.payload[PayloadKey.TRAINING],
-                    model_by_agent=msg.payload[PayloadKey.MODEL],
-                    exploration_params=msg.payload[PayloadKey.EXPLORATION_PARAMS]
+                    training=msg.body[MsgKey.TRAINING],
+                    model_by_agent=msg.body[MsgKey.MODEL],
+                    exploration_params=msg.body[MsgKey.EXPLORATION_PARAMS]
                 )
                 self._logger.info(f"Roll-out {ep} finished")
-                payload = {PayloadKey.ROLLOUT_INDEX: ep, PayloadKey.METRICS: metrics}
-                if msg.payload[PayloadKey.TRAINING] and not self.exp_sync:
-                    payload[PayloadKey.EXPERIENCE] = self.experience_pool
+                body = {MsgKey.ROLLOUT_INDEX: ep, MsgKey.METRICS: metrics}
+                if msg.body[MsgKey.TRAINING]:
+                    if hasattr(self, "experience_pool"):
+                        body[MsgKey.EXPERIENCE] = {id_: pool.data for id_, pool in self.experience_pool.items()}
+                    else:
+                        body[MsgKey.TRAJECTORY] = self.trajectory.path
                 self._proxy.isend(
-                    Message(
-                        MessageTag.FINISHED, self._proxy.name, self._proxy.peers_name["actor_proxy"][0],
-                        payload=payload
-                    )
+                    Message(MsgTag.ROLLOUT_DONE, self._proxy.name, self._proxy.peers["actor_proxy"][0], body=body)
                 )
+
+    def _sync_trajectory(self, index):
+        if (self.trajectory.step_index + 1) % self._trajectory_sync_interval == 0:
+            self._proxy.isend(
+                Message(
+                    MsgTag.TRAJECTORY_SYNC, self._proxy.name, self._proxy.peers["actor_proxy"][0],
+                    body={MsgKey.ROLLOUT_INDEX: index, MsgKey.TRAJECTORY: self.trajectory.path}
+                )
+            )
+            self.trajectory.flush()

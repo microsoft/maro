@@ -8,12 +8,9 @@ from enum import Enum
 from typing import Union
 
 # private lib
-from maro.utils import InternalLogger
 from maro.utils.exit_code import NON_RESTART_EXIT_CODE
 
 from .utils import session_id_generator
-
-logger = InternalLogger(component_name="message")
 
 
 class SessionType(Enum):
@@ -55,35 +52,35 @@ class Message(object):
         tag (str|Enum): Message tag, which is customized by the user, for specific application logic.
         source (str): The sender of message.
         destination (str): The receiver of message.
-        payload (object): Message payload, such as model parameters, experiences, etc. Defaults to None.
+        body (object): Message body, such as model parameters, experiences, etc. Defaults to None.
         session_id (str): Message belonged session id, it will be generated automatically by default, you can use it
             to group message based on your application logic.
     """
 
-    def __init__(self, tag: Union[str, Enum], source: str, destination: str, payload=None):
+    def __init__(self, tag: Union[str, Enum], source: str, destination: str, body=None):
         self.tag = tag
         self.source = source
         self.destination = destination
-        self.payload = {} if payload is None else payload
+        self.body = {} if body is None else body
         self.session_id = session_id_generator(self.source, self.destination)
         self.message_id = str(uuid.uuid1())
 
     def __repr__(self):
         return "; \n".join([f"{k} = {v}" for k, v in vars(self).items()])
 
-    def reply(self, tag: Union[str, Enum] = None, payload=None):
+    def reply(self, tag: Union[str, Enum] = None, body=None):
         self.source, self.destination = self.destination, self.source
         if tag:
             self.tag = tag
-        self.payload = payload
+        self.body = body
         self.message_id = str(uuid.uuid1())
 
-    def forward(self, destination: str, tag: Union[str, Enum] = None, payload=None):
+    def forward(self, destination: str, tag: Union[str, Enum] = None, body=None):
         self.source = self.destination
         self.destination = destination
         if tag:
             self.tag = tag
-        self.payload = payload
+        self.body = body
         self.message_id = str(uuid.uuid1())
 
 
@@ -101,11 +98,11 @@ class SessionMessage(Message):
         self,
         tag: Union[str, Enum],
         source: str, destination: str,
-        payload=None,
+        body=None,
         session_type: SessionType = SessionType.TASK,
         session_stage=None
     ):
-        super().__init__(tag, source, destination, payload)
+        super().__init__(tag, source, destination, body)
         self.session_type = session_type
 
         if self.session_type == SessionType.TASK:
@@ -113,5 +110,4 @@ class SessionMessage(Message):
         elif self.session_type == SessionType.NOTIFICATION:
             self.session_stage = session_stage if session_stage else NotificationSessionStage.REQUEST
         else:
-            logger.error(f"Receive unrecognized session type {self.session_type}, please use the SessionType class.")
-            sys.exit(NON_RESTART_EXIT_CODE)
+            raise ValueError(f"Unsupported session type: {self.session_type}")

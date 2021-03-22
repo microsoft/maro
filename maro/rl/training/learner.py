@@ -29,7 +29,7 @@ class AbsLearner(ABC):
         super().__init__()
         if isinstance(actor, ActorProxy):
             assert agent, "agent cannot be None when the actor is a proxy."
-            self.agent = agent
+            self.agent = MultiAgentWrapper(agent) if isinstance(agent, AbsAgent) else agent
         else:
             # The agent passed to __init__ is ignored in this case
             self.agent = actor.agent
@@ -58,13 +58,9 @@ class OnPolicyLearner(AbsLearner):
                 ep, model_by_agent=self.agent.dump_model() if isinstance(self.actor, ActorProxy) else None
             )
             self.logger.info(f"ep-{ep}: {env_metrics}")
-            if isinstance(self.agent, AbsAgent):
-                for e in exp:
-                    self.agent.learn(*e["args"], **e.get("kwargs", {}))
-            else:
-                for agent_id, ex in exp.items():
-                    for e in ex:
-                        self.agent[agent_id].learn(*e["args"], **e.get("kwargs", {}))
+            for agent_id, ex in exp.items():
+                for e in ex:
+                    self.agent[agent_id].learn(*e["args"], **e.get("kwargs", {}))
 
             self.logger.info("Agent learning finished")
 
@@ -104,19 +100,13 @@ class OffPolicyLearner(AbsLearner):
             )
             self.logger.info(f"ep-{rollout_index}: {env_metrics} ({exploration_params})")
 
-            if isinstance(self.agent, AbsAgent):
-                for _ in range(self.train_iter):
-                    batch, idx = self.get_batch()
-                    loss = self.agent.learn(*batch)
-                    self.actor.experience_pool.update(idx, {"loss": list(loss)})
-            else:
-                for _ in range(self.train_iter):
-                    batch_by_agent, idx_by_agent = self.get_batch()
-                    loss_by_agent = {
-                        agent_id: self.agent[agent_id].learn(*batch) for agent_id, batch in batch_by_agent.items()
-                    }
-                    for agent_id, loss in loss_by_agent.items():
-                        self.actor.experience_pool[agent_id].update(idx_by_agent[agent_id], {"loss": list(loss)})
+            for _ in range(self.train_iter):
+                batch_by_agent, idx_by_agent = self.get_batch()
+                loss_by_agent = {
+                    agent_id: self.agent[agent_id].learn(*batch) for agent_id, batch in batch_by_agent.items()
+                }
+                for agent_id, loss in loss_by_agent.items():
+                    self.actor.experience_pool[agent_id].update(idx_by_agent[agent_id], {"loss": list(loss)})
 
             self.logger.info("Agent learning finished")
 
@@ -125,27 +115,17 @@ class OffPolicyLearner(AbsLearner):
             self.actor.terminate()
 
     def get_batch(self):
-        if isinstance(self.agent, AbsAgent):
-            if len(self.actor.experience_pool) < self.min_experiences_to_train:
-                return None, None
+        idx, batch = {}, {}
+        for agent_id, pool in self.actor.experience_pool.items():
+            if len(pool) < self.min_experiences_to_train:
+                continue
             if self.prioritized_sampling_by_loss:
-                indexes, sample = self.actor.experience_pool.sample_by_key("loss", self.batch_size)
+                indexes, sample = self.actor.experience_pool[agent_id].sample_by_key("loss", self.batch_size)
             else:
-                indexes, sample = self.actor.experience_pool.sample(self.batch_size)
-            batch = asarray(sample["S"]), asarray(sample["A"]), asarray(sample["R"]), asarray(sample["S_"])
-            return batch, indexes
-        else:
-            idx, batch = {}, {}
-            for agent_id, pool in self.actor.experience_pool.items():
-                if len(pool) < self.min_experiences_to_train:
-                    continue
-                if self.prioritized_sampling_by_loss:
-                    indexes, sample = self.actor.experience_pool[agent_id].sample_by_key("loss", self.batch_size)
-                else:
-                    indexes, sample = self.actor.experience_pool[agent_id].sample(self.batch_size)
-                batch[agent_id] = (
-                    asarray(sample["S"]), asarray(sample["A"]), asarray(sample["R"]), asarray(sample["S_"])
-                )
-                idx[agent_id] = indexes
+                indexes, sample = self.actor.experience_pool[agent_id].sample(self.batch_size)
+            batch[agent_id] = (
+                asarray(sample["S"]), asarray(sample["A"]), asarray(sample["R"]), asarray(sample["S_"])
+            )
+            idx[agent_id] = indexes
 
-            return batch, idx
+        return batch, idx

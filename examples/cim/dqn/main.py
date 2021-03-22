@@ -42,7 +42,10 @@ def cim_dqn_actor():
     env = Env(**training_config["env"])
     trajectory = CIMTrajectory(env, **common_config)
     agent = MultiAgentWrapper({name: get_dqn_agent() for name in env.agent_idx_list})
-    actor = Actor(trajectory, agent, group=training_config["group"])
+    actor = Actor(
+        trajectory, agent, 
+        group=training_config["group"],# trajectory_sync_interval=training_config["trajectory_sync_interval"]
+    )
     actor.run()
 
 

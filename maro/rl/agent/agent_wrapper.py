@@ -4,14 +4,24 @@
 import os
 from typing import List, Union
 
+from .abs_agent import AbsAgent
+
 
 class MultiAgentWrapper:
     """Multi-agent wrapper class that exposes the same interfaces as a single agent."""
-    def __init__(self, agent_dict: dict):
+    def __init__(self, agent_dict: Union[AbsAgent, dict]):
+        if isinstance(agent_dict, AbsAgent):
+            agent_dict = {"AGENT": agent_dict}
         self.agent_dict = agent_dict
 
     def __getitem__(self, agent_id: str):
-        return self.agent_dict[agent_id]
+        if len(self.agent_dict) == 1:
+            return self.agent_dict["AGENT"]
+        else:
+            return self.agent_dict[agent_id]
+
+    def __len__(self):
+        return len(self.agent_dict)
 
     def choose_action(self, state_by_agent: dict):
         return {agent_id: self.agent_dict[agent_id].choose_action(state) for agent_id, state in state_by_agent.items()}
