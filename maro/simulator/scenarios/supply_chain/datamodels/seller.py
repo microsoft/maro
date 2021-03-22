@@ -8,23 +8,17 @@ from maro.backends.frame import NodeAttribute, node
 from .skumodel import SkuDataModel
 
 
-# NOTE: one sku one seller
 @node("seller")
 class SellerDataModel(SkuDataModel):
-    # reward states
+    """Data model for seller unit."""
     total_sold = NodeAttribute(AttributeType.UInt)
 
-    # from config
     backlog_ratio = NodeAttribute(AttributeType.Float)
 
-    # action states
     unit_price = NodeAttribute(AttributeType.UInt)
 
-    #
     sale_gamma = NodeAttribute(AttributeType.UInt)
 
-    # per tick state, we can use this to support "sale hist" feature in original code.
-    # original there is only sold state, we add a demand here
     demand = NodeAttribute(AttributeType.UInt)
     sold = NodeAttribute(AttributeType.UInt)
 

@@ -10,6 +10,7 @@ from .base import DataModelBase
 
 @node("distribution")
 class DistributionDataModel(DataModelBase):
+    """Distribution data model for distribution unit."""
     unit_price = NodeAttribute(AttributeType.Int)
 
     product_list = NodeAttribute(AttributeType.UInt, 1, is_list=True)
@@ -19,10 +20,14 @@ class DistributionDataModel(DataModelBase):
     def __init__(self):
         super(DistributionDataModel, self).__init__()
 
-        # TODO: not sure about this.
         self._unit_price = 0
 
     def initialize(self, unit_price: int = 0):
+        """Initialize distribution with unit_price from configuration.
+
+        Args:
+            unit_price (int): Unit price from configuration files.
+        """
         self._unit_price = unit_price
 
         self.reset()

@@ -166,7 +166,7 @@ class VehicleUnit(UnitBase):
 
                 self.data_model.position[:] = self.path[self.location]
         else:
-            # avoid update under idle state.
+            # Avoid update under idle state.
             if self.location > 0:
                 # try to unload
                 if self.payload > 0:

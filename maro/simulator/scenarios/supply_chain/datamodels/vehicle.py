@@ -30,7 +30,6 @@ class VehicleDataModel(DataModelBase):
     # Steps to destination.
     steps = NodeAttribute(AttributeType.UInt)
 
-    # from config
     unit_transport_cost = NodeAttribute(AttributeType.UInt)
 
     position = NodeAttribute(AttributeType.Int, 2)

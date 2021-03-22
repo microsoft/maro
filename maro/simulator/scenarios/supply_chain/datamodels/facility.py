@@ -10,13 +10,12 @@ from .base import DataModelBase
 
 @node("facility")
 class FacilityDataModel(DataModelBase):
-    test = NodeAttribute(AttributeType.UInt)
+    """Data model for facilities.
+
+    NOTE:
+        Not in use for now.
+    """
+    balance_sheet = NodeAttribute(AttributeType.UInt)
 
     def __init__(self):
         super(FacilityDataModel, self).__init__()
-
-    def initialize(self, configs: dict):
-        self.reset()
-
-    def reset(self):
-        super(FacilityDataModel, self).reset()

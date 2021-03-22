@@ -10,11 +10,12 @@ from .base import DataModelBase
 
 @node("storage")
 class StorageDataModel(DataModelBase):
+    """Data model for storage unit."""
     unit_storage_cost = NodeAttribute(AttributeType.UInt)
     remaining_space = NodeAttribute(AttributeType.UInt)
     capacity = NodeAttribute(AttributeType.UInt)
 
-    # original is stock_levels, used to save product and its number
+    # original is , used to save product and its number
     product_list = NodeAttribute(AttributeType.UInt, 1, is_list=True)
     product_number = NodeAttribute(AttributeType.UInt, 1, is_list=True)
 
