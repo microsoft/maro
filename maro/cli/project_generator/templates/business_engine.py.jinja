@@ -1,0 +1,118 @@
+
+from maro.backends.frame import FrameBase, SnapshotList
+from maro.event_buffer import AtomEvent, CascadeEvent, EventBuffer, MaroEvents
+from maro.simulator.scenarios import AbsBusinessEngine
+
+from .frame_builder import build_frame
+from .common import DecisionEventPayload, Action
+from .events import {{ project.scenario_cls }}Events
+
+
+class {{ project.scenario_cls }}BusinessEngine(AbsBusinessEngine):
+  def __init__(self, **kwargs):
+    super().__init__(scenario_name="{{ project.scenario }}", **kwargs)
+
+    self._nodes = None
+
+    # Initialize the frame.
+    self._init_frame()
+
+    # Register events with handler.
+    self._register_events()
+
+  @property
+  def frame(self):
+    return self._frame
+
+  @property
+  def snapshots(self):
+    """SnapshotList: Snapshot list of current frame"""
+    return self._frame.snapshots
+
+  @property
+  def configs(self) -> dict:
+    # TODO: return what your want to expose to outside.
+    return {}
+
+  def step(self, tick: int):
+    # NOTE: following is a dummy logic to show how to generate normal event, and decision event.
+    # TODO: REPLACE with your business logic.
+    if tick == 10:
+      # Event can take a payload object (any type) that any data for further processing.
+      payload = {"number": 10}
+
+      # Usually an event is composed with: trigger tick, event type and payload.
+      dummy_event = self._event_buffer.gen_atom_event(tick+1, {{ project.scenario_cls }}Events.MY_EVENT, payload)
+
+      # Insert into event buffer, so that it will be triggered at right tick.
+      self._event_buffer.insert_event(dummy_event)
+
+    if tick == 20:
+      # To ask outside for an action, we should generate and insert a decision event.
+      payload = DecisionEventPayload()
+
+      # Usually we want to trigger the decision event at same tick.
+      decision_event = self._event_buffer.gen_decision_event(tick, payload)
+
+      # EventBuffer will push the decision event payload to outside as return value of step function.
+      self._event_buffer.insert_event(decision_event)
+
+  def post_step(self, tick: int) -> bool:
+    # TODO: Do something at the end of each tick.
+
+    # Take snapshot at the end of each tick, and follow snapshot resolution setting, but you can ignore it as wish.
+    if (tick + 1) % self._snapshot_resolution == 0:
+      self._frame.take_snapshot(self.frame_index(tick))
+
+    # The result used to tell Environment if it should stop current simulation.
+    # Default we should stop at the end of durations.
+    return tick + 1 == self._max_tick
+
+  def get_metrics(self):
+    # TODO: return any metrics information to outside as result of environment step.
+    return {}
+
+  def reset(self):
+    self._frame.reset()
+    self._frame.snapshots.reset()
+
+    # NOTE: RESET frame before your nodes' reset,
+    # frame.reset will erase all the values of existing nodes.
+    for node in self._nodes:
+      node.reset()
+
+  def _init_frame(self):
+    # AbsBusinessEngine provides a function that calculate max snapshots number base on
+    # durations and snapshot resolution.
+    self._frame = build_frame(10, self.calc_max_snapshots())
+
+    # After initialization, MARO will help to create instance of defined nodes.
+    # So make sure your constructor has no arguments or with default value.
+    self._nodes = self._frame.my_nodes
+
+    # Set the initial state of nodes.
+    self._init_nodes()
+
+  def _init_nodes(self):
+    for i, node in enumerate(self._nodes):
+      node.set_state(i, i+1, [i]*10)
+
+  def _register_events(self):
+    # This is only must have event handler that used to receive actions from outside.
+    self._event_buffer.register_event_handler(MaroEvents.TAKE_ACTION, self._on_action_received)
+
+    # TODO: replace with your own event handlers
+    self._event_buffer.register_event_handler({{ project.scenario_cls }}Events.MY_EVENT, self._on_my_event_occur)
+
+  def _on_action_received(self, event: CascadeEvent):
+    # Handler that used to process actions from outside.
+    actions = event.payload
+
+    if actions:
+      for action in actions:
+        # TODO: process the actions here.
+        pass
+
+  def _on_my_event_occur(self, event: AtomEvent):
+    # Customized event handler, used to split complex logic into small and easy pieces.
+    pass
