@@ -5,8 +5,8 @@
 from collections import namedtuple
 from typing import List, Tuple, Union
 
+import networkx as nx
 import numpy as np
-from tcod.path import AStar
 
 from maro.backends.frame import FrameBase
 
@@ -40,8 +40,8 @@ class World:
         # Entity id counter, every unit and facility have unique id.
         self._id_counter = 1
 
-        # Path finder for production transport.
-        self._path_finder: AStar = None
+        # Grid of the world
+        self._graph: nx.Graph = None
 
         # Sku id to name mapping, used for querying.
         self._sku_id2name_mapping = {}
@@ -122,7 +122,7 @@ class World:
         Returns:
             List[Tuple[int, int]]: List of (x, y) position to target.
         """
-        return self._path_finder.get_path(int(start_x), int(start_y), int(goal_x), int(goal_y))
+        return nx.astar_path(self._graph, source=(start_x, start_y), target=(goal_x, goal_y), weight="cost")
 
     def build(self, configs: SupplyChainConfiguration, snapshot_number: int, durations: int):
         """Build world with configurations.
@@ -218,27 +218,27 @@ class World:
 
         grid_width, grid_height = grid_config["size"]
 
-        # Travel cost for a star path finder, 0 means block, > 1 means the cost travel to that cell
-        # current all traversable cell's cost will be 1.
-        cost_grid = np.ones(shape=(grid_width, grid_height), dtype=np.int8)
+        # Build our graph base one settings.
+        # This will create a full connect graph.
+        self._graph = nx.grid_2d_graph(grid_width, grid_height)
 
-        # Add blocks to grid.
-        for facility_name, facility_pos in grid_config["facilities"].items():
+        # All edge weight will be 1 by default.
+        edge_weights = {e: 1 for e in self._graph.edges()}
+
+        # Facility to cell will have 1 weight, cell to facility will have 4 cost.
+        for facility_name, pos in grid_config["facilities"].items():
             facility_id = self._facility_name2id_mapping[facility_name]
             facility = self.facilities[facility_id]
+            facility.x = pos[0]
+            facility.y = pos[1]
+            pos = tuple(pos)
 
-            facility.x = facility_pos[0]
-            facility.y = facility_pos[1]
+            # Neighbors to facility will have hight cost.
+            for npos in ((pos[0]-1, pos[1]), (pos[0]+1, pos[1]), (pos[0], pos[1]-1), (pos[0], pos[1]+1)):
+                if npos[0] >= 0 and npos[0] < grid_width and npos[1] >= 0 and npos[1] < grid_height:
+                    edge_weights[(npos, pos)] = 4
 
-            # Facility cannot be a block, or we cannot find path to it,
-            # but we can give it a big cost
-            cost_grid[facility.x, facility.y] = 120
-
-        for block_pos in grid_config["blocks"].values():
-            cost_grid[block_pos[0], block_pos[1]] = 0
-
-        # 0 for 2nd parameters means disable diagonal movement, so just up, right, down or left.
-        self._path_finder = AStar(cost_grid, 0)
+        nx.set_edge_attributes(self._graph, edge_weights, "cost")
 
     def build_unit_by_type(self, unit_type: type, parent: Union[FacilityBase, UnitBase], facility: FacilityBase):
         unit = unit_type()

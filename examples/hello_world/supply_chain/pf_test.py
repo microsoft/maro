@@ -2,7 +2,6 @@ import os, psutil
 
 import sys
 import numpy as np
-import tcod
 import pprint
 
 from tabulate import tabulate
