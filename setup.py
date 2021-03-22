@@ -140,7 +140,8 @@ setup(
         "paramiko==2.7.2",
         "kubernetes==12.0.1",
         "prompt_toolkit==2.0.10",
-        "stringcase==1.2.0"
+        "stringcase==1.2.0",
+        "networkx==2.4"
     ],
     entry_points={
         "console_scripts": [
