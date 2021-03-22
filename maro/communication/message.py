@@ -6,7 +6,6 @@ import uuid
 from enum import Enum
 from typing import Union
 
-
 from .utils import session_id_generator
 
 
