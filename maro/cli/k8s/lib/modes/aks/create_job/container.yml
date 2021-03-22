@@ -1,0 +1,14 @@
+name: ""
+image: ""
+resources:
+  requests:
+    cpu: ""
+    memory: ""
+  limits:
+    cpu: ""
+    memory: ""
+env: []
+command: []
+volumeMounts:
+  - name: azure-file-mount
+    mountPath: ""

@@ -47,12 +47,7 @@ ERROR_CODE = {
     3003: "Deployment Error",
 
     # 4000-4999: Error codes for RL toolkit
-    4000: "Wrong Agent Manager Mode",
-    4001: "Missing Shaper",
-    4002: "Store Misalignment",
-    4003: "Invalid Episode",
-    4004: "Infinite Training Loop",
-    4005: "Missing Optimizer",
-    4006: "Unrecognized Task",
-    4007: "Wrong Learning Module Dimension",
+    4000: "Store Misalignment",
+    4001: "Missing Optimizer",
+    4002: "Unrecognized Task",
 }

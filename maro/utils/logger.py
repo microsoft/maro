@@ -46,9 +46,9 @@ FORMAT_NAME_TO_FILE_FORMAT = {
     LogFormat.internal: logging.Formatter(
         fmt='%(asctime)s | %(component)s | %(levelname)s | %(message)s', datefmt='%H:%M:%S'),
     LogFormat.cli_debug: logging.Formatter(
-        fmt='%(asctime)s | %(levelname)-7s | %(threadName)-10s | %(message)s', datefmt='%H:%M:%S'),
+        fmt="%(asctime)s | %(levelname)-7s | %(threadName)-10s | %(message)s", datefmt="%Y-%m-%d %H:%M:%S"),
     LogFormat.cli_info: logging.Formatter(
-        fmt='%(asctime)s | %(levelname)-7s | %(threadName)-10s | %(message)s', datefmt='%H:%M:%S'),
+        fmt="%(asctime)s | %(levelname)-7s | %(threadName)-10s | %(message)s", datefmt="%Y-%m-%d %H:%M:%S"),
     LogFormat.none: None
 }
 
@@ -112,8 +112,8 @@ class Logger(object):
     """
 
     def __init__(
-        self, tag: str, format_: LogFormat = LogFormat.full, dump_folder: str = cwd, dump_mode: str = 'w',
-        extension_name: str = 'log', auto_timestamp: bool = True, stdout_level="INFO"
+        self, tag: str, format_: LogFormat = LogFormat.simple, dump_folder: str = cwd, dump_mode: str = 'w',
+        extension_name: str = 'log', auto_timestamp: bool = False, stdout_level="INFO"
     ):
         self._file_format = FORMAT_NAME_TO_FILE_FORMAT[format_]
         self._stdout_format = FORMAT_NAME_TO_STDOUT_FORMAT[format_] \

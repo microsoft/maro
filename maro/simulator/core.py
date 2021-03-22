@@ -9,6 +9,7 @@ from typing import List
 from maro.backends.frame import FrameBase, SnapshotList
 from maro.data_lib.dump_csv_converter import DumpConverter
 from maro.event_buffer import EventBuffer, EventState
+from maro.streamit import streamit
 from maro.utils.exception.simulator_exception import BusinessEngineNotFoundError
 
 from .abs_core import AbsEnv, DecisionMode
@@ -70,6 +71,8 @@ class Env(AbsEnv):
             self._converter = DumpConverter(parent_path, self._business_engine._scenario_name)
             self._converter.reset_folder_path()
 
+        self._streamit_episode = 0
+
     def step(self, action):
         """Push the environment to next step with action.
 
@@ -80,8 +83,7 @@ class Env(AbsEnv):
             tuple: a tuple of (metrics, decision event, is_done).
         """
         try:
-            metrics, decision_event, _is_done = self._simulate_generator.send(
-                action)
+            metrics, decision_event, _is_done = self._simulate_generator.send(action)
         except StopIteration:
             return None, None, True
 
@@ -242,9 +244,15 @@ class Env(AbsEnv):
         """This is the generator to wrap each episode process."""
         is_end_tick = False
 
+        self._streamit_episode += 1
+
+        streamit.episode(self._streamit_episode)
+
         while True:
             # Ask business engine to do thing for this tick, such as generating and pushing events.
             # We do not push events now.
+            streamit.tick(self._tick)
+
             self._business_engine.step(self._tick)
 
             while True:
@@ -261,15 +269,8 @@ class Env(AbsEnv):
                 # Insert snapshot before each action.
                 self._business_engine.frame.take_snapshot(self.frame_index)
 
-                decision_events = []
-
                 # Append source event id to decision events, to support sequential action in joint mode.
-                for evt in pending_events:
-                    payload = evt.payload
-
-                    payload.source_event_id = evt.id
-
-                    decision_events.append(payload)
+                decision_events = [event.payload for event in pending_events]
 
                 decision_events = decision_events[0] if self._decision_mode == DecisionMode.Sequential \
                     else decision_events
@@ -286,31 +287,30 @@ class Env(AbsEnv):
                 if actions is not None and not isinstance(actions, Iterable):
                     actions = [actions]
 
-                # Generate a new atom event first.
-                action_event = self._event_buffer.gen_action_event(self._tick, actions)
+                if self._decision_mode == DecisionMode.Sequential:
+                    # Generate a new atom event first.
+                    action_event = self._event_buffer.gen_action_event(self._tick, actions)
 
-                # NOTE: decision event always be a CascadeEvent
-                # We just append the action into sub event of first pending cascade event.
-                pending_events[0].state = EventState.EXECUTING
-                pending_events[0].add_immediate_event(action_event, is_head=True)
+                    # NOTE: decision event always be a CascadeEvent
+                    # We just append the action into sub event of first pending cascade event.
+                    pending_events[0].state = EventState.EXECUTING
+                    pending_events[0].add_immediate_event(action_event, is_head=True)
+                else:
+                    # For joint mode, we will assign actions from beginning to end.
+                    # Then mark others pending events to finished if not sequential action mode.
+                    for i, pending_event in enumerate(pending_events):
+                        if i >= len(actions):
+                            if self._decision_mode == DecisionMode.Joint:
+                                # Ignore following pending events that have no action matched.
+                                pending_event.state = EventState.FINISHED
+                        else:
+                            # Set the state as executing, so event buffer will not pop them again.
+                            # Then insert the action to it.
+                            action = actions[i]
+                            pending_event.state = EventState.EXECUTING
+                            action_event = self._event_buffer.gen_action_event(self._tick, action)
 
-                if self._decision_mode == DecisionMode.Joint:
-                    # For joint event, we will disable following cascade event.
-
-                    # We expect that first action contains a src_event_id to support joint event with sequential action.
-                    action_related_event_id = None if len(
-                        actions) == 1 else getattr(actions[0], "src_event_id", None)
-
-                    # If the first action has a decision event attached, it means sequential action is supported.
-                    is_support_seq_action = action_related_event_id is not None
-
-                    if is_support_seq_action:
-                        for i in range(1, pending_event_length):
-                            if pending_events[i].id == actions[0].src_event_id:
-                                pending_events[i].state = EventState.FINISHED
-                    else:
-                        for i in range(1, pending_event_length):
-                            pending_events[i].state = EventState.FINISHED
+                            pending_event.add_immediate_event(action_event, is_head=True)
 
             # Check the end tick of the simulation to decide if we should end the simulation.
             is_end_tick = self._business_engine.post_step(self._tick)

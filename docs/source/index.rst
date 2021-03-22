@@ -81,9 +81,9 @@ Contents
 
     installation/pip_install.rst
     installation/playground.rst
-    installation/grass_cluster_provisioning_on_azure.rst
-    installation/k8s_cluster_provisioning_on_azure.rst
-    installation/grass_cluster_provisioning_on_premises.rst
+    installation/grass_azure_cluster_provisioning.rst
+    installation/grass_on_premises_cluster_provisioning.rst
+    installation/k8s_aks_cluster_provisioning.rst
     installation/multi_processes_localhost_provisioning.rst
 
 .. toctree::
@@ -93,6 +93,7 @@ Contents
     scenarios/container_inventory_management.rst
     scenarios/citi_bike.rst
     scenarios/vm_scheduling.rst
+    scenarios/command_line.rst
 
 .. toctree::
     :maxdepth: 2
@@ -114,6 +115,7 @@ Contents
     key_components/communication.rst
     key_components/orchestration.rst
     key_components/dashboard_visualization.rst
+    key_components/geographic_visualization.rst
 
 .. toctree::
     :maxdepth: 2
