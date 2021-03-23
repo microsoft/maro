@@ -1,19 +1,14 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from collections import defaultdict, deque
-from os import makedirs, system
-from os.path import dirname, join, realpath
-
 import numpy as np
-import torch
 
 from maro.rl import (
     Actor, ActorCritic, ActorCriticConfig, FullyConnectedBlock, MultiAgentWrapper, SimpleMultiHeadModel,
     Scheduler, OnPolicyLearner
 )
 from maro.simulator import Env
-from maro.utils import Logger, set_seeds
+from maro.utils import set_seeds
 
 from examples.cim.ac.config import agent_config, training_config
 from examples.cim.common import CIMTrajectory, common_config
