@@ -3,7 +3,9 @@
 
 from .actor import Actor
 from .actor_proxy import ActorProxy
+from .env_wrapper import AbsEnvWrapper
 from .learner import AbsLearner, OffPolicyLearner, OnPolicyLearner
-from .trajectory import AbsTrajectory
 
-__all__ = ["AbsLearner", "AbsTrajectory", "Actor", "ActorProxy", "OffPolicyLearner", "OnPolicyLearner"]
+__all__ = [
+    "AbsEnvWrapper", "AbsLearner", "Actor", "ActorProxy", "OffPolicyLearner", "OnPolicyLearner"
+]

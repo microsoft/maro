@@ -15,7 +15,7 @@ from maro.rl import (
 from maro.simulator import Env
 from maro.utils import Logger, set_seeds
 
-from examples.cim.common import CIMTrajectory, common_config
+from examples.cim.common import CIMEnvWrapper, common_config
 from examples.cim.dqn.config import agent_config, training_config
 
 
@@ -27,8 +27,7 @@ def get_dqn_agent():
 
 
 def cim_dqn_learner():
-    env = Env(**training_config["env"])
-    agent = MultiAgentWrapper({name: get_dqn_agent() for name in env.agent_idx_list})
+    agent = MultiAgentWrapper({name: get_dqn_agent() for name in Env(**training_config["env"]).agent_idx_list})
     scheduler = TwoPhaseLinearParameterScheduler(training_config["max_episode"], **training_config["exploration"])
     actor = ActorProxy(
         training_config["group"], training_config["num_actors"],
@@ -40,11 +39,10 @@ def cim_dqn_learner():
 
 def cim_dqn_actor():
     env = Env(**training_config["env"])
-    trajectory = CIMTrajectory(env, **common_config)
     agent = MultiAgentWrapper({name: get_dqn_agent() for name in env.agent_idx_list})
     actor = Actor(
-        trajectory, agent, 
-        group=training_config["group"],# trajectory_sync_interval=training_config["trajectory_sync_interval"]
+        CIMEnvWrapper(env, **common_config), agent,
+        group=training_config["group"], replay_sync_interval=training_config["replay_sync_interval"]
     )
     actor.run()
 
@@ -55,7 +53,7 @@ if __name__ == "__main__":
         "-w", "--whoami", type=int, choices=[0, 1, 2], default=0,
         help="Identity of this process: 0 - multi-process mode, 1 - learner, 2 - actor"
     )
-    
+
     args = parser.parse_args()
     if args.whoami == 0:
         actor_processes = [Process(target=cim_dqn_actor) for _ in range(training_config["num_actors"])]

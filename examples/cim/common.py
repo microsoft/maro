@@ -5,7 +5,7 @@ from collections import defaultdict
 
 import numpy as np
 
-from maro.rl import AbsTrajectory
+from maro.rl import AbsEnvWrapper
 from maro.simulator.scenarios.cim.common import Action, ActionType
 
 common_config = {
@@ -26,19 +26,18 @@ common_config = {
 }
 
 
-class CIMTrajectory(AbsTrajectory):
+class CIMEnvWrapper(AbsEnvWrapper):
     def __init__(
         self, env, *, port_attributes, vessel_attributes, action_space, look_back, max_ports_downstream,
         reward_time_window, fulfillment_factor, shortage_factor, time_decay,
         finite_vessel_space=True, has_early_discharge=True 
     ):
-        super().__init__(env)
+        super().__init__(env, hindsight_reward_window=common_config["reward_time_window"])
         self.port_attributes = port_attributes
         self.vessel_attributes = vessel_attributes
         self.action_space = action_space
         self.look_back = look_back
         self.max_ports_downstream = max_ports_downstream
-        self.reward_time_window = reward_time_window
         self.fulfillment_factor = fulfillment_factor
         self.shortage_factor = shortage_factor
         self.time_decay = time_decay
@@ -76,21 +75,20 @@ class CIMTrajectory(AbsTrajectory):
 
         return {port: Action(vessel, port, actual_action, action_type)}
 
-    def on_finish(self):
+    def get_hindsight_reward(self, event):
         """Compute offline rewards."""
-        for i, event in enumerate(self.events):
-            port_snapshots = self.env.snapshot_list["ports"]
-            start_tick = event.tick + 1
-            ticks = list(range(start_tick, start_tick + self.reward_time_window))
+        port_snapshots = self.env.snapshot_list["ports"]
+        start_tick = event.tick + 1
+        ticks = list(range(start_tick, start_tick + self.hindsight_reward_window))
 
-            future_fulfillment = port_snapshots[ticks::"fulfillment"]
-            future_shortage = port_snapshots[ticks::"shortage"]
-            decay_list = [
-                self.time_decay ** i for i in range(self.reward_time_window)
-                for _ in range(future_fulfillment.shape[0] // self.reward_time_window)
-            ]
+        future_fulfillment = port_snapshots[ticks::"fulfillment"]
+        future_shortage = port_snapshots[ticks::"shortage"]
+        decay_list = [
+            self.time_decay ** i for i in range(self.hindsight_reward_window)
+            for _ in range(future_fulfillment.shape[0] // self.hindsight_reward_window)
+        ]
 
-            self.rewards[i] = np.float32(
-                self.fulfillment_factor * np.dot(future_fulfillment, decay_list) - 
-                self.shortage_factor * np.dot(future_shortage, decay_list)
-            )
+        return np.float32(
+            self.fulfillment_factor * np.dot(future_fulfillment, decay_list) - 
+            self.shortage_factor * np.dot(future_shortage, decay_list)
+        )

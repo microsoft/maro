@@ -10,10 +10,9 @@ from maro.rl.exploration import (
 from maro.rl.model import AbsBlock, AbsCoreModel, FullyConnectedBlock, OptimOption, SimpleMultiHeadModel
 from maro.rl.scheduling import LinearParameterScheduler, Scheduler, TwoPhaseLinearParameterScheduler
 from maro.rl.storage import AbsStore, OverwriteType, SimpleStore
-from maro.rl.training import AbsLearner, AbsTrajectory, Actor, ActorProxy, OffPolicyLearner, OnPolicyLearner
+from maro.rl.training import AbsEnvWrapper, AbsLearner, Actor, ActorProxy, OffPolicyLearner, OnPolicyLearner
 from maro.rl.utils import (
-    get_k_step_returns, get_lambda_returns, get_log_prob, get_max, get_sars, get_truncated_cumulative_reward,
-    select_by_actions
+    get_k_step_returns, get_lambda_returns, get_log_prob, get_max, get_truncated_cumulative_reward, select_by_actions
 )
 
 __all__ = [
@@ -23,7 +22,8 @@ __all__ = [
     "AbsBlock", "AbsCoreModel", "FullyConnectedBlock", "OptimOption", "SimpleMultiHeadModel",
     "LinearParameterScheduler", "Scheduler", "TwoPhaseLinearParameterScheduler",
     "AbsStore", "OverwriteType", "SimpleStore",
-    "AbsLearner", "AbsTrajectory", "Actor", "ActorProxy", "OffPolicyLearner", "OnPolicyLearner",
-    "get_k_step_returns", "get_lambda_returns", "get_log_prob", "get_max", "get_sars",
-    "get_truncated_cumulative_reward", "select_by_actions"
+    "AbsEnvWrapper", "AbsLearner", "Actor", "ActorProxy", "OffPolicyLearner", "OnPolicyLearner"
+    "TrajectorySyncActor",
+    "get_k_step_returns", "get_lambda_returns", "get_log_prob", "get_max", "get_truncated_cumulative_reward",
+    "select_by_actions"
 ]

@@ -8,46 +8,6 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-MAX_LOSS = 1e8
-
-def get_sars(states: list, actions: list, rewards: list) -> dict:
-    """Extract experiences from a multi-agent trajectory.
-
-    The top-level keys for each state and action will be treated as agent IDs during the extraction.
-
-    Args:
-        states (list): List of states traversed during a roll-out episode (in order).
-        actions (list): List of actions taken during a roll-out episode (in order).
-        rewards (list): List of rewards obtained during a roll-out episode (in order).
-
-    Returns:
-        Experiences for training, grouped by agent ID.
-    """
-    sars = {}
-    for state, action, reward in zip(states, actions, rewards):
-        assert state.keys() == action.keys(), f"state keys: {list(state.keys())}, action keys: {list(action.keys())}"
-        for agent_id in state:
-            exp = sars.setdefault(agent_id, {"S": [], "A": [], "R": [], "S_": [], "loss": []})
-            exp["S"].append(state[agent_id])
-            exp["A"].append(action[agent_id])
-            exp["R"].append(reward)
-            exp["loss"].append(MAX_LOSS)
-
-    if len(states) == len(actions) + 1:
-        for agent_id in states[-1]:
-            if agent_id in sars:
-                sars[agent_id]["S"].append(states[-1][agent_id])
-
-    for exp in sars.values():
-        exp["S_"] = exp["S"][1:]
-        exp["S"].pop()
-        if len(exp["S"]) == len(exp["A"]) - 1:
-            exp["A"].pop()
-            exp["R"].pop()
-            exp["loss"].pop()
-
-    return sars
-
 
 def get_truncated_cumulative_reward(
     rewards: Union[list, np.ndarray, torch.Tensor],

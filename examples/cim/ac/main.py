@@ -17,7 +17,7 @@ from maro.simulator import Env
 from maro.utils import Logger, set_seeds
 
 from examples.cim.ac.config import agent_config, training_config
-from examples.cim.common import CIMTrajectory, common_config
+from examples.cim.common import CIMEnvWrapper, common_config
 
 
 def get_ac_agent():

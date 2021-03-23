@@ -23,7 +23,7 @@ training_config = {
     },
     "group": "cim-dqn",
     "learner_update_trigger": 2,
-    # "trajectory_sync_interval": 50,
+    "replay_sync_interval": 50,
     "num_actors": 2,
     "num_trainers": 4,
     "trainer_id": 0

@@ -96,7 +96,6 @@ class DQN(AbsAgent):
         ])
 
     def learn(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray, next_states: np.ndarray):
-        print("sampled rewards: ", rewards)
         states = torch.from_numpy(states)
         actions = torch.from_numpy(actions)
         rewards = torch.from_numpy(rewards)
