@@ -18,16 +18,16 @@ def worker(group_name):
                   component_type="worker",
                   expected_peers={"master": 1})
     counter = 0
-    print(f"{proxy.component_name}'s counter is {counter}.")
+    print(f"{proxy.name}'s counter is {counter}.")
 
     # Nonrecurring receive the message from the proxy.
     for msg in proxy.receive(is_continuous=False):
-        print(f"{proxy.component_name} receive message from {msg.source}.")
+        print(f"{proxy.name} receive message from {msg.source}.")
 
         if msg.tag == "INC":
             counter += 1
-            print(f"{proxy.component_name} receive INC request, {proxy.component_name}'s count is {counter}.")
-            proxy.reply(received_message=msg, tag="done")
+            print(f"{proxy.name} receive INC request, {proxy.name}'s count is {counter}.")
+            proxy.reply(message=msg, tag="done")
 
 
 def master(group_name: str, worker_num: int, is_immediate: bool = False):
@@ -55,17 +55,18 @@ def master(group_name: str, worker_num: int, is_immediate: bool = False):
             session_type=SessionType.NOTIFICATION
         )
         # Do some tasks with higher priority here.
-        replied_msgs = proxy.receive_by_id(session_ids)
+        replied_msgs = proxy.receive_by_id(session_ids, timeout=-1)
     else:
         replied_msgs = proxy.broadcast(
             component_type="worker",
             tag="INC",
-            session_type=SessionType.NOTIFICATION
+            session_type=SessionType.NOTIFICATION,
+            timeout=-1
         )
 
     for msg in replied_msgs:
         print(
-            f"{proxy.component_name} get receive notification from {msg.source} with "
+            f"{proxy.name} get receive notification from {msg.source} with "
             f"message session stage {msg.session_stage}."
         )
 

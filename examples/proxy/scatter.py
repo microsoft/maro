@@ -22,11 +22,11 @@ def summation_worker(group_name):
 
     # Nonrecurring receive the message from the proxy.
     for msg in proxy.receive(is_continuous=False):
-        print(f"{proxy.component_name} receive message from {msg.source}. the payload is {msg.payload}.")
+        print(f"{proxy.name} receive message from {msg.source}. the payload is {msg.payload}.")
 
         if msg.tag == "job":
             replied_payload = sum(msg.payload)
-            proxy.reply(received_message=msg, tag="sum", payload=replied_payload)
+            proxy.reply(message=msg, tag="sum", payload=replied_payload)
 
 
 def multiplication_worker(group_name):
@@ -42,11 +42,11 @@ def multiplication_worker(group_name):
 
     # Nonrecurring receive the message from the proxy.
     for msg in proxy.receive(is_continuous=False):
-        print(f"{proxy.component_name} receive message from {msg.source}. the payload is {msg.payload}.")
+        print(f"{proxy.name} receive message from {msg.source}. the payload is {msg.payload}.")
 
         if msg.tag == "job":
             replied_payload = np.prod(msg.payload)
-            proxy.reply(received_message=msg, tag="multiply", payload=replied_payload)
+            proxy.reply(message=msg, tag="multiply", payload=replied_payload)
 
 
 def master(group_name: str, sum_worker_number: int, multiply_worker_number: int, is_immediate: bool = False):
@@ -88,19 +88,20 @@ def master(group_name: str, sum_worker_number: int, multiply_worker_number: int,
                                      session_type=SessionType.TASK,
                                      destination_payload_list=destination_payload_list)
         # Do some tasks with higher priority here.
-        replied_msgs = proxy.receive_by_id(session_ids)
+        replied_msgs = proxy.receive_by_id(session_ids, timeout=-1)
     else:
         replied_msgs = proxy.scatter(tag="job",
                                      session_type=SessionType.TASK,
-                                     destination_payload_list=destination_payload_list)
+                                     destination_payload_list=destination_payload_list,
+                                     timeout=-1)
 
     sum_result, multiply_result = 0, 1
     for msg in replied_msgs:
         if msg.tag == "sum":
-            print(f"{proxy.component_name} receive message from {msg.source} with the sum result {msg.payload}.")
+            print(f"{proxy.name} receive message from {msg.source} with the sum result {msg.payload}.")
             sum_result += msg.payload
         elif msg.tag == "multiply":
-            print(f"{proxy.component_name} receive message from {msg.source} with the multiply result {msg.payload}.")
+            print(f"{proxy.name} receive message from {msg.source} with the multiply result {msg.payload}.")
             multiply_result *= msg.payload
 
     # Check task result correction.

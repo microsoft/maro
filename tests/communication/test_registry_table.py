@@ -19,7 +19,7 @@ class FakedProxy:
         return self._peers
 
 
-def handle_function():
+def handler(messages):
     pass
 
 
@@ -62,7 +62,7 @@ class TestRegisterTable(unittest.TestCase):
     def test_unit_conditional_event(self):
         # Accept a message from worker_a with tag_a.
         unit_event_1 = "worker_a:tag_a:1"
-        self.register_table.register_event_handler(unit_event_1, handle_function)
+        self.register_table.register_event_handler(unit_event_1, handler)
         for msg in TestRegisterTable.message_dict["worker_a"]["tag_a"]:
             # The message from worker_a with tag_a, it will trigger handler function each time.
             self.register_table.push(msg)
@@ -76,7 +76,7 @@ class TestRegisterTable(unittest.TestCase):
     def test_special_symbol(self):
         # Accept a message from worker_a with any tags.
         unit_event_2 = "worker_a:*:1"
-        self.register_table.register_event_handler(unit_event_2, handle_function)
+        self.register_table.register_event_handler(unit_event_2, handler)
         for msg in TestRegisterTable.message_dict["worker_a"]["tag_a"] + TestRegisterTable.message_dict["worker_a"]["tag_b"]:
             # The message from worker_a with any tags, it will trigger handler function each time.
             self.register_table.push(msg)
@@ -90,7 +90,7 @@ class TestRegisterTable(unittest.TestCase):
     def test_percentage_case(self):
         # Accept messages from any source with tag_a until the number of message reach 60% of source number.
         unit_event_2 = "*:tag_a:50%"
-        self.register_table.register_event_handler(unit_event_2, handle_function)
+        self.register_table.register_event_handler(unit_event_2, handler)
         for idx, msg in enumerate(TestRegisterTable.message_dict["worker_a"]["tag_a"] +
                                   TestRegisterTable.message_dict["worker_b"]["tag_a"]):
             # The message with tag_a, it will trigger handler function until receiving 5 times.
@@ -103,7 +103,7 @@ class TestRegisterTable(unittest.TestCase):
     def test_conditional_event(self):
         # Accept the combination of two messages: one from worker_a with tag_a, and one from worker_b with tag_a.
         and_conditional_event = ("worker_a:tag_a:1", "worker_b:tag_a:1", "AND")
-        self.register_table.register_event_handler(and_conditional_event, handle_function)
+        self.register_table.register_event_handler(and_conditional_event, handler)
         for idx, msg in enumerate(TestRegisterTable.message_dict["worker_a"]["tag_a"] +
                                   TestRegisterTable.message_dict["worker_b"]["tag_a"]):
             # The messages with tag_a from worker_a and worker_b, it will trigger handler function until the
@@ -116,7 +116,7 @@ class TestRegisterTable(unittest.TestCase):
 
         # Accept the message from worker_a with tag_a, or from worker_b with tag_a.
         or_conditional_event = ("worker_a:tag_a:1", "worker_b:tag_a:1", "OR")
-        self.register_table.register_event_handler(or_conditional_event, handle_function)
+        self.register_table.register_event_handler(or_conditional_event, handler)
         for idx, msg in enumerate(TestRegisterTable.message_dict["worker_a"]["tag_a"] +
                                   TestRegisterTable.message_dict["worker_b"]["tag_a"]):
             # The messages with tag_a from worker_a and worker_b, it will trigger handler function each time.
@@ -127,7 +127,7 @@ class TestRegisterTable(unittest.TestCase):
         # Accept the combination of three messages: one from worker_a with tag_a, one from worker_b with tag_a,
         # and one from worker_a with tag_b.
         recurrent_conditional_event = (("worker_a:tag_a:1", "worker_b:tag_a:1", "AND"), "worker_a:tag_b:1", "AND")
-        self.register_table.register_event_handler(recurrent_conditional_event, handle_function)
+        self.register_table.register_event_handler(recurrent_conditional_event, handler)
 
         for msg in TestRegisterTable.message_dict["worker_a"]["tag_a"] + \
                    TestRegisterTable.message_dict["worker_b"]["tag_a"]:
@@ -142,12 +142,12 @@ class TestRegisterTable(unittest.TestCase):
         unit_event_1 = "worker_a:tag_a:1"
         # Accept a message from worker_a with any tag.
         unit_event_2 = "worker_a:*:1"
-        self.register_table.register_event_handler(unit_event_1, handle_function)
-        self.register_table.register_event_handler(unit_event_2, handle_function)
+        self.register_table.register_event_handler(unit_event_1, handler)
+        self.register_table.register_event_handler(unit_event_2, handler)
         for msg in TestRegisterTable.message_dict["worker_a"]["tag_a"]:
             # For each message from worker_a with tag_a, it will trigger two handler functions, and both of them will
             # have the same message.
-            self.register_table.push(msg)
+            self.register_table.push(msg, auto_trigger=False)
             res = self.register_table.get()
             self.assertEqual(len(res), 2)
             self.assertEqual(res[0][1], res[1][1])

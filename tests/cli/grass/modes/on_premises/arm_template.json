@@ -1,0 +1,331 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.1.0.0",
+  "parameters": {
+    "adminPublicKey": {
+      "type": "securestring"
+    },
+    "adminUsername": {
+      "type": "string"
+    },
+    "apiServerDestinationPorts": {
+      "type": "array"
+    },
+    "location": {
+      "type": "string"
+    },
+    "masterNetworkInterfaceName": {
+      "defaultValue": "master-nic",
+      "type": "string"
+    },
+    "masterNetworkSecurityGroupName": {
+      "defaultValue": "master-nsg",
+      "type": "string"
+    },
+    "masterPublicIpAddressName": {
+      "defaultValue": "master-pip",
+      "type": "string"
+    },
+    "masterVirtualMachineName": {
+      "defaultValue": "master-vm",
+      "type": "string"
+    },
+    "nodeNetworkInterfaceName": {
+      "defaultValue": "node-nic",
+      "type": "string"
+    },
+    "nodeNetworkSecurityGroupName": {
+      "defaultValue": "node-nsg",
+      "type": "string"
+    },
+    "nodePublicIpAddressName": {
+      "defaultValue": "node-pip",
+      "type": "string"
+    },
+    "nodeVirtualMachineName": {
+      "defaultValue": "node-vm",
+      "type": "string"
+    },
+    "sshDestinationPorts": {
+      "type": "array"
+    },
+    "virtualMachineSize": {
+      "defaultValue": "Standard_D2s_v3",
+      "type": "string"
+    },
+    "virtualNetworkName": {
+      "defaultValue": "vnet",
+      "type": "string"
+    }
+  },
+  "variables": {
+    "masterNicId": "[resourceId('Microsoft.Network/networkInterfaces', parameters('masterNetworkInterfaceName'))]",
+    "masterNsgId": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('masterNetworkSecurityGroupName'))]",
+    "masterPipId": "[resourceId('Microsoft.Network/publicIpAddresses', parameters('masterPublicIpAddressName'))]",
+    "nodeNicId": "[resourceId('Microsoft.Network/networkInterfaces', parameters('nodeNetworkInterfaceName'))]",
+    "nodeNsgId": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nodeNetworkSecurityGroupName'))]",
+    "nodePipId": "[resourceId('Microsoft.Network/publicIpAddresses', parameters('nodePublicIpAddressName'))]",
+    "snetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), 'default')]",
+    "vnetId": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]"
+  },
+  "resources": [
+    {
+      "name": "[parameters('masterNetworkInterfaceName')]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "apiVersion": "2020-04-01",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[variables('masterNsgId')]",
+        "[variables('masterPipId')]",
+        "[variables('vnetId')]"
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "subnet": {
+                "id": "[variables('snetId')]"
+              },
+              "privateIPAllocationMethod": "Dynamic",
+              "publicIpAddress": {
+                "id": "[variables('masterPipId')]"
+              }
+            }
+          }
+        ],
+        "networkSecurityGroup": {
+          "id": "[variables('masterNsgId')]"
+        }
+      }
+    },
+    {
+      "name": "[parameters('masterNetworkSecurityGroupName')]",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "apiVersion": "2020-04-01",
+      "location": "[parameters('location')]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "ssh",
+            "properties": {
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 100,
+              "direction": "Inbound",
+              "destinationPortRanges": "[parameters('sshDestinationPorts')]"
+            }
+          },
+          {
+            "name": "api_server",
+            "properties": {
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 101,
+              "direction": "Inbound",
+              "destinationPortRanges": "[parameters('apiServerDestinationPorts')]"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[parameters('masterPublicIpAddressName')]",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "apiVersion": "2020-04-01",
+      "location": "[parameters('location')]",
+      "properties": {
+        "publicIPAllocationMethod": "Static"
+      },
+      "sku": {
+        "name": "Basic"
+      }
+    },
+    {
+      "name": "[parameters('masterVirtualMachineName')]",
+      "type": "Microsoft.Compute/virtualMachines",
+      "apiVersion": "2020-06-01",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[variables('masterNicId')]"
+      ],
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[parameters('virtualMachineSize')]"
+        },
+        "storageProfile": {
+          "osDisk": {
+            "createOption": "FromImage"
+          },
+          "imageReference": {
+            "publisher": "Canonical",
+            "offer": "UbuntuServer",
+            "sku": "18.04-LTS",
+            "version": "latest"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[variables('masterNicId')]"
+            }
+          ]
+        },
+        "osProfile": {
+          "computerName": "[parameters('masterVirtualMachineName')]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "linuxConfiguration": {
+            "disablePasswordAuthentication": true,
+            "ssh": {
+              "publicKeys": [
+                {
+                  "path": "[concat('/home/', parameters('adminUsername'), '/.ssh/authorized_keys')]",
+                  "keyData": "[parameters('adminPublicKey')]"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "[parameters('nodeNetworkInterfaceName')]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "apiVersion": "2020-04-01",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[variables('nodeNsgId')]",
+        "[variables('nodePipId')]",
+        "[variables('vnetId')]"
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "subnet": {
+                "id": "[variables('snetId')]"
+              },
+              "privateIPAllocationMethod": "Dynamic",
+              "publicIpAddress": {
+                "id": "[variables('nodePipId')]"
+              }
+            }
+          }
+        ],
+        "networkSecurityGroup": {
+          "id": "[variables('nodeNsgId')]"
+        }
+      }
+    },
+    {
+      "name": "[parameters('nodeNetworkSecurityGroupName')]",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "apiVersion": "2020-04-01",
+      "location": "[parameters('location')]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "ssh",
+            "properties": {
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 100,
+              "direction": "Inbound",
+              "destinationPortRanges": "[parameters('sshDestinationPorts')]"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[parameters('nodePublicIpAddressName')]",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "apiVersion": "2020-04-01",
+      "location": "[parameters('location')]",
+      "properties": {
+        "publicIPAllocationMethod": "Static"
+      },
+      "sku": {
+        "name": "Basic"
+      }
+    },
+    {
+      "name": "[parameters('nodeVirtualMachineName')]",
+      "type": "Microsoft.Compute/virtualMachines",
+      "apiVersion": "2020-06-01",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[variables('nodeNicId')]"
+      ],
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[parameters('virtualMachineSize')]"
+        },
+        "storageProfile": {
+          "osDisk": {
+            "createOption": "FromImage"
+          },
+          "imageReference": {
+            "publisher": "Canonical",
+            "offer": "UbuntuServer",
+            "sku": "18.04-LTS",
+            "version": "latest"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[variables('nodeNicId')]"
+            }
+          ]
+        },
+        "osProfile": {
+          "computerName": "[parameters('nodeVirtualMachineName')]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "linuxConfiguration": {
+            "disablePasswordAuthentication": true,
+            "ssh": {
+              "publicKeys": [
+                {
+                  "path": "[concat('/home/', parameters('adminUsername'), '/.ssh/authorized_keys')]",
+                  "keyData": "[parameters('adminPublicKey')]"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "[parameters('virtualNetworkName')]",
+      "type": "Microsoft.Network/virtualNetworks",
+      "apiVersion": "2020-04-01",
+      "location": "[parameters('location')]",
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "10.0.0.0/24"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "default",
+            "properties": {
+              "addressPrefix": "10.0.0.0/24"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

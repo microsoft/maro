@@ -6,5 +6,6 @@ from .simple_parameter_scheduler import LinearParameterScheduler, TwoPhaseLinear
 
 __all__ = [
     "Scheduler",
-    "LinearParameterScheduler", "TwoPhaseLinearParameterScheduler"
-    ]
+    "LinearParameterScheduler",
+    "TwoPhaseLinearParameterScheduler"
+]

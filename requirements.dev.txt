@@ -2,6 +2,8 @@ Cython==0.29.14
 astroid==2.3.3
 certifi==2019.9.11
 cycler==0.10.0
+flask==1.1.2
+flask-cors==3.0.10
 guppy3==3.0.9
 isort==4.3.21
 kiwisolver==1.1.0
@@ -25,6 +27,7 @@ urllib3==1.25.8
 geopy==2.0.0
 pandas==0.25.3
 redis==3.5.3
+requests==2.25.1
 holidays==0.10.3
 sphinx
 recommonmark~=0.6.0
@@ -37,3 +40,5 @@ altair==4.1.0
 tqdm==4.51.0
 editorconfig-checker
 aria2p==0.9.1
+prompt_toolkit==2.0.10
+stringcase==1.2.0

@@ -1,0 +1,69 @@
+# Initial buffer time budget.
+BUFFER_TIME_BUDGET: 0
+# The number of ticks to delay when agent decides not to assign VM.
+DELAY_DURATION: 1
+# The number of the ticks per hour.
+TICKS_PER_HOUR: 12
+
+# Path of the vm table data.
+VM_TABLE: "~/.maro/data/vm_scheduling/.build/azure.2019.10k/vmtable.bin"
+
+# Path of the cpu readings file.
+CPU_READINGS: "~/.maro/data/vm_scheduling/.build/azure.2019.10k/vm_cpu_readings-file-1-of-195.bin"
+
+PROCESSED_DATA_URL: "https://marodatasource.blob.core.windows.net/vm-scheduling-azure/azure.2019.10k/azure.2019.10k.tar.gz"
+
+# True means kill all VMs on the overload PM.
+# False means only count these VMs as failed allocation, but not kill them.
+KILL_ALL_VMS_IF_OVERLOAD: True
+
+# Oversubscription configuration.
+# Max CPU oversubscription rate.
+MAX_CPU_OVERSUBSCRIPTION_RATE: 1.15
+# Max memory oversubscription rate.
+MAX_MEM_OVERSUBSCRIPTION_RATE: 1
+# Max CPU utilization rate.
+MAX_UTILIZATION_RATE: 1
+
+# The parameters refer to https://www.azure.cn/pricing/details/virtual-machines/index.html
+# Price parameter of CPU cores
+PRICE_PER_CPU_CORES_PER_HOUR: 0.0698
+# Price parameter of CPU cores
+PRICE_PER_MEMORY_PER_HOUR: 0.0078
+# The parameters refer to https://www.microsoft.com/en-us/research/wp-content/uploads/2009/01/p68-v39n1o-greenberg.pdf
+# Unit price of Energy per KWH
+UNIT_ENERGY_PRICE_PER_KWH: 0.07
+# POWER USAGE EFFICIENCY, PUE=(Total Facility Power)/(IT Equipment Power)
+POWER_USAGE_EFFICIENCY: 1.7
+
+components:
+  pm:
+    - pm_type: 0
+      cpu: 32
+      memory: 128
+      power_curve:
+        calibration_parameter: 1.4
+        # The parameters refer to https://link.springer.com/article/10.1007%2Fs10489-020-01633-3
+        busy_power: 185
+        idle_power: 120
+  rack:
+    - type: 'a'
+      pm:
+        - pm_type: 0
+          pm_amount: 10
+  cluster:
+    - type: 'JP1'
+      rack:
+        - rack_type: 'a'
+          rack_amount: 10
+
+architecture:
+  region:
+    - name: 'APAC'
+      zone:
+        - name: 'asia-northeast1'
+          data_center:
+            - name: 'Japan'
+              cluster:
+                - type: 'JP1'
+                  cluster_amount: 1

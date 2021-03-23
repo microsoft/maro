@@ -88,6 +88,13 @@ class DecisionEvent:
             "type": self.type,
             "action_scope": self.action_scope}
 
+    def __setstate__(self, state):
+        self.station_idx = state["station_idx"]
+        self.tick = state["tick"]
+        self.frame_index = state["frame_index"]
+        self.type = state["type"]
+        self._action_scope = state["action_scope"]
+
     def __repr__(self):
         return self.__str__()
 
