@@ -26,7 +26,7 @@ class DistributionUnit(UnitBase):
         # What product we will carry.
         self.product_list = []
 
-    def get_pending_order(self):
+    def get_pending_order(self) -> Dict[int, int]:
         """Get orders that states is pending.
 
         Returns:
@@ -39,11 +39,14 @@ class DistributionUnit(UnitBase):
 
         return counter
 
-    def place_order(self, order: Order):
+    def place_order(self, order: Order) -> int:
         """Place an order in the pending queue.
 
         Args:
             order (Order): Order to insert.
+
+        Returns:
+            int: Total price of this order.
         """
         if order.quantity > 0:
             sku = self.facility.skus[order.product_id]
@@ -101,7 +104,8 @@ class DistributionUnit(UnitBase):
             sku = self.facility.skus[order.product_id]
             product_index = self.product_index_mapping[order.product_id]
 
-            self.data_model.delay_order_penalty[product_index] += sku.delay_order_penalty
+            #self.data_model.delay_order_penalty[product_index] += sku.delay_order_penalty
+            self.data_model.delay_order_penalty[product_index] += self.facility.get_config("delay_order_penalty")
 
     def flush_states(self):
         for vehicle in self.vehicles:

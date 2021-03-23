@@ -81,7 +81,6 @@ world:
       skus:
         sku3:
           init_in_stock: 80
-          delay_order_penalty: 10
           product_unit_cost: 1
           type: "production"
           cost": 10
@@ -90,12 +89,13 @@ world:
       children:
         storage: *small_storage
         distribution: *normal_distribution
+      config:
+        delay_order_penalty: 10
     - name: "Supplier_SKU1"
       definition_ref: "SupplierFacility"
       skus:
         sku1:
           init_in_stock: 96
-          delay_order_penalty: 10
           product_unit_cost: 1
           type: "production"
           cost: 10
@@ -103,7 +103,6 @@ world:
           order_cost: 0
         sku3:
           init_in_stock: 100
-          delay_order_penalty: 10
           type: "material"
           cost: 10
           price: 100
@@ -111,12 +110,13 @@ world:
       children:
         storage: *midium_storage
         distribution: *normal_distribution
+      config:
+        delay_order_penalty: 10
     - name: "Supplier_SKU2"
       definition_ref: "SupplierFacility"
       skus:
         sku2:
           init_in_stock: 50
-          delay_order_penalty: 10
           product_unit_cost: 1
           type: "production"
           cost: 10
@@ -124,7 +124,6 @@ world:
           order_cost: 0
         sku1:
           init_in_stock: 50
-          delay_order_penalty: 10
           type: "material"
           cost: 10
           price: 100
@@ -132,12 +131,13 @@ world:
       children:
         storage: *midium_storage
         distribution: *normal_distribution
+      config:
+        delay_order_penalty: 10
     - name: "Supplier_SKU4"
       definition_ref: "SupplierFacility"
       skus:
         sku4:
           init_in_stock: 50
-          delay_order_penalty: 10
           product_unit_cost: 4
           type: "production"
           cost: 10
@@ -145,7 +145,6 @@ world:
           order_cost: 0
         sku2:
           init_in_stock: 0
-          delay_order_penalty: 10
           type: "material"
           cost: 10
           price: 100
@@ -153,7 +152,8 @@ world:
       children:
         storage: *midium_storage
         distribution: *normal_distribution
-
+      config:
+        delay_order_penalty: 10
   topology:
     Supplier_SKU1:
       sku3:

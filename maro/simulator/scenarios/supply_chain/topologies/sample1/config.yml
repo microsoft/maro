@@ -126,7 +126,6 @@ world:
       skus:
         sku3: # sku name and attributes needed for this facility
           init_in_stock: 100
-          delay_order_penalty: 10
           product_unit_cost: 1
           order_cost: 0
           type: "production" # production means this is the output production of this facility
@@ -140,13 +139,16 @@ world:
         distribution: *normal_distribution
 
         # products use default config in core.yml
+
+      # config of this facility
+      config:
+        delay_order_penalty: 10
     - name: "Supplier_002"
       definition_ref: "SupplierFacility"
 
       skus:
         sku1:
           init_in_stock: 100
-          delay_order_penalty: 10
           product_unit_cost: 1
           type: "production"
           cost: 10
@@ -154,7 +156,6 @@ world:
           order_cost: 0
         sku3:
           init_in_stock: 100
-          delay_order_penalty: 10
           type: "material"
           cost: 10
           price: 100
@@ -164,30 +165,30 @@ world:
         storage: *small_storage
         distribution: *normal_distribution
 
+      config:
+        delay_order_penalty: 10
     - name: "Warehouse_001"
       definition_ref: "WarehouseFacility"
 
       skus:
         sku1:
           init_stock: 1000
-          delay_order_penalty: 10
           price: 100
           order_cost: 200
         sku2:
           init_stock: 1000
-          delay_order_penalty: 10
           price: 100
           order_cost: 200
         sku3:
           init_stock: 1000
-          delay_order_penalty: 10
           price: 100
           order_cost: 200
 
       children:
         storage: *huge_storage
         distribution: *normal_distribution
-
+      config:
+        delay_order_penalty: 10
     - name: "Retailer_001"
       definition_ref: "RetailerFacility"
 

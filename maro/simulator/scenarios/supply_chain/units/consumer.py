@@ -10,7 +10,7 @@ from .skuunit import SkuUnit
 
 
 class ConsumerUnit(SkuUnit):
-    """Consumer unit used to generated order to purchase from upstream by action."""
+    """Consumer unit used to generate order to purchase from upstream by action."""
 
     def __init__(self):
         super(ConsumerUnit, self).__init__()

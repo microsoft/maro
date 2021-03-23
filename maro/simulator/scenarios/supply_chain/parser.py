@@ -60,6 +60,9 @@ class SupplyChainConfiguration:
         # World configurations.
         self.world = {}
 
+        # Other settings.
+        self.settings = {}
+
     def add_data_definition(self, alias: str, class_name: str, module_path: str, name_in_frame: str):
         """Add a data model definition.
 
@@ -218,3 +221,5 @@ class ConfigParser:
                 copy_dict(facility, facility_conf)
 
                 self._result.world["facilities"].append(facility)
+
+            self._result.settings = conf.get("settings", {})

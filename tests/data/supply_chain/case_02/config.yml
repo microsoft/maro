@@ -95,7 +95,6 @@ world:
       skus:
         sku3:
           init_in_stock: 80
-          delay_order_penalty: 20
           product_unit_cost: 1
           type: "production"
           cost": 10
@@ -104,27 +103,28 @@ world:
       children:
         storage: *small_storage
         distribution: *normal_distribution
+      config:
+        delay_order_penalty: 20
     - name: "Warehouse_001"
       definition_ref: "WarehouseFacility"
       skus:
         sku1:
           init_stock: 10
-          delay_order_penalty: 10
           price: 100
           order_cost: 200
         sku2:
           init_stock: 10
-          delay_order_penalty: 10
           price: 100
           order_cost: 200
         sku3:
           init_stock: 10
-          delay_order_penalty: 10
           price: 100
           order_cost: 200
       children:
         storage: *small_storage
         distribution: *normal_distribution
+      config:
+        delay_order_penalty: 20
     - name: "Retailer_001"
       definition_ref: "RetailerFacility"
       skus:

@@ -34,6 +34,9 @@ class FacilityBase(ABC):
     # Key is sku id, value is the list of product unit from upstream.
     upstreams: dict = None
 
+    # Configuration of this facility.
+    configs: dict = None
+
     def parse_skus(self, configs: dict):
         """Parse sku information from config.
 
@@ -48,7 +51,10 @@ class FacilityBase(ABC):
         Args:
             configs (dict): Configuration of this facility.
         """
-        pass
+        self.configs = configs
+
+    def get_config(self, key: str):
+        return None if self.configs is None else self.configs.get(key, None)
 
     def initialize(self):
         """Initialize this facility after frame is ready."""
