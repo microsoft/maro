@@ -98,14 +98,14 @@ class World:
         """
         return self.facilities[self._facility_name2id_mapping[name]]
 
-    def get_unit(self, unit_id: int) -> Union[FacilityBase, UnitBase]:
+    def get_unit(self, unit_id: int) -> UnitBase:
         """Get an unit by id.
 
         Args:
             unit_id (int): Id to query.
 
         Returns:
-            Union[FacilityBase, UnitBase]: Unit instance.
+            UnitBase: Unit instance.
         """
         return self.units[unit_id]
 
