@@ -85,7 +85,6 @@ world:
           type: "production"
           cost": 10
           price": 10
-          order_cost: 0
       children:
         storage: *small_storage
         distribution: *normal_distribution
@@ -100,18 +99,17 @@ world:
           type: "production"
           cost: 10
           price: 100
-          order_cost: 0
         sku3:
           init_in_stock: 100
           type: "material"
           cost: 10
           price: 100
-          order_cost: 200
       children:
         storage: *midium_storage
         distribution: *normal_distribution
       config:
         delay_order_penalty: 10
+        order_cost: 200
     - name: "Supplier_SKU2"
       definition_ref: "SupplierFacility"
       skus:
@@ -121,18 +119,17 @@ world:
           type: "production"
           cost: 10
           price: 100
-          order_cost: 0
         sku1:
           init_in_stock: 50
           type: "material"
           cost: 10
           price: 100
-          order_cost: 200
       children:
         storage: *midium_storage
         distribution: *normal_distribution
       config:
         delay_order_penalty: 10
+        order_cost: 200
     - name: "Supplier_SKU4"
       definition_ref: "SupplierFacility"
       skus:
@@ -142,18 +139,17 @@ world:
           type: "production"
           cost: 10
           price: 100
-          order_cost: 0
         sku2:
           init_in_stock: 0
           type: "material"
           cost: 10
           price: 100
-          order_cost: 200
       children:
         storage: *midium_storage
         distribution: *normal_distribution
       config:
         delay_order_penalty: 10
+        order_cost: 200
   topology:
     Supplier_SKU1:
       sku3:

@@ -127,7 +127,6 @@ world:
         sku3: # sku name and attributes needed for this facility
           init_in_stock: 100
           product_unit_cost: 1
-          order_cost: 0
           type: "production" # production means this is the output production of this facility
           cost": 10
           price": 10
@@ -143,6 +142,7 @@ world:
       # config of this facility
       config:
         delay_order_penalty: 10
+        order_cost: 0
     - name: "Supplier_002"
       definition_ref: "SupplierFacility"
 
@@ -153,13 +153,11 @@ world:
           type: "production"
           cost: 10
           price: 100
-          order_cost: 0
         sku3:
           init_in_stock: 100
           type: "material"
           cost: 10
           price: 100
-          order_cost: 200
 
       children:
         storage: *small_storage
@@ -167,6 +165,7 @@ world:
 
       config:
         delay_order_penalty: 10
+        order_cost: 0
     - name: "Warehouse_001"
       definition_ref: "WarehouseFacility"
 
@@ -174,21 +173,19 @@ world:
         sku1:
           init_stock: 1000
           price: 100
-          order_cost: 200
         sku2:
           init_stock: 1000
           price: 100
-          order_cost: 200
         sku3:
           init_stock: 1000
           price: 100
-          order_cost: 200
 
       children:
         storage: *huge_storage
         distribution: *normal_distribution
       config:
         delay_order_penalty: 10
+        order_cost: 0
     - name: "Retailer_001"
       definition_ref: "RetailerFacility"
 
@@ -199,25 +196,24 @@ world:
           init_in_stock: 100
           sale_gamma: 100
           backlog_ratio: 0.1 # optional
-          order_cost: 200
         sku3:
           price: 200
           cost: 10
           init_in_stock: 100
           sale_gamma: 100
           backlog_ratio: 0.1
-          order_cost: 200
         sku2:
           price: 100
           cost: 10
           init_in_stock: 100
           sale_gamma: 100
           backlog_ratio: 0.1
-          order_cost: 200
 
       children:
         storage: *midium_storage
 
+      config:
+        order_cost: 0
   # topology used to specify the up/downstream for facilities
   # we split it from facility, so that we can support configuration inherit to override it
   # for a new topology

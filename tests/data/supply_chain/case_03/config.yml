@@ -111,32 +111,30 @@ world:
           type: "production"
           cost": 10
           price": 10
-          order_cost: 0
       children:
         storage: *small_storage
         distribution: *normal_distribution
       config:
         delay_order_penalty: 10
+        order_cost: 0
     - name: "Warehouse_001"
       definition_ref: "WarehouseFacility"
       skus:
         sku1:
           init_stock: 10
           price: 100
-          order_cost: 200
         sku2:
           init_stock: 10
           price: 100
-          order_cost: 200
         sku3:
           init_stock: 10
           price: 100
-          order_cost: 200
       children:
         storage: *small_storage
         distribution: *normal_distribution
       config:
         delay_order_penalty: 10
+        order_cost: 200
     - name: "Retailer_001"
       definition_ref: "RetailerFacility"
       skus:
@@ -146,24 +144,22 @@ world:
           init_in_stock: 10
           sale_gamma: 10
           backlog_ratio: 0.1
-          order_cost: 200
         sku3:
           price: 200
           cost: 10
           init_in_stock: 10
           sale_gamma: 10
           backlog_ratio: 0.1
-          order_cost: 200
         sku2:
           price: 100
           cost: 10
           init_in_stock: 10
           sale_gamma: 10
           backlog_ratio: 0.1
-          order_cost: 200
       children:
         storage: *small_storage
-
+      config:
+        order_cost: 200
   topology:
     Warehouse_001:
       sku3:

@@ -53,8 +53,8 @@ class FacilityBase(ABC):
         """
         self.configs = configs
 
-    def get_config(self, key: str):
-        return None if self.configs is None else self.configs.get(key, None)
+    def get_config(self, key: str, default: object = None):
+        return default if self.configs is None else self.configs.get(key, default)
 
     def initialize(self):
         """Initialize this facility after frame is ready."""

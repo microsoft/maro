@@ -56,7 +56,7 @@ class ConsumerUnit(SkuUnit):
 
         sku = self.facility.skus[self.product_id]
 
-        self.data_model.initialize(order_cost=sku.order_cost)
+        self.data_model.initialize(order_cost=self.facility.get_config("order_cost", 0))
 
         if self.facility.upstreams is not None:
             # Construct sources from facility's upstreams.
