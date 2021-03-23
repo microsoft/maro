@@ -83,7 +83,7 @@ class MyTestCase(unittest.TestCase):
                 sku3_storage_id = state[5]
 
         # try to find sku3's storage from env.summary
-        sku3_storage_index = env.summary["node_mapping"]["entity_mapping"][sku3_storage_id][1]
+        sku3_storage_index = env.summary["node_mapping"]["unit_mapping"][sku3_storage_id][1]
 
         storage_states = storage_nodes[env.frame_index:sku3_storage_index:storage_features].flatten().astype(np.int)
 
@@ -189,7 +189,7 @@ class MyTestCase(unittest.TestCase):
                 sku4_storage_id = state[5]
 
         # try to find sku4's storage from env.summary
-        sku4_storage_index = env.summary["node_mapping"]["entity_mapping"][sku4_storage_id][1]
+        sku4_storage_index = env.summary["node_mapping"]["unit_mapping"][sku4_storage_id][1]
 
         # the storage should be same as initialized (50 + 0).
         storage_states = storage_nodes[env.frame_index:sku4_storage_index:storage_features].flatten().astype(np.int)
@@ -286,7 +286,7 @@ class MyTestCase(unittest.TestCase):
                 sku1_manufacture_id = state[0]
                 sku1_storage_id = state[5]
 
-        sku1_storage_index = env.summary["node_mapping"]["entity_mapping"][sku1_storage_id][1]
+        sku1_storage_index = env.summary["node_mapping"]["unit_mapping"][sku1_storage_id][1]
 
         ############################### TICK: 1 ######################################
 
@@ -374,7 +374,7 @@ class MyTestCase(unittest.TestCase):
         storage_unit_id = storage_nodes[env.frame_index:0:"id"].flatten().astype(np.int)[0]
 
         # get the unit reference from env internal
-        storage_unit: StorageUnit = env._business_engine.world.get_entity(storage_unit_id)
+        storage_unit: StorageUnit = env._business_engine.world.get_unit(storage_unit_id)
 
         storage_states = storage_nodes[env.frame_index:0:storage_features].flatten().astype(np.int)
 
@@ -445,7 +445,7 @@ class MyTestCase(unittest.TestCase):
         storage_unit_id = storage_nodes[env.frame_index:0:"id"].flatten().astype(np.int)[0]
 
         # get the unit reference from env internal
-        storage_unit: StorageUnit = env._business_engine.world.get_entity(storage_unit_id)
+        storage_unit: StorageUnit = env._business_engine.world.get_unit(storage_unit_id)
 
         storage_states = storage_nodes[env.frame_index:0:storage_features].flatten().astype(np.int)
 
@@ -520,7 +520,7 @@ class MyTestCase(unittest.TestCase):
         storage_unit_id = storage_nodes[env.frame_index:0:"id"].flatten().astype(np.int)[0]
 
         # get the unit reference from env internal
-        storage_unit: StorageUnit = env._business_engine.world.get_entity(storage_unit_id)
+        storage_unit: StorageUnit = env._business_engine.world.get_unit(storage_unit_id)
 
         storage_states = storage_nodes[env.frame_index:0:storage_features].flatten().astype(np.int)
 
@@ -573,7 +573,7 @@ class MyTestCase(unittest.TestCase):
         storage_unit_id = storage_nodes[env.frame_index:0:"id"].flatten().astype(np.int)[0]
 
         # get the unit reference from env internal
-        storage_unit: StorageUnit = env._business_engine.world.get_entity(storage_unit_id)
+        storage_unit: StorageUnit = env._business_engine.world.get_unit(storage_unit_id)
 
         init_product_dict = get_product_dict_from_storage(env, env.frame_index, 0)
 
@@ -626,13 +626,13 @@ class MyTestCase(unittest.TestCase):
                 # try to find sku3 consumer
                 sku3_consumer_unit_id = facility_defail["units"]["products"][SKU3_ID]["consumer"]["id"]
 
-                sku3_consumer_unit = env._business_engine.world.get_entity(sku3_consumer_unit_id)
+                sku3_consumer_unit = env._business_engine.world.get_unit(sku3_consumer_unit_id)
                 sku3_product_unit_id = facility_defail["units"]["products"][SKU3_ID]["id"]
 
             if facility_defail["name"] == "Supplier_SKU3":
                 sku3_supplier_faiclity_id = facility_defail["id"]
 
-        sku3_consumer_data_model_index = env.summary["node_mapping"]["entity_mapping"][sku3_consumer_unit_id][1]
+        sku3_consumer_data_model_index = env.summary["node_mapping"]["unit_mapping"][sku3_consumer_unit_id][1]
 
         # check initial state
         self.assertEqual(0, sku3_consumer_unit.received)
@@ -727,13 +727,13 @@ class MyTestCase(unittest.TestCase):
             if facility_defail["name"] == "Supplier_SKU1":
                 sku3_consumer_unit_id = facility_defail["units"]["products"][SKU3_ID]["consumer"]["id"]
 
-                sku3_consumer_unit = env._business_engine.world.get_entity(sku3_consumer_unit_id)
+                sku3_consumer_unit = env._business_engine.world.get_unit(sku3_consumer_unit_id)
                 sku3_product_unit_id = facility_defail["units"]["products"][SKU3_ID]["id"]
 
             if facility_defail["name"] == "Supplier_SKU3":
                 sku3_supplier_faiclity_id = facility_defail["id"]
 
-        sku3_consumer_data_model_index = env.summary["node_mapping"]["entity_mapping"][sku3_consumer_unit_id][1]
+        sku3_consumer_data_model_index = env.summary["node_mapping"]["unit_mapping"][sku3_consumer_unit_id][1]
 
         # zero quantity will be ignore
         action_with_zero = ConsumerAction(sku3_consumer_unit_id, SKU3_ID, sku3_supplier_faiclity_id, 0, 1)
@@ -841,13 +841,13 @@ class MyTestCase(unittest.TestCase):
             if facility_defail["name"] == "Supplier_SKU1":
                 sku3_consumer_unit_id = facility_defail["units"]["products"][SKU3_ID]["consumer"]["id"]
 
-                sku3_consumer_unit = env._business_engine.world.get_entity(sku3_consumer_unit_id)
+                sku3_consumer_unit = env._business_engine.world.get_unit(sku3_consumer_unit_id)
                 sku3_product_unit_id = facility_defail["units"]["products"][SKU3_ID]["id"]
 
             if facility_defail["name"] == "Supplier_SKU3":
                 sku3_supplier_facility_id = facility_defail["id"]
 
-        sku3_consumer_data_model_index = env.summary["node_mapping"]["entity_mapping"][sku3_consumer_unit_id][1]
+        sku3_consumer_data_model_index = env.summary["node_mapping"]["unit_mapping"][sku3_consumer_unit_id][1]
 
         action = ConsumerAction(sku3_consumer_unit_id, SKU3_ID, sku3_supplier_facility_id, 10, 1)
 
@@ -892,10 +892,10 @@ class MyTestCase(unittest.TestCase):
         vehicle_unit_id: int
         vehicle_unit_data_model_index: int
 
-        for id, info in env.summary["node_mapping"]["entity_mapping"].items():
+        for id, info in env.summary["node_mapping"]["unit_mapping"].items():
             if info[0] == "vehicle":
                 vehicle_unit_id = id
-                vehicle_unit = env._business_engine.world.get_entity(id)
+                vehicle_unit = env._business_engine.world.get_unit(id)
                 vehicle_unit_data_model_index = vehicle_unit.data_model_index
 
                 break
@@ -979,7 +979,7 @@ class MyTestCase(unittest.TestCase):
         for id, info in env.summary["node_mapping"]["facilities"].items():
             if info["name"] == "Supplier_SKU3":
                 for v in info["units"]["distribution"]["children"]:
-                    vehicle_unit = env._business_engine.world.get_entity(v["id"])
+                    vehicle_unit = env._business_engine.world.get_unit(v["id"])
 
             if info["name"] == "Warehouse_001":
                 dest_facility = env._business_engine.world.get_facility_by_id(info["id"])
@@ -1111,7 +1111,7 @@ class MyTestCase(unittest.TestCase):
         for id, info in env.summary["node_mapping"]["facilities"].items():
             if info["name"] == "Supplier_SKU3":
                 for v in info["units"]["distribution"]["children"]:
-                    vehicle_unit = env._business_engine.world.get_entity(v["id"])
+                    vehicle_unit = env._business_engine.world.get_unit(v["id"])
 
             if info["name"] == "Warehouse_001":
                 dest_facility = env._business_engine.world.get_facility_by_id(info["id"])
@@ -1207,7 +1207,7 @@ class MyTestCase(unittest.TestCase):
         for id, info in env.summary["node_mapping"]["facilities"].items():
             if info["name"] == "Supplier_SKU3":
                 for v in info["units"]["distribution"]["children"]:
-                    vehicle_unit = env._business_engine.world.get_entity(v["id"])
+                    vehicle_unit = env._business_engine.world.get_unit(v["id"])
 
             if info["name"] == "Warehouse_001":
                 dest_facility = env._business_engine.world.get_facility_by_id(info["id"])
@@ -1269,7 +1269,7 @@ class MyTestCase(unittest.TestCase):
 
         for id, info in env.summary["node_mapping"]["facilities"].items():
             if info["name"] == "Supplier_SKU3":
-                dist_unit = env._business_engine.world.get_entity(info["units"]["distribution"]["id"])
+                dist_unit = env._business_engine.world.get_unit(info["units"]["distribution"]["id"])
 
             if info["name"] == "Warehouse_001":
                 dest_facility = env._business_engine.world.get_facility_by_id(info["id"])
@@ -1308,7 +1308,7 @@ class MyTestCase(unittest.TestCase):
 
         for id, info in env.summary["node_mapping"]["facilities"].items():
             if info["name"] == "Supplier_SKU3":
-                dist_unit = env._business_engine.world.get_entity(info["units"]["distribution"]["id"])
+                dist_unit = env._business_engine.world.get_unit(info["units"]["distribution"]["id"])
 
             if info["name"] == "Warehouse_001":
                 dest_facility = env._business_engine.world.get_facility_by_id(info["id"])
@@ -1385,7 +1385,7 @@ class MyTestCase(unittest.TestCase):
             if info["name"] == "Retailer_001":
                 for pid, pdetail in info["units"]["products"].items():
                     if pdetail["sku_id"] == SKU3_ID:
-                        sell_unit = env._business_engine.world.get_entity(pdetail["seller"]["id"])
+                        sell_unit = env._business_engine.world.get_unit(pdetail["seller"]["id"])
 
             if info["name"] == "Warehouse_001":
                 source_facility = env._business_engine.world.get_facility_by_id(info["id"])
@@ -1433,7 +1433,7 @@ class MyTestCase(unittest.TestCase):
             if info["name"] == "Retailer_001":
                 for pid, pdetail in info["units"]["products"].items():
                     if pdetail["sku_id"] == SKU3_ID:
-                        sell_unit = env._business_engine.world.get_entity(pdetail["seller"]["id"])
+                        sell_unit = env._business_engine.world.get_unit(pdetail["seller"]["id"])
 
             if info["name"] == "Warehouse_001":
                 source_facility = env._business_engine.world.get_facility_by_id(info["id"])
@@ -1499,7 +1499,7 @@ class MyTestCase(unittest.TestCase):
             if info["name"] == "Retailer_001":
                 for pid, pdetail in info["units"]["products"].items():
                     if pdetail["sku_id"] == SKU3_ID:
-                        sell_unit = env._business_engine.world.get_entity(pdetail["seller"]["id"])
+                        sell_unit = env._business_engine.world.get_unit(pdetail["seller"]["id"])
 
             if info["name"] == "Warehouse_001":
                 source_facility = env._business_engine.world.get_facility_by_id(info["id"])

@@ -30,8 +30,8 @@ class World:
         # Durations of current simulation.
         self.durations = 0
 
-        # All the entities in the world, include unit and facility.
-        self.entities = {}
+        # All the units in the world.
+        self.units = {}
 
         # All the facilities in this world.
         self.facilities = {}
@@ -98,16 +98,16 @@ class World:
         """
         return self.facilities[self._facility_name2id_mapping[name]]
 
-    def get_entity(self, entity_id: int) -> Union[FacilityBase, UnitBase]:
-        """Get an entity (facility or unit) by id.
+    def get_unit(self, unit_id: int) -> Union[FacilityBase, UnitBase]:
+        """Get an unit by id.
 
         Args:
-            entity_id (int): Id to query.
+            unit_id (int): Id to query.
 
         Returns:
-            Union[FacilityBase, UnitBase]: Entity instance.
+            Union[FacilityBase, UnitBase]: Unit instance.
         """
-        return self.entities[entity_id]
+        return self.units[unit_id]
 
     def find_path(self, start_x: int, start_y: int, goal_x: int, goal_y: int) -> List[Tuple[int, int]]:
         """Find path to specified cell.
@@ -184,7 +184,7 @@ class World:
         self.frame = self._build_frame(snapshot_number)
 
         # Assign data model instance.
-        for unit in self.entities.values():
+        for unit in self.units.values():
             if unit.data_model_name is not None:
                 unit.data_model = getattr(self.frame, unit.data_model_name)[unit.data_model_index]
 
@@ -208,7 +208,7 @@ class World:
             facility.initialize()
 
         # Call initialize method for units.
-        for unit in self.entities.values():
+        for unit in self.units.values():
             unit.initialize()
 
         # TODO: replace tcod with other lib.
@@ -247,7 +247,7 @@ class World:
         unit.facility = facility
         unit.world = self
 
-        self.entities[unit.id] = unit
+        self.units[unit.id] = unit
 
         return unit
 
@@ -279,7 +279,7 @@ class World:
             unit_instance.parent = parent
 
             # Record the id.
-            self.entities[unit_instance.id] = unit_instance
+            self.units[unit_instance.id] = unit_instance
 
             # Due with data model.
             data_model_def: DataModelDef = self.configs.data_models[unit_def.data_model_alias]
@@ -327,7 +327,7 @@ class World:
                 # Pass the config if there is any.
                 child.parse_configs(config.get("config", {}))
 
-                self.entities[child.id] = child
+                self.units[child.id] = child
 
             return children
 
@@ -344,14 +344,14 @@ class World:
 
         id2index_mapping = {}
 
-        for entity_id, entity in self.entities.items():
-            if entity.data_model is not None:
-                id2index_mapping[entity_id] = (entity.data_model_name, entity.data_model_index)
+        for unit_id, unit in self.units.items():
+            if unit.data_model is not None:
+                id2index_mapping[unit_id] = (unit.data_model_name, unit.data_model_index)
             else:
-                id2index_mapping[entity_id] = (None, None)
+                id2index_mapping[unit_id] = (None, None)
 
         return {
-            "entity_mapping": id2index_mapping,
+            "unit_mapping": id2index_mapping,
             "skus": {sku.name: sku.id for sku in self._sku_collection.values()},
             "facilities": facility_info_dict
         }

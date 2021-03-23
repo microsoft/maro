@@ -119,7 +119,7 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         if self._action_cache is not None:
             # NOTE: we assume that the action is dictionary that key is the unit(agent) id, value is the real action.
             for unit_id, action_obj in self._action_cache.items():
-                entity = self.world.get_entity(unit_id)
+                entity = self.world.get_unit(unit_id)
 
                 if entity is not None and issubclass(type(entity), UnitBase):
                     entity.set_action(action_obj)
