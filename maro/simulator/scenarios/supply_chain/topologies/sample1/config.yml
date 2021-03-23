@@ -125,7 +125,7 @@ world:
       # sku list of this facility
       skus:
         sku3: # sku name and attributes needed for this facility
-          init_in_stock: 100
+          init_stock: 100
           product_unit_cost: 1
           type: "production" # production means this is the output production of this facility
           cost": 10
@@ -148,13 +148,13 @@ world:
 
       skus:
         sku1:
-          init_in_stock: 100
+          init_stock: 100
           product_unit_cost: 1
           type: "production"
           cost: 10
           price: 100
         sku3:
-          init_in_stock: 100
+          init_stock: 100
           type: "material"
           cost: 10
           price: 100
@@ -193,19 +193,19 @@ world:
         sku1:
           price: 300
           cost: 10
-          init_in_stock: 100
+          init_stock: 100
           sale_gamma: 100
           backlog_ratio: 0.1 # optional
         sku3:
           price: 200
           cost: 10
-          init_in_stock: 100
+          init_stock: 100
           sale_gamma: 100
           backlog_ratio: 0.1
         sku2:
           price: 100
           cost: 10
-          init_in_stock: 100
+          init_stock: 100
           sale_gamma: 100
           backlog_ratio: 0.1
 

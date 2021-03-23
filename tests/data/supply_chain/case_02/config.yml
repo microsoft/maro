@@ -94,7 +94,7 @@ world:
       definition_ref: "SupplierFacility"
       skus:
         sku3:
-          init_in_stock: 80
+          init_stock: 80
           product_unit_cost: 1
           type: "production"
           cost": 10
@@ -129,19 +129,19 @@ world:
         sku1:
           price: 300
           cost: 10
-          init_in_stock: 10
+          init_stock: 10
           sale_gamma: 10
           backlog_ratio: 0.1
         sku3:
           price: 200
           cost: 10
-          init_in_stock: 10
+          init_stock: 10
           sale_gamma: 10
           backlog_ratio: 0.1
         sku2:
           price: 100
           cost: 10
-          init_in_stock: 10
+          init_stock: 10
           sale_gamma: 10
           backlog_ratio: 0.1
       children:

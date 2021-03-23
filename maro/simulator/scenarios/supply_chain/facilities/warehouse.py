@@ -13,7 +13,7 @@ from .facility import FacilityBase
 class WarehouseFacility(FacilityBase):
     """Warehouse facility that used to storage products, composed with storage, distribution and product units."""
 
-    SkuInfo = namedtuple("SkuInfo", ("name", "init_in_stock", "id", "price", "delay_order_penalty", "order_cost"))
+    SkuInfo = namedtuple("SkuInfo", ("name", "init_stock", "id", "price", "delay_order_penalty", "order_cost"))
 
     # Storage unit for this facility, must be a sub class of StorageUnit.
     storage: StorageUnit = None

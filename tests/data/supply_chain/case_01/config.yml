@@ -80,7 +80,7 @@ world:
       definition_ref: "SupplierFacility"
       skus:
         sku3:
-          init_in_stock: 80
+          init_stock: 80
           product_unit_cost: 1
           type: "production"
           cost": 10
@@ -94,13 +94,13 @@ world:
       definition_ref: "SupplierFacility"
       skus:
         sku1:
-          init_in_stock: 96
+          init_stock: 96
           product_unit_cost: 1
           type: "production"
           cost: 10
           price: 100
         sku3:
-          init_in_stock: 100
+          init_stock: 100
           type: "material"
           cost: 10
           price: 100
@@ -114,13 +114,13 @@ world:
       definition_ref: "SupplierFacility"
       skus:
         sku2:
-          init_in_stock: 50
+          init_stock: 50
           product_unit_cost: 1
           type: "production"
           cost: 10
           price: 100
         sku1:
-          init_in_stock: 50
+          init_stock: 50
           type: "material"
           cost: 10
           price: 100
@@ -134,13 +134,13 @@ world:
       definition_ref: "SupplierFacility"
       skus:
         sku4:
-          init_in_stock: 50
+          init_stock: 50
           product_unit_cost: 4
           type: "production"
           cost: 10
           price: 100
         sku2:
-          init_in_stock: 0
+          init_stock: 0
           type: "material"
           cost: 10
           price: 100

@@ -18,7 +18,7 @@ class SupplierFacility(FacilityBase):
         (
             "name",
             "id",
-            "init_in_stock",
+            "init_stock",
             "type",
             "cost",
             "price",
@@ -46,7 +46,7 @@ class SupplierFacility(FacilityBase):
             sku_info = SupplierFacility.SkuInfo(
                 sku_name,
                 sku.id,
-                sku_config["init_in_stock"],
+                sku_config["init_stock"],
                 sku_config["type"],
                 sku_config.get("cost", 0),
                 sku_config.get("price", 0),

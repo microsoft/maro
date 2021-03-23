@@ -117,7 +117,7 @@ class StorageUnit(UnitBase):
 
         for sku in self.facility.skus.values():
             self.product_list.append(sku.id)
-            self.product_number.append(sku.init_in_stock)
+            self.product_number.append(sku.init_stock)
 
         self.remaining_space = self.capacity
 
@@ -149,7 +149,7 @@ class StorageUnit(UnitBase):
         self.product_number.clear()
 
         for sku in self.facility.skus.values():
-            self.product_number.append(sku.init_in_stock)
+            self.product_number.append(sku.init_stock)
 
         self.remaining_space = self.capacity
 

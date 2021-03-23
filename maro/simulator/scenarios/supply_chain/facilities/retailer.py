@@ -20,7 +20,7 @@ class RetailerFacility(FacilityBase):
             "id",
             "price",
             "cost",
-            "init_in_stock",
+            "init_stock",
             "sale_gamma",
             "order_cost",
             "backlog_ratio"
@@ -44,7 +44,7 @@ class RetailerFacility(FacilityBase):
                 sku.id,
                 sku_config.get("price", 0),
                 sku_config.get("cost", 0),
-                sku_config["init_in_stock"],
+                sku_config["init_stock"],
                 sku_config.get("sale_gamma", 0),
                 sku_config.get("order_cost", 0),
                 sku_config.get("backlog_ratio", 0)

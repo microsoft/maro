@@ -1438,7 +1438,7 @@ class MyTestCase(unittest.TestCase):
             if info["name"] == "Warehouse_001":
                 source_facility = env._business_engine.world.get_facility_by_id(info["id"])
 
-        SKU3_INIT_NUMBER = sell_unit.facility.skus[SKU3_ID].init_in_stock
+        SKU3_INIT_NUMBER = sell_unit.facility.skus[SKU3_ID].init_stock
 
         env.step(None)
 

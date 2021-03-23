@@ -138,7 +138,7 @@ class World:
 
         # Grab sku information for this world.
         for sku_conf in world_config["skus"]:
-            sku = SkuInfo(sku_conf["name"], sku_conf["id"], {}, sku_conf["output_units_per_lot"])
+            sku = SkuInfo(sku_conf["name"], sku_conf["id"], {}, sku_conf.get("output_units_per_lot", 1))
 
             self._sku_id2name_mapping[sku.id] = sku.name
             self._sku_collection[sku.name] = sku
