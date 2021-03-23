@@ -90,6 +90,10 @@ target_source_pairs = [
         os.path.join(project_root, "simulator/scenarios/cim/meta")
     ),
     (
+        os.path.expanduser("~/.maro/data/vm_scheduling/meta"),
+        os.path.join(project_root, "simulator/scenarios/vm_scheduling/meta")
+    ),
+    (
         os.path.expanduser("~/.maro/lib/k8s"),
         os.path.join(project_root, "cli/k8s/lib")
     ),

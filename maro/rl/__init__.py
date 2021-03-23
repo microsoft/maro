@@ -1,30 +1,29 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from maro.rl.actor import AbsActor, SimpleActor
-from maro.rl.agent import DDPG, DQN, AbsAgent, ActorCritic, ActorCriticConfig, DDPGConfig, DQNConfig, PolicyGradient
-from maro.rl.agent_manager import AbsAgentManager
-from maro.rl.dist_topologies import (
-    ActorProxy, ActorWorker, concat_experiences_by_agent, merge_experiences_with_trajectory_boundaries
+from maro.rl.agent import (
+    DDPG, DQN, AbsAgent, ActorCritic, ActorCriticConfig, DDPGConfig, DQNConfig, MultiAgentWrapper, PolicyGradient
 )
 from maro.rl.exploration import (
     AbsExplorer, EpsilonGreedyExplorer, GaussianNoiseExplorer, NoiseExplorer, UniformNoiseExplorer
 )
-from maro.rl.learner import AbsLearner, SimpleLearner
-from maro.rl.model import AbsBlock, AbsLearningModel, FullyConnectedBlock, OptimOption, SimpleMultiHeadModel
+from maro.rl.model import AbsBlock, AbsCoreModel, FullyConnectedBlock, OptimOption, SimpleMultiHeadModel
 from maro.rl.scheduling import LinearParameterScheduler, Scheduler, TwoPhaseLinearParameterScheduler
-from maro.rl.shaping import Shaper
 from maro.rl.storage import AbsStore, OverwriteType, SimpleStore
+from maro.rl.training import AbsLearner, Actor, ActorProxy, OffPolicyLearner, OnPolicyLearner, Trajectory
+from maro.rl.utils import (
+    ExperienceCollectionUtils, get_k_step_returns, get_lambda_returns, get_log_prob, get_max,
+    get_truncated_cumulative_reward, select_by_actions
+)
 
 __all__ = [
-    "AbsActor", "SimpleActor",
-    "AbsAgent", "ActorCritic", "ActorCriticConfig", "DDPG", "DDPGConfig", "DQN", "DQNConfig", "PolicyGradient",
-    "AbsAgentManager",
-    "ActorProxy", "ActorWorker", "concat_experiences_by_agent", "merge_experiences_with_trajectory_boundaries",
+    "AbsAgent", "ActorCritic", "ActorCriticConfig", "DDPG", "DDPGConfig", "DQN", "DQNConfig", "MultiAgentWrapper",
+    "PolicyGradient",
     "AbsExplorer", "EpsilonGreedyExplorer", "GaussianNoiseExplorer", "NoiseExplorer", "UniformNoiseExplorer",
-    "AbsLearner", "SimpleLearner",
-    "AbsBlock", "AbsLearningModel", "FullyConnectedBlock", "OptimOption", "SimpleMultiHeadModel",
+    "AbsBlock", "AbsCoreModel", "FullyConnectedBlock", "OptimOption", "SimpleMultiHeadModel",
     "LinearParameterScheduler", "Scheduler", "TwoPhaseLinearParameterScheduler",
-    "Shaper",
-    "AbsStore", "OverwriteType", "SimpleStore"
+    "AbsStore", "OverwriteType", "SimpleStore",
+    "AbsLearner", "Actor", "ActorProxy", "OffPolicyLearner", "OnPolicyLearner", "Trajectory",
+    "ExperienceCollectionUtils", "get_k_step_returns", "get_lambda_returns", "get_log_prob", "get_max",
+    "get_truncated_cumulative_reward", "select_by_actions"
 ]

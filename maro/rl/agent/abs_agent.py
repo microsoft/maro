@@ -1,12 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import os
 from abc import ABC, abstractmethod
 
 import torch
 
-from maro.rl.model.learning_model import AbsLearningModel
+from maro.rl.model import AbsCoreModel
 
 
 class AbsAgent(ABC):
@@ -14,35 +13,25 @@ class AbsAgent(ABC):
 
     It's a sandbox for the RL algorithm. Scenario-specific details will be excluded.
     We focus on the abstraction algorithm development here. Environment observation and decision events will
-    be converted to a uniform format before calling in. And the output will be converted to an environment
+    be converted to a uniform format before calling in. The output will be converted to an environment
     executable format before return back to the environment. Its key responsibility is optimizing policy based
     on interaction with the environment.
 
     Args:
-        name (str): Agent's name.
-        model (AbsLearningModel): Task model or container of task models required by the algorithm.
+        model (AbsCoreModel): Task model or container of task models required by the algorithm.
         config: Settings for the algorithm.
-        experience_pool: It is used to store experiences processed by the experience shaper, which will be
-            used by some value-based algorithms, such as DQN. Defaults to None.
     """
-    def __init__(self, name: str, model: AbsLearningModel, config, experience_pool=None):
-        self._name = name
-        self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self._model = model.to(self._device)
-        self._config = config
-        self._experience_pool = experience_pool
+    def __init__(self, model: AbsCoreModel, config):
+        self.model = model
+        self.config = config
+        self.device = None
 
-    @property
-    def model(self):
-        return self._model
-
-    @property
-    def experience_pool(self):
-        """Underlying experience pool where the agent stores experiences."""
-        return self._experience_pool
+    def to_device(self, device):
+        self.device = device
+        self.model = self.model.to(device)
 
     @abstractmethod
-    def choose_action(self, model_state):
+    def choose_action(self, state):
         """This method uses the underlying model(s) to compute an action from a shaped state.
 
         Args:
@@ -58,38 +47,38 @@ class AbsAgent(ABC):
         pass
 
     @abstractmethod
-    def train(self, *args, **kwargs):
-        """Training logic to be implemented by the user.
+    def learn(self, *args, **kwargs):
+        """Algorithm-specific training logic.
 
-        For example, this may include drawing samples from the experience pool and the algorithm training on
-        these samples.
+        The parameters are data to train the underlying model on. Algorithm-specific loss and optimization
+        should be reflected here.
         """
         return NotImplementedError
 
     def load_model(self, model):
         """Load models from memory."""
-        self._model.load(model)
+        self.model.load_state_dict(model)
 
     def dump_model(self):
         """Return the algorithm's trainable models."""
-        return self._model.dump()
+        return self.model.state_dict()
 
-    def load_model_from_file(self, dir_path: str):
+    def load_model_from_file(self, path: str):
         """Load trainable models from disk.
 
         Load trainable models from the specified directory. The model file is always prefixed with the agent's name.
 
         Args:
-            dir_path (str): path to the directory where the models are saved.
+            path (str): path to the directory where the models are saved.
         """
-        self._model.load_from_file(os.path.join(dir_path, self._name))
+        self.model.load_state_dict(torch.load(path))
 
-    def dump_model_to_file(self, dir_path: str):
+    def dump_model_to_file(self, path: str):
         """Dump the algorithm's trainable models to disk.
 
         Dump trainable models to the specified directory. The model file is always prefixed with the agent's name.
 
         Args:
-            dir_path (str): path to the directory where the models are saved.
+            path (str): path to the directory where the models are saved.
         """
-        self._model.dump_to_file(os.path.join(dir_path, self._name))
+        torch.save(self.model.state_dict(), path)
