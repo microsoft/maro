@@ -6,8 +6,7 @@ from os import makedirs, system
 from os.path import dirname, join, realpath
 
 import numpy as np
-from torch import nn
-from torch.optim import Adam, RMSprop
+import torch
 
 from maro.rl import (
     Actor, ActorCritic, ActorCriticConfig, FullyConnectedBlock, MultiAgentWrapper, SimpleMultiHeadModel,
