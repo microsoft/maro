@@ -1,8 +1,20 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 """
 A simple script that used to generate random configurations.
-
 """
 
+import argparse
+import os
+import random
+from typing import Optional
+
+import numpy as np
+from flloat.parser.ltlf import LTLfParser
+from yaml import safe_load, safe_dump
+
+# Definition of warehouse.
 warehouse_def = """
 class: "WarehouseFacility"
 children:
@@ -18,6 +30,7 @@ children:
                 class: "ConsumerUnit"
 """
 
+# Definition of supplier.
 supplier_def = """
 class: "SupplierFacility"
 children:
@@ -35,7 +48,8 @@ children:
                 class: "ManufactureUnit"
 """
 
-retail_def = """
+# Definition of retailer.
+retailer_def = """
 class: "RetailerFacility"
 children:
     storage:
@@ -50,12 +64,12 @@ children:
                 class: "SellerUnit"
 """
 
-global_sku_template = """
-id: 1
-name: "sku1"
-output_units_per_lot: 12
-"""
-
+# Template to generate a supplier facility.
+# Properties to change:
+# . name
+# . skus
+# . vehicles
+# . config (optional)
 supplier_template = """
 name: "Supplier_001"
 definition_ref: "SupplierFacility"
@@ -73,6 +87,12 @@ children:
 config: {}
 """
 
+# Template to generate warehouse facility.
+# Property to change:
+# . name
+# . skus
+# . vehicles
+# . config (optional)
 warehouse_template = """
 name: "Warehouse_001"
 definition_ref: "WarehouseFacility"
@@ -90,7 +110,12 @@ children:
 config: {}
 """
 
-retail_template = """
+# Template to generate retailer.
+# Property to change:
+# . name
+# . skus
+# . config (optional)
+retailer_template = """
 name: "Retailer_001"
 definition_ref: "RetailerFacility"
 skus: {}
@@ -102,23 +127,9 @@ children:
 config: {}
 """
 
-import argparse
-import os
-import random
 
-import numpy as np
-from flloat.parser.ltlf import LTLfParser
-from yaml import safe_load, safe_dump
-
-
-def generate_config(
-    sku_num: int,
-    supplier_num: int,
-    warehouse_num: int,
-    retailer_num: int,
-    grid_width: int,
-    grid_height: int,
-    output_path: int = None):
+def generate_config(sku_num: int, supplier_num: int, warehouse_num: int, retailer_num: int, grid_width: int,
+                    grid_height: int, output_path: Optional[str] = None):
     constraints = ['G(stock_constraint)',
                    'G(is_replenish_constraint -> ((X!is_replenish_constraint)&(XX!is_replenish_constraint)))',
                    'G(low_profit -> low_stock_constraint)']
@@ -136,7 +147,7 @@ def generate_config(
 
     max_constraint_states = int(np.max([len(a.states) for a in constraint_automata.values()]))
 
-    # config of vehicle
+    # Base configuration of vehicle used in all facility.
     vehicle_conf = {
         "class": "VehicleUnit",
         "config": {
@@ -145,19 +156,16 @@ def generate_config(
         }
     }
 
-    config = {}
+    # Save the vehicle definition in the config, so later distribution will reference to it.
+    config = {"normal_vehicle": vehicle_conf, "facility_definitions": {}}
 
-    # save the vehicle definition in the config, so later distribution will reference to it.
-    config["normal_vehicle"] = vehicle_conf
-    config["facility_definitions"] = {}
+    # Add the facility definitions.
     config["facility_definitions"]["SupplierFacility"] = safe_load(supplier_def)
     config["facility_definitions"]["WarehouseFacility"] = safe_load(warehouse_def)
-    config["facility_definitions"]["RetailerFacility"] = safe_load(retail_def)
+    config["facility_definitions"]["RetailerFacility"] = safe_load(retailer_def)
 
-    world_conf = {}
-
-    # generate settings first.
-    world_conf["settings"] = {
+    # Generate settings first.
+    world_conf = {"settings": {
         'global_reward_weight_producer': 0.50,
         'global_reward_weight_consumer': 0.50,
         "initial_balance": 100000,
@@ -166,7 +174,7 @@ def generate_config(
         "replenishment_discount": 0.9,
         "reward_normalization": 1e7,
         "constraint_violate_reward": -1e7,
-    }
+    }}
 
     sku_names = [f'SKU{i}' for i in range(sku_num)]
 
@@ -177,8 +185,10 @@ def generate_config(
             "name": sku_name
         })
 
+    # Add the sku list to the world configuration.
     world_conf["skus"] = sku_list
 
+    # Generate sku information.
     sku_cost = {f'SKU{i}': random.randint(10, 500) for i in range(sku_num)}
     sku_product_cost = {f'SKU{i}': int(sku_cost[f'SKU{i}'] * 0.9) for i in range(sku_num)}
     sku_price = {f'SKU{i}': int(sku_cost[f'SKU{i}'] * (1 + random.randint(10, 100) / 100)) for i in range(sku_num)}
@@ -186,7 +196,7 @@ def generate_config(
     total_gamma = sum(list(sku_gamma.values()))
     sku_vlt = {f'SKU{i}': random.randint(1, 3) for i in range(sku_num)}
 
-    # generate suppliers.
+    # Generate suppliers.
     supplier_facilities = []
 
     for i in range(supplier_num):
@@ -199,11 +209,12 @@ def generate_config(
             # this will save as a reference in the final yaml file
             facility["children"]["distribution"]["children"]["vehicles"].append(vehicle_conf)
 
-        # facility config
+        # Facility config.
         facility["config"] = {}
         facility["config"]["order_cost"] = 200
         facility["config"]["delay_order_penalty"] = 1000
 
+        # Sku list of this facility.
         sku_list = {}
 
         for j in range(sku_num):
@@ -211,18 +222,20 @@ def generate_config(
             sku_list[sku_name] = {
                 "price": sku_cost[sku_name],
                 "cost": sku_product_cost[sku_name],
+                "service_level": .95,
                 "vlt": 3,
                 "init_stock": int(sku_gamma[sku_name] * 50),
-                # why this configuration, as manufacture is controlled by action?
+                # Why this configuration, as manufacture is controlled by action?
                 "production_rate": int(sku_gamma[sku_name] * 50),
-                "type": "production"  # for this script, all sku is a production that produced by suppliers, no bom.
+                # For this script, all sku is a production that produced by suppliers, no bom.
+                "type": "production"
             }
 
         facility["skus"] = sku_list
 
         supplier_facilities.append(facility)
 
-    # warehouses
+    # Warehouses.
     warehouse_list = []
     for i in range(warehouse_num):
         facility = safe_load(warehouse_template)
@@ -233,7 +246,6 @@ def generate_config(
         for _ in range(10 * sku_num):
             facility["children"]["distribution"]["children"]["vehicles"].append(vehicle_conf)
 
-        # facility config
         facility["config"] = {}
         facility["config"]["order_cost"] = 500
         facility["config"]["delay_order_penalty"] = 1000
@@ -244,9 +256,10 @@ def generate_config(
             sku_name = f"SKU{j}"
             sku_list[sku_name] = {
                 "price": sku_cost[sku_name],
-                "cost": sku_product_cost[sku_name],
-                "vlt": 3,
-                "init_stock": int(sku_gamma[sku_name] * 20)
+                "cost": sku_cost[sku_name],
+                "vlt": sku_vlt[sku_name],
+                "init_stock": int(sku_gamma[sku_name] * 20),
+                "service_level": .96
             }
 
         facility["skus"] = sku_list
@@ -259,15 +272,14 @@ def generate_config(
             continue
         sku_constraints[f"SKU{i}"] = constraints[random.randint(0, len(constraints) - 1)]
 
-    # retailers
+    # Retailers.
     retailer_list = []
     for i in range(retailer_num):
-        facility = safe_load(retail_template)
+        facility = safe_load(retailer_template)
 
         facility["name"] = f"STORE{i}"
         facility["children"]["storage"]["config"]["capacity"] = total_gamma * 20
 
-        # facility config
         facility["config"] = {}
         facility["config"]["order_cost"] = 500
 
@@ -276,9 +288,9 @@ def generate_config(
         for j in range(sku_num):
             sku_name = f"SKU{j}"
             sku_list[sku_name] = {
-                "price": sku_cost[sku_name],
-                "cost": sku_product_cost[sku_name],
-                "vlt": 3,
+                "price": sku_price[sku_name],
+                "service_level": 0.95,
+                "cost": sku_cost[sku_name],
                 "init_stock": sku_gamma[sku_name] * (sku_vlt[sku_name] + random.randint(1, 5)),
                 "sale_gamma": sku_gamma[sku_name],
                 'max_stock': 1000,
@@ -291,11 +303,12 @@ def generate_config(
 
     world_conf["facilities"] = supplier_facilities + warehouse_list + retailer_list
 
-    # according to original code, the upstream relationship is like following:
+    # According to original code, the upstream relationship is like following:
     # supplier <- warehouse <- retailer
     # as current configuration supplier and warehouse contain all the sku, so we can just random pick.
     world_conf["topology"] = {}
 
+    # Random pick upstreams for retailers from warehouses.
     for store in retailer_list:
         store_upstream = {}
 
@@ -305,6 +318,7 @@ def generate_config(
 
         world_conf["topology"][store["name"]] = store_upstream
 
+    # Random pick upstreams for warehouses from suppliers.
     for warehouse in warehouse_list:
         warehouse_upstream = {}
 
@@ -314,11 +328,11 @@ def generate_config(
 
         world_conf["topology"][warehouse["name"]] = warehouse_upstream
 
-    # grid
+    # Grid settings.
     world_conf["grid"] = {}
     world_conf["grid"]["size"] = [grid_width, grid_height]
 
-    # random pick location
+    # Random pick location.
     available_cells = [(x, y) for x in range(grid_width) for y in range(grid_height)]
 
     world_conf["grid"]["facilities"] = {}
@@ -351,7 +365,6 @@ if __name__ == "__main__":
 
     arg = parser.parse_args()
 
-    # force it to be 1 to make it same as original.
     generate_config(
         arg.sku_num,
         arg.supplier_num,
