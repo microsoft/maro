@@ -81,7 +81,7 @@ class DQN(AbsAgent):
 
         q_values = self._get_q_values(state, training=False)
         num_actions = q_values.shape[1]
-        greedy_action = q_values.argmax(dim=1).data
+        greedy_action = q_values.argmax(dim=1).data.cpu()
         # No exploration
         if self.config.epsilon == .0:
             return greedy_action.item() if is_single else greedy_action.numpy()
