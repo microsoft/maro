@@ -10,6 +10,7 @@ import subprocess
 import termios
 import json
 import pandas as pd
+import traceback
 
 from flask import Flask, redirect, send_file, send_from_directory
 from flask_socketio import SocketIO, send
@@ -22,6 +23,7 @@ app.config["pid"] = None
 app.config["child_pid"] = None
 app.config["cluster_list"] = []
 app.config["cluster_status"] = {}
+app.config["cluster_jobs"] = {}
 app.config["local_executor"] = {}
 socketio = SocketIO(app)
 
@@ -145,7 +147,7 @@ def update_resource_dynamic(org_data, local_executor, dashboard_type):
     if dashboard_type != DashboardType.PROCESS:
         new_data = local_executor.get_resource_usage(0)
         for data_key in org_data.keys():
-            org_data[data_key].extend(new_data[data_key])
+            org_data[data_key]=[new_data[data_key]]
     else:
         data_len = len(org_data['cpu'])
         new_data = local_executor.get_resource_usage(data_len)
@@ -181,6 +183,7 @@ def update_cluster_list():
                 clusters_removed.append(cluster_name)
         for cluster_name in clusters_removed:
             del app.config["cluster_status"][cluster_name]
+            del app.config["cluster_jobs"][cluster_name]
         for cluster_name in clusters:
             if cluster_name not in app.config["cluster_status"].keys():
                 try:
@@ -199,9 +202,10 @@ def update_cluster_list():
                                             local_executor, app.config["cluster_status"][cluster_name]["dashboard_type"])
                     #app.config["cluster_status"][cluster_name]["resource_dynamic"] = local_executor.get_resource_usage(0)
                     #app.config["cluster_status"][cluster_name]["job_queue_data"] = local_executor.get_job_queue()
-                    app.config["cluster_status"][cluster_name]["job_detail_data"] = local_executor.get_job_details()
+                    app.config["cluster_status"][cluster_name]["job_detail_data"] = {}
+                    update_job_details(app.config["cluster_status"][cluster_name]["job_detail_data"], local_executor.get_job_details())
                 except Exception as e:
-                    print(f"Failed to collect status for cluster {cluster_name}, error:{e}")
+                    print(f"Failed to collect status for cluster {cluster_name}, error:{e}  {traceback.format_exc()}")
                     if cluster_name in app.config["cluster_status"].keys():
                         del app.config["cluster_status"][cluster_name]
             else:
@@ -209,7 +213,9 @@ def update_cluster_list():
                 update_resource_dynamic(app.config["cluster_status"][cluster_name]["resource_dynamic"],
                                         local_executor, app.config["cluster_status"][cluster_name]["dashboard_type"])
                 #app.config["cluster_status"][cluster_name]["job_queue_data"] = local_executor.get_job_queue()
-                app.config["cluster_status"][cluster_name]["job_detail_data"] = local_executor.get_job_details()
+                # app.config["cluster_status"][cluster_name]["job_detail_data"] = local_executor.get_job_details()
+                update_job_details(app.config["cluster_status"][cluster_name]["job_detail_data"], local_executor.get_job_details())
+
         print(f"{app.config['cluster_list']}")
 
 

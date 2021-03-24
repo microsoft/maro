@@ -19,7 +19,6 @@
     }
 
     .el-header {
-      color: #333;
       line-height: 60px;
     }
 
@@ -28,14 +27,19 @@
     }
 
     body {
-      background: #eee;
+      background: #2e2e2e;
+      color: #ffffff80;
+    }
+
+    .cur_tab{
+      background: white;
     }
   </style>
 
   <el-container id="app">
     <el-header>
       <el-row>
-        <el-col :span="4">
+        <el-col :span="4" style="color: #ffffff80;">
           MARO Admin Web UI
         </el-col>
         <el-col :span="20" style="text-align: right; font-size: 12px">
@@ -49,17 +53,13 @@
       </el-row>
     </el-header>
     <el-main>
-      <!-- <div>
-        <iframe class="mydashboard" src="./dashboard"></iframe>
-      </div> -->
-
       <el-container class="mydashboard">
-        <el-main style="width: max-content;">
+        <el-main style="width: 11%;">
           <div v-for="item in cluster_list" :key="item" style="width: max-content;">
-            <el-button type="primary" plain v-on:click="show_cluster(item)">{{ item }}</el-button>
+            <div :class="test_tab_type(item)" v-on:click="show_cluster(item)">{{ item }}</div>
           </div>
         </el-main>
-        <el-main>
+        <el-main style="width: 33%;">
           <el-container v-if="connected">
             <el-header>
               static resource
@@ -71,9 +71,28 @@
                 <el-main>GPU:{{resource_static["gpu"]}}</el-main>
               </el-container>
             </el-main>
+            <el-main >
+              <el-container>
+                <el-header>
+                  dynamic resource
+                </el-header>
+                <el-main>
+                  <el-container v-if="dashboard_type=='process'">
+                    <el-header>
+                    </el-header>
+                    <el-main v-for="resource in Object.keys(resource_dynamic)">
+                      {{resource}}:{{resource_dynamic[resource]}}
+                    </el-main>
+                  </el-container>
+                  <el-container v-else>
+                    <el-main v-for="resource in Object.keys(resource_dynamic)">{{resource}}:{{resource_dynamic[resource]}}</el-main>
+                  </el-container>
+                </el-main>
+              </el-container>
+            </el-main>
           </el-container>
         </el-main>
-        <el-main></el-main>
+        <el-main style="width: 55%;"></el-main>
       </el-container>
 
     </el-main>
@@ -124,6 +143,15 @@
         methods: {
           show_cluster: function (message) {
             socket.emit('cluster_status', { cluster_name: message })
+          },
+          test_tab_type: function(item_type){
+            if(item_type==this.cluster_name)
+            {
+              return "cur_tab";
+            }
+            else{
+              return "normal_tab";
+            }
           }
         }
       })
@@ -132,6 +160,7 @@
           socket.emit("cluster_list")
         }
       }, 1000)
+      
       // Load terminal addons.
       Terminal.applyAddon(fullscreen)
       Terminal.applyAddon(fit)
