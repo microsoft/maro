@@ -2,18 +2,15 @@
 # Licensed under the MIT license.
 
 import argparse
-import time
 from collections import defaultdict
 from multiprocessing import Process
-from os import makedirs
-from os.path import dirname, join, realpath
 
 from maro.rl import (
     Actor, ActorProxy, DQN, DQNConfig, FullyConnectedBlock, MultiAgentWrapper, OffPolicyLearner,
     SimpleMultiHeadModel, TwoPhaseLinearParameterScheduler
 )
 from maro.simulator import Env
-from maro.utils import Logger, set_seeds
+from maro.utils import set_seeds
 
 from examples.cim.common import CIMTrajectory, common_config
 from examples.cim.dqn.config import agent_config, training_config
