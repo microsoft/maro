@@ -130,7 +130,7 @@ setup(
         "azure-storage-common==2.1.0",
         "geopy==2.0.0",
         "pandas==0.25.3",
-        "PyYAML==5.3.1",
+        "PyYAML==5.4",
         "paramiko==2.7.2",
         "kubernetes==12.0.1",
         "prompt_toolkit==2.0.10",
