@@ -95,7 +95,7 @@ def process_port_data(db_port_data: json) -> json:
 
     """
     exec_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(os.path.dirname(__file__)))))
-    config_file_path = f"{exec_path}\\nginx\\static\\"
+    config_file_path = f"{exec_path}/nginx/static/"
     with open(f"{config_file_path}port_list.json", "r", encoding="utf8")as port_list_file:
         port_list = json.load(port_list_file)
         port_list = port_list[0]["port_list"]
