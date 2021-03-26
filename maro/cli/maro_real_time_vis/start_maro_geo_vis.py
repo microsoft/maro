@@ -21,7 +21,7 @@ def start_geo_vis(start: str, experiment_name: str, front_end_port: int, **kwarg
     if start == 'database':
 
         # Start the databse container.
-        database_start_path = f"{grader_path}\\streamit\\server"
+        database_start_path = f"{grader_path}/streamit/server"
         subprocess.check_call(
             'sh run_docker.sh',
             cwd=database_start_path
@@ -81,12 +81,12 @@ def start_geo_vis(start: str, experiment_name: str, front_end_port: int, **kwarg
         exec_path = os.path.dirname(inspect.getfile(inspect.currentframe()))
         if front_end_port is not None:
             change_file_content(
-                f"{exec_path}\\.env",
+                f"{exec_path}/.env",
                 "FRONT_END_PORT",
                 f"FRONT_END_PORT={front_end_port}"
             )
             change_file_content(
-                f"{exec_path}\\front_end\\nginx.conf",
+                f"{exec_path}/front_end/nginx.conf",
                 "listen",
                 f"\t\tlisten\t\t{front_end_port};"
             )
@@ -95,7 +95,7 @@ def start_geo_vis(start: str, experiment_name: str, front_end_port: int, **kwarg
             'sh run_docker.sh',
             cwd=exec_path
         )
-        back_end_path = f"{exec_path}\\back_end\\vis_app\\app.py"
+        back_end_path = f"{exec_path}/back_end/vis_app/app.py"
         os.system(f"python {back_end_path}")
 
     else:
