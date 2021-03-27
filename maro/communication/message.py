@@ -2,13 +2,9 @@
 # Licensed under the MIT license.
 
 # native lib
-import sys
 import uuid
 from enum import Enum
 from typing import Union
-
-# private lib
-from maro.utils.exit_code import NON_RESTART_EXIT_CODE
 
 from .utils import session_id_generator
 
@@ -110,4 +106,4 @@ class SessionMessage(Message):
         elif self.session_type == SessionType.NOTIFICATION:
             self.session_stage = session_stage if session_stage else NotificationSessionStage.REQUEST
         else:
-            raise ValueError(f"Unsupported session type: {self.session_type}")
+            raise KeyError(f'Unsupported session type {self.session_type}.')
