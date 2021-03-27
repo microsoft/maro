@@ -7,10 +7,10 @@ from typing import Callable, List, Union
 
 from maro.communication import Message, Proxy, RegisterTable, SessionType
 from maro.rl.agent import AbsAgent, MultiAgentWrapper
-from maro.rl.storage import SimpleStore
+from maro.rl.storage import OverwriteType, SimpleStore
+from maro.rl.training import AbsEnvWrapper
 from maro.utils import InternalLogger
 
-from .env_wrapper import AbsEnvWrapper
 from .message_enums import MsgTag, MsgKey
 
 
@@ -18,7 +18,8 @@ class Actor(object):
     """On-demand roll-out executor.
 
     Args:
-        env (AbsEnvWrapper): An ``AbsEnvWrapper`` instance with an env wrapped inside.
+        env (AbsEnvWrapper): An ``AbsEnvWrapper`` instance that wraps an ``Env`` instance with scenario-specific
+            processing logic and stores transitions during roll-outs in a replay memory.
         agent (Union[AbsAgent, MultiAgentWrapper]): Agent that interacts with the environment.
         group (str): Identifier of the group to which the actor belongs. It must be the same group name
             assigned to the learner (and decision clients, if any).
@@ -30,7 +31,7 @@ class Actor(object):
         self,
         env: AbsEnvWrapper,
         agent: Union[AbsAgent, MultiAgentWrapper],
-        group: str = None,
+        group: str,
         proxy_options: dict = None,
         replay_sync_interval: int = None,
         send_results: bool = True
@@ -39,14 +40,12 @@ class Actor(object):
             raise ValueError("replay_sync_interval must be a positive integer or None")
         self.env = env
         self.agent = MultiAgentWrapper(agent) if isinstance(agent, AbsAgent) else agent
-        if group is not None:
-            if proxy_options is None:
-                proxy_options = {}
-            self._proxy = Proxy(group, "actor", {"actor_proxy": 1}, **proxy_options)
-            self._logger = InternalLogger(self._proxy.name)
-
+        if proxy_options is None:
+            proxy_options = {}
+        self._proxy = Proxy(group, "actor", {"actor_proxy": 1}, **proxy_options)
         self.replay_sync_interval = replay_sync_interval
         self.send_results = send_results
+        self._logger = InternalLogger(self._proxy.name)
 
     def roll_out(self, index: int, training: bool = True, model_by_agent: dict = None, exploration_params=None):
         self.env.reset()
@@ -63,12 +62,18 @@ class Actor(object):
         while state:
             action = self.agent.choose_action(state)
             state = self.env.step(action)
-            self.on_env_feedback(index)
+            if self.replay_sync_interval is not None and (self.env.step_index + 1) % self.replay_sync_interval == 0:
+                self._proxy.isend(
+                    Message(
+                        MsgTag.REPLAY_SYNC, self._proxy.name, self._proxy.peers["actor_proxy"][0],
+                        body={MsgKey.ROLLOUT_INDEX: index, MsgKey.REPLAY: self.env.replay_memory}
+                    )
+                )
+                self.env.flush()
 
         return self.env.metrics 
 
     def run(self):
-        assert hasattr(self, "_proxy"), "No proxy found. The `group` parameter should not be None at init."
         for msg in self._proxy.receive():
             if msg.tag == MsgTag.EXIT:
                 self._logger.info("Exiting...")
@@ -88,24 +93,15 @@ class Actor(object):
         )
         self._logger.info(f"Roll-out {ep} finished")
 
-    def on_env_feedback(self, index):
-        if self.replay_sync_interval is not None and (self.env.step_index + 1) % self.replay_sync_interval == 0:
-            self._proxy.isend(
-                Message(
-                    MsgTag.REPLAY_SYNC, self._proxy.name, self._proxy.peers["actor_proxy"][0],
-                    body={MsgKey.ROLLOUT_INDEX: index, MsgKey.REPLAY: self.env.replay}
-                )
-            )
-            self.env.flush()
-
     def post_rollout(self, index: int):
         if not self.send_results:
             return
 
         body = {MsgKey.ROLLOUT_INDEX: index, MsgKey.METRICS: self.env.metrics}
         if self.env.record_path:
-            body[MsgKey.REPLAY] = self.env.replay
+            body[MsgKey.REPLAY] = self.env.replay_memory
 
+        actor_proxy_addr = self._proxy.peers["actor_proxy"][0]
         self._proxy.isend(
-            Message(MsgTag.ROLLOUT_DONE, self._proxy.name, self._proxy.peers["actor_proxy"][0], body=body)
+            Message(MsgTag.ROLLOUT_DONE, self._proxy.name, actor_proxy_addr, body=body)
         )

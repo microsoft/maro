@@ -16,22 +16,22 @@ class ActorProxy(object):
     """Actor proxy that manages a set of remote actors.
 
     Args:
+        num_actors (int): Expected number of actors in the group identified by ``group_name``.
         group_name (str): Identifier of the group to which the actor belongs. It must be the same group name
             assigned to the actors (and roll-out clients, if any).
-        num_actors (int): Expected number of actors in the group identified by ``group_name``.
-        update_trigger (str): Number or percentage of ``MsgTag.ROLLOUT_DONE`` messages required to trigger
-            learner updates, i.e., model training.
         proxy_options (dict): Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
             for details. Defaults to None.
+        update_trigger (str): Number or percentage of ``MsgTag.ROLLOUT_DONE`` messages required to trigger
+            learner updates, i.e., model training.
     """
     def __init__(
         self,
-        group_name: str,
         num_actors: int,
-        update_trigger: str = None,
+        group_name: str,
         proxy_options: dict = None,
-        experience_pool_capacity: int = -1,
-        experience_pool_overwrite: OverwriteType = None
+        update_trigger: str = None,
+        replay_memory_size: int = -1,
+        replay_memory_overwrite_type: OverwriteType = None
     ):
         peers = {"actor": num_actors}
         if proxy_options is None:
@@ -44,16 +44,10 @@ class ActorProxy(object):
         self._registry_table.register_event_handler(
             f"actor:{MsgTag.ROLLOUT_DONE.value}:{update_trigger}", self._on_rollout_finish
         )
-
-        def get_experience_pool():
-            return SimpleStore(
-                ["S", "A", "R", "S_", "loss"],
-                capacity=experience_pool_capacity,
-                overwrite_type=experience_pool_overwrite
-            )
-
-        self.experience_pool = defaultdict(lambda: get_experience_pool())
-        self.logger = InternalLogger("ACTOR_PROXY")
+        self.replay_memory = defaultdict(
+            lambda: SimpleStore(capacity=replay_memory_size, overwrite_type=replay_memory_overwrite_type)
+        )
+        self.logger = InternalLogger(self._proxy.name)
 
     def roll_out(self, index: int, training: bool = True, model_by_agent: dict = None, exploration_params=None):
         """Collect roll-out data from remote actors.
@@ -86,24 +80,22 @@ class ActorProxy(object):
                 # the next episode.
                 result = self._registry_table.push(msg)
                 if result:
-                    env_metrics = result[0]
+                    env_metrics = result
                     break
             elif msg.tag == MsgTag.REPLAY_SYNC:
                 # print(f"received exp from actor {msg.source} ")
                 # print({agent_id: {k: len(v) for k, v in exp.items()} for agent_id, exp in msg.body[MsgKey.REPLAY].items()})
                 for agent_id, exp in msg.body[MsgKey.REPLAY].items():
-                    self.experience_pool[agent_id].put(exp)
-                # print({agent_id: len(pool) for agent_id, pool in self.experience_pool.items()})
+                    self.replay_memory[agent_id].put(exp)
+                # print({agent_id: len(pool) for agent_id, pool in self.replay_memory.items()})
 
         return env_metrics
 
     def _on_rollout_finish(self, messages: List[Message]):
         metrics = {msg.source: msg.body[MsgKey.METRICS] for msg in messages}
         for msg in messages:
-            print({agent_id: {k: len(v) for k, v in exp.items()} for agent_id, exp in msg.body[MsgKey.REPLAY].items()})
-            for agent_id, exp in msg.body[MsgKey.REPLAY].items():
-                self.experience_pool[agent_id].put(exp)
-        print({agent_id: len(pool) for agent_id, pool in self.experience_pool.items()})
+            for agent_id, replay in msg.body[MsgKey.REPLAY].items():
+                self.replay_memory[agent_id].put(replay)
         return metrics
 
     def terminate(self):

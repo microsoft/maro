@@ -19,7 +19,7 @@ common_config = {
     "finite_vessel_space": True,
     "has_early_discharge": True,
     # Parameters for computing rewards
-    "reward_time_window": 99,
+    "reward_eval_delay": 99,
     "fulfillment_factor": 1.0,
     "shortage_factor": 1.0,
     "time_decay": 0.97
@@ -29,10 +29,10 @@ common_config = {
 class CIMEnvWrapper(AbsEnvWrapper):
     def __init__(
         self, env, *, port_attributes, vessel_attributes, action_space, look_back, max_ports_downstream,
-        reward_time_window, fulfillment_factor, shortage_factor, time_decay,
+        reward_eval_delay, fulfillment_factor, shortage_factor, time_decay,
         finite_vessel_space=True, has_early_discharge=True 
     ):
-        super().__init__(env, hindsight_reward_window=common_config["reward_time_window"])
+        super().__init__(env, reward_eval_delay=common_config["reward_eval_delay"])
         self.port_attributes = port_attributes
         self.vessel_attributes = vessel_attributes
         self.action_space = action_space
@@ -75,17 +75,17 @@ class CIMEnvWrapper(AbsEnvWrapper):
 
         return {port: Action(vessel, port, actual_action, action_type)}
 
-    def get_hindsight_reward(self, event):
+    def get_reward_for(self, event):
         """Compute offline rewards."""
         port_snapshots = self.env.snapshot_list["ports"]
         start_tick = event.tick + 1
-        ticks = list(range(start_tick, start_tick + self.hindsight_reward_window))
+        ticks = list(range(start_tick, start_tick + self.reward_eval_delay))
 
         future_fulfillment = port_snapshots[ticks::"fulfillment"]
         future_shortage = port_snapshots[ticks::"shortage"]
         decay_list = [
-            self.time_decay ** i for i in range(self.hindsight_reward_window)
-            for _ in range(future_fulfillment.shape[0] // self.hindsight_reward_window)
+            self.time_decay ** i for i in range(self.reward_eval_delay)
+            for _ in range(future_fulfillment.shape[0] // self.reward_eval_delay)
         ]
 
         return np.float32(

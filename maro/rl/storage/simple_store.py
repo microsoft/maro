@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from collections import defaultdict
 from enum import Enum
 from typing import Callable, Dict, List, Tuple, Union
 
@@ -27,7 +28,6 @@ class SimpleStore(AbsStore):
     and limited storage are supported.
 
     Args:
-        keys (list): List of keys identifying each column.
         capacity (int): If negative, the store is of unlimited capacity. Defaults to -1.
         overwrite_type (OverwriteType): If storage capacity is bounded, this specifies how existing entries
             are overwritten when the capacity is exceeded. Two types of overwrite behavior are supported:
@@ -35,12 +35,11 @@ class SimpleStore(AbsStore):
             - Random, where overwrite occurs randomly among filled positions.
             Alternatively, the user may also specify overwrite positions (see ``put``).
     """
-    def __init__(self, keys: list, capacity: int = -1, overwrite_type: OverwriteType = None):
+    def __init__(self, capacity: int = -1, overwrite_type: OverwriteType = None):
         super().__init__()
-        self._keys = keys
         self._capacity = capacity
         self._overwrite_type = overwrite_type
-        self.data = {key: [] if self._capacity < 0 else [None] * self._capacity for key in keys}
+        self.data = defaultdict(list) if capacity == -1 else defaultdict(lambda: [None] * capacity)
         self._size = 0
 
     def __len__(self):
@@ -48,10 +47,6 @@ class SimpleStore(AbsStore):
 
     def __getitem__(self, index: int):
         return {k: lst[index] for k, lst in self.data.items()}
-
-    @property
-    def keys(self):
-        return self._keys
 
     @property
     def capacity(self):
@@ -83,12 +78,14 @@ class SimpleStore(AbsStore):
         Returns:
             The indexes where the newly added entries reside in the store.
         """
-        if len(self.data) > 0 and list(contents.keys()) != self._keys:
-            raise StoreMisalignment(f"expected keys {self._keys}, got {list(contents.keys())}")
+        if len(self.data) > 0:
+            expected_keys, actual_keys = list(self.data.keys()), list(contents.keys())
+            if expected_keys != actual_keys:
+                raise StoreMisalignment(f"expected keys {expected_keys}, got {actual_keys}")
         self.validate(contents)
         added = contents[next(iter(contents))]
         added_size = len(added) if isinstance(added, list) else 1
-        if self._capacity < 0:
+        if self._capacity == -1:
             for key, val in contents.items():
                 self.data[key].extend(val)
             self._size += added_size
@@ -175,45 +172,9 @@ class SimpleStore(AbsStore):
         indexes = np.random.choice(self._size, size=size, replace=replace, p=weights)
         return indexes, self.get(indexes)
 
-    def sample_by_key(self, key, size: int, replace: bool = True):
-        """
-        Obtain a random sample from the store using one of the columns as sampling weights.
-
-        Args:
-            key: The column whose values are to be used as sampling weights.
-            size (int): Sample size.
-            replace (bool): If True, sampling is performed with replacement.
-        Returns:
-            Sampled indexes and the corresponding objects.
-        """
-        weights = np.asarray(self.data[key][:self._size] if self._size < self._capacity else self.data[key])
-        indexes = np.random.choice(self._size, size=size, replace=replace, p=weights / np.sum(weights))
-        return indexes, self.get(indexes)
-
-    def sample_by_keys(self, keys: list, sizes: list, replace: bool = True):
-        """
-        Obtain a random sample from the store by chained sampling using multiple columns as sampling weights.
-
-        Args:
-            keys (list): The column whose values are to be used as sampling weights.
-            sizes (list): Sample size.
-            replace (bool): If True, sampling is performed with replacement.
-        Returns:
-            Sampled indexes and the corresponding objects.
-        """
-        if len(keys) != len(sizes):
-            raise ValueError(f"expected sizes of length {len(keys)}, got {len(sizes)}")
-
-        indexes = range(self._size)
-        for key, size in zip(keys, sizes):
-            weights = np.asarray([self.data[key][i] for i in indexes])
-            indexes = np.random.choice(indexes, size=size, replace=replace, p=weights / np.sum(weights))
-
-        return indexes, self.get(indexes)
-
     def clear(self):
         """Empty the store."""
-        self.data = {key: [] if self._capacity < 0 else [None] * self._capacity for key in self._keys}
+        self.data = defaultdict(list) if self._capacity == -1 else defaultdict(lambda: [None] * self._capacity)
         self._size = 0
 
     def dumps(self):
@@ -223,6 +184,9 @@ class SimpleStore(AbsStore):
     def get_by_key(self, key):
         """Get the contents of the store corresponding to ``key``."""
         return self.data[key]
+
+    def insert(self, key: str, default_val=None):
+        self.data[key] = [default_val for _ in range(self._size)]
 
     def _get_update_indexes(self, added_size: int, overwrite_indexes=None):
         if added_size > self._capacity:

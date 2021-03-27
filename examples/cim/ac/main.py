@@ -1,60 +1,33 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from collections import defaultdict, deque
-from os import makedirs, system
-from os.path import dirname, join, realpath
-
 import numpy as np
-from torch import nn
-from torch.optim import Adam, RMSprop
 
 from maro.rl import (
     Actor, ActorCritic, ActorCriticConfig, FullyConnectedBlock, MultiAgentWrapper, SimpleMultiHeadModel,
-    Scheduler, OnPolicyLearner
+    OnPolicyLearner
 )
 from maro.simulator import Env
-from maro.utils import Logger, set_seeds
+from maro.utils import set_seeds
 
-from examples.cim.ac.config import agent_config, training_config
-from examples.cim.common import CIMEnvWrapper, common_config
+from examples.cim.common import CIMEnvWrapper
+from examples.cim.common_config import common_config
+from examples.cim.ac.config import config
 
 
 def get_ac_agent():
-    actor_net = FullyConnectedBlock(**agent_config["model"]["actor"])
-    critic_net = FullyConnectedBlock(**agent_config["model"]["critic"])
+    actor_net = FullyConnectedBlock(**config["agent"]["model"]["actor"])
+    critic_net = FullyConnectedBlock(**config["agent"]["model"]["critic"])
     ac_model = SimpleMultiHeadModel(
-        {"actor": actor_net, "critic": critic_net}, optim_option=agent_config["optimization"],
+        {"actor": actor_net, "critic": critic_net}, optim_option=config["agent"]["optimization"],
     )
-    return ActorCritic(ac_model, ActorCriticConfig(**agent_config["hyper_params"]))
-
-
-class CIMTrajectoryForAC(CIMTrajectory):
-    def on_finish(self):
-        training_data = {}
-        for event, state, action in zip(self.trajectory["event"], self.trajectory["state"], self.trajectory["action"]):
-            agent_id = list(state.keys())[0]
-            data = training_data.setdefault(agent_id, {"args": [[] for _ in range(4)]})
-            data["args"][0].append(state[agent_id])  # state
-            data["args"][1].append(action[agent_id][0])  # action
-            data["args"][2].append(action[agent_id][1])  # log_p
-            data["args"][3].append(self.get_offline_reward(event))  # reward
-
-        for agent_id in training_data:
-            training_data[agent_id]["args"] = [
-                np.asarray(vals, dtype=np.float32 if i == 3 else None)
-                for i, vals in enumerate(training_data[agent_id]["args"])
-            ]
-
-        return training_data
+    return ActorCritic(ac_model, ActorCriticConfig(**config["agent"]["hyper_params"]))
 
 
 # Single-threaded launcher
 if __name__ == "__main__":
     set_seeds(1024)  # for reproducibility
-    env = Env(**training_config["env"])
-    trajectory = CIMTrajectoryForAC(env, **common_config)
+    env = Env(**config["training"]["env"])
     agent = MultiAgentWrapper({name: get_ac_agent() for name in env.agent_idx_list})
-    actor = Actor(trajectory, agent)  # local actor
-    learner = OnPolicyLearner(actor, training_config["max_episode"])
+    learner = OnPolicyLearner(CIMEnvWrapper(env, **common_config), agent, config["training"]["max_episode"])
     learner.run()

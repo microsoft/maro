@@ -3,15 +3,9 @@
 
 from abc import ABC, abstractmethod
 from collections import defaultdict
-from multiprocessing import Pipe, Process
 from typing import Callable
 
-from maro.communication import Message, Proxy
 from maro.simulator import Env
-
-from .message_enums import MsgTag, MsgKey
-
-MAX_LOSS = 1e8
 
 
 class AbsEnvWrapper(ABC):
@@ -21,32 +15,42 @@ class AbsEnvWrapper(ABC):
         env (Env): Environment instance.
         record_path (bool): If True, the steps during roll-out will be recorded sequentially. This
             includes states, actions and rewards. The decision events themselves will also be recorded
-            for hindsight reward evaluation purposes. Defaults to True. 
-        hindsight_reward_window (int): Number of ticks required after a decision event to evaluate
-            the reward for the action taken for that event. Defaults to 0, which rewards are evaluated immediately
+            for delayed reward evaluation purposes. Defaults to True. 
+        reward_eval_delay (int): Number of ticks required after a decision event to evaluate the reward
+            for the action taken for that event. Defaults to 0, which rewards are evaluated immediately
             after executing an action.
     """
-    def __init__(self, env: Env, record_path: bool = True, hindsight_reward_window: int = 0):
+    def __init__(self, env: Env, record_path: bool = True, reward_eval_delay: int = 0):
         self.env = env
         self.step_index = None
-        self.replay_memory = defaultdict(lambda: {key: [] for key in ["S", "A", "R", "S_", "loss"]})
+        self.replay = defaultdict(lambda: defaultdict(list))
         self.events = []
         self.acting_agents = []
         self.record_path = record_path
-        self.hindsight_reward_window = hindsight_reward_window
+        self.reward_eval_delay = reward_eval_delay
         self._pending_reward_idx = 0
 
     def start(self, rollout_index: int = None):
         self.step_index = 0
         self._pending_reward_idx = 0
         _, event, _ = self.env.step(None)
-        return self._on_new_event(event)
+        state_by_agent = self.get_state(event)
+        if self.record_path:
+            self.events.append((event, list(state_by_agent.keys())))
+            for agent_id, state in state_by_agent.items():
+                replay = self.replay[agent_id]
+                if replay["S"]:
+                    replay["S_"].append(state)
+                replay["S"].append(state)
+                assert len(replay["S_"]) == len(replay["A"]) == len(replay["S"]) - 1
+
+        return state_by_agent
 
     @property
-    def replay(self):
+    def replay_memory(self):
         return {
             agent_id: {k: vals[:len(replay["R"])] for k, vals in replay.items()}
-            for agent_id, replay in self.replay_memory.items()
+            for agent_id, replay in self.replay.items()
         }
 
     @property
@@ -64,14 +68,14 @@ class AbsEnvWrapper(ABC):
     def get_reward(self) -> float:
         """Get the immediate reward for an action.
         
-        This can be left blank if rewards are evaluated in hindsight.
+        This can be left blank if ``get_reward_for`` is implemented.
         """
         pass
 
-    def get_hindsight_reward(self, event):
-        """Get the reward for an action that occurred a certain number of ticks ago.
+    def get_reward_for(self, event) -> float:
+        """Get the reward for an action in response to an event that occurred a certain number of ticks ago.
 
-        If implemented, whatever value ``get_reward`` gives will be ignored in the output of ``get_path``.
+        If implemented, whatever value ``get_reward`` gives will be ignored in the output of ``replay_memory``.
         If left blank, ``get_reward`` must be implemented.
         """
         pass
@@ -85,60 +89,61 @@ class AbsEnvWrapper(ABC):
         _, event, done = self.env.step(env_action)
 
         if self.record_path:
-            if self.hindsight_reward_window:
+            if self.reward_eval_delay:
                 for agent_id, action in action_by_agent.items():
-                    self.replay_memory[agent_id]["A"].append(action)
-                self._assign_hindsight_rewards(tick=event.tick if not done else None)
+                    if isinstance(action, tuple):
+                        self.replay[agent_id]["A"].append(action[0])
+                        self.replay[agent_id]["LOGP"].append(action[1])
+                    else:
+                        self.replay[agent_id]["A"].append(action)
+                """
+                If roll-out is complete, evaluate rewards for all remaining events except the last.
+                Otherwise, evaluate rewards only for events at least self.reward_eval_delay ticks ago.
+                """ 
+                for i, (evt, agents) in enumerate(self.events[self._pending_reward_idx:]):
+                    if not done and event.tick - evt.tick < self.reward_eval_delay:
+                        self._pending_reward_idx += i                        
+                        break
+                    reward = self.get_reward_for(evt)
+                    for agent_id in agents:
+                        if len(self.replay[agent_id]["R"]) < len(self.replay[agent_id]["S_"]):
+                            self.replay[agent_id]["R"].append(reward)
+
+                if done:
+                    self._pending_reward_idx = len(self.events) - 1
             else:
-                reward = self.get_reward()
                 for agent_id, action in action_by_agent.items():
-                    self.replay_memory[agent_id]["A"].append(action)
-                    self.replay_memory[agent_id]["R"].append(reward)
-                self._pending_reward_idx += 1
+                    if isinstance(action, tuple):
+                        self.replay[agent_id]["A"].append(action[0])
+                        self.replay[agent_id]["LOGP"].append(action[1])
+                    else:
+                        self.replay[agent_id]["A"].append(action)
+                    self.replay[agent_id]["R"].append(reward)
+                    self._pending_reward_idx += 1
 
         if not done:
-            return self._on_new_event(event)
+            state_by_agent = self.get_state(event)
+            if self.record_path:
+                self.events.append((event, list(state_by_agent.keys())))
+                for agent_id, state in state_by_agent.items():
+                    replay = self.replay[agent_id]
+                    if replay["S"]:
+                        replay["S_"].append(state)
+                    replay["S"].append(state)
+                    assert len(replay["S_"]) == len(replay["A"]) == len(replay["S"]) - 1 
+        
+            return state_by_agent
 
     def reset(self):
         self.env.reset()
         self.events.clear()
-        self.replay_memory = defaultdict(lambda: {key: [] for key in ["S", "A", "R", "S_", "loss"]})
+        self.replay = defaultdict(lambda: defaultdict(list))
 
     def flush(self):
-        for agent_id in self.replay_memory:
-            num_complete = len(self.replay_memory[agent_id]["R"])
-            del self.replay_memory[agent_id]["S"][:num_complete]
-            del self.replay_memory[agent_id]["A"][:num_complete]
-            del self.replay_memory[agent_id]["R"][:num_complete]
-            del self.replay_memory[agent_id]["S_"][:num_complete]
-            del self.replay_memory[agent_id]["loss"][:num_complete]
+        for replay in self.replay.values():
+            num_complete = len(replay["R"])
+            for vals in replay.values():
+                del vals[:num_complete]
 
         del self.events[:self._pending_reward_idx]
         self._pending_reward_idx = 0
-
-    def _on_new_event(self, event):
-        state_by_agent = self.get_state(event)
-        if self.record_path:
-            self.events.append((event, list(state_by_agent.keys())))
-            for agent_id, state in state_by_agent.items():
-                if self.replay_memory[agent_id]["S"]:
-                    self.replay_memory[agent_id]["S_"].append(state)
-                self.replay_memory[agent_id]["loss"].append(MAX_LOSS)
-                self.replay_memory[agent_id]["S"].append(state)
-       
-            # for agent_id, exp in self.replay_memory.items():
-            #     ns, na, nr, ns_ = len(exp["S"]), len(exp["A"]), len(exp["R"]), len(exp["S_"])
-            #     print(f"agent_id: {agent_id}, state: {ns}, action: {na}, reward: {nr}, state_: {ns_}")
-
-        return state_by_agent
-
-    def _assign_hindsight_rewards(self, tick=None):
-        while (
-            self._pending_reward_idx < len(self.events) and
-            (tick is None or tick - self.events[self._pending_reward_idx][0].tick >= self.hindsight_reward_window)
-        ):  
-            event, acting_agents = self.events[self._pending_reward_idx]
-            hindsight_reward = self.get_hindsight_reward(event) 
-            for agent_id in acting_agents:
-                self.replay_memory[agent_id]["R"].append(hindsight_reward)
-            self._pending_reward_idx += 1
