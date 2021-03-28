@@ -31,7 +31,7 @@
       color: #ffffff80;
     }
 
-    .cur_tab{
+    .cur_tab {
       background: white;
     }
   </style>
@@ -71,7 +71,7 @@
                 <el-main>GPU:{{resource_static["gpu"]}}</el-main>
               </el-container>
             </el-main>
-            <el-main >
+            <el-main>
               <el-container>
                 <el-header>
                   dynamic resource
@@ -85,14 +85,60 @@
                     </el-main>
                   </el-container>
                   <el-container v-else>
-                    <el-main v-for="resource in Object.keys(resource_dynamic)">{{resource}}:{{resource_dynamic[resource]}}</el-main>
+                    <el-main v-for="resource in Object.keys(resource_dynamic)">
+                      {{resource}}:{{resource_dynamic[resource]}}</el-main>
                   </el-container>
                 </el-main>
               </el-container>
             </el-main>
           </el-container>
         </el-main>
-        <el-main style="width: 55%;"></el-main>
+        <el-main style="width: 55%;">
+          <el-container>
+            <el-header>
+              running jobs
+            </el-header>
+            <el-main v-for="job_detail in job_running">
+              {{job_detail.name}}
+            </el-main>
+          </el-container>
+
+          <el-container>
+            <el-header>
+              pending jobs
+            </el-header>
+            <el-main v-for="job_detail in job_pending">
+              {{job_detail.name}}
+            </el-main>
+          </el-container>
+
+          <el-container>
+            <el-header>
+              killed jobs
+            </el-header>
+            <el-main v-for="job_detail in job_killed">
+              {{job_detail.name}}
+            </el-main>
+          </el-container>
+
+          <el-container>
+            <el-header>
+              finish jobs
+            </el-header>
+            <el-main v-for="job_detail in job_finish">
+              {{job_detail.name}}
+            </el-main>
+          </el-container>
+
+          <el-container>
+            <el-header>
+              failed jobs
+            </el-header>
+            <el-main v-for="job_detail in job_failed">
+              {{job_detail.name}}
+            </el-main>
+          </el-container>
+        </el-main>
       </el-container>
 
     </el-main>
@@ -144,12 +190,11 @@
           show_cluster: function (message) {
             socket.emit('cluster_status', { cluster_name: message })
           },
-          test_tab_type: function(item_type){
-            if(item_type==this.cluster_name)
-            {
+          test_tab_type: function (item_type) {
+            if (item_type == this.cluster_name) {
               return "cur_tab";
             }
-            else{
+            else {
               return "normal_tab";
             }
           }
@@ -160,7 +205,7 @@
           socket.emit("cluster_list")
         }
       }, 1000)
-      
+
       // Load terminal addons.
       Terminal.applyAddon(fullscreen)
       Terminal.applyAddon(fit)
