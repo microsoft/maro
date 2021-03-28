@@ -34,6 +34,21 @@
     .cur_tab {
       background: white;
     }
+
+    .text_usage_block {
+      border-width: 2px;
+      border: #2e2e2e;
+      width: 9%;
+      height: 300px;
+    }
+
+    .text_usage_image {
+      line-height: 100px;
+    }
+
+    .text_usage_text {
+      line-height: 100px;
+    }
   </style>
 
   <el-container id="app">
@@ -66,9 +81,47 @@
             </el-header>
             <el-main>
               <el-container>
-                <el-main>CPU:{{resource_static["cpu"]}}</el-main>
-                <el-main>memory:{{resource_static["memory"]}}</el-main>
-                <el-main>GPU:{{resource_static["gpu"]}}</el-main>
+                <el-main class="text_usage_block">
+                  <el-container>
+                    <el-header class="text_usage_image">
+                      <img src="assets/images/cpu.jpg" />
+                    </el-header>
+                    <el-main class="text_usage_text">
+                      {{resource_static["cpu"]}}
+                    </el-main>
+                    <el-main class="text_usage_text">
+                      CPU
+                    </el-main>
+                  </el-container>
+                </el-main>
+
+                <el-main class="text_usage_block">
+                  <el-container>
+                    <el-header class="text_usage_image">
+                      <img src="assets/images/memory.jpg" />
+                    </el-header>
+                    <el-main class="text_usage_text">
+                      {{resource_static["memory"]}}
+                    </el-main>
+                    <el-main class="text_usage_text">
+                      Memory
+                    </el-main>
+                  </el-container>
+                </el-main>
+
+                <el-main class="text_usage_block">
+                  <el-container>
+                    <el-header class="text_usage_image">
+                      <img src="assets/images/gpu.jpg" />
+                    </el-header>
+                    <el-main class="text_usage_text">
+                      {{resource_static["gpu"]}}
+                    </el-main>
+                    <el-main class="text_usage_text">
+                      GPU
+                    </el-main>
+                  </el-container>
+                </el-main>
               </el-container>
             </el-main>
             <el-main>
@@ -80,13 +133,26 @@
                   <el-container v-if="dashboard_type=='process'">
                     <el-header>
                     </el-header>
-                    <el-main v-for="resource in Object.keys(resource_dynamic)">
-                      {{resource}}:{{resource_dynamic[resource]}}
+                    <el-main>
+                      CPU:{{resource_dynamic["cpu"]}}
+                    </el-main>
+                    <el-main>
+                      Memory:{{resource_dynamic["memory"]}}
+                    </el-main>
+                    <el-main>
+                      GPU:{{resource_dynamic["gpu"]}}
                     </el-main>
                   </el-container>
                   <el-container v-else>
-                    <el-main v-for="resource in Object.keys(resource_dynamic)">
-                      {{resource}}:{{resource_dynamic[resource]}}</el-main>
+                    <el-main>
+                      CPU:{{resource_dynamic["cpu"]}}
+                    </el-main>
+                    <el-main>
+                      Memory:{{resource_dynamic["memory"]}}
+                    </el-main>
+                    <el-main>
+                      GPU:{{resource_dynamic["gpu"]}}
+                    </el-main>
                   </el-container>
                 </el-main>
               </el-container>
@@ -94,7 +160,7 @@
           </el-container>
         </el-main>
         <el-main style="width: 55%;">
-          <el-container>
+          <el-container v-if="connected">
             <el-header>
               running jobs
             </el-header>
@@ -103,7 +169,7 @@
             </el-main>
           </el-container>
 
-          <el-container>
+          <el-container v-if="connected">
             <el-header>
               pending jobs
             </el-header>
@@ -112,7 +178,7 @@
             </el-main>
           </el-container>
 
-          <el-container>
+          <el-container v-if="connected">
             <el-header>
               killed jobs
             </el-header>
@@ -121,7 +187,7 @@
             </el-main>
           </el-container>
 
-          <el-container>
+          <el-container v-if="connected">
             <el-header>
               finish jobs
             </el-header>
@@ -130,7 +196,7 @@
             </el-main>
           </el-container>
 
-          <el-container>
+          <el-container v-if="connected">
             <el-header>
               failed jobs
             </el-header>
@@ -160,6 +226,7 @@
   <script>
     $(document).ready(function () {
       let connected = false
+      let cur_tab = undefined
 
       const vm = new Vue({
         el: '#app',
@@ -188,7 +255,15 @@
         },
         methods: {
           show_cluster: function (message) {
-            socket.emit('cluster_status', { cluster_name: message })
+            if (cur_tab != undefined)
+            {
+              clearInterval(cur_tab);
+            }
+            cur_tab = setInterval(() => {
+              if (connected) {
+                socket.emit('cluster_status', { cluster_name: message })
+              }
+            }, 1000)
           },
           test_tab_type: function (item_type) {
             if (item_type == this.cluster_name) {
