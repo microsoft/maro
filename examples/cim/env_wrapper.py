@@ -34,34 +34,41 @@ class CIMEnvWrapper(AbsEnvWrapper):
         future_port_idx_list = vessel_snapshots[tick: vessel_idx: 'future_stop_list'].astype('int')
         port_features = port_snapshots[ticks: [port_idx] + list(future_port_idx_list): self.port_attributes]
         vessel_features = vessel_snapshots[tick: vessel_idx: self.vessel_attributes]
+        self.state_info.append(
+            {"tick": tick, "action_scope": event.action_scope, "port_idx": port_idx, "vessel_idx": vessel_idx}
+        )
         return {port_idx: np.concatenate((port_features, vessel_features))}
 
-    def get_action(self, action_by_agent, event):
+    def get_action(self, action_by_agent):
         vessel_snapshots = self.env.snapshot_list["vessels"]
+        state_info = self.state_info[-1]
         action_info = list(action_by_agent.values())[0]
         model_action = action_info[0] if isinstance(action_info, tuple) else action_info
-        scope, tick, port, vessel = event.action_scope, event.tick, event.port_idx, event.vessel_idx
+        tick, port, vessel = state_info["tick"], state_info["port_idx"], state_info["vessel_idx"]
         zero_action_idx = len(self.action_space) / 2  # index corresponding to value zero.
         vessel_space = vessel_snapshots[tick:vessel:self.vessel_attributes][2] if self.finite_vessel_space else float("inf")
         early_discharge = vessel_snapshots[tick:vessel:"early_discharge"][0] if self.has_early_discharge else 0
         percent = abs(self.action_space[model_action])
 
+        action_scope = state_info["action_scope"]
         if model_action < zero_action_idx:
             action_type = ActionType.LOAD
-            actual_action = min(round(percent * scope.load), vessel_space)
+            actual_action = min(round(percent * action_scope.load), vessel_space)
         elif model_action > zero_action_idx:
             action_type = ActionType.DISCHARGE
-            plan_action = percent * (scope.discharge + early_discharge) - early_discharge
-            actual_action = round(plan_action) if plan_action > 0 else round(percent * scope.discharge)
+            plan_action = percent * (action_scope.discharge + early_discharge) - early_discharge
+            actual_action = round(plan_action) if plan_action > 0 else round(percent * action_scope.discharge)
         else:
             actual_action, action_type = 0, None
 
         return {port: Action(vessel, port, actual_action, action_type)}
 
-    def get_reward_for(self, event):
-        """Compute offline rewards."""
+    def get_reward(self, tick=None):
+        """Delayed reward evaluation."""
+        if tick is None:
+            tick = self.env.tick
         port_snapshots = self.env.snapshot_list["ports"]
-        start_tick = event.tick + 1
+        start_tick = tick + 1
         ticks = list(range(start_tick, start_tick + self.reward_eval_delay))
 
         future_fulfillment = port_snapshots[ticks::"fulfillment"]

@@ -24,11 +24,12 @@ class AbsEnvWrapper(ABC):
         self.env = env
         self.step_index = None
         self.replay = defaultdict(lambda: defaultdict(list))
-        self.events = []
-        self.acting_agents = []
+        self.state_info = []
         self.record_path = record_path
         self.reward_eval_delay = reward_eval_delay
         self._pending_reward_idx = 0
+        self._event_ticks = []  # for delayed reward evaluation
+        self._action_history = []  # for delayed reward evaluation
 
     def start(self, rollout_index: int = None):
         self.step_index = 0
@@ -36,7 +37,6 @@ class AbsEnvWrapper(ABC):
         _, event, _ = self.env.step(None)
         state_by_agent = self.get_state(event)
         if self.record_path:
-            self.events.append((event, list(state_by_agent.keys())))
             for agent_id, state in state_by_agent.items():
                 replay = self.replay[agent_id]
                 if replay["S"]:
@@ -62,28 +62,25 @@ class AbsEnvWrapper(ABC):
         pass
 
     @abstractmethod
-    def get_action(self, action, event) -> dict:
+    def get_action(self, action) -> dict:
         pass
+    
+    @abstractmethod
+    def get_reward(self, tick: int = None) -> float:
+        """User-defined reward evaluation.
 
-    def get_reward(self) -> float:
-        """Get the immediate reward for an action.
-        
-        This can be left blank if ``get_reward_for`` is implemented.
-        """
-        pass
+        Args:
+            tick (int): If given, the action that occured at this tick will be evaluated (useful for delayed reward
+            evaluation). Otherwise, the reward is evaluated for the latest action. Defaults to None.
 
-    def get_reward_for(self, event) -> float:
-        """Get the reward for an action in response to an event that occurred a certain number of ticks ago.
-
-        If implemented, whatever value ``get_reward`` gives will be ignored in the output of ``replay_memory``.
-        If left blank, ``get_reward`` must be implemented.
         """
         pass
 
     def step(self, action_by_agent: dict):
-        assert self.events, "start() must be called first."
         self.step_index += 1
-        env_action = self.get_action(action_by_agent, self.events[-1][0])
+        self._event_ticks.append(self.env.tick)
+        env_action = self.get_action(action_by_agent)
+        self._action_history.append(env_action)
         if len(env_action) == 1:
             env_action = list(env_action.values())[0]
         _, event, done = self.env.step(env_action)
@@ -100,17 +97,19 @@ class AbsEnvWrapper(ABC):
                 If roll-out is complete, evaluate rewards for all remaining events except the last.
                 Otherwise, evaluate rewards only for events at least self.reward_eval_delay ticks ago.
                 """ 
-                for i, (evt, agents) in enumerate(self.events[self._pending_reward_idx:]):
-                    if not done and event.tick - evt.tick < self.reward_eval_delay:
+                for i, (tick, action) in enumerate(
+                    zip(self._event_ticks[self._pending_reward_idx:], self._action_history[self._pending_reward_idx:])
+                ):
+                    if not done and self.env.tick - tick < self.reward_eval_delay:
                         self._pending_reward_idx += i                        
                         break
-                    reward = self.get_reward_for(evt)
-                    for agent_id in agents:
+                    reward = self.get_reward(tick=tick)
+                    for agent_id in action:
                         if len(self.replay[agent_id]["R"]) < len(self.replay[agent_id]["S_"]):
                             self.replay[agent_id]["R"].append(reward)
 
                 if done:
-                    self._pending_reward_idx = len(self.events) - 1
+                    self._pending_reward_idx = len(self._event_ticks) - 1
             else:
                 for agent_id, action in action_by_agent.items():
                     if isinstance(action, tuple):
@@ -124,7 +123,6 @@ class AbsEnvWrapper(ABC):
         if not done:
             state_by_agent = self.get_state(event)
             if self.record_path:
-                self.events.append((event, list(state_by_agent.keys())))
                 for agent_id, state in state_by_agent.items():
                     replay = self.replay[agent_id]
                     if replay["S"]:
@@ -136,7 +134,9 @@ class AbsEnvWrapper(ABC):
 
     def reset(self):
         self.env.reset()
-        self.events.clear()
+        self.state_info.clear()
+        self._event_ticks.clear()
+        self._action_history.clear()
         self.replay = defaultdict(lambda: defaultdict(list))
 
     def flush(self):
@@ -145,5 +145,5 @@ class AbsEnvWrapper(ABC):
             for vals in replay.values():
                 del vals[:num_complete]
 
-        del self.events[:self._pending_reward_idx]
+        del self.state_info[:self._pending_reward_idx]
         self._pending_reward_idx = 0
