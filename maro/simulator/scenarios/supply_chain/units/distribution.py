@@ -101,10 +101,8 @@ class DistributionUnit(UnitBase):
         # NOTE: we moved delay_order_penalty from facility to sku, is this ok?
         # update order's delay penalty per tick.
         for order in self.order_queue:
-            sku = self.facility.skus[order.product_id]
             product_index = self.product_index_mapping[order.product_id]
 
-            #self.data_model.delay_order_penalty[product_index] += sku.delay_order_penalty
             self.data_model.delay_order_penalty[product_index] += self.facility.get_config("delay_order_penalty")
 
     def flush_states(self):
