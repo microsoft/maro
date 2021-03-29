@@ -7,6 +7,7 @@ from typing import Dict, List, Union
 import torch
 import torch.nn as nn
 
+from maro.rl.utils import get_torch_lr_scheduler_cls, get_torch_optim_cls
 from maro.utils import clone
 from maro.utils.exception.rl_toolkit_exception import MissingOptimizer
 
@@ -14,17 +15,20 @@ from maro.utils.exception.rl_toolkit_exception import MissingOptimizer
 class OptimOption:
     """Model optimization options.
     Args:
-        optim_cls: Subclass of torch.optim.Optimizer.
+        optim_cls: A string indicating an optimizer class provided by torch.optim or custom subclass of
+            torch.optim.Optimizer. If a string is provided, it must be present in the ``TORCH_OPTIM`` index.
         optim_params (dict): Parameters for the optimizer class.
-        scheduler_cls: torch lr_scheduler class. Defaults to None.
+        scheduler_cls: A string indicating an lr-scheduler class provided by torch.optim.lr_scheduler or custom
+            subclass of torch.optim.lr_scheduler. If a string is provided, it must be present in the
+            ``TORCH_LR_SCHEDULER`` index. Defaults to None.
         scheduler_params (dict): Parameters for the scheduler class. Defaults to None.
     """
     __slots__ = ["optim_cls", "optim_params", "scheduler_cls", "scheduler_params"]
 
     def __init__(self, optim_cls, optim_params: dict, scheduler_cls=None, scheduler_params: dict = None):
-        self.optim_cls = optim_cls
+        self.optim_cls = get_torch_optim_cls(optim_cls)
         self.optim_params = optim_params
-        self.scheduler_cls = scheduler_cls
+        self.scheduler_cls = get_torch_lr_scheduler_cls(scheduler_cls)
         self.scheduler_params = scheduler_params
 
 

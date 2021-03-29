@@ -1,0 +1,77 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
+shaping:
+  port_attributes:
+    - empty
+    - full
+    - on_shipper
+    - on_consignee
+    - booking
+    - shortage
+    - fulfillment
+  vessel_attributes:
+    - empty
+    - full
+    - remaining_space
+  num_actions: 21
+  # Parameters for computing states
+  look_back: 7
+  max_ports_downstream: 2
+  # Parameters for computing actions
+  finite_vessel_space: true
+  has_early_discharge: true
+  # Parameters for computing rewards
+  reward_eval_delay: 99
+  fulfillment_factor: 1.0
+  shortage_factor: 1.0
+  time_decay: 0.97
+agent:
+  model:
+    hidden_dims:
+      - 256
+      - 128
+      - 64
+    activation: 
+    softmax: false
+    batch_norm: true
+    skip_connection: false
+    head: true
+    dropout_p: 0.0
+  optimization:
+    optim_cls: rmsprop
+    optim_params:
+      lr: 0.05
+  hyper_params: 
+    reward_discount: .0
+    loss_cls: smooth_l1
+    target_update_freq: 5
+    tau: 0.1
+    double: false
+training: 
+  env: 
+    scenario: cim
+    topology: toy.4p_ssdd_l0.0
+    durations: 1120
+  max_episode: 100
+  min_experiences_to_train: 1024
+  train_iter: 10
+  batch_size: 128
+  replay_memory: 
+    size: -1
+    overwrite_type: random
+  # prioritized_sampling_by_loss: true
+  exploration:
+    parameter_names:
+      - epsilon
+    split: 0.5
+    start: 0.4
+    mid: 0.32
+    end: 0.0
+distributed:
+  group: cim-dqn
+  num_actors: 2
+  redis_host: maro-redis
+  redis_port: 7379
+  learner_update_trigger: 2
+  replay_sync_interval: 100

@@ -13,11 +13,6 @@ from maro.utils.exception.rl_toolkit_exception import StoreMisalignment
 from .abs_store import AbsStore
 
 
-class OverwriteType(Enum):
-    ROLLING = "rolling"
-    RANDOM = "random"
-
-
 class SimpleStore(AbsStore):
     """
     An implementation of ``AbsStore`` for experience storage in RL.
@@ -29,14 +24,16 @@ class SimpleStore(AbsStore):
 
     Args:
         capacity (int): If negative, the store is of unlimited capacity. Defaults to -1.
-        overwrite_type (OverwriteType): If storage capacity is bounded, this specifies how existing entries
+        overwrite_type (str): If storage capacity is bounded, this specifies how existing entries
             are overwritten when the capacity is exceeded. Two types of overwrite behavior are supported:
-            - Rolling, where overwrite occurs sequentially with wrap-around.
-            - Random, where overwrite occurs randomly among filled positions.
+            - "rolling", where overwrite occurs sequentially with wrap-around.
+            - "random", where overwrite occurs randomly among filled positions.
             Alternatively, the user may also specify overwrite positions (see ``put``).
     """
-    def __init__(self, capacity: int = -1, overwrite_type: OverwriteType = None):
+    def __init__(self, capacity: int = -1, overwrite_type: str = None):
         super().__init__()
+        if overwrite_type not in {"rolling", "random"}:
+            raise ValueError(f"overwrite_type must be 'rolling' or 'random', got {overwrite_type}")
         self._capacity = capacity
         self._overwrite_type = overwrite_type
         self.data = defaultdict(list) if capacity == -1 else defaultdict(lambda: [None] * capacity)
@@ -59,7 +56,7 @@ class SimpleStore(AbsStore):
 
     @property
     def overwrite_type(self):
-        """An ``OverwriteType`` member indicating the overwrite behavior when the store capacity is exceeded."""
+        """An string indicating the overwrite behavior when the store capacity is exceeded."""
         return self._overwrite_type
 
     def get(self, indexes: [int]) -> dict:
@@ -200,7 +197,7 @@ class SimpleStore(AbsStore):
             write_indexes = list(range(self._size, self._capacity)) + list(overwrite_indexes)
         else:
             # follow the overwrite rule set at init
-            if self._overwrite_type == OverwriteType.ROLLING:
+            if self._overwrite_type == "rolling":
                 # using the negative index convention for convenience
                 start_index = self._size - self._capacity
                 write_indexes = list(range(start_index, start_index + added_size))

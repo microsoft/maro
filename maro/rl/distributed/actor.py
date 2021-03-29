@@ -7,7 +7,7 @@ from typing import Callable, List, Union
 
 from maro.communication import Message, Proxy, RegisterTable, SessionType
 from maro.rl.agent import AbsAgent, MultiAgentWrapper
-from maro.rl.storage import OverwriteType, SimpleStore
+from maro.rl.storage import SimpleStore
 from maro.rl.training import AbsEnvWrapper
 from maro.utils import InternalLogger
 

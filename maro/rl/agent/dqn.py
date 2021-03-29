@@ -7,7 +7,7 @@ import numpy as np
 import torch
 
 from maro.rl.model import SimpleMultiHeadModel
-from maro.rl.utils import get_max, get_td_errors, select_by_actions
+from maro.rl.utils import get_max, get_td_errors, get_torch_loss_cls, select_by_actions
 from maro.utils.exception.rl_toolkit_exception import UnrecognizedTask
 
 from .abs_agent import AbsAgent
@@ -25,7 +25,8 @@ class DQNConfig:
             See https://arxiv.org/pdf/1509.06461.pdf for details. Defaults to False.
         advantage_type (str): Advantage mode for the dueling architecture. Defaults to None, in which
             case it is assumed that the regular Q-value model is used.
-        loss_cls: Loss function class for evaluating TD errors. Defaults to torch.nn.MSELoss.
+        loss_cls: A string indicating a loss class provided by torch.nn or a custom loss class. If it is a string,
+            it must be a key in ``TORCH_LOSS``. Defaults to "mse".
         target_update_freq (int): Number of training rounds between target model updates.
     """
     __slots__ = [
@@ -40,7 +41,7 @@ class DQNConfig:
         tau: float = 0.1,
         double: bool = True,
         advantage_type: str = None,
-        loss_cls=torch.nn.MSELoss
+        loss_cls="mse"
     ):
         self.reward_discount = reward_discount
         self.target_update_freq = target_update_freq
@@ -48,7 +49,7 @@ class DQNConfig:
         self.tau = tau
         self.double = double
         self.advantage_type = advantage_type
-        self.loss_func = loss_cls(reduction="none")
+        self.loss_func = get_torch_loss_cls(loss_cls)()
 
 
 class DQN(AbsAgent):

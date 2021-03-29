@@ -9,7 +9,7 @@ from torch.distributions import Categorical
 from torch.nn import MSELoss
 
 from maro.rl.model import SimpleMultiHeadModel
-from maro.rl.utils import get_log_prob
+from maro.rl.utils import get_log_prob, get_torch_loss_cls
 from maro.utils.exception.rl_toolkit_exception import UnrecognizedTask
 
 from .abs_agent import AbsAgent
@@ -20,7 +20,8 @@ class ActorCriticConfig:
 
     Args:
         reward_discount (float): Reward decay as defined in standard RL terminology.
-        critic_loss_func (Callable): Loss function for the critic model.
+        critic_loss_cls: A string indicating a loss class provided by torch.nn or a custom loss class for computing
+            the critic loss. If it is a string, it must be a key in ``TORCH_LOSS``. Defaults to "mse".
         train_iters (int): Number of gradient descent steps per call to ``train``.
         actor_loss_coefficient (float): The coefficient for actor loss in the total loss function, e.g.,
             loss = critic_loss + ``actor_loss_coefficient`` * actor_loss. Defaults to 1.0.
@@ -35,12 +36,12 @@ class ActorCriticConfig:
         self,
         reward_discount: float,
         train_iters: int,
-        critic_loss_func: Callable = MSELoss(),
+        critic_loss_cls="mse",
         actor_loss_coefficient: float = 1.0,
         clip_ratio: float = None
     ):
         self.reward_discount = reward_discount
-        self.critic_loss_func = critic_loss_func
+        self.critic_loss_func = get_torch_loss_cls(critic_loss_cls)()
         self.train_iters = train_iters
         self.actor_loss_coefficient = actor_loss_coefficient
         self.clip_ratio = clip_ratio

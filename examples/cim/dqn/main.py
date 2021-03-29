@@ -2,30 +2,45 @@
 # Licensed under the MIT license.
 
 import argparse
+import yaml
 from multiprocessing import Process
-from os import environ
+from os import getenv
+from os.path import dirname, join, realpath
 
 from maro.rl import (
     Actor, ActorProxy, DQN, DQNConfig, FullyConnectedBlock, MultiAgentWrapper, OffPolicyDistLearner,
-    SimpleMultiHeadModel, TwoPhaseLinearParameterScheduler
+    OptimOption, SimpleMultiHeadModel, TwoPhaseLinearParameterScheduler
 )
 from maro.simulator import Env
 from maro.utils import set_seeds
 
-from examples.cim.common import CIMEnvWrapper
-from examples.cim.common_config import common_config
-from examples.cim.dqn.config import config
+from examples.cim.env_wrapper import CIMEnvWrapper
 
 
-GROUP = environ.get("GROUP", config["distributed"]["group"])
-REDIS_HOST = environ.get("REDISHOST", config["distributed"]["redis_host"])
-REDIS_PORT = environ.get("REDISPORT", config["distributed"]["redis_port"])
-NUM_ACTORS = environ.get("NUMACTORS", config["distributed"]["num_actors"])
+DEFAULT_CONFIG_PATH = join(dirname(realpath(__file__)), "config.yml")
+with open(getenv("CONFIG_PATH", default=DEFAULT_CONFIG_PATH), "r") as config_file:
+    config = yaml.safe_load(config_file)
+
+# model input and output dimensions
+IN_DIM = (
+    (config["shaping"]["look_back"] + 1) *
+    (config["shaping"]["max_ports_downstream"] + 1) *
+    len(config["shaping"]["port_attributes"]) +
+    len(config["shaping"]["vessel_attributes"])
+)
+OUT_DIM = config["shaping"]["num_actions"]
+
+# for distributed / multi-process training
+GROUP = getenv("GROUP", default=config["distributed"]["group"])
+REDIS_HOST = getenv("REDISHOST", default=config["distributed"]["redis_host"])
+REDIS_PORT = getenv("REDISPORT", default=config["distributed"]["redis_port"])
+NUM_ACTORS = int(getenv("NUMACTORS", default=config["distributed"]["num_actors"]))
 
 
 def get_dqn_agent():
     q_model = SimpleMultiHeadModel(
-        FullyConnectedBlock(**config["agent"]["model"]), optim_option=config["agent"]["optimization"]
+        FullyConnectedBlock(input_dim=IN_DIM, output_dim=OUT_DIM, **config["agent"]["model"]),
+        optim_option=OptimOption(**config["agent"]["optimization"])
     )
     return DQN(q_model, DQNConfig(**config["agent"]["hyper_params"]))
 
@@ -37,7 +52,8 @@ def cim_dqn_learner():
         NUM_ACTORS, GROUP,
         proxy_options={"redis_address": (REDIS_HOST, REDIS_PORT)},
         update_trigger=config["distributed"]["learner_update_trigger"],
-        **config["training"]["replay_memory"]
+        replay_memory_size=config["training"]["replay_memory"]["size"],
+        replay_memory_overwrite_type=config["training"]["replay_memory"]["overwrite_type"]
     )
     learner = OffPolicyDistLearner(
         actor_proxy, agent, scheduler,
@@ -52,7 +68,7 @@ def cim_dqn_actor():
     env = Env(**config["training"]["env"])
     agent = MultiAgentWrapper({name: get_dqn_agent() for name in env.agent_idx_list})
     actor = Actor(
-        CIMEnvWrapper(env, **common_config), agent, GROUP,
+        CIMEnvWrapper(env, **config["shaping"]), agent, GROUP,
         replay_sync_interval=config["distributed"]["replay_sync_interval"],
         proxy_options={"redis_address": (REDIS_HOST, REDIS_PORT)}
     )

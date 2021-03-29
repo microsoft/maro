@@ -6,7 +6,7 @@ from typing import Callable, List, Union
 
 from maro.communication import Message, Proxy, RegisterTable, SessionType
 from maro.rl.agent import AbsAgent, MultiAgentWrapper
-from maro.rl.storage import OverwriteType, SimpleStore
+from maro.rl.storage import SimpleStore
 from maro.utils import InternalLogger
 
 from .message_enums import MsgTag, MsgKey
@@ -31,7 +31,7 @@ class ActorProxy(object):
         proxy_options: dict = None,
         update_trigger: str = None,
         replay_memory_size: int = -1,
-        replay_memory_overwrite_type: OverwriteType = None
+        replay_memory_overwrite_type: str = None
     ):
         peers = {"actor": num_actors}
         if proxy_options is None:

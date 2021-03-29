@@ -8,34 +8,17 @@ import numpy as np
 from maro.rl import AbsEnvWrapper
 from maro.simulator.scenarios.cim.common import Action, ActionType
 
-common_config = {
-    "port_attributes": ["empty", "full", "on_shipper", "on_consignee", "booking", "shortage", "fulfillment"],
-    "vessel_attributes": ["empty", "full", "remaining_space"],
-    "action_space": list(np.linspace(-1.0, 1.0, 21)),
-    # Parameters for computing states
-    "look_back": 7,
-    "max_ports_downstream": 2,
-    # Parameters for computing actions
-    "finite_vessel_space": True,
-    "has_early_discharge": True,
-    # Parameters for computing rewards
-    "reward_eval_delay": 99,
-    "fulfillment_factor": 1.0,
-    "shortage_factor": 1.0,
-    "time_decay": 0.97
-}
-
 
 class CIMEnvWrapper(AbsEnvWrapper):
     def __init__(
-        self, env, *, port_attributes, vessel_attributes, action_space, look_back, max_ports_downstream,
+        self, env, *, port_attributes, vessel_attributes, num_actions, look_back, max_ports_downstream,
         reward_eval_delay, fulfillment_factor, shortage_factor, time_decay,
         finite_vessel_space=True, has_early_discharge=True 
     ):
-        super().__init__(env, reward_eval_delay=common_config["reward_eval_delay"])
+        super().__init__(env, reward_eval_delay=reward_eval_delay)
         self.port_attributes = port_attributes
         self.vessel_attributes = vessel_attributes
-        self.action_space = action_space
+        self.action_space = list(np.linspace(-1.0, 1.0, num_actions))
         self.look_back = look_back
         self.max_ports_downstream = max_ports_downstream
         self.fulfillment_factor = fulfillment_factor
