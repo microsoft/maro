@@ -246,7 +246,7 @@ class TestFrame(unittest.TestCase):
         self.assertListEqual([0.0, 0.0, 0.0, 0.0, 9.0], list(states)[0:5])
 
         # 2 padding (NAN) in the end
-        self.assertTrue(np.isnan(states[-2:]).all())
+        self.assertTrue((states[-2:].astype(np.int)==0).all())
 
         states = static_snapshot[1::"a3"]
 
@@ -329,7 +329,7 @@ class TestFrame(unittest.TestCase):
         states = states.flatten()
 
         # 2nd is padding value
-        self.assertTrue(np.isnan(states[1]))
+        self.assertEqual(0, int(states[1]))
 
         self.assertListEqual([0.0, 0.0, 0.0, 123.0],
                              list(states[[0, 2, 3, 4]]))
@@ -411,6 +411,7 @@ class TestFrame(unittest.TestCase):
         @node("test")
         class TestNode(NodeBase):
             a1 = NodeAttribute("i", 1, is_list=True)
+            a4 = NodeAttribute("i", 1, is_list=True)
             a2 = NodeAttribute("i", 2, is_const=True)
             a3 = NodeAttribute("i")
 
@@ -436,6 +437,9 @@ class TestFrame(unittest.TestCase):
         n1.a1.append(10)
         n1.a1.append(11)
         n1.a1.append(12)
+
+        n1.a4.append(100)
+        n1.a4.append(101)
 
         expected_value = [10, 11, 12]
 
@@ -507,6 +511,26 @@ class TestFrame(unittest.TestCase):
 
         self.assertEqual(3, len(states))
         self.assertListEqual([10, 11, 12], list(states))
+
+        # check states after reset
+        frame.reset()
+        frame.snapshots.reset()
+
+        # list attribute should be cleared
+        self.assertEqual(0, len(n1.a1))
+        self.assertEqual(0, len(n1.a4))
+
+        # then append value to each list attribute to test if value will be mixed
+        n1.a1.append(10)
+        n1.a1.append(20)
+
+        n1.a4.append(100)
+        n1.a4.append(200)
+
+        self.assertEqual(10, n1.a1[0])
+        self.assertEqual(20, n1.a1[1])
+        self.assertEqual(100, n1.a4[0])
+        self.assertEqual(200, n1.a4[1])
 
     def test_list_attribute_with_large_size(self):
         @node("test")

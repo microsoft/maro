@@ -1,0 +1,59 @@
+
+datamodels:
+  modules:
+    - path: "maro.simulator.scenarios.supply_chain.datamodels"
+      definitions:
+        StorageDataModel:
+          class: "StorageDataModel"
+          name_in_frame: "storage"
+        VehicleDataModel:
+          class: "VehicleDataModel"
+          name_in_frame: "vehicle"
+        DistributionDataModel:
+          class: "DistributionDataModel"
+          name_in_frame: "distribution"
+        ConsumerDataModel:
+          class: "ConsumerDataModel"
+          name_in_frame: "consumer"
+        SellerDataModel:
+          class: "SellerDataModel"
+          name_in_frame: "seller"
+        ManufactureDataModel:
+          class: "ManufactureDataModel"
+          name_in_frame: "manufacture"
+
+units:
+  modules:
+    - path: "maro.simulator.scenarios.supply_chain.units"
+      definitions:
+        StorageUnit:
+          class: "StorageUnit"
+          datamodel: "StorageDataModel"
+        VehicleUnit:
+          class: "VehicleUnit"
+          datamodel: "VehicleDataModel"
+        DistributionUnit:
+          class: "DistributionUnit"
+          datamodel: "DistributionDataModel"
+        ConsumerUnit:
+          class: "ConsumerUnit"
+          datamodel: "ConsumerDataModel"
+        SellerUnit:
+          class: "SellerUnit"
+          datamodel: "SellerDataModel"
+        ManufactureUnit:
+          class: "ManufactureUnit"
+          datamodel: "ManufactureDataModel"
+        ProductUnit:
+          class: "ProductUnit"
+
+facilities:
+  modules:
+    - path: "maro.simulator.scenarios.supply_chain.facilities"
+      definitions:
+        WarehouseFacility:
+          class: "WarehouseFacility"
+        SupplierFacility:
+          class: "SupplierFacility"
+        RetailerFacility:
+          class: "RetailerFacility"

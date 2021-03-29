@@ -165,7 +165,7 @@ namespace maro
 
           if (target_tick_pair == _snapshots.end())
           {
-            throw SnapshotQueryNoSnapshotsError();
+            throw SnapshotQueryInvalidTickError();
           }
 
           auto& snapshot = target_tick_pair->second;

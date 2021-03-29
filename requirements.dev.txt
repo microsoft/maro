@@ -42,3 +42,4 @@ editorconfig-checker
 aria2p==0.9.1
 prompt_toolkit==2.0.10
 stringcase==1.2.0
+networkx==2.4
