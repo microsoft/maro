@@ -31,6 +31,7 @@ class ManufactureUnit(SkuUnit):
         facility_sku_info = self.facility.skus[self.product_id]
 
         self.data_model.initialize(
+            self.facility.storage.data_model_index,
             product_unit_cost=facility_sku_info.product_unit_cost,
             storage_id=self.facility.storage.id
         )
