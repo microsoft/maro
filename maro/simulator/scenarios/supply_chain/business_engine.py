@@ -6,6 +6,7 @@ import os
 
 from maro.event_buffer import MaroEvents
 from maro.simulator.scenarios import AbsBusinessEngine
+from typing import List, Tuple
 
 from .parser import ConfigParser, SupplyChainConfiguration
 from .units import UnitBase
@@ -64,6 +65,16 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
 
     def get_node_mapping(self) -> dict:
         return self._node_mapping
+
+    def get_agent_idx_list(self) -> List[Tuple[str, int]]:
+        """Get a list of agent index.
+
+        Returns:
+            list: List of agent index.
+        """
+        return [
+            (unit.data_model_name, id) for id, unit in self.world.units.items() if unit.data_model_name in ("consumer","manufacture")
+        ]
 
     def _step_by_facility(self, tick: int):
         """Call step functions by facility.
