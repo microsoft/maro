@@ -34,23 +34,23 @@ class CIMEnvWrapper(AbsEnvWrapper):
         future_port_idx_list = vessel_snapshots[tick: vessel_idx: 'future_stop_list'].astype('int')
         port_features = port_snapshots[ticks: [port_idx] + list(future_port_idx_list): self.port_attributes]
         vessel_features = vessel_snapshots[tick: vessel_idx: self.vessel_attributes]
-        self.state_info.append(
-            {"tick": tick, "action_scope": event.action_scope, "port_idx": port_idx, "vessel_idx": vessel_idx}
-        )
-        return {port_idx: np.concatenate((port_features, vessel_features))}
+        self.state_info = {
+            "tick": tick, "action_scope": event.action_scope, "port_idx": port_idx, "vessel_idx": vessel_idx
+        }
+        state = np.concatenate((port_features, vessel_features))
+        return {port_idx: state}
 
     def get_action(self, action_by_agent):
         vessel_snapshots = self.env.snapshot_list["vessels"]
-        state_info = self.state_info[-1]
         action_info = list(action_by_agent.values())[0]
         model_action = action_info[0] if isinstance(action_info, tuple) else action_info
-        tick, port, vessel = state_info["tick"], state_info["port_idx"], state_info["vessel_idx"]
+        tick, port, vessel = self.state_info["tick"], self.state_info["port_idx"], self.state_info["vessel_idx"]
         zero_action_idx = len(self.action_space) / 2  # index corresponding to value zero.
         vessel_space = vessel_snapshots[tick:vessel:self.vessel_attributes][2] if self.finite_vessel_space else float("inf")
         early_discharge = vessel_snapshots[tick:vessel:"early_discharge"][0] if self.has_early_discharge else 0
         percent = abs(self.action_space[model_action])
 
-        action_scope = state_info["action_scope"]
+        action_scope = self.state_info["action_scope"]
         if model_action < zero_action_idx:
             action_type = ActionType.LOAD
             actual_action = min(round(percent * action_scope.load), vessel_space)

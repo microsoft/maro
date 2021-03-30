@@ -3,7 +3,6 @@
 
 from abc import ABC, abstractmethod
 from collections import defaultdict
-from typing import Callable
 
 from maro.simulator import Env
 
@@ -13,19 +12,19 @@ class AbsEnvWrapper(ABC):
 
     Args:
         env (Env): Environment instance.
-        record_path (bool): If True, the steps during roll-out will be recorded sequentially. This
+        save_replay (bool): If True, the steps during roll-out will be recorded sequentially. This
             includes states, actions and rewards. The decision events themselves will also be recorded
-            for delayed reward evaluation purposes. Defaults to True. 
+            for delayed reward evaluation purposes. Defaults to True.
         reward_eval_delay (int): Number of ticks required after a decision event to evaluate the reward
             for the action taken for that event. Defaults to 0, which rewards are evaluated immediately
             after executing an action.
     """
-    def __init__(self, env: Env, record_path: bool = True, reward_eval_delay: int = 0):
+    def __init__(self, env: Env, save_replay: bool = True, reward_eval_delay: int = 0):
         self.env = env
         self.step_index = None
         self.replay = defaultdict(lambda: defaultdict(list))
-        self.state_info = []
-        self.record_path = record_path
+        self.state_info = None  # context for converting model output to actions that can be executed by the env
+        self.save_replay = save_replay
         self.reward_eval_delay = reward_eval_delay
         self._pending_reward_idx = 0
         self._event_ticks = []  # for delayed reward evaluation
@@ -36,7 +35,7 @@ class AbsEnvWrapper(ABC):
         self._pending_reward_idx = 0
         _, event, _ = self.env.step(None)
         state_by_agent = self.get_state(event)
-        if self.record_path:
+        if self.save_replay:
             for agent_id, state in state_by_agent.items():
                 replay = self.replay[agent_id]
                 if replay["S"]:
@@ -64,7 +63,7 @@ class AbsEnvWrapper(ABC):
     @abstractmethod
     def get_action(self, action) -> dict:
         pass
-    
+
     @abstractmethod
     def get_reward(self, tick: int = None) -> float:
         """User-defined reward evaluation.
@@ -85,7 +84,7 @@ class AbsEnvWrapper(ABC):
             env_action = list(env_action.values())[0]
         _, event, done = self.env.step(env_action)
 
-        if self.record_path:
+        if self.save_replay:
             if self.reward_eval_delay:
                 for agent_id, action in action_by_agent.items():
                     if isinstance(action, tuple):
@@ -96,12 +95,12 @@ class AbsEnvWrapper(ABC):
                 """
                 If roll-out is complete, evaluate rewards for all remaining events except the last.
                 Otherwise, evaluate rewards only for events at least self.reward_eval_delay ticks ago.
-                """ 
+                """
                 for i, (tick, action) in enumerate(
                     zip(self._event_ticks[self._pending_reward_idx:], self._action_history[self._pending_reward_idx:])
                 ):
                     if not done and self.env.tick - tick < self.reward_eval_delay:
-                        self._pending_reward_idx += i                        
+                        self._pending_reward_idx += i
                         break
                     reward = self.get_reward(tick=tick)
                     for agent_id in action:
@@ -117,24 +116,25 @@ class AbsEnvWrapper(ABC):
                         self.replay[agent_id]["LOGP"].append(action[1])
                     else:
                         self.replay[agent_id]["A"].append(action)
-                    self.replay[agent_id]["R"].append(reward)
+                    if len(self.replay[agent_id]["R"]) < len(self.replay[agent_id]["S_"]):
+                        self.replay[agent_id]["R"].append(self.get_reward())
                     self._pending_reward_idx += 1
 
         if not done:
             state_by_agent = self.get_state(event)
-            if self.record_path:
+            if self.save_replay:
                 for agent_id, state in state_by_agent.items():
                     replay = self.replay[agent_id]
                     if replay["S"]:
                         replay["S_"].append(state)
                     replay["S"].append(state)
-                    assert len(replay["S_"]) == len(replay["A"]) == len(replay["S"]) - 1 
-        
+                    assert len(replay["S_"]) == len(replay["A"]) == len(replay["S"]) - 1
+
             return state_by_agent
 
     def reset(self):
         self.env.reset()
-        self.state_info.clear()
+        self.state_info = None
         self._event_ticks.clear()
         self._action_history.clear()
         self.replay = defaultdict(lambda: defaultdict(list))
@@ -145,5 +145,6 @@ class AbsEnvWrapper(ABC):
             for vals in replay.values():
                 del vals[:num_complete]
 
-        del self.state_info[:self._pending_reward_idx]
+        del self._event_ticks[:self._pending_reward_idx]
+        del self._action_history[:self._pending_reward_idx]
         self._pending_reward_idx = 0
