@@ -13,6 +13,7 @@ class ManufactureDataModel(SkuDataModel):
     """Data model for manufacture unit."""
     # Storage related to this manufacture unit, for easy state retrieving.
     storage_id = NodeAttribute(AttributeType.UInt)
+    storage_data_model_index = NodeAttribute(AttributeType.UInt)
 
     # Cost to produce one output production.
     product_unit_cost = NodeAttribute(AttributeType.UInt)
@@ -27,8 +28,9 @@ class ManufactureDataModel(SkuDataModel):
         super(ManufactureDataModel, self).__init__()
         self._product_unit_cost = 0
         self._storage_id = 0
+        self._storage_data_model_index = 0
 
-    def initialize(self, product_unit_cost: int = 1, storage_id: int = 0):
+    def initialize(self, storage_data_model_index: int, product_unit_cost: int = 1, storage_id: int = 0):
         """Initialize data model, used to assign value after frame reset.
 
         Args:
@@ -37,6 +39,7 @@ class ManufactureDataModel(SkuDataModel):
         """
         self._product_unit_cost = product_unit_cost
         self._storage_id = storage_id
+        self._storage_data_model_index = storage_data_model_index
 
         self.reset()
 
@@ -45,3 +48,4 @@ class ManufactureDataModel(SkuDataModel):
 
         self.product_unit_cost = self._product_unit_cost
         self.storage_id = self._storage_id
+        self.storage_data_model_index = self._storage_data_model_index
