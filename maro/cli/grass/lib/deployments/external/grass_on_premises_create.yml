@@ -1,0 +1,11 @@
+mode: grass/on-premises
+name: clusterName
+
+user:
+  admin_id: admin
+
+master:
+  username: root
+  hostname: maroMaster
+  public_ip_address: 137.128.0.1
+  private_ip_address: 10.0.0.4
