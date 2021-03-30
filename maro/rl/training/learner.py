@@ -31,7 +31,7 @@ class AbsLearner(ABC):
     def roll_out(self, index: int, training: bool = True):
         self.env.reset()
         if not training:
-            self.env.record_path = False  # no need to record the trajectory if roll-out is not for training
+            self.env.save_replay = False  # no need to record the trajectory if roll-out is not for training
 
         state = self.env.start(rollout_index=index)  # get initial state
         while state:

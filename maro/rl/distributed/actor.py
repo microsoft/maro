@@ -50,7 +50,7 @@ class Actor(object):
     def roll_out(self, index: int, training: bool = True, model_by_agent: dict = None, exploration_params=None):
         self.env.reset()
         if not training:
-            self.env.record_path = False  # no need to record the trajectory if roll-out is not for training
+            self.env.save_replay = False  # no need to record the trajectory if roll-out is not for training
 
         # Load models and exploration parameters
         if model_by_agent:
@@ -98,7 +98,7 @@ class Actor(object):
             return
 
         body = {MsgKey.ROLLOUT_INDEX: index, MsgKey.METRICS: self.env.metrics}
-        if self.env.record_path:
+        if self.env.save_replay:
             body[MsgKey.REPLAY] = self.env.replay_memory
 
         actor_proxy_addr = self._proxy.peers["actor_proxy"][0]

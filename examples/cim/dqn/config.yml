@@ -71,7 +71,7 @@ training:
 distributed:
   group: cim-dqn
   num_actors: 2
-  redis_host: maro-redis
-  redis_port: 7379
+  redis_host: localhost
+  redis_port: 6379
   learner_update_trigger: 2
   replay_sync_interval: 100
