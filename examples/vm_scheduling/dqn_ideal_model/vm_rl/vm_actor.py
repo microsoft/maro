@@ -46,10 +46,14 @@ class VMActor(AbsActor):
         # load exploration parameters:
         if exploration_params is not None:
             self.agent_manager.set_exploration_params(exploration_params)
+        else:
+            self.agent_manager.set_exploration_params({'epsilon': 0.0})
 
         reward = 0.0
         metrics, decision_event, is_done = self._env.step(None)
+        vm_num = 0
         while not is_done:
+            vm_num += 1
             action, postpone = self.agent_manager.choose_action(decision_event, self._env)
             if postpone:
                 reward -= 0.1
@@ -58,6 +62,6 @@ class VMActor(AbsActor):
             metrics, decision_event, is_done = self._env.step(action)
             self.agent_manager.on_env_feedback(metrics)
 
-        details = self.agent_manager.post_process() if return_details else None
+        details = self.agent_manager.post_process(return_details, reward / vm_num)
 
         return self._env.metrics, details, reward

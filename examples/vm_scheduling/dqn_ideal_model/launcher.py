@@ -3,6 +3,7 @@
 
 import io
 import os
+import shutil
 import random
 import timeit
 import yaml
@@ -16,10 +17,24 @@ from components import VMActionShaper, VMStateShaper, DQNAgentManager, Truncated
 from vm_rl import VMActor, VMLearner
 
 
-CONFIG_PATH = os.path.join(os.path.split(os.path.realpath(__file__))[0], "experiments/configs/split_net/config.yml")
+FILE_PATH = os.path.split(os.path.realpath(__file__))[0]
+CONFIG_PATH = os.path.join(FILE_PATH, "toy_config.yml")
 with io.open(CONFIG_PATH, "r") as in_file:
     raw_config = yaml.safe_load(in_file)
     config = convert_dottable(raw_config)
+
+LOG_PATH = os.path.join(FILE_PATH, "log", config.experiment_name)
+if not os.path.exists(LOG_PATH):
+    os.makedirs(LOG_PATH)
+simulation_logger = Logger(tag="simulation", format_=LogFormat.none, dump_folder=LOG_PATH, dump_mode="w", auto_timestamp=False)
+test_simulation_logger = Logger(tag="test_simulation", format_=LogFormat.none, dump_folder=LOG_PATH, dump_mode="w", auto_timestamp=False)
+dqn_logger = Logger(tag="dqn", format_=LogFormat.none, dump_folder=LOG_PATH, dump_mode="w", auto_timestamp=False)
+test_dqn_logger = Logger(tag="test_dqn", format_=LogFormat.none, dump_folder=LOG_PATH, dump_mode="w", auto_timestamp=False)
+
+
+MODEL_PATH = os.path.join(FILE_PATH, "log", config.experiment_name, "models")
+if not os.path.exists(MODEL_PATH):
+    os.makedirs(MODEL_PATH)
 
 
 if __name__ == "__main__":
@@ -32,6 +47,12 @@ if __name__ == "__main__":
         durations=config.env.durations,
         snapshot_resolution=config.env.resolution
     )
+
+    shutil.copy(
+        os.path.join(env._business_engine._config_path, "config.yml"),
+        os.path.join(LOG_PATH, "BEconfig.yml")
+    )
+    shutil.copy(CONFIG_PATH, os.path.join(LOG_PATH, "config.yml"))
 
     if config.env.seed is not None:
         env.set_seed(config.env.seed)
@@ -57,9 +78,14 @@ if __name__ == "__main__":
     scheduler = TwoPhaseLinearParameterScheduler(config.main_loop.max_episode, **config.main_loop.exploration)
     actor = VMActor(env, agent_manager)
     learner = VMLearner(
-        agent_manager, actor, scheduler,
-        logger=Logger("vm_learner_split_net_epoch_400_pm_30_with_lifetime", format_=LogFormat.simple, auto_timestamp=False)
+        model_path=MODEL_PATH,
+        eval_interval=config.eval_interval,
+        agent_manager=agent_manager, 
+        actor=actor, scheduler=scheduler,
+        simulation_logger=simulation_logger,
+        test_simulation_logger=test_simulation_logger,
+        dqn_logger=dqn_logger,
+        test_dqn_logger=test_dqn_logger
     )
     learner.learn()
     learner.test()
-    learner.dump_models(os.path.join(os.getcwd(), "split_net_epoch_400_pm_30_with_lifetime"))

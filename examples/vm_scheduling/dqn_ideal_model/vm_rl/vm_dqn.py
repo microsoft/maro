@@ -5,7 +5,7 @@ import torch
 
 from maro.rl.agent import DQN, DQNConfig
 from maro.rl.model import SimpleMultiHeadModel
-from maro.rl.storage import SimpleStore
+from maro.rl.storage import SimpleStore, OverwriteType
 from maro.rl.agent import AbsAgent
 from maro.utils.exception.rl_toolkit_exception import UnrecognizedTask
 
@@ -24,7 +24,10 @@ class VMDQN(AbsAgent):
             )
         super().__init__(
             name, model, config,
-            experience_pool=SimpleStore(["state", "action", "reward", "next_state", "next_legal_action", "loss"])
+            experience_pool=SimpleStore(
+                ["state", "action", "reward", "done", "next_state", "next_legal_action", "loss"],
+                capacity=100000, overwrite_type=OverwriteType.ROLLING
+            )
         )
         self._training_counter = 0
         self._target_model = model.copy() if model.is_trainable else None
@@ -44,10 +47,13 @@ class VMDQN(AbsAgent):
 
         # No exploration
         if self._config.epsilon == .0:
+            print(q_values)
             return greedy_action[0] if is_single else greedy_action
 
         if is_single:
-            return greedy_action[0] if np.random.random() > self._config.epsilon else self.get_random_action(legal_action[0])
+            a = np.random.random()
+            # print(a, self._config.epsilon)
+            return greedy_action[0] if a > self._config.epsilon else self.get_random_action(legal_action[0])
 
         # batch inference
         return np.array([
@@ -67,6 +73,7 @@ class VMDQN(AbsAgent):
         return greedy_action
 
     def get_random_action(self, legal_action):
+        # print(np.where(legal_action.cpu().numpy() == 1)[0])
         return np.random.choice(np.where(legal_action.cpu().numpy() == 1)[0])
 
     def _get_q_values(self, model, states, is_training: bool = True):
@@ -81,29 +88,41 @@ class VMDQN(AbsAgent):
         else:
             return model(states, is_training=is_training)
 
-    def _get_next_q_values(self, current_q_values_for_all_actions, next_states, next_legal_action):
+    def _get_next_q_values(self, next_states, next_legal_action):
         next_q_values_for_all_actions = self._get_q_values(self._target_model, next_states, is_training=False)
         if self._config.is_double:
             next_illegal_action = (next_legal_action - 1) * 10000000
-            actions = (current_q_values_for_all_actions + next_illegal_action).max(dim=1)[1].unsqueeze(1)
+            next_q_values = self._get_q_values(self._model, next_states, is_training=False)
+            actions = (next_q_values + next_illegal_action).max(dim=1)[1].unsqueeze(1)
+            # print(f"next_legal_action: {next_legal_action}")
+            # print(f"next_actions: {actions.squeeze()}")
             return next_q_values_for_all_actions.gather(1, actions).squeeze(1)  # (N,)
         else:
             return (next_q_values_for_all_actions + next_illegal_action).max(dim=1)[0]   # (N,)
 
-    def _compute_td_errors(self, states, actions, rewards, next_states, next_legal_action):
+    def _compute_td_errors(self, states, actions, rewards, next_states, next_legal_action, done):
         if len(actions.shape) == 1:
             actions = actions.unsqueeze(1)  # (N, 1)
+        
+        # print(f"current_states: {states}")
+        # print(f"current_actions: {actions.squeeze()}")
         current_q_values_for_all_actions = self._get_q_values(self._model, states)
         current_q_values = current_q_values_for_all_actions.gather(1, actions).squeeze(1)  # (N,)
-        next_q_values = self._get_next_q_values(current_q_values_for_all_actions, next_states, next_legal_action)  # (N,)
-        target_q_values = (rewards + self._config.reward_discount * next_q_values).detach()  # (N,)
+        # print(f"current_q_values: {current_q_values}")
+        next_q_values = self._get_next_q_values(next_states, next_legal_action)  # (N,)
+        target_q_values = (rewards + self._config.reward_discount * next_q_values * (1 - done)).detach()  # (N,)
+        # print(f"next_states: {next_states}")
+        # print(f"next_q_values: {next_q_values}")
+        # print(f"done: {done}")
+        # print(f"reward: {rewards}")
+        # print(f"target_q_values: {target_q_values}")
         return self._config.loss_func(current_q_values, target_q_values)
 
     def train(self):
         if len(self._experience_pool) <= self._config.min_exp_to_train:
             return
 
-        losses = []
+        losses, learning_rate = [], []
         for _ in range(self._config.num_batches):
             indexes, sample = self._experience_pool.sample_by_key("loss", self._config.batch_size)
             state = np.asarray(sample["state"])
@@ -111,10 +130,16 @@ class VMDQN(AbsAgent):
             reward = np.asarray(sample["reward"])
             next_state = np.asarray(sample["next_state"])
             next_legal_action = np.asarray(sample["next_legal_action"])
-            loss = self._train_on_batch(state, action, reward, next_state, next_legal_action)
+            done = np.asarray(sample["done"])
+            # print(f"state: {state}\naction: {action}\nreward: {reward}\nnext_state: {next_state}\nnext_legal_action: {next_legal_action}")
+            loss = self._train_on_batch(state, action, reward, next_state, next_legal_action, done)
+            
             losses.append(np.mean(loss))
+            learning_rate.append(self._model.learning_rate)
+
             self._experience_pool.update(indexes, {"loss": list(loss)})
-        return losses
+            self._model.update_learning_rate('allocator')
+        return losses, learning_rate
 
     def set_exploration_params(self, epsilon):
         self._config.epsilon = epsilon
@@ -129,13 +154,14 @@ class VMDQN(AbsAgent):
         with open(os.path.join(dir_path, self._name), "wb") as fp:
             pickle.dump(self._experience_pool, fp)
 
-    def _train_on_batch(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray, next_states: np.ndarray, next_legal_action: np.ndarray):
+    def _train_on_batch(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray, next_states: np.ndarray, next_legal_action: np.ndarray, done: np.ndarray):
         states = torch.from_numpy(states).to(self._device)
         actions = torch.from_numpy(actions).to(self._device)
         rewards = torch.from_numpy(rewards).to(self._device)
         next_states = torch.from_numpy(next_states).to(self._device)
         next_legal_action = torch.from_numpy(next_legal_action).to(self._device)
-        loss = self._compute_td_errors(states, actions, rewards, next_states, next_legal_action)
+        done = torch.from_numpy(done).to(self._device)
+        loss = self._compute_td_errors(states, actions, rewards, next_states, next_legal_action, done)
         self._model.learn(loss.mean().double() if self._config.per_sample_td_error else loss)
         self._training_counter += 1
         if self._training_counter % self._config.target_update_freq == 0:

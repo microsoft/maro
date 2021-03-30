@@ -4,18 +4,18 @@
 from collections import defaultdict
 
 import torch.nn as nn
-from torch.optim import RMSprop, lr_scheduler
+from torch.optim import SGD, RMSprop, lr_scheduler
 
 from maro.rl import (
-    AbsAgentManager, DQNConfig, FullyConnectedBlock, OptimOption, SimpleMultiHeadModel,
+    AbsAgentManager, DQNConfig, FullyConnectedBlock, OptimOption,
     SimpleStore, AbsAgent
 )
 from maro.utils import set_seeds
 
-from examples.vm_scheduling.dqn2.components.state_shaper import VMStateShaper
-from examples.vm_scheduling.dqn2.components.action_shaper import VMActionShaper
-from examples.vm_scheduling.dqn2.components.experience_shaper import TruncatedExperienceShaper
-from examples.vm_scheduling.dqn2.vm_rl import VMDQN, CombineNet, SplitNet
+from examples.vm_scheduling.ideal_model.components.state_shaper import VMStateShaper
+from examples.vm_scheduling.ideal_model.components.action_shaper import VMActionShaper
+from examples.vm_scheduling.ideal_model.components.experience_shaper import TruncatedExperienceShaper
+from examples.vm_scheduling.ideal_model.vm_rl import VMDQN, CombineNet, SplitNet, VMMultiHeadModel
 
 
 def create_dqn_agents(agent_name, config):
@@ -25,12 +25,12 @@ def create_dqn_agents(agent_name, config):
         is_head=True,
         **config.model
     )
-    learning_model = SimpleMultiHeadModel(
+    learning_model = VMMultiHeadModel(
         q_net,
         optim_option=OptimOption(
-            optim_cls=RMSprop,
+            optim_cls=SGD,
             optim_params=config.optimizer,
-            scheduler_cls=lr_scheduler.StepLR,
+            scheduler_cls=lr_scheduler.CosineAnnealingWarmRestarts,
             scheduler_params=config.scheduler
         )
     )
@@ -62,7 +62,7 @@ class DQNAgentManager(AbsAgentManager):
         model_state, legal_action = self._state_shaper(decision_event, env)
         action = self.agent.choose_action(model_state, legal_action)
         postpone = False
-        
+
         self._trajectory["state"].append(model_state)
         self._trajectory["event"].append(decision_event)
         self._trajectory["action"].append(action)
@@ -70,9 +70,6 @@ class DQNAgentManager(AbsAgentManager):
         if legal_action[-1] == 1:
             # No valid PM now, postpone.
             action, postpone = None, True
-        if postpone:
-            # print(legal_action, action, postpone)
-            pass
 
         return self._action_shaper(action, decision_event), postpone
 
@@ -82,14 +79,17 @@ class DQNAgentManager(AbsAgentManager):
             exp.update({"loss": [1e8] * len(list(exp.values())[0])})
             self.agent.store_experiences(exp)
 
-        loss = self.agent.train()
-        return loss
+        loss, learning_rate = self.agent.train()
+        return loss, learning_rate
 
     def on_env_feedback(self, metrics):
         self._trajectory["metrics"].append(metrics)
 
-    def post_process(self):
-        experiences = self._experience_shaper(self._trajectory)
+    def post_process(self, return_details, reward):
+        if return_details:
+            experiences = self._experience_shaper(self._trajectory, reward)
+        else:
+            experiences = None
         self._trajectory.clear()
         self._state_shaper.reset()
         self._action_shaper.reset()

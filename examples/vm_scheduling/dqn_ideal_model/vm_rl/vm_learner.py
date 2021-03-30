@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import os
 import sys
 from typing import Union
 
@@ -26,34 +27,60 @@ class VMLearner(AbsLearner):
     """
     def __init__(
         self,
+        model_path: str,
+        eval_interval: int,
         agent_manager: AbsAgentManager,
         actor: Union[SimpleActor, ActorProxy],
         scheduler: Scheduler,
-        logger: Logger = DummyLogger()
+        simulation_logger: Logger = DummyLogger(),
+        test_simulation_logger: Logger = DummyLogger(),
+        dqn_logger: Logger = DummyLogger(),
+        test_dqn_logger: Logger = DummyLogger()
     ):
         super().__init__()
+        self.model_path = model_path
+        self.eval_interval = eval_interval
         self.agent_manager = agent_manager
         self._actor = actor
         self._scheduler = scheduler
-        self._logger = logger
+        self._simulation_logger = simulation_logger
+        self._test_simulation_logger = test_simulation_logger
+        self._dqn_logger = dqn_logger
+        self._test_dqn_logger = test_dqn_logger
 
     def learn(self):
         """Main loop for collecting experiences from the actor and using them to update policies."""
-        losses = []
+        self.test_epoch(0)
         for exploration_params in self._scheduler:
             performance, exp_by_agent, reward = self._actor.roll_out(
                 model_dict=None if self._is_shared_agent_instance() else self.agent_manager.dump_models(),
                 exploration_params=exploration_params
             )
             self._scheduler.record_performance(performance)
-            ep_summary = f"ep {self._scheduler.current_iter} - reward: {reward}, performance: {performance}"
-            if exploration_params:
-                ep_summary = f"{ep_summary}, exploration_params: {exploration_params}"
-            self._logger.info(ep_summary)
-            loss = self.agent_manager.train(exp_by_agent)
-            losses.extend(loss)
-        with open('loss.txt','w') as output:
-            output.write(str(losses))
+            ep_summary = f"ep {self._scheduler.current_iter} - performance: {performance}"
+            self._simulation_logger.info(ep_summary)
+
+            loss, learning_rate = self.agent_manager.train(exp_by_agent)
+            ep_summary = f"ep {self._scheduler.current_iter} - reward: {reward}, loss: {loss}, learning_rate: {learning_rate}, exploration_params: {exploration_params}"
+            self._dqn_logger.info(ep_summary)
+
+            if self._scheduler.current_iter % self.eval_interval == 0:
+                self.test_epoch(self._scheduler.current_iter)
+
+    def test_epoch(self, current_iter):
+        """Test policy performance."""
+        performance, _, reward = self._actor.roll_out(
+            model_dict=self.agent_manager.dump_models(),
+            return_details=False
+        )
+
+        ep_summary = f"ep {current_iter} - performance: {performance}"
+        self._test_simulation_logger.info(ep_summary)
+
+        ep_summary = f"ep {current_iter} - reward: {reward}"
+        self._test_dqn_logger.info(ep_summary)
+
+        self.dump_models(os.path.join(os.getcwd(), f"{self.model_path}/epoch_{current_iter}"))
 
     def test(self):
         """Test policy performance."""
@@ -61,8 +88,14 @@ class VMLearner(AbsLearner):
             model_dict=self.agent_manager.dump_models(),
             return_details=False
         )
-        print(reward)
-        self._scheduler.record_performance(performance)
+        
+        ep_summary = f"ep test - performance: {performance}"
+        self._test_simulation_logger.info(ep_summary)
+
+        ep_summary = f"ep test - reward: {reward}"
+        self._test_dqn_logger.info(ep_summary)
+
+        self.dump_models(os.path.join(os.getcwd(), f"{self.model_path}/final"))
 
     def exit(self, code: int = 0):
         """Tell the remote actor to exit."""

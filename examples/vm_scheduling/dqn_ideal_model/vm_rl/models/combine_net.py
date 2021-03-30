@@ -77,6 +77,7 @@ class CombineNet(AbsBlock):
                 param.register_hook(lambda grad: torch.clamp(grad, -gradient_threshold, gradient_threshold))
 
         self._name = name
+        self._initialize_weights()
 
     def forward(self, x):
         out = self._net(x)
@@ -110,3 +111,9 @@ class CombineNet(AbsBlock):
         if not is_head and self._dropout_p:
             components.append(("dropout", nn.Dropout(p=self._dropout_p)))
         return nn.Sequential(OrderedDict(components))
+
+    def _initialize_weights(self):
+        for m in self.modules():
+            print(m)
+            if isinstance(m, nn.Linear):
+                nn.init.xavier_uniform_(m.weight, gain=nn.init.calculate_gain('leaky_relu'))

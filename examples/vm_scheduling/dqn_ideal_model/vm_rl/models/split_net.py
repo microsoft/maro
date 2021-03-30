@@ -32,6 +32,7 @@ class SplitNet(AbsBlock):
     def __init__(
         self,
         pm_num: int,
+        tick_input_dim: int,
         pm_input_dim: int,
         vm_input_dim: int,
         output_dim: int,
@@ -47,6 +48,7 @@ class SplitNet(AbsBlock):
     ):
         super().__init__()
         self._pm_num = pm_num
+        self._tick_input_dim = tick_input_dim
         self._pm_input_dim = pm_input_dim
         self._vm_input_dim = vm_input_dim
         self._hidden_dims = hidden_dims if hidden_dims is not None else []
@@ -67,6 +69,10 @@ class SplitNet(AbsBlock):
 
         self._skip_connection = skip_connection
 
+        # build the tick net
+        tick_dims = [self._tick_input_dim] + self._hidden_dims[:-1]
+        tick_layers = [self._build_layer(in_dim, out_dim) for in_dim, out_dim in zip(tick_dims, tick_dims[1:])]
+        self._tick_net = nn.Sequential(*tick_layers).double()
         # build the pm net
         pm_dims = [self._pm_input_dim] + self._hidden_dims[:-1]
         pm_layers = [self._build_layer(in_dim, out_dim) for in_dim, out_dim in zip(pm_dims, pm_dims[1:])]
@@ -77,7 +83,7 @@ class SplitNet(AbsBlock):
         self._vm_net = nn.Sequential(*vm_layers).double()
         # top layer
         layers = []
-        layers.append(self._build_layer(pm_dims[-1] * self._pm_num + vm_dims[-1], self._hidden_dims[-1]))
+        layers.append(self._build_layer(tick_dims[-1] + pm_dims[-1] * self._pm_num + vm_dims[-1], self._hidden_dims[-1]))
         layers.append(self._build_layer(self._hidden_dims[-1], self._output_dim, is_head=self._is_head))
         self._net = nn.Sequential(*layers).double()
 
@@ -87,19 +93,26 @@ class SplitNet(AbsBlock):
                 param.register_hook(lambda grad: torch.clamp(grad, -gradient_threshold, gradient_threshold))
 
         self._name = name
+        self._initialize_weights()
 
     def forward(self, x):
-        st = 0
+        st = 1
 
         feature = []
+        
+        tick_feature = self._tick_net(x[:, 0].unsqueeze(1))
+        feature.append(tick_feature)
+        
         for _ in range(self._pm_num):
             pm_input = x[:, st:st+self._pm_input_dim]
             pm_feature = self._pm_net(pm_input)
             feature.append(pm_feature)
             st += self._pm_input_dim
+        
         vm_input = x[:, st:st+self._vm_input_dim]
         vm_feature = self._vm_net(vm_input)
         feature.append(vm_feature)
+        
         feature = torch.cat(feature, dim=1)
 
         out = self._net(feature)
@@ -131,3 +144,9 @@ class SplitNet(AbsBlock):
         if not is_head and self._dropout_p:
             components.append(("dropout", nn.Dropout(p=self._dropout_p)))
         return nn.Sequential(OrderedDict(components))
+
+    def _initialize_weights(self):
+        for m in self.modules():
+            print(m)
+            if isinstance(m, nn.Linear):
+                nn.init.xavier_uniform_(m.weight, gain=nn.init.calculate_gain('leaky_relu'))
