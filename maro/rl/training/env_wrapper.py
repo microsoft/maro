@@ -3,7 +3,6 @@
 
 from abc import ABC, abstractmethod
 from collections import defaultdict
-from typing import Callable
 
 from maro.simulator import Env
 
@@ -15,7 +14,7 @@ class AbsEnvWrapper(ABC):
         env (Env): Environment instance.
         save_replay (bool): If True, the steps during roll-out will be recorded sequentially. This
             includes states, actions and rewards. The decision events themselves will also be recorded
-            for delayed reward evaluation purposes. Defaults to True. 
+            for delayed reward evaluation purposes. Defaults to True.
         reward_eval_delay (int): Number of ticks required after a decision event to evaluate the reward
             for the action taken for that event. Defaults to 0, which rewards are evaluated immediately
             after executing an action.
@@ -64,7 +63,7 @@ class AbsEnvWrapper(ABC):
     @abstractmethod
     def get_action(self, action) -> dict:
         pass
-    
+
     @abstractmethod
     def get_reward(self, tick: int = None) -> float:
         """User-defined reward evaluation.
@@ -96,12 +95,12 @@ class AbsEnvWrapper(ABC):
                 """
                 If roll-out is complete, evaluate rewards for all remaining events except the last.
                 Otherwise, evaluate rewards only for events at least self.reward_eval_delay ticks ago.
-                """ 
+                """
                 for i, (tick, action) in enumerate(
                     zip(self._event_ticks[self._pending_reward_idx:], self._action_history[self._pending_reward_idx:])
                 ):
                     if not done and self.env.tick - tick < self.reward_eval_delay:
-                        self._pending_reward_idx += i                        
+                        self._pending_reward_idx += i
                         break
                     reward = self.get_reward(tick=tick)
                     for agent_id in action:
@@ -129,8 +128,8 @@ class AbsEnvWrapper(ABC):
                     if replay["S"]:
                         replay["S_"].append(state)
                     replay["S"].append(state)
-                    assert len(replay["S_"]) == len(replay["A"]) == len(replay["S"]) - 1 
-        
+                    assert len(replay["S_"]) == len(replay["A"]) == len(replay["S"]) - 1
+
             return state_by_agent
 
     def reset(self):
