@@ -2,13 +2,9 @@
 # Licensed under the MIT license.
 
 # native lib
-import sys
 import uuid
 from enum import Enum
 from typing import Union
-
-# private lib
-from maro.utils.exit_code import NON_RESTART_EXIT_CODE
 
 from .utils import session_id_generator
 

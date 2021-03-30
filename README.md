@@ -161,7 +161,7 @@ env = Env(scenario="cim",
           options={"enable-dump-snapshot": "./dump_data"})
 
 # Inspect environment with the dump data
-maro inspector env --source ./dump_data
+maro inspector dashboard --source_path ./dump_data/snapshot_dump_folder
 ```
 
 ### Show Cases
