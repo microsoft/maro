@@ -1,17 +1,14 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from abc import ABC, abstractmethod
-from collections import defaultdict
-from typing import Callable, List, Union
+from typing import Union
 
-from maro.communication import Message, Proxy, RegisterTable, SessionType
+from maro.communication import Message, Proxy
 from maro.rl.agent import AbsAgent, MultiAgentWrapper
-from maro.rl.storage import SimpleStore
 from maro.rl.training import AbsEnvWrapper
 from maro.utils import InternalLogger
 
-from .message_enums import MsgTag, MsgKey
+from .message_enums import MsgKey, MsgTag
 
 
 class Actor(object):
@@ -71,7 +68,7 @@ class Actor(object):
                 )
                 self.env.flush()
 
-        return self.env.metrics 
+        return self.env.metrics
 
     def run(self):
         for msg in self._proxy.receive():
