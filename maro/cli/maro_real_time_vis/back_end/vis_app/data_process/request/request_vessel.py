@@ -77,7 +77,7 @@ def process_vessel_data(db_vessel_data: json, start_tick: str) -> json:
 
     """
     exec_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(os.path.dirname(__file__)))))
-    config_file_path = f"{exec_path}\\nginx\\static\\config.json"
+    config_file_path = f"{exec_path}/nginx/static/config.json"
     with open(config_file_path, "r")as mapping_file:
         cim_information = json.load(mapping_file)
         vessel_list = list(cim_information["vessels"].keys())

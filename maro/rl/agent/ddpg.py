@@ -67,7 +67,7 @@ class DDPG(AbsAgent):
         if is_single:
             state = state.unsqueeze(dim=0)
 
-        action = self.model(state, task_name="policy", training=False).data.numpy()
+        action = self.model(state, task_name="policy", training=False).data.cpu().numpy()
         action_dim = action.shape[1]
         if self._explorer:
             action = self._explorer(action)
