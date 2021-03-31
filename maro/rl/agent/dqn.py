@@ -111,7 +111,6 @@ class DQN(AbsAgent):
         q = select_by_actions(q_all, actions)
         next_q_all_target = self._get_q_values(next_states, is_eval=False, training=False)
         if self.config.double:
-            print("double DQN")
             next_q_all_eval = self._get_q_values(next_states, training=False)
             next_q = select_by_actions(next_q_all_target, next_q_all_eval.max(dim=1)[1])  # (N,)
         else:
