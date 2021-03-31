@@ -15,17 +15,12 @@ from maro.simulator import Env
 from maro.utils import set_seeds
 
 from examples.supply_chain.env_wrapper import SCEnvWrapper
+from examples.supply_chain.dqn.agent import get_sc_agents
 
 
 DEFAULT_CONFIG_PATH = join(dirname(realpath(__file__)), "config.yml")
 with open(getenv("CONFIG_PATH", default=DEFAULT_CONFIG_PATH), "r") as config_file:
     config = yaml.safe_load(config_file)
-
-# model input and output dimensions
-MANUFACTURER_IN_DIM = 6
-MANUFACTURER_OUT_DIM = 10
-CONSUMER_IN_DIM = 8
-CONSUMER_OUT_DIM = 100
 
 # for distributed / multi-process training
 GROUP = getenv("GROUP", default=config["distributed"]["group"])
@@ -34,28 +29,8 @@ REDIS_PORT = config["distributed"]["redis_port"]
 NUM_ACTORS = int(getenv("NUMACTORS", default=config["distributed"]["num_actors"]))
 
 
-def get_dqn_agent(in_dim, out_dim):
-    q_model = SimpleMultiHeadModel(
-        FullyConnectedBlock(input_dim=in_dim, output_dim=out_dim, **config["agent"]["model"]),
-        optim_option=OptimOption(**config["agent"]["optimization"])
-    )
-    return DQN(q_model, DQNConfig(**config["agent"]["hyper_params"]))
-
-
-def get_sc_agents(agent_ids):
-    manufacturer_agents = {
-        id_: get_dqn_agent(MANUFACTURER_IN_DIM, MANUFACTURER_OUT_DIM)
-        for type_, id_ in agent_ids if type_ == "manufacture"
-    }
-    consumer_agents = {
-        id_: get_dqn_agent(CONSUMER_IN_DIM, CONSUMER_OUT_DIM)
-        for type_, id_ in agent_ids if type_ == "consumer"
-    }
-    return MultiAgentWrapper({**manufacturer_agents, **consumer_agents})
-
-
 def sc_dqn_learner():
-    agent = get_sc_agents(Env(**config["training"]["env"]).agent_idx_list)
+    agent = get_sc_agents(Env(**config["training"]["env"]).agent_idx_list, config["agent"])
     scheduler = LinearParameterScheduler(config["training"]["max_episode"], **config["training"]["exploration"])
     actor_proxy = ActorProxy(
         NUM_ACTORS, GROUP,
@@ -75,7 +50,7 @@ def sc_dqn_learner():
 
 def sc_dqn_actor():
     env = Env(**config["training"]["env"])
-    agent = get_sc_agents(env.agent_idx_list)
+    agent = get_sc_agents(env.agent_idx_list, config["agent"])
     actor = Actor(
         SCEnvWrapper(env), agent, GROUP,
         replay_sync_interval=config["distributed"]["replay_sync_interval"],

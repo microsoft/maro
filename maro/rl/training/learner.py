@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 
 from abc import ABC, abstractmethod
+from collections import defaultdict
 from typing import Callable, Union
 
 from numpy import asarray
@@ -71,6 +72,9 @@ class OffPolicyLearner(AbsLearner):
         env: AbsEnvWrapper,
         agent: Union[AbsAgent, MultiAgentWrapper],
         scheduler: Scheduler,
+        *,
+        replay_memory_size: int,
+        replay_memory_overwrite_type: str,
         train_iter: int = 1,
         min_experiences_to_train: int = 0,
         batch_size: int = 128
