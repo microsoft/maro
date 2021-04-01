@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 
-from collections import defaultdict, deque
+from collections import defaultdict, deque, Counter
 from typing import Dict
 
 from .order import Order
@@ -18,13 +18,12 @@ class DistributionUnit(UnitBase):
     vehicles = None
 
     def __init__(self):
+        super().__init__()
         self.order_queue = deque()
 
-        # Used to map from product id to slot index.
-        self.product_index_mapping: Dict[int, int] = {}
-
-        # What product we will carry.
-        self.product_list = []
+        self.transportation_cost = Counter()
+        self.delay_order_penalty = Counter()
+        self.check_in_order = Counter()
 
     def get_pending_order(self) -> Dict[int, int]:
         """Get orders that states is pending.
@@ -36,6 +35,10 @@ class DistributionUnit(UnitBase):
 
         for order in self.order_queue:
             counter[order.product_id] += order.quantity
+
+        for vehicle in self.vehicles:
+            if vehicle.is_enroute():
+                counter[vehicle.product_id] += (vehicle.requested_quantity - vehicle.payload)
 
         return counter
 
@@ -57,8 +60,7 @@ class DistributionUnit(UnitBase):
                 order_total_price = sku.price * order.quantity
 
                 # TODO: states related, enable it later if needed.
-                # product_index = self.product_index_mapping[order.product_id]
-                # self.data_model.check_in_price[product_index] += order_total_price
+                self.check_in_order[order.product_id] += order.quantity
 
                 return order_total_price
 
@@ -66,19 +68,6 @@ class DistributionUnit(UnitBase):
 
     def initialize(self):
         super(DistributionUnit, self).initialize()
-
-        # Init product list in data model.
-        index = 0
-        for sku_id, sku in self.facility.skus.items():
-            self.product_list.append(sku_id)
-
-            self.product_index_mapping[sku_id] = index
-
-            index += 1
-
-        self._init_data_model()
-
-        self.data_model.initialize(self.config.get("unit_price", 0))
 
     def step(self, tick: int):
         for vehicle in self.vehicles:
@@ -98,29 +87,31 @@ class DistributionUnit(UnitBase):
             # Push vehicle.
             vehicle.step(tick)
 
-        # NOTE: we moved delay_order_penalty from facility to sku, is this ok?
+            self.transportation_cost[vehicle.product_id] += abs(vehicle.step_reward)
+
+            self.step_balance_sheet += vehicle.step_balance_sheet
+
         # update order's delay penalty per tick.
         for order in self.order_queue:
-            product_index = self.product_index_mapping[order.product_id]
-
-            self.data_model.delay_order_penalty[product_index] += self.facility.get_config("delay_order_penalty")
+            self.delay_order_penalty[order.product_id] += self.facility.get_config("delay_order_penalty")
 
     def flush_states(self):
         for vehicle in self.vehicles:
             vehicle.flush_states()
 
+        # TODO: optimize it later, only update if there is any changes
+        self.data_model.remaining_order_quantity = sum(order.quantity for order in self.order_queue)
+        self.data_model.remaining_order_number = len(self.order_queue)
+
     def reset(self):
         super(DistributionUnit, self).reset()
 
         self.order_queue.clear()
-        self._init_data_model()
 
         # Reset vehicles.
         for vehicle in self.vehicles:
             vehicle.reset()
 
-    def _init_data_model(self):
-        for product_id in self.product_list:
-            self.data_model.product_list.append(product_id)
-            self.data_model.delay_order_penalty.append(0)
-            self.data_model.check_in_price.append(0)
+        self.transportation_cost.clear()
+        self.check_in_order.clear()
+        self.delay_order_penalty.clear()

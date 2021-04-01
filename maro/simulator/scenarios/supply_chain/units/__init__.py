@@ -11,3 +11,4 @@ from .skuunit import SkuUnit
 from .storage import StorageUnit
 from .unitbase import UnitBase
 from .vehicle import VehicleUnit
+from .storeproduct import StoreProductUnit

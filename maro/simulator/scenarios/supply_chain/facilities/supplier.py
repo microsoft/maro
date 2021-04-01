@@ -24,7 +24,9 @@ class SupplierFacility(FacilityBase):
             "price",
             "delay_order_penalty",
             "product_unit_cost",
-            "order_cost"
+            "order_cost",
+            "vlt",
+            "service_level"
         )
     )
 
@@ -38,6 +40,8 @@ class SupplierFacility(FacilityBase):
     products: List[ProductUnit]
 
     def __init__(self):
+        super().__init__()
+
         self.skus = {}
 
     def parse_skus(self, configs: dict):
@@ -52,7 +56,9 @@ class SupplierFacility(FacilityBase):
                 sku_config.get("price", 0),
                 sku_config.get("delay_order_penalty", 0),
                 sku_config.get("product_unit_cost", 1),
-                sku_config.get("order_cost", 0)
+                sku_config.get("order_cost", 0),
+                sku_config.get("vlt", 1),
+                sku_config.get("service_level", 0.9)
             )
 
             self.skus[sku.id] = sku_info

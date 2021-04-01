@@ -13,7 +13,15 @@ from .facility import FacilityBase
 class WarehouseFacility(FacilityBase):
     """Warehouse facility that used to storage products, composed with storage, distribution and product units."""
 
-    SkuInfo = namedtuple("SkuInfo", ("name", "init_stock", "id", "price", "delay_order_penalty", "order_cost"))
+    SkuInfo = namedtuple("SkuInfo", ("name",
+                                     "init_stock",
+                                     "id",
+                                     "price",
+                                     "delay_order_penalty",
+                                     "order_cost",
+                                     "vlt",
+                                     "service_level",
+                                     "cost"))
 
     # Storage unit for this facility, must be a sub class of StorageUnit.
     storage: StorageUnit = None
@@ -25,6 +33,8 @@ class WarehouseFacility(FacilityBase):
     products: List[ProductUnit] = None
 
     def __init__(self):
+        super().__init__()
+
         self.skus = {}
 
     def parse_skus(self, configs: dict):
@@ -37,7 +47,10 @@ class WarehouseFacility(FacilityBase):
                 sku.id,
                 sku_config.get("price", 0),
                 sku_config.get("delay_order_penalty", 0),
-                sku_config.get("order_cost", 0)
+                sku_config.get("order_cost", 0),
+                sku_config.get("vlt", 1),
+                sku_config.get("service_level", 0.9),
+                sku_config.get("cost", 0)
             )
 
             self.skus[sku.id] = sku_info

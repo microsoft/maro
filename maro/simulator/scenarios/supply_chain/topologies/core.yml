@@ -21,6 +21,12 @@ datamodels:
         ManufactureDataModel:
           class: "ManufactureDataModel"
           name_in_frame: "manufacture"
+        ProductDataModel:
+          class: "ProductDataModel"
+          name_in_frame: "product"
+        FacilityDataModel:
+          class: "FacilityDataModel"
+          name_in_frame: "facility"
 
 units:
   modules:
@@ -46,6 +52,10 @@ units:
           datamodel: "ManufactureDataModel"
         ProductUnit:
           class: "ProductUnit"
+          datamodel: "ProductDataModel"
+        StoreProductUnit:
+          class: "StoreProductUnit"
+          datamodel: "ProductDataModel"
 
 facilities:
   modules:
@@ -53,7 +63,10 @@ facilities:
       definitions:
         WarehouseFacility:
           class: "WarehouseFacility"
+          datamodel: "FacilityDataModel"
         SupplierFacility:
           class: "SupplierFacility"
+          datamodel: "FacilityDataModel"
         RetailerFacility:
           class: "RetailerFacility"
+          datamodel: "FacilityDataModel"

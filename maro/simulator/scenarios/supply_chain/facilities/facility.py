@@ -1,9 +1,9 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-
+from collections import defaultdict
 from abc import ABC
-
+from maro.simulator.scenarios.supply_chain.units.balancesheet import BalanceSheet
 
 class FacilityBase(ABC):
     """Base of all facilities."""
@@ -33,9 +33,26 @@ class FacilityBase(ABC):
     # Upstream facilities.
     # Key is sku id, value is the list of product unit from upstream.
     upstreams: dict = None
+    downstreams: dict = None
 
     # Configuration of this facility.
     configs: dict = None
+
+    data_model_name: str = None
+    data_model_index: int = 0
+
+    step_balance_sheet: BalanceSheet = None
+    total_balance_sheet: BalanceSheet = None
+    children: list = None
+
+    def __init__(self):
+        self.upstreams = {}
+        self.downstreams = {}
+
+        self.step_balance_sheet = BalanceSheet()
+        self.total_balance_sheet = BalanceSheet()
+        self.step_reward = 0
+        self.children = []
 
     def parse_skus(self, configs: dict):
         """Parse sku information from config.
@@ -58,7 +75,20 @@ class FacilityBase(ABC):
 
     def initialize(self):
         """Initialize this facility after frame is ready."""
-        pass
+        has_storage = self.storage is not None
+        has_distribution = self.distribution is not None
+
+        self.data_model.initialize()
+
+        if self.storage is not None:
+            self.children.append(self.storage)
+
+        if self.distribution is not None:
+            self.children.append(self.distribution)
+
+        if self.products is not None:
+            for product in self.products.values():
+                self.children.append(product)
 
     def step(self, tick: int):
         """Push facility to next step.
@@ -66,51 +96,43 @@ class FacilityBase(ABC):
         Args:
             tick (int): Current simulator tick.
         """
-        if self.storage is not None:
-            self.storage.step(tick)
+        rewards = []
+        balance_sheets = []
 
-        if self.distribution is not None:
-            self.distribution.step(tick)
+        for unit in self.children:
+            unit.step(tick)
 
-        if self.products is not None:
-            for product in self.products.values():
-                product.step(tick)
+            balance_sheets.append(unit.step_balance_sheet)
+            rewards.append(unit.step_reward)
+
+        self.step_balance_sheet = sum(balance_sheets)
+        self.step_reward = sum(rewards)
+
+        self.total_balance_sheet += self.step_balance_sheet
 
     def flush_states(self):
         """Flush states into frame."""
-        if self.storage is not None:
-            self.storage.flush_states()
-
-        if self.distribution is not None:
-            self.distribution.flush_states()
-
-        if self.products is not None:
-            for product in self.products.values():
-                product.flush_states()
+        for unit in self.children:
+            unit.flush_states()
 
     def post_step(self, tick: int):
         """Post processing at the end of step."""
-        if self.storage is not None:
-            self.storage.post_step(tick)
-
-        if self.distribution is not None:
-            self.distribution.post_step(tick)
-
-        if self.products is not None:
-            for product in self.products.values():
-                product.post_step(tick)
+        for unit in self.children:
+            unit.post_step(tick)
 
     def reset(self):
         """Reset facility for new episode."""
-        if self.storage is not None:
-            self.storage.reset()
+        for unit in self.children:
+            unit.reset()
 
-        if self.distribution is not None:
-            self.distribution.reset()
+    def get_in_transit_orders(self):
+        in_transit_orders = defaultdict(int)
 
-        if self.products is not None:
-            for product in self.products.values():
-                product.reset()
+        for product_id, product in self.products.items():
+            if product.consumer is not None:
+                in_transit_orders[product_id] = product.consumer.get_in_transit_quantity()
+
+        return in_transit_orders
 
     def get_node_info(self) -> dict:
         products_info = {}
@@ -122,9 +144,13 @@ class FacilityBase(ABC):
             "id": self.id,
             "name": self.name,
             "class": type(self),
+            "node_index": self.data_model_index,
             "units": {
                 "storage": self.storage.get_unit_info() if self.storage is not None else None,
                 "distribution": self.distribution.get_unit_info() if self.distribution is not None else None,
                 "products": products_info
-            }
+            },
+            "configs": self.configs,
+            "skus": self.skus,
+            "upstreams": { product_id: [f.id for f in source_list] for product_id, source_list in self.upstreams.items()}
         }

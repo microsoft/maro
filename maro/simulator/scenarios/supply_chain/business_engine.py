@@ -9,7 +9,7 @@ from maro.simulator.scenarios import AbsBusinessEngine
 from typing import List, Tuple
 
 from .parser import ConfigParser, SupplyChainConfiguration
-from .units import UnitBase
+from .units import UnitBase, ProductUnit
 from .world import World
 
 
@@ -20,6 +20,12 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         self._register_events()
 
         self._build_world()
+
+        self._product_units = []
+
+        for unit in self.world.units.values():
+            if type(unit) == ProductUnit:
+                self._product_units.append(unit)
 
         self._frame = self.world.frame
 
@@ -72,9 +78,7 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         Returns:
             list: List of agent index.
         """
-        return [
-            (unit.data_model_name, id) for id, unit in self.world.units.items() if unit.data_model_name in ("consumer","manufacture")
-        ]
+        return self.world.agent_list
 
     def _step_by_facility(self, tick: int):
         """Call step functions by facility.
@@ -101,7 +105,8 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
             facility.reset()
 
     def _register_events(self):
-        self._event_buffer.register_event_handler(MaroEvents.TAKE_ACTION, self._on_action_received)
+        self._event_buffer.register_event_handler(
+            MaroEvents.TAKE_ACTION, self._on_action_received)
 
     def _build_world(self):
         self.update_config_root_path(__file__)
@@ -136,3 +141,41 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
                     entity.set_action(action_obj)
 
             self._action_cache = None
+
+    def get_metrics(self):
+        step_rewards = {}
+        step_balance_sheet = {}
+
+        for facility in self.world.facilities.values():
+            step_rewards[facility.id] = facility.step_reward
+            step_balance_sheet[facility.id] = facility.step_balance_sheet.total()
+
+        for unit in self._product_units:
+            step_rewards[unit.id] = unit.step_reward
+            step_balance_sheet[unit.id] = unit.step_balance_sheet.total()
+
+        return {
+            "step_rewards": step_rewards,
+            "step_balance_sheet": step_balance_sheet,
+            # TODO: move fields that will not change to summary
+            "max_price": self.world.max_price,
+            "max_sources_per_facility": self.world.max_sources_per_facility,
+            "products": {
+                product.id: {
+                    "total_balance_sheet": product.total_step_balance,
+                    "step_reward": product.step_reward,
+                    "sale_mean": product.get_sale_mean(),
+                    "sale_std": product.get_sale_std(),
+                    "selling_price": product.get_selling_price(),
+                    "pending_order_daily": None if product.consumer is None else product.consumer.pending_order_daily
+                } for product in self._product_units
+            },
+            "facilities": {
+                facility.id: {
+                    "total_balance_sheet": facility.total_balance_sheet,
+                    "step_reward": facility.step_reward,
+                    "in_transit_orders": facility.get_in_transit_orders(),
+                    "pending_order": None if facility.distribution is None else facility.distribution.get_pending_order()
+                } for facility in self.world.facilities.values()
+            }
+        }

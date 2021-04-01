@@ -9,7 +9,7 @@ from yaml import safe_load
 
 DataModelDef = namedtuple("DataModelDef", ("alias", "module_path", "class_name", "class_type", "name_in_frame"))
 UnitDef = namedtuple("UnitDef", ("alias", "module_path", "class_name", "class_type", "data_model_alias"))
-FacilityDef = namedtuple("FacilityDef", ("alias", "module_path", "class_name", "class_type"))
+FacilityDef = namedtuple("FacilityDef", ("alias", "module_path", "class_name", "class_type", "data_model_alias"))
 
 
 def find_class_type(module_path: str, class_name: str) -> type:
@@ -102,7 +102,7 @@ class SupplyChainConfiguration:
             data_model
         )
 
-    def add_facility_definition(self, alias: str, class_name: str, module_path: str):
+    def add_facility_definition(self, alias: str, class_name: str, module_path: str, data_model_alias: str):
         """Add a facility definition.
 
         Args:
@@ -116,7 +116,8 @@ class SupplyChainConfiguration:
             alias,
             module_path,
             class_name,
-            find_class_type(module_path, class_name)
+            find_class_type(module_path, class_name),
+            data_model_alias
         )
 
 
@@ -182,7 +183,7 @@ class ConfigParser:
                 module_path = module_conf["path"]
 
                 for class_alias, class_def in module_conf["definitions"].items():
-                    self._result.add_facility_definition(class_alias, class_def["class"], module_path)
+                    self._result.add_facility_definition(class_alias, class_def["class"], module_path, class_def.get("datamodel", None))
 
     def _parse_config(self):
         """Parse configurations."""

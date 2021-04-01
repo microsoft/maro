@@ -11,7 +11,6 @@ from .base import DataModelBase
 @node("storage")
 class StorageDataModel(DataModelBase):
     """Data model for storage unit."""
-    unit_storage_cost = NodeAttribute(AttributeType.UInt)
     remaining_space = NodeAttribute(AttributeType.UInt)
     capacity = NodeAttribute(AttributeType.UInt)
 
@@ -22,12 +21,10 @@ class StorageDataModel(DataModelBase):
     def __init__(self):
         super(StorageDataModel, self).__init__()
 
-        self._unit_storage_cost = 0
         self._capacity = 0
         self._remaining_space = None
 
-    def initialize(self, unit_storage_cost: int = 0, capacity: int = 0, remaining_space: int = None):
-        self._unit_storage_cost = unit_storage_cost
+    def initialize(self, capacity: int = 0, remaining_space: int = None):
         self._capacity = capacity
         self._remaining_space = remaining_space
 
@@ -36,7 +33,6 @@ class StorageDataModel(DataModelBase):
     def reset(self):
         super(StorageDataModel, self).reset()
 
-        self.unit_storage_cost = self._unit_storage_cost
         self.capacity = self._capacity
 
         if self._remaining_space is not None:
