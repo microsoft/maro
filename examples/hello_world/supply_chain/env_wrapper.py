@@ -81,6 +81,8 @@ class SCEnvWrapper:
         # TODO: this is fixed after env setup
         self._cur_facility_storage_product_mapping = {}
 
+        self._service_index_ppf_cache = {}
+
 
         # facility -> {
         # data_model_index:int,
@@ -460,8 +462,13 @@ class SCEnvWrapper:
         if (state['inventory_estimated'] <= 0):
             state['is_out_of_stock'] = 1
 
+        service_index = state['service_level']
+
+        if service_index not in self._service_index_ppf_cache:
+            self._service_index_ppf_cache[service_index] = st.norm.ppf(service_index)
+
         state['inventory_rop'] = (state['max_vlt']*state['sale_mean']
-                                  + np.sqrt(state['max_vlt'])*state['sale_std']*st.norm.ppf(state['service_level']))
+                                  + np.sqrt(state['max_vlt'])*state['sale_std']*self._service_index_ppf_cache[service_index])
 
         if state['inventory_estimated'] < state['inventory_rop']:
             state['is_below_rop'] = 1
@@ -734,7 +741,7 @@ if __name__ == "__main__":
 
     start_tick = 0
     durations = 100
-    env = Env(scenario="supply_chain", topology="sample1",
+    env = Env(scenario="supply_chain", topology="random2",
               start_tick=start_tick, durations=durations)
 
     ss = SCEnvWrapper(env)
@@ -751,8 +758,15 @@ if __name__ == "__main__":
 
     # print("time cost: ", end_time - start_time)
 
+    times = 10000
     start_time = time()
-    ss.get_state(None)
+
+    for i in range(times):
+        env.step(None)
+
+    # for i in range(times):
+    #     ss.get_state(None)
+
     # ss.get_reward(None)
     end_time = time()
 
