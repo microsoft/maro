@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import time
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from typing import Callable, Union
@@ -30,6 +31,7 @@ class AbsLearner(ABC):
         self.logger = InternalLogger("LEARNER")
 
     def roll_out(self, index: int, training: bool = True):
+        t0 = time.time()
         self.env.reset()
         if not training:
             self.env.save_replay = False  # no need to record the trajectory if roll-out is not for training
@@ -38,6 +40,8 @@ class AbsLearner(ABC):
         while state:
             action = self.agent.choose_action(state)
             state = self.env.step(action)
+        t1 = time.time()
+        print(f"roll-out time: {t1 - t0}")
 
     @abstractmethod
     def run(self):

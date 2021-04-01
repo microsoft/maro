@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import time
 from abc import ABC, abstractmethod
 from collections import defaultdict
 
@@ -29,6 +30,8 @@ class AbsEnvWrapper(ABC):
         self._pending_reward_idx = 0
         self._event_ticks = []  # for delayed reward evaluation
         self._action_history = []  # for delayed reward evaluation
+        self._tot_raw_step_time = 0
+        self._tot_step_time = 0
 
     def start(self, rollout_index: int = None):
         self.step_index = 0
@@ -76,13 +79,17 @@ class AbsEnvWrapper(ABC):
         pass
 
     def step(self, action_by_agent: dict):
+        t0 = time.time()
         self.step_index += 1
         self._event_ticks.append(self.env.tick)
         env_action = self.get_action(action_by_agent)
         self._action_history.append(env_action)
         if len(env_action) == 1:
             env_action = list(env_action.values())[0]
-        _, event, done = self.env.step(env_action)
+        t1 = time.time()
+        _, event, done = self.env.step(None)
+        t2 = time.time()
+        self._tot_raw_step_time += t2 - t1
 
         if self.save_replay:
             if self.reward_eval_delay:
@@ -130,7 +137,14 @@ class AbsEnvWrapper(ABC):
                     replay["S"].append(state)
                     assert len(replay["S_"]) == len(replay["A"]) == len(replay["S"]) - 1
 
+            t3 = time.time()
+            self._tot_step_time += t3 - t0
             return state_by_agent
+
+        print(f"total raw step time: {self._tot_raw_step_time}")
+        print(f"total step time: {self._tot_step_time}")
+        self._tot_raw_step_time = 0
+        self._tot_step_time = 0
 
     def reset(self):
         self.env.reset()

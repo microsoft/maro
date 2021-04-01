@@ -57,13 +57,13 @@ class AbsStore(ABC):
         pass
 
     @abstractmethod
-    def sample(self, size: int, weights: Sequence, replace: bool = True):
+    def sample(self, size: int, weights: Sequence = None, replace: bool = True):
         """Obtain a random sample from the experience pool.
 
         Args:
-            size (int): Sample sizes for each round of sampling in the chain. If this is a single integer, it is
-                        used as the sample size for all samplers in the chain.
-            weights (Sequence): A sequence of sampling weights.
+            size (int): Sample size.
+            weights (Sequence): A sequence of sampling weights. If None, uniform sampling is performed.
+                Defaults to None.
             replace (bool): If True, sampling is performed with replacement. Defaults to True.
         Returns:
             A random sample from the experience pool.
