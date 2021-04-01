@@ -71,6 +71,8 @@ class SCEnvWrapper:
         self._agent_list = env.agent_idx_list
 
         self._sku_number = len(self._summary["skus"]) + 1
+        self._max_price = self._summary["max_price"]
+        self._max_sources_per_facility = self._summary["max_sources_per_facility"]
 
         # state for each tick
         self._cur_metrics = env.metrics
@@ -79,7 +81,6 @@ class SCEnvWrapper:
         # TODO: this is fixed after env setup
         self._cur_facility_storage_product_mapping = {}
 
-        self._max_sources_per_facility = self._cur_metrics["max_sources_per_facility"]
 
         # facility -> {
         # data_model_index:int,
@@ -466,7 +467,7 @@ class SCEnvWrapper:
             state['is_below_rop'] = 1
 
     def _add_price_features(self, state, agent_info):
-        state['max_price'] = self._cur_metrics["max_price"]
+        state['max_price'] = self._max_price
         state['sku_price'] = 0
         state['sku_cost'] = 0
 

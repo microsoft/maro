@@ -408,7 +408,9 @@ class World:
             "agent_types": [k for k in self.agent_type_dict.keys()],
             "unit_mapping": id2index_mapping,
             "skus": {sku.id: sku for sku in self._sku_collection.values()},
-            "facilities": facility_info_dict
+            "facilities": facility_info_dict,
+            "max_price": self.max_price,
+            "max_sources_per_facility": self.max_sources_per_facility,
         }
 
     def _register_data_model(self, alias: str) -> int:

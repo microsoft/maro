@@ -144,9 +144,6 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
 
     def get_metrics(self):
         return {
-            # TODO: move fields that will not change to summary
-            "max_price": self.world.max_price,
-            "max_sources_per_facility": self.world.max_sources_per_facility,
             "products": {
                 product.id: {
                     "sale_mean": product.get_sale_mean(),
