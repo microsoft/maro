@@ -23,6 +23,11 @@ class SellerUnit(SkuUnit):
         self.sold = 0
         self.demand = 0
         self.total_sold = 0
+        self.total_demand = 0
+        self.price = 0
+
+        self.sale_hist = []
+        self.backlog_ratio = 0
 
     def market_demand(self, tick: int) -> int:
         """Generate market demand for current tick.
@@ -40,20 +45,16 @@ class SellerUnit(SkuUnit):
 
         sku = self.facility.skus[self.product_id]
 
-        unit_price = sku.price
+        self.price = sku.price
         self.gamma = sku.sale_gamma
-        backlog_ratio = sku.backlog_ratio
-
-        self.data_model.initialize(
-            unit_price=unit_price,
-            backlog_ratio=backlog_ratio
-        )
-
+        self.backlog_ratio = sku.backlog_ratio
         self.durations = self.world.durations
 
         # Generate demand distribution of this episode.
         for _ in range(self.durations):
             self.demand_distribution.append(int(np.random.gamma(self.gamma)))
+
+        self.sale_hist = [self.gamma] * self.config["sale_hist_len"]
 
     def step(self, tick: int):
         demand = self.market_demand(tick)
@@ -64,11 +65,23 @@ class SellerUnit(SkuUnit):
         self.total_sold += sold_qty
         self.sold = sold_qty
         self.demand = demand
+        self.total_demand += demand
+
+        self.sale_hist.append(demand)
+        self.sale_hist = self.sale_hist[1:]
+
+        self.step_balance_sheet.profit = sold_qty * self.price
+        self.step_balance_sheet.loss = -demand * self.price * self.backlog_ratio
+        self.step_reward = self.step_balance_sheet.total()
 
     def flush_states(self):
-        self.data_model.sold = self.sold
-        self.data_model.demand = self.demand
-        self.data_model.total_sold = self.total_sold
+        if self.sold > 0:
+            self.data_model.sold = self.sold
+            self.data_model.total_sold = self.total_sold
+
+        if self.demand > 0:
+            self.data_model.demand = self.demand
+            self.data_model.total_demand = self.total_demand
 
     def post_step(self, tick: int):
         super(SellerUnit, self).post_step(tick)
@@ -89,3 +102,9 @@ class SellerUnit(SkuUnit):
 
         # for _ in range(self.durations):
         #     self.demand_distribution.append(np.random.gamma(self.gamma))
+
+    def sale_mean(self):
+        return np.mean(self.sale_hist)
+
+    def sale_std(self):
+        return np.std(self.sale_hist)

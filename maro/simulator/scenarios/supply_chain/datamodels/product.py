@@ -5,14 +5,14 @@
 from maro.backends.backend import AttributeType
 from maro.backends.frame import NodeAttribute, node
 
-from .base import DataModelBase
+from .skumodel import SkuDataModel
 
 
-@node("facility")
-class FacilityDataModel(DataModelBase):
+@node("product")
+class ProductDataModel(SkuDataModel):
 
     def __init__(self):
-        super(FacilityDataModel, self).__init__()
+        super(ProductDataModel, self).__init__()
 
     def reset(self):
-        super(FacilityDataModel, self).reset()
+        super(ProductDataModel, self).reset()

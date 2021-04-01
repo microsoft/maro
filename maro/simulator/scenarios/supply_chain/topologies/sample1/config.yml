@@ -23,8 +23,11 @@ facility_definitions:
         is_template: true
         # config will be passed to generator as parameters
         config:
+          agent_type: 4
           consumer:
             class: "ConsumerUnit"
+    config:
+      agent_type: 1
 
   SupplierFacility: &supplier_facility
     class: "SupplierFacility"
@@ -37,10 +40,13 @@ facility_definitions:
         class: "ProductUnit"
         is_template: true
         config:
+          agent_type: 3
           consumer:
             class: "ConsumerUnit"
           manufacture:
             class: "ManufactureUnit"
+    config:
+      agent_type: 0
 
   RetailerFacility: &retailer_facility
     class: "RetailerFacility"
@@ -48,13 +54,18 @@ facility_definitions:
       storage:
         class: "StorageUnit"
       products:
-        class: "ProductUnit"
+        class: "StoreProductUnit"
         is_template: true
         config:
+          agent_type: 5
           consumer:
             class: "ConsumerUnit"
           seller:
             class: "SellerUnit"
+            config:
+              sale_hist_len: 4
+    config:
+      agent_type: 2
 
 # common entity/unit definition as reference to simplify the file.
 normal_vehicle: &normal_vehicle
@@ -254,3 +265,21 @@ world:
         - [10, 11]
         - [10, 12]
         - [11, 12]
+        
+settings:
+  global_reward_weight_producer: 0.50
+  global_reward_weight_consumer: 0.50
+  downsampling_rate: 1
+  episod_duration: 21
+  initial_balance: 100000
+  consumption_hist_len: 4
+  sale_hist_len: 4
+  pending_order_len: 4
+  constraint_state_hist_len: 8
+  total_echelons: 3
+  replenishment_discount: 0.9
+  reward_normalization: 1e7
+  constraint_violate_reward: -1e6
+  gamma: 0.99
+  tail_timesteps: 7
+  heading_timesteps: 7

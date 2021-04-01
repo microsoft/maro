@@ -23,7 +23,9 @@ class RetailerFacility(FacilityBase):
             "init_stock",
             "sale_gamma",
             "order_cost",
-            "backlog_ratio"
+            "backlog_ratio",
+            "vlt",
+            "service_level"
         )
     )
 
@@ -34,6 +36,7 @@ class RetailerFacility(FacilityBase):
     storage: StorageUnit
 
     def __init__(self):
+        super().__init__()
         self.skus = {}
 
     def parse_skus(self, configs: dict):
@@ -47,7 +50,9 @@ class RetailerFacility(FacilityBase):
                 sku_config["init_stock"],
                 sku_config.get("sale_gamma", 0),
                 sku_config.get("order_cost", 0),
-                sku_config.get("backlog_ratio", 0)
+                sku_config.get("backlog_ratio", 0),
+                sku_config.get("vlt", 1),
+                sku_config.get("service_level", 0.9)
             )
 
             self.skus[sku.id] = sku_info

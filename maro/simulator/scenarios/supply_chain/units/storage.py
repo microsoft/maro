@@ -109,6 +109,9 @@ class StorageUnit(UnitBase):
 
         return self.product_number[product_index]
 
+    def step(self, tick: int):
+        self.step_balance_sheet.loss = -(self.capacity - self.remaining_space) * self.unit_storage_cost
+
     def initialize(self):
         super(StorageUnit, self).initialize()
 
@@ -132,7 +135,6 @@ class StorageUnit(UnitBase):
 
         self.data_model.initialize(
             capacity=self.capacity,
-            unit_storage_cost=self.unit_storage_cost,
             remaining_space=self.remaining_space
         )
 

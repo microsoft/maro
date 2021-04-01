@@ -25,16 +25,18 @@ class ManufactureUnit(SkuUnit):
     # How many we procedure per current step.
     manufacture_number = 0
 
+    product_unit_cost = 0
+
+    def __init__(self):
+        super().__init__()
+
     def initialize(self):
         super(ManufactureUnit, self).initialize()
 
         facility_sku_info = self.facility.skus[self.product_id]
+        self.product_unit_cost = facility_sku_info.product_unit_cost
 
-        self.data_model.initialize(
-            self.facility.storage.data_model_index,
-            product_unit_cost=facility_sku_info.product_unit_cost,
-            storage_id=self.facility.storage.id
-        )
+        self.data_model.initialize()
 
         global_sku_info = self.world.get_sku_by_id(self.product_id)
 
@@ -87,6 +89,11 @@ class ManufactureUnit(SkuUnit):
         else:
             self.manufacture_number = 0
 
+        cost = self.manufacture_number * self.product_unit_cost
+
+        self.step_balance_sheet.loss = -cost
+        self.step_reward = -cost
+
     def flush_states(self):
         if self.manufacture_number > 0:
             self.data_model.manufacturing_number = self.manufacture_number
@@ -96,13 +103,8 @@ class ManufactureUnit(SkuUnit):
             self.data_model.manufacturing_number = 0
             self.manufacture_number = 0
 
-        if self.action is not None:
-            self.data_model.production_rate = 0
-
         # NOTE: call super at last, since it will clear the action.
         super(ManufactureUnit, self).post_step(tick)
 
     def set_action(self, action: ManufactureAction):
         super(ManufactureUnit, self).set_action(action)
-
-        self.data_model.production_rate = action.production_rate

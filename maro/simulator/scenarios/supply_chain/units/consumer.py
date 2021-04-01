@@ -4,7 +4,7 @@
 
 import warnings
 from collections import Counter, defaultdict
-
+from scipy.ndimage.interpolation import shift
 from .order import Order
 from .skuunit import SkuUnit
 
@@ -22,6 +22,11 @@ class ConsumerUnit(SkuUnit):
         self.purchased = 0
         self.order_cost = 0
         self.sources = []
+        self.pending_order_daily = None
+
+        # NOTE: this value is not set
+        self.reward_discount = 0.0
+        self.price = 0
 
     def on_order_reception(self, source_id: int, product_id: int, quantity: int, original_quantity: int):
         """Called after order product is received.
@@ -54,9 +59,15 @@ class ConsumerUnit(SkuUnit):
     def initialize(self):
         super(ConsumerUnit, self).initialize()
 
+        self.pending_order_daily = [0] * self.world.configs.settings["pending_order_len"]
+
         sku = self.facility.skus[self.product_id]
 
-        self.data_model.initialize(order_cost=self.facility.get_config("order_cost", 0))
+        self.price = sku.price
+
+        self.order_cost = self.facility.get_config("order_cost")
+
+        self.data_model.initialize()
 
         if self.facility.upstreams is not None:
             # Construct sources from facility's upstreams.
@@ -88,9 +99,9 @@ class ConsumerUnit(SkuUnit):
                     f"No sources for consumer: {self.id}, sku: {self.product_id} in facility: {self.facility.name}.")
                 return
 
-            self._init_data_model()
-
     def step(self, tick: int):
+        self._update_pending_order()
+
         # NOTE: id == 0 means invalid,as our id is 1 based.
         if not self.action or self.action.quantity <= 0 or self.action.product_id <= 0 or self.action.source_id == 0:
             return
@@ -103,9 +114,18 @@ class ConsumerUnit(SkuUnit):
 
         source_facility = self.world.get_facility_by_id(self.action.source_id)
 
-        self.order_cost = source_facility.distribution.place_order(order)
+        order_product_cost = source_facility.distribution.place_order(order)
 
         self.purchased = self.action.quantity
+
+        self.data_model.latest_consumptions = 1.0
+
+        if order.vlt < len(self.pending_order_daily):
+            self.pending_order_daily[order.vlt-1] += order.quantity
+
+        order_profit = self.price * order.quantity
+        self.step_balance_sheet.loss = -self.order_cost - order_product_cost
+        self.step_reward = -self.order_cost - order_product_cost + self.reward_discount * order_profit
 
     def flush_states(self):
         if self.received > 0:
@@ -116,15 +136,10 @@ class ConsumerUnit(SkuUnit):
             self.data_model.purchased = self.purchased
             self.data_model.total_purchased += self.purchased
 
-        if self.order_cost > 0:
-            self.data_model.order_product_cost = self.order_cost
-
     def post_step(self, tick: int):
         # Clear the action states per step.
         if self.action is not None:
-            self.data_model.source_id = 0
-            self.data_model.quantity = 0
-            self.data_model.vlt = 0
+            self.data_model.latest_consumptions = 0
 
         # This will set action to None.
         super(ConsumerUnit, self).post_step(tick)
@@ -144,18 +159,27 @@ class ConsumerUnit(SkuUnit):
     def reset(self):
         super(ConsumerUnit, self).reset()
 
-        self.open_orders.clear()
+        self.pending_order_daily = [0] * self.world.configs.settings["pending_order_len"]
 
-        self._init_data_model()
+        self.open_orders.clear()
 
     def set_action(self, action: object):
         super(ConsumerUnit, self).set_action(action)
 
-        # record the action
-        self.data_model.source_id = action.source_id
-        self.data_model.quantity = action.quantity
-        self.data_model.vlt = action.vlt
+    def get_in_transit_quantity(self):
+        quantity = 0
 
-    def _init_data_model(self):
-        for source in self.sources:
-            self.data_model.sources.append(source)
+        for source_id, orders in self.open_orders.items():
+            quantity += orders.get(self.product_id, 0)
+
+        return quantity
+
+    def _update_pending_order(self):
+        self.pending_order_daily = shift(self.pending_order_daily, -1, cval=0)
+
+    def get_unit_info(self):
+        info = super().get_unit_info()
+
+        info["sources"] = self.sources
+
+        return info

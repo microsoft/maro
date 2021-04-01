@@ -12,9 +12,10 @@ from maro.backends.frame import FrameBase
 from .facilities import FacilityBase
 from .frame_builder import build_frame
 from .parser import DataModelDef, FacilityDef, SupplyChainConfiguration, UnitDef
-from .units import UnitBase
+from .units import UnitBase, ProductUnit
 
 SkuInfo = namedtuple("SkuInfo", ("name", "id", "bom", "output_units_per_lot"))
+AgentInfo = namedtuple("AgentInfo", ("id", "agent_type", "is_facility", "sku", "facility_id"))
 
 
 class World:
@@ -53,6 +54,13 @@ class World:
 
         # Data model class collection, used to collection data model class and their number in frame.
         self._data_class_collection = {}
+
+        self.agent_list = []
+
+        self.agent_type_dict = {}
+
+        self.max_sources_per_facility = 0
+        self.max_price = 0
 
     def get_sku_by_name(self, name: str) -> SkuInfo:
         """Get sku information by name.
@@ -172,6 +180,13 @@ class World:
             # Parse config for facility.
             facility.parse_configs(facility_conf.get("config", {}))
 
+            # Due with data model.
+            data_model_def: DataModelDef = self.configs.data_models[facility_def.data_model_alias]
+
+            # Register the data model, so that it will help to generate related instance index.
+            facility.data_model_index = self._register_data_model(data_model_def.alias)
+            facility.data_model_name = data_model_def.name_in_frame
+
             # Build children (units).
             for child_name, child_conf in facility_conf["children"].items():
                 setattr(facility, child_name, self.build_unit(facility, facility, child_conf))
@@ -188,20 +203,31 @@ class World:
             if unit.data_model_name is not None:
                 unit.data_model = getattr(self.frame, unit.data_model_name)[unit.data_model_index]
 
+        for facility in self.facilities.values():
+            if facility.data_model_name is not None:
+                facility.data_model = getattr(self.frame, facility.data_model_name)[facility.data_model_index]
+
         # Construct the upstream topology.
         topology = world_config["topology"]
 
         for cur_facility_name, topology_conf in topology.items():
             facility = self.get_facility_by_name(cur_facility_name)
 
-            facility.upstreams = {}
-
             for sku_name, source_facilities in topology_conf.items():
                 sku = self.get_sku_by_name(sku_name)
+                facility.upstreams[sku.id] = []
 
-                facility.upstreams[sku.id] = [
-                    self.get_facility_by_name(source_name) for source_name in source_facilities
-                ]
+                self.max_sources_per_facility = max(self.max_sources_per_facility, len(source_facilities))
+
+                for source_name in source_facilities:
+                    source_facility = self.get_facility_by_name(source_name)
+
+                    facility.upstreams[sku.id].append(source_facility)
+
+                    if sku.id not in source_facility.downstreams:
+                        source_facility.downstreams[sku.id] = []
+
+                    source_facility.downstreams[sku.id].append(facility)
 
         # Call initialize method for facilities.
         for facility in self.facilities.values():
@@ -239,13 +265,41 @@ class World:
 
         nx.set_edge_attributes(self._graph, edge_weights, "cost")
 
-    def build_unit_by_type(self, unit_type: type, parent: Union[FacilityBase, UnitBase], facility: FacilityBase):
+        # Collection agent list
+        for facility in self.facilities.values():
+            agent_type = facility.configs["agent_type"]
+
+            self.agent_list.append(AgentInfo(facility.id, agent_type, True, None, facility.id))
+
+            self.agent_type_dict[agent_type] = True
+
+            for sku in facility.skus.values():
+                self.max_price = max(self.max_price, sku.price)
+
+        for unit in self.units.values():
+            if type(unit) == ProductUnit:
+                agent_type = unit.config["agent_type"]
+
+                # unit or failicty id, agent type, is facility, sku info, facility id
+                self.agent_list.append(AgentInfo(unit.id, agent_type, False, unit.facility.skus[unit.product_id], unit.facility.id))
+
+                self.agent_type_dict[agent_type] = True
+
+    def build_unit_by_type(self, unit_type: type, parent: Union[FacilityBase, UnitBase], facility: FacilityBase, unit_def: UnitDef):
         unit = unit_type()
 
         unit.id = self._gen_id()
         unit.parent = parent
         unit.facility = facility
         unit.world = self
+
+        if unit_def.data_model_alias is not None:
+            # Due with data model.
+            data_model_def: DataModelDef = self.configs.data_models[unit_def.data_model_alias]
+
+            # Register the data model, so that it will help to generate related instance index.
+            unit.data_model_index = self._register_data_model(data_model_def.alias)
+            unit.data_model_name = data_model_def.name_in_frame
 
         self.units[unit.id] = unit
 
@@ -316,7 +370,7 @@ class World:
             return unit_instance
         else:
             # If this is template unit, then will use the class' static method 'generate' to generate sub-units.
-            children = unit_def.class_type.generate(facility, config.get("config"))
+            children = unit_def.class_type.generate(facility, config.get("config"), unit_def)
 
             for child in children.values():
                 child.id = self._gen_id()
@@ -346,13 +400,14 @@ class World:
 
         for unit_id, unit in self.units.items():
             if unit.data_model is not None:
-                id2index_mapping[unit_id] = (unit.data_model_name, unit.data_model_index)
+                id2index_mapping[unit_id] = (unit.data_model_name, unit.data_model_index, unit.facility.id)
             else:
-                id2index_mapping[unit_id] = (None, None)
+                id2index_mapping[unit_id] = (None, None, unit.facility.id)
 
         return {
+            "agent_types": [k for k in self.agent_type_dict.keys()],
             "unit_mapping": id2index_mapping,
-            "skus": {sku.name: sku.id for sku in self._sku_collection.values()},
+            "skus": {sku.id: sku for sku in self._sku_collection.values()},
             "facilities": facility_info_dict
         }
 
