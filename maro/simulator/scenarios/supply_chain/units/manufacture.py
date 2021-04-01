@@ -25,8 +25,6 @@ class ManufactureUnit(SkuUnit):
     # How many we procedure per current step.
     manufacture_number = 0
 
-    product_unit_cost = 0
-
     def __init__(self):
         super().__init__()
 
@@ -34,9 +32,9 @@ class ManufactureUnit(SkuUnit):
         super(ManufactureUnit, self).initialize()
 
         facility_sku_info = self.facility.skus[self.product_id]
-        self.product_unit_cost = facility_sku_info.product_unit_cost
+        product_unit_cost = facility_sku_info.product_unit_cost
 
-        self.data_model.initialize()
+        self.data_model.initialize(product_unit_cost)
 
         global_sku_info = self.world.get_sku_by_id(self.product_id)
 
@@ -88,11 +86,6 @@ class ManufactureUnit(SkuUnit):
                     self.facility.storage.try_add_products({self.product_id: self.manufacture_number})
         else:
             self.manufacture_number = 0
-
-        cost = self.manufacture_number * self.product_unit_cost
-
-        self.step_balance_sheet.loss = -cost
-        self.step_reward = -cost
 
     def flush_states(self):
         if self.manufacture_number > 0:

@@ -59,7 +59,6 @@ class DistributionUnit(UnitBase):
 
                 order_total_price = sku.price * order.quantity
 
-                # TODO: states related, enable it later if needed.
                 self.check_in_order[order.product_id] += order.quantity
 
                 return order_total_price
@@ -87,9 +86,7 @@ class DistributionUnit(UnitBase):
             # Push vehicle.
             vehicle.step(tick)
 
-            self.transportation_cost[vehicle.product_id] += abs(vehicle.step_reward)
-
-            self.step_balance_sheet += vehicle.step_balance_sheet
+            self.transportation_cost[vehicle.product_id] += abs(vehicle.cost)
 
         # update order's delay penalty per tick.
         for order in self.order_queue:

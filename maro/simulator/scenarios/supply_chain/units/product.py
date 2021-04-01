@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 import numpy as np
-from .balancesheet import BalanceSheet
 from .consumer import ConsumerUnit
 from .manufacture import ManufactureUnit
 from .seller import SellerUnit
@@ -27,66 +26,17 @@ class ProductUnit(SkuUnit):
 
     distribution: DistributionUnit = None
 
-    total_step_balance: BalanceSheet = None
-
     def __init__(self):
         super().__init__()
-        self.total_step_balance = BalanceSheet()
 
     def initialize(self):
         super(ProductUnit, self).initialize()
 
+        self.data_model.initialize(self.get_selling_price())
+
     def step(self, tick: int):
         for unit in self.children:
             unit.step(tick)
-
-        self.deposit()
-
-    def deposit(self):
-        balance_sheets = []
-        rewards = []
-
-        for unit in self.children:
-            balance_sheets.append(unit.step_balance_sheet)
-            rewards.append(unit.step_reward)
-
-        storage_reward = 0
-        if self.storage is not None:
-            storage_reward = - self.storage.product_number[self.storage.product_index_mapping[self.product_id]] * self.storage.unit_storage_cost
-
-        storage_balance = BalanceSheet(0, storage_reward)
-
-        balance_sheets.append(storage_balance)
-        rewards.append(storage_reward)
-
-        distribution_balance = BalanceSheet()
-
-        if self.distribution is not None:
-            check_order = self.distribution.check_in_order[self.product_id]
-            transport_cost = self.distribution.transportation_cost[self.product_id]
-            delay_order_penalty = self.distribution.delay_order_penalty[self.product_id]
-            distribution_cost = -(transport_cost + delay_order_penalty)
-
-            self.distribution.transportation_cost[self.product_id] = 0
-            self.distribution.delay_order_penalty[self.product_id] = 0
-
-            distribution_balance.profit = check_order * self.get_selling_price()
-            distribution_balance.loss = distribution_cost
-
-        balance_sheets.append(distribution_balance)
-        rewards.append(distribution_balance.total())
-
-        if self.product_id in self.facility.downstreams:
-            for facility in self.facility.downstreams[self.product_id]:
-                downstream_product = facility.products[self.product_id]
-                balance_sheets.append(downstream_product.step_balance_sheet)
-                rewards.append(downstream_product.step_reward)
-
-        self.step_balance_sheet = sum(balance_sheets)
-
-        self.step_reward = sum(rewards)
-
-        self.total_step_balance += self.step_balance_sheet
 
     def flush_states(self):
         for unit in self.children:

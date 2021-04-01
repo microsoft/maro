@@ -3,7 +3,6 @@
 
 from collections import defaultdict
 from abc import ABC
-from maro.simulator.scenarios.supply_chain.units.balancesheet import BalanceSheet
 
 class FacilityBase(ABC):
     """Base of all facilities."""
@@ -41,17 +40,12 @@ class FacilityBase(ABC):
     data_model_name: str = None
     data_model_index: int = 0
 
-    step_balance_sheet: BalanceSheet = None
-    total_balance_sheet: BalanceSheet = None
     children: list = None
 
     def __init__(self):
         self.upstreams = {}
         self.downstreams = {}
 
-        self.step_balance_sheet = BalanceSheet()
-        self.total_balance_sheet = BalanceSheet()
-        self.step_reward = 0
         self.children = []
 
     def parse_skus(self, configs: dict):
@@ -96,19 +90,8 @@ class FacilityBase(ABC):
         Args:
             tick (int): Current simulator tick.
         """
-        rewards = []
-        balance_sheets = []
-
         for unit in self.children:
             unit.step(tick)
-
-            balance_sheets.append(unit.step_balance_sheet)
-            rewards.append(unit.step_reward)
-
-        self.step_balance_sheet = sum(balance_sheets)
-        self.step_reward = sum(rewards)
-
-        self.total_balance_sheet += self.step_balance_sheet
 
     def flush_states(self):
         """Flush states into frame."""
@@ -152,5 +135,6 @@ class FacilityBase(ABC):
             },
             "configs": self.configs,
             "skus": self.skus,
-            "upstreams": { product_id: [f.id for f in source_list] for product_id, source_list in self.upstreams.items()}
+            "upstreams": { product_id: [f.id for f in source_list] for product_id, source_list in self.upstreams.items()},
+            "downstreams": { product_id: [f.id for f in source_list] for product_id, source_list in self.downstreams.items() }
         }

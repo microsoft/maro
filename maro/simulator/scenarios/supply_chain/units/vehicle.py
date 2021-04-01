@@ -39,7 +39,7 @@ class VehicleUnit(UnitBase):
         self.velocity = 0
         self.quantity = 0
         self.patient = 0
-
+        self.cost = 0
         self.unit_transport_cost = 0
 
     def schedule(self, destination: object, product_id: int, quantity: int, vlt: int):
@@ -119,11 +119,11 @@ class VehicleUnit(UnitBase):
         super(VehicleUnit, self).initialize()
 
         patient = self.config.get("patient", 100)
+        self.unit_transport_cost = self.config.get("unit_transport_cost", 1)
 
-        self.data_model.initialize(patient=patient)
+        self.data_model.initialize(patient=patient, unit_transport_cost=self.unit_transport_cost)
 
         self.max_patient = patient
-        self.unit_transport_cost = self.config.get("unit_transport_cost", 1)
 
     def step(self, tick: int):
         # If we have not arrive at destination yet.
@@ -170,8 +170,7 @@ class VehicleUnit(UnitBase):
                     self._reset_internal_states()
                     self._reset_data_model()
 
-        self.step_balance_sheet.loss = -self.payload * self.unit_transport_cost
-        self.step_reward = -self.payload * self.unit_transport_cost
+        self.cost = self.payload * self.unit_transport_cost
 
     def flush_states(self):
         pass

@@ -21,7 +21,6 @@ class StorageUnit(UnitBase):
         self.product_index_mapping: Dict[int, int] = {}
         self.capacity = 0
         self.remaining_space = 0
-        self.unit_storage_cost = 0
 
     def try_add_products(self, product_quantities: Dict[int, int], all_or_nothing=True) -> dict:
         """Try to add products into storage.
@@ -109,14 +108,10 @@ class StorageUnit(UnitBase):
 
         return self.product_number[product_index]
 
-    def step(self, tick: int):
-        self.step_balance_sheet.loss = -(self.capacity - self.remaining_space) * self.unit_storage_cost
-
     def initialize(self):
         super(StorageUnit, self).initialize()
 
         self.capacity = self.config.get("capacity", 100)
-        self.unit_storage_cost = self.config.get("unit_storage_cost", 1)
 
         for sku in self.facility.skus.values():
             self.product_list.append(sku.id)

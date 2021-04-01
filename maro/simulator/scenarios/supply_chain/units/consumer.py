@@ -20,13 +20,9 @@ class ConsumerUnit(SkuUnit):
         # States in python side.
         self.received = 0
         self.purchased = 0
-        self.order_cost = 0
         self.sources = []
         self.pending_order_daily = None
-
-        # NOTE: this value is not set
-        self.reward_discount = 0.0
-        self.price = 0
+        self.order_product_cost = 0
 
     def on_order_reception(self, source_id: int, product_id: int, quantity: int, original_quantity: int):
         """Called after order product is received.
@@ -63,11 +59,9 @@ class ConsumerUnit(SkuUnit):
 
         sku = self.facility.skus[self.product_id]
 
-        self.price = sku.price
+        order_cost = self.facility.get_config("order_cost")
 
-        self.order_cost = self.facility.get_config("order_cost")
-
-        self.data_model.initialize()
+        self.data_model.initialize(sku.price, order_cost)
 
         if self.facility.upstreams is not None:
             # Construct sources from facility's upstreams.
@@ -114,7 +108,7 @@ class ConsumerUnit(SkuUnit):
 
         source_facility = self.world.get_facility_by_id(self.action.source_id)
 
-        order_product_cost = source_facility.distribution.place_order(order)
+        self.order_product_cost = source_facility.distribution.place_order(order)
 
         self.purchased = self.action.quantity
 
@@ -123,9 +117,8 @@ class ConsumerUnit(SkuUnit):
         if order.vlt < len(self.pending_order_daily):
             self.pending_order_daily[order.vlt-1] += order.quantity
 
-        order_profit = self.price * order.quantity
-        self.step_balance_sheet.loss = -self.order_cost - order_product_cost
-        self.step_reward = -self.order_cost - order_product_cost + self.reward_discount * order_profit
+        if self.order_product_cost > 0:
+            self.data_model.order_product_cost = self.order_product_cost
 
     def flush_states(self):
         if self.received > 0:
@@ -152,9 +145,8 @@ class ConsumerUnit(SkuUnit):
             self.data_model.purchased = 0
             self.purchased = 0
 
-        if self.order_cost > 0:
+        if self.order_product_cost > 0:
             self.data_model.order_product_cost = 0
-            self.order_cost = 0
 
     def reset(self):
         super(ConsumerUnit, self).reset()
@@ -165,6 +157,9 @@ class ConsumerUnit(SkuUnit):
 
     def set_action(self, action: object):
         super(ConsumerUnit, self).set_action(action)
+
+        if action.product_id > 0 and action.quantity > 0:
+            self.data_model.order_quantity = action.quantity
 
     def get_in_transit_quantity(self):
         quantity = 0

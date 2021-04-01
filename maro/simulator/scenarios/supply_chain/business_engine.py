@@ -143,27 +143,12 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
             self._action_cache = None
 
     def get_metrics(self):
-        step_rewards = {}
-        step_balance_sheet = {}
-
-        for facility in self.world.facilities.values():
-            step_rewards[facility.id] = facility.step_reward
-            step_balance_sheet[facility.id] = facility.step_balance_sheet.total()
-
-        for unit in self._product_units:
-            step_rewards[unit.id] = unit.step_reward
-            step_balance_sheet[unit.id] = unit.step_balance_sheet.total()
-
         return {
-            "step_rewards": step_rewards,
-            "step_balance_sheet": step_balance_sheet,
             # TODO: move fields that will not change to summary
             "max_price": self.world.max_price,
             "max_sources_per_facility": self.world.max_sources_per_facility,
             "products": {
                 product.id: {
-                    "total_balance_sheet": product.total_step_balance,
-                    "step_reward": product.step_reward,
                     "sale_mean": product.get_sale_mean(),
                     "sale_std": product.get_sale_std(),
                     "selling_price": product.get_selling_price(),
@@ -172,8 +157,6 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
             },
             "facilities": {
                 facility.id: {
-                    "total_balance_sheet": facility.total_balance_sheet,
-                    "step_reward": facility.step_reward,
                     "in_transit_orders": facility.get_in_transit_orders(),
                     "pending_order": None if facility.distribution is None else facility.distribution.get_pending_order()
                 } for facility in self.world.facilities.values()
