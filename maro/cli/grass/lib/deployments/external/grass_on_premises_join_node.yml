@@ -13,6 +13,6 @@ node:
     memory: 2048m
     gpu: 0
 
- config:
-   install_node_runtime: true
-   install_node_gpu_support: false
+config:
+  install_node_runtime: true
+  install_node_gpu_support: false
