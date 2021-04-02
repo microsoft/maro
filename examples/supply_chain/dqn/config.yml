@@ -26,7 +26,7 @@ training:
   env: 
     scenario: supply_chain
     topology: sample1
-    durations: 10000
+    durations: 100
   max_episode: 1
   min_experiences_to_train: 10
   train_iter: 10

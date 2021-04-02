@@ -11,9 +11,8 @@ from maro.rl import LinearParameterScheduler, OffPolicyLearner
 from maro.simulator import Env
 from maro.utils import set_seeds
 
-from examples.supply_chain.env_wrapper import SCEnvWrapper
-
 from examples.supply_chain.dqn.agent import get_sc_agents
+from examples.supply_chain.env_wrapper import SCEnvWrapper
 
 
 # Single-threaded launcher
