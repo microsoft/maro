@@ -2,12 +2,14 @@
 # Licensed under the MIT license.
 
 import numpy as np
+
 from .consumer import ConsumerUnit
+from .distribution import DistributionUnit
 from .manufacture import ManufactureUnit
 from .seller import SellerUnit
 from .skuunit import SkuUnit
 from .storage import StorageUnit
-from .distribution import DistributionUnit
+
 
 class ProductUnit(SkuUnit):
     """Unit that used to group units of one special sku, usually contains consumer, seller and manufacture."""
@@ -26,13 +28,12 @@ class ProductUnit(SkuUnit):
 
     distribution: DistributionUnit = None
 
-    def __init__(self):
-        super().__init__()
-
     def initialize(self):
         super(ProductUnit, self).initialize()
 
-        self.data_model.initialize(self.get_selling_price())
+        facility_sku = self.facility.skus[self.product_id]
+
+        self.data_model.initialize(facility_sku.price)
 
     def step(self, tick: int):
         for unit in self.children:
@@ -68,6 +69,7 @@ class ProductUnit(SkuUnit):
             "manufacture": self.manufacture.get_unit_info() if self.manufacture is not None else None
         }
 
+    # TODO: add following field into states.
     def get_latest_sale(self):
         sale = 0
         downstreams = self.facility.downstreams.get(self.product_id, [])
@@ -114,25 +116,29 @@ class ProductUnit(SkuUnit):
 
                 source_vlt = source_facility.skus[self.product_id].vlt
 
-                vlt = max(vlt, source_vlt) 
+                vlt = max(vlt, source_vlt)
 
         return vlt
 
     @staticmethod
-    def generate(facility, config: dict, unit_def):
+    def generate(facility, config: dict, unit_def: object):
         """Generate product unit by sku information.
 
         Args:
             facility (FacilityBase): Facility this product belongs to.
             config (dict): Config of children unit.
+            unit_def (object): Definition of the unit (from config).
+
+        Returns:
+            dict: Dictionary of product unit, key is the product id, value if ProductUnit.
         """
-        instance_list = {}
+        products_dict = {}
 
         if facility.skus is not None and len(facility.skus) > 0:
             world = facility.world
 
             for sku_id, sku in facility.skus.items():
-                sku_type = getattr(sku, "type", None)
+                sku_type = sku.type
 
                 product_unit: ProductUnit = world.build_unit_by_type(ProductUnit, facility, facility, unit_def)
                 product_unit.product_id = sku_id
@@ -149,6 +155,7 @@ class ProductUnit(SkuUnit):
                         if sku_type != "production" and child_name == "manufacture":
                             continue
 
+                        # We produce the product, so we do not need to purchase it.
                         if sku_type == "production" and child_name == "consumer":
                             continue
 
@@ -162,6 +169,6 @@ class ProductUnit(SkuUnit):
 
                         product_unit.children.append(child_unit)
 
-                instance_list[sku_id] = product_unit
+                products_dict[sku_id] = product_unit
 
-        return instance_list
+        return products_dict

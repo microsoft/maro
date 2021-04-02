@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 
-from .product import ProductUnit
 from .unitbase import UnitBase
 
 
@@ -15,7 +14,7 @@ class VehicleUnit(UnitBase):
         self.max_patient: int = None
 
         # Current products' destination.
-        self.destination: ProductUnit = None
+        self.destination = None
 
         # Path to destination.
         self.path: list = None
@@ -30,7 +29,7 @@ class VehicleUnit(UnitBase):
         self.payload = 0
 
         # Which product unit current product related to.
-        self.product: ProductUnit = None
+        self.product = None
 
         # Current location in the path.
         self.location = 0

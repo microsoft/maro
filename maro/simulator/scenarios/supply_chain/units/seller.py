@@ -92,11 +92,10 @@ class SellerUnit(SkuUnit):
     def reset(self):
         super(SellerUnit, self).reset()
 
-        # TODO: regenerate the demand distribution?
-        # self.demand_distribution.clear()
+        self.demand_distribution.clear()
 
-        # for _ in range(self.durations):
-        #     self.demand_distribution.append(np.random.gamma(self.gamma))
+        for _ in range(self.durations):
+            self.demand_distribution.append(np.random.gamma(self.gamma))
 
     def sale_mean(self):
         return np.mean(self.sale_hist)

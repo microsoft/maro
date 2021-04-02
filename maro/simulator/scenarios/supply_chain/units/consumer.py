@@ -4,7 +4,9 @@
 
 import warnings
 from collections import Counter, defaultdict
+
 from scipy.ndimage.interpolation import shift
+
 from .order import Order
 from .skuunit import SkuUnit
 
@@ -108,13 +110,8 @@ class ConsumerUnit(SkuUnit):
 
         self.purchased = self.action.quantity
 
-        self.data_model.latest_consumptions = 1.0
-
         if order.vlt < len(self.pending_order_daily):
-            self.pending_order_daily[order.vlt-1] += order.quantity
-
-        if self.order_product_cost > 0:
-            self.data_model.order_product_cost = self.order_product_cost
+            self.pending_order_daily[order.vlt - 1] += order.quantity
 
     def flush_states(self):
         if self.received > 0:
@@ -124,11 +121,21 @@ class ConsumerUnit(SkuUnit):
         if self.purchased > 0:
             self.data_model.purchased = self.purchased
             self.data_model.total_purchased += self.purchased
+            self.data_model.latest_consumptions = 1.0
+
+        if self.order_product_cost > 0:
+            self.data_model.order_product_cost = self.order_product_cost
+
+        if self.action is not None and self.action.quantity > 0:
+            self.data_model.order_quantity = self.action
 
     def post_step(self, tick: int):
         # Clear the action states per step.
         if self.action is not None:
             self.data_model.latest_consumptions = 0
+
+            if self.action.quantity > 0:
+                self.data_model.order_quantity = 0
 
         # This will set action to None.
         super(ConsumerUnit, self).post_step(tick)
@@ -150,12 +157,6 @@ class ConsumerUnit(SkuUnit):
         self.pending_order_daily = [0] * self.world.configs.settings["pending_order_len"]
 
         self.open_orders.clear()
-
-    def set_action(self, action: object):
-        super(ConsumerUnit, self).set_action(action)
-
-        if action.product_id > 0 and action.quantity > 0:
-            self.data_model.order_quantity = action.quantity
 
     def get_in_transit_quantity(self):
         quantity = 0

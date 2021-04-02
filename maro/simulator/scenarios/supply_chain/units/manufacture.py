@@ -2,8 +2,6 @@
 # Licensed under the MIT license.
 
 
-from maro.simulator.scenarios.supply_chain.actions import ManufactureAction
-
 from .skuunit import SkuUnit
 
 
@@ -14,19 +12,16 @@ class ManufactureUnit(SkuUnit):
     """
 
     # Source material sku and related number per produce cycle.
-    bom = None
+    bom: dict = None
 
     # How many production unit each produce cycle.
-    output_units_per_lot = None
+    output_units_per_lot: int = None
 
     # How many unit we will consume each produce cycle.
-    input_units_per_lot = 0
+    input_units_per_lot: int = 0
 
     # How many we procedure per current step.
-    manufacture_number = 0
-
-    def __init__(self):
-        super().__init__()
+    manufacture_number: int = 0
 
     def initialize(self):
         super(ManufactureUnit, self).initialize()
@@ -98,6 +93,3 @@ class ManufactureUnit(SkuUnit):
 
         # NOTE: call super at last, since it will clear the action.
         super(ManufactureUnit, self).post_step(tick)
-
-    def set_action(self, action: ManufactureAction):
-        super(ManufactureUnit, self).set_action(action)

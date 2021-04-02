@@ -1,13 +1,12 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from collections import defaultdict
 from abc import ABC
+from collections import defaultdict
 from typing import List, Dict
 
-from maro.simulator.scenarios.supply_chain.units import DistributionUnit, ProductUnit, StorageUnit
-
 from maro.simulator.scenarios.supply_chain.easy_config import SkuInfo
+from maro.simulator.scenarios.supply_chain.units import DistributionUnit, ProductUnit, StorageUnit
 
 
 class FacilityBase(ABC):
@@ -39,22 +38,25 @@ class FacilityBase(ABC):
     # Key is sku id, value is the list of product unit from upstream.
     upstreams: Dict[int, List[ProductUnit]] = None
 
+    # Down stream facilities, value same as upstreams.
     downstreams: Dict[int, List[ProductUnit]] = None
 
     # Configuration of this facility.
     configs: dict = None
 
+    # Name of data model, from configuration.
     data_model_name: str = None
+
+    # Index of the data model node.
     data_model_index: int = 0
 
+    # Children of this facility (valid units).
     children: list = None
 
     def __init__(self):
         self.upstreams = {}
         self.downstreams = {}
-
         self.children = []
-
         self.skus = {}
 
     def parse_skus(self, configs: dict):
@@ -78,16 +80,23 @@ class FacilityBase(ABC):
         """
         self.configs = configs
 
-    def get_config(self, key: str, default: object = None):
+    def get_config(self, key: str, default: object = None) -> object:
+        """Get specified configuration of facility.
+
+        Args:
+            key (str): Key of the configuration.
+            default (object): Default value if key not exist, default is None.
+
+        Returns:
+            object: value in configuration.
+        """
         return default if self.configs is None else self.configs.get(key, default)
 
     def initialize(self):
         """Initialize this facility after frame is ready."""
-        has_storage = self.storage is not None
-        has_distribution = self.distribution is not None
-
         self.data_model.initialize()
 
+        # Put valid units into the children, used to simplify following usage.
         if self.storage is not None:
             self.children.append(self.storage)
 
@@ -149,6 +158,8 @@ class FacilityBase(ABC):
             },
             "configs": self.configs,
             "skus": self.skus,
-            "upstreams": { product_id: [f.id for f in source_list] for product_id, source_list in self.upstreams.items()},
-            "downstreams": { product_id: [f.id for f in source_list] for product_id, source_list in self.downstreams.items() }
+            "upstreams": {product_id: [f.id for f in source_list] for product_id, source_list in
+                          self.upstreams.items()},
+            "downstreams": {product_id: [f.id for f in source_list] for product_id, source_list in
+                            self.downstreams.items()}
         }

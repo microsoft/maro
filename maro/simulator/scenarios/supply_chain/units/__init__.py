@@ -9,6 +9,6 @@ from .product import ProductUnit
 from .seller import SellerUnit
 from .skuunit import SkuUnit
 from .storage import StorageUnit
+from .storeproduct import StoreProductUnit
 from .unitbase import UnitBase
 from .vehicle import VehicleUnit
-from .storeproduct import StoreProductUnit

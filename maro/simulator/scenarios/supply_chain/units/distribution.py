@@ -3,10 +3,11 @@
 
 
 from collections import defaultdict, deque, Counter
-from typing import Dict
+from typing import Dict, List
 
 from .order import Order
 from .unitbase import UnitBase
+from .vehicle import VehicleUnit
 
 
 class DistributionUnit(UnitBase):
@@ -14,8 +15,8 @@ class DistributionUnit(UnitBase):
 
     One distribution can accept all kind of sku order.
     """
-    # Transport unit list of this distribution unit.
-    vehicles = None
+    # Vehicle unit list of this distribution unit.
+    vehicles: List[VehicleUnit] = None
 
     def __init__(self):
         super().__init__()
@@ -24,6 +25,10 @@ class DistributionUnit(UnitBase):
         self.transportation_cost = Counter()
         self.delay_order_penalty = Counter()
         self.check_in_order = Counter()
+
+        self.base_delay_order_penalty = 0
+
+        self._is_order_changed = False
 
     def get_pending_order(self) -> Dict[int, int]:
         """Get orders that states is pending.
@@ -55,6 +60,8 @@ class DistributionUnit(UnitBase):
             sku = self.facility.skus[order.product_id]
 
             if sku is not None:
+                self._is_order_changed = True
+
                 self.order_queue.append(order)
 
                 order_total_price = sku.price * order.quantity
@@ -68,9 +75,11 @@ class DistributionUnit(UnitBase):
     def initialize(self):
         super(DistributionUnit, self).initialize()
 
+        self.base_delay_order_penalty = self.facility.get_config("delay_order_penalty", 0)
+
     def step(self, tick: int):
         for vehicle in self.vehicles:
-            # If we have vehicle not on the way and there is any pending order
+            # If we have vehicle not on the way and there is any pending order.
             if len(self.order_queue) > 0 and vehicle.quantity == 0:
                 order = self.order_queue.popleft()
 
@@ -83,32 +92,37 @@ class DistributionUnit(UnitBase):
                     order.vlt
                 )
 
+                self._is_order_changed = True
+
             # Push vehicle.
             vehicle.step(tick)
 
             self.transportation_cost[vehicle.product_id] += abs(vehicle.cost)
 
-        # update order's delay penalty per tick.
+        # Update order's delay penalty per tick.
         for order in self.order_queue:
-            self.delay_order_penalty[order.product_id] += self.facility.get_config("delay_order_penalty")
+            self.delay_order_penalty[order.product_id] += self.base_delay_order_penalty
 
     def flush_states(self):
+        super(DistributionUnit, self).flush_states()
+        
         for vehicle in self.vehicles:
             vehicle.flush_states()
 
-        # TODO: optimize it later, only update if there is any changes
-        self.data_model.remaining_order_quantity = sum(order.quantity for order in self.order_queue)
-        self.data_model.remaining_order_number = len(self.order_queue)
+        if self._is_order_changed:
+            self._is_order_changed = False
+
+            self.data_model.remaining_order_quantity = sum(order.quantity for order in self.order_queue)
+            self.data_model.remaining_order_number = len(self.order_queue)
 
     def reset(self):
         super(DistributionUnit, self).reset()
 
         self.order_queue.clear()
+        self.transportation_cost.clear()
+        self.check_in_order.clear()
+        self.delay_order_penalty.clear()
 
         # Reset vehicles.
         for vehicle in self.vehicles:
             vehicle.reset()
-
-        self.transportation_cost.clear()
-        self.check_in_order.clear()
-        self.delay_order_penalty.clear()
