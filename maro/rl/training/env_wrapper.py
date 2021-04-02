@@ -109,14 +109,15 @@ class AbsEnvWrapper(ABC):
                     if not done and self.env.tick - tick < self.reward_eval_delay:
                         self._pending_reward_idx += i
                         break
-                    reward = self.get_reward(tick=tick)
+                    reward_dict = self.get_reward(tick=tick)
                     for agent_id in action:
                         if len(self.replay[agent_id]["R"]) < len(self.replay[agent_id]["S_"]):
-                            self.replay[agent_id]["R"].append(reward)
+                            self.replay[agent_id]["R"].append(reward_dict[agent_id])
 
                 if done:
                     self._pending_reward_idx = len(self._event_ticks) - 1
             else:
+                reward_dict = self.get_reward()
                 for agent_id, action in action_by_agent.items():
                     if isinstance(action, tuple):
                         self.replay[agent_id]["A"].append(action[0])
@@ -124,7 +125,7 @@ class AbsEnvWrapper(ABC):
                     else:
                         self.replay[agent_id]["A"].append(action)
                     if len(self.replay[agent_id]["R"]) < len(self.replay[agent_id]["S_"]):
-                        self.replay[agent_id]["R"].append(self.get_reward())
+                        self.replay[agent_id]["R"].append(reward_dict[agent_id])
                     self._pending_reward_idx += 1
 
         if not done:
