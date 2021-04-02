@@ -5,6 +5,8 @@ from collections import defaultdict
 from abc import ABC
 from typing import List, Dict
 
+from maro.simulator.scenarios.supply_chain.units import DistributionUnit, ProductUnit, StorageUnit
+
 from maro.simulator.scenarios.supply_chain.easy_config import SkuInfo
 
 
@@ -25,19 +27,19 @@ class FacilityBase(ABC):
 
     # Product units for each sku in this facility.
     # Key is sku(product) id, value is the instance of product unit.
-    products: dict = None
+    products: Dict[int, ProductUnit] = None
 
     # Storage unit in this facility.
-    storage = None
+    storage: StorageUnit = None
 
     # Distribution unit in this facility.
-    distribution = None
+    distribution: DistributionUnit = None
 
     # Upstream facilities.
     # Key is sku id, value is the list of product unit from upstream.
-    upstreams: dict = None
+    upstreams: Dict[int, List[ProductUnit]] = None
 
-    downstreams: dict = None
+    downstreams: Dict[int, List[ProductUnit]] = None
 
     # Configuration of this facility.
     configs: dict = None
@@ -46,8 +48,6 @@ class FacilityBase(ABC):
     data_model_index: int = 0
 
     children: list = None
-
-    skus: dict = None
 
     def __init__(self):
         self.upstreams = {}
