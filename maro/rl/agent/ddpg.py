@@ -8,6 +8,7 @@ import torch
 
 from maro.rl.exploration import NoiseExplorer
 from maro.rl.model import SimpleMultiHeadModel
+from maro.rl.utils import get_torch_loss_cls
 from maro.utils.exception.rl_toolkit_exception import UnrecognizedTask
 
 from .abs_agent import AbsAgent
@@ -15,11 +16,13 @@ from .abs_agent import AbsAgent
 
 class DDPGConfig:
     """Configuration for the DDPG algorithm.
+
     Args:
         reward_discount (float): Reward decay as defined in standard RL terminology.
-        q_value_loss_func (Callable): Loss function for the Q-value estimator.
         target_update_freq (int): Number of training rounds between policy target model updates.
-        actor_loss_coefficient (float): The coefficient for policy loss in the total loss function, e.g.,
+        q_value_loss_cls: A string indicating a loss class provided by torch.nn or a custom loss class for
+            the Q-value loss. If it is a string, it must be a key in ``TORCH_LOSS``. Defaults to "mse".
+        policy_loss_coefficient (float): The coefficient for policy loss in the total loss function, e.g.,
             loss = q_value_loss + ``policy_loss_coefficient`` * policy_loss. Defaults to 1.0.
         tau (float): Soft update coefficient, e.g., target_model = tau * eval_model + (1-tau) * target_model.
             Defaults to 1.0.
@@ -29,14 +32,14 @@ class DDPGConfig:
     def __init__(
         self,
         reward_discount: float,
-        q_value_loss_func: Callable,
         target_update_freq: int,
+        q_value_loss_cls="mse",
         policy_loss_coefficient: float = 1.0,
         tau: float = 1.0,
     ):
         self.reward_discount = reward_discount
-        self.q_value_loss_func = q_value_loss_func
         self.target_update_freq = target_update_freq
+        self.q_value_loss_func = get_torch_loss_cls(q_value_loss_cls)()
         self.policy_loss_coefficient = policy_loss_coefficient
         self.tau = tau
 

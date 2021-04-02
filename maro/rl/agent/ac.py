@@ -9,7 +9,7 @@ from torch.distributions import Categorical
 from torch.nn import MSELoss
 
 from maro.rl.model import SimpleMultiHeadModel
-from maro.rl.utils import get_lambda_returns, get_log_prob
+from maro.rl.utils import get_log_prob, get_torch_loss_cls
 from maro.utils.exception.rl_toolkit_exception import UnrecognizedTask
 
 from .abs_agent import AbsAgent
@@ -20,14 +20,11 @@ class ActorCriticConfig:
 
     Args:
         reward_discount (float): Reward decay as defined in standard RL terminology.
-        critic_loss_func (Callable): Loss function for the critic model.
+        critic_loss_cls: A string indicating a loss class provided by torch.nn or a custom loss class for computing
+            the critic loss. If it is a string, it must be a key in ``TORCH_LOSS``. Defaults to "mse".
         train_iters (int): Number of gradient descent steps per call to ``train``.
         actor_loss_coefficient (float): The coefficient for actor loss in the total loss function, e.g.,
             loss = critic_loss + ``actor_loss_coefficient`` * actor_loss. Defaults to 1.0.
-        k (int): Number of time steps used in computing returns or return estimates. Defaults to -1, in which case
-            rewards are accumulated until the end of the trajectory.
-        lam (float): Lambda coefficient used in computing lambda returns. Defaults to 1.0, in which case the usual
-            k-step return is computed.
         clip_ratio (float): Clip ratio in the PPO algorithm (https://arxiv.org/pdf/1707.06347.pdf). Defaults to None,
             in which case the actor loss is calculated using the usual policy gradient theorem.
     """
@@ -39,18 +36,14 @@ class ActorCriticConfig:
         self,
         reward_discount: float,
         train_iters: int,
-        critic_loss_func: Callable = MSELoss(),
+        critic_loss_cls="mse",
         actor_loss_coefficient: float = 1.0,
-        k: int = -1,
-        lam: float = 1.0,
         clip_ratio: float = None
     ):
         self.reward_discount = reward_discount
-        self.critic_loss_func = critic_loss_func
+        self.critic_loss_func = get_torch_loss_cls(critic_loss_cls)()
         self.train_iters = train_iters
         self.actor_loss_coefficient = actor_loss_coefficient
-        self.k = k
-        self.lam = lam
         self.clip_ratio = clip_ratio
 
 
@@ -90,20 +83,25 @@ class ActorCritic(AbsAgent):
         log_p = action_prob.log_prob(action)
         action, log_p = action.cpu().numpy(), log_p.cpu().numpy()
         return (action[0], log_p[0]) if is_single else (action, log_p)
-
+    
     def learn(
-        self, states: np.ndarray, actions: np.ndarray, log_p: np.ndarray, rewards: np.ndarray
+        self,
+        states: np.ndarray,
+        actions: np.ndarray,
+        log_p: np.ndarray,
+        rewards: np.ndarray,
+        next_states: np.ndarray
     ):
         states = torch.from_numpy(states).to(self.device)
         actions = torch.from_numpy(actions).to(self.device)
         log_p = torch.from_numpy(log_p).to(self.device)
         rewards = torch.from_numpy(rewards).to(self.device)
+        next_states = torch.from_numpy(next_states).to(self.device)
 
         state_values = self.model(states, task_name="critic").detach().squeeze()
-        return_est = get_lambda_returns(
-            rewards, state_values, self.config.reward_discount, self.config.lam, k=self.config.k
-        )
-        advantages = return_est - state_values
+        next_state_values = self.model(next_states, task_name="critic").detach().squeeze()
+        return_est = rewards + self.config.reward_discount * next_state_values
+        advantages = return_est - state_values           
 
         for i in range(self.config.train_iters):
             # actor loss
@@ -119,4 +117,5 @@ class ActorCritic(AbsAgent):
             state_values = self.model(states, task_name="critic").squeeze()
             critic_loss = self.config.critic_loss_func(state_values, return_est)
             loss = critic_loss + self.config.actor_loss_coefficient * actor_loss
+
             self.model.step(loss)

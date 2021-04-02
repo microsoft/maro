@@ -95,7 +95,7 @@ class Proxy:
             self._name = os.getenv("COMPONENT_NAME")
         else:
             unique_id = str(uuid.uuid1()).replace("-", "")
-            self._name = f"{self._component_type}_proxy_{unique_id}"
+            self._name = f"{self._component_type}_{unique_id}"
         self._max_retries = max_retries
         self._retry_interval_base_value = retry_interval_base_value
         self._log_enable = log_enable
@@ -288,7 +288,7 @@ class Proxy:
         return self._component_type
 
     @property
-    def peers_name(self) -> Dict:
+    def peers(self) -> Dict:
         """Dict: The ``Dict`` of all connected peers' names, stored by peer type."""
         return {
             peer_type: list(self._onboard_peer_dict[peer_type].keys()) for peer_type in self._peers_info_dict.keys()
@@ -353,17 +353,17 @@ class Proxy:
         self,
         tag: Union[str, Enum],
         session_type: SessionType,
-        destination_payload_list: list
+        destination_body_list: list
     ) -> List[str]:
         """Scatters a list of data to peers, and return list of session id."""
         session_id_list = []
 
-        for destination, payload in destination_payload_list:
+        for destination, body in destination_body_list:
             message = SessionMessage(
                 tag=tag,
                 source=self._name,
                 destination=destination,
-                payload=payload,
+                body=body,
                 session_type=session_type
             )
             send_result = self.isend(message)
@@ -376,7 +376,7 @@ class Proxy:
         self,
         tag: Union[str, Enum],
         session_type: SessionType,
-        destination_payload_list: list,
+        destination_body_list: list,
         timeout: int = -1
     ) -> List[Message]:
         """Scatters a list of data to peers, and return replied messages.
@@ -384,15 +384,15 @@ class Proxy:
         Args:
             tag (str|Enum): Message's tag.
             session_type (Enum): Message's session type.
-            destination_payload_list ([Tuple(str, object)]): The destination-payload list.
+            destination_body_list ([Tuple(str, object)]): The destination-body list.
                 The first item of the tuple in list is the message destination,
-                and the second item of the tuple in list is the message payload.
+                and the second item of the tuple in list is the message body.
 
         Returns:
             List[Message]: List of replied message.
         """
         return self.receive_by_id(
-            targets=self._scatter(tag, session_type, destination_payload_list),
+            targets=self._scatter(tag, session_type, destination_body_list),
             timeout=timeout
         )
 
@@ -400,28 +400,28 @@ class Proxy:
         self,
         tag: Union[str, Enum],
         session_type: SessionType,
-        destination_payload_list: list
+        destination_body_list: list
     ) -> List[str]:
         """Scatters a list of data to peers, and return list of message id.
 
         Args:
             tag (str|Enum): Message's tag.
             session_type (Enum): Message's session type.
-            destination_payload_list ([Tuple(str, object)]): The destination-payload list.
+            destination_body_list ([Tuple(str, object)]): The destination-body list.
                 The first item of the tuple in list is the message's destination,
-                and the second item of the tuple in list is the message's payload.
+                and the second item of the tuple in list is the message's body.
 
         Returns:
             List[str]: List of message's session id.
         """
-        return self._scatter(tag, session_type, destination_payload_list)
+        return self._scatter(tag, session_type, destination_body_list)
 
     def _broadcast(
         self,
         component_type: str,
         tag: Union[str, Enum],
         session_type: SessionType,
-        payload=None
+        body=None
     ) -> List[str]:
         """Broadcast message to all peers, and return list of session id."""
         if component_type not in list(self._onboard_peer_dict.keys()):
@@ -437,7 +437,7 @@ class Proxy:
             tag=tag,
             source=self._name,
             destination=component_type,
-            payload=payload,
+            body=body,
             session_type=session_type
         )
 
@@ -450,7 +450,7 @@ class Proxy:
         component_type: str,
         tag: Union[str, Enum],
         session_type: SessionType,
-        payload=None,
+        body=None,
         timeout: int = None
     ) -> List[Message]:
         """Broadcast message to all peers, and return all replied messages.
@@ -459,13 +459,13 @@ class Proxy:
             component_type (str): Broadcast to all peers in this type.
             tag (str|Enum): Message's tag.
             session_type (Enum): Message's session type.
-            payload (object): The true data. Defaults to None.
+            body (object): The true data. Defaults to None.
 
         Returns:
             List[Message]: List of replied messages.
         """
         return self.receive_by_id(
-            targets=self._broadcast(component_type, tag, session_type, payload),
+            targets=self._broadcast(component_type, tag, session_type, body),
             timeout=timeout
         )
 
@@ -474,7 +474,7 @@ class Proxy:
         component_type: str,
         tag: Union[str, Enum],
         session_type: SessionType,
-        payload=None
+        body=None
     ) -> List[str]:
         """Broadcast message to all subscribers, and return list of message's session id.
 
@@ -482,12 +482,12 @@ class Proxy:
             component_type (str): Broadcast to all peers in this type.
             tag (str|Enum): Message's tag.
             session_type (Enum): Message's session type.
-            payload (object): The true data. Defaults to None.
+            body (object): The true data. Defaults to None.
 
         Returns:
             List[str]: List of message's session id which related to the replied message.
         """
-        return self._broadcast(component_type, tag, session_type, payload)
+        return self._broadcast(component_type, tag, session_type, body)
 
     def _send(self, message: Message) -> Union[List[str], None]:
         """Send a message to a remote peer.
@@ -563,7 +563,7 @@ class Proxy:
         self,
         message: Union[SessionMessage, Message],
         tag: Union[str, Enum] = None,
-        payload=None,
+        body=None,
         ack_reply: bool = False
     ) -> List[str]:
         """Reply a received message.
@@ -571,13 +571,13 @@ class Proxy:
         Args:
             message (Message): The message need to reply.
             tag (str|Enum): New message tag, if None, keeps the original message's tag. Defaults to None.
-            payload (object): New message payload, if None, keeps the original message's payload. Defaults to None.
+            body (object): New message body, if None, keeps the original message's body. Defaults to None.
             ack_reply (bool): If True, it is acknowledge reply. Defaults to False.
 
         Returns:
             List[str]: Message belonged session id.
         """
-        message.reply(tag=tag, payload=payload)
+        message.reply(tag=tag, body=body)
         if isinstance(message, SessionMessage):
             if message.session_type == SessionType.TASK:
                 session_stage = TaskSessionStage.RECEIVE if ack_reply else TaskSessionStage.COMPLETE
@@ -592,7 +592,7 @@ class Proxy:
         message: Union[SessionMessage, Message],
         destination: str,
         tag: Union[str, Enum] = None,
-        payload=None
+        body=None
     ) -> List[str]:
         """Forward a received message.
 
@@ -600,12 +600,12 @@ class Proxy:
             message (Message): The message need to forward.
             destination (str): The receiver of message.
             tag (str|Enum): New message tag, if None, keeps the original message's tag. Defaults to None.
-            payload (object): Message payload, if None, keeps the original message's payload. Defaults to None.
+            body (object): Message body, if None, keeps the original message's body. Defaults to None.
 
         Returns:
             List[str]: Message belonged session id.
         """
-        message.forward(destination=destination, tag=tag, payload=payload)
+        message.forward(destination=destination, tag=tag, body=body)
         return self.isend(message)
 
     def _check_peers_update(self):

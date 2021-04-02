@@ -13,8 +13,8 @@ from tests.communication.utils import get_random_port, proxy_generator
 
 
 def handler_function(that, proxy, message):
-    replied_payload = {"counter": message.payload["counter"] + 1}
-    proxy.reply(message, payload=replied_payload)
+    replied_payload = {"counter": message.body["counter"] + 1}
+    proxy.reply(message, body=replied_payload)
     sys.exit(0)
 
 
@@ -61,12 +61,12 @@ class TestDecorator(unittest.TestCase):
         message = SessionMessage(
             tag="unittest",
             source=TestDecorator.sender_proxy.name,
-            destination=TestDecorator.sender_proxy.peers_name["receiver"][0],
-            payload={"counter": 0}
+            destination=TestDecorator.sender_proxy.peers["receiver"][0],
+            body={"counter": 0}
         )
         replied_message = TestDecorator.sender_proxy.send(message)
 
-        self.assertEqual(message.payload["counter"] + 1, replied_message[0].payload["counter"])
+        self.assertEqual(message.body["counter"] + 1, replied_message[0].body["counter"])
 
 
 if __name__ == "__main__":

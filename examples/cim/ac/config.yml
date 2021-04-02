@@ -1,0 +1,69 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
+shaping:
+  port_attributes:
+    - empty
+    - full
+    - on_shipper
+    - on_consignee
+    - booking
+    - shortage
+    - fulfillment
+  vessel_attributes:
+    - empty
+    - full
+    - remaining_space
+  num_actions: 21
+  # Parameters for computing states
+  look_back: 7
+  max_ports_downstream: 2
+  # Parameters for computing actions
+  finite_vessel_space: true
+  has_early_discharge: true
+  # Parameters for computing rewards
+  reward_eval_delay: 99
+  fulfillment_factor: 1.0
+  shortage_factor: 1.0
+  time_decay: 0.97
+agent:
+  model:
+    actor:
+      hidden_dims:
+        - 256
+        - 128
+        - 64
+      activation: tanh
+      softmax: true
+      batch_norm: False
+      head: true
+    critic:
+      hidden_dims: 
+        - 256
+        - 128
+        - 64
+      activation: leaky_relu
+      softmax: false
+      batch_norm: true
+      head: true
+  optimization:
+    actor:
+      optim_cls: adam
+      optim_params:
+        lr: 0.001
+    critic:
+      optim_cls: rmsprop
+      optim_params:
+        lr: 0.001
+  hyper_params:
+    reward_discount: .0
+    critic_loss_cls: smooth_l1
+    train_iters: 10
+    actor_loss_coefficient: 0.1
+    # clip_ratio: 0.8   # for PPO
+training:
+  env:
+    scenario: cim
+    topology: toy.4p_ssdd_l0.0
+    durations: 1120
+  max_episode: 50

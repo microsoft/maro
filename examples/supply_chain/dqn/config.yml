@@ -1,0 +1,49 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
+agent:
+  model:
+    hidden_dims:
+      - 16
+      - 8
+    activation: 
+    softmax: false
+    batch_norm: true
+    skip_connection: false
+    head: true
+    dropout_p: 0.0
+  optimization:
+    optim_cls: rmsprop
+    optim_params:
+      lr: 0.001
+  hyper_params: 
+    reward_discount: .0
+    loss_cls: smooth_l1
+    target_update_freq: 5
+    tau: 0.1
+    double: false
+training: 
+  env: 
+    scenario: supply_chain
+    topology: sample1
+    durations: 100
+  max_episode: 10
+  min_experiences_to_train: 10
+  train_iter: 10
+  batch_size: 128
+  replay_memory: 
+    size: 50000
+    overwrite_type: random
+  # prioritized_sampling_by_loss: true
+  exploration:
+    parameter_names:
+      - epsilon
+    start: 0.4
+    end: 0.0
+distributed:
+  group: sc-dqn
+  num_actors: 2
+  redis_host: localhost
+  redis_port: 6379
+  learner_update_trigger: 2
+  replay_sync_interval: 30

@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from collections import defaultdict
 from enum import Enum
 from typing import Callable, Dict, List, Tuple, Union
 
@@ -10,11 +11,6 @@ from maro.utils import clone
 from maro.utils.exception.rl_toolkit_exception import StoreMisalignment
 
 from .abs_store import AbsStore
-
-
-class OverwriteType(Enum):
-    ROLLING = "rolling"
-    RANDOM = "random"
 
 
 class SimpleStore(AbsStore):
@@ -27,43 +23,27 @@ class SimpleStore(AbsStore):
     and limited storage are supported.
 
     Args:
-        keys (list): List of keys identifying each column.
         capacity (int): If negative, the store is of unlimited capacity. Defaults to -1.
-        overwrite_type (OverwriteType): If storage capacity is bounded, this specifies how existing entries
+        overwrite_type (str): If storage capacity is bounded, this specifies how existing entries
             are overwritten when the capacity is exceeded. Two types of overwrite behavior are supported:
-            - Rolling, where overwrite occurs sequentially with wrap-around.
-            - Random, where overwrite occurs randomly among filled positions.
+            - "rolling", where overwrite occurs sequentially with wrap-around.
+            - "random", where overwrite occurs randomly among filled positions.
             Alternatively, the user may also specify overwrite positions (see ``put``).
     """
-    def __init__(self, keys: list, capacity: int = -1, overwrite_type: OverwriteType = None):
+    def __init__(self, capacity: int = -1, overwrite_type: str = None):
         super().__init__()
-        self._keys = keys
+        if overwrite_type not in {"rolling", "random"}:
+            raise ValueError(f"overwrite_type must be 'rolling' or 'random', got {overwrite_type}")
         self._capacity = capacity
         self._overwrite_type = overwrite_type
-        self._store = {key: [] if self._capacity < 0 else [None] * self._capacity for key in keys}
+        self.data = defaultdict(list) if capacity == -1 else defaultdict(lambda: [None] * capacity)
         self._size = 0
-        self._iter_index = 0
 
     def __len__(self):
         return self._size
 
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        if self._iter_index >= self._size:
-            self._iter_index = 0
-            raise StopIteration
-        index = self._iter_index
-        self._iter_index += 1
-        return {k: lst[index] for k, lst in self._store.items()}
-
     def __getitem__(self, index: int):
-        return {k: lst[index] for k, lst in self._store.items()}
-
-    @property
-    def keys(self):
-        return self._keys
+        return {k: lst[index] for k, lst in self.data.items()}
 
     @property
     def capacity(self):
@@ -76,11 +56,11 @@ class SimpleStore(AbsStore):
 
     @property
     def overwrite_type(self):
-        """An ``OverwriteType`` member indicating the overwrite behavior when the store capacity is exceeded."""
+        """An string indicating the overwrite behavior when the store capacity is exceeded."""
         return self._overwrite_type
 
     def get(self, indexes: [int]) -> dict:
-        return {k: [self._store[k][i] for i in indexes] for k in self._store}
+        return {k: [self.data[k][i] for i in indexes] for k in self.data}
 
     def put(self, contents: Dict[str, List], overwrite_indexes: list = None) -> List[int]:
         """Put new contents in the store.
@@ -95,14 +75,16 @@ class SimpleStore(AbsStore):
         Returns:
             The indexes where the newly added entries reside in the store.
         """
-        if len(self._store) > 0 and list(contents.keys()) != self._keys:
-            raise StoreMisalignment(f"expected keys {self._keys}, got {list(contents.keys())}")
+        if len(self.data) > 0:
+            expected_keys, actual_keys = list(self.data.keys()), list(contents.keys())
+            if expected_keys != actual_keys:
+                raise StoreMisalignment(f"expected keys {expected_keys}, got {actual_keys}")
         self.validate(contents)
         added = contents[next(iter(contents))]
         added_size = len(added) if isinstance(added, list) else 1
-        if self._capacity < 0:
+        if self._capacity == -1:
             for key, val in contents.items():
-                self._store[key].extend(val)
+                self.data[key].extend(val)
             self._size += added_size
             return list(range(self._size - added_size, self._size))
         else:
@@ -126,7 +108,7 @@ class SimpleStore(AbsStore):
         self.validate(contents)
         for key, val in contents.items():
             for index, value in zip(indexes, val):
-                self._store[key][index] = value
+                self.data[key][index] = value
 
         return indexes
 
@@ -187,55 +169,21 @@ class SimpleStore(AbsStore):
         indexes = np.random.choice(self._size, size=size, replace=replace, p=weights)
         return indexes, self.get(indexes)
 
-    def sample_by_key(self, key, size: int, replace: bool = True):
-        """
-        Obtain a random sample from the store using one of the columns as sampling weights.
-
-        Args:
-            key: The column whose values are to be used as sampling weights.
-            size (int): Sample size.
-            replace (bool): If True, sampling is performed with replacement.
-        Returns:
-            Sampled indexes and the corresponding objects.
-        """
-        weights = np.asarray(self._store[key][:self._size] if self._size < self._capacity else self._store[key])
-        indexes = np.random.choice(self._size, size=size, replace=replace, p=weights / np.sum(weights))
-        return indexes, self.get(indexes)
-
-    def sample_by_keys(self, keys: list, sizes: list, replace: bool = True):
-        """
-        Obtain a random sample from the store by chained sampling using multiple columns as sampling weights.
-
-        Args:
-            keys (list): The column whose values are to be used as sampling weights.
-            sizes (list): Sample size.
-            replace (bool): If True, sampling is performed with replacement.
-        Returns:
-            Sampled indexes and the corresponding objects.
-        """
-        if len(keys) != len(sizes):
-            raise ValueError(f"expected sizes of length {len(keys)}, got {len(sizes)}")
-
-        indexes = range(self._size)
-        for key, size in zip(keys, sizes):
-            weights = np.asarray([self._store[key][i] for i in indexes])
-            indexes = np.random.choice(indexes, size=size, replace=replace, p=weights / np.sum(weights))
-
-        return indexes, self.get(indexes)
-
     def clear(self):
         """Empty the store."""
-        self._store = {key: [] if self._capacity < 0 else [None] * self._capacity for key in self._keys}
+        self.data = defaultdict(list) if self._capacity == -1 else defaultdict(lambda: [None] * self._capacity)
         self._size = 0
-        self._iter_index = 0
 
     def dumps(self):
         """Return a deep copy of store contents."""
-        return clone(dict(self._store))
+        return clone(dict(self.data))
 
     def get_by_key(self, key):
         """Get the contents of the store corresponding to ``key``."""
-        return self._store[key]
+        return self.data[key]
+
+    def insert(self, key: str, default_val=None):
+        self.data[key] = [default_val for _ in range(self._size)]
 
     def _get_update_indexes(self, added_size: int, overwrite_indexes=None):
         if added_size > self._capacity:
@@ -249,7 +197,7 @@ class SimpleStore(AbsStore):
             write_indexes = list(range(self._size, self._capacity)) + list(overwrite_indexes)
         else:
             # follow the overwrite rule set at init
-            if self._overwrite_type == OverwriteType.ROLLING:
+            if self._overwrite_type == "rolling":
                 # using the negative index convention for convenience
                 start_index = self._size - self._capacity
                 write_indexes = list(range(start_index, start_index + added_size))

@@ -8,46 +8,30 @@ from os import getenv
 from os.path import dirname, join, realpath
 
 from maro.rl import (
-    Actor, ActorProxy, DQN, DQNConfig, FullyConnectedBlock, MultiAgentWrapper, OffPolicyDistLearner,
-    OptimOption, SimpleMultiHeadModel, TwoPhaseLinearParameterScheduler
+    Actor, ActorProxy, DQN, DQNConfig, FullyConnectedBlock, LinearParameterScheduler, MultiAgentWrapper,
+    OffPolicyDistLearner, OptimOption, SimpleMultiHeadModel
 )
 from maro.simulator import Env
 from maro.utils import set_seeds
 
-from examples.cim.env_wrapper import CIMEnvWrapper
+from examples.supply_chain.env_wrapper import SCEnvWrapper
+from examples.supply_chain.dqn.agent import get_sc_agents
 
 
 DEFAULT_CONFIG_PATH = join(dirname(realpath(__file__)), "config.yml")
 with open(getenv("CONFIG_PATH", default=DEFAULT_CONFIG_PATH), "r") as config_file:
     config = yaml.safe_load(config_file)
 
-# model input and output dimensions
-IN_DIM = (
-    (config["shaping"]["look_back"] + 1) *
-    (config["shaping"]["max_ports_downstream"] + 1) *
-    len(config["shaping"]["port_attributes"]) +
-    len(config["shaping"]["vessel_attributes"])
-)
-OUT_DIM = config["shaping"]["num_actions"]
-
 # for distributed / multi-process training
 GROUP = getenv("GROUP", default=config["distributed"]["group"])
-REDIS_HOST = getenv("REDISHOST", default=config["distributed"]["redis_host"])
-REDIS_PORT = getenv("REDISPORT", default=config["distributed"]["redis_port"])
+REDIS_HOST = config["distributed"]["redis_host"]
+REDIS_PORT = config["distributed"]["redis_port"]
 NUM_ACTORS = int(getenv("NUMACTORS", default=config["distributed"]["num_actors"]))
 
 
-def get_dqn_agent():
-    q_model = SimpleMultiHeadModel(
-        FullyConnectedBlock(input_dim=IN_DIM, output_dim=OUT_DIM, **config["agent"]["model"]),
-        optim_option=OptimOption(**config["agent"]["optimization"])
-    )
-    return DQN(q_model, DQNConfig(**config["agent"]["hyper_params"]))
-
-
-def cim_dqn_learner():
-    agent = MultiAgentWrapper({name: get_dqn_agent() for name in Env(**config["training"]["env"]).agent_idx_list})
-    scheduler = TwoPhaseLinearParameterScheduler(config["training"]["max_episode"], **config["training"]["exploration"])
+def sc_dqn_learner():
+    agent = get_sc_agents(Env(**config["training"]["env"]).agent_idx_list, config["agent"])
+    scheduler = LinearParameterScheduler(config["training"]["max_episode"], **config["training"]["exploration"])
     actor_proxy = ActorProxy(
         NUM_ACTORS, GROUP,
         proxy_options={"redis_address": (REDIS_HOST, REDIS_PORT)},
@@ -64,11 +48,11 @@ def cim_dqn_learner():
     learner.run()
 
 
-def cim_dqn_actor():
+def sc_dqn_actor():
     env = Env(**config["training"]["env"])
-    agent = MultiAgentWrapper({name: get_dqn_agent() for name in env.agent_idx_list})
+    agent = get_sc_agents(env.agent_idx_list, config["agent"])
     actor = Actor(
-        CIMEnvWrapper(env, **config["shaping"]), agent, GROUP,
+        SCEnvWrapper(env), agent, GROUP,
         replay_sync_interval=config["distributed"]["replay_sync_interval"],
         proxy_options={"redis_address": (REDIS_HOST, REDIS_PORT)}
     )
@@ -84,8 +68,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     if args.whoami == 0:
-        actor_processes = [Process(target=cim_dqn_actor) for i in range(NUM_ACTORS)]
-        learner_process = Process(target=cim_dqn_learner)
+        actor_processes = [Process(target=sc_dqn_actor) for i in range(NUM_ACTORS)]
+        learner_process = Process(target=sc_dqn_learner)
 
         for i, actor_process in enumerate(actor_processes):
             set_seeds(i)  # this is to ensure that the actors explore differently.
@@ -98,6 +82,6 @@ if __name__ == "__main__":
 
         learner_process.join()
     elif args.whoami == 1:
-        cim_dqn_learner()
+        sc_dqn_learner()
     elif args.whoami == 2:
-        cim_dqn_actor()
+        sc_dqn_actor()
