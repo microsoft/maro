@@ -88,8 +88,8 @@ class VehicleUnit(UnitBase):
             self.data_model.payload = quantity
 
             return True
-        else:
-            return False
+
+        return False
 
     def try_unload(self):
         """Try unload products into destination's storage."""
@@ -170,9 +170,6 @@ class VehicleUnit(UnitBase):
                     self._reset_data_model()
 
         self.cost = self.payload * self.unit_transport_cost
-
-    def flush_states(self):
-        pass
 
     def reset(self):
         super(VehicleUnit, self).reset()

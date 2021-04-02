@@ -50,7 +50,6 @@ class UnitBase:
     # Current unit configurations.
     config: dict = None
 
-
     def __init__(self):
         pass
 
