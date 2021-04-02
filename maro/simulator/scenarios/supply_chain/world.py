@@ -6,10 +6,9 @@ from collections import namedtuple
 from typing import List, Tuple, Union
 
 import networkx as nx
-
 from maro.backends.frame import FrameBase
-from .easy_config import EasyConfig, SkuInfo
 
+from .easy_config import EasyConfig, SkuInfo
 from .facilities import FacilityBase
 from .frame_builder import build_frame
 from .parser import DataModelDef, FacilityDef, SupplyChainConfiguration, UnitDef
@@ -238,7 +237,6 @@ class World:
         for unit in self.units.values():
             unit.initialize()
 
-        # TODO: replace tcod with other lib.
         # Construct the map grid.
         grid_config = world_config["grid"]
 
@@ -259,9 +257,9 @@ class World:
             facility.y = pos[1]
             pos = tuple(pos)
 
-            # Neighbors to facility will have hight cost.
+            # Neighbors to facility will have high cost.
             for npos in ((pos[0] - 1, pos[1]), (pos[0] + 1, pos[1]), (pos[0], pos[1] - 1), (pos[0], pos[1] + 1)):
-                if npos[0] >= 0 and npos[0] < grid_width and npos[1] >= 0 and npos[1] < grid_height:
+                if 0 <= npos[0] < grid_width and 0 <= npos[1] < grid_height:
                     edge_weights[(npos, pos)] = 4
 
         nx.set_edge_attributes(self._graph, edge_weights, "cost")
@@ -281,12 +279,14 @@ class World:
             if type(unit) == ProductUnit:
                 agent_type = unit.config["agent_type"]
 
-                # unit or failicty id, agent type, is facility, sku info, facility id
-                self.agent_list.append(AgentInfo(unit.id, agent_type, False, unit.facility.skus[unit.product_id], unit.facility.id))
+                # unit or facility id, agent type, is facility, sku info, facility id
+                self.agent_list.append(
+                    AgentInfo(unit.id, agent_type, False, unit.facility.skus[unit.product_id], unit.facility.id))
 
                 self.agent_type_dict[agent_type] = True
 
-    def build_unit_by_type(self, unit_type: type, parent: Union[FacilityBase, UnitBase], facility: FacilityBase, unit_def: UnitDef):
+    def build_unit_by_type(self, unit_type: type, parent: Union[FacilityBase, UnitBase], facility: FacilityBase,
+                           unit_def: UnitDef):
         unit = unit_type()
 
         unit.id = self._gen_id()

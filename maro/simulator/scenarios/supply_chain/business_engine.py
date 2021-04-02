@@ -23,6 +23,7 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
 
         self._product_units = []
 
+        # Prepare product unit for later using.
         for unit in self.world.units.values():
             if type(unit) == ProductUnit:
                 self._product_units.append(unit)
