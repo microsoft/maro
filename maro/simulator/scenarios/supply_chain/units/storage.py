@@ -14,13 +14,17 @@ class StorageUnit(UnitBase):
         super().__init__()
 
         # We use these variables to hold changes at python side, flash to frame before taking snapshot.
-        self.product_number = []
-        self.product_list = []
+        # self.product_number = []
+        # self.product_list = []
 
         # Used to map from product id to slot index.
-        self.product_index_mapping: Dict[int, int] = {}
+        # self.product_index_mapping: Dict[int, int] = {}
         self.capacity = 0
         self.remaining_space = 0
+        self.product_level = {}
+
+        # Which product's number has changed.
+        self._changed_product_cache = {}
 
     def try_add_products(self, product_quantities: Dict[int, int], all_or_nothing=True) -> dict:
         """Try to add products into storage.
@@ -40,9 +44,10 @@ class StorageUnit(UnitBase):
         for product_id, quantity in product_quantities.items():
             unload_quantity = min(self.remaining_space, quantity)
 
-            product_index = self.product_index_mapping[product_id]
-            self.product_number[product_index] += unload_quantity
+            self.product_level[product_id] += unload_quantity
             unloaded_quantities[product_id] = unload_quantity
+
+            self._changed_product_cache[product_id] = True
 
             self.remaining_space -= unload_quantity
 
@@ -59,17 +64,13 @@ class StorageUnit(UnitBase):
         """
         # Check if we can take all kinds of products?
         for product_id, quantity in product_quantities.items():
-            product_index = self.product_index_mapping[product_id]
-
-            if self.product_number[product_index] < quantity:
+            if self.product_level[product_id] < quantity:
                 return False
 
-        # TODO: refactoring for dup code
         # Take from storage.
         for product_id, quantity in product_quantities.items():
-            product_index = self.product_index_mapping[product_id]
-
-            self.product_number[product_index] -= quantity
+            self.product_level[product_id] -= quantity
+            self._changed_product_cache[product_id] = True
 
             self.remaining_space += quantity
 
@@ -85,11 +86,11 @@ class StorageUnit(UnitBase):
         Returns:
             int: Actual quantity taken.
         """
-        product_index = self.product_index_mapping[product_id]
-        available = self.product_number[product_index]
+        available = self.product_level[product_id]
         actual = min(available, quantity)
 
-        self.product_number[product_index] -= actual
+        self.product_level[product_id] -= actual
+        self._changed_product_cache[product_id] = True
 
         self.remaining_space += actual
 
@@ -104,57 +105,47 @@ class StorageUnit(UnitBase):
         Returns:
             int: Available number of product.
         """
-        product_index = self.product_index_mapping[product_id]
-
-        return self.product_number[product_index]
+        return self.product_level[product_id]
 
     def initialize(self):
         super(StorageUnit, self).initialize()
 
         self.capacity = self.config.get("capacity", 100)
-
-        for sku in self.facility.skus.values():
-            self.product_list.append(sku.id)
-            self.product_number.append(sku.init_stock)
-
         self.remaining_space = self.capacity
 
-        for index, product_id in enumerate(self.product_list):
-            product_number = self.product_number[index]
+        for sku in self.facility.skus.values():
+            self.product_level[sku.id] = sku.init_stock
+            self._changed_product_cache[sku.id] = False
 
-            self.data_model.product_list.append(product_id)
-            self.data_model.product_number.append(product_number)
-
-            self.product_index_mapping[product_id] = index
-
-            self.remaining_space -= product_number
+            self.remaining_space -= sku.init_stock
 
         self.data_model.initialize(
             capacity=self.capacity,
-            remaining_space=self.remaining_space
+            remaining_space=self.remaining_space,
+            product_list=[id for id in self.product_level.keys()],
+            product_number=[n for n in self.product_level.values()]
         )
 
     def flush_states(self):
         # Write the changes to frame.
-        for i, number in enumerate(self.product_number):
-            self.data_model.product_number[i] = self.product_number[i]
+        i = 0
+        has_changes = False
+        for product_id, product_number in self.product_level.items():
+            if self._changed_product_cache[product_id]:
+                has_changes = True
+                self._changed_product_cache[product_id] = False
 
-        self.data_model.remaining_space = self.remaining_space
+                self.data_model.product_number[i] = product_number
+            i += 1
+
+        if has_changes:
+            self.data_model.remaining_space = self.remaining_space
 
     def reset(self):
         super(StorageUnit, self).reset()
 
-        self.product_number.clear()
-
-        for sku in self.facility.skus.values():
-            self.product_number.append(sku.init_stock)
-
         self.remaining_space = self.capacity
 
-        for index, product_id in enumerate(self.product_list):
-            product_number = self.product_number[index]
-
-            self.data_model.product_list.append(product_id)
-            self.data_model.product_number.append(product_number)
-
-            self.remaining_space -= product_number
+        for sku in self.facility.skus.values():
+            self.product_level[sku.id] = sku.init_stock
+            self.remaining_space -= sku.init_stock

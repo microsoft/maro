@@ -16,7 +16,7 @@ def main():
     matrics = None
     is_done = False
 
-    print(env.agent_idx_list)
+    # print(env.agent_idx_list)
 
     for ep in range(total_episodes):
         print("Current episode:", ep)
