@@ -3,6 +3,10 @@
 
 from collections import defaultdict
 from abc import ABC
+from typing import List, Dict
+
+from maro.simulator.scenarios.supply_chain.easy_config import SkuInfo
+
 
 class FacilityBase(ABC):
     """Base of all facilities."""
@@ -17,7 +21,7 @@ class FacilityBase(ABC):
     world = None
 
     # Skus in this facility.
-    skus: dict = None
+    skus: Dict[int, SkuInfo] = None
 
     # Product units for each sku in this facility.
     # Key is sku(product) id, value is the instance of product unit.
@@ -32,6 +36,7 @@ class FacilityBase(ABC):
     # Upstream facilities.
     # Key is sku id, value is the list of product unit from upstream.
     upstreams: dict = None
+
     downstreams: dict = None
 
     # Configuration of this facility.
@@ -42,11 +47,15 @@ class FacilityBase(ABC):
 
     children: list = None
 
+    skus: dict = None
+
     def __init__(self):
         self.upstreams = {}
         self.downstreams = {}
 
         self.children = []
+
+        self.skus = {}
 
     def parse_skus(self, configs: dict):
         """Parse sku information from config.
@@ -54,7 +63,12 @@ class FacilityBase(ABC):
         Args:
             configs (dict): Configuration of skus belongs to this facility.
         """
-        pass
+        for sku_name, sku_config in configs.items():
+            global_sku = self.world.get_sku_by_name(sku_name)
+            facility_sku = SkuInfo(sku_config)
+            facility_sku.id = global_sku.id
+
+            self.skus[global_sku.id] = facility_sku
 
     def parse_configs(self, configs: dict):
         """Parse configuration of this facility.

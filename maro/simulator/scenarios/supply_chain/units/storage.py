@@ -121,6 +121,7 @@ class StorageUnit(UnitBase):
 
         for index, product_id in enumerate(self.product_list):
             product_number = self.product_number[index]
+
             self.data_model.product_list.append(product_id)
             self.data_model.product_number.append(product_number)
 

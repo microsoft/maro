@@ -8,13 +8,13 @@ from typing import List, Tuple, Union
 import networkx as nx
 
 from maro.backends.frame import FrameBase
+from .easy_config import EasyConfig, SkuInfo
 
 from .facilities import FacilityBase
 from .frame_builder import build_frame
 from .parser import DataModelDef, FacilityDef, SupplyChainConfiguration, UnitDef
 from .units import UnitBase, ProductUnit
 
-SkuInfo = namedtuple("SkuInfo", ("name", "id", "bom", "output_units_per_lot"))
 AgentInfo = namedtuple("AgentInfo", ("id", "agent_type", "is_facility", "sku", "facility_id"))
 
 
@@ -62,18 +62,18 @@ class World:
         self.max_sources_per_facility = 0
         self.max_price = 0
 
-    def get_sku_by_name(self, name: str) -> SkuInfo:
+    def get_sku_by_name(self, name: str) -> EasyConfig:
         """Get sku information by name.
 
         Args:
             name (str): Sku name to query.
 
         Returns:
-            SkuInfo: General information for sku.
+            EasyConfig: General information for sku, used as a dict, but support use key as property.
         """
         return self._sku_collection.get(name, None)
 
-    def get_sku_by_id(self, sku_id: int) -> SkuInfo:
+    def get_sku_by_id(self, sku_id: int) -> EasyConfig:
         """Get sku information by sku id.
 
         Args:
@@ -146,7 +146,7 @@ class World:
 
         # Grab sku information for this world.
         for sku_conf in world_config["skus"]:
-            sku = SkuInfo(sku_conf["name"], sku_conf["id"], {}, sku_conf.get("output_units_per_lot", 1))
+            sku = SkuInfo(sku_conf)
 
             self._sku_id2name_mapping[sku.id] = sku.name
             self._sku_collection[sku.name] = sku
@@ -154,6 +154,7 @@ class World:
         # Collect bom info.
         for sku_conf in world_config["skus"]:
             sku = self._sku_collection[sku_conf["name"]]
+            sku.bom = {}
 
             bom = sku_conf.get("bom", {})
 

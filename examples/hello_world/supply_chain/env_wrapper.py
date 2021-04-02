@@ -176,14 +176,14 @@ class SCEnvWrapper:
 
         parent_facility_balance = {}
 
-        for f_id, sheet in step_balance_sheet.items():
+        for f_id, sheet in self.cur_balance_sheet_reward.items():
             if f_id in self.unit_2_facility_dict:
                 # it is a product unit
-                parent_facility_balance[f_id] = step_balance_sheet[self.unit_2_facility_dict[f_id]]
+                parent_facility_balance[f_id] = self.cur_balance_sheet_reward[self.unit_2_facility_dict[f_id]]
             else:
                 parent_facility_balance[f_id] = sheet
 
-        consumer_reward_by_facility = { f_id: wc * parent_facility_balance[f_id] + (1 - wc) * bsw[1] for f_id, bsw in self.cur_balance_sheet_reward.items() }
+        consumer_reward_by_facility = { f_id: wc * parent_facility_balance[f_id][0] + (1 - wc) * bsw[1] for f_id, bsw in self.cur_balance_sheet_reward.items() }
 
         rewards_by_agent = {
             "consumer": {},
@@ -625,7 +625,7 @@ class BalanceSheetCalculator:
         # product distribution profit = check order * price
         product_distribution_balance_sheet_profit = product_bs_states[:, 2] * product_bs_states[:, 1]
 
-        # result we need 
+        # result we need
         product_step_reward = np.zeros((len(self.products,)))
         product_balance_sheet_profit = np.zeros((len(self.products,)))
         product_balance_sheet_loss = np.zeros((len(self.products, )))
@@ -686,7 +686,7 @@ class BalanceSheetCalculator:
         # storage
         storage_states = self.storage_ss[tick::self.storage_features].flatten().reshape(-1, len(self.storage_features))
 
-        # loss = (capacity-remaining space) * cost 
+        # loss = (capacity-remaining space) * cost
         storage_balance_sheet_loss = -1 * (storage_states[:, 0] - storage_states[:, 1])
 
         # vehicles
@@ -736,39 +736,22 @@ class BalanceSheetCalculator:
 
         return result
 
+
 if __name__ == "__main__":
     from time import time
 
     start_tick = 0
     durations = 100
-    env = Env(scenario="supply_chain", topology="random2",
+    env = Env(scenario="supply_chain", topology="sample1",
               start_tick=start_tick, durations=durations)
 
     ss = SCEnvWrapper(env)
 
     env.step(None)
 
-    # bbs = BalanceSheetCalculator(env)
+    states = ss.get_state(None)
 
-    # start_time = time()
-    # ss = bbs.calc()
-    # end_time = time()
+    rewards = ss.get_reward(None)
 
-    # print(ss)
-
-    # print("time cost: ", end_time - start_time)
-
-    times = 10000
-    start_time = time()
-
-    for i in range(times):
-        env.step(None)
-
-    # for i in range(times):
-    #     ss.get_state(None)
-
-    # ss.get_reward(None)
-    end_time = time()
-
-    print("time cost: ", end_time - start_time)
-    # print(env.metrics)
+    print(states)
+    print(rewards)
