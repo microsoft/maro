@@ -12,14 +12,21 @@
 
 <body>
   <style>
-    .mydashboard {
+    .dashboard_normal {
       width: 100%;
       height: calc(100vh - 60px - 340px - 20px);
       border-width: 0px;
     }
 
+    .dashboard_full {
+      width: 100%;
+      height: calc(100vh - 60px - 20px);
+      border-width: 0px;
+    }
+
     .el-header {
       line-height: 60px;
+      font-weight: bold;
     }
 
     .el-main {
@@ -32,141 +39,214 @@
     }
 
     .cur_tab {
-      background: white;
+      background: #242424;
     }
 
-    .text_usage_block {
-      border-width: 2px;
-      border: #2e2e2e;
-      width: 9%;
-      height: 300px;
+    .normal_tab {
+      color: #ffffff4d;
     }
 
-    .text_usage_image {
-      line-height: 100px;
+    .text_resource_block {
+      border: 2px solid #2e2e2e;
+      width: 8%;
+      height: 200px;
+      text-align: center;
+      margin: 1%;
     }
 
-    .text_usage_text {
-      line-height: 100px;
+    .text_resource_image {
+      padding: unset;
+      margin: 10px;
+      height: 45px;
+    }
+
+    .text_resource_num {
+      line-height: 50px;
+      font-size: large;
+      overflow: visible;
+      padding: 0px;
+      text-align: center;
+      font-weight: bold;
     }
     
+    .text_resource_type {
+      line-height: 50px;
+      color:#92e82899;
+      overflow: visible;
+      padding: 0px;
+      text-align: center;
+    }
+
     .axis{
       fill:none;
+    }
+
+    /* change scroll bar style */
+    * {
+        scrollbar-width: thin;
+        scrollbar-color: #2e2e2e #121212;
+    }
+
+    *::-webkit-scrollbar {
+        width: 12px;
+    }
+
+    *::-webkit-scrollbar-track {
+        background: #121212;
+    }
+
+    *::-webkit-scrollbar-thumb {
+        background-color: #2e2e2e;
+        border-radius: 4px;
+        border: 0px solid #121212;
     }
   </style>
 
   <el-container id="app">
     <el-header>
       <el-row>
-        <el-col :span="4" style="color: #ffffff80;">
-          MARO Admin Web UI
+        <el-col :span="5" style="color: #ffffff80; font-size: x-large;">
+          <div style="display: inline-flex;">MARO Admin Web UI</div>
+        <!-- </el-col>
+        <el-col :span="1"> -->
+          <img src="assets/images/terminal.jpg" v-on:click="toggle_terminal" style="background-color: #242424; border-radius: 10px; height: 40px; transform: translateY(10px);"/>
         </el-col>
-        <el-col :span="20" style="text-align: right; font-size: 12px">
-          <el-link type="primary" href="https://www.github.com/microsoft/maro" target="blank">
+        <el-col :span="10" style="text-align: right; font-size: 12px">
+          <el-link type="primary" href="https://www.github.com/microsoft/maro" target="blank"  style="color: #ffffff80; margin-right: 20px;">
             Multi-Agent Resource Optimization
           </el-link>
-          <el-link type="primary" href="https://maro.readthedocs.io/en/latest/" target="blank">
+          <el-link type="primary" href="https://maro.readthedocs.io/en/latest/" target="blank" style="color: #ffffff80;">
             Documentation
           </el-link>
         </el-col>
       </el-row>
     </el-header>
     <el-main>
-      <el-container class="mydashboard">
+      <el-container :class="test_dashboard_type()">
         <el-main style="width: 11%;">
-          <div v-for="item in cluster_list" :key="item" style="width: max-content;">
+          <div style="font-size: large; line-height: 60px; font-weight: bold;">Cluster List</div>
+          <div v-for="item in cluster_list" :key="item" style="margin: 0px -20px; line-height: 50px; text-align: center; overflow: hidden;">
             <div :class="test_tab_type(item)" v-on:click="show_cluster(item)">{{ item }}</div>
           </div>
         </el-main>
-        <el-main style="width: 33%;">
+        <el-main style="width: 33%; background-color: #242424; overflow-y: scroll;">
           <el-container v-if="connected">
             <el-header>
-              static resource
+              Overall Resource
             </el-header>
             <el-main>
               <el-container>
-                <el-main class="text_usage_block">
+                <el-main class="text_resource_block">
                   <el-container>
-                    <el-header class="text_usage_image">
-                      <img src="assets/images/cpu.jpg" />
+                    <el-header class="text_resource_image">
+                      <img src="assets/images/cpu.jpg" style="height: 50px;"/>
                     </el-header>
-                    <el-main class="text_usage_text">
+                    <el-main class="text_resource_num">
                       {{resource_static["cpu"]}}
                     </el-main>
-                    <el-main class="text_usage_text">
+                    <el-main class="text_resource_type">
                       CPU
                     </el-main>
                   </el-container>
                 </el-main>
 
-                <el-main class="text_usage_block">
+                <el-main class="text_resource_block">
                   <el-container>
-                    <el-header class="text_usage_image">
+                    <el-header class="text_resource_image">
                       <img src="assets/images/memory.jpg" />
                     </el-header>
-                    <el-main class="text_usage_text">
+                    <el-main class="text_resource_num">
                       {{resource_static["memory"]}}
                     </el-main>
-                    <el-main class="text_usage_text">
+                    <el-main class="text_resource_type">
                       Memory
                     </el-main>
                   </el-container>
                 </el-main>
 
-                <el-main class="text_usage_block">
+                <el-main class="text_resource_block">
                   <el-container>
-                    <el-header class="text_usage_image">
+                    <el-header class="text_resource_image">
                       <img src="assets/images/gpu.jpg" />
                     </el-header>
-                    <el-main class="text_usage_text">
+                    <el-main class="text_resource_num">
                       {{resource_static["gpu"]}}
                     </el-main>
-                    <el-main class="text_usage_text">
+                    <el-main class="text_resource_type">
                       GPU
                     </el-main>
                   </el-container>
                 </el-main>
               </el-container>
             </el-main>
-            <el-main>
-              <el-container>
-                <el-header>
-                  dynamic resource
-                </el-header>
+            <el-header>
+              Resource Status
+            </el-header>
+            <el-main v-if="dashboard_type=='process'">
+              <el-container direction="vertical">
                 <el-main>
-                  <el-container v-if="dashboard_type=='process'">
-                    <el-header>
+                  <div>CPU:</div>
+                  <div id="cpu_chart"></div>
+                </el-main>
+                <el-main>
+                  <div>Memory:</div>
+                  <div id="memory_chart"></div>
+                </el-main>
+                <el-main>
+                  <div>GPU:</div>
+                  <div id="gpu_chart"></div>
+                </el-main>
+              </el-container>
+            </el-main>
+            <el-main v-else>
+              <el-container direction="horizontal">
+                <el-main class="text_resource_block">
+                  <el-container>
+                    <el-header class="text_resource_image">
+                      <img src="assets/images/cpu.jpg" />
                     </el-header>
-                    <el-main>
-                      CPU:
-                      <div id="cpu_chart"></div>
+                    <el-main class="text_resource_num">
+                      {{resource_dynamic["cpu"][0]}}
                     </el-main>
-                    <el-main>
-                      Memory:
-                      <div id="memory_chart"></div>
-                    </el-main>
-                    <el-main>
-                      GPU:
-                      <div id="gpu_chart"></div>
-                    </el-main>
-                  </el-container>
-                  <el-container v-else>
-                    <el-main>
-                      CPU:{{resource_dynamic["cpu"]}}
-                    </el-main>
-                    <el-main>
-                      Memory:{{resource_dynamic["memory"]}}
-                    </el-main>
-                    <el-main>
-                      GPU:{{resource_dynamic["gpu"]}}
+                    <el-main class="text_resource_type">
+                      CPU
                     </el-main>
                   </el-container>
                 </el-main>
+            
+                <el-main class="text_resource_block">
+                  <el-container>
+                    <el-header class="text_resource_image">
+                      <img src="assets/images/memory.jpg" />
+                    </el-header>
+                    <el-main class="text_resource_num">
+                      {{resource_dynamic["memory"][0]}}
+                    </el-main>
+                    <el-main class="text_resource_type">
+                      Memory
+                    </el-main>
+                  </el-container>
+                </el-main>
+            
+                <el-main class="text_resource_block">
+                  <el-container>
+                    <el-header class="text_resource_image">
+                      <img src="assets/images/gpu.jpg" />
+                    </el-header>
+                    <el-main class="text_resource_num">
+                      {{resource_dynamic["gpu"][0]}}
+                    </el-main>
+                    <el-main class="text_resource_type">
+                      GPU
+                    </el-main>
+                  </el-container>
+                </el-main>
+            
               </el-container>
             </el-main>
           </el-container>
         </el-main>
-        <el-main style="width: 55%;">
+        <el-main style="width: 55%;  background-color: #242424;">
           <el-container v-if="connected">
             <el-header>
               running jobs
@@ -215,7 +295,7 @@
       </el-container>
 
     </el-main>
-    <el-footer style="height:340px;">
+    <el-footer style="height:340px;" v-show="show_terminal">
       <div id="terminal"></div>
     </el-footer>
   </el-container>
@@ -242,6 +322,7 @@
           return {
             cluster_list: new Array(),
             cluster_name: undefined,
+            show_terminal: true,
             dashboard_type: "",
             connected: false,
             resource_static: {
@@ -279,6 +360,17 @@
             }
             else {
               return "normal_tab";
+            }
+          },
+          toggle_terminal: function(){
+            this.show_terminal = !this.show_terminal;
+          },
+          test_dashboard_type: function(){
+            if(this.show_terminal){
+              return "dashboard_normal";
+            }
+            else{
+              return "dashboard_full";
             }
           }
         }
