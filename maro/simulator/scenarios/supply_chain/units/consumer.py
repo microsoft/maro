@@ -45,12 +45,8 @@ class ConsumerUnit(SkuUnit):
             product_id (int): What product in the order.
             qty_delta (int): Number of product to update (sum).
         """
-        if qty_delta > 0:
-            # New order for product.
-            self.open_orders[source_id][product_id] += qty_delta
-        else:
-            # An order is completed, update the remaining number.
-            self.open_orders[source_id][product_id] += qty_delta
+        # New order for product.
+        self.open_orders[source_id][product_id] += qty_delta
 
     def initialize(self):
         super(ConsumerUnit, self).initialize()
