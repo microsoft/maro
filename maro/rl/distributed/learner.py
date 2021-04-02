@@ -22,16 +22,36 @@ class AbsDistLearner(ABC):
             data for learning purposes.
         agent (Union[AbsAgent, MultiAgentWrapper]): Learning agents.
     """
-    def __init__(self, actor_proxy: ActorProxy, agent: Union[AbsAgent, MultiAgentWrapper]):
+    def __init__(
+        self,
+        actor_proxy: ActorProxy,
+        agent: Union[AbsAgent, MultiAgentWrapper],
+        scheduler: Scheduler,
+
+    ):
         super().__init__()
         self.actor_proxy = actor_proxy
         self.agent = MultiAgentWrapper(agent) if isinstance(agent, AbsAgent) else agent
         self.logger = InternalLogger("LEARNER")
 
-    @abstractmethod
     def run(self):
         """Main learning loop is implemented here."""
-        return NotImplementedError
+        for exploration_params in self.scheduler:
+            rollout_index = self.scheduler.iter
+            env_metrics = self.actor_proxy.roll_out(
+                rollout_index, model_by_agent=self.agent.dump_model(), exploration_params=exploration_params
+            )
+            self.logger.info(f"ep-{rollout_index}: {env_metrics} ({exploration_params})")
+
+            for _ in range(self.train_iter):
+                batch_by_agent, idx_by_agent = self.get_batch()
+                for agent_id, batch in batch_by_agent.items():
+                    self.agent[agent_id].learn(*batch)
+
+            self.logger.info("Agent learning finished")
+
+        # Signal remote actors to quit
+        self.actor_proxy.terminate()
 
 
 class OnPolicyDistLearner(AbsDistLearner):
@@ -85,16 +105,3 @@ class OffPolicyDistLearner(AbsDistLearner):
 
         # Signal remote actors to quit
         self.actor_proxy.terminate()
-
-    def get_batch(self):
-        idx, batch = {}, {}
-        for agent_id, mem in self.actor_proxy.replay_memory.items():
-            if len(mem) < self.min_experiences_to_train:
-                continue
-            indexes, sample = mem.sample(self.batch_size)
-            batch[agent_id] = (
-                asarray(sample["S"]), asarray(sample["A"]), asarray(sample["R"]), asarray(sample["S_"])
-            )
-            idx[agent_id] = indexes
-
-        return batch, idx

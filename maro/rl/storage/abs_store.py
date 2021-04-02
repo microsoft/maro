@@ -55,17 +55,3 @@ class AbsStore(ABC):
             Filtered indexes and corresponding objects.
         """
         pass
-
-    @abstractmethod
-    def sample(self, size: int, weights: Sequence = None, replace: bool = True):
-        """Obtain a random sample from the experience pool.
-
-        Args:
-            size (int): Sample size.
-            weights (Sequence): A sequence of sampling weights. If None, uniform sampling is performed.
-                Defaults to None.
-            replace (bool): If True, sampling is performed with replacement. Defaults to True.
-        Returns:
-            A random sample from the experience pool.
-        """
-        pass

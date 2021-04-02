@@ -18,6 +18,11 @@ agent:
       lr: 0.001
   hyper_params: 
     reward_discount: .0
+    experience_memory_size: 50000
+    experience_memory_overwrite_type: random
+    min_experiences: 10
+    train_iters: 10
+    batch_size: 128
     loss_cls: smooth_l1
     target_update_freq: 5
     tau: 0.1
@@ -26,15 +31,9 @@ training:
   env: 
     scenario: supply_chain
     topology: sample1
-    durations: 100
+    durations: 200
   max_episode: 10
-  min_experiences_to_train: 10
-  train_iter: 10
-  batch_size: 128
-  replay_memory: 
-    size: 50000
-    overwrite_type: random
-  # prioritized_sampling_by_loss: true
+  learning_interval: 45 
   exploration:
     parameter_names:
       - epsilon

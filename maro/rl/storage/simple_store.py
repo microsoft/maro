@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from collections import defaultdict
 from enum import Enum
 from typing import Callable, Dict, List, Tuple, Union
 
@@ -23,6 +22,7 @@ class SimpleStore(AbsStore):
     and limited storage are supported.
 
     Args:
+        keys (list): Keys to identify the stored lists of objects.
         capacity (int): If negative, the store is of unlimited capacity. Defaults to -1.
         overwrite_type (str): If storage capacity is bounded, this specifies how existing entries
             are overwritten when the capacity is exceeded. Two types of overwrite behavior are supported:
@@ -30,13 +30,14 @@ class SimpleStore(AbsStore):
             - "random", where overwrite occurs randomly among filled positions.
             Alternatively, the user may also specify overwrite positions (see ``put``).
     """
-    def __init__(self, capacity: int = -1, overwrite_type: str = None):
+    def __init__(self, keys: list, capacity: int = -1, overwrite_type: str = None):
         super().__init__()
         if overwrite_type not in {"rolling", "random"}:
             raise ValueError(f"overwrite_type must be 'rolling' or 'random', got {overwrite_type}")
+        self.keys = keys
         self._capacity = capacity
         self._overwrite_type = overwrite_type
-        self.data = defaultdict(list) if capacity == -1 else defaultdict(lambda: [None] * capacity)
+        self.data = {key: [] if self._capacity == -1 else [None] * self._capacity for key in self.keys}
         self._size = 0
 
     def __len__(self):
@@ -59,7 +60,9 @@ class SimpleStore(AbsStore):
         """An string indicating the overwrite behavior when the store capacity is exceeded."""
         return self._overwrite_type
 
-    def get(self, indexes: [int]) -> dict:
+    def get(self, indexes: [int] = None) -> dict:
+        if indexes is None:
+            return self.data
         return {k: [self.data[k][i] for i in indexes] for k in self.data}
 
     def put(self, contents: Dict[str, List], overwrite_indexes: list = None) -> List[int]:
@@ -76,7 +79,7 @@ class SimpleStore(AbsStore):
             The indexes where the newly added entries reside in the store.
         """
         if len(self.data) > 0:
-            expected_keys, actual_keys = list(self.data.keys()), list(contents.keys())
+            expected_keys, actual_keys = set(self.data.keys()), set(contents.keys())
             if expected_keys != actual_keys:
                 raise StoreMisalignment(f"expected keys {expected_keys}, got {actual_keys}")
         self.validate(contents)
@@ -112,66 +115,9 @@ class SimpleStore(AbsStore):
 
         return indexes
 
-    def apply_multi_filters(self, filters: List[Callable]):
-        """Multi-filter method.
-
-            The input to one filter is the output from its predecessor in the sequence.
-
-        Args:
-            filters (List[Callable]): Filter list, each item is a lambda function,
-                e.g., [lambda d: d['a'] == 1 and d['b'] == 1].
-        Returns:
-            Filtered indexes and corresponding objects.
-        """
-        indexes = range(self._size)
-        for f in filters:
-            indexes = [i for i in indexes if f(self[i])]
-
-        return indexes, self.get(indexes)
-
-    def apply_multi_samplers(self, samplers: list, replace: bool = True) -> Tuple:
-        """Multi-samplers method.
-
-        This implements chained sampling where the input to one sampler is the output from its predecessor in
-        the sequence.
-
-        Args:
-            samplers (list): A sequence of weight functions for computing the sampling weights of the items
-                in the store,
-                e.g., [lambda d: d['a'], lambda d: d['b']].
-            replace (bool): If True, sampling will be performed with replacement.
-        Returns:
-            Sampled indexes and corresponding objects.
-        """
-        indexes = range(self._size)
-        for weight_fn, sample_size in samplers:
-            weights = np.asarray([weight_fn(self[i]) for i in indexes])
-            indexes = np.random.choice(indexes, size=sample_size, replace=replace, p=weights / np.sum(weights))
-
-        return indexes, self.get(indexes)
-
-    def sample(self, size, weights: Union[list, np.ndarray] = None, replace: bool = True):
-        """
-        Obtain a random sample from the experience pool.
-
-        Args:
-            size (int): Sample sizes for each round of sampling in the chain. If this is a single integer, it is
-                        used as the sample size for all samplers in the chain.
-            weights (Union[list, np.ndarray]): Sampling weights.
-            replace (bool): If True, sampling is performed with replacement. Defaults to True.
-        Returns:
-            Sampled indexes and the corresponding objects,
-            e.g., [1, 2, 3], ['a', 'b', 'c'].
-        """
-        if weights is not None:
-            weights = np.asarray(weights)
-            weights = weights / np.sum(weights)
-        indexes = np.random.choice(self._size, size=size, replace=replace, p=weights)
-        return indexes, self.get(indexes)
-
     def clear(self):
         """Empty the store."""
-        self.data = defaultdict(list) if self._capacity == -1 else defaultdict(lambda: [None] * self._capacity)
+        self.data = {key: [] if self._capacity == -1 else [None] * self._capacity for key in self.keys}
         self._size = 0
 
     def dumps(self):
@@ -181,9 +127,6 @@ class SimpleStore(AbsStore):
     def get_by_key(self, key):
         """Get the contents of the store corresponding to ``key``."""
         return self.data[key]
-
-    def insert(self, key: str, default_val=None):
-        self.data[key] = [default_val for _ in range(self._size)]
 
     def _get_update_indexes(self, added_size: int, overwrite_indexes=None):
         if added_size > self._capacity:

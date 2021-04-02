@@ -63,7 +63,7 @@ class CIMEnvWrapper(AbsEnvWrapper):
 
         return {port: Action(vessel, port, actual_action, action_type)}
 
-    def get_reward(self, tick=None):
+    def get_reward(self, tick=None, target_agents=None):
         """Delayed reward evaluation."""
         if tick is None:
             tick = self.env.tick
@@ -78,7 +78,10 @@ class CIMEnvWrapper(AbsEnvWrapper):
             for _ in range(future_fulfillment.shape[0] // self.reward_eval_delay)
         ]
 
-        return np.float32(
-            self.fulfillment_factor * np.dot(future_fulfillment, decay_list) - 
-            self.shortage_factor * np.dot(future_shortage, decay_list)
-        )
+        return {
+            target_agents[0]: 
+            np.float32(
+                self.fulfillment_factor * np.dot(future_fulfillment, decay_list) - 
+                self.shortage_factor * np.dot(future_shortage, decay_list)
+            )
+        }

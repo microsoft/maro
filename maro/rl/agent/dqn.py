@@ -7,17 +7,30 @@ import numpy as np
 import torch
 
 from maro.rl.model import SimpleMultiHeadModel
+from maro.rl.storage import SimpleStore
 from maro.rl.utils import get_max, get_td_errors, get_torch_loss_cls, select_by_actions
 from maro.utils.exception.rl_toolkit_exception import UnrecognizedTask
 
-from .abs_agent import AbsAgent
+from .abs_agent import AbsAgent, AgentConfig
 
 
-class DQNConfig:
+class DQNConfig(AgentConfig):
     """Configuration for the DQN algorithm.
 
     Args:
         reward_discount (float): Reward decay as defined in standard RL terminology.
+        experience_memory_size (int): Size of the experience memory. If it is -1, the experience memory is of
+            unlimited size.
+        experience_memory_overwrite_type (str): A string indicating how experiences in the experience memory are
+            to be overwritten after its capacity has been reached. Must be "rolling" or "random".
+        target_update_freq (int): Number of training rounds between target model updates. 
+        min_experiences (int): Minimum number of experiences required for training. If the number of experiences in the
+            replay memory is below this number, training will not be triggered. 
+        train_iters (int): Number of batches to train the model on in each call to ``learn``.
+        batch_size (int): Experience minibatch size.
+        sampler_cls: A string indicating the sampler class or a custom sampler class that provides the ``sample`` interface.
+            Defaults to "uniform".
+        sampler_params (dict): Parameters for the sampler class. Defaults to None.
         epsilon (float): Exploration rate for epsilon-greedy exploration. Defaults to None.
         tau (float): Soft update coefficient, i.e., target_model = tau * eval_model + (1 - tau) * target_model.
         double (bool): If True, the next Q values will be computed according to the double DQN algorithm,
@@ -27,24 +40,37 @@ class DQNConfig:
             case it is assumed that the regular Q-value model is used.
         loss_cls: A string indicating a loss class provided by torch.nn or a custom loss class. If it is a string,
             it must be a key in ``TORCH_LOSS``. Defaults to "mse".
-        target_update_freq (int): Number of training rounds between target model updates.
+        
     """
     __slots__ = [
-        "reward_discount", "target_update_freq", "epsilon", "tau", "double", "advantage_type", "loss_func"
+        "target_update_freq", "min_experiences", "train_iters", "batch_size", "sampler_cls", "sampler_params",
+        "epsilon", "tau", "double", "advantage_type", "loss_func"
     ]
 
     def __init__(
         self,
         reward_discount: float,
+        experience_memory_size: int,
+        experience_memory_overwrite_type: str,
         target_update_freq: int,
+        min_experiences: int,
+        train_iters: int,
+        batch_size: int,
+        sampler_cls="uniform",
+        sampler_params=None,
         epsilon: float = .0,
         tau: float = 0.1,
         double: bool = True,
         advantage_type: str = None,
         loss_cls="mse"
     ):
-        self.reward_discount = reward_discount
+        super().__init__(reward_discount, experience_memory_size, experience_memory_overwrite_type)
         self.target_update_freq = target_update_freq
+        self.min_experiences = min_experiences
+        self.train_iters = train_iters
+        self.batch_size = batch_size
+        self.sampler_cls = sampler_cls
+        self.sampler_params = sampler_params
         self.epsilon = epsilon
         self.tau = tau
         self.double = double
@@ -69,6 +95,7 @@ class DQN(AbsAgent):
                 f"got {model.task_names}"
             )
         super().__init__(model, config)
+        self._sampler = self.config.sampler_cls(self.experience_memory, **self.config.sampler_params)
         self._training_counter = 0
         self._target_model = model.copy() if model.trainable else None
 
@@ -96,35 +123,41 @@ class DQN(AbsAgent):
             for act in greedy_action
         ])
 
-    def learn(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray, next_states: np.ndarray):
-        states = torch.from_numpy(states)
-        actions = torch.from_numpy(actions)
-        rewards = torch.from_numpy(rewards)
-        next_states = torch.from_numpy(next_states)
+    def learn(self):
+        if len(self.experience_memory) < self.config.min_experiences:
+            return
 
-        if self.device:
-            states = states.to(self.device)
-            actions = actions.to(self.device)
-            rewards = rewards.to(self.device)
-            next_states = next_states.to(self.device)
+        for _ in range(self.config.train_iters):
+            # sample from the replay memory
+            indexes, batch = self._sampler.sample(self.config.batch_size)
+            states = torch.from_numpy(np.asarray(batch["S"]))
+            actions = torch.from_numpy(np.asarray(batch["A"]))
+            rewards = torch.from_numpy(np.asarray(batch["R"]))
+            next_states = torch.from_numpy(np.asarray(batch["S_"]))
 
-        q_all = self._get_q_values(states)
-        q = select_by_actions(q_all, actions)
-        next_q_all_target = self._get_q_values(next_states, is_eval=False, training=False)
-        if self.config.double:
-            print("double DQN")
-            next_q_all_eval = self._get_q_values(next_states, training=False)
-            next_q = select_by_actions(next_q_all_target, next_q_all_eval.max(dim=1)[1])  # (N,)
-        else:
-            next_q, _ = get_max(next_q_all_target)  # (N,)
+            if self.device:
+                states = states.to(self.device)
+                actions = actions.to(self.device)
+                rewards = rewards.to(self.device)
+                next_states = next_states.to(self.device)
 
-        loss = get_td_errors(q, next_q, rewards, self.config.reward_discount, loss_func=self.config.loss_func)
-        self.model.step(loss.mean())
-        self._training_counter += 1
-        if self._training_counter % self.config.target_update_freq == 0:
-            self._target_model.soft_update(self.model, self.config.tau)
+            q_all = self._get_q_values(states)
+            q = select_by_actions(q_all, actions)
+            next_q_all_target = self._get_q_values(next_states, is_eval=False, training=False)
+            if self.config.double:
+                next_q_all_eval = self._get_q_values(next_states, training=False)
+                next_q = select_by_actions(next_q_all_target, next_q_all_eval.max(dim=1)[1])  # (N,)
+            else:
+                next_q, _ = get_max(next_q_all_target)  # (N,)
 
-        return loss.detach().numpy()
+            loss = get_td_errors(q, next_q, rewards, self.config.reward_discount, loss_func=self.config.loss_func)
+            self.model.step(loss.mean())
+            self._training_counter += 1
+            if self._training_counter % self.config.target_update_freq == 0:
+                self._target_model.soft_update(self.model, self.config.tau)
+
+            # update auxillary info for the next round of sampling
+            self._sampler.update(indexes, loss.detach().numpy())
 
     def set_exploration_params(self, epsilon):
         self.config.epsilon = epsilon

@@ -30,8 +30,8 @@ class ActorProxy(object):
         group_name: str,
         proxy_options: dict = None,
         update_trigger: str = None,
-        replay_memory_size: int = -1,
-        replay_memory_overwrite_type: str = None
+        experience_memory_size: int = -1,
+        experience_memory_overwrite_type: str = None
     ):
         peers = {"actor": num_actors}
         if proxy_options is None:
@@ -44,9 +44,10 @@ class ActorProxy(object):
         self._registry_table.register_event_handler(
             f"actor:{MsgTag.ROLLOUT_DONE.value}:{update_trigger}", self._on_rollout_finish
         )
-        self.replay_memory = defaultdict(
-            lambda: SimpleStore(capacity=replay_memory_size, overwrite_type=replay_memory_overwrite_type)
+        self.experience_memory = defaultdict(
+            lambda: SimpleStore(capacity=experience_memory_size, overwrite_type=experience_memory_overwrite_type)
         )
+        self.rollout_results = {}
         self.logger = InternalLogger(self._proxy.name)
 
     def roll_out(self, index: int, training: bool = True, model_by_agent: dict = None, exploration_params=None):
@@ -67,6 +68,7 @@ class ActorProxy(object):
         self._proxy.iscatter(MsgTag.ROLLOUT, SessionType.TASK, [(actor, body) for actor in self._actors])
         self.logger.info(f"Sent roll-out requests to {self._actors} for ep-{index}")
 
+    def wait_for_actor_results(self):
         # Receive roll-out results from remote actors
         for msg in self._proxy.receive():
             if msg.body[MsgKey.ROLLOUT_INDEX] != index:
@@ -86,16 +88,16 @@ class ActorProxy(object):
                 # print(f"received exp from actor {msg.source} ")
                 # print({agent_id: {k: len(v) for k, v in exp.items()} for agent_id, exp in msg.body[MsgKey.REPLAY].items()})
                 for agent_id, exp in msg.body[MsgKey.REPLAY].items():
-                    self.replay_memory[agent_id].put(exp)
-                # print({agent_id: len(pool) for agent_id, pool in self.replay_memory.items()})
+                    self.experience_memory[agent_id].put(exp)
+                # print({agent_id: len(pool) for agent_id, pool in self.experience_memory.items()})
 
-        return env_metrics
+        rollout_results[index] = env_metrics
 
     def _on_rollout_finish(self, messages: List[Message]):
         metrics = {msg.source: msg.body[MsgKey.METRICS] for msg in messages}
         for msg in messages:
             for agent_id, replay in msg.body[MsgKey.REPLAY].items():
-                self.replay_memory[agent_id].put(replay)
+                self.experience_memory[agent_id].put(replay)
         return metrics
 
     def terminate(self):

@@ -519,11 +519,14 @@ if __name__ == "__main__":
               start_tick=start_tick, durations=durations)
 
     ss = SCEnvWrapper(env)
-
     env.step(None)
 
     states = ss.get_state(None)
     rewards = ss.get_reward(None)
 
-    print(states)
+    for id_, state in states["consumer"].items():
+        print(id_, state.shape)
+
+    for id_, state in states["producer"].items():
+        print(id_, state.shape)
     print(rewards)

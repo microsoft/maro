@@ -12,14 +12,18 @@ from maro.rl.model import SimpleMultiHeadModel
 from maro.rl.utils import get_log_prob, get_torch_loss_cls
 from maro.utils.exception.rl_toolkit_exception import UnrecognizedTask
 
-from .abs_agent import AbsAgent
+from .abs_agent import AbsAgent, AgentConfig
 
 
-class ActorCriticConfig:
+class ActorCriticConfig(AgentConfig):
     """Configuration for the Actor-Critic algorithm.
 
     Args:
         reward_discount (float): Reward decay as defined in standard RL terminology.
+        experience_memory_size (int): Size of the experience memory. If it is -1, the experience memory is of
+            unlimited size.
+        experience_memory_overwrite_type (str): A string indicating how experiences in the experience memory are
+            to be overwritten after its capacity has been reached. Must be "rolling" or "random".
         critic_loss_cls: A string indicating a loss class provided by torch.nn or a custom loss class for computing
             the critic loss. If it is a string, it must be a key in ``TORCH_LOSS``. Defaults to "mse".
         train_iters (int): Number of gradient descent steps per call to ``train``.
@@ -29,22 +33,27 @@ class ActorCriticConfig:
             in which case the actor loss is calculated using the usual policy gradient theorem.
     """
     __slots__ = [
-        "reward_discount", "critic_loss_func", "train_iters", "actor_loss_coefficient", "k", "lam", "clip_ratio"
+        "critic_loss_func", "train_iters", "actor_loss_coefficient", "k", "lam", "clip_ratio",
+        "flush_experience_memory_after_training"
     ]
 
     def __init__(
         self,
         reward_discount: float,
+        experience_memory_size: int,
+        experience_memory_overwrite_type: str,
         train_iters: int,
         critic_loss_cls="mse",
         actor_loss_coefficient: float = 1.0,
-        clip_ratio: float = None
+        clip_ratio: float = None,
+        flush_experience_memory_after_training: bool = True
     ):
-        self.reward_discount = reward_discount
+        super().__init__(reward_discount, experience_memory_size, experience_memory_overwrite_type)
         self.critic_loss_func = get_torch_loss_cls(critic_loss_cls)()
         self.train_iters = train_iters
         self.actor_loss_coefficient = actor_loss_coefficient
         self.clip_ratio = clip_ratio
+        self.flush_experience_memory_after_training = flush_experience_memory_after_training
 
 
 class ActorCritic(AbsAgent):
@@ -84,19 +93,26 @@ class ActorCritic(AbsAgent):
         action, log_p = action.cpu().numpy(), log_p.cpu().numpy()
         return (action[0], log_p[0]) if is_single else (action, log_p)
     
-    def learn(
-        self,
-        states: np.ndarray,
-        actions: np.ndarray,
-        log_p: np.ndarray,
-        rewards: np.ndarray,
-        next_states: np.ndarray
-    ):
-        states = torch.from_numpy(states).to(self.device)
-        actions = torch.from_numpy(actions).to(self.device)
-        log_p = torch.from_numpy(log_p).to(self.device)
-        rewards = torch.from_numpy(rewards).to(self.device)
-        next_states = torch.from_numpy(next_states).to(self.device)
+    def learn(self):
+        print(len(self.experience_memory))
+        if len(self.experience_memory) == 0:
+            return
+
+        batch = self.experience_memory.get()
+        states = torch.from_numpy(np.asarray(batch["S"]))
+        actions = torch.from_numpy(np.asarray([act[0] for act in batch["A"]]))
+        log_p = torch.from_numpy(np.asarray([act[1] for act in batch["A"]]))
+        rewards = torch.from_numpy(np.asarray(batch["R"]))
+        next_states = torch.from_numpy(np.asarray(batch["S_"]))
+        if self.config.flush_experience_memory_after_training:
+            self.experience_memory.clear()
+
+        if self.device:
+            states = states.to(self.device)
+            actions = actions.to(self.device)
+            log_p = log_p.to(self.device)
+            rewards = rewards.to(self.device)
+            next_states = next_states.to(self.device)
 
         state_values = self.model(states, task_name="critic").detach().squeeze()
         next_state_values = self.model(next_states, task_name="critic").detach().squeeze()

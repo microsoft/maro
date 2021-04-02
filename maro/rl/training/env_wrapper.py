@@ -3,7 +3,8 @@
 
 import time
 from abc import ABC, abstractmethod
-from collections import defaultdict
+from collections import defaultdict, deque
+from typing import List, Union
 
 from maro.simulator import Env
 
@@ -22,20 +23,21 @@ class AbsEnvWrapper(ABC):
     """
     def __init__(self, env: Env, save_replay: bool = True, reward_eval_delay: int = 0):
         self.env = env
-        self.step_index = None
+        self._step_index = None
         self.replay = defaultdict(lambda: defaultdict(list))
         self.state_info = None  # context for converting model output to actions that can be executed by the env
         self.save_replay = save_replay
         self.reward_eval_delay = reward_eval_delay
-        self._pending_reward_idx = 0
-        self._event_ticks = []  # for delayed reward evaluation
-        self._action_history = []  # for delayed reward evaluation
+        self._acting_agents = deque()   # list of (tick, acting_agent_list) for delayed reward evaluation
         self._tot_raw_step_time = 0
         self._tot_step_time = 0
 
+    @property
+    def step_index(self):
+        return self._step_index
+
     def start(self, rollout_index: int = None):
-        self.step_index = 0
-        self._pending_reward_idx = 0
+        self._step_index = 0
         _, event, _ = self.env.step(None)
         state_by_agent = self.get_state(event)
         if self.save_replay:
@@ -48,12 +50,16 @@ class AbsEnvWrapper(ABC):
 
         return state_by_agent
 
-    @property
-    def replay_memory(self):
-        return {
-            agent_id: {k: vals[:len(replay["R"])] for k, vals in replay.items()}
-            for agent_id, replay in self.replay.items()
-        }
+    def get_experiences(self, copy: bool = False):
+        experience = defaultdict(dict)
+        for agent_id, replay in self.replay.items():
+            num_complete = min(len(replay["R"]), len(replay["S_"]))
+            for k, vals in replay.items():
+                experience[agent_id][k] = vals[:num_complete]
+                if not copy:
+                    del vals[:num_complete]
+
+        return experience
 
     @property
     def metrics(self):
@@ -68,65 +74,44 @@ class AbsEnvWrapper(ABC):
         pass
 
     @abstractmethod
-    def get_reward(self, tick: int = None) -> float:
+    def get_reward(self, tick: int = None, target_agents: list = None) -> dict:
         """User-defined reward evaluation.
 
         Args:
-            tick (int): If given, the action that occured at this tick will be evaluated (useful for delayed reward
-            evaluation). Otherwise, the reward is evaluated for the latest action. Defaults to None.
-
+            tick (int): If given, the action that occured at this tick will be evaluated (useful for delayed
+                reward evaluation). Otherwise, the reward is evaluated for the latest action. Defaults to None.
+            targets_agents (list): If given, rewards will be given only to these agents. Defaults to None.
         """
         pass
 
     def step(self, action_by_agent: dict):
         t0 = time.time()
-        self.step_index += 1
-        self._event_ticks.append(self.env.tick)
+        self._step_index += 1
         env_action = self.get_action(action_by_agent)
-        self._action_history.append(env_action)
+        self._acting_agents.append((self.env.tick, list(env_action.keys())))
         if len(env_action) == 1:
             env_action = list(env_action.values())[0]
         t1 = time.time()
-        _, event, done = self.env.step(None)
+        _, event, done = self.env.step(env_action)
         t2 = time.time()
         self._tot_raw_step_time += t2 - t1
 
         if self.save_replay:
-            if self.reward_eval_delay:
-                for agent_id, action in action_by_agent.items():
-                    if isinstance(action, tuple):
-                        self.replay[agent_id]["A"].append(action[0])
-                        self.replay[agent_id]["LOGP"].append(action[1])
-                    else:
-                        self.replay[agent_id]["A"].append(action)
-                """
-                If roll-out is complete, evaluate rewards for all remaining events except the last.
-                Otherwise, evaluate rewards only for events at least self.reward_eval_delay ticks ago.
-                """
-                for i, (tick, action) in enumerate(
-                    zip(self._event_ticks[self._pending_reward_idx:], self._action_history[self._pending_reward_idx:])
-                ):
-                    if not done and self.env.tick - tick < self.reward_eval_delay:
-                        self._pending_reward_idx += i
-                        break
-                    reward_dict = self.get_reward(tick=tick)
-                    for agent_id in action:
-                        if len(self.replay[agent_id]["R"]) < len(self.replay[agent_id]["S_"]):
-                            self.replay[agent_id]["R"].append(reward_dict[agent_id])
-
-                if done:
-                    self._pending_reward_idx = len(self._event_ticks) - 1
-            else:
-                reward_dict = self.get_reward()
-                for agent_id, action in action_by_agent.items():
-                    if isinstance(action, tuple):
-                        self.replay[agent_id]["A"].append(action[0])
-                        self.replay[agent_id]["LOGP"].append(action[1])
-                    else:
-                        self.replay[agent_id]["A"].append(action)
-                    if len(self.replay[agent_id]["R"]) < len(self.replay[agent_id]["S_"]):
-                        self.replay[agent_id]["R"].append(reward_dict[agent_id])
-                    self._pending_reward_idx += 1
+            for agent_id, action in action_by_agent.items():
+                self.replay[agent_id]["A"].append(action)
+            """
+            If roll-out is complete, evaluate rewards for all remaining events except the last.
+            Otherwise, evaluate rewards only for events at least self.reward_eval_delay ticks ago.
+            """
+            while (
+                self._acting_agents and
+                (done or self.env.tick - self._acting_agents[0][0] >= self.reward_eval_delay)
+            ):
+                reward = self.get_reward(tick=self._acting_agents[0][0], target_agents=self._acting_agents[0][1])
+                # assign rewards to the relevant agents
+                for agent_id in self._acting_agents[0][1]:
+                    self.replay[agent_id]["R"].append(reward[agent_id])
+                self._acting_agents.popleft()
 
         if not done:
             state_by_agent = self.get_state(event)
@@ -150,16 +135,5 @@ class AbsEnvWrapper(ABC):
     def reset(self):
         self.env.reset()
         self.state_info = None
-        self._event_ticks.clear()
-        self._action_history.clear()
+        self._acting_agents.clear()
         self.replay = defaultdict(lambda: defaultdict(list))
-
-    def flush(self):
-        for replay in self.replay.values():
-            num_complete = len(replay["R"])
-            for vals in replay.values():
-                del vals[:num_complete]
-
-        del self._event_ticks[:self._pending_reward_idx]
-        del self._action_history[:self._pending_reward_idx]
-        self._pending_reward_idx = 0

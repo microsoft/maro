@@ -7,7 +7,7 @@ from os.path import dirname, join, realpath
 
 import numpy as np
 
-from maro.rl import LinearParameterScheduler, OffPolicyLearner
+from maro.rl import Learner, LinearParameterScheduler
 from maro.simulator import Env
 from maro.utils import set_seeds
 
@@ -24,9 +24,7 @@ if __name__ == "__main__":
     env = Env(**config["training"]["env"])
     agent = get_sc_agents(env.agent_idx_list, config["agent"])
     scheduler = LinearParameterScheduler(config["training"]["max_episode"], **config["training"]["exploration"])
-    learner = OffPolicyLearner(
-        SCEnvWrapper(env), agent, scheduler,
-        replay_memory_size=config["training"]["replay_memory"]["size"],
-        replay_memory_overwrite_type=config["training"]["replay_memory"]["overwrite_type"]    
+    learner = Learner(
+        SCEnvWrapper(env), agent, scheduler, learning_interval=config["training"][""]        
     )
     learner.run()

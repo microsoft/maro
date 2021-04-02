@@ -57,6 +57,8 @@ agent:
         lr: 0.001
   hyper_params:
     reward_discount: .0
+    experience_memory_size: -1
+    experience_memory_overwrite_type: "rolling"
     critic_loss_cls: smooth_l1
     train_iters: 10
     actor_loss_coefficient: 0.1
@@ -67,3 +69,8 @@ training:
     topology: toy.4p_ssdd_l0.0
     durations: 1120
   max_episode: 50
+  learning_interval:
+    0: 200
+    1: 200
+    2: 400
+    3: 200

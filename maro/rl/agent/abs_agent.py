@@ -6,6 +6,26 @@ from abc import ABC, abstractmethod
 import torch
 
 from maro.rl.model import AbsCoreModel
+from maro.rl.storage import SimpleStore
+
+
+class AgentConfig:
+    """Configuration for the DQN algorithm.
+
+    Args:
+        reward_discount (float): Reward decay as defined in standard RL terminology.
+        experience_memory_size (int): Size of the experience memory. If it is -1, the experience memory is of
+            unlimited size.
+        experience_memory_overwrite_type (str): A string indicating how experiences in the experience memory are
+            to be overwritten after its capacity has been reached. Must be "rolling" or "random".
+
+    """
+    __slots__ = ["reward_discount", "experience_memory_size", "experience_memory_overwrite_type"]
+
+    def __init__(self, reward_discount: float, experience_memory_size: int, experience_memory_overwrite_type: str):
+        self.reward_discount = reward_discount
+        self.experience_memory_size = experience_memory_size
+        self.experience_memory_overwrite_type = experience_memory_overwrite_type
 
 
 class AbsAgent(ABC):
@@ -21,9 +41,14 @@ class AbsAgent(ABC):
         model (AbsCoreModel): Task model or container of task models required by the algorithm.
         config: Settings for the algorithm.
     """
-    def __init__(self, model: AbsCoreModel, config):
+    def __init__(self, model: AbsCoreModel, config: AgentConfig):
         self.model = model
         self.config = config
+        self.experience_memory = SimpleStore(
+            ["S", "A", "R", "S_"],
+            capacity=self.config.experience_memory_size,
+            overwrite_type=self.config.experience_memory_overwrite_type
+        )
         self.device = None
 
     def to_device(self, device):
@@ -46,8 +71,14 @@ class AbsAgent(ABC):
     def set_exploration_params(self, **params):
         pass
 
+    def store_experiences(self, experiences: dict):
+        """Pull experiences from the replay memory stored by an environment wrapper."""
+        if set(experiences) != {"S", "A", "R", "S_"}:
+            raise ValueError("The keys of experiences must be {'S', 'A', 'R', 'S_'}")
+        self.experience_memory.put(experiences)
+
     @abstractmethod
-    def learn(self, *args, **kwargs):
+    def learn(self):
         """Algorithm-specific training logic.
 
         The parameters are data to train the underlying model on. Algorithm-specific loss and optimization
