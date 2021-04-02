@@ -87,7 +87,7 @@ class AbsEnvWrapper(ABC):
         if len(env_action) == 1:
             env_action = list(env_action.values())[0]
         t1 = time.time()
-        _, event, done = self.env.step(None)
+        _, event, done = self.env.step(env_action)
         t2 = time.time()
         self._tot_raw_step_time += t2 - t1
 
