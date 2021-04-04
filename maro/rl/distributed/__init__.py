@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 from .actor import Actor
-from .actor_proxy import ActorProxy
-from .learner import AbsDistLearner, OffPolicyDistLearner, OnPolicyDistLearner
+from .learner import DistLearner
 
-__all__ = ["AbsDistLearner", "Actor", "ActorProxy", "OffPolicyDistLearner", "OnPolicyDistLearner"]
+__all__ = ["Actor", "DistLearner"]

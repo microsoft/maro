@@ -8,7 +8,7 @@ from os import getenv
 from os.path import dirname, join, realpath
 
 from maro.rl import (
-    Actor, ActorProxy, DQN, DQNConfig, FullyConnectedBlock, LinearParameterScheduler, MultiAgentWrapper,
+    Actor, DQN, DQNConfig, FullyConnectedBlock, LinearParameterScheduler, MultiAgentWrapper,
     OffPolicyDistLearner, OptimOption, SimpleMultiHeadModel
 )
 from maro.simulator import Env

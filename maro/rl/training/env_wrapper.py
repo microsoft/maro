@@ -28,9 +28,10 @@ class AbsEnvWrapper(ABC):
         self.state_info = None  # context for converting model output to actions that can be executed by the env
         self.save_replay = save_replay
         self.reward_eval_delay = reward_eval_delay
+        self._state = None  # the latest extracted state is kept here
         self._acting_agents = deque()   # list of (tick, acting_agent_list) for delayed reward evaluation
-        self._tot_raw_step_time = 0
-        self._tot_step_time = 0
+        # self._tot_raw_step_time = 0
+        # self._tot_step_time = 0
 
     @property
     def step_index(self):
@@ -39,18 +40,16 @@ class AbsEnvWrapper(ABC):
     def start(self, rollout_index: int = None):
         self._step_index = 0
         _, event, _ = self.env.step(None)
-        state_by_agent = self.get_state(event)
+        self._state = self.get_state(event)
         if self.save_replay:
-            for agent_id, state in state_by_agent.items():
+            for agent_id, state in self._state.items():
                 replay = self.replay[agent_id]
                 if replay["S"]:
                     replay["S_"].append(state)
                 replay["S"].append(state)
                 assert len(replay["S_"]) == len(replay["A"]) == len(replay["S"]) - 1
 
-        return state_by_agent
-
-    def get_experiences(self, copy: bool = False):
+    def pull_experiences(self, copy: bool = False):
         experience = defaultdict(dict)
         for agent_id, replay in self.replay.items():
             num_complete = min(len(replay["R"]), len(replay["S_"]))
@@ -64,6 +63,10 @@ class AbsEnvWrapper(ABC):
     @property
     def metrics(self):
         return self.env.metrics
+
+    @property
+    def state(self):
+        return self._state
 
     @abstractmethod
     def get_state(self, event) -> dict:
@@ -85,16 +88,16 @@ class AbsEnvWrapper(ABC):
         pass
 
     def step(self, action_by_agent: dict):
-        t0 = time.time()
+        # t0 = time.time()
         self._step_index += 1
         env_action = self.get_action(action_by_agent)
         self._acting_agents.append((self.env.tick, list(env_action.keys())))
         if len(env_action) == 1:
             env_action = list(env_action.values())[0]
-        t1 = time.time()
+        # t1 = time.time()
         _, event, done = self.env.step(env_action)
-        t2 = time.time()
-        self._tot_raw_step_time += t2 - t1
+        # t2 = time.time()
+        # self._tot_raw_step_time += t2 - t1
 
         if self.save_replay:
             for agent_id, action in action_by_agent.items():
@@ -114,26 +117,28 @@ class AbsEnvWrapper(ABC):
                 self._acting_agents.popleft()
 
         if not done:
-            state_by_agent = self.get_state(event)
+            self._state = self.get_state(event)
             if self.save_replay:
-                for agent_id, state in state_by_agent.items():
+                for agent_id, state in self._state.items():
                     replay = self.replay[agent_id]
                     if replay["S"]:
                         replay["S_"].append(state)
                     replay["S"].append(state)
                     assert len(replay["S_"]) == len(replay["A"]) == len(replay["S"]) - 1
 
-            t3 = time.time()
-            self._tot_step_time += t3 - t0
-            return state_by_agent
+            # t3 = time.time()
+            # self._tot_step_time += t3 - t0
+        else:
+            self._state = None
 
-        print(f"total raw step time: {self._tot_raw_step_time}")
-        print(f"total step time: {self._tot_step_time}")
-        self._tot_raw_step_time = 0
-        self._tot_step_time = 0
+        # print(f"total raw step time: {self._tot_raw_step_time}")
+        # print(f"total step time: {self._tot_step_time}")
+        # self._tot_raw_step_time = 0
+        # self._tot_step_time = 0
 
     def reset(self):
         self.env.reset()
         self.state_info = None
+        self._state = None
         self._acting_agents.clear()
         self.replay = defaultdict(lambda: defaultdict(list))

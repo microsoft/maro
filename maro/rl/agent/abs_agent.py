@@ -18,14 +18,28 @@ class AgentConfig:
             unlimited size.
         experience_memory_overwrite_type (str): A string indicating how experiences in the experience memory are
             to be overwritten after its capacity has been reached. Must be "rolling" or "random".
-
+        min_new_experiences_to_learn (int): Minimum number of new experiences required to trigger learning.
+        flush_experience_memory_after_step (bool): If True, the experience memory will be flushed after each call
+            to ``step``.
     """
-    __slots__ = ["reward_discount", "experience_memory_size", "experience_memory_overwrite_type"]
+    __slots__ = [
+        "reward_discount", "experience_memory_size", "experience_memory_overwrite_type",
+        "min_new_experiences_to_learn", "flush_experience_memory_after_step"
+    ]
 
-    def __init__(self, reward_discount: float, experience_memory_size: int, experience_memory_overwrite_type: str):
+    def __init__(
+        self,
+        reward_discount: float,
+        experience_memory_size: int,
+        experience_memory_overwrite_type: str,
+        min_new_experiences_to_learn: int,
+        flush_experience_memory_after_step: bool
+    ):
         self.reward_discount = reward_discount
         self.experience_memory_size = experience_memory_size
         self.experience_memory_overwrite_type = experience_memory_overwrite_type
+        self.min_new_experiences_to_learn = min_new_experiences_to_learn
+        self.flush_experience_memory_after_step = flush_experience_memory_after_step
 
 
 class AbsAgent(ABC):
@@ -49,7 +63,16 @@ class AbsAgent(ABC):
             capacity=self.config.experience_memory_size,
             overwrite_type=self.config.experience_memory_overwrite_type
         )
-        self.device = None
+        self.device = torch.device('cpu')
+        self._version_index = 0
+
+    @property
+    def version(self):
+        return self._version_index
+
+    @version.setter
+    def version(self, version_index):
+        self._version_index = version_index
 
     def to_device(self, device):
         self.device = device
@@ -71,14 +94,23 @@ class AbsAgent(ABC):
     def set_exploration_params(self, **params):
         pass
 
-    def store_experiences(self, experiences: dict):
-        """Pull experiences from the replay memory stored by an environment wrapper."""
-        if set(experiences) != {"S", "A", "R", "S_"}:
+    def update(self, experiences: dict) -> bool:
+        """Store experinces in the experience memory and train the model if necessary."""
+        if set(experiences.keys()) != {"S", "A", "R", "S_"}:
             raise ValueError("The keys of experiences must be {'S', 'A', 'R', 'S_'}")
         self.experience_memory.put(experiences)
+        n = len(experiences["S"])
+        print(f"got {n} new exp")
+        if len(experiences["S"]) >= self.config.min_new_experiences_to_learn:
+            self.step()
+            self._version_index += 1
+            if self.config.flush_experience_memory_after_step:
+                self.experience_memory.clear()
+            return True
+        return False
 
     @abstractmethod
-    def learn(self):
+    def step(self):
         """Algorithm-specific training logic.
 
         The parameters are data to train the underlying model on. Algorithm-specific loss and optimization

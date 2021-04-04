@@ -45,14 +45,3 @@ class UniformSampler(AbsSampler):
 
     def update(self):
         pass
-
-
-class PrioritizedSampler(AbsSampler):
-    def __init__(self, data):
-        super().__init__(data)
-        
-    def sample(self, size: int):
-        pass
-
-    def update(self):
-        pass

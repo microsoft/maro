@@ -19,7 +19,7 @@ def trainer(id_: str):
     def train(sock, msg):
         client, _, request = msg
         request = pickle.loads(request)
-        info = request["agent"].learn(*request["args"], **request["kwargs"])
+        info = request["agent"].step(*request["args"], **request["kwargs"])
         request.update({"model": request["agent"].dump_model(), "info": info})
         del request["agent"]
         del request["args"]

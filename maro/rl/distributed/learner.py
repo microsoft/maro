@@ -1,107 +1,101 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from abc import ABC, abstractmethod
-from typing import Callable, Union
+from collections import defaultdict
+from typing import Union
 
-from numpy import asarray
-
+from maro.communication import Message, Proxy, SessionType
 from maro.rl.agent import AbsAgent, MultiAgentWrapper
 from maro.rl.scheduling import Scheduler
-from maro.rl.storage import SimpleStore
 from maro.utils import InternalLogger
 
-from .actor_proxy import ActorProxy
+from .message_enums import MsgTag, MsgKey
 
 
-class AbsDistLearner(ABC):
+class DistLearner(object):
     """Learner class for distributed training.
 
     Args:
-        actor_proxy (ActorProxy): ``ActorProxy`` instance that manages a set of remote actors to collect roll-out
-            data for learning purposes.
         agent (Union[AbsAgent, MultiAgentWrapper]): Learning agents.
+        scheduler (Scheduler): .
+        num_actors (int): Expected number of actors in the group identified by ``group_name``.
+        group_name (str): Identifier of the group to which the actor belongs. It must be the same group name
+            assigned to the actors (and roll-out clients, if any).
+        proxy_options (dict): Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
+            for details. Defaults to None.
+        update_trigger (str): Number or percentage of ``MsgTag.ROLLOUT_DONE`` messages required to trigger
+            learner updates, i.e., model training.
     """
     def __init__(
         self,
-        actor_proxy: ActorProxy,
         agent: Union[AbsAgent, MultiAgentWrapper],
         scheduler: Scheduler,
-
+        num_actors: int,
+        group_name: str,
+        proxy_options: dict = None,
+        agent_update_interval: int = -1,
+        min_actor_finishes: str = None,
+        ignore_stale_experiences: bool = True
     ):
         super().__init__()
-        self.actor_proxy = actor_proxy
         self.agent = MultiAgentWrapper(agent) if isinstance(agent, AbsAgent) else agent
-        self.logger = InternalLogger("LEARNER")
-
-    def run(self):
-        """Main learning loop is implemented here."""
-        for exploration_params in self.scheduler:
-            rollout_index = self.scheduler.iter
-            env_metrics = self.actor_proxy.roll_out(
-                rollout_index, model_by_agent=self.agent.dump_model(), exploration_params=exploration_params
-            )
-            self.logger.info(f"ep-{rollout_index}: {env_metrics} ({exploration_params})")
-
-            for _ in range(self.train_iter):
-                batch_by_agent, idx_by_agent = self.get_batch()
-                for agent_id, batch in batch_by_agent.items():
-                    self.agent[agent_id].learn(*batch)
-
-            self.logger.info("Agent learning finished")
-
-        # Signal remote actors to quit
-        self.actor_proxy.terminate()
-
-
-class OnPolicyDistLearner(AbsDistLearner):
-    def __init__(self, actor_proxy: ActorProxy, agent: Union[AbsAgent, MultiAgentWrapper], max_episode: int):
-        super().__init__(actor_proxy, agent)
-        self.max_episode = max_episode
-
-    def run(self):
-        for ep in range(self.max_episode):
-            env_metrics = self.actor_proxy.roll_out(ep, model_by_agent=self.agent.dump_model())
-            self.logger.info(f"ep-{ep}: {env_metrics}")
-            for agent_id, replay in self.actor_proxy.replay_memory.items():
-                self.agent[agent_id].learn(replay["S"], replay["A"], replay["LOGP"], replay["R"], replay["S_"])
-
-            self.logger.info("Agent learning finished")
-
-        # Signal remote actors to quit
-        self.actor_proxy.terminate()
-
-
-class OffPolicyDistLearner(AbsDistLearner):
-    def __init__(
-        self,
-        actor_proxy: ActorProxy,
-        agent: Union[AbsAgent, MultiAgentWrapper],
-        scheduler: Scheduler,
-        train_iter: int = 1,
-        min_experiences_to_train: int = 0,
-        batch_size: int = 128
-    ):
-        super().__init__(actor_proxy, agent)
         self.scheduler = scheduler
-        self.train_iter = train_iter
-        self.min_experiences_to_train = min_experiences_to_train
-        self.batch_size = batch_size
+        peers = {"actor": num_actors}
+        if proxy_options is None:
+            proxy_options = {}
+        self._proxy = Proxy(group_name, "learner", peers, **proxy_options)
+        self.actors = self._proxy.peers["actor"]  # remote actor ID's
+        if min_actor_finishes is None:
+            self.min_actor_finishes = len(self.actors)
+        self.agent_update_interval = agent_update_interval
+        self.ignore_stale_experiences = ignore_stale_experiences
+        self._logger = InternalLogger("LEARNER")
 
     def run(self):
+        """Main learning loop"""
         for exploration_params in self.scheduler:
-            rollout_index = self.scheduler.iter
-            env_metrics = self.actor_proxy.roll_out(
-                rollout_index, model_by_agent=self.agent.dump_model(), exploration_params=exploration_params
-            )
-            self.logger.info(f"ep-{rollout_index}: {env_metrics} ({exploration_params})")
+            updated_agents = self.agent.names
+            rollout_index, segment_index, num_episode_finishes = self.scheduler.iter, 0, 0
+            while num_episode_finishes < self.min_actor_finishes:
+                msg_body = {
+                    MsgKey.ROLLOUT_INDEX: rollout_index,
+                    MsgKey.SEGMENT_INDEX: segment_index,
+                    MsgKey.NUM_STEPS: self.agent_update_interval,
+                    MsgKey.MODEL: self.agent.dump_model(agent_ids=updated_agents)
+                }
+                if segment_index == 0 and exploration_params:
+                    msg_body[MsgKey.EXPLORATION_PARAMS] = exploration_params
+                self._proxy.ibroadcast("actor", MsgTag.ROLLOUT, SessionType.TASK, body=msg_body)
+                self._logger.info(f"Sent roll-out requests for ep-{rollout_index}, segment-{segment_index}")
 
-            for _ in range(self.train_iter):
-                batch_by_agent, idx_by_agent = self.get_batch()
-                for agent_id, batch in batch_by_agent.items():
-                    self.agent[agent_id].learn(*batch)
+                # Receive roll-out results from remote actors
+                updated_agents, num_segment_finishes = set(), 0
+                for msg in self._proxy.receive():
+                    if msg.body[MsgKey.ROLLOUT_INDEX] != rollout_index:
+                        self._logger.info(
+                            f"Ignore a message of type {msg.tag} with ep {msg.body[MsgKey.ROLLOUT_INDEX]} "
+                            f"(expected {index})"
+                        )
+                        continue
 
-            self.logger.info("Agent learning finished")
+                    # if msg.tag == MsgTag.EXPERIENCE:
+                        # print(f"received exp from actor {msg.source} ")
+                        # print({agent_id: {k: len(v) for k, v in exp.items()} for agent_id, exp in msg.body[MsgKey.EXPERIENCE].items()})
+                    # If enough update messages have been received, call update() and break out of the loop to start
+                    # the next episode.
+                    if msg.body[MsgKey.SEGMENT_INDEX] == segment_index or not self.ignore_stale_experiences:
+                        updated_agents.update(self.agent.update(msg.body[MsgKey.EXPERIENCES]))
+                        self._logger.info(f"Learning finished for agent {updated_agents}")
+                    if msg.body[MsgKey.END_OF_EPISODE]:
+                        num_episode_finishes += 1
+                    num_segment_finishes += 1
+                    if num_segment_finishes == self.min_actor_finishes:
+                        break
 
-        # Signal remote actors to quit
-        self.actor_proxy.terminate()
+                segment_index += 1
+                # self._logger.info(f"ep-{rollout_index}: {env_metrics} ({exploration_params})")
+
+    def terminate(self):
+        """Tell the remote actors to exit."""
+        self._proxy.ibroadcast("actor", MsgTag.EXIT, SessionType.NOTIFICATION)
+        self._logger.info("Exiting...")

@@ -8,7 +8,7 @@ import torch
 
 from maro.rl.model import SimpleMultiHeadModel
 from maro.rl.storage import SimpleStore
-from maro.rl.utils import get_max, get_td_errors, get_torch_loss_cls, select_by_actions
+from maro.rl.utils import get_max, get_sampler_cls, get_td_errors, get_torch_loss_cls, select_by_actions
 from maro.utils.exception.rl_toolkit_exception import UnrecognizedTask
 
 from .abs_agent import AbsAgent, AgentConfig
@@ -23,6 +23,7 @@ class DQNConfig(AgentConfig):
             unlimited size.
         experience_memory_overwrite_type (str): A string indicating how experiences in the experience memory are
             to be overwritten after its capacity has been reached. Must be "rolling" or "random".
+        min_new_experiences_to_learn (int): Minimum number of new experiences required to trigger learning.
         target_update_freq (int): Number of training rounds between target model updates. 
         min_experiences (int): Minimum number of experiences required for training. If the number of experiences in the
             replay memory is below this number, training will not be triggered. 
@@ -40,7 +41,8 @@ class DQNConfig(AgentConfig):
             case it is assumed that the regular Q-value model is used.
         loss_cls: A string indicating a loss class provided by torch.nn or a custom loss class. If it is a string,
             it must be a key in ``TORCH_LOSS``. Defaults to "mse".
-        
+        flush_experience_memory_after_step (bool): If True, the experience memory will be flushed after each call
+            to ``step``. Defaults to False.
     """
     __slots__ = [
         "target_update_freq", "min_experiences", "train_iters", "batch_size", "sampler_cls", "sampler_params",
@@ -52,6 +54,7 @@ class DQNConfig(AgentConfig):
         reward_discount: float,
         experience_memory_size: int,
         experience_memory_overwrite_type: str,
+        min_new_experiences_to_learn: int,
         target_update_freq: int,
         min_experiences: int,
         train_iters: int,
@@ -62,15 +65,19 @@ class DQNConfig(AgentConfig):
         tau: float = 0.1,
         double: bool = True,
         advantage_type: str = None,
-        loss_cls="mse"
+        loss_cls="mse",
+        flush_experience_memory_after_step: bool = False
     ):
-        super().__init__(reward_discount, experience_memory_size, experience_memory_overwrite_type)
+        super().__init__(
+            reward_discount, experience_memory_size, experience_memory_overwrite_type, min_new_experiences_to_learn,
+            flush_experience_memory_after_step
+        )
         self.target_update_freq = target_update_freq
         self.min_experiences = min_experiences
         self.train_iters = train_iters
         self.batch_size = batch_size
-        self.sampler_cls = sampler_cls
-        self.sampler_params = sampler_params
+        self.sampler_cls = get_sampler_cls(sampler_cls)
+        self.sampler_params = sampler_params if sampler_params else {}
         self.epsilon = epsilon
         self.tau = tau
         self.double = double
@@ -123,23 +130,18 @@ class DQN(AbsAgent):
             for act in greedy_action
         ])
 
-    def learn(self):
+    def step(self):
+        print(len(self.experience_memory))
         if len(self.experience_memory) < self.config.min_experiences:
             return
 
         for _ in range(self.config.train_iters):
             # sample from the replay memory
             indexes, batch = self._sampler.sample(self.config.batch_size)
-            states = torch.from_numpy(np.asarray(batch["S"]))
-            actions = torch.from_numpy(np.asarray(batch["A"]))
-            rewards = torch.from_numpy(np.asarray(batch["R"]))
-            next_states = torch.from_numpy(np.asarray(batch["S_"]))
-
-            if self.device:
-                states = states.to(self.device)
-                actions = actions.to(self.device)
-                rewards = rewards.to(self.device)
-                next_states = next_states.to(self.device)
+            states = torch.from_numpy(np.asarray(batch["S"])).to(self.device)
+            actions = torch.from_numpy(np.asarray(batch["A"])).to(self.device)
+            rewards = torch.from_numpy(np.asarray(batch["R"])).to(self.device)
+            next_states = torch.from_numpy(np.asarray(batch["S_"])).to(self.device)
 
             q_all = self._get_q_values(states)
             q = select_by_actions(q_all, actions)

@@ -10,21 +10,14 @@ from torch.distributions import Categorical
 from maro.rl.model import SimpleMultiHeadModel
 from maro.rl.utils import get_truncated_cumulative_reward
 
-from .abs_agent import AbsAgent
+from .abs_agent import AbsAgent, AgentConfig
 
 
 class PolicyGradient(AbsAgent):
     """The vanilla Policy Gradient (VPG) algorithm, a.k.a., REINFORCE.
 
     Reference: https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch.
-
-    Args:
-        model (SimpleMultiHeadModel): Model that computes action distributions.
-        reward_discount (float): Reward decay as defined in standard RL terminology.
     """
-    def __init__(self, model: SimpleMultiHeadModel, reward_discount: float):
-        super().__init__(model, reward_discount)
-
     def choose_action(self, state: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """Use the actor (policy) model to generate stochastic actions.
 
@@ -45,7 +38,7 @@ class PolicyGradient(AbsAgent):
         action, log_p = action.cpu().numpy(), log_p.cpu().numpy()
         return (action[0], log_p[0]) if is_single else (action, log_p)
 
-    def learn(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray):
+    def step(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray):
         states = torch.from_numpy(states).to(self.device)
         actions = torch.from_numpy(actions).to(self.device)
         returns = get_truncated_cumulative_reward(rewards, self.config)

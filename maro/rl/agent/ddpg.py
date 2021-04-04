@@ -19,6 +19,11 @@ class DDPGConfig:
 
     Args:
         reward_discount (float): Reward decay as defined in standard RL terminology.
+        experience_memory_size (int): Size of the experience memory. If it is -1, the experience memory is of
+            unlimited size.
+        experience_memory_overwrite_type (str): A string indicating how experiences in the experience memory are
+            to be overwritten after its capacity has been reached. Must be "rolling" or "random".
+        min_new_experiences_to_learn (int): Minimum number of new experiences required to trigger learning.
         target_update_freq (int): Number of training rounds between policy target model updates.
         q_value_loss_cls: A string indicating a loss class provided by torch.nn or a custom loss class for
             the Q-value loss. If it is a string, it must be a key in ``TORCH_LOSS``. Defaults to "mse".
@@ -26,18 +31,26 @@ class DDPGConfig:
             loss = q_value_loss + ``policy_loss_coefficient`` * policy_loss. Defaults to 1.0.
         tau (float): Soft update coefficient, e.g., target_model = tau * eval_model + (1-tau) * target_model.
             Defaults to 1.0.
+        flush_experience_memory_after_step (bool): If True, the experience memory will be flushed after each call
+            to ``step``. Defaults to False.
     """
-    __slots__ = ["reward_discount", "q_value_loss_func", "target_update_freq", "policy_loss_coefficient", "tau"]
+    __slots__ = ["q_value_loss_func", "target_update_freq", "policy_loss_coefficient", "tau"]
 
     def __init__(
         self,
         reward_discount: float,
+        experience_memory_size: int,
+        experience_memory_overwrite_type: str,
+        min_new_experiences_to_learn: int,
         target_update_freq: int,
         q_value_loss_cls="mse",
         policy_loss_coefficient: float = 1.0,
         tau: float = 1.0,
     ):
-        self.reward_discount = reward_discount
+        super().__init__(
+            reward_discount, experience_memory_size, experience_memory_overwrite_type, min_new_experiences_to_learn,
+            flush_experience_memory_after_step
+        )
         self.target_update_freq = target_update_freq
         self.q_value_loss_func = get_torch_loss_cls(q_value_loss_cls)()
         self.policy_loss_coefficient = policy_loss_coefficient
@@ -80,7 +93,7 @@ class DDPG(AbsAgent):
 
         return action[0] if is_single else action
 
-    def learn(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray, next_states: np.ndarray):
+    def step(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray, next_states: np.ndarray):
         states = torch.from_numpy(states).to(self.device)
         actual_actions = torch.from_numpy(actions).to(self.device)
         rewards = torch.from_numpy(rewards).to(self.device)
@@ -98,7 +111,7 @@ class DDPG(AbsAgent):
         q_value_loss = self.config.q_value_loss_func(current_q_values, target_q_values)
         actions_from_model = self.model(states, task_name="policy")
         policy_loss = -self.model(torch.cat([states, actions_from_model], dim=1), task_name="q_value").mean()
-        self.model.learn(q_value_loss + self.config.policy_loss_coefficient * policy_loss)
+        self.model.step(q_value_loss + self.config.policy_loss_coefficient * policy_loss)
         self._train_cnt += 1
         if self._train_cnt % self.config.target_update_freq == 0:
             self._target_model.soft_update(self.model, self.config.tau)

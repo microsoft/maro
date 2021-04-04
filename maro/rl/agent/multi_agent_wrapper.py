@@ -18,7 +18,7 @@ class MultiAgentWrapper:
         if isinstance(agent_dict, AbsAgent):
             agent_dict = {"AGENT": agent_dict}
         self.agent_dict = agent_dict
-        self._names = list(self.agent_dict.keys())
+        self._names = set(self.agent_dict.keys())
 
     def __getitem__(self, agent_id):
         if len(self.agent_dict) == 1:
@@ -46,23 +46,23 @@ class MultiAgentWrapper:
             for agent in self.agent_dict.values():
                 agent.set_exploration_params(**params)
 
-    def store_experiences(self, experiences: dict):
+    def update(self, experiences: dict) -> set:
         """Store experiences in the agents' experience memory.
         
         The top-level keys of ``experiences`` will be treated as agent IDs. 
         """
-        for agent_id, exp in experiences.items():
-            self.agent_dict[agent_id].store_experiences(exp)
+        print("updating agents")
+        return {agent_id for agent_id, exp in experiences.items() if self.agent_dict[agent_id].update(exp)}
 
-    def learn(self, agent_ids=None):
+    def step(self, agent_ids=None):
         if agent_ids is None:
             for agent in self.agent_dict.values():
-                agent.learn()
-        elif not isinstance(agent_ids, list):
-            self.agent_dict[agent_ids].learn()
+                agent.step()
+        elif not isinstance(agent_ids, set):
+            self.agent_dict[agent_ids].step()
         else:
             for agent_id in agent_ids:
-                self.agent_dict[agent_id].learn()
+                self.agent_dict[agent_id].step()
 
     def load_model(self, model_dict: dict):
         """Load models from memory for each agent."""
@@ -76,10 +76,10 @@ class MultiAgentWrapper:
         """
         if agent_ids is None:
             return {agent_id: agent.dump_model() for agent_id, agent in self.agent_dict.items()}
-        elif not isinstance(agent_ids, list):
+        elif not isinstance(agent_ids, set):
             return self.agent_dict[agent_ids].dump_model()
         else:
-            return {agent_id: self.agent_dict[agent_id].dump_model() for agent_id in self.agent_dict}
+            return {agent_id: self.agent_dict[agent_id].dump_model() for agent_id in agent_ids}
 
     def load_model_from_file(self, dir_path):
         """Load models from disk for each agent."""
@@ -95,8 +95,20 @@ class MultiAgentWrapper:
         if agent_ids is None:
             for agent_id, agent in self.agent_dict.items():
                 agent.dump_model_to_file(os.path.join(dir_path, agent_id))
-        elif not isinstance(agent_ids, list):
+        elif not isinstance(agent_ids, set):
             self.agent_dict[agent_ids].dump_model_to_file(os.path.join(dir_path, agent_ids))
         else:
             for agent_id in agent_ids:
                 self.agent_dict[agent_id].dump_model_to_file(os.path.join(dir_path, agent_id))
+
+    def get_versions(self, agent_ids=None):
+        if agent_ids is None:
+            return {aent_id: agent.version for agent_id, agent in self.agent_dict.items()}
+        elif not isinstance(agent_ids, set):
+            return self.agent_dict[agent_ids].version
+        else:
+            return {agent_id: self.agent_dict[agent_id].version for agent_id in agent_ids}
+
+    def set_versions(self, version_index_by_agent: dict):
+        for agent_id, version_index in version_index_by_agent.items():
+            self.agent_dict[agent_id].version = version_index

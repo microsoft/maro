@@ -25,21 +25,15 @@ class Learner(object):
         env: AbsEnvWrapper,
         agent: Union[AbsAgent, MultiAgentWrapper],
         scheduler: Scheduler,
-        learning_interval: Union[int, Dict[str, int]] = -1,
-        end_of_episode_learning: bool = True   
+        agent_update_interval: int = None
     ):
         super().__init__()
+        if agent_update_interval == 0:
+            raise ValueError("agent_update_interval must be a positive integer or None.")
         self.env = env
         self.agent = MultiAgentWrapper(agent) if isinstance(agent, AbsAgent) else agent
         self.scheduler = scheduler
-        self.online = learning_interval != -1
-        if isinstance(learning_interval, int):
-            assert learning_interval == -1 or learning_interval > 0, \
-                f"learning_interval must be -1 or a positive integer"
-            self.learning_interval = {agent_id: learning_interval for agent_id in self.agent.names} 
-        else:
-            self.learning_interval = learning_interval
-        self.end_of_episode_learning = end_of_episode_learning
+        self.agent_update_interval = agent_update_interval
         self.logger = InternalLogger("LEARNER")
 
     def run(self):
@@ -49,28 +43,14 @@ class Learner(object):
             if exploration_params:
                 self.agent.set_exploration_params(exploration_params)
 
-            pending_learning_agents = defaultdict(list)
-            for agent_id, interval in self.learning_interval.items():
-                pending_learning_agents[interval].append(agent_id)
+            self.env.start(rollout_index=self.scheduler.iter)  # get initial state
+            while self.env.state:
+                action = self.agent.choose_action(self.env.state)
+                self.env.step(action)
+                if self.agent_update_interval is not None and self.env.step_index % self.agent_update_interval == 0:
+                    self.agent.update(self.env.pull_experiences())
 
-            state = self.env.start(rollout_index=self.scheduler.iter)  # get initial state
-            while state:
-                action = self.agent.choose_action(state)
-                state = self.env.step(action)
-                if self.online and self.env.step_index in pending_learning_agents:
-                    self.agent.store_experiences(self.env.get_experiences())
-                    for agent_id in pending_learning_agents[self.env.step_index]:
-                        self.agent.learn(agent_id)
-                        next_learning_time = self.env.step_index + self.learning_interval[agent_id]
-                        if next_learning_time > self.env.step_index:
-                            pending_learning_agents[next_learning_time].append(agent_id)
-                    del pending_learning_agents[self.env.step_index]
-                    print(f"step = {self.env.step_index}, next up: {pending_learning_agents}")
-
-            if self.end_of_episode_learning:
-                self.agent.store_experiences(self.env.get_experiences())
-                self.agent.learn()
-
+            self.agent.update(self.env.pull_experiences())
             self.logger.info(f"ep-{self.scheduler.iter}: {self.env.metrics} ({exploration_params})")
 
             # t1 = time.time()

@@ -8,8 +8,8 @@ from os import getenv
 from os.path import dirname, join, realpath
 
 from maro.rl import (
-    Actor, ActorProxy, DQN, DQNConfig, FullyConnectedBlock, MultiAgentWrapper, OffPolicyDistLearner,
-    OptimOption, SimpleMultiHeadModel, TwoPhaseLinearParameterScheduler
+    Actor, DQN, DQNConfig, DistLearner, FullyConnectedBlock, MultiAgentWrapper, OptimOption, SimpleMultiHeadModel,
+    TwoPhaseLinearParameterScheduler
 )
 from maro.simulator import Env
 from maro.utils import set_seeds
@@ -48,18 +48,10 @@ def get_dqn_agent():
 def cim_dqn_learner():
     agent = MultiAgentWrapper({name: get_dqn_agent() for name in Env(**config["training"]["env"]).agent_idx_list})
     scheduler = TwoPhaseLinearParameterScheduler(config["training"]["max_episode"], **config["training"]["exploration"])
-    actor_proxy = ActorProxy(
-        NUM_ACTORS, GROUP,
+    learner = DistLearner(
+        agent, scheduler, NUM_ACTORS, GROUP,
         proxy_options={"redis_address": (REDIS_HOST, REDIS_PORT)},
-        update_trigger=config["distributed"]["learner_update_trigger"],
-        replay_memory_size=config["training"]["replay_memory"]["size"],
-        replay_memory_overwrite_type=config["training"]["replay_memory"]["overwrite_type"]
-    )
-    learner = OffPolicyDistLearner(
-        actor_proxy, agent, scheduler,
-        min_experiences_to_train=config["training"]["min_experiences_to_train"],
-        train_iter=config["training"]["train_iter"],
-        batch_size=config["training"]["batch_size"]
+        agent_update_interval=config["distributed"]["agent_update_interval"]
     )
     learner.run()
 
@@ -69,7 +61,6 @@ def cim_dqn_actor():
     agent = MultiAgentWrapper({name: get_dqn_agent() for name in env.agent_idx_list})
     actor = Actor(
         CIMEnvWrapper(env, **config["shaping"]), agent, GROUP,
-        replay_sync_interval=config["distributed"]["replay_sync_interval"],
         proxy_options={"redis_address": (REDIS_HOST, REDIS_PORT)}
     )
     actor.run()

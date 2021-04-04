@@ -22,7 +22,6 @@ class Actor(object):
             assigned to the learner (and decision clients, if any).
         proxy_options (dict): Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
             for details. Defaults to None.
-        replay_sync_interval (int): Number of roll-out steps between replay syncing calls.
     """
     def __init__(
         self,
@@ -30,75 +29,49 @@ class Actor(object):
         agent: Union[AbsAgent, MultiAgentWrapper],
         group: str,
         proxy_options: dict = None,
-        replay_sync_interval: int = None,
-        send_results: bool = True
+        pull_experiences_with_copy: bool = False
     ):
-        if replay_sync_interval == 0:
-            raise ValueError("replay_sync_interval must be a positive integer or None")
         self.env = env
         self.agent = MultiAgentWrapper(agent) if isinstance(agent, AbsAgent) else agent
+        self._pull_experiences_with_copy = pull_experiences_with_copy
         if proxy_options is None:
             proxy_options = {}
-        self._proxy = Proxy(group, "actor", {"actor_proxy": 1}, **proxy_options)
-        self.replay_sync_interval = replay_sync_interval
-        self.send_results = send_results
+        self._proxy = Proxy(group, "actor", {"learner": 1}, **proxy_options)
         self._logger = InternalLogger(self._proxy.name)
-
-    def roll_out(self, index: int, training: bool = True, model_by_agent: dict = None, exploration_params=None):
-        self.env.reset()
-        if not training:
-            self.env.save_replay = False  # no need to record the trajectory if roll-out is not for training
-
-        # Load models and exploration parameters
-        if model_by_agent:
-            self.agent.load_model(model_by_agent)
-        if exploration_params:
-            self.agent.set_exploration_params(exploration_params)
-
-        state = self.env.start(rollout_index=index)  # get initial state
-        while state:
-            action = self.agent.choose_action(state)
-            state = self.env.step(action)
-            if self.replay_sync_interval is not None and (self.env.step_index + 1) % self.replay_sync_interval == 0:
-                self._proxy.isend(
-                    Message(
-                        MsgTag.REPLAY_SYNC, self._proxy.name, self._proxy.peers["actor_proxy"][0],
-                        body={MsgKey.ROLLOUT_INDEX: index, MsgKey.REPLAY: self.env.replay_memory}
-                    )
-                )
-                self.env.flush()
-
-        return self.env.metrics
 
     def run(self):
         for msg in self._proxy.receive():
             if msg.tag == MsgTag.EXIT:
                 self._logger.info("Exiting...")
                 break
-            elif msg.tag == MsgTag.ROLLOUT:
-                self.on_rollout_request(msg)
-                self.post_rollout(msg.body[MsgKey.ROLLOUT_INDEX])
+            if msg.tag == MsgTag.ROLLOUT:
+                rollout_index, segment_index = msg.body[MsgKey.ROLLOUT_INDEX], msg.body[MsgKey.SEGMENT_INDEX]
+                if self.env.state is None:
+                    self.env.reset()
+                    # Load exploration parameters
+                    if MsgKey.EXPLORATION_PARAMS in msg.body:
+                        self.agent.set_exploration_params(msg.body[MsgKey.EXPLORATION_PARAMS])
+                    self.env.start(rollout_index=rollout_index)  # get initial state
 
-    def on_rollout_request(self, msg: Message):
-        ep = msg.body[MsgKey.ROLLOUT_INDEX]
-        self._logger.info(f"Rolling out ({ep})...")
-        self.roll_out(
-            ep,
-            training=msg.body[MsgKey.TRAINING],
-            model_by_agent=msg.body[MsgKey.MODEL],
-            exploration_params=msg.body[MsgKey.EXPLORATION_PARAMS]
-        )
-        self._logger.info(f"Roll-out {ep} finished")
+                step_index = self.env.step_index
+                self.agent.load_model(msg.body[MsgKey.MODEL])
+                for _ in range(msg.body[MsgKey.NUM_STEPS]):
+                    action = self.agent.choose_action(self.env.state)
+                    self.env.step(action)
+                    if not self.env.state:
+                        break
 
-    def post_rollout(self, index: int):
-        if not self.send_results:
-            return
-
-        body = {MsgKey.ROLLOUT_INDEX: index, MsgKey.METRICS: self.env.metrics}
-        if self.env.save_replay:
-            body[MsgKey.REPLAY] = self.env.replay_memory
-
-        actor_proxy_addr = self._proxy.peers["actor_proxy"][0]
-        self._proxy.isend(
-            Message(MsgTag.ROLLOUT_DONE, self._proxy.name, actor_proxy_addr, body=body)
-        )
+                self._logger.info(
+                    f"Roll-out finished for ep {rollout_index}, segment {segment_index}"
+                    f"(steps {step_index} - {self.env.step_index})"
+                )
+                self._proxy.reply(
+                    msg, 
+                    tag=MsgTag.ROLLOUT_DONE,
+                    body={
+                        MsgKey.END_OF_EPISODE: not self.env.state,
+                        MsgKey.ROLLOUT_INDEX: rollout_index,
+                        MsgKey.SEGMENT_INDEX: segment_index,
+                        MsgKey.EXPERIENCES: self.env.pull_experiences(copy=self._pull_experiences_with_copy)
+                    }
+                )
