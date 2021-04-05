@@ -16,7 +16,7 @@ def get_dqn_agent(in_dim, out_dim, config):
         FullyConnectedBlock(input_dim=in_dim, output_dim=out_dim, **config["model"]),
         optim_option=OptimOption(**config["optimization"])
     )
-    return DQN(q_model, DQNConfig(**config["hyper_params"]))
+    return DQN(q_model, DQNConfig(**config["algorithm"]), **config["experience_memory"])
 
 
 def get_sc_agents(agent_info_list, config):

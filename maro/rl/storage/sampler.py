@@ -43,5 +43,5 @@ class UniformSampler(AbsSampler):
         indexes = np.random.choice(len(self.data), size=size, replace=self.replace)
         return indexes, self.data.get(indexes=indexes)
 
-    def update(self):
+    def update(self, indexes, values):
         pass

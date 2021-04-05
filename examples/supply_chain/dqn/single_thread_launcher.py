@@ -25,6 +25,7 @@ if __name__ == "__main__":
     agent = get_sc_agents(env.agent_idx_list, config["agent"])
     scheduler = LinearParameterScheduler(config["training"]["max_episode"], **config["training"]["exploration"])
     learner = Learner(
-        SCEnvWrapper(env), agent, scheduler, learning_interval=config["training"][""]        
+        SCEnvWrapper(env), agent, scheduler,
+        agent_update_interval=config["training"]["agent_update_interval"]        
     )
     learner.run()

@@ -2,7 +2,8 @@
 # Licensed under the MIT license.
 
 from maro.rl.agent import (
-    DDPG, DQN, AbsAgent, ActorCritic, ActorCriticConfig, DDPGConfig, DQNConfig, MultiAgentWrapper, PolicyGradient
+    DDPG, DQN, AbsAgent, ActorCritic, ActorCriticConfig, DDPGConfig, DQNConfig, MultiAgentWrapper, PolicyGradient,
+    PolicyGradientConfig
 )
 from maro.rl.distributed import Actor, DistLearner 
 from maro.rl.exploration import (
@@ -20,7 +21,7 @@ from maro.rl.utils import (
 
 __all__ = [
     "AbsAgent", "ActorCritic", "ActorCriticConfig", "DDPG", "DDPGConfig", "DQN", "DQNConfig", "MultiAgentWrapper",
-    "PolicyGradient",
+    "PolicyGradient", "PolicyGradientConfig",
     "Actor", "DistLearner",
     "AbsExplorer", "EpsilonGreedyExplorer", "GaussianNoiseExplorer", "NoiseExplorer", "UniformNoiseExplorer",
     "AbsBlock", "AbsCoreModel", "FullyConnectedBlock", "OptimOption", "SimpleMultiHeadModel",

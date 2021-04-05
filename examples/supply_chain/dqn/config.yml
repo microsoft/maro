@@ -16,24 +16,27 @@ agent:
     optim_cls: rmsprop
     optim_params:
       lr: 0.001
-  hyper_params: 
-    reward_discount: .0
-    experience_memory_size: 50000
-    experience_memory_overwrite_type: random
-    min_experiences: 10
+  algorithm:
+    reward_discount: .9
     train_iters: 10
     batch_size: 128
-    loss_cls: smooth_l1
+    loss_cls: mse
     target_update_freq: 5
-    tau: 0.1
+    soft_update_coefficient: 0.1
     double: false
+  experience_memory:
+    experience_memory_size: 50000
+    experience_memory_overwrite_type: random
+    flush_experience_memory_after_step: false
+    min_new_experiences_to_trigger_learning: 16
+    min_experience_memory_size: 10
 training: 
   env: 
     scenario: supply_chain
     topology: sample1
     durations: 200
   max_episode: 10
-  learning_interval: 45 
+  agent_update_interval: 45 
   exploration:
     parameter_names:
       - epsilon

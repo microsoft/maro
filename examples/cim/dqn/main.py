@@ -38,11 +38,12 @@ NUM_ACTORS = int(getenv("NUMACTORS", default=config["distributed"]["num_actors"]
 
 
 def get_dqn_agent():
+    cfg = config["agent"]
     q_model = SimpleMultiHeadModel(
-        FullyConnectedBlock(input_dim=IN_DIM, output_dim=OUT_DIM, **config["agent"]["model"]),
-        optim_option=OptimOption(**config["agent"]["optimization"])
+        FullyConnectedBlock(input_dim=IN_DIM, output_dim=OUT_DIM, **cfg["model"]),
+        optim_option=OptimOption(**cfg["optimization"])
     )
-    return DQN(q_model, DQNConfig(**config["agent"]["hyper_params"]))
+    return DQN(q_model, DQNConfig(**cfg["algorithm"]), **cfg["experience_memory"])
 
 
 def cim_dqn_learner():
@@ -51,7 +52,8 @@ def cim_dqn_learner():
     learner = DistLearner(
         agent, scheduler, NUM_ACTORS, GROUP,
         proxy_options={"redis_address": (REDIS_HOST, REDIS_PORT)},
-        agent_update_interval=config["distributed"]["agent_update_interval"]
+        agent_update_interval=config["training"]["agent_update_interval"],
+        ignore_stale_experiences=False
     )
     learner.run()
 

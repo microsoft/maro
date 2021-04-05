@@ -55,11 +55,11 @@ class Actor(object):
 
                 step_index = self.env.step_index
                 self.agent.load_model(msg.body[MsgKey.MODEL])
-                for _ in range(msg.body[MsgKey.NUM_STEPS]):
+                num_steps = float("inf") if msg.body[MsgKey.NUM_STEPS] == -1 else msg.body[MsgKey.NUM_STEPS]
+                while self.env.state and num_steps > 0:
                     action = self.agent.choose_action(self.env.state)
                     self.env.step(action)
-                    if not self.env.state:
-                        break
+                    num_steps -= 1
 
                 self._logger.info(
                     f"Roll-out finished for ep {rollout_index}, segment {segment_index}"
@@ -72,6 +72,7 @@ class Actor(object):
                         MsgKey.END_OF_EPISODE: not self.env.state,
                         MsgKey.ROLLOUT_INDEX: rollout_index,
                         MsgKey.SEGMENT_INDEX: segment_index,
+                        MsgKey.METRICS: self.env.metrics,
                         MsgKey.EXPERIENCES: self.env.pull_experiences(copy=self._pull_experiences_with_copy)
                     }
                 )

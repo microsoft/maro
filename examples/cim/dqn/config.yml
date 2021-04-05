@@ -42,24 +42,27 @@ agent:
     optim_cls: rmsprop
     optim_params:
       lr: 0.05
-  hyper_params: 
+  algorithm: 
     reward_discount: .0
-    experience_memory_size: -1
-    experience_memory_overwrite_type: "rolling"
-    min_new_experiences_to_learn: 16
-    min_experiences: 1024
     train_iters: 10
     batch_size: 128
     loss_cls: smooth_l1
     target_update_freq: 5
-    tau: 0.1
+    soft_update_coefficient: 0.1
     double: false
+  experience_memory:
+    experience_memory_size: -1
+    experience_memory_overwrite_type: "rolling"
+    flush_experience_memory_after_step: false
+    min_new_experiences_to_trigger_learning: 16
+    min_experience_memory_size: 1024
 training: 
   env:
     scenario: cim
     topology: toy.4p_ssdd_l0.0
     durations: 1120
   max_episode: 100
+  agent_update_interval: -1
   exploration:
     parameter_names:
       - epsilon
@@ -73,5 +76,3 @@ distributed:
   redis_host: localhost
   redis_port: 6379
   min_actor_finishes: 2
-  agent_update_interval: 100
-  ignore_stale_experiences: False

@@ -51,7 +51,6 @@ class MultiAgentWrapper:
         
         The top-level keys of ``experiences`` will be treated as agent IDs. 
         """
-        print("updating agents")
         return {agent_id for agent_id, exp in experiences.items() if self.agent_dict[agent_id].update(exp)}
 
     def step(self, agent_ids=None):
@@ -65,7 +64,7 @@ class MultiAgentWrapper:
                 self.agent_dict[agent_id].step()
 
     def load_model(self, model_dict: dict):
-        """Load models from memory for each agent."""
+        """Load models from memory."""
         for agent_id, model in model_dict.items():
             self.agent_dict[agent_id].load_model(model)
 
@@ -82,7 +81,7 @@ class MultiAgentWrapper:
             return {agent_id: self.agent_dict[agent_id].dump_model() for agent_id in agent_ids}
 
     def load_model_from_file(self, dir_path):
-        """Load models from disk for each agent."""
+        """Load models from disk."""
         for agent_id, agent in self.agent_dict.items():
             agent.load_model_from_file(os.path.join(dir_path, agent_id))
 
@@ -103,7 +102,7 @@ class MultiAgentWrapper:
 
     def get_versions(self, agent_ids=None):
         if agent_ids is None:
-            return {aent_id: agent.version for agent_id, agent in self.agent_dict.items()}
+            return {agent_id: agent.version for agent_id, agent in self.agent_dict.items()}
         elif not isinstance(agent_ids, set):
             return self.agent_dict[agent_ids].version
         else:

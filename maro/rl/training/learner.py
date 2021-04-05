@@ -25,7 +25,7 @@ class Learner(object):
         env: AbsEnvWrapper,
         agent: Union[AbsAgent, MultiAgentWrapper],
         scheduler: Scheduler,
-        agent_update_interval: int = None
+        agent_update_interval: int = -1
     ):
         super().__init__()
         if agent_update_interval == 0:
@@ -47,7 +47,7 @@ class Learner(object):
             while self.env.state:
                 action = self.agent.choose_action(self.env.state)
                 self.env.step(action)
-                if self.agent_update_interval is not None and self.env.step_index % self.agent_update_interval == 0:
+                if self.agent_update_interval != -1 and self.env.step_index % self.agent_update_interval == 0:
                     self.agent.update(self.env.pull_experiences())
 
             self.agent.update(self.env.pull_experiences())

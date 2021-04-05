@@ -115,6 +115,7 @@ class World:
         Returns:
             UnitBase: Unit instance.
         """
+        print(list(self.units.keys()))
         return self.units[unit_id]
 
     def find_path(self, start_x: int, start_y: int, goal_x: int, goal_y: int) -> List[Tuple[int, int]]:

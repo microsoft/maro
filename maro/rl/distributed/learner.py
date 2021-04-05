@@ -77,12 +77,11 @@ class DistLearner(object):
                             f"(expected {index})"
                         )
                         continue
-
-                    # if msg.tag == MsgTag.EXPERIENCE:
-                        # print(f"received exp from actor {msg.source} ")
-                        # print({agent_id: {k: len(v) for k, v in exp.items()} for agent_id, exp in msg.body[MsgKey.EXPERIENCE].items()})
-                    # If enough update messages have been received, call update() and break out of the loop to start
-                    # the next episode.
+                    
+                    env_metrics = msg.body[MsgKey.METRICS]
+                    self._logger.info(
+                        f"ep-{rollout_index}, segment-{segment_index}: {env_metrics} ({exploration_params})"
+                    )
                     if msg.body[MsgKey.SEGMENT_INDEX] == segment_index or not self.ignore_stale_experiences:
                         updated_agents.update(self.agent.update(msg.body[MsgKey.EXPERIENCES]))
                         self._logger.info(f"Learning finished for agent {updated_agents}")
@@ -93,7 +92,6 @@ class DistLearner(object):
                         break
 
                 segment_index += 1
-                # self._logger.info(f"ep-{rollout_index}: {env_metrics} ({exploration_params})")
 
     def terminate(self):
         """Tell the remote actors to exit."""

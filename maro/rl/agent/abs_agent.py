@@ -6,40 +6,7 @@ from abc import ABC, abstractmethod
 import torch
 
 from maro.rl.model import AbsCoreModel
-from maro.rl.storage import SimpleStore
-
-
-class AgentConfig:
-    """Configuration for the DQN algorithm.
-
-    Args:
-        reward_discount (float): Reward decay as defined in standard RL terminology.
-        experience_memory_size (int): Size of the experience memory. If it is -1, the experience memory is of
-            unlimited size.
-        experience_memory_overwrite_type (str): A string indicating how experiences in the experience memory are
-            to be overwritten after its capacity has been reached. Must be "rolling" or "random".
-        min_new_experiences_to_learn (int): Minimum number of new experiences required to trigger learning.
-        flush_experience_memory_after_step (bool): If True, the experience memory will be flushed after each call
-            to ``step``.
-    """
-    __slots__ = [
-        "reward_discount", "experience_memory_size", "experience_memory_overwrite_type",
-        "min_new_experiences_to_learn", "flush_experience_memory_after_step"
-    ]
-
-    def __init__(
-        self,
-        reward_discount: float,
-        experience_memory_size: int,
-        experience_memory_overwrite_type: str,
-        min_new_experiences_to_learn: int,
-        flush_experience_memory_after_step: bool
-    ):
-        self.reward_discount = reward_discount
-        self.experience_memory_size = experience_memory_size
-        self.experience_memory_overwrite_type = experience_memory_overwrite_type
-        self.min_new_experiences_to_learn = min_new_experiences_to_learn
-        self.flush_experience_memory_after_step = flush_experience_memory_after_step
+from maro.rl.storage import SimpleStore   
 
 
 class AbsAgent(ABC):
@@ -54,15 +21,35 @@ class AbsAgent(ABC):
     Args:
         model (AbsCoreModel): Task model or container of task models required by the algorithm.
         config: Settings for the algorithm.
+        experience_memory_size (int): Size of the experience memory. If it is -1, the experience memory is of
+            unlimited size.
+        experience_memory_overwrite_type (str): A string indicating how experiences in the experience memory are
+            to be overwritten after its capacity has been reached. Must be "rolling" or "random".
+        flush_experience_memory_after_step (bool): If True, the experience memory will be flushed after each call
+            to ``step``.
+        min_new_experiences_to_trigger_learning (int): Minimum number of new experiences required to trigger learning.
+            Defaults to 1.
+        min_experience_memory_size (int): Minimum number of experiences in the experience memory required for training.
+            Defaults to 1.
     """
-    def __init__(self, model: AbsCoreModel, config: AgentConfig):
+    def __init__(
+        self,
+        model: AbsCoreModel,
+        config,
+        experience_memory_size: int,
+        experience_memory_overwrite_type: str,
+        flush_experience_memory_after_step: bool,
+        min_new_experiences_to_trigger_learning: int = 1,
+        min_experience_memory_size: int = 1
+    ):
         self.model = model
         self.config = config
         self.experience_memory = SimpleStore(
-            ["S", "A", "R", "S_"],
-            capacity=self.config.experience_memory_size,
-            overwrite_type=self.config.experience_memory_overwrite_type
+            ["S", "A", "R", "S_"], capacity=experience_memory_size, overwrite_type=experience_memory_overwrite_type
         )
+        self.flush_experience_memory_after_step = flush_experience_memory_after_step
+        self.min_new_experiences_to_trigger_learning = min_new_experiences_to_trigger_learning
+        self.min_experience_memory_size = min_experience_memory_size
         self.device = torch.device('cpu')
         self._version_index = 0
 
@@ -99,12 +86,13 @@ class AbsAgent(ABC):
         if set(experiences.keys()) != {"S", "A", "R", "S_"}:
             raise ValueError("The keys of experiences must be {'S', 'A', 'R', 'S_'}")
         self.experience_memory.put(experiences)
-        n = len(experiences["S"])
-        print(f"got {n} new exp")
-        if len(experiences["S"]) >= self.config.min_new_experiences_to_learn:
+        if (
+            len(experiences["S"]) >= self.min_new_experiences_to_trigger_learning and
+            len(self.experience_memory) >= self.min_experience_memory_size
+        ):
             self.step()
             self._version_index += 1
-            if self.config.flush_experience_memory_after_step:
+            if self.flush_experience_memory_after_step:
                 self.experience_memory.clear()
             return True
         return False

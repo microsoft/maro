@@ -55,19 +55,22 @@ agent:
       optim_cls: rmsprop
       optim_params:
         lr: 0.001
-  hyper_params:
+  algorithm:
     reward_discount: .0
-    experience_memory_size: -1
-    experience_memory_overwrite_type: "rolling"
     critic_loss_cls: smooth_l1
     train_iters: 10
     actor_loss_coefficient: 0.1
-    min_new_experiences_to_learn: 1
     # clip_ratio: 0.8   # for PPO
+  experience_memory:
+    experience_memory_size: -1
+    experience_memory_overwrite_type: "rolling"
+    flush_experience_memory_after_step: bool,
+    min_new_experiences_to_trigger_learning: 1
+    min_experience_memory_size: 1
 training:
   env:
     scenario: cim
     topology: toy.4p_ssdd_l0.0
     durations: 1120
   max_episode: 50
-  agent_update_interval: 200
+  agent_update_interval: -1

@@ -175,6 +175,7 @@ class SCEnvWrapper(AbsEnvWrapper):
                     env_action[agent_id] = ConsumerAction(agent_id, product_id, source_id, action, 1)
             # manufacturer action
             elif agent_id.startswith("producer"):
+                agent_id = int(agent_id.split(".")[1])
                 env_action[agent_id] = ManufactureAction(agent_id, action)
 
         return env_action
@@ -214,7 +215,7 @@ class SCEnvWrapper(AbsEnvWrapper):
 
             self._cur_facility_storage_product_mapping = {product_id: i for i, product_id in enumerate(storage_product_list)}
 
-            f_state = self._state(agent_info)
+            f_state = self._state_from_info(agent_info)
 
             self._add_global_features(f_state)
 
@@ -223,7 +224,7 @@ class SCEnvWrapper(AbsEnvWrapper):
 
         return self._serialize_state(state)
 
-    def _state(self, agent_info):
+    def _state_from_info(self, agent_info):
         state = {}
 
         self._add_facility_features(state, agent_info)

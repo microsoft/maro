@@ -6,7 +6,7 @@ from .ac import ActorCritic, ActorCriticConfig
 from .ddpg import DDPG, DDPGConfig
 from .dqn import DQN, DQNConfig
 from .multi_agent_wrapper import MultiAgentWrapper
-from .pg import PolicyGradient
+from .pg import PolicyGradient, PolicyGradientConfig
 
 __all__ = [
     "AbsAgent",
@@ -14,5 +14,5 @@ __all__ = [
     "DDPG", "DDPGConfig",
     "DQN", "DQNConfig",
     "MultiAgentWrapper",
-    "PolicyGradient"
+    "PolicyGradient", "PolicyGradientConfig"
 ]
