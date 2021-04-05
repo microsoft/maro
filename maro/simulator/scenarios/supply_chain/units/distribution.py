@@ -80,7 +80,7 @@ class DistributionUnit(UnitBase):
     def step(self, tick: int):
         for vehicle in self.vehicles:
             # If we have vehicle not on the way and there is any pending order.
-            if len(self.order_queue) > 0 and vehicle.quantity == 0:
+            if len(self.order_queue) > 0 and vehicle.requested_quantity == 0:
                 order = self.order_queue.popleft()
 
                 # Schedule a job for available vehicle.
@@ -105,7 +105,7 @@ class DistributionUnit(UnitBase):
 
     def flush_states(self):
         super(DistributionUnit, self).flush_states()
-        
+
         for vehicle in self.vehicles:
             vehicle.flush_states()
 

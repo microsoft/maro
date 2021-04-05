@@ -37,6 +37,6 @@ class PortOrderExporter:
 
                 for order in self._orders:
                     writer.writerow(
-                        [order.tick, order.src_port_idx, order.dest_port_idx, order.quantity])
+                        [order.tick, order.src_port_idx, order.dest_port_idx, order.requested_quantity])
 
             self._orders.clear()

@@ -127,7 +127,7 @@ class ConsumerUnit(SkuUnit):
             self.data_model.order_product_cost = self.order_product_cost
 
         if self.action is not None and self.action.quantity > 0:
-            self.data_model.order_quantity = self.action
+            self.data_model.order_quantity = self.action.quantity
 
     def post_step(self, tick: int):
         # Clear the action states per step.

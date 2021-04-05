@@ -36,7 +36,7 @@ class VehicleUnit(UnitBase):
 
         # Velocity.
         self.velocity = 0
-        self.quantity = 0
+        self.requested_quantity = 0
         self.patient = 0
         self.cost = 0
         self.unit_transport_cost = 0
@@ -52,7 +52,7 @@ class VehicleUnit(UnitBase):
         """
         self.product_id = product_id
         self.destination = destination
-        self.quantity = quantity
+        self.requested_quantity = quantity
 
         # Find the path from current entity to target.
         self.path = self.world.find_path(
@@ -110,6 +110,7 @@ class VehicleUnit(UnitBase):
             )
 
             self.payload -= unloaded_units
+            self.data_model.payload = self.payload
 
     def is_enroute(self):
         return self.destination is not None
@@ -120,7 +121,7 @@ class VehicleUnit(UnitBase):
         patient = self.config.get("patient", 100)
         self.unit_transport_cost = self.config.get("unit_transport_cost", 1)
 
-        self.data_model.initialize(patient=patient, unit_transport_cost=self.unit_transport_cost)
+        self.data_model.initialize(unit_transport_cost=self.unit_transport_cost)
 
         self.max_patient = patient
 
@@ -131,7 +132,7 @@ class VehicleUnit(UnitBase):
             if self.location == 0 and self.payload == 0:
                 # then try to load by requested.
 
-                if self.try_load(self.quantity):
+                if self.try_load(self.requested_quantity):
                     # NOTE: here we return to simulate loading
                     return
                 else:
@@ -142,7 +143,7 @@ class VehicleUnit(UnitBase):
                         self.destination.products[self.product_id].consumer.update_open_orders(
                             self.facility.id,
                             self.product_id,
-                            -self.quantity
+                            -self.requested_quantity
                         )
 
                         self._reset_internal_states()
@@ -160,11 +161,11 @@ class VehicleUnit(UnitBase):
         else:
             # Avoid update under idle state.
             if self.location > 0:
-                # try to unload
+                # Try to unload.///////////////////////////////////////////////////////////////////
                 if self.payload > 0:
                     self.try_unload()
 
-                # back to source if we unload all
+                # Back to source if we unload all.
                 if self.payload == 0:
                     self._reset_internal_states()
                     self._reset_data_model()
@@ -184,11 +185,10 @@ class VehicleUnit(UnitBase):
         self.product_id = 0
         self.steps = 0
         self.location = 0
-        self.quantity = 0
+        self.requested_quantity = 0
         self.velocity = 0
         self.patient = self.max_patient
 
     def _reset_data_model(self):
         # Reset data model.
         self.data_model.payload = 0
-        self.data_model.patient = self.max_patient
