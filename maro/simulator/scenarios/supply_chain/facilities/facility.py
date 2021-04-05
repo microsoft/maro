@@ -50,6 +50,8 @@ class FacilityBase(ABC):
     # Index of the data model node.
     data_model_index: int = 0
 
+    data_model: object = None
+
     # Children of this facility (valid units).
     children: list = None
 
@@ -130,6 +132,9 @@ class FacilityBase(ABC):
         """Reset facility for new episode."""
         for unit in self.children:
             unit.reset()
+
+        if self.data_model is not None:
+            self.data_model.reset()
 
     def get_in_transit_orders(self):
         in_transit_orders = defaultdict(int)

@@ -26,10 +26,11 @@ class ProductUnit(SkuUnit):
     # Storage of this facility, always a reference of facility.storage.
     storage: StorageUnit = None
 
+    # Reference to facility's distribution unit.
     distribution: DistributionUnit = None
 
     def initialize(self):
-        super(ProductUnit, self).initialize()
+        super().initialize()
 
         facility_sku = self.facility.skus[self.product_id]
 
@@ -44,13 +45,13 @@ class ProductUnit(SkuUnit):
             unit.flush_states()
 
     def post_step(self, tick: int):
-        super(ProductUnit, self).post_step(tick)
+        super().post_step(tick)
 
         for unit in self.children:
             unit.post_step(tick)
 
     def reset(self):
-        super(ProductUnit, self).reset()
+        super().reset()
 
         for unit in self.children:
             unit.reset()
@@ -140,7 +141,8 @@ class ProductUnit(SkuUnit):
             for sku_id, sku in facility.skus.items():
                 sku_type = sku.type
 
-                product_unit: ProductUnit = world.build_unit_by_type(ProductUnit, facility, facility, unit_def)
+                product_unit: ProductUnit = world.build_unit_by_type(unit_def, facility, facility)
+                # product_unit: ProductUnit = world.build_unit(facility, facility, unit_def)
                 product_unit.product_id = sku_id
                 product_unit.children = []
                 product_unit.parse_configs(config)

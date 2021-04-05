@@ -16,8 +16,8 @@ class SkuDataModel(DataModelBase):
     # Parent unit id.
     product_unit_id = NodeAttribute(AttributeType.UInt)
 
-    def __int__(self):
-        super(SkuDataModel, self).__int__()
+    def __init__(self):
+        super(SkuDataModel, self).__init__()
 
         self._product_id = 0
         self._product_unit_id = 0

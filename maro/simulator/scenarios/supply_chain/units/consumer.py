@@ -86,11 +86,6 @@ class ConsumerUnit(SkuUnit):
                         if sku.id in source_facility.skus:
                             self.sources.append(source_facility.id)
 
-            if len(self.sources) == 0:
-                warnings.warn(
-                    f"No sources for consumer: {self.id}, sku: {self.product_id} in facility: {self.facility.name}.")
-                return
-
     def step(self, tick: int):
         self._update_pending_order()
 

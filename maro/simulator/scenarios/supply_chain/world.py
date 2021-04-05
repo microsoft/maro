@@ -288,9 +288,8 @@ class World:
 
                 self.agent_type_dict[agent_type] = True
 
-    def build_unit_by_type(self, unit_type: type, parent: Union[FacilityBase, UnitBase], facility: FacilityBase,
-                           unit_def: UnitDef):
-        unit = unit_type()
+    def build_unit_by_type(self, unit_def: UnitDef, parent: Union[FacilityBase, UnitBase], facility: FacilityBase):
+        unit = unit_def.class_type()
 
         unit.id = self._gen_id()
         unit.parent = parent
