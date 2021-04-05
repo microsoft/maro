@@ -27,7 +27,6 @@ class SellerUnit(SkuUnit):
         self.price = 0
 
         self.sale_hist = []
-        self.backlog_ratio = 0
 
     def market_demand(self, tick: int) -> int:
         """Generate market demand for current tick.
@@ -45,10 +44,10 @@ class SellerUnit(SkuUnit):
 
         sku = self.facility.skus[self.product_id]
 
-        self.price = sku.price
         self.gamma = sku.sale_gamma
-        self.backlog_ratio = sku.backlog_ratio
         self.durations = self.world.durations
+
+        self.data_model.initialize(sku.price, sku.backlog_ratio)
 
         # Generate demand distribution of this episode.
         for _ in range(self.durations):
@@ -69,10 +68,6 @@ class SellerUnit(SkuUnit):
 
         self.sale_hist.append(demand)
         self.sale_hist = self.sale_hist[1:]
-
-        self.step_balance_sheet.profit = sold_qty * self.price
-        self.step_balance_sheet.loss = -demand * self.price * self.backlog_ratio
-        self.step_reward = self.step_balance_sheet.total()
 
     def flush_states(self):
         if self.sold > 0:
@@ -97,11 +92,10 @@ class SellerUnit(SkuUnit):
     def reset(self):
         super(SellerUnit, self).reset()
 
-        # TODO: regenerate the demand distribution?
-        # self.demand_distribution.clear()
+        self.demand_distribution.clear()
 
-        # for _ in range(self.durations):
-        #     self.demand_distribution.append(np.random.gamma(self.gamma))
+        for _ in range(self.durations):
+            self.demand_distribution.append(np.random.gamma(self.gamma))
 
     def sale_mean(self):
         return np.mean(self.sale_hist)

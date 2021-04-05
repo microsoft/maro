@@ -1,9 +1,13 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from collections import defaultdict
 from abc import ABC
-from maro.simulator.scenarios.supply_chain.units.balancesheet import BalanceSheet
+from collections import defaultdict
+from typing import List, Dict
+
+from maro.simulator.scenarios.supply_chain.easy_config import SkuInfo
+from maro.simulator.scenarios.supply_chain.units import DistributionUnit, ProductUnit, StorageUnit
+
 
 class FacilityBase(ABC):
     """Base of all facilities."""
@@ -18,41 +22,44 @@ class FacilityBase(ABC):
     world = None
 
     # Skus in this facility.
-    skus: dict = None
+    skus: Dict[int, SkuInfo] = None
 
     # Product units for each sku in this facility.
     # Key is sku(product) id, value is the instance of product unit.
-    products: dict = None
+    products: Dict[int, ProductUnit] = None
 
     # Storage unit in this facility.
-    storage = None
+    storage: StorageUnit = None
 
     # Distribution unit in this facility.
-    distribution = None
+    distribution: DistributionUnit = None
 
     # Upstream facilities.
     # Key is sku id, value is the list of product unit from upstream.
-    upstreams: dict = None
-    downstreams: dict = None
+    upstreams: Dict[int, List[ProductUnit]] = None
+
+    # Down stream facilities, value same as upstreams.
+    downstreams: Dict[int, List[ProductUnit]] = None
 
     # Configuration of this facility.
     configs: dict = None
 
+    # Name of data model, from configuration.
     data_model_name: str = None
+
+    # Index of the data model node.
     data_model_index: int = 0
 
-    step_balance_sheet: BalanceSheet = None
-    total_balance_sheet: BalanceSheet = None
+    data_model: object = None
+
+    # Children of this facility (valid units).
     children: list = None
 
     def __init__(self):
         self.upstreams = {}
         self.downstreams = {}
-
-        self.step_balance_sheet = BalanceSheet()
-        self.total_balance_sheet = BalanceSheet()
-        self.step_reward = 0
         self.children = []
+        self.skus = {}
 
     def parse_skus(self, configs: dict):
         """Parse sku information from config.
@@ -60,7 +67,12 @@ class FacilityBase(ABC):
         Args:
             configs (dict): Configuration of skus belongs to this facility.
         """
-        pass
+        for sku_name, sku_config in configs.items():
+            global_sku = self.world.get_sku_by_name(sku_name)
+            facility_sku = SkuInfo(sku_config)
+            facility_sku.id = global_sku.id
+
+            self.skus[global_sku.id] = facility_sku
 
     def parse_configs(self, configs: dict):
         """Parse configuration of this facility.
@@ -70,16 +82,23 @@ class FacilityBase(ABC):
         """
         self.configs = configs
 
-    def get_config(self, key: str, default: object = None):
+    def get_config(self, key: str, default: object = None) -> object:
+        """Get specified configuration of facility.
+
+        Args:
+            key (str): Key of the configuration.
+            default (object): Default value if key not exist, default is None.
+
+        Returns:
+            object: value in configuration.
+        """
         return default if self.configs is None else self.configs.get(key, default)
 
     def initialize(self):
         """Initialize this facility after frame is ready."""
-        has_storage = self.storage is not None
-        has_distribution = self.distribution is not None
-
         self.data_model.initialize()
 
+        # Put valid units into the children, used to simplify following usage.
         if self.storage is not None:
             self.children.append(self.storage)
 
@@ -96,19 +115,8 @@ class FacilityBase(ABC):
         Args:
             tick (int): Current simulator tick.
         """
-        rewards = []
-        balance_sheets = []
-
         for unit in self.children:
             unit.step(tick)
-
-            balance_sheets.append(unit.step_balance_sheet)
-            rewards.append(unit.step_reward)
-
-        self.step_balance_sheet = sum(balance_sheets)
-        self.step_reward = sum(rewards)
-
-        self.total_balance_sheet += self.step_balance_sheet
 
     def flush_states(self):
         """Flush states into frame."""
@@ -125,6 +133,9 @@ class FacilityBase(ABC):
         for unit in self.children:
             unit.reset()
 
+        if self.data_model is not None:
+            self.data_model.reset()
+
     def get_in_transit_orders(self):
         in_transit_orders = defaultdict(int)
 
@@ -133,6 +144,9 @@ class FacilityBase(ABC):
                 in_transit_orders[product_id] = product.consumer.get_in_transit_quantity()
 
         return in_transit_orders
+
+    def set_action(self, action: object):
+        pass
 
     def get_node_info(self) -> dict:
         products_info = {}
@@ -152,5 +166,8 @@ class FacilityBase(ABC):
             },
             "configs": self.configs,
             "skus": self.skus,
-            "upstreams": { product_id: [f.id for f in source_list] for product_id, source_list in self.upstreams.items()}
+            "upstreams": {product_id: [f.id for f in source_list] for product_id, source_list in
+                          self.upstreams.items()},
+            "downstreams": {product_id: [f.id for f in source_list] for product_id, source_list in
+                            self.downstreams.items()}
         }

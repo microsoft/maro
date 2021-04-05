@@ -26,8 +26,11 @@ children:
         class: "ProductUnit"
         is_template: true
         config:
+            agent_type: 4
             consumer:
                 class: "ConsumerUnit"
+config:
+    agent_type: 1
 """
 
 # Definition of supplier.
@@ -42,10 +45,13 @@ children:
         class: "ProductUnit"
         is_template: true
         config:
+            agent_type: 3
             consumer:
                 class: "ConsumerUnit"
             manufacture:
                 class: "ManufactureUnit"
+config:
+    agent_type: 0
 """
 
 # Definition of retailer.
@@ -55,13 +61,18 @@ children:
     storage:
         class: "StorageUnit"
     products:
-        class: "ProductUnit"
+        class: "StoreProductUnit"
         is_template: true
         config:
+            agent_type: 5
             consumer:
                 class: "ConsumerUnit"
             seller:
                 class: "SellerUnit"
+                config:
+                    sale_hist_len: 4
+config:
+    agent_type: 2
 """
 
 # Template to generate a supplier facility.
@@ -157,7 +168,21 @@ def generate_config(sku_num: int, supplier_num: int, warehouse_num: int, retaile
     }
 
     # Save the vehicle definition in the config, so later distribution will reference to it.
-    config = {"normal_vehicle": vehicle_conf, "facility_definitions": {}}
+    config = {
+        "normal_vehicle": vehicle_conf,
+        "facility_definitions": {},
+        "settings": {
+            'global_reward_weight_producer': 0.50,
+            'global_reward_weight_consumer': 0.50,
+            "initial_balance": 100000,
+            "constraint_state_hist_len": max_constraint_states,
+            "total_echelons": 3,
+            "replenishment_discount": 0.9,
+            "reward_normalization": 1e7,
+            "constraint_violate_reward": -1e7,
+            "pending_order_len": 5
+        }
+    }
 
     # Add the facility definitions.
     config["facility_definitions"]["SupplierFacility"] = safe_load(supplier_def)
@@ -165,16 +190,7 @@ def generate_config(sku_num: int, supplier_num: int, warehouse_num: int, retaile
     config["facility_definitions"]["RetailerFacility"] = safe_load(retailer_def)
 
     # Generate settings first.
-    world_conf = {"settings": {
-        'global_reward_weight_producer': 0.50,
-        'global_reward_weight_consumer': 0.50,
-        "initial_balance": 100000,
-        "constraint_state_hist_len": max_constraint_states,
-        "total_echelons": 3,
-        "replenishment_discount": 0.9,
-        "reward_normalization": 1e7,
-        "constraint_violate_reward": -1e7,
-    }}
+    world_conf = {}
 
     sku_names = [f'SKU{i}' for i in range(sku_num)]
 

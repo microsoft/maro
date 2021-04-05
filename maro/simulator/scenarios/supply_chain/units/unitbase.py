@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from .balancesheet import BalanceSheet
 
 class UnitBase:
     """Base of all unit used to contain related logic.
@@ -51,12 +50,8 @@ class UnitBase:
     # Current unit configurations.
     config: dict = None
 
-    step_balance_sheet: BalanceSheet = None
-    step_reward: float = None
-
     def __init__(self):
-        self.step_balance_sheet = BalanceSheet()
-        self.step_reward = 0
+        pass
 
     def parse_configs(self, config: dict):
         """Parse configurations from config.

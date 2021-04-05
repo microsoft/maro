@@ -13,20 +13,19 @@ class VehicleDataModel(DataModelBase):
     # Number of product.
     payload = NodeAttribute(AttributeType.UInt)
 
-    # Patient to wait for products ready.
-    patient = NodeAttribute(AttributeType.UInt)
+    unit_transport_cost = NodeAttribute(AttributeType.Float)
 
     def __init__(self):
         super(VehicleDataModel, self).__init__()
 
-        self._patient = 0
+        self._unit_transport_cost = 1
 
-    def initialize(self, patient: int = 100):
-        self._patient = patient
+    def initialize(self, unit_transport_cost: int = 1):
+        self._unit_transport_cost = unit_transport_cost
 
         self.reset()
 
     def reset(self):
         super(VehicleDataModel, self).reset()
 
-        self.patient = self._patient
+        self.unit_transport_cost = self._unit_transport_cost

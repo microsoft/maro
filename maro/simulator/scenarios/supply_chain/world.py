@@ -6,15 +6,14 @@ from collections import namedtuple
 from typing import List, Tuple, Union
 
 import networkx as nx
-
 from maro.backends.frame import FrameBase
 
+from .easy_config import EasyConfig, SkuInfo
 from .facilities import FacilityBase
 from .frame_builder import build_frame
 from .parser import DataModelDef, FacilityDef, SupplyChainConfiguration, UnitDef
 from .units import UnitBase, ProductUnit
 
-SkuInfo = namedtuple("SkuInfo", ("name", "id", "bom", "output_units_per_lot"))
 AgentInfo = namedtuple("AgentInfo", ("id", "agent_type", "is_facility", "sku", "facility_id"))
 
 
@@ -31,7 +30,7 @@ class World:
         # Durations of current simulation.
         self.durations = 0
 
-        # All the units in the world.
+        # All the entities in the world.
         self.units = {}
 
         # All the facilities in this world.
@@ -62,18 +61,18 @@ class World:
         self.max_sources_per_facility = 0
         self.max_price = 0
 
-    def get_sku_by_name(self, name: str) -> SkuInfo:
+    def get_sku_by_name(self, name: str) -> EasyConfig:
         """Get sku information by name.
 
         Args:
             name (str): Sku name to query.
 
         Returns:
-            SkuInfo: General information for sku.
+            EasyConfig: General information for sku, used as a dict, but support use key as property.
         """
         return self._sku_collection.get(name, None)
 
-    def get_sku_by_id(self, sku_id: int) -> SkuInfo:
+    def get_sku_by_id(self, sku_id: int) -> EasyConfig:
         """Get sku information by sku id.
 
         Args:
@@ -106,17 +105,19 @@ class World:
         """
         return self.facilities[self._facility_name2id_mapping[name]]
 
-    def get_unit(self, unit_id: int) -> UnitBase:
-        """Get an unit by id.
+    def get_entity(self, id: int) -> Union[FacilityBase, UnitBase]:
+        """Get an entity(Unit or Facility) by id.
 
         Args:
-            unit_id (int): Id to query.
+            id (int): Id to query.
 
         Returns:
-            UnitBase: Unit instance.
+            Union[FacilityBase, UnitBase]: Unit or facility instance.
         """
-        print(list(self.units.keys()))
-        return self.units[unit_id]
+        if id in self.units:
+            return self.units[id]
+        else:
+            return self.facilities[id]
 
     def find_path(self, start_x: int, start_y: int, goal_x: int, goal_y: int) -> List[Tuple[int, int]]:
         """Find path to specified cell.
@@ -147,7 +148,7 @@ class World:
 
         # Grab sku information for this world.
         for sku_conf in world_config["skus"]:
-            sku = SkuInfo(sku_conf["name"], sku_conf["id"], {}, sku_conf.get("output_units_per_lot", 1))
+            sku = SkuInfo(sku_conf)
 
             self._sku_id2name_mapping[sku.id] = sku.name
             self._sku_collection[sku.name] = sku
@@ -155,6 +156,7 @@ class World:
         # Collect bom info.
         for sku_conf in world_config["skus"]:
             sku = self._sku_collection[sku_conf["name"]]
+            sku.bom = {}
 
             bom = sku_conf.get("bom", {})
 
@@ -238,7 +240,6 @@ class World:
         for unit in self.units.values():
             unit.initialize()
 
-        # TODO: replace tcod with other lib.
         # Construct the map grid.
         grid_config = world_config["grid"]
 
@@ -259,9 +260,9 @@ class World:
             facility.y = pos[1]
             pos = tuple(pos)
 
-            # Neighbors to facility will have hight cost.
+            # Neighbors to facility will have high cost.
             for npos in ((pos[0] - 1, pos[1]), (pos[0] + 1, pos[1]), (pos[0], pos[1] - 1), (pos[0], pos[1] + 1)):
-                if npos[0] >= 0 and npos[0] < grid_width and npos[1] >= 0 and npos[1] < grid_height:
+                if 0 <= npos[0] < grid_width and 0 <= npos[1] < grid_height:
                     edge_weights[(npos, pos)] = 4
 
         nx.set_edge_attributes(self._graph, edge_weights, "cost")
@@ -281,13 +282,14 @@ class World:
             if type(unit) == ProductUnit:
                 agent_type = unit.config["agent_type"]
 
-                # unit or failicty id, agent type, is facility, sku info, facility id
-                self.agent_list.append(AgentInfo(unit.id, agent_type, False, unit.facility.skus[unit.product_id], unit.facility.id))
+                # unit or facility id, agent type, is facility, sku info, facility id
+                self.agent_list.append(
+                    AgentInfo(unit.id, agent_type, False, unit.facility.skus[unit.product_id], unit.facility.id))
 
                 self.agent_type_dict[agent_type] = True
 
-    def build_unit_by_type(self, unit_type: type, parent: Union[FacilityBase, UnitBase], facility: FacilityBase, unit_def: UnitDef):
-        unit = unit_type()
+    def build_unit_by_type(self, unit_def: UnitDef, parent: Union[FacilityBase, UnitBase], facility: FacilityBase):
+        unit = unit_def.class_type()
 
         unit.id = self._gen_id()
         unit.parent = parent
@@ -409,7 +411,9 @@ class World:
             "agent_types": [k for k in self.agent_type_dict.keys()],
             "unit_mapping": id2index_mapping,
             "skus": {sku.id: sku for sku in self._sku_collection.values()},
-            "facilities": facility_info_dict
+            "facilities": facility_info_dict,
+            "max_price": self.max_price,
+            "max_sources_per_facility": self.max_sources_per_facility,
         }
 
     def _register_data_model(self, alias: str) -> int:

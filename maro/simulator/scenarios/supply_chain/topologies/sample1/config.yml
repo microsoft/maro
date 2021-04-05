@@ -139,8 +139,9 @@ world:
           init_stock: 100
           product_unit_cost: 1
           type: "production" # production means this is the output production of this facility
-          cost": 10
-          price": 10
+          cost: 10
+          price: 10
+          vlt: 1
 
       # configuration of child units.
       children:
@@ -164,11 +165,13 @@ world:
           type: "production"
           cost: 10
           price: 100
+          vlt: 1
         sku3:
           init_stock: 100
           type: "material"
           cost: 10
           price: 100
+          vlt: 1
 
       children:
         storage: *small_storage
@@ -184,12 +187,15 @@ world:
         sku1:
           init_stock: 1000
           price: 100
+          vlt: 1
         sku2:
           init_stock: 1000
           price: 100
+          vlt: 1
         sku3:
           init_stock: 1000
           price: 100
+          vlt: 1
 
       children:
         storage: *huge_storage
@@ -207,18 +213,21 @@ world:
           init_stock: 100
           sale_gamma: 100
           backlog_ratio: 0.1 # optional
+          vlt: 1
         sku3:
           price: 200
           cost: 10
           init_stock: 100
           sale_gamma: 100
           backlog_ratio: 0.1
+          vlt: 1
         sku2:
           price: 100
           cost: 10
           init_stock: 100
           sale_gamma: 100
           backlog_ratio: 0.1
+          vlt: 1
 
       children:
         storage: *midium_storage
@@ -265,7 +274,7 @@ world:
         - [10, 11]
         - [10, 12]
         - [11, 12]
-        
+
 settings:
   global_reward_weight_producer: 0.50
   global_reward_weight_consumer: 0.50

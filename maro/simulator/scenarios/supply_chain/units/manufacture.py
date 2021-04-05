@@ -2,8 +2,6 @@
 # Licensed under the MIT license.
 
 
-from maro.simulator.scenarios.supply_chain.actions import ManufactureAction
-
 from .skuunit import SkuUnit
 
 
@@ -14,29 +12,24 @@ class ManufactureUnit(SkuUnit):
     """
 
     # Source material sku and related number per produce cycle.
-    bom = None
+    bom: dict = None
 
     # How many production unit each produce cycle.
-    output_units_per_lot = None
+    output_units_per_lot: int = None
 
     # How many unit we will consume each produce cycle.
-    input_units_per_lot = 0
+    input_units_per_lot: int = 0
 
     # How many we procedure per current step.
-    manufacture_number = 0
-
-    product_unit_cost = 0
-
-    def __init__(self):
-        super().__init__()
+    manufacture_number: int = 0
 
     def initialize(self):
         super(ManufactureUnit, self).initialize()
 
         facility_sku_info = self.facility.skus[self.product_id]
-        self.product_unit_cost = facility_sku_info.product_unit_cost
+        product_unit_cost = facility_sku_info.product_unit_cost
 
-        self.data_model.initialize()
+        self.data_model.initialize(product_unit_cost)
 
         global_sku_info = self.world.get_sku_by_id(self.product_id)
 
@@ -89,11 +82,6 @@ class ManufactureUnit(SkuUnit):
         else:
             self.manufacture_number = 0
 
-        cost = self.manufacture_number * self.product_unit_cost
-
-        self.step_balance_sheet.loss = -cost
-        self.step_reward = -cost
-
     def flush_states(self):
         if self.manufacture_number > 0:
             self.data_model.manufacturing_number = self.manufacture_number
@@ -105,6 +93,3 @@ class ManufactureUnit(SkuUnit):
 
         # NOTE: call super at last, since it will clear the action.
         super(ManufactureUnit, self).post_step(tick)
-
-    def set_action(self, action: ManufactureAction):
-        super(ManufactureUnit, self).set_action(action)
