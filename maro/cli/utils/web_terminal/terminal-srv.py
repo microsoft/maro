@@ -235,20 +235,20 @@ def update_cluster_list():
                 app.config["cluster_status"][cluster_name]["job_detail_data"] = local_executor.get_job_details()
                 # update_job_details(app.config["cluster_status"][cluster_name]["job_detail_data"], local_executor.get_job_details())
 
-        print(f"{app.config['cluster_list']}")
+        # print(f"{app.config['cluster_list']}")
 
 
 @socketio.on("cluster_list", namespace="/pty")
 def cluster_list():
     print("cluster list request received")
-    print(f"{app.config['cluster_list']}")
+    # print(f"{app.config['cluster_list']}")
     socketio.emit("cluster_list", app.config["cluster_list"], namespace="/pty")
 
 
 @socketio.on("cluster_status", namespace="/pty")
 def cluster_status(data):
     print("cluster status request received")
-    print(f"{app.config['cluster_status']}")
+    # print(f"{app.config['cluster_status']}")
     if data["cluster_name"] in app.config["cluster_status"].keys():
         socketio.emit("cluster_status", app.config["cluster_status"][data["cluster_name"]], namespace="/pty")
     else:

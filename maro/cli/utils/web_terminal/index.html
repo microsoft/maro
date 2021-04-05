@@ -24,6 +24,18 @@
       border-width: 0px;
     }
 
+    .job_normal {
+      /* width: 33%; */
+      height: calc((100vh - 60px - 340px - 20px)/2);
+      border-width: 0px;
+    }
+
+    .job_full {
+      /* width: 33%; */
+      height: calc((100vh - 60px - 20px)/2);
+      border-width: 0px;
+    }
+
     .el-header {
       line-height: 60px;
       font-weight: bold;
@@ -68,37 +80,64 @@
       text-align: center;
       font-weight: bold;
     }
-    
+
     .text_resource_type {
       line-height: 50px;
-      color:#92e82899;
+      color: #92e82899;
       overflow: visible;
       padding: 0px;
       text-align: center;
     }
 
-    .axis{
-      fill:none;
+    .axis {
+      fill: none;
     }
 
     /* change scroll bar style */
     * {
-        scrollbar-width: thin;
-        scrollbar-color: #2e2e2e #121212;
+      scrollbar-width: thin;
+      scrollbar-color: #2e2e2e #121212;
     }
 
     *::-webkit-scrollbar {
-        width: 12px;
+      width: 12px;
     }
 
     *::-webkit-scrollbar-track {
-        background: #121212;
+      background: #121212;
     }
 
     *::-webkit-scrollbar-thumb {
-        background-color: #2e2e2e;
-        border-radius: 4px;
-        border: 0px solid #121212;
+      background-color: #2e2e2e;
+      border-radius: 4px;
+      border: 0px solid #121212;
+    }
+
+    .tooltip {
+      position: relative;
+      display: inline-block;
+      border-bottom: 1px dotted black; /* If you want dots under the hoverable text */
+      overflow: visible;
+    }
+
+    /* Tooltip text */
+    .tooltip .tooltiptext {
+      visibility: hidden;
+      /* width: 120px; */
+      background-color: #2e2e2e88;
+      color: #fff;
+      text-align: center;
+      padding: 5px 0;
+      border-radius: 6px;
+    
+      /* Position the tooltip text - see examples below! */
+      position: absolute;
+      z-index: 1;
+    }
+
+    /* Show the tooltip text when you mouse over the tooltip container */
+    .tooltip:hover .tooltiptext {
+      visibility: visible;
     }
   </style>
 
@@ -107,15 +146,18 @@
       <el-row>
         <el-col :span="5" style="color: #ffffff80; font-size: x-large;">
           <div style="display: inline-flex;">MARO Admin Web UI</div>
-        <!-- </el-col>
+          <!-- </el-col>
         <el-col :span="1"> -->
-          <img src="assets/images/terminal.jpg" v-on:click="toggle_terminal" style="background-color: #242424; border-radius: 10px; height: 40px; transform: translateY(10px);"/>
+          <img src="assets/images/terminal.jpg" v-on:click="toggle_terminal"
+            style="background-color: #242424; border-radius: 10px; height: 40px; transform: translateY(10px);" />
         </el-col>
         <el-col :span="10" style="text-align: right; font-size: 12px">
-          <el-link type="primary" href="https://www.github.com/microsoft/maro" target="blank"  style="color: #ffffff80; margin-right: 20px;">
+          <el-link type="primary" href="https://www.github.com/microsoft/maro" target="blank"
+            style="color: #ffffff80; margin-right: 20px;">
             Multi-Agent Resource Optimization
           </el-link>
-          <el-link type="primary" href="https://maro.readthedocs.io/en/latest/" target="blank" style="color: #ffffff80;">
+          <el-link type="primary" href="https://maro.readthedocs.io/en/latest/" target="blank"
+            style="color: #ffffff80;">
             Documentation
           </el-link>
         </el-col>
@@ -125,7 +167,8 @@
       <el-container :class="test_dashboard_type()">
         <el-main style="width: 11%;">
           <div style="font-size: large; line-height: 60px; font-weight: bold;">Cluster List</div>
-          <div v-for="item in cluster_list" :key="item" style="margin: 0px -20px; line-height: 50px; text-align: center; overflow: hidden;">
+          <div v-for="item in cluster_list" :key="item"
+            style="margin: 0px -20px; line-height: 50px; text-align: center; overflow: hidden;">
             <div :class="test_tab_type(item)" v-on:click="show_cluster(item)">{{ item }}</div>
           </div>
         </el-main>
@@ -139,7 +182,7 @@
                 <el-main class="text_resource_block">
                   <el-container>
                     <el-header class="text_resource_image">
-                      <img src="assets/images/cpu.jpg" style="height: 50px;"/>
+                      <img src="assets/images/cpu.jpg" style="height: 50px;" />
                     </el-header>
                     <el-main class="text_resource_num">
                       {{resource_static["cpu"]}}
@@ -213,7 +256,7 @@
                     </el-main>
                   </el-container>
                 </el-main>
-            
+
                 <el-main class="text_resource_block">
                   <el-container>
                     <el-header class="text_resource_image">
@@ -227,7 +270,7 @@
                     </el-main>
                   </el-container>
                 </el-main>
-            
+
                 <el-main class="text_resource_block">
                   <el-container>
                     <el-header class="text_resource_image">
@@ -241,56 +284,196 @@
                     </el-main>
                   </el-container>
                 </el-main>
-            
+
               </el-container>
             </el-main>
           </el-container>
         </el-main>
         <el-main style="width: 55%;  background-color: #242424;">
-          <el-container v-if="connected">
-            <el-header>
-              running jobs
-            </el-header>
-            <el-main v-for="job_detail in job_running">
-              {{job_detail.name}}
-            </el-main>
-          </el-container>
+          <el-container direction="vertical">
+            <el-main>
+              <el-container direction="horizontal">
+                <el-main>
+                  <el-container v-if="connected" :class="test_job_type()">
+                    <el-header>
+                      running jobs
+                    </el-header>
+                    <el-main v-for="job_detail in job_running" class="tooltip">
+                      {{job_detail.name}}
+                      <div class="tooltiptext">
+                        <table style="margin: 1em;">
+                          <tr>
+                          <th>Component</th>
+                          <th>Num</td>
+                          <th>Command</td>
+                          <th>Image</th>
+                          <th>CPU</td>
+                          <th>Memory</td>
+                          <th>GPU</th>
+                          </tr>
+                          <tr v-for="component in Object.keys(job_detail.components)">
+                            <td>{{component}}</td>
+                            <td>{{job_detail.components[component]['num']}}</td>
+                            <td>{{job_detail.components[component]['command']}}</td>
+                            <td>{{job_detail.components[component]['image']}}</td>
+                            <!-- <td>{{component['resources']['cpu']}}</td>
+                            <td>{{component['resources']['memory']}}</td>
+                            <td>{{component['resources']['gpu']}}</td> -->
+                            </tr>
+                          </table>
+                        </div>
+                    </el-main>
+                  </el-container>
+                </el-main>
 
-          <el-container v-if="connected">
-            <el-header>
-              pending jobs
-            </el-header>
-            <el-main v-for="job_detail in job_pending">
-              {{job_detail.name}}
-            </el-main>
-          </el-container>
+                <el-main>
+                  <el-container v-if="connected" :class="test_job_type()">
+                    <el-header>
+                      pending jobs
+                    </el-header>
+                    <el-main v-for="job_detail in job_pending" class="tooltip">
+                      {{job_detail.name}}
+                      <div class="tooltiptext">
+                        <table style="margin: 1em;">
+                          <tr>
+                          <th>Component</th>
+                          <th>Num</td>
+                          <th>Command</td>
+                          <th>Image</th>
+                          <th>CPU</td>
+                          <th>Memory</td>
+                          <th>GPU</th>
+                          </tr>
+                          <tr v-for="component in Object.keys(job_detail.components)">
+                            <td>{{component}}</td>
+                            <td>{{job_detail.components[component]['num']}}</td>
+                            <td>{{job_detail.components[component]['command']}}</td>
+                            <td>{{job_detail.components[component]['image']}}</td>
+                            <!-- <td>{{component['resources']['cpu']}}</td>
+                            <td>{{component['resources']['memory']}}</td>
+                            <td>{{component['resources']['gpu']}}</td> -->
+                            </tr>
+                          </table>
+                        </div>
+                    </el-main>
+                  </el-container>
+                </el-main>
 
-          <el-container v-if="connected">
-            <el-header>
-              killed jobs
-            </el-header>
-            <el-main v-for="job_detail in job_killed">
-              {{job_detail.name}}
-            </el-main>
-          </el-container>
+                <el-main>
+                  <el-container v-if="connected" :class="test_job_type()">
+                    <el-header>
+                      killed jobs
+                    </el-header>
+                    <el-main v-for="job_detail in job_killed" class="tooltip">
+                      {{job_detail.name}}
+                      <div class="tooltiptext">
+                        <table style="margin: 1em;">
+                          <tr>
+                          <th>Component</th>
+                          <th>Num</td>
+                          <th>Command</td>
+                          <th>Image</th>
+                          <th>CPU</td>
+                          <th>Memory</td>
+                          <th>GPU</th>
+                          </tr>
+                          <tr v-for="component in Object.keys(job_detail.components)">
+                            <td>{{component}}</td>
+                            <td>{{job_detail.components[component]['num']}}</td>
+                            <td>{{job_detail.components[component]['command']}}</td>
+                            <td>{{job_detail.components[component]['image']}}</td>
+                            <!-- <td>{{component['resources']['cpu']}}</td>
+                            <td>{{component['resources']['memory']}}</td>
+                            <td>{{component['resources']['gpu']}}</td> -->
+                            </tr>
+                          </table>
+                        </div>
+                    </el-main>
+                  </el-container>
+                </el-main>
 
-          <el-container v-if="connected">
-            <el-header>
-              finish jobs
-            </el-header>
-            <el-main v-for="job_detail in job_finish">
-              {{job_detail.name}}
+              </el-container>
             </el-main>
-          </el-container>
 
-          <el-container v-if="connected">
-            <el-header>
-              failed jobs
-            </el-header>
-            <el-main v-for="job_detail in job_failed">
-              {{job_detail.name}}
+            <el-main>
+              <el-container direction="horizontal">
+                <el-main>
+                  <el-container v-if="connected" :class="test_job_type()">
+                    <el-header>
+                      finish jobs
+                    </el-header>
+                    <el-main v-for="job_detail in job_finish" class="tooltip">
+                      {{job_detail.name}}
+                      <div class="tooltiptext">
+                        <table style="margin: 1em;">
+                          <tr>
+                          <th>Component</th>
+                          <th>Num</td>
+                          <th>Command</td>
+                          <th>Image</th>
+                          <th>CPU</td>
+                          <th>Memory</td>
+                          <th>GPU</th>
+                          </tr>
+                          <tr v-for="component in Object.keys(job_detail.components)">
+                            <td>{{component}}</td>
+                            <td>{{job_detail.components[component]['num']}}</td>
+                            <td>{{job_detail.components[component]['command']}}</td>
+                            <td>{{job_detail.components[component]['image']}}</td>
+                            <!-- <td>{{component['resources']['cpu']}}</td>
+                            <td>{{component['resources']['memory']}}</td>
+                            <td>{{component['resources']['gpu']}}</td> -->
+                            </tr>
+                          </table>
+                        </div>
+                    </el-main>
+                  </el-container>
+                </el-main>
+
+                <el-main>
+                  <el-container v-if="connected" :class="test_job_type()">
+                    <el-header>
+                      failed jobs
+                    </el-header>
+                    <el-main v-for="job_detail in job_failed" class="tooltip">
+                      {{job_detail.name}}
+                      <div class="tooltiptext">
+                        <table style="margin: 1em;">
+                          <tr>
+                          <th>Component</th>
+                          <th>Num</td>
+                          <th>Command</td>
+                          <th>Image</th>
+                          <th>CPU</td>
+                          <th>Memory</td>
+                          <th>GPU</th>
+                          </tr>
+                          <tr v-for="component in Object.keys(job_detail.components)">
+                            <td>{{component}}</td>
+                            <td>{{job_detail.components[component]['num']}}</td>
+                            <td>{{job_detail.components[component]['command']}}</td>
+                            <td>{{job_detail.components[component]['image']}}</td>
+                            <!-- <td>{{component['resources']['cpu']}}</td>
+                            <td>{{component['resources']['memory']}}</td>
+                            <td>{{component['resources']['gpu']}}</td> -->
+                            </tr>
+                          </table>
+                        </div>
+                    </el-main>
+                  </el-container>
+                </el-main>
+              </el-container>
             </el-main>
           </el-container>
+          
+
+          
+
+          
+
+          
+
+          
         </el-main>
       </el-container>
 
@@ -344,8 +527,7 @@
         },
         methods: {
           show_cluster: function (message) {
-            if (cur_tab != undefined)
-            {
+            if (cur_tab != undefined) {
               clearInterval(cur_tab);
             }
             cur_tab = setInterval(() => {
@@ -362,15 +544,23 @@
               return "normal_tab";
             }
           },
-          toggle_terminal: function(){
+          toggle_terminal: function () {
             this.show_terminal = !this.show_terminal;
           },
-          test_dashboard_type: function(){
-            if(this.show_terminal){
+          test_dashboard_type: function () {
+            if (this.show_terminal) {
               return "dashboard_normal";
             }
-            else{
+            else {
               return "dashboard_full";
+            }
+          },
+          test_job_type: function () {
+            if (this.show_terminal) {
+              return "job_normal";
+            }
+            else {
+              return "job_full";
             }
           }
         }
@@ -465,8 +655,7 @@
           vm.job_finish = job_finish
           vm.job_failed = job_failed
 
-          if(vm.dashboard_type == "process")
-          {
+          if (vm.dashboard_type == "process") {
             draw_chart("cpu_chart", vm.resource_dynamic["cpu"])
             draw_chart("memory_chart", vm.resource_dynamic["memory"])
             draw_chart("gpu_chart", vm.resource_dynamic["gpu"])
@@ -531,9 +720,8 @@
         let height = chart_height - chart_margin.top - chart_margin.bottom;
 
         let render_data = [];
-        for( let i=0;i<chart_data.length;i++)
-        {
-          let push_data = {x:i, y:chart_data[i]}
+        for (let i = 0; i < chart_data.length; i++) {
+          let push_data = { x: i, y: chart_data[i] }
           if (push_data.x > x_max) {
             x_max = push_data.x;
           }
