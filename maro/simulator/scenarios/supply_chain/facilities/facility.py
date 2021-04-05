@@ -140,6 +140,9 @@ class FacilityBase(ABC):
 
         return in_transit_orders
 
+    def set_action(self, action: object):
+        pass
+
     def get_node_info(self) -> dict:
         products_info = {}
 

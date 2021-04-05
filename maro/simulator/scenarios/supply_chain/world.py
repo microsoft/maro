@@ -30,7 +30,7 @@ class World:
         # Durations of current simulation.
         self.durations = 0
 
-        # All the units in the world.
+        # All the entities in the world.
         self.units = {}
 
         # All the facilities in this world.
@@ -105,16 +105,19 @@ class World:
         """
         return self.facilities[self._facility_name2id_mapping[name]]
 
-    def get_unit(self, unit_id: int) -> UnitBase:
-        """Get an unit by id.
+    def get_entity(self, id: int) -> Union[FacilityBase, UnitBase]:
+        """Get an entity(Unit or Facility) by id.
 
         Args:
-            unit_id (int): Id to query.
+            id (int): Id to query.
 
         Returns:
-            UnitBase: Unit instance.
+            Union[FacilityBase, UnitBase]: Unit or facility instance.
         """
-        return self.units[unit_id]
+        if id in self.units:
+            return self.units[id]
+        else:
+            return self.facilities[id]
 
     def find_path(self, start_x: int, start_y: int, goal_x: int, goal_y: int) -> List[Tuple[int, int]]:
         """Find path to specified cell.

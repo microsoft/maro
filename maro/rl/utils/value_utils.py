@@ -9,6 +9,10 @@ import torch
 def select_by_actions(q_values: torch.Tensor, actions: torch.Tensor):
     if len(actions.shape) == 1:
         actions = actions.unsqueeze(1)  # (N, 1)
+
+    if actions.dtype != torch.int64:
+        actions = actions.to(torch.int64)
+
     return q_values.gather(1, actions).squeeze(1)
 
 
