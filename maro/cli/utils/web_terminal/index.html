@@ -39,10 +39,15 @@
     .el-header {
       line-height: 60px;
       font-weight: bold;
+      padding: 0 10px;
     }
 
     .el-main {
-      padding: 0px 20px;
+      padding: 0px 10px;
+    }
+
+    .el-footer {
+      padding: 0 10px;
     }
 
     body {
@@ -115,13 +120,14 @@
 
     .tooltip {
       position: relative;
-      display: inline-block;
-      border-bottom: 1px dotted black; /* If you want dots under the hoverable text */
-      overflow: visible;
+      margin-left: 20px;
+      line-height: 40px;
+      /* display: inline-block; */
+      /* border-bottom: 1px dotted black; If you want dots under the hoverable text */
     }
 
     /* Tooltip text */
-    .tooltip .tooltiptext {
+    .tooltiptext {
       visibility: hidden;
       /* width: 120px; */
       background-color: #2e2e2e88;
@@ -132,11 +138,11 @@
     
       /* Position the tooltip text - see examples below! */
       position: absolute;
-      z-index: 1;
+      z-index: 10000;
     }
 
     /* Show the tooltip text when you mouse over the tooltip container */
-    .tooltip:hover .tooltiptext {
+    .tooltip:hover+.tooltiptext {
       visibility: visible;
     }
   </style>
@@ -151,7 +157,7 @@
           <img src="assets/images/terminal.jpg" v-on:click="toggle_terminal"
             style="background-color: #242424; border-radius: 10px; height: 40px; transform: translateY(10px);" />
         </el-col>
-        <el-col :span="10" style="text-align: right; font-size: 12px">
+        <el-col :span="19" style="text-align: right; font-size: 12px">
           <el-link type="primary" href="https://www.github.com/microsoft/maro" target="blank"
             style="color: #ffffff80; margin-right: 20px;">
             Multi-Agent Resource Optimization
@@ -296,98 +302,116 @@
                 <el-main>
                   <el-container v-if="connected" :class="test_job_type()">
                     <el-header>
-                      running jobs
+                      Running Jobs <span class="dot"
+                          style="background-color: #b16bff; border-radius: 50%; height: 1rem; width: 1rem; display: inline-block;">
+                          </span>
                     </el-header>
-                    <el-main v-for="job_detail in job_running" class="tooltip">
-                      {{job_detail.name}}
-                      <div class="tooltiptext">
-                        <table style="margin: 1em;">
-                          <tr>
-                          <th>Component</th>
-                          <th>Num</td>
-                          <th>Command</td>
-                          <th>Image</th>
-                          <th>CPU</td>
-                          <th>Memory</td>
-                          <th>GPU</th>
-                          </tr>
-                          <tr v-for="component in Object.keys(job_detail.components)">
-                            <td>{{component}}</td>
-                            <td>{{job_detail.components[component]['num']}}</td>
-                            <td>{{job_detail.components[component]['command']}}</td>
-                            <td>{{job_detail.components[component]['image']}}</td>
-                            <!-- <td>{{component['resources']['cpu']}}</td>
-                            <td>{{component['resources']['memory']}}</td>
-                            <td>{{component['resources']['gpu']}}</td> -->
+                    <el-main>
+                      <div v-for="job_detail in job_running">
+                        <div class="tooltip" :style="'background:'+job_detail.color">
+                          {{job_detail.name}}
+                        </div>
+                        <div class="tooltiptext">
+                          <table style="margin: 1em;">
+                            <tr>
+                              <th>Component</th>
+                              <th>Num</td>
+                              <th>Command</td>
+                              <th v-if="job_detail.mode!='process'">Image</th>
+                              <th v-if="job_detail.mode!='process'">CPU</td>
+                              <th v-if="job_detail.mode!='process'">Memory</td>
+                              <th v-if="job_detail.mode!='process'">GPU</th>
+                            </tr>
+                            <tr v-for="component in Object.keys(job_detail.components)">
+                              <td>{{component}}</td>
+                              <td>{{job_detail.components[component]['num']}}</td>
+                              <td>{{job_detail.components[component]['command']}}</td>
+                              <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['image']}}</td>
+                              <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['resources']['cpu']}}</td>
+                              <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['resources']['memory']}}</td>
+                              <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['resources']['gpu']}}</td>
                             </tr>
                           </table>
                         </div>
+                      </div>
                     </el-main>
-                  </el-container>
+                    </el-container>
                 </el-main>
 
                 <el-main>
                   <el-container v-if="connected" :class="test_job_type()">
                     <el-header>
-                      pending jobs
+                      Pending Jobs <span class="dot"
+                          style="background-color: #a1ff80; border-radius: 50%; height: 1rem; width: 1rem; display: inline-block;">
+                          </span>
                     </el-header>
-                    <el-main v-for="job_detail in job_pending" class="tooltip">
-                      {{job_detail.name}}
-                      <div class="tooltiptext">
-                        <table style="margin: 1em;">
-                          <tr>
-                          <th>Component</th>
-                          <th>Num</td>
-                          <th>Command</td>
-                          <th>Image</th>
-                          <th>CPU</td>
-                          <th>Memory</td>
-                          <th>GPU</th>
-                          </tr>
-                          <tr v-for="component in Object.keys(job_detail.components)">
-                            <td>{{component}}</td>
-                            <td>{{job_detail.components[component]['num']}}</td>
-                            <td>{{job_detail.components[component]['command']}}</td>
-                            <td>{{job_detail.components[component]['image']}}</td>
-                            <!-- <td>{{component['resources']['cpu']}}</td>
-                            <td>{{component['resources']['memory']}}</td>
-                            <td>{{component['resources']['gpu']}}</td> -->
+                    <el-main>
+                      <div v-for="job_detail in job_pending">
+                        <div class="tooltip" :style="'background:'+job_detail.color">
+                          {{job_detail.name}}
+                        </div>
+                        <div class="tooltiptext">
+                          <table style="margin: 1em;">
+                            <tr>
+                              <th>Component</th>
+                              <th>Num</td>
+                              <th>Command</td>
+                              <th v-if="job_detail.mode!='process'">Image</th>
+                              <th v-if="job_detail.mode!='process'">CPU</td>
+                              <th v-if="job_detail.mode!='process'">Memory</td>
+                              <th v-if="job_detail.mode!='process'">GPU</th>
+                            </tr>
+                            <tr v-for="component in Object.keys(job_detail.components)">
+                              <td>{{component}}</td>
+                              <td>{{job_detail.components[component]['num']}}</td>
+                              <td>{{job_detail.components[component]['command']}}</td>
+                              <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['image']}}</td>
+                              <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['resources']['cpu']}}</td>
+                              <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['resources']['memory']}}</td>
+                              <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['resources']['gpu']}}</td>
                             </tr>
                           </table>
                         </div>
+                      </div>
                     </el-main>
-                  </el-container>
+                    </el-container>
                 </el-main>
 
                 <el-main>
                   <el-container v-if="connected" :class="test_job_type()">
                     <el-header>
-                      killed jobs
+                      Killed Jobs <span class="dot"
+                          style="background-color: #80cbff; border-radius: 50%; height: 1rem; width: 1rem; display: inline-block;">
+                          </span>
                     </el-header>
-                    <el-main v-for="job_detail in job_killed" class="tooltip">
-                      {{job_detail.name}}
-                      <div class="tooltiptext">
-                        <table style="margin: 1em;">
-                          <tr>
-                          <th>Component</th>
-                          <th>Num</td>
-                          <th>Command</td>
-                          <th>Image</th>
-                          <th>CPU</td>
-                          <th>Memory</td>
-                          <th>GPU</th>
-                          </tr>
-                          <tr v-for="component in Object.keys(job_detail.components)">
-                            <td>{{component}}</td>
-                            <td>{{job_detail.components[component]['num']}}</td>
-                            <td>{{job_detail.components[component]['command']}}</td>
-                            <td>{{job_detail.components[component]['image']}}</td>
-                            <!-- <td>{{component['resources']['cpu']}}</td>
-                            <td>{{component['resources']['memory']}}</td>
-                            <td>{{component['resources']['gpu']}}</td> -->
+                    <el-main>
+                      <div v-for="job_detail in job_killed">
+                        <div class="tooltip" :style="'background:'+job_detail.color">
+                          {{job_detail.name}}
+                        </div>
+                        <div class="tooltiptext">
+                          <table style="margin: 1em;">
+                            <tr>
+                              <th>Component</th>
+                              <th>Num</td>
+                              <th>Command</td>
+                              <th v-if="job_detail.mode!='process'">Image</th>
+                              <th v-if="job_detail.mode!='process'">CPU</td>
+                              <th v-if="job_detail.mode!='process'">Memory</td>
+                              <th v-if="job_detail.mode!='process'">GPU</th>
+                            </tr>
+                            <tr v-for="component in Object.keys(job_detail.components)">
+                              <td>{{component}}</td>
+                              <td>{{job_detail.components[component]['num']}}</td>
+                              <td>{{job_detail.components[component]['command']}}</td>
+                              <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['image']}}</td>
+                              <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['resources']['cpu']}}</td>
+                              <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['resources']['memory']}}</td>
+                              <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['resources']['gpu']}}</td>
                             </tr>
                           </table>
                         </div>
+                      </div>
                     </el-main>
                   </el-container>
                 </el-main>
@@ -400,32 +424,38 @@
                 <el-main>
                   <el-container v-if="connected" :class="test_job_type()">
                     <el-header>
-                      finish jobs
+                      Finish Jobs <span class="dot"
+                          style="background-color: #606669; border-radius: 50%; height: 1rem; width: 1rem; display: inline-block;">
+                          </span>
                     </el-header>
-                    <el-main v-for="job_detail in job_finish" class="tooltip">
-                      {{job_detail.name}}
-                      <div class="tooltiptext">
-                        <table style="margin: 1em;">
-                          <tr>
-                          <th>Component</th>
-                          <th>Num</td>
-                          <th>Command</td>
-                          <th>Image</th>
-                          <th>CPU</td>
-                          <th>Memory</td>
-                          <th>GPU</th>
-                          </tr>
-                          <tr v-for="component in Object.keys(job_detail.components)">
-                            <td>{{component}}</td>
-                            <td>{{job_detail.components[component]['num']}}</td>
-                            <td>{{job_detail.components[component]['command']}}</td>
-                            <td>{{job_detail.components[component]['image']}}</td>
-                            <!-- <td>{{component['resources']['cpu']}}</td>
-                            <td>{{component['resources']['memory']}}</td>
-                            <td>{{component['resources']['gpu']}}</td> -->
+                    <el-main>
+                      <div v-for="job_detail in job_finish">
+                        <div class="tooltip" :style="'background:'+job_detail.color">
+                          {{job_detail.name}}
+                        </div>
+                        <div class="tooltiptext">
+                          <table style="margin: 1em;">
+                            <tr>
+                              <th>Component</th>
+                              <th>Num</td>
+                              <th>Command</td>
+                              <th v-if="job_detail.mode!='process'">Image</th>
+                              <th v-if="job_detail.mode!='process'">CPU</td>
+                              <th v-if="job_detail.mode!='process'">Memory</td>
+                              <th v-if="job_detail.mode!='process'">GPU</th>
+                            </tr>
+                            <tr v-for="component in Object.keys(job_detail.components)">
+                              <td>{{component}}</td>
+                              <td>{{job_detail.components[component]['num']}}</td>
+                              <td>{{job_detail.components[component]['command']}}</td>
+                              <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['image']}}</td>
+                              <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['resources']['cpu']}}</td>
+                              <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['resources']['memory']}}</td>
+                              <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['resources']['gpu']}}</td>
                             </tr>
                           </table>
                         </div>
+                      </div>
                     </el-main>
                   </el-container>
                 </el-main>
@@ -433,52 +463,52 @@
                 <el-main>
                   <el-container v-if="connected" :class="test_job_type()">
                     <el-header>
-                      failed jobs
+                      Failed Jobs <span class="dot"
+                          style="background-color: #fe6361; border-radius: 50%; height: 1rem; width: 1rem; display: inline-block;">
+                          </span>
                     </el-header>
-                    <el-main v-for="job_detail in job_failed" class="tooltip">
-                      {{job_detail.name}}
-                      <div class="tooltiptext">
-                        <table style="margin: 1em;">
-                          <tr>
-                          <th>Component</th>
-                          <th>Num</td>
-                          <th>Command</td>
-                          <th>Image</th>
-                          <th>CPU</td>
-                          <th>Memory</td>
-                          <th>GPU</th>
-                          </tr>
-                          <tr v-for="component in Object.keys(job_detail.components)">
-                            <td>{{component}}</td>
-                            <td>{{job_detail.components[component]['num']}}</td>
-                            <td>{{job_detail.components[component]['command']}}</td>
-                            <td>{{job_detail.components[component]['image']}}</td>
-                            <!-- <td>{{component['resources']['cpu']}}</td>
-                            <td>{{component['resources']['memory']}}</td>
-                            <td>{{component['resources']['gpu']}}</td> -->
+                    <el-main>
+                      <div v-for="job_detail in job_failed">
+                        <div class="tooltip">
+                          {{job_detail.name}}
+                        </div>
+                        <div class="tooltiptext">
+                          <table style="margin: 1em;">
+                            <tr>
+                              <th>Component</th>
+                              <th>Num</td>
+                              <th>Command</td>
+                              <th v-if="job_detail.mode!='process'">Image</th>
+                              <th v-if="job_detail.mode!='process'">CPU</td>
+                              <th v-if="job_detail.mode!='process'">Memory</td>
+                              <th v-if="job_detail.mode!='process'">GPU</th>
+                            </tr>
+                            <tr v-for="component in Object.keys(job_detail.components)">
+                              <td>{{component}}</td>
+                              <td>{{job_detail.components[component]['num']}}</td>
+                              <td>{{job_detail.components[component]['command']}}</td>
+                              <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['image']}}</td>
+                              <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['resources']['cpu']}}</td>
+                              <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['resources']['memory']}}</td>
+                              <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['resources']['gpu']}}</td>
                             </tr>
                           </table>
                         </div>
+                      </div>
                     </el-main>
                   </el-container>
                 </el-main>
+
               </el-container>
             </el-main>
           </el-container>
-          
-
-          
-
-          
-
-          
-
-          
         </el-main>
       </el-container>
 
     </el-main>
     <el-footer style="height:340px;" v-show="show_terminal">
+      <div><img src="assets/images/terminal.jpg" v-on:click="toggle_terminal"
+        style="background-color: #242424; border-radius: 10px; height: 40px;" /></div>
       <div id="terminal"></div>
     </el-footer>
   </el-container>
@@ -580,8 +610,8 @@
       // Create xterms.js terminal.
       const waitMS = 50
       const term = new Terminal({
-        cols: 1,
-        rows: 20,
+        cols: 75,
+        rows: 17,
         cursorBlink: true,
         macOptionIsMeta: true,
         scrollback: true
@@ -641,11 +671,11 @@
           job_failed = new Array()
           data["job_detail_data"].forEach(job_detail => {
             switch (job_detail["status"]) {
-              case "running": job_running.push(job_detail); break;
-              case "pending": job_pending.push(job_detail); break;
-              case "killed": job_killed.push(job_detail); break;
-              case "finish": job_finish.push(job_detail); break;
-              case "failed": job_failed.push(job_detail); break;
+              case "running": job_running.push(job_detail); if(job_running.length%2==0) job_detail.color="#2e2e2e";else job_detail.color="#242424"; break;
+              case "pending": job_pending.push(job_detail); if(job_pending.length%2==0) job_detail.color="#2e2e2e";else job_detail.color="#242424";break;
+              case "killed": job_killed.push(job_detail); if(job_killed.length%2==0) job_detail.color="#2e2e2e";else job_detail.color="#242424";break;
+              case "finish": job_finish.push(job_detail); if(job_finish.length%2==0) job_detail.color="#2e2e2e";else job_detail.color="#242424";break;
+              case "failed": job_failed.push(job_detail); if(job_failed.length%2==0) job_detail.color="#2e2e2e";else job_detail.color="#242424";break;
               default: break;
             }
           });
