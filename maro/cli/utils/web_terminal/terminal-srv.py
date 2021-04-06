@@ -13,9 +13,7 @@ import traceback
 
 import pandas as pd
 from flask import Flask, redirect, send_file, send_from_directory
-from flask_socketio import SocketIO, send
-
-from maro.cli.grass.utils.params import JobStatus
+from flask_socketio import SocketIO
 
 port = 8080
 
@@ -166,10 +164,6 @@ def update_resource_dynamic(org_data, local_executor, dashboard_type):
             org_data[data_key].extend(data_array)
 
 
-def update_job_details(org_data, new_data):
-    org_data = new_data
-
-
 def update_cluster_list():
     while True:
         socketio.sleep(1)
@@ -191,8 +185,8 @@ def update_cluster_list():
             if cluster_name not in app.config["cluster_status"].keys():
                 try:
                     app.config["cluster_status"][cluster_name] = {}
-                    app.config["local_executor"][cluster_name], app.config["cluster_status"][cluster_name]["dashboard_type"] = load_executor(
-                        cluster_name)
+                    app.config["local_executor"][cluster_name],\
+                        app.config["cluster_status"][cluster_name]["dashboard_type"] = load_executor(cluster_name)
                     app.config["cluster_status"][cluster_name]["cluster_name"] = cluster_name
                     local_executor = app.config["local_executor"][cluster_name]
                     app.config["cluster_status"][cluster_name]["resource_static"] = local_executor.get_resource()
@@ -202,7 +196,8 @@ def update_cluster_list():
                         "gpu": []
                     }
                     update_resource_dynamic(app.config["cluster_status"][cluster_name]["resource_dynamic"],
-                                            local_executor, app.config["cluster_status"][cluster_name]["dashboard_type"])
+                                            local_executor,
+                                            app.config["cluster_status"][cluster_name]["dashboard_type"])
                     app.config["cluster_status"][cluster_name]["job_detail_data"] = local_executor.get_job_details()
                 except Exception as e:
                     print(f"Failed to collect status for cluster {cluster_name}, error:{e}  {traceback.format_exc()}")

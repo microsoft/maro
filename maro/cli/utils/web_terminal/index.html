@@ -12,24 +12,24 @@
 
 <body>
   <style>
-    .dashboard_normal {
+    .dashboard-normal {
       width: 100%;
       height: calc(100vh - 60px - 340px - 20px);
       border-width: 0px;
     }
 
-    .dashboard_full {
+    .dashboard-full {
       width: 100%;
       height: calc(100vh - 60px - 20px);
       border-width: 0px;
     }
 
-    .job_normal {
+    .job-normal {
       height: calc((100vh - 60px - 340px - 20px)/2);
       border-width: 0px;
     }
 
-    .job_full {
+    .job-full {
       height: calc((100vh - 60px - 20px)/2);
       border-width: 0px;
     }
@@ -53,15 +53,15 @@
       color: #ffffff80;
     }
 
-    .cur_tab {
+    .cur-tab {
       background: #242424;
     }
 
-    .normal_tab {
+    .normal-tab {
       color: #ffffff4d;
     }
 
-    .text_resource_block {
+    .text-resource-block {
       border: 2px solid #2e2e2e;
       width: 8%;
       height: 200px;
@@ -69,13 +69,13 @@
       margin: 1%;
     }
 
-    .text_resource_image {
+    .text-resource-image {
       padding: unset;
       margin: 10px;
       height: 45px;
     }
 
-    .text_resource_num {
+    .text-resource-num {
       line-height: 50px;
       font-size: large;
       overflow: visible;
@@ -84,7 +84,7 @@
       font-weight: bold;
     }
 
-    .text_resource_type {
+    .text-resource-type {
       line-height: 50px;
       color: #92e82899;
       overflow: visible;
@@ -143,7 +143,7 @@
       <el-row>
         <el-col :span="5" style="color: #ffffff80; font-size: x-large;">
           <div style="display: inline-flex;">MARO Admin Web UI</div>
-          <img src="assets/images/terminal.jpg" v-on:click="toggle_terminal"
+          <img src="assets/images/terminal.jpg" v-on:click="toggle_terminal" alt="terminal"
             style="background-color: #242424; border-radius: 10px; height: 40px; transform: translateY(10px);" />
         </el-col>
         <el-col :span="19" style="text-align: right; font-size: 12px">
@@ -174,43 +174,43 @@
             </el-header>
             <el-main>
               <el-container>
-                <el-main class="text_resource_block">
+                <el-main class="text-resource-block">
                   <el-container>
-                    <el-header class="text_resource_image">
-                      <img src="assets/images/cpu.jpg" style="height: 50px;" />
+                    <el-header class="text-resource-image">
+                      <img src="assets/images/cpu.jpg" style="height: 50px;" alt="CPU"/>
                     </el-header>
-                    <el-main class="text_resource_num">
+                    <el-main class="text-resource-num">
                       {{resource_static["cpu"]}}
                     </el-main>
-                    <el-main class="text_resource_type">
+                    <el-main class="text-resource-type">
                       CPU
                     </el-main>
                   </el-container>
                 </el-main>
 
-                <el-main class="text_resource_block">
+                <el-main class="text-resource-block">
                   <el-container>
-                    <el-header class="text_resource_image">
-                      <img src="assets/images/memory.jpg" />
+                    <el-header class="text-resource-image">
+                      <img src="assets/images/memory.jpg" alt="Memory"/>
                     </el-header>
-                    <el-main class="text_resource_num">
+                    <el-main class="text-resource-num">
                       {{resource_static["memory"]}}
                     </el-main>
-                    <el-main class="text_resource_type">
+                    <el-main class="text-resource-type">
                       Memory
                     </el-main>
                   </el-container>
                 </el-main>
 
-                <el-main class="text_resource_block">
+                <el-main class="text-resource-block">
                   <el-container>
-                    <el-header class="text_resource_image">
-                      <img src="assets/images/gpu.jpg" />
+                    <el-header class="text-resource-image">
+                      <img src="assets/images/gpu.jpg" alt="GPU"/>
                     </el-header>
-                    <el-main class="text_resource_num">
+                    <el-main class="text-resource-num">
                       {{resource_static["gpu"]}}
                     </el-main>
-                    <el-main class="text_resource_type">
+                    <el-main class="text-resource-type">
                       GPU
                     </el-main>
                   </el-container>
@@ -224,57 +224,57 @@
               <el-container direction="vertical">
                 <el-main>
                   <div>CPU:</div>
-                  <div id="cpu_chart"></div>
+                  <div id="cpu-chart"></div>
                 </el-main>
                 <el-main>
                   <div>Memory:</div>
-                  <div id="memory_chart"></div>
+                  <div id="memory-chart"></div>
                 </el-main>
                 <el-main>
                   <div>GPU:</div>
-                  <div id="gpu_chart"></div>
+                  <div id="gpu-chart"></div>
                 </el-main>
               </el-container>
             </el-main>
             <el-main v-else>
               <el-container direction="horizontal">
-                <el-main class="text_resource_block">
+                <el-main class="text-resource-block">
                   <el-container>
-                    <el-header class="text_resource_image">
-                      <img src="assets/images/cpu.jpg" />
+                    <el-header class="text-resource-image">
+                      <img src="assets/images/cpu.jpg" alt="CPU"/>
                     </el-header>
-                    <el-main class="text_resource_num">
+                    <el-main class="text-resource-num">
                       {{resource_dynamic["cpu"][0]}}
                     </el-main>
-                    <el-main class="text_resource_type">
+                    <el-main class="text-resource-type">
                       CPU
                     </el-main>
                   </el-container>
                 </el-main>
 
-                <el-main class="text_resource_block">
+                <el-main class="text-resource-block">
                   <el-container>
-                    <el-header class="text_resource_image">
-                      <img src="assets/images/memory.jpg" />
+                    <el-header class="text-resource-image">
+                      <img src="assets/images/memory.jpg" alt="Memory"/>
                     </el-header>
-                    <el-main class="text_resource_num">
+                    <el-main class="text-resource-num">
                       {{resource_dynamic["memory"][0]}}
                     </el-main>
-                    <el-main class="text_resource_type">
+                    <el-main class="text-resource-type">
                       Memory
                     </el-main>
                   </el-container>
                 </el-main>
 
-                <el-main class="text_resource_block">
+                <el-main class="text-resource-block">
                   <el-container>
-                    <el-header class="text_resource_image">
-                      <img src="assets/images/gpu.jpg" />
+                    <el-header class="text-resource-image">
+                      <img src="assets/images/gpu.jpg" alt="GPU"/>
                     </el-header>
-                    <el-main class="text_resource_num">
+                    <el-main class="text-resource-num">
                       {{resource_dynamic["gpu"][0]}}
                     </el-main>
-                    <el-main class="text_resource_type">
+                    <el-main class="text-resource-type">
                       GPU
                     </el-main>
                   </el-container>
@@ -307,8 +307,8 @@
                               <th>Num</td>
                               <th>Command</td>
                               <th v-if="job_detail.mode!='process'">Image</th>
-                              <th v-if="job_detail.mode!='process'">CPU</td>
-                              <th v-if="job_detail.mode!='process'">Memory</td>
+                              <th v-if="job_detail.mode!='process'">CPU</th>
+                              <th v-if="job_detail.mode!='process'">Memory</th>
                               <th v-if="job_detail.mode!='process'">GPU</th>
                             </tr>
                             <tr v-for="component in Object.keys(job_detail.components)">
@@ -349,8 +349,8 @@
                               <th>Num</td>
                               <th>Command</td>
                               <th v-if="job_detail.mode!='process'">Image</th>
-                              <th v-if="job_detail.mode!='process'">CPU</td>
-                              <th v-if="job_detail.mode!='process'">Memory</td>
+                              <th v-if="job_detail.mode!='process'">CPU</th>
+                              <th v-if="job_detail.mode!='process'">Memory</th>
                               <th v-if="job_detail.mode!='process'">GPU</th>
                             </tr>
                             <tr v-for="component in Object.keys(job_detail.components)">
@@ -391,8 +391,8 @@
                               <th>Num</td>
                               <th>Command</td>
                               <th v-if="job_detail.mode!='process'">Image</th>
-                              <th v-if="job_detail.mode!='process'">CPU</td>
-                              <th v-if="job_detail.mode!='process'">Memory</td>
+                              <th v-if="job_detail.mode!='process'">CPU</th>
+                              <th v-if="job_detail.mode!='process'">Memory</th>
                               <th v-if="job_detail.mode!='process'">GPU</th>
                             </tr>
                             <tr v-for="component in Object.keys(job_detail.components)">
@@ -438,8 +438,8 @@
                               <th>Num</td>
                               <th>Command</td>
                               <th v-if="job_detail.mode!='process'">Image</th>
-                              <th v-if="job_detail.mode!='process'">CPU</td>
-                              <th v-if="job_detail.mode!='process'">Memory</td>
+                              <th v-if="job_detail.mode!='process'">CPU</th>
+                              <th v-if="job_detail.mode!='process'">Memory</th>
                               <th v-if="job_detail.mode!='process'">GPU</th>
                             </tr>
                             <tr v-for="component in Object.keys(job_detail.components)">
@@ -480,8 +480,8 @@
                               <th>Num</td>
                               <th>Command</td>
                               <th v-if="job_detail.mode!='process'">Image</th>
-                              <th v-if="job_detail.mode!='process'">CPU</td>
-                              <th v-if="job_detail.mode!='process'">Memory</td>
+                              <th v-if="job_detail.mode!='process'">CPU</th>
+                              <th v-if="job_detail.mode!='process'">Memory</th>
                               <th v-if="job_detail.mode!='process'">GPU</th>
                             </tr>
                             <tr v-for="component in Object.keys(job_detail.components)">
@@ -511,7 +511,7 @@
 
     </el-main>
     <el-footer style="height:340px;" v-show="show_terminal">
-      <div><img src="assets/images/terminal.jpg" v-on:click="toggle_terminal"
+      <div><img src="assets/images/terminal.jpg" v-on:click="toggle_terminal" alt="terminal"
           style="background-color: #242424; border-radius: 10px; height: 40px;" /></div>
       <div id="terminal"></div>
     </el-footer>
@@ -531,7 +531,7 @@
   <script>
     $(document).ready(function () {
       let connected = false
-      let cur_tab = undefined
+      let cur-tab = undefined
 
       const vm = new Vue({
         el: '#app',
@@ -561,10 +561,10 @@
         },
         methods: {
           show_cluster: function (message) {
-            if (cur_tab != undefined) {
-              clearInterval(cur_tab);
+            if (cur-tab != undefined) {
+              clearInterval(cur-tab);
             }
-            cur_tab = setInterval(() => {
+            cur-tab = setInterval(() => {
               if (connected) {
                 socket.emit('cluster_status', { cluster_name: message })
               }
@@ -572,10 +572,10 @@
           },
           test_tab_type: function (item_type) {
             if (item_type == this.cluster_name) {
-              return "cur_tab";
+              return "cur-tab";
             }
             else {
-              return "normal_tab";
+              return "normal-tab";
             }
           },
           toggle_terminal: function () {
@@ -583,18 +583,18 @@
           },
           test_dashboard_type: function () {
             if (this.show_terminal) {
-              return "dashboard_normal";
+              return "dashboard-normal";
             }
             else {
-              return "dashboard_full";
+              return "dashboard-full";
             }
           },
           test_job_type: function () {
             if (this.show_terminal) {
-              return "job_normal";
+              return "job-normal";
             }
             else {
-              return "job_full";
+              return "job-full";
             }
           }
         }
@@ -689,9 +689,9 @@
           vm.job_failed = job_failed
 
           if (vm.dashboard_type == "process") {
-            draw_chart("cpu_chart", vm.resource_dynamic["cpu"])
-            draw_chart("memory_chart", vm.resource_dynamic["memory"])
-            draw_chart("gpu_chart", vm.resource_dynamic["gpu"])
+            draw_chart("cpu-chart", vm.resource_dynamic["cpu"])
+            draw_chart("memory-chart", vm.resource_dynamic["memory"])
+            draw_chart("gpu-chart", vm.resource_dynamic["gpu"])
           }
         }
         else {
