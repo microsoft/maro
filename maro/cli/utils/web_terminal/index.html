@@ -531,7 +531,7 @@
   <script>
     $(document).ready(function () {
       let connected = false
-      let cur-tab = undefined
+      let cur_tab = undefined
 
       const vm = new Vue({
         el: '#app',
@@ -561,10 +561,10 @@
         },
         methods: {
           show_cluster: function (message) {
-            if (cur-tab != undefined) {
-              clearInterval(cur-tab);
+            if (cur_tab != undefined) {
+              clearInterval(cur_tab);
             }
-            cur-tab = setInterval(() => {
+            cur_tab = setInterval(() => {
               if (connected) {
                 socket.emit('cluster_status', { cluster_name: message })
               }
