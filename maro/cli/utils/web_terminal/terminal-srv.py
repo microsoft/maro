@@ -1,5 +1,6 @@
 import argparse
 import fcntl
+import json
 import os
 import platform
 import pty
@@ -8,10 +9,9 @@ import shlex
 import struct
 import subprocess
 import termios
-import json
-import pandas as pd
 import traceback
 
+import pandas as pd
 from flask import Flask, redirect, send_file, send_from_directory
 from flask_socketio import SocketIO, send
 
@@ -149,7 +149,7 @@ def update_resource_dynamic(org_data, local_executor, dashboard_type):
     if dashboard_type != DashboardType.PROCESS:
         new_data = local_executor.get_resource_usage(0)
         for data_key in org_data.keys():
-            org_data[data_key]=[new_data[data_key]]
+            org_data[data_key] = [new_data[data_key]]
     else:
         data_len = len(org_data['cpu'])
         new_data = local_executor.get_resource_usage(data_len)
@@ -162,26 +162,11 @@ def update_resource_dynamic(org_data, local_executor, dashboard_type):
                 data_point = data_list.mean()
                 if pd.isna(data_point):
                     data_point = None
-                # else:
-                #     if data_key in ["cpu", "gpu"]:
-                #         data_point /= 100
                 data_array.append(data_point)
             org_data[data_key].extend(data_array)
 
 
 def update_job_details(org_data, new_data):
-    # temp_data = {
-    #     # "pending": [],
-    #     # "running": [],
-    #     # "killed": [],
-    #     # "finish": [],
-    #     # "failed": [],
-    # }
-    # for job_status in JobStatus.value():
-    #     temp_data[job_status] = []
-    # for job_detail in new_data:
-    #     if job_detail["status"] in temp_data:
-    #         temp_data[job_detail["status"]].append(job_detail)
     org_data = new_data
 
 
@@ -218,11 +203,7 @@ def update_cluster_list():
                     }
                     update_resource_dynamic(app.config["cluster_status"][cluster_name]["resource_dynamic"],
                                             local_executor, app.config["cluster_status"][cluster_name]["dashboard_type"])
-                    #app.config["cluster_status"][cluster_name]["resource_dynamic"] = local_executor.get_resource_usage(0)
-                    # app.config["cluster_status"][cluster_name]["job_queue_data"] = local_executor.get_job_queue()
                     app.config["cluster_status"][cluster_name]["job_detail_data"] = local_executor.get_job_details()
-                    # app.config["cluster_status"][cluster_name]["job_detail_data"] = {}
-                    # update_job_details(app.config["cluster_status"][cluster_name]["job_detail_data"], local_executor.get_job_details())
                 except Exception as e:
                     print(f"Failed to collect status for cluster {cluster_name}, error:{e}  {traceback.format_exc()}")
                     if cluster_name in app.config["cluster_status"].keys():
@@ -231,24 +212,18 @@ def update_cluster_list():
                 local_executor = app.config["local_executor"][cluster_name]
                 update_resource_dynamic(app.config["cluster_status"][cluster_name]["resource_dynamic"],
                                         local_executor, app.config["cluster_status"][cluster_name]["dashboard_type"])
-                #app.config["cluster_status"][cluster_name]["job_queue_data"] = local_executor.get_job_queue()
                 app.config["cluster_status"][cluster_name]["job_detail_data"] = local_executor.get_job_details()
-                # update_job_details(app.config["cluster_status"][cluster_name]["job_detail_data"], local_executor.get_job_details())
-
-        # print(f"{app.config['cluster_list']}")
 
 
 @socketio.on("cluster_list", namespace="/pty")
 def cluster_list():
     print("cluster list request received")
-    # print(f"{app.config['cluster_list']}")
     socketio.emit("cluster_list", app.config["cluster_list"], namespace="/pty")
 
 
 @socketio.on("cluster_status", namespace="/pty")
 def cluster_status(data):
     print("cluster status request received")
-    # print(f"{app.config['cluster_status']}")
     if data["cluster_name"] in app.config["cluster_status"].keys():
         socketio.emit("cluster_status", app.config["cluster_status"][data["cluster_name"]], namespace="/pty")
     else:

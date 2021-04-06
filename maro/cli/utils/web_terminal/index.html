@@ -25,13 +25,11 @@
     }
 
     .job_normal {
-      /* width: 33%; */
       height: calc((100vh - 60px - 340px - 20px)/2);
       border-width: 0px;
     }
 
     .job_full {
-      /* width: 33%; */
       height: calc((100vh - 60px - 20px)/2);
       border-width: 0px;
     }
@@ -122,26 +120,19 @@
       position: relative;
       margin-left: 20px;
       line-height: 40px;
-      /* display: inline-block; */
-      /* border-bottom: 1px dotted black; If you want dots under the hoverable text */
     }
 
-    /* Tooltip text */
     .tooltiptext {
       visibility: hidden;
-      /* width: 120px; */
       background-color: #2e2e2e88;
       color: #fff;
       text-align: center;
       padding: 5px 0;
       border-radius: 6px;
-    
-      /* Position the tooltip text - see examples below! */
       position: absolute;
       z-index: 10000;
     }
 
-    /* Show the tooltip text when you mouse over the tooltip container */
     .tooltip:hover+.tooltiptext {
       visibility: visible;
     }
@@ -152,8 +143,6 @@
       <el-row>
         <el-col :span="5" style="color: #ffffff80; font-size: x-large;">
           <div style="display: inline-flex;">MARO Admin Web UI</div>
-          <!-- </el-col>
-        <el-col :span="1"> -->
           <img src="assets/images/terminal.jpg" v-on:click="toggle_terminal"
             style="background-color: #242424; border-radius: 10px; height: 40px; transform: translateY(10px);" />
         </el-col>
@@ -303,8 +292,8 @@
                   <el-container v-if="connected" :class="test_job_type()">
                     <el-header>
                       Running Jobs <span class="dot"
-                          style="background-color: #b16bff; border-radius: 50%; height: 1rem; width: 1rem; display: inline-block;">
-                          </span>
+                        style="background-color: #b16bff; border-radius: 50%; height: 1rem; width: 1rem; display: inline-block;">
+                      </span>
                     </el-header>
                     <el-main>
                       <div v-for="job_detail in job_running">
@@ -327,23 +316,26 @@
                               <td>{{job_detail.components[component]['num']}}</td>
                               <td>{{job_detail.components[component]['command']}}</td>
                               <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['image']}}</td>
-                              <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['resources']['cpu']}}</td>
-                              <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['resources']['memory']}}</td>
-                              <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['resources']['gpu']}}</td>
+                              <td v-if="job_detail.mode!='process'">
+                                {{job_detail.components[component]['resources']['cpu']}}</td>
+                              <td v-if="job_detail.mode!='process'">
+                                {{job_detail.components[component]['resources']['memory']}}</td>
+                              <td v-if="job_detail.mode!='process'">
+                                {{job_detail.components[component]['resources']['gpu']}}</td>
                             </tr>
                           </table>
                         </div>
                       </div>
                     </el-main>
-                    </el-container>
+                  </el-container>
                 </el-main>
 
                 <el-main>
                   <el-container v-if="connected" :class="test_job_type()">
                     <el-header>
                       Pending Jobs <span class="dot"
-                          style="background-color: #a1ff80; border-radius: 50%; height: 1rem; width: 1rem; display: inline-block;">
-                          </span>
+                        style="background-color: #a1ff80; border-radius: 50%; height: 1rem; width: 1rem; display: inline-block;">
+                      </span>
                     </el-header>
                     <el-main>
                       <div v-for="job_detail in job_pending">
@@ -366,23 +358,26 @@
                               <td>{{job_detail.components[component]['num']}}</td>
                               <td>{{job_detail.components[component]['command']}}</td>
                               <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['image']}}</td>
-                              <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['resources']['cpu']}}</td>
-                              <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['resources']['memory']}}</td>
-                              <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['resources']['gpu']}}</td>
+                              <td v-if="job_detail.mode!='process'">
+                                {{job_detail.components[component]['resources']['cpu']}}</td>
+                              <td v-if="job_detail.mode!='process'">
+                                {{job_detail.components[component]['resources']['memory']}}</td>
+                              <td v-if="job_detail.mode!='process'">
+                                {{job_detail.components[component]['resources']['gpu']}}</td>
                             </tr>
                           </table>
                         </div>
                       </div>
                     </el-main>
-                    </el-container>
+                  </el-container>
                 </el-main>
 
                 <el-main>
                   <el-container v-if="connected" :class="test_job_type()">
                     <el-header>
                       Killed Jobs <span class="dot"
-                          style="background-color: #80cbff; border-radius: 50%; height: 1rem; width: 1rem; display: inline-block;">
-                          </span>
+                        style="background-color: #80cbff; border-radius: 50%; height: 1rem; width: 1rem; display: inline-block;">
+                      </span>
                     </el-header>
                     <el-main>
                       <div v-for="job_detail in job_killed">
@@ -405,9 +400,12 @@
                               <td>{{job_detail.components[component]['num']}}</td>
                               <td>{{job_detail.components[component]['command']}}</td>
                               <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['image']}}</td>
-                              <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['resources']['cpu']}}</td>
-                              <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['resources']['memory']}}</td>
-                              <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['resources']['gpu']}}</td>
+                              <td v-if="job_detail.mode!='process'">
+                                {{job_detail.components[component]['resources']['cpu']}}</td>
+                              <td v-if="job_detail.mode!='process'">
+                                {{job_detail.components[component]['resources']['memory']}}</td>
+                              <td v-if="job_detail.mode!='process'">
+                                {{job_detail.components[component]['resources']['gpu']}}</td>
                             </tr>
                           </table>
                         </div>
@@ -425,8 +423,8 @@
                   <el-container v-if="connected" :class="test_job_type()">
                     <el-header>
                       Finish Jobs <span class="dot"
-                          style="background-color: #606669; border-radius: 50%; height: 1rem; width: 1rem; display: inline-block;">
-                          </span>
+                        style="background-color: #606669; border-radius: 50%; height: 1rem; width: 1rem; display: inline-block;">
+                      </span>
                     </el-header>
                     <el-main>
                       <div v-for="job_detail in job_finish">
@@ -449,9 +447,12 @@
                               <td>{{job_detail.components[component]['num']}}</td>
                               <td>{{job_detail.components[component]['command']}}</td>
                               <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['image']}}</td>
-                              <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['resources']['cpu']}}</td>
-                              <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['resources']['memory']}}</td>
-                              <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['resources']['gpu']}}</td>
+                              <td v-if="job_detail.mode!='process'">
+                                {{job_detail.components[component]['resources']['cpu']}}</td>
+                              <td v-if="job_detail.mode!='process'">
+                                {{job_detail.components[component]['resources']['memory']}}</td>
+                              <td v-if="job_detail.mode!='process'">
+                                {{job_detail.components[component]['resources']['gpu']}}</td>
                             </tr>
                           </table>
                         </div>
@@ -464,8 +465,8 @@
                   <el-container v-if="connected" :class="test_job_type()">
                     <el-header>
                       Failed Jobs <span class="dot"
-                          style="background-color: #fe6361; border-radius: 50%; height: 1rem; width: 1rem; display: inline-block;">
-                          </span>
+                        style="background-color: #fe6361; border-radius: 50%; height: 1rem; width: 1rem; display: inline-block;">
+                      </span>
                     </el-header>
                     <el-main>
                       <div v-for="job_detail in job_failed">
@@ -488,9 +489,12 @@
                               <td>{{job_detail.components[component]['num']}}</td>
                               <td>{{job_detail.components[component]['command']}}</td>
                               <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['image']}}</td>
-                              <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['resources']['cpu']}}</td>
-                              <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['resources']['memory']}}</td>
-                              <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['resources']['gpu']}}</td>
+                              <td v-if="job_detail.mode!='process'">
+                                {{job_detail.components[component]['resources']['cpu']}}</td>
+                              <td v-if="job_detail.mode!='process'">
+                                {{job_detail.components[component]['resources']['memory']}}</td>
+                              <td v-if="job_detail.mode!='process'">
+                                {{job_detail.components[component]['resources']['gpu']}}</td>
                             </tr>
                           </table>
                         </div>
@@ -508,7 +512,7 @@
     </el-main>
     <el-footer style="height:340px;" v-show="show_terminal">
       <div><img src="assets/images/terminal.jpg" v-on:click="toggle_terminal"
-        style="background-color: #242424; border-radius: 10px; height: 40px;" /></div>
+          style="background-color: #242424; border-radius: 10px; height: 40px;" /></div>
       <div id="terminal"></div>
     </el-footer>
   </el-container>
@@ -652,7 +656,6 @@
       })
 
       socket.on("cluster_list", (data) => {
-        // console.log(data)
         vm.cluster_list = data
       })
 
@@ -671,11 +674,11 @@
           job_failed = new Array()
           data["job_detail_data"].forEach(job_detail => {
             switch (job_detail["status"]) {
-              case "running": job_running.push(job_detail); if(job_running.length%2==0) job_detail.color="#2e2e2e";else job_detail.color="#242424"; break;
-              case "pending": job_pending.push(job_detail); if(job_pending.length%2==0) job_detail.color="#2e2e2e";else job_detail.color="#242424";break;
-              case "killed": job_killed.push(job_detail); if(job_killed.length%2==0) job_detail.color="#2e2e2e";else job_detail.color="#242424";break;
-              case "finish": job_finish.push(job_detail); if(job_finish.length%2==0) job_detail.color="#2e2e2e";else job_detail.color="#242424";break;
-              case "failed": job_failed.push(job_detail); if(job_failed.length%2==0) job_detail.color="#2e2e2e";else job_detail.color="#242424";break;
+              case "running": job_running.push(job_detail); if (job_running.length % 2 == 0) job_detail.color = "#2e2e2e"; else job_detail.color = "#242424"; break;
+              case "pending": job_pending.push(job_detail); if (job_pending.length % 2 == 0) job_detail.color = "#2e2e2e"; else job_detail.color = "#242424"; break;
+              case "killed": job_killed.push(job_detail); if (job_killed.length % 2 == 0) job_detail.color = "#2e2e2e"; else job_detail.color = "#242424"; break;
+              case "finish": job_finish.push(job_detail); if (job_finish.length % 2 == 0) job_detail.color = "#2e2e2e"; else job_detail.color = "#242424"; break;
+              case "failed": job_failed.push(job_detail); if (job_failed.length % 2 == 0) job_detail.color = "#2e2e2e"; else job_detail.color = "#242424"; break;
               default: break;
             }
           });
