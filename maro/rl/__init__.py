@@ -5,7 +5,7 @@ from maro.rl.agent import (
     DDPG, DQN, AbsAgent, ActorCritic, ActorCriticConfig, DDPGConfig, DQNConfig, MultiAgentWrapper, PolicyGradient,
     PolicyGradientConfig
 )
-from maro.rl.distributed import Actor, DistLearner 
+from maro.rl.distributed import Actor, ActorManager, DistLearner 
 from maro.rl.exploration import (
     AbsExplorer, EpsilonGreedyExplorer, GaussianNoiseExplorer, NoiseExplorer, UniformNoiseExplorer
 )
@@ -22,7 +22,7 @@ from maro.rl.utils import (
 __all__ = [
     "AbsAgent", "ActorCritic", "ActorCriticConfig", "DDPG", "DDPGConfig", "DQN", "DQNConfig", "MultiAgentWrapper",
     "PolicyGradient", "PolicyGradientConfig",
-    "Actor", "DistLearner",
+    "Actor", "ActorManager", "DistLearner",
     "AbsExplorer", "EpsilonGreedyExplorer", "GaussianNoiseExplorer", "NoiseExplorer", "UniformNoiseExplorer",
     "AbsBlock", "AbsCoreModel", "FullyConnectedBlock", "OptimOption", "SimpleMultiHeadModel",
     "LinearParameterScheduler", "Scheduler", "TwoPhaseLinearParameterScheduler",

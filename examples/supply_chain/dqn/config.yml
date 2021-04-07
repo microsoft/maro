@@ -34,9 +34,9 @@ training:
   env: 
     scenario: supply_chain
     topology: sample1
-    durations: 200
-  max_episode: 10
-  agent_update_interval: 45 
+    durations: 100
+  max_episode: 3
+  agent_update_interval: 10 
   exploration:
     parameter_names:
       - epsilon
@@ -45,7 +45,6 @@ training:
 distributed:
   group: sc-dqn
   num_actors: 2
-  redis_host: localhost
+  redis_host: maro-redis
   redis_port: 6379
-  learner_update_trigger: 2
-  replay_sync_interval: 30
+  required_actor_finishes: 2

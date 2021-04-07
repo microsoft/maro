@@ -25,7 +25,8 @@ class Learner(object):
         env: AbsEnvWrapper,
         agent: Union[AbsAgent, MultiAgentWrapper],
         scheduler: Scheduler,
-        agent_update_interval: int = -1
+        agent_update_interval: int = -1,
+        log_env_metrics: bool = False
     ):
         super().__init__()
         if agent_update_interval == 0:
@@ -34,11 +35,15 @@ class Learner(object):
         self.agent = MultiAgentWrapper(agent) if isinstance(agent, AbsAgent) else agent
         self.scheduler = scheduler
         self.agent_update_interval = agent_update_interval
-        self.logger = InternalLogger("LEARNER")
+        self.total_env_steps = 0
+        self.total_experiences_collected = 0
+        self.total_learning_time = 0
+        self._log_env_metrics = log_env_metrics
+        self._logger = InternalLogger("LEARNER")
 
     def run(self):
+        t0 = time.time()
         for exploration_params in self.scheduler:
-            # t0 = time.time()
             self.env.reset()
             if exploration_params:
                 self.agent.set_exploration_params(exploration_params)
@@ -48,10 +53,25 @@ class Learner(object):
                 action = self.agent.choose_action(self.env.state)
                 self.env.step(action)
                 if self.agent_update_interval != -1 and self.env.step_index % self.agent_update_interval == 0:
-                    self.agent.update(self.env.pull_experiences())
+                    exp, num_exp = self.env.pull_experiences()
+                    tl0 = time.time()
+                    self.agent.learn(exp)
+                    self.total_learning_time += time.time() - tl0
+                    self.total_env_steps += self.agent_update_interval
+                    self.total_experiences_collected += num_exp
+                    self._logger.info(f"total running time: {time.time() - t0}")
+                    self._logger.info(f"total learning time: {self.total_learning_time}")
+                    self._logger.info(f"total env steps: {self.total_env_steps}")
+                    self._logger.info(f"total experiences collected: {self.total_experiences_collected}")
 
-            self.agent.update(self.env.pull_experiences())
-            self.logger.info(f"ep-{self.scheduler.iter}: {self.env.metrics} ({exploration_params})")
+            exp, num_exp = self.env.pull_experiences()
+            tl0 = time.time()
+            self.agent.learn(exp)
+            self.total_learning_time += time.time() - tl0
+            if self._log_env_metrics:
+                self._logger.info(f"ep-{self.scheduler.iter}: {self.env.metrics} ({exploration_params})")
 
-            # t1 = time.time()
-            # print(f"roll-out time: {t1 - t0}")
+        self._logger.info(f"total running time: {time.time() - t0}")
+        self._logger.info(f"total learning time: {self.total_learning_time}")
+        self._logger.info(f"total env steps: {self.total_env_steps}")
+        self._logger.info(f"total experiences collected: {self.total_experiences_collected}")

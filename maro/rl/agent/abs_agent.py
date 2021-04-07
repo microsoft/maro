@@ -81,7 +81,7 @@ class AbsAgent(ABC):
     def set_exploration_params(self, **params):
         pass
 
-    def update(self, experiences: dict) -> bool:
+    def learn(self, experiences: dict) -> bool:
         """Store experinces in the experience memory and train the model if necessary."""
         if set(experiences.keys()) != {"S", "A", "R", "S_"}:
             raise ValueError("The keys of experiences must be {'S', 'A', 'R', 'S_'}")

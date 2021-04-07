@@ -23,7 +23,7 @@ if __name__ == "__main__":
     set_seeds(1024)  # for reproducibility
     env = Env(**config["training"]["env"])
     agent = get_sc_agents(env.agent_idx_list, config["agent"])
-    scheduler = LinearParameterScheduler(config["training"]["max_episode"], **config["training"]["exploration"])
+    scheduler = LinearParameterScheduler(config["training"]["max_episode"], **config["training"]["exploration"])    
     learner = Learner(
         SCEnvWrapper(env), agent, scheduler,
         agent_update_interval=config["training"]["agent_update_interval"]        

@@ -139,7 +139,6 @@ class DQN(AbsAgent):
         ])
 
     def step(self):
-        print(f"experience memory size: {len(self.experience_memory)}")
         for _ in range(self.config.train_iters):
             # sample from the replay memory
             indexes, batch = self._sampler.sample(self.config.batch_size)

@@ -147,14 +147,12 @@ class SCEnvWrapper(AbsEnvWrapper):
 
                     if manufacture is not None:
                         product_info["manufacture"] = UnitBaseInfo(manufacture)
-                        self.unit_2_facility_dict[manufacture["id"]
-                                                  ] = facility_id
+                        self.unit_2_facility_dict[manufacture["id"]] = facility_id
 
                     self.facility_levels[facility_id][product_id] = product_info
 
     def get_state(self, event):
         self.cur_balance_sheet_reward = self.balance_cal.calc()
-
         return self._get_state()
 
     def get_action(self, action_by_agent):
@@ -178,6 +176,7 @@ class SCEnvWrapper(AbsEnvWrapper):
                 if sources:
                     source_id = sources[0]
                     product_id = self.consumer2product.get(agent_id, 0)
+                    agent_id = int(agent_id.split(".")[1])
                     env_action[agent_id] = ConsumerAction(agent_id, product_id, source_id, action, 1)
             # manufacturer action
             elif agent_id.startswith("producer"):
@@ -186,11 +185,9 @@ class SCEnvWrapper(AbsEnvWrapper):
 
         return env_action
 
-    def get_reward(self, tick=None):
+    def get_reward(self, tick=None, target_agents=None):
         wc = self.env.configs.settings["global_reward_weight_consumer"]
-
         parent_facility_balance = {}
-
         for f_id, sheet in self.cur_balance_sheet_reward.items():
             if f_id in self.unit_2_facility_dict:
                 # it is a product unit

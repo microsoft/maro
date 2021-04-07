@@ -50,15 +50,16 @@ class AbsEnvWrapper(ABC):
                 assert len(replay["S_"]) == len(replay["A"]) == len(replay["S"]) - 1
 
     def pull_experiences(self, copy: bool = False):
-        experience = defaultdict(dict)
+        experience, num_experiences = defaultdict(dict), 0
         for agent_id, replay in self.replay.items():
             num_complete = min(len(replay["R"]), len(replay["S_"]))
+            num_experiences += num_complete
             for k, vals in replay.items():
                 experience[agent_id][k] = vals[:num_complete]
                 if not copy:
                     del vals[:num_complete]
 
-        return experience
+        return experience, num_experiences
 
     @property
     def metrics(self):
@@ -91,7 +92,7 @@ class AbsEnvWrapper(ABC):
         # t0 = time.time()
         self._step_index += 1
         env_action = self.get_action(action_by_agent)
-        self._acting_agents.append((self.env.tick, list(env_action.keys())))
+        self._acting_agents.append((self.env.tick, list(action_by_agent.keys())))
         if len(env_action) == 1:
             env_action = list(env_action.values())[0]
         # t1 = time.time()

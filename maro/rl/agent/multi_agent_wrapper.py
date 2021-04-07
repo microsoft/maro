@@ -46,12 +46,12 @@ class MultiAgentWrapper:
             for agent in self.agent_dict.values():
                 agent.set_exploration_params(**params)
 
-    def update(self, experiences: dict) -> set:
+    def learn(self, experiences: dict) -> set:
         """Store experiences in the agents' experience memory.
         
         The top-level keys of ``experiences`` will be treated as agent IDs. 
         """
-        return {agent_id for agent_id, exp in experiences.items() if self.agent_dict[agent_id].update(exp)}
+        return {agent_id for agent_id, exp in experiences.items() if self.agent_dict[agent_id].learn(exp)}
 
     def step(self, agent_ids=None):
         if agent_ids is None:

@@ -8,8 +8,8 @@ from os import getenv
 from os.path import dirname, join, realpath
 
 from maro.rl import (
-    Actor, DQN, DQNConfig, FullyConnectedBlock, LinearParameterScheduler, MultiAgentWrapper,
-    OffPolicyDistLearner, OptimOption, SimpleMultiHeadModel
+    Actor, ActorManager, DQN, DQNConfig, DistLearner, FullyConnectedBlock, LinearParameterScheduler, MultiAgentWrapper,
+    OptimOption, SimpleMultiHeadModel
 )
 from maro.simulator import Env
 from maro.utils import set_seeds
@@ -32,18 +32,14 @@ NUM_ACTORS = int(getenv("NUMACTORS", default=config["distributed"]["num_actors"]
 def sc_dqn_learner():
     agent = get_sc_agents(Env(**config["training"]["env"]).agent_idx_list, config["agent"])
     scheduler = LinearParameterScheduler(config["training"]["max_episode"], **config["training"]["exploration"])
-    actor_proxy = ActorProxy(
-        NUM_ACTORS, GROUP,
-        proxy_options={"redis_address": (REDIS_HOST, REDIS_PORT)},
-        update_trigger=config["distributed"]["learner_update_trigger"],
-        replay_memory_size=config["training"]["replay_memory"]["size"],
-        replay_memory_overwrite_type=config["training"]["replay_memory"]["overwrite_type"]
+    actor_manager = ActorManager(
+        NUM_ACTORS, GROUP, proxy_options={"redis_address": (REDIS_HOST, REDIS_PORT), "log_enable": False}
     )
-    learner = OffPolicyDistLearner(
-        actor_proxy, agent, scheduler,
-        min_experiences_to_train=config["training"]["min_experiences_to_train"],
-        train_iter=config["training"]["train_iter"],
-        batch_size=config["training"]["batch_size"]
+    learner = DistLearner(
+        agent, scheduler, actor_manager,
+        agent_update_interval=config["training"]["agent_update_interval"],
+        required_actor_finishes=config["distributed"]["required_actor_finishes"],
+        discard_stale_experiences=False
     )
     learner.run()
 
@@ -51,11 +47,7 @@ def sc_dqn_learner():
 def sc_dqn_actor():
     env = Env(**config["training"]["env"])
     agent = get_sc_agents(env.agent_idx_list, config["agent"])
-    actor = Actor(
-        SCEnvWrapper(env), agent, GROUP,
-        replay_sync_interval=config["distributed"]["replay_sync_interval"],
-        proxy_options={"redis_address": (REDIS_HOST, REDIS_PORT)}
-    )
+    actor = Actor(SCEnvWrapper(env), agent, GROUP, proxy_options={"redis_address": (REDIS_HOST, REDIS_PORT)})
     actor.run()
 
 

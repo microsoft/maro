@@ -20,6 +20,7 @@ class MsgKey(Enum):
     TIME_STEP = "time_step"
     METRICS = "metrics"
     EXPERIENCES = "experiences"
+    NUM_EXPERIENCES = "num_experiences"
     STATE = "state"
     TRAINING = "training"
     MODEL = "model"
@@ -27,4 +28,4 @@ class MsgKey(Enum):
     EXPLORATION_PARAMS = "exploration_params"
     NUM_STEPS = "num_steps"
     SEGMENT_INDEX = "segment_index"
-    END_OF_EPISODE = "end_of_episode"
+    ENV_END = "env_end"

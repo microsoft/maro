@@ -99,7 +99,7 @@ class Proxy:
         self._max_retries = max_retries
         self._retry_interval_base_value = retry_interval_base_value
         self._log_enable = log_enable
-        self._logger = InternalLogger(component_name=self._name) if self._log_enable else DummyLogger()
+        self._logger = InternalLogger(component_name=self._name + "_proxy") if self._log_enable else DummyLogger()
 
         # TODO:In multiprocess with spawn start method, the driver must be initiated before the Redis.
         # Otherwise it will cause Error 9: Bad File Descriptor in proxy.__del__(). Root cause not found.

@@ -36,7 +36,7 @@ class Actor(object):
         self._pull_experiences_with_copy = pull_experiences_with_copy
         if proxy_options is None:
             proxy_options = {}
-        self._proxy = Proxy(group, "actor", {"learner": 1}, **proxy_options)
+        self._proxy = Proxy(group, "actor", {"actor_manager": 1}, **proxy_options)
         self._logger = InternalLogger(self._proxy.name)
 
     def run(self):
@@ -65,14 +65,16 @@ class Actor(object):
                     f"Roll-out finished for ep {rollout_index}, segment {segment_index}"
                     f"(steps {step_index} - {self.env.step_index})"
                 )
+                experiences, num_exp = self.env.pull_experiences(copy=self._pull_experiences_with_copy)
                 self._proxy.reply(
                     msg, 
                     tag=MsgTag.ROLLOUT_DONE,
                     body={
-                        MsgKey.END_OF_EPISODE: not self.env.state,
+                        MsgKey.ENV_END: not self.env.state,
                         MsgKey.ROLLOUT_INDEX: rollout_index,
                         MsgKey.SEGMENT_INDEX: segment_index,
                         MsgKey.METRICS: self.env.metrics,
-                        MsgKey.EXPERIENCES: self.env.pull_experiences(copy=self._pull_experiences_with_copy)
+                        MsgKey.EXPERIENCES: experiences,
+                        MsgKey.NUM_EXPERIENCES: num_exp
                     }
                 )

@@ -8,8 +8,8 @@ from os import getenv
 from os.path import dirname, join, realpath
 
 from maro.rl import (
-    Actor, DQN, DQNConfig, DistLearner, FullyConnectedBlock, MultiAgentWrapper, OptimOption, SimpleMultiHeadModel,
-    TwoPhaseLinearParameterScheduler
+    Actor, ActorManager, DQN, DQNConfig, DistLearner, FullyConnectedBlock, MultiAgentWrapper, OptimOption,
+    SimpleMultiHeadModel, TwoPhaseLinearParameterScheduler
 )
 from maro.simulator import Env
 from maro.utils import set_seeds
@@ -49,11 +49,14 @@ def get_dqn_agent():
 def cim_dqn_learner():
     agent = MultiAgentWrapper({name: get_dqn_agent() for name in Env(**config["training"]["env"]).agent_idx_list})
     scheduler = TwoPhaseLinearParameterScheduler(config["training"]["max_episode"], **config["training"]["exploration"])
+    actor_manager = ActorManager(
+        NUM_ACTORS, GROUP, proxy_options={"redis_address": (REDIS_HOST, REDIS_PORT), "log_enable": False}
+    )
     learner = DistLearner(
-        agent, scheduler, NUM_ACTORS, GROUP,
-        proxy_options={"redis_address": (REDIS_HOST, REDIS_PORT)},
+        agent, scheduler, actor_manager,
         agent_update_interval=config["training"]["agent_update_interval"],
-        ignore_stale_experiences=False
+        required_actor_finishes=config["distributed"]["required_actor_finishes"],
+        discard_stale_experiences=False
     )
     learner.run()
 
