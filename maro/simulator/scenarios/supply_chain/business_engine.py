@@ -35,6 +35,8 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         # Used to cache the action from outside, then dispatch to units at the beginning of step.
         self._action_cache = None
 
+        self._metrics_cache = None
+
     @property
     def frame(self):
         return self._frame
@@ -48,6 +50,9 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
         return self.world.configs
 
     def step(self, tick: int):
+        # Clear the metrics cache.
+        self._metrics_cache = None
+
         # NOTE: we have to dispatch the action here.
         self._dispatch_action()
         self._step_by_facility(tick)
@@ -144,19 +149,22 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
             self._action_cache = None
 
     def get_metrics(self):
-        return {
-            "products": {
-                product.id: {
-                    "sale_mean": product.get_sale_mean(),
-                    "sale_std": product.get_sale_std(),
-                    "selling_price": product.get_selling_price(),
-                    "pending_order_daily": None if product.consumer is None else product.consumer.pending_order_daily
-                } for product in self._product_units
-            },
-            "facilities": {
-                facility.id: {
-                    "in_transit_orders": facility.get_in_transit_orders(),
-                    "pending_order": None if facility.distribution is None else facility.distribution.get_pending_order()
-                } for facility in self.world.facilities.values()
+        if self._metrics_cache is None:
+            self._metrics_cache = {
+                "products": {
+                    product.id: {
+                        "sale_mean": product.get_sale_mean(),
+                        "sale_std": product.get_sale_std(),
+                        "selling_price": product.get_selling_price(),
+                        "pending_order_daily": None if product.consumer is None else product.consumer.pending_order_daily
+                    } for product in self._product_units
+                },
+                "facilities": {
+                    facility.id: {
+                        "in_transit_orders": facility.get_in_transit_orders(),
+                        "pending_order": None if facility.distribution is None else facility.distribution.get_pending_order()
+                    } for facility in self.world.facilities.values()
+                }
             }
-        }
+
+        return self._metrics_cache
