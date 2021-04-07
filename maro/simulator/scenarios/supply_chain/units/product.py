@@ -142,7 +142,6 @@ class ProductUnit(SkuUnit):
                 sku_type = sku.type
 
                 product_unit: ProductUnit = world.build_unit_by_type(unit_def, facility, facility)
-                # product_unit: ProductUnit = world.build_unit(facility, facility, unit_def)
                 product_unit.product_id = sku_id
                 product_unit.children = []
                 product_unit.parse_configs(config)

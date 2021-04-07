@@ -279,7 +279,7 @@ class World:
                 self.max_price = max(self.max_price, sku.price)
 
         for unit in self.units.values():
-            if type(unit) == ProductUnit:
+            if issubclass(type(unit), ProductUnit):
                 agent_type = unit.config["agent_type"]
 
                 # unit or facility id, agent type, is facility, sku info, facility id
@@ -374,17 +374,6 @@ class World:
         else:
             # If this is template unit, then will use the class' static method 'generate' to generate sub-units.
             children = unit_def.class_type.generate(facility, config.get("config"), unit_def)
-
-            for child in children.values():
-                child.id = self._gen_id()
-                child.world = self
-                child.facility = facility
-                child.parent = parent
-
-                # Pass the config if there is any.
-                child.parse_configs(config.get("config", {}))
-
-                self.units[child.id] = child
 
             return children
 

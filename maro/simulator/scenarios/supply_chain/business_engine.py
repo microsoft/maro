@@ -25,7 +25,7 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
 
         # Prepare product unit for later using.
         for unit in self.world.units.values():
-            if type(unit) == ProductUnit:
+            if issubclass(type(unit), ProductUnit):
                 self._product_units.append(unit)
 
         self._frame = self.world.frame
