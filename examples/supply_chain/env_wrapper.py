@@ -54,12 +54,19 @@ class UnitBaseInfo:
         return default
 
 
+distribution_features = ("remaining_order_quantity", "remaining_order_number")
+seller_features = ("total_demand", "sold", "demand")
+
+
 class SCEnvWrapper(AbsEnvWrapper):
     def __init__(self, env: Env):
         super().__init__(env)
         self.balance_cal = BalanceSheetCalculator(env)
         self.cur_balance_sheet_reward = None
         self.storage_ss = env.snapshot_list["storage"]
+        self.distribution_ss = env.snapshot_list["distribution"]
+        self.consumer_ss = env.snapshot_list["consumer"]
+        self.seller_ss = env.snapshot_list["seller"]
 
         self._summary = env.summary['node_mapping']
         self._configs = env.configs
@@ -107,12 +114,32 @@ class SCEnvWrapper(AbsEnvWrapper):
         # facility id -> storage product utilization
         self._facility_product_utilization = {}
 
+        # current distribution states
+        self._cur_distribution_states = None
+
+        # current consumer states
+        self._cur_consumer_states = None
+
+        # current seller states
+        self._cur_seller_states = None
+
         # built internal helpers.
         self._build_internal_helpers()
 
     def get_state(self, event):
+        cur_tick = self.env.tick
+        settings: dict = self.env.configs.settings
+        consumption_hist_len = settings['consumption_hist_len']
+        hist_len = settings['sale_hist_len']
+        consumption_ticks = [cur_tick - i for i in range(consumption_hist_len)]
+        hist_ticks = [cur_tick - i for i in range(hist_len)]
+
         self.cur_balance_sheet_reward = self.balance_cal.calc()
         self._cur_metrics = self.env.metrics
+
+        self._cur_distribution_states = self.distribution_ss[cur_tick::distribution_features].flatten().reshape(-1, 2).astype(np.int)
+        self._cur_consumer_states = self.consumer_ss[consumption_ticks::"latest_consumptions"].flatten().reshape(-1, len(self.consumer_ss))
+        self._cur_seller_states = self.seller_ss[hist_ticks::seller_features].astype(np.int)
 
         # reset for each step
         for facility_id in self._facility_product_utilization:
@@ -122,7 +149,7 @@ class SCEnvWrapper(AbsEnvWrapper):
 
         # calculate storage info first, then use it later to speed up.
         for facility_id, storage_index in self._facility2storage_index_dict.items():
-            product_numbers = self.storage_ss[self.env.tick:storage_index:"product_number"].flatten().astype(np.int)
+            product_numbers = self.storage_ss[cur_tick:storage_index:"product_number"].flatten().astype(np.int)
 
             for pid, index in self._storage_product_indices[facility_id].items():
                 product_number = product_numbers[index]
@@ -214,10 +241,6 @@ class SCEnvWrapper(AbsEnvWrapper):
         if agent_info.is_facility:
             return
 
-        settings: dict = self.env.configs.settings
-
-        hist_len = settings['sale_hist_len']
-        consumption_hist_len = settings['consumption_hist_len']
         product_metrics = self._cur_metrics["products"][agent_info.id]
 
         # for product unit only
@@ -231,34 +254,25 @@ class SCEnvWrapper(AbsEnvWrapper):
         if "consumer" in product_info:
             consumer_index = product_info["consumer"].node_index
 
-            consumption_hist = self.env.snapshot_list["consumer"][[self.env.tick - i for i in range(
-                consumption_hist_len)]:consumer_index:"latest_consumptions"]
-            consumption_hist = consumption_hist.flatten()
-
-            state['consumption_hist'] = list(consumption_hist)
+            state['consumption_hist'] = list(self._cur_consumer_states[:, consumer_index])
             state['pending_order'] = list(product_metrics["pending_order_daily"])
 
         if "seller" in product_info:
             seller_index = product_info["seller"].node_index
-            seller_ss = self.env.snapshot_list["seller"]
 
-            single_states = seller_ss[self.env.tick:seller_index:"total_demand"].flatten().astype(np.int)
-            hist_states = seller_ss[[self.env.tick - i for i in range(hist_len)]:seller_index:(
-            "sold", "demand")].flatten().reshape(2, -1).astype(np.int)
+            seller_states = self._cur_seller_states[:, seller_index, :]
 
-            state['total_backlog_demand'] = single_states[0]
-            state['sale_hist'] = list(hist_states[0])
-            state['backlog_demand_hist'] = list(hist_states[1])
+            # for total demand, we need latest one.
+            state['total_backlog_demand'] = seller_states[:, 0][-1]
+            state['sale_hist'] = list(seller_states[:, 1])
+            state['backlog_demand_hist'] = list(seller_states[:, 2])
 
     def _update_distribution_features(self, state, agent_info):
         facility = self.facility_levels[agent_info.facility_id]
         distribution = facility.get("distribution", None)
 
         if distribution is not None:
-            dist_states = self.env.snapshot_list["distribution"][
-                          self.env.tick:distribution.node_index:("remaining_order_quantity", "remaining_order_number")]
-            dist_states = dist_states.flatten().astype(np.int)
-
+            dist_states = self._cur_distribution_states[distribution.node_index]
             state['distributor_in_transit_orders'] = dist_states[1]
             state['distributor_in_transit_orders_qty'] = dist_states[0]
 
