@@ -145,7 +145,7 @@ class SCEnvWrapper(AbsEnvWrapper):
             # self._update_vlt_features(state, agent_info)
             self._update_consumer_features(state, agent_info)
             # self._add_price_features(state, agent_info)
-            # self._add_global_features(state)
+            self._update_global_features(state)
 
             state[f"consumer.{agent_info.id}"] = state
             state[f"producer.{agent_info.id}"] = state
@@ -309,6 +309,9 @@ class SCEnvWrapper(AbsEnvWrapper):
 
         if state['inventory_estimated'] < state['inventory_rop']:
             state['is_below_rop'] = 1
+
+    def _update_global_features(self, state):
+        state["global_time"] = self.env.tick
 
     def _serialize_state(self, state):
         result = defaultdict(list)
