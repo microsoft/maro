@@ -172,15 +172,22 @@ def generate_config(sku_num: int, supplier_num: int, warehouse_num: int, retaile
         "normal_vehicle": vehicle_conf,
         "facility_definitions": {},
         "settings": {
-            'global_reward_weight_producer': 0.50,
-            'global_reward_weight_consumer': 0.50,
+            "global_reward_weight_producer": 0.50,
+            "global_reward_weight_consumer": 0.50,
+            "downsampling_rate": 1,
+            "episod_duration": 21,
             "initial_balance": 100000,
+            "consumption_hist_len": 4,
+            "sale_hist_len": 4,
+            "pending_order_len": 4,
             "constraint_state_hist_len": max_constraint_states,
             "total_echelons": 3,
             "replenishment_discount": 0.9,
             "reward_normalization": 1e7,
-            "constraint_violate_reward": -1e7,
-            "pending_order_len": 5
+            "constraint_violate_reward": -1e6,
+            "gamma": 0.99,
+            "tail_timesteps": 7,
+            "heading_timesteps": 7,
         }
     }
 
@@ -244,7 +251,8 @@ def generate_config(sku_num: int, supplier_num: int, warehouse_num: int, retaile
                 # Why this configuration, as manufacture is controlled by action?
                 "production_rate": int(sku_gamma[sku_name] * 50),
                 # For this script, all sku is a production that produced by suppliers, no bom.
-                "type": "production"
+                "type": "production",
+                "product_unit_cost": 1,
             }
 
         facility["skus"] = sku_list
