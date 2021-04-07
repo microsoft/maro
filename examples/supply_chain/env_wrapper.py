@@ -7,7 +7,7 @@ from maro.simulator.scenarios.supply_chain.actions import ConsumerAction, Manufa
 
 
 def stock_constraint(f_state):
-    return (0 < f_state['inventory_in_stock'] <= (f_state['max_vlt']+7)*f_state['sale_mean'])
+    return (0 < f_state['inventory_in_stock'] <= (f_state['max_vlt'] + 7) * f_state['sale_mean'])
 
 
 def is_replenish_constraint(f_state):
@@ -15,11 +15,11 @@ def is_replenish_constraint(f_state):
 
 
 def low_profit(f_state):
-    return ((f_state['sku_price']-f_state['sku_cost']) * f_state['sale_mean'] <= 1000)
+    return ((f_state['sku_price'] - f_state['sku_cost']) * f_state['sale_mean'] <= 1000)
 
 
 def low_stock_constraint(f_state):
-    return (0 < f_state['inventory_in_stock'] <= (f_state['max_vlt']+3)*f_state['sale_mean'])
+    return (0 < f_state['inventory_in_stock'] <= (f_state['max_vlt'] + 3) * f_state['sale_mean'])
 
 
 def out_of_stock(f_state):
@@ -54,7 +54,6 @@ class UnitBaseInfo:
         return default
 
 
-
 class SCEnvWrapper(AbsEnvWrapper):
     def __init__(self, env: Env):
         super().__init__(env)
@@ -81,7 +80,6 @@ class SCEnvWrapper(AbsEnvWrapper):
         self._cur_product_numbers = []
 
         self._service_index_ppf_cache = {}
-
 
         # facility -> {
         # data_model_index:int,
@@ -158,7 +156,8 @@ class SCEnvWrapper(AbsEnvWrapper):
             else:
                 parent_facility_balance[f_id] = sheet
 
-        consumer_reward_by_facility = { f_id: wc * parent_facility_balance[f_id][0] + (1 - wc) * bsw[1] for f_id, bsw in self.cur_balance_sheet_reward.items() }
+        consumer_reward_by_facility = {f_id: wc * parent_facility_balance[f_id][0] + (1 - wc) * bsw[1] for f_id, bsw in
+                                       self.cur_balance_sheet_reward.items()}
 
         return {
             **{f"producer.{f_id}": np.float32(reward[0]) for f_id, reward in self.cur_balance_sheet_reward.items()},
@@ -200,8 +199,10 @@ class SCEnvWrapper(AbsEnvWrapper):
 
     def _update_storage_features(self, state, agent_info):
         facility_id = agent_info.facility_id
+        state['storage_utilization'] = 0
+
         for pid, index in self._storage_product_indices[facility_id].items():
-            product_number = self._storage_product_numbers[facility_id][pid]  #     product_number = self._cur_product_numbers[index]
+            product_number = self._storage_product_numbers[facility_id][pid]
             state['storage_levels'][pid] = product_number
             state['storage_utilization'] += product_number
 
@@ -224,10 +225,10 @@ class SCEnvWrapper(AbsEnvWrapper):
         product_info = facility[agent_info.sku.id]
 
         if "consumer" in product_info:
-            # TODO: implement later
             consumer_index = product_info["consumer"].node_index
 
-            consumption_hist = self.env.snapshot_list["consumer"][[self.env.tick - i for i in range(consumption_hist_len)]:consumer_index:"latest_consumptions"]
+            consumption_hist = self.env.snapshot_list["consumer"][[self.env.tick - i for i in range(
+                consumption_hist_len)]:consumer_index:"latest_consumptions"]
             consumption_hist = consumption_hist.flatten()
 
             state['consumption_hist'] = list(consumption_hist)
@@ -237,8 +238,9 @@ class SCEnvWrapper(AbsEnvWrapper):
             seller_index = product_info["seller"].node_index
             seller_ss = self.env.snapshot_list["seller"]
 
-            single_states = seller_ss[self.env.tick:seller_index:("total_demand")].flatten().astype(np.int)
-            hist_states = seller_ss[[self.env.tick - i for i in range(hist_len)]:seller_index:("sold", "demand")].flatten().reshape(2, -1).astype(np.int)
+            single_states = seller_ss[self.env.tick:seller_index:"total_demand"].flatten().astype(np.int)
+            hist_states = seller_ss[[self.env.tick - i for i in range(hist_len)]:seller_index:(
+            "sold", "demand")].flatten().reshape(2, -1).astype(np.int)
 
             state['total_backlog_demand'] = single_states[0]
             state['sale_hist'] = list(hist_states[0])
@@ -249,7 +251,8 @@ class SCEnvWrapper(AbsEnvWrapper):
         distribution = facility.get("distribution", None)
 
         if distribution is not None:
-            dist_states = self.env.snapshot_list["distribution"][self.env.tick:distribution.node_index:("remaining_order_quantity", "remaining_order_number")]
+            dist_states = self.env.snapshot_list["distribution"][
+                          self.env.tick:distribution.node_index:("remaining_order_quantity", "remaining_order_number")]
             dist_states = dist_states.flatten().astype(np.int)
 
             state['distributor_in_transit_orders'] = dist_states[1]
@@ -269,10 +272,11 @@ class SCEnvWrapper(AbsEnvWrapper):
 
         in_transit_orders = self._cur_metrics['facilities'][agent_info.facility_id]["in_transit_orders"]
 
-        # for i, sku in enumerate(sku_list.values()):
-        #     state['consumer_in_transit_orders'][sku.id] += in_transit_orders[sku.id]
+        for i in range(len(state['consumer_in_transit_orders'])):
+            state['consumer_in_transit_orders'][i] = 0
+
         for sku_id, number in in_transit_orders.items():
-            state['consumer_in_transit_orders'][sku_id] += number
+            state['consumer_in_transit_orders'][sku_id] = number
 
         product_index = self._storage_product_indices[agent_info.facility_id][agent_info.sku.id]
         state['inventory_in_stock'] = self._storage_product_numbers[agent_info.facility_id][product_index]
@@ -284,12 +288,12 @@ class SCEnvWrapper(AbsEnvWrapper):
             state['inventory_in_distribution'] = pending_order[agent_info.sku.id]
 
         state['inventory_estimated'] = (state['inventory_in_stock']
-                                         + state['inventory_in_transit']
-                                         - state['inventory_in_distribution'])
-        if (state['inventory_estimated'] >= 0.5*state['storage_capacity']):
+                                        + state['inventory_in_transit']
+                                        - state['inventory_in_distribution'])
+        if state['inventory_estimated'] >= 0.5 * state['storage_capacity']:
             state['is_over_stock'] = 1
 
-        if (state['inventory_estimated'] <= 0):
+        if state['inventory_estimated'] <= 0:
             state['is_out_of_stock'] = 1
 
         service_index = state['service_level']
@@ -297,8 +301,9 @@ class SCEnvWrapper(AbsEnvWrapper):
         if service_index not in self._service_index_ppf_cache:
             self._service_index_ppf_cache[service_index] = st.norm.ppf(service_index)
 
-        state['inventory_rop'] = (state['max_vlt']*state['sale_mean']
-                                  + np.sqrt(state['max_vlt'])*state['sale_std']*self._service_index_ppf_cache[service_index])
+        state['inventory_rop'] = (state['max_vlt'] * state['sale_mean']
+                                  + np.sqrt(state['max_vlt']) * state['sale_std'] * self._service_index_ppf_cache[
+                                      service_index])
 
         if state['inventory_estimated'] < state['inventory_rop']:
             state['is_below_rop'] = 1
@@ -325,7 +330,7 @@ class SCEnvWrapper(AbsEnvWrapper):
                     if not isinstance(vals, list):
                         vals = [vals]
                     if norm is not None:
-                        vals = [max(0.0, min(100.0, x/(agent_raw_state[norm]+0.01))) for x in vals]
+                        vals = [max(0.0, min(100.0, x / (agent_raw_state[norm] + 0.01))) for x in vals]
                     result[agent_id].extend(vals)
             result[agent_id] = np.asarray(result[agent_id], dtype=np.float32)
 
@@ -511,7 +516,8 @@ class SCEnvWrapper(AbsEnvWrapper):
                 for i, source in enumerate(current_source_list):
                     for j, sku in enumerate(sku_list.values()):
                         if sku.id == agent_info.sku.id:
-                            state['consumer_source_export_mask'][i * len(sku_list) + j + 1] = self.facility_levels[source]["skus"][sku.id].vlt
+                            state['consumer_source_export_mask'][i * len(sku_list) + j + 1] = \
+                            self.facility_levels[source]["skus"][sku.id].vlt
 
             # price features
             state['max_price'] = self._max_price
@@ -529,9 +535,10 @@ class BalanceSheetCalculator:
     consumer_features = ("id", "order_quantity", "price", "order_cost", "order_product_cost")
     seller_features = ("id", "sold", "demand", "price", "backlog_ratio")
     manufacture_features = ("id", "manufacturing_number", "product_unit_cost")
-    product_features = ("id", "price", "distribution_check_order", "distribution_transport_cost", "distribution_delay_order_penalty")
+    product_features = (
+    "id", "price", "distribution_check_order", "distribution_transport_cost", "distribution_delay_order_penalty")
     storage_features = ("capacity", "remaining_space")
-    vehicle_features=  ("id", "payload", "unit_transport_cost")
+    vehicle_features = ("id", "payload", "unit_transport_cost")
 
     def __init__(self, env: Env):
         self.env = env
@@ -586,7 +593,8 @@ class BalanceSheetCalculator:
     def calc(self):
         tick = self.env.tick
         # consumer
-        consumer_bs_states = self.consumer_ss[tick::self.consumer_features].flatten().reshape(-1, len(self.consumer_features))
+        consumer_bs_states = self.consumer_ss[tick::self.consumer_features].flatten().reshape(-1, len(
+            self.consumer_features))
 
         # quantity * price
         consumer_profit = consumer_bs_states[:, 1] * consumer_bs_states[:, 2]
@@ -614,7 +622,8 @@ class BalanceSheetCalculator:
         seller_step_reward = seller_balance_sheet_loss + seller_balance_sheet_profit
 
         # manufacture
-        man_bs_states = self.manufacture_ss[tick::self.manufacture_features].flatten().reshape(-1, len(self.manufacture_features))
+        man_bs_states = self.manufacture_ss[tick::self.manufacture_features].flatten().reshape(-1, len(
+            self.manufacture_features))
 
         # loss = manufacture number * cost
         man_balance_sheet_profit_loss = -1 * man_bs_states[:, 1] * man_bs_states[:, 2]
@@ -623,17 +632,18 @@ class BalanceSheetCalculator:
         man_step_reward = man_balance_sheet_profit_loss
 
         # product
-        product_bs_states = self.product_ss[tick::self.product_features].flatten().reshape(-1, len(self.product_features))
+        product_bs_states = self.product_ss[tick::self.product_features].flatten().reshape(-1,
+                                                                                           len(self.product_features))
 
         # product distribution loss = check order + delay order penalty
-        product_distribution_balance_sheet_loss= -1 * (product_bs_states[:, 3] + product_bs_states[:, 4])
+        product_distribution_balance_sheet_loss = -1 * (product_bs_states[:, 3] + product_bs_states[:, 4])
 
         # product distribution profit = check order * price
         product_distribution_balance_sheet_profit = product_bs_states[:, 2] * product_bs_states[:, 1]
 
         # result we need
-        product_step_reward = np.zeros((len(self.products,)))
-        product_balance_sheet_profit = np.zeros((len(self.products,)))
+        product_step_reward = np.zeros((len(self.products, )))
+        product_balance_sheet_profit = np.zeros((len(self.products, )))
         product_balance_sheet_loss = np.zeros((len(self.products, )))
 
         # create product number mapping for storages
@@ -642,7 +652,7 @@ class BalanceSheetCalculator:
             product_list = self.storage_ss[tick:storage_index:"product_list"].flatten().astype(np.int)
             product_number = self.storage_ss[tick:storage_index:"product_number"].flatten().astype(np.int)
 
-            storages_product_map[storage_index] = {pid:pnum for pid, pnum in zip(product_list, product_number)}
+            storages_product_map[storage_index] = {pid: pnum for pid, pnum in zip(product_list, product_number)}
 
         # product balance sheet and reward
         # loss = consumer loss + seller loss + manufacture loss + storage loss + distribution loss + downstreams loss
@@ -674,7 +684,8 @@ class BalanceSheetCalculator:
                 product_balance_sheet_loss[i] += product_distribution_balance_sheet_loss[distribution_index]
                 product_balance_sheet_profit[i] += product_distribution_balance_sheet_profit[distribution_index]
 
-                product_step_reward[i] += product_distribution_balance_sheet_loss[distribution_index] + product_distribution_balance_sheet_profit[distribution_index]
+                product_step_reward[i] += product_distribution_balance_sheet_loss[distribution_index] + \
+                                          product_distribution_balance_sheet_profit[distribution_index]
 
             if downstreams and len(downstreams) > 0:
                 if product_id in downstreams:
@@ -747,7 +758,7 @@ if __name__ == "__main__":
     from time import time
 
     env = Env(
-        scenario="supply_chain", 
+        scenario="supply_chain",
         topology="random",
         durations=100,
         max_snapshots=10)
