@@ -114,6 +114,9 @@ class SCEnvWrapper(AbsEnvWrapper):
         # facility id -> storage product utilization
         self._facility_product_utilization = {}
 
+        # facility id -> in_transit_orders
+        self._facility_in_transit_orders = {}
+
         # current distribution states
         self._cur_distribution_states = None
 
@@ -144,6 +147,13 @@ class SCEnvWrapper(AbsEnvWrapper):
         # reset for each step
         for facility_id in self._facility_product_utilization:
             self._facility_product_utilization[facility_id] = 0
+
+            in_transit_orders = self._cur_metrics['facilities'][facility_id]["in_transit_orders"]
+
+            self._facility_in_transit_orders[facility_id] = [0] * self._sku_number
+
+            for sku_id, number in in_transit_orders.items():
+                self._facility_in_transit_orders[facility_id][sku_id] = number
 
         final_state = {}
 
@@ -286,13 +296,7 @@ class SCEnvWrapper(AbsEnvWrapper):
         if "consumer" not in product_info:
             return
 
-        in_transit_orders = self._cur_metrics['facilities'][agent_info.facility_id]["in_transit_orders"]
-
-        for i in range(len(state['consumer_in_transit_orders'])):
-            state['consumer_in_transit_orders'][i] = 0
-
-        for sku_id, number in in_transit_orders.items():
-            state['consumer_in_transit_orders'][sku_id] = number
+        state['consumer_in_transit_orders'] = self._facility_in_transit_orders[agent_info.facility_id]
 
         product_index = self._storage_product_indices[agent_info.facility_id][agent_info.sku.id]
         state['inventory_in_stock'] = self._storage_product_numbers[agent_info.facility_id][product_index]
