@@ -10,7 +10,7 @@ mode on Azure and run your training job in a distributed environment.
 Prerequisites
 -------------
 
-* `Install the Azure CLI and login <https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest>`_
+* `Install the Azure CLI (preferred version: v2.20.0) and login <https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest>`_
 * `Install docker <https://docs.docker.com/engine/install/>`_ and
   `Configure docker to make sure it can be managed as a non-root user <https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user>`_
 
