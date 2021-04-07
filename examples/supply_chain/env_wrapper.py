@@ -7,23 +7,23 @@ from maro.simulator.scenarios.supply_chain.actions import ConsumerAction, Manufa
 
 
 def stock_constraint(f_state):
-    return (0 < f_state['inventory_in_stock'] <= (f_state['max_vlt'] + 7) * f_state['sale_mean'])
+    return 0 < f_state['inventory_in_stock'] <= (f_state['max_vlt'] + 7) * f_state['sale_mean']
 
 
 def is_replenish_constraint(f_state):
-    return (f_state['consumption_hist'][-1] > 0)
+    return f_state['consumption_hist'][-1] > 0
 
 
 def low_profit(f_state):
-    return ((f_state['sku_price'] - f_state['sku_cost']) * f_state['sale_mean'] <= 1000)
+    return (f_state['sku_price'] - f_state['sku_cost']) * f_state['sale_mean'] <= 1000
 
 
 def low_stock_constraint(f_state):
-    return (0 < f_state['inventory_in_stock'] <= (f_state['max_vlt'] + 3) * f_state['sale_mean'])
+    return 0 < f_state['inventory_in_stock'] <= (f_state['max_vlt'] + 3) * f_state['sale_mean']
 
 
 def out_of_stock(f_state):
-    return (0 < f_state['inventory_in_stock'])
+    return 0 < f_state['inventory_in_stock']
 
 
 atoms = {
@@ -73,12 +73,8 @@ class SCEnvWrapper(AbsEnvWrapper):
 
         # state for each tick
         self._cur_metrics = env.metrics
-        self._cur_facility_storage_products = None
 
-        # TODO: this is fixed after env setup
-        self._cur_facility_storage_product_mapping = {}
-        self._cur_product_numbers = []
-
+        # cache for ppf value.
         self._service_index_ppf_cache = {}
 
         # facility -> {
@@ -99,14 +95,17 @@ class SCEnvWrapper(AbsEnvWrapper):
         # our raw state
         self._states = {}
 
-        # facility_id -> storage index
+        # facility id -> storage index
         self._facility2storage_index_dict = {}
 
-        # facility_id -> product id -> number
+        # facility id -> product id -> number
         self._storage_product_numbers = {}
 
         # facility id -> product_id -> index
         self._storage_product_indices = {}
+
+        # facility id -> storage product utilization
+        self._facility_product_utilization = {}
 
         # built internal helpers.
         self._build_internal_helpers()
@@ -115,6 +114,10 @@ class SCEnvWrapper(AbsEnvWrapper):
         self.cur_balance_sheet_reward = self.balance_cal.calc()
         self._cur_metrics = self.env.metrics
 
+        # reset for each step
+        for facility_id in self._facility_product_utilization:
+            self._facility_product_utilization[facility_id] = 0
+
         final_state = {}
 
         # calculate storage info first, then use it later to speed up.
@@ -122,7 +125,10 @@ class SCEnvWrapper(AbsEnvWrapper):
             product_numbers = self.storage_ss[self.env.tick:storage_index:"product_number"].flatten().astype(np.int)
 
             for pid, index in self._storage_product_indices[facility_id].items():
-                self._storage_product_numbers[facility_id][pid] = product_numbers[index]
+                product_number = product_numbers[index]
+
+                self._storage_product_numbers[facility_id][pid] = product_number
+                self._facility_product_utilization[facility_id] += product_number
 
         for agent_info in self._agent_list:
             state = self._states[agent_info.id]
@@ -201,16 +207,14 @@ class SCEnvWrapper(AbsEnvWrapper):
         facility_id = agent_info.facility_id
         state['storage_utilization'] = 0
 
-        for pid, index in self._storage_product_indices[facility_id].items():
-            product_number = self._storage_product_numbers[facility_id][pid]
-            state['storage_levels'][pid] = product_number
-            state['storage_utilization'] += product_number
+        state['storage_levels'] = self._storage_product_numbers[facility_id]
+        state['storage_utilization'] = self._facility_product_utilization[facility_id]
 
     def _update_sale_features(self, state, agent_info):
         if agent_info.is_facility:
             return
 
-        settings = self.env.configs.settings
+        settings: dict = self.env.configs.settings
 
         hist_len = settings['sale_hist_len']
         consumption_hist_len = settings['consumption_hist_len']
@@ -267,8 +271,6 @@ class SCEnvWrapper(AbsEnvWrapper):
 
         if "consumer" not in product_info:
             return
-
-        sku_list = self._summary["skus"]
 
         in_transit_orders = self._cur_metrics['facilities'][agent_info.facility_id]["in_transit_orders"]
 
@@ -356,8 +358,9 @@ class SCEnvWrapper(AbsEnvWrapper):
 
                 self._facility2storage_index_dict[facility_id] = storage["node_index"]
 
-                self._storage_product_numbers[facility_id] = {}
+                self._storage_product_numbers[facility_id] = [0] * self._sku_number
                 self._storage_product_indices[facility_id] = {}
+                self._facility_product_utilization[facility_id] = 0
 
                 for i, pid in enumerate(storage["product_list"]):
                     self._storage_product_indices[facility_id][pid] = i
