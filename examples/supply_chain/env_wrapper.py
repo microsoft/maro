@@ -144,8 +144,9 @@ class SCEnvWrapper(AbsEnvWrapper):
         self._cur_consumer_states = self.consumer_ss[consumption_ticks::"latest_consumptions"].flatten().reshape(-1, len(self.consumer_ss))
         self._cur_seller_states = self.seller_ss[hist_ticks::seller_features].astype(np.int)
 
-        # reset for each step
+        # facility level states
         for facility_id in self._facility_product_utilization:
+            # reset for each step
             self._facility_product_utilization[facility_id] = 0
 
             in_transit_orders = self._cur_metrics['facilities'][facility_id]["in_transit_orders"]
@@ -184,10 +185,12 @@ class SCEnvWrapper(AbsEnvWrapper):
             # self._add_price_features(state, agent_info)
             self._update_global_features(state)
 
-            final_state[f"consumer.{agent_info.id}"] = state
-            final_state[f"producer.{agent_info.id}"] = state
+            np_state = self._serialize_state(state)
 
-        return self._serialize_state(final_state)
+            final_state[f"consumer.{agent_info.id}"] = np_state
+            final_state[f"producer.{agent_info.id}"] = np_state
+
+        return final_state
 
     def get_reward(self, tick=None, target_agents=None):
         wc = self.env.configs.settings["global_reward_weight_consumer"]
@@ -255,6 +258,7 @@ class SCEnvWrapper(AbsEnvWrapper):
 
         # for product unit only
         state['sale_mean'] = product_metrics["sale_mean"]
+        # TODO: why gamma sale as mean?
         state['sale_gamma'] = state['sale_mean']
         state['sale_std'] = product_metrics["sale_std"]
 
@@ -321,9 +325,10 @@ class SCEnvWrapper(AbsEnvWrapper):
         if service_index not in self._service_index_ppf_cache:
             self._service_index_ppf_cache[service_index] = st.norm.ppf(service_index)
 
+        ppf = self._service_index_ppf_cache[service_index]
+
         state['inventory_rop'] = (state['max_vlt'] * state['sale_mean']
-                                  + np.sqrt(state['max_vlt']) * state['sale_std'] * self._service_index_ppf_cache[
-                                      service_index])
+                                  + np.sqrt(state['max_vlt']) * state['sale_std'] * ppf)
 
         if state['inventory_estimated'] < state['inventory_rop']:
             state['is_below_rop'] = 1
@@ -332,7 +337,7 @@ class SCEnvWrapper(AbsEnvWrapper):
         state["global_time"] = self.env.tick
 
     def _serialize_state(self, state):
-        result = defaultdict(list)
+        result = []
 
         keys_in_state = [(None, ['is_over_stock', 'is_out_of_stock', 'is_below_rop',
                                  'constraint_idx', 'is_accepted', 'consumption_hist']),
@@ -346,18 +351,16 @@ class SCEnvWrapper(AbsEnvWrapper):
                                          'inventory_rop']),
                          ('max_price', ['sku_price', 'sku_cost'])]
 
-        for agent_id, agent_raw_state in state.items():
-            for norm, fields in keys_in_state:
-                for field in fields:
-                    vals = agent_raw_state[field]
-                    if not isinstance(vals, list):
-                        vals = [vals]
-                    if norm is not None:
-                        vals = [max(0.0, min(100.0, x / (agent_raw_state[norm] + 0.01))) for x in vals]
-                    result[agent_id].extend(vals)
-            result[agent_id] = np.asarray(result[agent_id], dtype=np.float32)
+        for norm, fields in keys_in_state:
+            for field in fields:
+                vals = state[field]
+                if not isinstance(vals, list):
+                    vals = [vals]
+                if norm is not None:
+                    vals = [max(0.0, min(100.0, x / (state[norm] + 0.01))) for x in vals]
+                result.extend(vals)
 
-        return result
+        return np.asarray(result, dtype=np.float32)
 
     def _build_internal_helpers(self):
         # facility levels
@@ -780,6 +783,7 @@ class BalanceSheetCalculator:
 
 if __name__ == "__main__":
     from time import time
+    import cProfile
 
     env = Env(
         scenario="supply_chain",
@@ -793,6 +797,7 @@ if __name__ == "__main__":
 
     start_time = time()
 
+    # cProfile.run("ss.get_state(None)", sort="cumtime")
     states = ss.get_state(None)
 
     end_time = time()
