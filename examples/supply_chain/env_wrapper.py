@@ -184,8 +184,8 @@ class SCEnvWrapper(AbsEnvWrapper):
             # self._add_price_features(state, agent_info)
             self._update_global_features(state)
 
-            state[f"consumer.{agent_info.id}"] = state
-            state[f"producer.{agent_info.id}"] = state
+            final_state[f"consumer.{agent_info.id}"] = state
+            final_state[f"producer.{agent_info.id}"] = state
 
         return self._serialize_state(final_state)
 
