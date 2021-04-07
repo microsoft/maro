@@ -1,6 +1,3 @@
-# Copyright (c) Microsoft Corporation.
-# Licensed under the MIT license.
-
 from maro.simulator import Env
 from collections import defaultdict, namedtuple
 import scipy.stats as st
@@ -57,6 +54,7 @@ class UnitBaseInfo:
         return default
 
 
+
 class SCEnvWrapper(AbsEnvWrapper):
     def __init__(self, env: Env):
         super().__init__(env)
@@ -80,6 +78,7 @@ class SCEnvWrapper(AbsEnvWrapper):
 
         # TODO: this is fixed after env setup
         self._cur_facility_storage_product_mapping = {}
+        self._cur_product_numbers = []
 
         self._service_index_ppf_cache = {}
 
@@ -99,6 +98,241 @@ class SCEnvWrapper(AbsEnvWrapper):
         # unit id -> (facility id)
         self.unit_2_facility_dict = {}
 
+        # our raw state
+        self._states = {}
+
+        # facility_id -> storage index
+        self._facility2storage_index_dict = {}
+
+        # facility_id -> product id -> number
+        self._storage_product_numbers = {}
+
+        # facility id -> product_id -> index
+        self._storage_product_indices = {}
+
+        # built internal helpers.
+        self._build_internal_helpers()
+
+    def get_state(self, event):
+        self.cur_balance_sheet_reward = self.balance_cal.calc()
+        self._cur_metrics = self.env.metrics
+
+        final_state = {}
+
+        # calculate storage info first, then use it later to speed up.
+        for facility_id, storage_index in self._facility2storage_index_dict.items():
+            product_numbers = self.storage_ss[self.env.tick:storage_index:"product_number"].flatten().astype(np.int)
+
+            for pid, index in self._storage_product_indices[facility_id].items():
+                self._storage_product_numbers[facility_id][pid] = product_numbers[index]
+
+        for agent_info in self._agent_list:
+            state = self._states[agent_info.id]
+
+            storage_index = self._facility2storage_index_dict[agent_info.facility_id]
+
+            self._update_facility_features(state, agent_info)
+            self._update_storage_features(state, agent_info)
+            # bom do not need to update
+            # self._add_bom_features(state, agent_info)
+            self._update_distribution_features(state, agent_info)
+            self._update_sale_features(state, agent_info)
+            # vlt do not need to update
+            # self._update_vlt_features(state, agent_info)
+            self._update_consumer_features(state, agent_info)
+            # self._add_price_features(state, agent_info)
+            # self._add_global_features(state)
+
+            state[f"consumer.{agent_info.id}"] = state
+            state[f"producer.{agent_info.id}"] = state
+
+        return self._serialize_state(final_state)
+
+    def get_reward(self, tick=None, target_agents=None):
+        wc = self.env.configs.settings["global_reward_weight_consumer"]
+        parent_facility_balance = {}
+        for f_id, sheet in self.cur_balance_sheet_reward.items():
+            if f_id in self.unit_2_facility_dict:
+                # it is a product unit
+                parent_facility_balance[f_id] = self.cur_balance_sheet_reward[self.unit_2_facility_dict[f_id]]
+            else:
+                parent_facility_balance[f_id] = sheet
+
+        consumer_reward_by_facility = { f_id: wc * parent_facility_balance[f_id][0] + (1 - wc) * bsw[1] for f_id, bsw in self.cur_balance_sheet_reward.items() }
+
+        return {
+            **{f"producer.{f_id}": np.float32(reward[0]) for f_id, reward in self.cur_balance_sheet_reward.items()},
+            **{f"consumer.{f_id}": np.float32(reward) for f_id, reward in consumer_reward_by_facility.items()}
+        }
+
+    def get_action(self, action_by_agent):
+        # cache the sources for each consumer if not yet cached
+        if not hasattr(self, "consumer2source"):
+            self.consumer2source, self.consumer2product = {}, {}
+            for facility in self.env.summary["node_mapping"]["facilities"].values():
+                products = facility["units"]["products"]
+                for product_id, product in products.items():
+                    consumer = product["consumer"]
+                    if consumer is not None:
+                        consumer_id = ".".join(["consumer", str(consumer["id"])])
+                        self.consumer2source[consumer_id] = consumer["sources"]
+                        self.consumer2product[consumer_id] = product_id
+
+        env_action = {}
+        for agent_id, action in action_by_agent.items():
+            # consumer action
+            if agent_id.startswith("consumer"):
+                sources = self.consumer2source.get(agent_id, [])
+                if sources:
+                    source_id = sources[0]
+                    product_id = self.consumer2product.get(agent_id, 0)
+                    agent_id = int(agent_id.split(".")[1])
+                    env_action[agent_id] = ConsumerAction(agent_id, product_id, source_id, action, 1)
+            # manufacturer action
+            elif agent_id.startswith("producer"):
+                agent_id = int(agent_id.split(".")[1])
+                env_action[agent_id] = ManufactureAction(agent_id, action)
+
+        return env_action
+
+    def _update_facility_features(self, state, agent_info):
+        state['is_positive_balance'] = 1 if self.balance_cal.total_balance_sheet[agent_info.id] > 0 else 0
+
+    def _update_storage_features(self, state, agent_info):
+        facility_id = agent_info.facility_id
+        for pid, index in self._storage_product_indices[facility_id].items():
+            product_number = self._storage_product_numbers[facility_id][pid]  #     product_number = self._cur_product_numbers[index]
+            state['storage_levels'][pid] = product_number
+            state['storage_utilization'] += product_number
+
+    def _update_sale_features(self, state, agent_info):
+        if agent_info.is_facility:
+            return
+
+        settings = self.env.configs.settings
+
+        hist_len = settings['sale_hist_len']
+        consumption_hist_len = settings['consumption_hist_len']
+        product_metrics = self._cur_metrics["products"][agent_info.id]
+
+        # for product unit only
+        state['sale_mean'] = product_metrics["sale_mean"]
+        state['sale_gamma'] = state['sale_mean']
+        state['sale_std'] = product_metrics["sale_std"]
+
+        facility = self.facility_levels[agent_info.facility_id]
+        product_info = facility[agent_info.sku.id]
+
+        if "consumer" in product_info:
+            # TODO: implement later
+            consumer_index = product_info["consumer"].node_index
+
+            consumption_hist = self.env.snapshot_list["consumer"][[self.env.tick - i for i in range(consumption_hist_len)]:consumer_index:"latest_consumptions"]
+            consumption_hist = consumption_hist.flatten()
+
+            state['consumption_hist'] = list(consumption_hist)
+            state['pending_order'] = list(product_metrics["pending_order_daily"])
+
+        if "seller" in product_info:
+            seller_index = product_info["seller"].node_index
+            seller_ss = self.env.snapshot_list["seller"]
+
+            single_states = seller_ss[self.env.tick:seller_index:("total_demand")].flatten().astype(np.int)
+            hist_states = seller_ss[[self.env.tick - i for i in range(hist_len)]:seller_index:("sold", "demand")].flatten().reshape(2, -1).astype(np.int)
+
+            state['total_backlog_demand'] = single_states[0]
+            state['sale_hist'] = list(hist_states[0])
+            state['backlog_demand_hist'] = list(hist_states[1])
+
+    def _update_distribution_features(self, state, agent_info):
+        facility = self.facility_levels[agent_info.facility_id]
+        distribution = facility.get("distribution", None)
+
+        if distribution is not None:
+            dist_states = self.env.snapshot_list["distribution"][self.env.tick:distribution.node_index:("remaining_order_quantity", "remaining_order_number")]
+            dist_states = dist_states.flatten().astype(np.int)
+
+            state['distributor_in_transit_orders'] = dist_states[1]
+            state['distributor_in_transit_orders_qty'] = dist_states[0]
+
+    def _update_consumer_features(self, state, agent_info):
+        if agent_info.is_facility:
+            return
+
+        facility = self.facility_levels[agent_info.facility_id]
+        product_info = facility[agent_info.sku.id]
+
+        if "consumer" not in product_info:
+            return
+
+        sku_list = self._summary["skus"]
+
+        in_transit_orders = self._cur_metrics['facilities'][agent_info.facility_id]["in_transit_orders"]
+
+        # for i, sku in enumerate(sku_list.values()):
+        #     state['consumer_in_transit_orders'][sku.id] += in_transit_orders[sku.id]
+        for sku_id, number in in_transit_orders.items():
+            state['consumer_in_transit_orders'][sku_id] += number
+
+        product_index = self._storage_product_indices[agent_info.facility_id][agent_info.sku.id]
+        state['inventory_in_stock'] = self._storage_product_numbers[agent_info.facility_id][product_index]
+        state['inventory_in_transit'] = state['consumer_in_transit_orders'][agent_info.sku.id]
+
+        pending_order = self._cur_metrics["facilities"][agent_info.facility_id]["pending_order"]
+
+        if pending_order is not None:
+            state['inventory_in_distribution'] = pending_order[agent_info.sku.id]
+
+        state['inventory_estimated'] = (state['inventory_in_stock']
+                                         + state['inventory_in_transit']
+                                         - state['inventory_in_distribution'])
+        if (state['inventory_estimated'] >= 0.5*state['storage_capacity']):
+            state['is_over_stock'] = 1
+
+        if (state['inventory_estimated'] <= 0):
+            state['is_out_of_stock'] = 1
+
+        service_index = state['service_level']
+
+        if service_index not in self._service_index_ppf_cache:
+            self._service_index_ppf_cache[service_index] = st.norm.ppf(service_index)
+
+        state['inventory_rop'] = (state['max_vlt']*state['sale_mean']
+                                  + np.sqrt(state['max_vlt'])*state['sale_std']*self._service_index_ppf_cache[service_index])
+
+        if state['inventory_estimated'] < state['inventory_rop']:
+            state['is_below_rop'] = 1
+
+    def _serialize_state(self, state):
+        result = defaultdict(list)
+
+        keys_in_state = [(None, ['is_over_stock', 'is_out_of_stock', 'is_below_rop',
+                                 'constraint_idx', 'is_accepted', 'consumption_hist']),
+                         ('storage_capacity', ['storage_utilization']),
+                         ('sale_gamma', ['sale_std',
+                                         'sale_hist',
+                                         'pending_order',
+                                         'inventory_in_stock',
+                                         'inventory_in_transit',
+                                         'inventory_estimated',
+                                         'inventory_rop']),
+                         ('max_price', ['sku_price', 'sku_cost'])]
+
+        for agent_id, agent_raw_state in state.items():
+            for norm, fields in keys_in_state:
+                for field in fields:
+                    vals = agent_raw_state[field]
+                    if not isinstance(vals, list):
+                        vals = [vals]
+                    if norm is not None:
+                        vals = [max(0.0, min(100.0, x/(agent_raw_state[norm]+0.01))) for x in vals]
+                    result[agent_id].extend(vals)
+            result[agent_id] = np.asarray(result[agent_id], dtype=np.float32)
+
+        return result
+
+    def _build_internal_helpers(self):
+        # facility levels
         for facility_id, facility in self._summary["facilities"].items():
             self.facility_levels[facility_id] = {
                 "node_index": facility["node_index"],
@@ -114,6 +348,15 @@ class SCEnvWrapper(AbsEnvWrapper):
                 self.facility_levels[facility_id]["storage"] = UnitBaseInfo(storage)
 
                 self.unit_2_facility_dict[storage["id"]] = facility_id
+
+                self._facility2storage_index_dict[facility_id] = storage["node_index"]
+
+                self._storage_product_numbers[facility_id] = {}
+                self._storage_product_indices[facility_id] = {}
+
+                for i, pid in enumerate(storage["product_list"]):
+                    self._storage_product_indices[facility_id][pid] = i
+                    self._storage_product_numbers[facility_id][pid] = 0
 
             distribution = units["distribution"]
 
@@ -151,365 +394,136 @@ class SCEnvWrapper(AbsEnvWrapper):
 
                     self.facility_levels[facility_id][product_id] = product_info
 
-    def get_state(self, event):
-        self.cur_balance_sheet_reward = self.balance_cal.calc()
-        return self._get_state()
+        # create initial state structure
+        self._build_init_state()
 
-    def get_action(self, action_by_agent):
-        # cache the sources for each consumer if not yet cached
-        if not hasattr(self, "consumer2source"):
-            self.consumer2source, self.consumer2product = {}, {}
-            for facility in self.env.summary["node_mapping"]["facilities"].values():
-                products = facility["units"]["products"]
-                for product_id, product in products.items():
-                    consumer = product["consumer"]
-                    if consumer is not None:
-                        consumer_id = ".".join(["consumer", str(consumer["id"])])
-                        self.consumer2source[consumer_id] = consumer["sources"]
-                        self.consumer2product[consumer_id] = product_id
-
-        env_action = {}
-        for agent_id, action in action_by_agent.items():
-            # consumer action
-            if agent_id.startswith("consumer"):
-                sources = self.consumer2source.get(agent_id, [])
-                if sources:
-                    source_id = sources[0]
-                    product_id = self.consumer2product.get(agent_id, 0)
-                    agent_id = int(agent_id.split(".")[1])
-                    env_action[agent_id] = ConsumerAction(agent_id, product_id, source_id, action, 1)
-            # manufacturer action
-            elif agent_id.startswith("producer"):
-                agent_id = int(agent_id.split(".")[1])
-                env_action[agent_id] = ManufactureAction(agent_id, action)
-
-        return env_action
-
-    def get_reward(self, tick=None, target_agents=None):
-        wc = self.env.configs.settings["global_reward_weight_consumer"]
-        parent_facility_balance = {}
-        for f_id, sheet in self.cur_balance_sheet_reward.items():
-            if f_id in self.unit_2_facility_dict:
-                # it is a product unit
-                parent_facility_balance[f_id] = self.cur_balance_sheet_reward[self.unit_2_facility_dict[f_id]]
-            else:
-                parent_facility_balance[f_id] = sheet
-
-        consumer_reward_by_facility = { f_id: wc * parent_facility_balance[f_id][0] + (1 - wc) * bsw[1] for f_id, bsw in self.cur_balance_sheet_reward.items() }
-
-        return {
-            **{f"producer.{f_id}": np.float32(reward[0]) for f_id, reward in self.cur_balance_sheet_reward.items()},
-            **{f"consumer.{f_id}": np.float32(reward) for f_id, reward in consumer_reward_by_facility.items()}
-        }
-
-    def _get_state(self):
-        self._cur_metrics = self.env.metrics
-
-        state = {}
-
+    def _build_init_state(self):
+        # we will build the final state with default and const values,
+        # then update dynamic part per step
         for agent_info in self._agent_list:
-            storage_index = self.facility_levels[agent_info.facility_id]['storage'].node_index
+            state = {}
 
-            storage_product_list = self.storage_ss[self.env.tick:storage_index:"product_list"].flatten().astype(np.int)
-            storage_product_number = self.storage_ss[self.env.tick:storage_index:"product_number"].flatten().astype(np.int)
+            facility = self.facility_levels[agent_info.facility_id]
 
-            self._cur_facility_storage_products = { pid:pnum for pid, pnum in  zip(storage_product_list, storage_product_number)}
+            # global features
+            state["global_time"] = 0
 
-            self._cur_facility_storage_product_mapping = {product_id: i for i, product_id in enumerate(storage_product_list)}
+            # facility features
+            state["facility_type"] = [1 if i == agent_info.agent_type else 0 for i in range(len(self._agent_types))]
+            state["is_accepted"] = [0] * self._configs.settings["constraint_state_hist_len"]
+            state['constraint_idx'] = [0]
+            state['facility_id'] = [0] * self._sku_number
+            state['sku_info'] = {} if agent_info.sku is not None else agent_info.sku
+            state['echelon_level'] = 0
 
-            f_state = self._state_from_info(agent_info)
-
-            self._add_global_features(f_state)
-
-            state[f"consumer.{agent_info.id}"] = f_state
-            state[f"producer.{agent_info.id}"] = f_state
-
-        return self._serialize_state(state)
-
-    def _state_from_info(self, agent_info):
-        state = {}
-
-        self._add_facility_features(state, agent_info)
-        self._add_storage_features(state, agent_info)
-        self._add_bom_features(state, agent_info)
-        self._add_distributor_features(state, agent_info)
-        self._add_sale_features(state, agent_info)
-        self._add_vlt_features(state, agent_info)
-        self._add_consumer_features(state, agent_info)
-        self._add_price_features(state, agent_info)
-
-        return state
-
-    def _add_global_features(self, state):
-        state['global_time'] = self.env.tick
-
-    def _add_facility_features(self, state, agent_info):
-        state['facility_type'] = [
-            1 if i == agent_info.agent_type else 0 for i in range(len(self._agent_types))]
-
-        # NOTE: We cannot provide facility instance
-        state["facility"] = None
-
-        state["is_accepted"] = [0] * self._configs.settings["constraint_state_hist_len"]
-
-        # NOTE: we have no constraint now
-        state['constraint_idx'] = [0]
-
-        for atom_name in atoms.keys():
-            state[atom_name] = list(np.ones(self._configs.settings['constraint_state_hist_len']))
-
-        # NOTE: named as facility_id but actually sku id
-        # NOTE: as our sku id start from 1, so we need expend one-hot length
-        state['facility_id'] = [0] * self._sku_number
-
-        facility = self.facility_levels[agent_info.facility_id]
-
-        if agent_info.is_facility:
-            # truely facility
             state['facility_info'] = facility['config']
-            state['sku_info'] = {}
+            state["is_positive_balance"] = 0
 
-            metrics = self._cur_metrics["facilities"][agent_info.facility_id]
+            if not agent_info.is_facility:
+                state['facility_id'][agent_info.sku.id] = 1
 
-            state['is_positive_balance'] = 1 if self.balance_cal.total_balance_sheet[agent_info.id] > 0 else 0
-        else:
-            # a product unit
-            # 3rd slot is the facility id of this unit
-            state['facility_info'] = facility['config']
-            state['sku_info'] = agent_info.sku
+            state[f"consumer.{agent_info.id}"] = state
+            state[f"producer.{agent_info.id}"] = state
 
-            metrics = self._cur_metrics["products"][agent_info.id]
-            state['is_positive_balance'] = 1 if self.balance_cal.total_balance_sheet[agent_info.id] > 0 else 0
+            for atom_name in atoms.keys():
+                state[atom_name] = list(np.ones(self._configs.settings['constraint_state_hist_len']))
 
-            # NOTE: ignore constraint here
+            # storage features
+            state['storage_levels'] = [0] * self._sku_number
+            state['storage_capacity'] = facility['storage'].config["capacity"]
+            state['storage_utilization'] = 0
 
-            state['facility_id'][agent_info.sku.id] = 1
+            # bom features
+            state['bom_inputs'] = [0] * self._sku_number
+            state['bom_outputs'] = [0] * self._sku_number
 
-            # NOTE: ignore atom here
+            if not agent_info.is_facility:
+                state['bom_inputs'][agent_info.sku.id] = 1
+                state['bom_outputs'][agent_info.sku.id] = 1
 
-        # NOTE: ignore this as we do not implement it now
-        state['echelon_level'] = 0
+            # vlt features
+            sku_list = self._summary["skus"]
+            current_source_list = []
 
-    def _add_storage_features(self, state, agent_info):
-        facility = self.facility_levels[agent_info.facility_id]
+            if agent_info.sku is not None:
+                current_source_list = facility["upstreams"].get(agent_info.sku.id, [])
 
-        state['storage_levels'] = [0] * self._sku_number
+            state['vlt'] = [0] * (self._max_sources_per_facility * self._sku_number)
+            state['max_vlt'] = 0
 
-        state['storage_capacity'] = facility['storage'].config["capacity"]
+            if not agent_info.is_facility:
+                # only for sku product
+                product_info = facility[agent_info.sku.id]
 
-        state['storage_utilization'] = 0
+                if "consumer" in product_info and len(current_source_list) > 0:
+                    state['max_vlt'] = product_info["skuproduct"]["max_vlt"]
 
-        for product_id, product_number in self._cur_facility_storage_products.items():
-            state['storage_levels'][product_id] = product_number
-            state['storage_utilization'] += product_number
+                    for i, source in enumerate(current_source_list):
+                        for j, sku in enumerate(sku_list.values()):
+                            # NOTE: different with original code, our config can make sure that source has product we need
 
-    def _add_bom_features(self, state, agent_info):
-        state['bom_inputs'] = [0] * self._sku_number
-        state['bom_outputs'] = [0] * self._sku_number
+                            if sku.id == agent_info.sku.id:
+                                state['vlt'][i * len(sku_list) + j + 1] = facility["skus"][sku.id].vlt
 
-        if not agent_info.is_facility:
-            state['bom_inputs'][agent_info.sku.id] = 1
-            state['bom_outputs'][agent_info.sku.id] = 1
+            # sale features
+            settings = self.env.configs.settings
+            hist_len = settings['sale_hist_len']
+            consumption_hist_len = settings['consumption_hist_len']
 
-    def _add_vlt_features(self, state, agent_info):
-        sku_list = self._summary["skus"]
-        facility = self.facility_levels[agent_info.facility_id]
+            state['sale_mean'] = 1.0
+            state['sale_std'] = 1.0
+            state['sale_gamma'] = 1.0
+            state['service_level'] = 0.95
+            state['total_backlog_demand'] = 0
 
-        current_source_list = []
+            state['sale_hist'] = [0] * hist_len
+            state['backlog_demand_hist'] = [0] * hist_len
+            state['consumption_hist'] = [0] * consumption_hist_len
+            state['pending_order'] = [0] * settings['pending_order_len']
 
-        # only for product unit
-        if agent_info.sku is not None:
-            current_source_list = facility["upstreams"].get(agent_info.sku.id, [])
+            if not agent_info.is_facility:
+                state['service_level'] = agent_info.sku.service_level
 
-        state['vlt'] = [0] * (self._max_sources_per_facility * self._sku_number)
-        state['max_vlt'] = 0
+                product_info = facility[agent_info.sku.id]
 
-        if not agent_info.is_facility:
-            # only for sku product
-            product_info = facility[agent_info.sku.id]
+                if "seller" in product_info:
+                    state['sale_gamma'] = facility["skus"][agent_info.sku.id].sale_gamma
 
-            if "consumer" in product_info and len(current_source_list) > 0:
-                state['max_vlt'] = product_info["skuproduct"]["max_vlt"]
+            # distribution features
+            state['distributor_in_transit_orders'] = 0
+            state['distributor_in_transit_orders_qty'] = 0
 
+            # consumer features
+            state['consumer_source_export_mask'] = [0] * (self._max_sources_per_facility * self._sku_number)
+            state['consumer_source_inventory'] = [0] * self._sku_number
+            state['consumer_in_transit_orders'] = [0] * self._sku_number
+
+            state['inventory_in_stock'] = 0
+            state['inventory_in_transit'] = 0
+            state['inventory_in_distribution'] = 0
+            state['inventory_estimated'] = 0
+            state['inventory_rop'] = 0
+            state['is_over_stock'] = 0
+            state['is_out_of_stock'] = 0
+            state['is_below_rop'] = 0
+
+            if len(current_source_list) > 0:
                 for i, source in enumerate(current_source_list):
                     for j, sku in enumerate(sku_list.values()):
-                        # NOTE: different with original code, our config can make sure that source has product we need
-
                         if sku.id == agent_info.sku.id:
-                            state['vlt'][i * len(sku_list) + j + 1] = facility["skus"][sku.id].vlt
+                            state['consumer_source_export_mask'][i * len(sku_list) + j + 1] = self.facility_levels[source]["skus"][sku.id].vlt
 
-    def _add_sale_features(self, state, agent_info):
-        state['sale_mean'] = 1.0
-        state['sale_std'] = 1.0
-        state['sale_gamma'] = 1.0
-        state['service_level'] = 0.95
-        state['total_backlog_demand'] = 0
+            # price features
+            state['max_price'] = self._max_price
+            state['sku_price'] = 0
+            state['sku_cost'] = 0
 
-        settings = self.env.configs.settings
+            if not agent_info.is_facility:
+                state['sku_price'] = agent_info.sku.price
+                state['sku_cost'] = agent_info.sku.cost
 
-        hist_len = settings['sale_hist_len']
-        consumption_hist_len = settings['consumption_hist_len']
+            self._states[agent_info.id] = state
 
-        state['sale_hist'] = [0] * hist_len
-        state['backlog_demand_hist'] = [0] * hist_len
-        state['consumption_hist'] = [0] * consumption_hist_len
-        state['pending_order'] = [0] * settings['pending_order_len']
-
-        if agent_info.is_facility:
-            return
-
-        product_metrics = self._cur_metrics["products"][agent_info.id]
-
-        # for product unit only
-        state['service_level'] = agent_info.sku.service_level
-        state['sale_mean'] = product_metrics["sale_mean"]
-        state['sale_gamma'] = state['sale_mean']
-        state['sale_std'] = product_metrics["sale_std"]
-
-        facility = self.facility_levels[agent_info.facility_id]
-        product_info = facility[agent_info.sku.id]
-
-        if "consumer" in product_info:
-            # TODO: implement later
-            consumer_index = product_info["consumer"].node_index
-
-            consumption_hist = self.env.snapshot_list["consumer"][[self.env.tick - i for i in range(consumption_hist_len)]:consumer_index:"latest_consumptions"]
-            consumption_hist = consumption_hist.flatten()
-
-            state['consumption_hist'] = list(consumption_hist)
-            state['pending_order'] = list(product_metrics["pending_order_daily"])
-
-        if "seller" in product_info:
-            seller_index = product_info["seller"].node_index
-            seller_ss = self.env.snapshot_list["seller"]
-
-            single_states = seller_ss[self.env.tick:seller_index:("total_demand")].flatten().astype(np.int)
-            hist_states = seller_ss[[self.env.tick - i for i in range(hist_len)]:seller_index:("sold", "demand")].flatten().reshape(2, -1).astype(np.int)
-
-            state['total_backlog_demand'] = single_states[0]
-            state['sale_hist'] = list(hist_states[0])
-            state['backlog_demand_hist'] = list(hist_states[1])
-            state['sale_gamma'] = facility["skus"][agent_info.sku.id].sale_gamma
-
-    def _add_distributor_features(self, state, agent_info):
-        state['distributor_in_transit_orders'] = 0
-        state['distributor_in_transit_orders_qty'] = 0
-
-        facility = self.facility_levels[agent_info.facility_id]
-
-        distribution = facility.get("distribution", None)
-
-        if distribution is not None:
-            dist_states = self.env.snapshot_list["distribution"][self.env.tick:distribution.id:("remaining_order_quantity", "remaining_order_number")]
-            dist_states = dist_states.flatten().astype(np.int)
-
-            state['distributor_in_transit_orders'] = dist_states[1]
-            state['distributor_in_transit_orders_qty'] = dist_states[0]
-
-    def _add_consumer_features(self, state, agent_info):
-        state['consumer_source_export_mask'] = [0] * (self._max_sources_per_facility * self._sku_number)
-        state['consumer_source_inventory'] = [0] * self._sku_number
-        state['consumer_in_transit_orders'] = [0] * self._sku_number
-
-        state['inventory_in_stock'] = 0
-        state['inventory_in_transit'] = 0
-        state['inventory_in_distribution'] = 0
-        state['inventory_estimated'] = 0
-        state['inventory_rop'] = 0
-        state['is_over_stock'] = 0
-        state['is_out_of_stock'] = 0
-        state['is_below_rop'] = 0
-
-        if agent_info.is_facility:
-            return
-
-        facility = self.facility_levels[agent_info.facility_id]
-        product_info = facility[agent_info.sku.id]
-
-        if "consumer" not in product_info:
-            return
-
-        source_list = facility["upstreams"].get(agent_info.sku.id, [])
-
-        if len(source_list) == 0:
-            return
-
-        sku_list = self._summary["skus"]
-
-        for i, source in enumerate(source_list):
-            for j, sku in enumerate(sku_list.values()):
-                if sku.id == agent_info.sku.id:
-                    state['consumer_source_export_mask'][i * len(sku_list) + j + 1] = self.facility_levels[source]["skus"][sku.id].vlt
-
-        in_transit_orders = self._cur_metrics['facilities'][agent_info.facility_id]["in_transit_orders"]
-
-        for i, sku in enumerate(sku_list.values()):
-            state['consumer_in_transit_orders'][sku.id] += in_transit_orders[sku.id]
-
-        state['inventory_in_stock'] = self._cur_facility_storage_products[agent_info.sku.id]
-        state['inventory_in_transit'] = state['consumer_in_transit_orders'][agent_info.sku.id]
-
-        pending_order = self._cur_metrics["facilities"][agent_info.facility_id]["pending_order"]
-
-        if pending_order is not None:
-            state['inventory_in_distribution'] = pending_order[agent_info.sku.id]
-
-        state['inventory_estimated'] = (state['inventory_in_stock']
-                                         + state['inventory_in_transit']
-                                         - state['inventory_in_distribution'])
-        if (state['inventory_estimated'] >= 0.5*state['storage_capacity']):
-            state['is_over_stock'] = 1
-
-        if (state['inventory_estimated'] <= 0):
-            state['is_out_of_stock'] = 1
-
-        service_index = state['service_level']
-
-        if service_index not in self._service_index_ppf_cache:
-            self._service_index_ppf_cache[service_index] = st.norm.ppf(service_index)
-
-        state['inventory_rop'] = (state['max_vlt']*state['sale_mean']
-                                  + np.sqrt(state['max_vlt'])*state['sale_std']*self._service_index_ppf_cache[service_index])
-
-        if state['inventory_estimated'] < state['inventory_rop']:
-            state['is_below_rop'] = 1
-
-    def _add_price_features(self, state, agent_info):
-        state['max_price'] = self._max_price
-        state['sku_price'] = 0
-        state['sku_cost'] = 0
-
-        if not agent_info.is_facility:
-            state['sku_price'] = agent_info.sku.price
-            state['sku_cost'] = agent_info.sku.cost
-
-    def _serialize_state(self, state):
-        result = defaultdict(list)
-
-        keys_in_state = [(None, ['is_over_stock', 'is_out_of_stock', 'is_below_rop',
-                                 'constraint_idx', 'is_accepted', 'consumption_hist']),
-                         ('storage_capacity', ['storage_utilization']),
-                         ('sale_gamma', ['sale_std',
-                                         'sale_hist',
-                                         'pending_order',
-                                         'inventory_in_stock',
-                                         'inventory_in_transit',
-                                         'inventory_estimated',
-                                         'inventory_rop']),
-                         ('max_price', ['sku_price', 'sku_cost'])]
-
-        for agent_id, agent_raw_state in state.items():
-            for norm, fields in keys_in_state:
-                for field in fields:
-                    vals = agent_raw_state[field]
-                    if not isinstance(vals, list):
-                        vals = [vals]
-                    if norm is not None:
-                        vals = [max(0.0, min(100.0, x/(agent_raw_state[norm]+0.01))) for x in vals]
-                    result[agent_id].extend(vals)
-            result[agent_id] = np.asarray(result[agent_id], dtype=np.float32)
-
-        return result
 
 class BalanceSheetCalculator:
     consumer_features = ("id", "order_quantity", "price", "order_cost", "order_product_cost")
@@ -732,18 +746,20 @@ class BalanceSheetCalculator:
 if __name__ == "__main__":
     from time import time
 
-    start_tick = 0
-    durations = 100
-    env = Env(scenario="supply_chain", topology="sample1",
-              start_tick=start_tick, durations=durations)
+    env = Env(
+        scenario="supply_chain", 
+        topology="random",
+        durations=100,
+        max_snapshots=10)
 
     ss = SCEnvWrapper(env)
 
     env.step(None)
 
+    start_time = time()
+
     states = ss.get_state(None)
 
-    rewards = ss.get_reward(None)
+    end_time = time()
 
-    print(states)
-    print(rewards)
+    print("time cost:", end_time - start_time)

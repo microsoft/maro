@@ -149,3 +149,10 @@ class StorageUnit(UnitBase):
         for sku in self.facility.skus.values():
             self.product_level[sku.id] = sku.init_stock
             self.remaining_space -= sku.init_stock
+
+    def get_unit_info(self):
+        info = super().get_unit_info()
+
+        info["product_list"] = [i for i in self.product_level.keys()]
+
+        return info
