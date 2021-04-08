@@ -134,8 +134,8 @@ class SCEnvWrapper(AbsEnvWrapper):
         settings: dict = self.env.configs.settings
         consumption_hist_len = settings['consumption_hist_len']
         hist_len = settings['sale_hist_len']
-        consumption_ticks = [cur_tick - i for i in range(consumption_hist_len)]
-        hist_ticks = [cur_tick - i for i in range(hist_len)]
+        consumption_ticks = [cur_tick - i for i in range(consumption_hist_len-1, -1, -1)]
+        hist_ticks = [cur_tick - i for i in range(hist_len-1, -1, -1)]
 
         self.cur_balance_sheet_reward = self.balance_cal.calc()
         self._cur_metrics = self.env.metrics
@@ -258,12 +258,14 @@ class SCEnvWrapper(AbsEnvWrapper):
 
         # for product unit only
         state['sale_mean'] = product_metrics["sale_mean"]
-        # TODO: why gamma sale as mean?
-        state['sale_gamma'] = state['sale_mean']
         state['sale_std'] = product_metrics["sale_std"]
 
         facility = self.facility_levels[agent_info.facility_id]
         product_info = facility[agent_info.sku.id]
+
+        if "seller" not in product_info:
+            # TODO: why gamma sale as mean?
+            state['sale_gamma'] = state['sale_mean']
 
         if "consumer" in product_info:
             consumer_index = product_info["consumer"].node_index
@@ -277,8 +279,8 @@ class SCEnvWrapper(AbsEnvWrapper):
             seller_states = self._cur_seller_states[:, seller_index, :]
 
             # for total demand, we need latest one.
-            state['total_backlog_demand'] = seller_states[:, 0][-1]
-            state['sale_hist'] = list(seller_states[:, 1])
+            state['total_backlog_demand'] = seller_states[:, 0][-1][0]
+            state['sale_hist'] = list(seller_states[:, 1].flatten())
             state['backlog_demand_hist'] = list(seller_states[:, 2])
 
     def _update_distribution_features(self, state, agent_info):
@@ -441,11 +443,12 @@ class SCEnvWrapper(AbsEnvWrapper):
             state["global_time"] = 0
 
             # facility features
+            state["facility"] = None
             state["facility_type"] = [1 if i == agent_info.agent_type else 0 for i in range(len(self._agent_types))]
             state["is_accepted"] = [0] * self._configs.settings["constraint_state_hist_len"]
             state['constraint_idx'] = [0]
             state['facility_id'] = [0] * self._sku_number
-            state['sku_info'] = {} if agent_info.sku is not None else agent_info.sku
+            state['sku_info'] = {} if agent_info.is_facility else agent_info.sku
             state['echelon_level'] = 0
 
             state['facility_info'] = facility['config']
@@ -453,9 +456,6 @@ class SCEnvWrapper(AbsEnvWrapper):
 
             if not agent_info.is_facility:
                 state['facility_id'][agent_info.sku.id] = 1
-
-            state[f"consumer.{agent_info.id}"] = state
-            state[f"producer.{agent_info.id}"] = state
 
             for atom_name in atoms.keys():
                 state[atom_name] = list(np.ones(self._configs.settings['constraint_state_hist_len']))

@@ -201,10 +201,7 @@ class SCEnvWrapper:
     def _get_state(self):
         self._cur_metrics = self.env.metrics
 
-        state = {
-            "consumer": {},
-            "producer": {}
-        }
+        state = {}
 
         for agent_info in self._agent_list:
             storage_index = self.facility_levels[agent_info.facility_id]['storage'].node_index
@@ -220,8 +217,8 @@ class SCEnvWrapper:
 
             self._add_global_features(f_state)
 
-            state['consumer'][agent_info.id] = f_state
-            state['producer'][agent_info.id] = f_state
+            state[f"consumer.{agent_info.id}"] = f_state
+            state[f"producer.{agent_info.id}"] = f_state
 
         return self._serialize_state(state)
 
@@ -372,7 +369,7 @@ class SCEnvWrapper:
             # TODO: implement later
             consumer_index = product_info["consumer"].node_index
 
-            consumption_hist = self.env.snapshot_list["consumer"][[self.env.tick - i for i in range(consumption_hist_len)]:consumer_index:"latest_consumptions"]
+            consumption_hist = self.env.snapshot_list["consumer"][[self.env.tick - i for i in range(consumption_hist_len-1, -1, -1)]:consumer_index:"latest_consumptions"]
             consumption_hist = consumption_hist.flatten()
 
             state['consumption_hist'] = list(consumption_hist)
@@ -383,11 +380,11 @@ class SCEnvWrapper:
             seller_ss = self.env.snapshot_list["seller"]
 
             single_states = seller_ss[self.env.tick:seller_index:("total_demand")].flatten().astype(np.int)
-            hist_states = seller_ss[[self.env.tick - i for i in range(hist_len)]:seller_index:("sold", "demand")].flatten().reshape(2, -1).astype(np.int)
+            hist_states = seller_ss[[self.env.tick - i for i in range(hist_len-1, -1, -1)]:seller_index:("sold", "demand")].flatten().reshape(-1, 2).astype(np.int)
 
             state['total_backlog_demand'] = single_states[0]
-            state['sale_hist'] = list(hist_states[0])
-            state['backlog_demand_hist'] = list(hist_states[1])
+            state['sale_hist'] = list(hist_states[:, 0])
+            state['backlog_demand_hist'] = list(hist_states[:, 1])
             state['sale_gamma'] = facility["skus"][agent_info.sku.id].sale_gamma
 
     def _add_distributor_features(self, state, agent_info):
@@ -483,10 +480,7 @@ class SCEnvWrapper:
             state['sku_cost'] = agent_info.sku.cost
 
     def _serialize_state(self, state):
-        result = {
-            "consumer": {},
-            "producer": {}
-        }
+        result = {}
 
         keys_in_state = [(None, ['is_over_stock', 'is_out_of_stock', 'is_below_rop',
                                  'constraint_idx', 'is_accepted', 'consumption_hist']),
@@ -500,22 +494,21 @@ class SCEnvWrapper:
                                          'inventory_rop']),
                          ('max_price', ['sku_price', 'sku_cost'])]
 
-        for _type, agents_dict in state.items():
-            for agent_id, agent_raw_state in agents_dict.items():
-                result[_type][agent_id] = []
+        for agent_id, agent_raw_state in state.items():
+            result[agent_id] = []
 
-                for norm, fields in keys_in_state:
-                    for field in fields:
-                        vals = agent_raw_state[field]
+            for norm, fields in keys_in_state:
+                for field in fields:
+                    vals = agent_raw_state[field]
 
-                        if not isinstance(vals, list):
-                            vals = [vals]
-                        if norm is not None:
-                            vals = [
-                                max(0.0, min(100.0, x/(agent_raw_state[norm]+0.01))) for x in vals]
+                    if not isinstance(vals, list):
+                        vals = [vals]
+                    if norm is not None:
+                        vals = [
+                            max(0.0, min(100.0, x/(agent_raw_state[norm]+0.01))) for x in vals]
 
-                        result[_type][agent_id].extend(vals)
-                result[_type][agent_id] = np.array(result[_type][agent_id])
+                    result[agent_id].extend(vals)
+            result[agent_id] = np.array(result[agent_id])
 
         return result
 
