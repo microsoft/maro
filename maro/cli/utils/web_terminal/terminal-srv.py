@@ -9,6 +9,7 @@ import shlex
 import struct
 import subprocess
 import termios
+import time
 import traceback
 
 import pandas as pd
@@ -23,7 +24,6 @@ app.config["pid"] = None
 app.config["child_pid"] = None
 app.config["cluster_list"] = []
 app.config["cluster_status"] = {}
-app.config["cluster_jobs"] = {}
 app.config["local_executor"] = {}
 socketio = SocketIO(app)
 
@@ -166,7 +166,7 @@ def update_resource_dynamic(org_data, local_executor, dashboard_type):
 
 def update_cluster_list():
     while True:
-        socketio.sleep(1)
+        time.sleep(2)
         clusters = []
         from maro.cli.utils.params import GlobalPaths
         for root, _, files in os.walk(GlobalPaths.ABS_MARO_CLUSTERS, topdown=False):
@@ -174,13 +174,14 @@ def update_cluster_list():
                 if os.path.basename(name) == "cluster_details.yml":
                     clusters.append(os.path.basename(root))
         app.config["cluster_list"] = clusters
+
         clusters_removed = []
         for cluster_name in app.config["cluster_status"].keys():
             if cluster_name not in clusters:
                 clusters_removed.append(cluster_name)
         for cluster_name in clusters_removed:
             del app.config["cluster_status"][cluster_name]
-            del app.config["cluster_jobs"][cluster_name]
+
         for cluster_name in clusters:
             if cluster_name not in app.config["cluster_status"].keys():
                 try:
@@ -204,10 +205,15 @@ def update_cluster_list():
                     if cluster_name in app.config["cluster_status"].keys():
                         del app.config["cluster_status"][cluster_name]
             else:
-                local_executor = app.config["local_executor"][cluster_name]
-                update_resource_dynamic(app.config["cluster_status"][cluster_name]["resource_dynamic"],
-                                        local_executor, app.config["cluster_status"][cluster_name]["dashboard_type"])
-                app.config["cluster_status"][cluster_name]["job_detail_data"] = local_executor.get_job_details()
+                try:
+                    local_executor = app.config["local_executor"][cluster_name]
+                    update_resource_dynamic(app.config["cluster_status"][cluster_name]["resource_dynamic"],
+                                            local_executor, app.config["cluster_status"][cluster_name]["dashboard_type"])
+                    app.config["cluster_status"][cluster_name]["job_detail_data"] = local_executor.get_job_details()
+                except Exception as e:
+                    print(f"Failed to collect status for cluster {cluster_name}, error:{e}  {traceback.format_exc()}")
+                    if cluster_name in app.config["cluster_status"].keys():
+                        del app.config["cluster_status"][cluster_name]
 
 
 @socketio.on("cluster_list", namespace="/pty")

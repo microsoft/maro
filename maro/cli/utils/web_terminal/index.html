@@ -117,24 +117,27 @@
     }
 
     .tooltip {
-      position: relative;
       margin-left: 20px;
       line-height: 40px;
     }
 
     .tooltiptext {
-      visibility: hidden;
+      display: none;
       background-color: #2e2e2e88;
       color: #fff;
       text-align: center;
       padding: 5px 0;
-      border-radius: 6px;
+      border-radius: 5px;
       position: absolute;
       z-index: 10000;
     }
 
     .tooltip:hover+.tooltiptext {
-      visibility: visible;
+      display: unset;
+    }
+
+    #cluster-list {
+      overflow-x: hidden;
     }
   </style>
 
@@ -143,8 +146,13 @@
       <el-row>
         <el-col :span="5" style="color: #ffffff80; font-size: x-large;">
           <div style="display: inline-flex;">MARO Admin Web UI</div>
-          <img src="assets/images/terminal.jpg" v-on:click="toggle_terminal" alt="terminal"
-            style="background-color: #242424; border-radius: 10px; height: 40px; transform: translateY(10px);" />
+          <img src="assets/images/terminal.jpg" v-on:click="toggle_terminal" alt="terminal" class="tooltip"
+            v-on:mouseover="show_tooltip('terminal-1')"
+            style="background-color: #242424; border-radius: 10px; height: 40px; transform: translateY(10px); margin: 0px;" />
+          <div class="tooltiptext" id="tooltip-terminal-1"
+            style="font-size: small; line-height: 40px; font-weight: normal;">
+            Click to toggle terminal.
+          </div>
         </el-col>
         <el-col :span="19" style="text-align: right; font-size: 12px">
           <el-link type="primary" href="https://www.github.com/microsoft/maro" target="blank"
@@ -160,10 +168,10 @@
     </el-header>
     <el-main>
       <el-container :class="test_dashboard_type()">
-        <el-main style="width: 11%;">
+        <el-main style="width: 11%;" id="cluster-list">
           <div style="font-size: large; line-height: 60px; font-weight: bold;">Cluster List</div>
           <div v-for="item in cluster_list" :key="item"
-            style="margin: 0px -20px; line-height: 50px; text-align: center; overflow: hidden;">
+            style="margin: 0px -20px; line-height: 50px; text-align: center; ">
             <div :class="test_tab_type(item)" v-on:click="show_cluster(item)">{{ item }}</div>
           </div>
         </el-main>
@@ -177,7 +185,7 @@
                 <el-main class="text-resource-block">
                   <el-container>
                     <el-header class="text-resource-image">
-                      <img src="assets/images/cpu.jpg" style="height: 50px;" alt="CPU"/>
+                      <img src="assets/images/cpu.jpg" style="height: 50px;" alt="CPU" />
                     </el-header>
                     <el-main class="text-resource-num">
                       {{resource_static["cpu"]}}
@@ -191,7 +199,7 @@
                 <el-main class="text-resource-block">
                   <el-container>
                     <el-header class="text-resource-image">
-                      <img src="assets/images/memory.jpg" alt="Memory"/>
+                      <img src="assets/images/memory.jpg" alt="Memory" />
                     </el-header>
                     <el-main class="text-resource-num">
                       {{resource_static["memory"]}}
@@ -205,7 +213,7 @@
                 <el-main class="text-resource-block">
                   <el-container>
                     <el-header class="text-resource-image">
-                      <img src="assets/images/gpu.jpg" alt="GPU"/>
+                      <img src="assets/images/gpu.jpg" alt="GPU" />
                     </el-header>
                     <el-main class="text-resource-num">
                       {{resource_static["gpu"]}}
@@ -218,21 +226,24 @@
               </el-container>
             </el-main>
             <el-header>
-              Resource Status
+              {{status_header}}
             </el-header>
             <el-main v-if="dashboard_type=='process'">
               <el-container direction="vertical">
                 <el-main>
                   <div>CPU:</div>
                   <div id="cpu-chart"></div>
+                  <br />
                 </el-main>
                 <el-main>
                   <div>Memory:</div>
                   <div id="memory-chart"></div>
+                  <br />
                 </el-main>
                 <el-main>
                   <div>GPU:</div>
                   <div id="gpu-chart"></div>
+                  <br />
                 </el-main>
               </el-container>
             </el-main>
@@ -241,7 +252,7 @@
                 <el-main class="text-resource-block">
                   <el-container>
                     <el-header class="text-resource-image">
-                      <img src="assets/images/cpu.jpg" alt="CPU"/>
+                      <img src="assets/images/cpu.jpg" alt="CPU" />
                     </el-header>
                     <el-main class="text-resource-num">
                       {{resource_dynamic["cpu"][0]}}
@@ -255,7 +266,7 @@
                 <el-main class="text-resource-block">
                   <el-container>
                     <el-header class="text-resource-image">
-                      <img src="assets/images/memory.jpg" alt="Memory"/>
+                      <img src="assets/images/memory.jpg" alt="Memory" />
                     </el-header>
                     <el-main class="text-resource-num">
                       {{resource_dynamic["memory"][0]}}
@@ -269,7 +280,7 @@
                 <el-main class="text-resource-block">
                   <el-container>
                     <el-header class="text-resource-image">
-                      <img src="assets/images/gpu.jpg" alt="GPU"/>
+                      <img src="assets/images/gpu.jpg" alt="GPU" />
                     </el-header>
                     <el-main class="text-resource-num">
                       {{resource_dynamic["gpu"][0]}}
@@ -297,10 +308,11 @@
                     </el-header>
                     <el-main>
                       <div v-for="job_detail in job_running">
-                        <div class="tooltip" :style="'background:'+job_detail.color">
+                        <div class="tooltip" :style="'background:'+job_detail.color"
+                          v-on:mouseover="show_tooltip(job_detail.name)">
                           {{job_detail.name}}
                         </div>
-                        <div class="tooltiptext">
+                        <div class="tooltiptext" :id="'tooltip-'+job_detail.name">
                           <table style="margin: 1em;">
                             <tr>
                               <th>Component</th>
@@ -339,10 +351,11 @@
                     </el-header>
                     <el-main>
                       <div v-for="job_detail in job_pending">
-                        <div class="tooltip" :style="'background:'+job_detail.color">
+                        <div class="tooltip" :style="'background:'+job_detail.color"
+                          v-on:mouseover="show_tooltip(job_detail.name)">
                           {{job_detail.name}}
                         </div>
-                        <div class="tooltiptext">
+                        <div class="tooltiptext" :id="'tooltip-'+job_detail.name">
                           <table style="margin: 1em;">
                             <tr>
                               <th>Component</th>
@@ -381,10 +394,11 @@
                     </el-header>
                     <el-main>
                       <div v-for="job_detail in job_killed">
-                        <div class="tooltip" :style="'background:'+job_detail.color">
+                        <div class="tooltip" :style="'background:'+job_detail.color"
+                          v-on:mouseover="show_tooltip(job_detail.name)">
                           {{job_detail.name}}
                         </div>
-                        <div class="tooltiptext">
+                        <div class="tooltiptext" :id="'tooltip-'+job_detail.name">
                           <table style="margin: 1em;">
                             <tr>
                               <th>Component</th>
@@ -428,10 +442,11 @@
                     </el-header>
                     <el-main>
                       <div v-for="job_detail in job_finish">
-                        <div class="tooltip" :style="'background:'+job_detail.color">
+                        <div class="tooltip" :style="'background:'+job_detail.color"
+                          v-on:mouseover="show_tooltip(job_detail.name)">
                           {{job_detail.name}}
                         </div>
-                        <div class="tooltiptext">
+                        <div class="tooltiptext" :id="'tooltip-'+job_detail.name">
                           <table style="margin: 1em;">
                             <tr>
                               <th>Component</th>
@@ -470,10 +485,11 @@
                     </el-header>
                     <el-main>
                       <div v-for="job_detail in job_failed">
-                        <div class="tooltip">
+                        <div class="tooltip" :style="'background:'+job_detail.color"
+                          v-on:mouseover="show_tooltip(job_detail.name)">
                           {{job_detail.name}}
                         </div>
-                        <div class="tooltiptext">
+                        <div class="tooltiptext" :id="'tooltip-'+job_detail.name">
                           <table style="margin: 1em;">
                             <tr>
                               <th>Component</th>
@@ -511,8 +527,14 @@
 
     </el-main>
     <el-footer style="height:340px;" v-show="show_terminal">
-      <div><img src="assets/images/terminal.jpg" v-on:click="toggle_terminal" alt="terminal"
-          style="background-color: #242424; border-radius: 10px; height: 40px;" /></div>
+      <div>
+        <img src="assets/images/terminal.jpg" v-on:click="toggle_terminal" alt="terminal" class="tooltip"
+          v-on:mouseover="show_tooltip('terminal-2')"
+          style="background-color: #242424; border-radius: 10px; height: 40px; margin: 0px;" />
+        <div class="tooltiptext" id="tooltip-terminal-2" style="font-size: small;">
+          Click to toggle terminal.
+        </div>
+      </div>
       <div id="terminal"></div>
     </el-footer>
   </el-container>
@@ -541,6 +563,7 @@
             cluster_name: undefined,
             show_terminal: true,
             dashboard_type: "",
+            status_header: "Available Resource",
             connected: false,
             resource_static: {
               "cpu": NaN,
@@ -596,6 +619,11 @@
             else {
               return "job-full";
             }
+          },
+          show_tooltip: function (item_name) {
+            d3.select('#tooltip-' + item_name)
+              .style('left', event.pageX + 'px')
+              .style('top', event.pageY + 'px');
           }
         }
       })
@@ -614,7 +642,7 @@
       // Create xterms.js terminal.
       const waitMS = 50
       const term = new Terminal({
-        cols: 75,
+        cols: 1,
         rows: 17,
         cursorBlink: true,
         macOptionIsMeta: true,
@@ -667,6 +695,7 @@
           vm.dashboard_type = data["dashboard_type"]
           vm.resource_static = data["resource_static"]
           vm.resource_dynamic = data["resource_dynamic"]
+          vm.status_header = vm.dashboard_type == "process" ? "Resource Utilization" : "Available Resource"
           job_running = new Array()
           job_pending = new Array()
           job_killed = new Array()
@@ -726,10 +755,10 @@
         let default_color = gen_color("97b7eeffc05993d586da393cf99841");
         let color = d3.scaleOrdinal(default_color);
 
-        let chart_width = 300;
-        let chart_height = 150;
+        let chart_width = 400;
+        let chart_height = 180;
         let chart_margin = {
-          left: 30,
+          left: 35,
           top: 10,
           right: 10,
           bottom: 20,
@@ -793,13 +822,23 @@
           .attr("d", function (d) {
             return line(d);
           });
-        let xAxis = d3.axisBottom().scale(x).ticks(5);
+        let xAxis = d3.axisBottom().scale(x).ticks(5).tickFormat(d => {
+          let d_min = x_max - d + 1;
+          if (d_min >= 60) {
+            return `${(d_min / 60).toFixed(1)}H ago`;
+          }
+          else {
+            return `${d_min}M ago`;
+          }
+        });
         e.append("g")
           .attr("class", "x axis")
           .attr("transform", "translate(" + 0 + "," + height + ")")
           .call(xAxis);
 
-        let yAxis = d3.axisLeft().scale(y).ticks(5);
+        let yAxis = d3.axisLeft().scale(y).ticks(5).tickFormat(d => {
+          return `${d}%`;
+        });
         e.append("g")
           .attr("class", "y axis")
           .attr("transform", "translate(" + 0 + "," + 0 + ")")
