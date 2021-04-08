@@ -159,7 +159,9 @@ def update_resource_dynamic(org_data, local_executor, dashboard_type):
                 data_list = pd.Series(json.loads(data_str), dtype="float64")
                 data_point = data_list.mean()
                 if pd.isna(data_point):
-                    data_point = None
+                    data_point = 0
+                if data_key == "memory":
+                    data_point *= 100
                 data_array.append(data_point)
             org_data[data_key].extend(data_array)
 
