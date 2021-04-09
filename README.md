@@ -60,6 +60,8 @@ of user-defined functions for message auto-handling, cluster provision, and job 
 
 ## Install MARO from [PyPI](https://pypi.org/project/pymaro/#files)
 
+*Notes: The visualization tool is not included in pymaro package. To enable the visualization support, you need to install from source.*
+
 - Mac OS / Linux
 
   ```sh

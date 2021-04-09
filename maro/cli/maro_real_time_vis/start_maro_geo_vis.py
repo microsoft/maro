@@ -24,7 +24,8 @@ def start_geo_vis(start: str, experiment_name: str, front_end_port: int, **kwarg
         database_start_path = f"{grader_path}/streamit/server"
         subprocess.check_call(
             'sh run_docker.sh',
-            cwd=database_start_path
+            cwd=database_start_path,
+            shell=True
         )
     elif start == 'service':
         if experiment_name is None:
@@ -93,7 +94,8 @@ def start_geo_vis(start: str, experiment_name: str, front_end_port: int, **kwarg
 
         subprocess.check_call(
             'sh run_docker.sh',
-            cwd=exec_path
+            cwd=exec_path,
+            shell=True
         )
         back_end_path = f"{exec_path}/back_end/vis_app/app.py"
         os.system(f"python {back_end_path}")
