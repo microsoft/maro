@@ -21,3 +21,4 @@ pytz==2019.3
 aria2p==0.9.1
 kubernetes
 networkx==2.4
+scipy==1.5.2
