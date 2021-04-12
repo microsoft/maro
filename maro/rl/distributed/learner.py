@@ -3,12 +3,13 @@
 
 import time
 from collections import defaultdict
+from os import getcwd
 from typing import Union
 
 from maro.communication import Message, Proxy, SessionType
 from maro.rl.agent import AbsAgent, MultiAgentWrapper
 from maro.rl.scheduling import Scheduler
-from maro.utils import InternalLogger
+from maro.utils import Logger
 
 from .actor_manager import ActorManager
 from .message_enums import MsgTag, MsgKey
@@ -28,7 +29,8 @@ class DistLearner(object):
         actor_manager: ActorManager,
         agent_update_interval: int = -1,
         required_actor_finishes: str = None,
-        discard_stale_experiences: bool = True
+        discard_stale_experiences: bool = True,
+        log_dir: str = getcwd()
     ):
         super().__init__()
         self.agent = MultiAgentWrapper(agent) if isinstance(agent, AbsAgent) else agent
@@ -38,7 +40,7 @@ class DistLearner(object):
         self.required_actor_finishes = required_actor_finishes
         self.discard_stale_experiences = discard_stale_experiences
         self._total_learning_time = 0
-        self._logger = InternalLogger("LEARNER")
+        self._logger = Logger("LEARNER", dump_folder=log_dir)
 
     def run(self):
         """Main learning loop."""

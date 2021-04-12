@@ -34,9 +34,9 @@ training:
   env: 
     scenario: supply_chain
     topology: sample1
-    durations: 100
-  max_episode: 3
-  agent_update_interval: 10 
+    durations: 200
+  max_episode: 5
+  agent_update_interval: 45 
   exploration:
     parameter_names:
       - epsilon

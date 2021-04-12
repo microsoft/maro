@@ -20,13 +20,10 @@ torchsummary==1.5.1
 wrapt==1.11.2
 zmq==0.0.0
 numpy==1.19.1
-scipy==1.6.0
+scipy
 tabulate==0.8.5
 networkx==2.4
-palettable==3.3.0
 urllib3==1.25.8
-geopy==2.0.0
-pandas==0.25.3
 redis==3.5.3
 requests==2.25.1
 holidays==0.10.3

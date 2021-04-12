@@ -2,10 +2,11 @@
 # Licensed under the MIT license.
 
 from collections import defaultdict
+from os import getcwd
 from typing import Union
 
 from maro.communication import Message, Proxy, SessionType
-from maro.utils import InternalLogger
+from maro.utils import Logger
 
 from .message_enums import MsgTag, MsgKey
 
@@ -29,7 +30,8 @@ class ActorManager(object):
         num_actors: int,
         group_name: str,
         proxy_options: dict = None,
-        log_env_metrics: bool = False
+        log_env_metrics: bool = False,
+        log_dir: str = getcwd()
     ):
         super().__init__()
         peers = {"actor": num_actors}
@@ -40,7 +42,7 @@ class ActorManager(object):
         self.total_experiences_collected = 0
         self.total_env_steps = 0
         self._log_env_metrics = log_env_metrics
-        self._logger = InternalLogger("ACTOR_MANAGER")
+        self._logger = Logger("ACTOR_MANAGER", dump_folder=log_dir)
 
     def collect(
         self,
@@ -92,11 +94,11 @@ class ActorManager(object):
                 if not discard_stale_experiences:
                     experiences = msg.body[MsgKey.EXPERIENCES]
                     self.total_experiences_collected += msg.body[MsgKey.NUM_EXPERIENCES]
-                    self.total_env_steps += num_steps
+                    self.total_env_steps += msg.body[MsgKey.NUM_STEPS]
                     yield msg.body[MsgKey.EXPERIENCES], msg.body[MsgKey.ENV_END]
             else:
                 self.total_experiences_collected += msg.body[MsgKey.NUM_EXPERIENCES]
-                self.total_env_steps += num_steps
+                self.total_env_steps += msg.body[MsgKey.NUM_STEPS]
                 yield msg.body[MsgKey.EXPERIENCES], msg.body[MsgKey.ENV_END]
                 num_finishes += 1
 

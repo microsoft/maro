@@ -1,12 +1,13 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from os import getcwd
 from typing import Union
 
 from maro.communication import Message, Proxy
 from maro.rl.agent import AbsAgent, MultiAgentWrapper
 from maro.rl.training import AbsEnvWrapper
-from maro.utils import InternalLogger
+from maro.utils import Logger
 
 from .message_enums import MsgKey, MsgTag
 
@@ -29,7 +30,8 @@ class Actor(object):
         agent: Union[AbsAgent, MultiAgentWrapper],
         group: str,
         proxy_options: dict = None,
-        pull_experiences_with_copy: bool = False
+        pull_experiences_with_copy: bool = False,
+        log_dir: str = getcwd()
     ):
         self.env = env
         self.agent = MultiAgentWrapper(agent) if isinstance(agent, AbsAgent) else agent
@@ -37,7 +39,7 @@ class Actor(object):
         if proxy_options is None:
             proxy_options = {}
         self._proxy = Proxy(group, "actor", {"actor_manager": 1}, **proxy_options)
-        self._logger = InternalLogger(self._proxy.name)
+        self._logger = Logger(self._proxy.name, dump_folder=log_dir)
 
     def run(self):
         for msg in self._proxy.receive():
@@ -53,17 +55,17 @@ class Actor(object):
                         self.agent.set_exploration_params(msg.body[MsgKey.EXPLORATION_PARAMS])
                     self.env.start(rollout_index=rollout_index)  # get initial state
 
-                step_index = self.env.step_index
+                starting_step_index = self.env.step_index
                 self.agent.load_model(msg.body[MsgKey.MODEL])
-                num_steps = float("inf") if msg.body[MsgKey.NUM_STEPS] == -1 else msg.body[MsgKey.NUM_STEPS]
-                while self.env.state and num_steps > 0:
+                steps_to_go = float("inf") if msg.body[MsgKey.NUM_STEPS] == -1 else msg.body[MsgKey.NUM_STEPS]
+                while self.env.state and steps_to_go > 0:
                     action = self.agent.choose_action(self.env.state)
                     self.env.step(action)
-                    num_steps -= 1
+                    steps_to_go -= 1 
 
                 self._logger.info(
                     f"Roll-out finished for ep {rollout_index}, segment {segment_index}"
-                    f"(steps {step_index} - {self.env.step_index})"
+                    f"(steps {starting_step_index} - {self.env.step_index})"
                 )
                 experiences, num_exp = self.env.pull_experiences(copy=self._pull_experiences_with_copy)
                 self._proxy.reply(
@@ -75,6 +77,7 @@ class Actor(object):
                         MsgKey.SEGMENT_INDEX: segment_index,
                         MsgKey.METRICS: self.env.metrics,
                         MsgKey.EXPERIENCES: experiences,
+                        MsgKey.NUM_STEPS: self.env.step_index - starting_step_index,
                         MsgKey.NUM_EXPERIENCES: num_exp
                     }
                 )

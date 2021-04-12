@@ -53,6 +53,7 @@ if __name__ == "__main__":
     scheduler = Scheduler(config["training"]["max_episode"])
     learner = Learner(
         CIMEnvWrapper(env, **config["shaping"]), agent, scheduler,
-        agent_update_interval=config["training"]["agent_update_interval"]
+        agent_update_interval=config["training"]["agent_update_interval"],
+        log_env_metrics=True
     ) 
     learner.run()
