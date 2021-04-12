@@ -541,11 +541,11 @@
 
   <script src="assets/js/jquery.3.5.1.min.js"></script>
   <!-- Notes: Please keep all xterm.js related package version to 3.6.0 or will be connect failed.-->
-  <script src="https://unpkg.com/xterm@3.6.0/dist/xterm.js"></script>
-  <script src="https://unpkg.com/xterm@3.6.0/dist/addons/fit/fit.js"></script>
-  <script src="https://unpkg.com/xterm@3.6.0/dist/addons/webLinks/webLinks.js"></script>
-  <script src="https://unpkg.com/xterm@3.6.0/dist/addons/fullscreen/fullscreen.js"></script>
-  <script src="https://unpkg.com/xterm@3.6.0/dist/addons/search/search.js"></script>
+  <script src="https://unpkg.com/xterm@3.14.2/dist/xterm.js"></script>
+  <script src="https://unpkg.com/xterm@3.14.2/dist/addons/fit/fit.js"></script>
+  <script src="https://unpkg.com/xterm@3.14.2/dist/addons/webLinks/webLinks.js"></script>
+  <script src="https://unpkg.com/xterm@3.14.2/dist/addons/fullscreen/fullscreen.js"></script>
+  <script src="https://unpkg.com/xterm@3.14.2/dist/addons/search/search.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.1/socket.io.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.12/vue.js"></script>
   <script src="https://unpkg.com/element-ui@2.15.1/lib/index.js"></script>
@@ -642,7 +642,7 @@
       // Create xterms.js terminal.
       const waitMS = 50
       const term = new Terminal({
-        cols: 1,
+        cols: 75,
         rows: 17,
         cursorBlink: true,
         macOptionIsMeta: true,
