@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 
 import argparse
+import sys
 import yaml
 from multiprocessing import Process
 from os import getenv
@@ -14,8 +15,11 @@ from maro.rl import (
 from maro.simulator import Env
 from maro.utils import set_seeds
 
-from examples.supply_chain.env_wrapper import SCEnvWrapper
-from examples.supply_chain.dqn.agent import get_sc_agents
+sc_code_dir = dirname(dirname(__file__))
+sys.path.insert(0, sc_code_dir)
+sys.path.insert(0, join(sc_code_dir, "dqn"))
+from env_wrapper import SCEnvWrapper
+from agent import get_sc_agents
 
 
 DEFAULT_CONFIG_PATH = join(dirname(realpath(__file__)), "config.yml")
