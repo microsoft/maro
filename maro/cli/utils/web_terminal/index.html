@@ -55,10 +55,12 @@
 
     .cur-tab {
       background: #242424;
+      padding-left: 10px;
     }
 
     .normal-tab {
       color: #ffffff4d;
+      padding-left: 10px;
     }
 
     .text-resource-block {
@@ -171,8 +173,8 @@
         <el-main style="width: 11%;" id="cluster-list">
           <div style="font-size: large; line-height: 60px; font-weight: bold;">Cluster List</div>
           <div v-for="item in cluster_list" :key="item"
-            style="margin: 0px -20px; line-height: 50px; text-align: center; ">
-            <div :class="test_tab_type(item)" v-on:click="show_cluster(item)">{{ item }}</div>
+            style="margin-right: -10px; margin-left: 0px; line-height: 50px; text-align: left; ">
+            <div :class="test_tab_type(item)" v-on:click="show_cluster(item)"> {{ item }}</div>
           </div>
         </el-main>
         <el-main style="width: 33%; background-color: #242424; overflow-y: scroll;">
