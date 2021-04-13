@@ -651,10 +651,12 @@
         scrollback: true
       })
 
-
+      // Create socket.io connection.
+      const socket = io.connect('/pty')
 
       term.open(document.getElementById('terminal'))
       term.fit()
+      socket.emit('resize', { cols: term.cols, rows: term.rows })
 
       term.on('key', (key, ev) => {
         socket.emit('pty-input', { input: key })
@@ -666,9 +668,6 @@
       term.prompt = (content) => {
         socket.emit('pty-input', { input: content })
       }
-
-      // Create socket.io connection.
-      const socket = io.connect('/pty')
 
       socket.on('pty-output', function (data) {
         console.log('new output', data)
