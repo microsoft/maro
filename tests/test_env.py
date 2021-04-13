@@ -271,8 +271,8 @@ class TestEnv(unittest.TestCase):
     def test_get_avaiable_envs(self):
         scenario_names = get_scenarios()
 
-        # we have 4 built-in scenarios
-        self.assertEqual(4, len(scenario_names))
+        # we have 3 built-in scenarios
+        self.assertEqual(3, len(scenario_names))
 
         self.assertTrue("cim" in scenario_names)
         self.assertTrue("citi_bike" in scenario_names)
