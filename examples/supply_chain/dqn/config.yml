@@ -8,7 +8,7 @@ agent:
         - 16
         - 8
       output_dim: 100
-      activation: 
+      activation: leaky_relu
       softmax: false
       batch_norm: true
       skip_connection: false
@@ -30,7 +30,7 @@ agent:
       experience_memory_size: 50000
       experience_memory_overwrite_type: random
       flush_experience_memory_after_step: false
-      min_new_experiences_to_trigger_learning: 1000000
+      min_new_experiences_to_trigger_learning: 10
       min_experience_memory_size: 10
   producer:
     model:
@@ -38,7 +38,7 @@ agent:
         - 16
         - 8
       output_dim: 10
-      activation: 
+      activation: leaky_relu
       softmax: false
       batch_norm: true
       skip_connection: false
@@ -60,14 +60,14 @@ agent:
       experience_memory_size: 50000
       experience_memory_overwrite_type: random
       flush_experience_memory_after_step: false
-      min_new_experiences_to_trigger_learning: 1000000
+      min_new_experiences_to_trigger_learning: 16000
       min_experience_memory_size: 10
 training: 
   env: 
     scenario: supply_chain
-    topology: random
+    topology: sample1
     durations: 250
-  max_episode: 1
+  max_episode: 4
   agent_update_interval: 50
   exploration:
     parameter_names:
@@ -77,6 +77,6 @@ training:
 distributed:
   group: sc-dqn
   num_actors: 8
-  redis_host: maro-sc
+  redis_host: localhost
   redis_port: 6379
   required_actor_finishes: 8

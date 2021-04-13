@@ -61,9 +61,9 @@ class DistLearner(object):
                     updated_agents = self.agent.learn(exp)
                     num_actor_finishes += done
                     self._total_learning_time += time.time() - tl0
-                    self._logger.info(f"total running time: {time.time() - t0}")
-                    self._logger.info(f"total learning time: {self._total_learning_time}")
-                    self._logger.info(f"total env steps: {self.actor_manager.total_env_steps}")
+                    self._logger.debug(f"total running time: {time.time() - t0}")
+                    self._logger.debug(f"total learning time: {self._total_learning_time}")
+                    self._logger.debug(f"total env steps: {self.actor_manager.total_env_steps}")
                     self._logger.info(f"total experiences collected: {self.actor_manager.total_experiences_collected}")
 
                 segment_index += 1

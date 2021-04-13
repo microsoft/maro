@@ -28,10 +28,9 @@ class AbsEnvWrapper(ABC):
         self.state_info = None  # context for converting model output to actions that can be executed by the env
         self.save_replay = save_replay
         self.reward_eval_delay = reward_eval_delay
+        self._total_reward = 0
         self._state = None  # the latest extracted state is kept here
         self._acting_agents = deque()   # list of (tick, acting_agent_list) for delayed reward evaluation
-        # self._tot_raw_step_time = 0
-        # self._tot_step_time = 0
 
     @property
     def step_index(self):
@@ -72,6 +71,10 @@ class AbsEnvWrapper(ABC):
     @property
     def state(self):
         return self._state
+
+    @property
+    def total_reward(self):
+        return self._total_reward
 
     @abstractmethod
     def get_state(self, event) -> dict:
@@ -118,7 +121,9 @@ class AbsEnvWrapper(ABC):
                 reward = self.get_reward(tick=self._acting_agents[0][0], target_agents=self._acting_agents[0][1])
                 # assign rewards to the relevant agents
                 for agent_id in self._acting_agents[0][1]:
-                    self.replay[agent_id]["R"].append(reward[agent_id])
+                    rw = reward.get(agent_id, 0)
+                    self.replay[agent_id]["R"].append(rw)
+                    self._total_reward += rw
                 self._acting_agents.popleft()
 
         if not done:
@@ -144,6 +149,7 @@ class AbsEnvWrapper(ABC):
     def reset(self):
         self.env.reset()
         self.state_info = None
+        self._total_reward = 0
         self._state = None
         self._acting_agents.clear()
         self.replay = defaultdict(lambda: defaultdict(list))

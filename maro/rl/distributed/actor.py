@@ -68,16 +68,16 @@ class Actor(object):
                     f"(steps {starting_step_index} - {self.env.step_index})"
                 )
                 experiences, num_exp = self.env.pull_experiences(copy=self._pull_experiences_with_copy)
-                self._proxy.reply(
-                    msg, 
-                    tag=MsgTag.ROLLOUT_DONE,
-                    body={
-                        MsgKey.ENV_END: not self.env.state,
-                        MsgKey.ROLLOUT_INDEX: rollout_index,
-                        MsgKey.SEGMENT_INDEX: segment_index,
-                        MsgKey.METRICS: self.env.metrics,
-                        MsgKey.EXPERIENCES: experiences,
-                        MsgKey.NUM_STEPS: self.env.step_index - starting_step_index,
-                        MsgKey.NUM_EXPERIENCES: num_exp
-                    }
-                )
+                return_info = {
+                    MsgKey.ENV_END: not self.env.state,
+                    MsgKey.ROLLOUT_INDEX: rollout_index,
+                    MsgKey.SEGMENT_INDEX: segment_index,
+                    MsgKey.EXPERIENCES: experiences,
+                    MsgKey.NUM_STEPS: self.env.step_index - starting_step_index,
+                    MsgKey.NUM_EXPERIENCES: num_exp
+                }
+                if msg.body[MsgKey.RETURN_ENV_METRICS]:
+                    return_info[MsgKey.METRICS] = self.env.metrics
+                if not self.env.state:
+                    return_info[MsgKey.TOTAL_REWARD] = self.env.total_reward
+                self._proxy.reply(msg, tag=MsgTag.ROLLOUT_DONE, body=return_info)
