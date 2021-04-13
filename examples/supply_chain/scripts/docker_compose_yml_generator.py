@@ -1,5 +1,5 @@
-import defaultdict
 import yaml
+from copy import deepcopy
 from os import makedirs
 from os.path import dirname, join, realpath
 
@@ -11,11 +11,12 @@ config_path = join(sc_code_dir, "dqn", "config.yml")
 with open(config_path, "r") as fp:
     config = yaml.safe_load(fp)
     num_actors = config["distributed"]["num_actors"]
+    redis_host = config["distributed"]["redis_host"]
 
 docker_compose_yaml = {
     "version": "3.9", 
     "services": {
-        "redis": {"image": "redis:6", "container_name": "maro-redis"},
+        "redis": {"image": "redis:6", "container_name": redis_host},
         "learner": {
             "build": {"context": ".", "dockerfile": "docker_files/dev.df"},
             "image": "maro-dev",
@@ -26,16 +27,13 @@ docker_compose_yaml = {
     }
 }
 
-actor_template = docker_compose_yaml["services"]["learner"].copy()
-del actor_template["build"]
-actor_template["command"][-1] = "2"
-
 for i in range(num_actors):
     actor_id = f"actor_{i}"
+    actor_template = deepcopy(docker_compose_yaml["services"]["learner"])
+    del actor_template["build"]
+    actor_template["command"][-1] = "2"
     actor_template["container_name"] = actor_id
     docker_compose_yaml["services"][actor_id] = actor_template
 
-docker_compose_yaml_dir = join(sc_code_dir, "docker_compose_yamls")
-makedirs(docker_compose_yaml_dir, exist_ok=True)
-with open(join(docker_compose_yaml_dir, "docker-compose.yml"), "w") as fp:
+with open(join(sc_code_dir, "docker-compose.yml"), "w") as fp:
     yaml.safe_dump(docker_compose_yaml, fp)

@@ -36,6 +36,10 @@ class AbsEnvWrapper(ABC):
     @property
     def step_index(self):
         return self._step_index
+    
+    @property
+    def agent_idx_list(self):
+        return self.env.agent_idx_list
 
     def start(self, rollout_index: int = None):
         self._step_index = 0
