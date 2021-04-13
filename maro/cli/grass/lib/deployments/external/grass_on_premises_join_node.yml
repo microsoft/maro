@@ -1,0 +1,18 @@
+mode: grass/on-premises
+
+master:
+  private_ip_address: 10.0.0.4
+
+node:
+  hostname: maroNode1
+  username: root
+  public_ip_address: 137.128.0.2
+  private_ip_address: 10.0.0.5
+  resources:
+    cpu: all
+    memory: 2048m
+    gpu: 0
+
+config:
+  install_node_runtime: true
+  install_node_gpu_support: false
