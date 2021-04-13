@@ -77,7 +77,7 @@ of user-defined functions for message auto-handling, cluster provision, and job 
   pip install pymaro
   ```
 
-## Install MARO from Source ([Editable Mode](https://pip.pypa.io/en/stable/reference/pip_install/#editable-installs))
+## Install MARO from Source
 
 - Prerequisites
   - C++ Compiler
@@ -107,6 +107,11 @@ of user-defined functions for message auto-handling, cluster provision, and job 
     ```
 
 - Install MARO
+
+  ```sh
+  # Git Clone the whole source code.
+  git clone https://github.com/microsoft/maro.git
+  ```
 
   - Mac OS / Linux
 
