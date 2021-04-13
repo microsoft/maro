@@ -210,7 +210,8 @@ def update_cluster_list():
                 try:
                     local_executor = app.config["local_executor"][cluster_name]
                     update_resource_dynamic(app.config["cluster_status"][cluster_name]["resource_dynamic"],
-                                            local_executor, app.config["cluster_status"][cluster_name]["dashboard_type"])
+                                            local_executor,
+                                            app.config["cluster_status"][cluster_name]["dashboard_type"])
                     app.config["cluster_status"][cluster_name]["job_detail_data"] = local_executor.get_job_details()
                 except Exception as e:
                     print(f"Failed to collect status for cluster {cluster_name}, error:{e}  {traceback.format_exc()}")
