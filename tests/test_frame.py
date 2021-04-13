@@ -674,5 +674,6 @@ class TestFrame(unittest.TestCase):
 
             self.assertListEqual([i for i in range(99)], results)
 
+
 if __name__ == "__main__":
     unittest.main()
