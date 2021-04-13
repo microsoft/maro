@@ -23,6 +23,8 @@ namespace maro
   {
     namespace raw
     {
+      #define MAX(a, b) a > b ? a : b
+
       /// <summary>
       /// Shape of current querying.
       /// </summary>

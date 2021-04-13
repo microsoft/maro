@@ -130,7 +130,7 @@ class TestEnv(unittest.TestCase):
             vals_after_reset = dummies_ss[env.frame_index::"val"]
 
             if backend_name == "dynamic":
-                self.assertTrue(np.isnan(vals_after_reset).all())
+                self.assertTrue((vals_after_reset == 0).all())
             else:
                 self.assertListEqual(list(vals_after_reset.flatten()), [
                                      0]*dummy_number, msg=f"we should have padding values")
@@ -271,8 +271,8 @@ class TestEnv(unittest.TestCase):
     def test_get_avaiable_envs(self):
         scenario_names = get_scenarios()
 
-        # we have 2 built-in scenarios
-        self.assertEqual(3, len(scenario_names))
+        # we have 4 built-in scenarios
+        self.assertEqual(4, len(scenario_names))
 
         self.assertTrue("cim" in scenario_names)
         self.assertTrue("citi_bike" in scenario_names)
@@ -283,7 +283,7 @@ class TestEnv(unittest.TestCase):
 
         env_list = get_available_envs()
 
-        self.assertEqual(len(env_list), len(cim_topoloies) + len(citi_bike_topologies) + len(vm_topoloties))
+        self.assertEqual(len(env_list), len(cim_topoloies) + len(citi_bike_topologies) + len(vm_topoloties) + len(get_topologies("supply_chain")))
 
     def test_frame_index_to_ticks(self):
         ticks = frame_index_to_ticks(0, 10, 2)
@@ -292,6 +292,7 @@ class TestEnv(unittest.TestCase):
 
         self.assertListEqual([0, 1], ticks[0])
         self.assertListEqual([8, 9], ticks[4])
+
 
 if __name__ == "__main__":
     unittest.main()
