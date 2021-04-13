@@ -15,7 +15,7 @@ from maro.rl import (
 from maro.simulator import Env
 from maro.utils import set_seeds
 
-sc_code_dir = dirname(dirname(__file__))
+sc_code_dir = dirname(dirname(realpath(__file__)))
 sys.path.insert(0, sc_code_dir)
 sys.path.insert(0, join(sc_code_dir, "dqn"))
 from env_wrapper import SCEnvWrapper
@@ -39,10 +39,11 @@ NUM_ACTORS = int(getenv("NUMACTORS", default=config["distributed"]["num_actors"]
 
 
 def sc_dqn_learner():
-    # create agents
-    agent_info_list = Env(**config["training"]["env"]).agent_idx_list
-    producers = {f"producer.{info.id}": get_dqn_agent(config["agent"]["producer"]) for info in agent_info_list}
-    consumers = {f"consumer.{info.id}": get_dqn_agent(config["agent"]["consumer"]) for info in agent_info_list}
+    # create agents that house the latest models.
+    env = SCEnvWrapper(Env(**config["training"]["env"]))
+    config["agent"]["producer"]["model"]["input_dim"] = config["agent"]["consumer"]["model"]["input_dim"] = env.dim
+    producers = {f"producer.{info.id}": get_dqn_agent(config["agent"]["producer"]) for info in env.agent_idx_list}
+    consumers = {f"consumer.{info.id}": get_dqn_agent(config["agent"]["consumer"]) for info in env.agent_idx_list}
     agent = MultiAgentWrapper({**producers, **consumers})
 
     # exploration schedule
@@ -64,11 +65,16 @@ def sc_dqn_learner():
 
 
 def sc_dqn_actor():
+    # create an env for roll-out
     env = SCEnvWrapper(Env(**config["training"]["env"]))
-    agent_info_list = env.agent_idx_list
-    producers = {f"producer.{info.id}": get_dqn_agent(config["agent"]["producer"]) for info in agent_info_list}
-    consumers = {f"consumer.{info.id}": get_dqn_agent(config["agent"]["consumer"]) for info in agent_info_list}
+    config["agent"]["producer"]["model"]["input_dim"] = config["agent"]["consumer"]["model"]["input_dim"] = env.dim
+
+    # create agents that will interact with the env
+    producers = {f"producer.{info.id}": get_dqn_agent(config["agent"]["producer"]) for info in env.agent_idx_list}
+    consumers = {f"consumer.{info.id}": get_dqn_agent(config["agent"]["consumer"]) for info in env.agent_idx_list}
     agent = MultiAgentWrapper({**producers, **consumers})
+    
+    # create an actor that collects simulation data for the learner.
     actor = Actor(env, agent, GROUP, proxy_options={"redis_address": (REDIS_HOST, REDIS_PORT)})
     actor.run()
 

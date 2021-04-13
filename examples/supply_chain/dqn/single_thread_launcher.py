@@ -1,17 +1,18 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import sys
 import yaml
 from os import getenv
 from os.path import dirname, join, realpath
 
 import numpy as np
 
-from maro.rl import Learner, LinearParameterScheduler
+from maro.rl import Learner, LinearParameterScheduler, MultiAgentWrapper
 from maro.simulator import Env
 from maro.utils import set_seeds
 
-sc_code_dir = dirname(dirname(__file__))
+sc_code_dir = dirname(dirname(realpath(__file__)))
 sys.path.insert(0, sc_code_dir)
 sys.path.insert(0, join(sc_code_dir, "dqn"))
 from env_wrapper import SCEnvWrapper
@@ -20,7 +21,7 @@ from agent import get_dqn_agent
 
 # Single-threaded launcher
 if __name__ == "__main__":
-    defualt = join(dirname(realpath(__file__)), "config.yml")
+    default_config_path = join(dirname(realpath(__file__)), "config.yml")
     with open(getenv("CONFIG_PATH", default=default_config_path), "r") as config_file:
         config = yaml.safe_load(config_file)
 
@@ -28,9 +29,10 @@ if __name__ == "__main__":
     topology = config["training"]["env"]["topology"]
     config["training"]["env"]["topology"] = join(dirname(dirname(realpath(__file__))), "envs", topology)
 
-    # create an env wrapper and obtain the input dimension for the pro
+    # create an env wrapper and obtain the input dimension for the agents
     env = SCEnvWrapper(Env(**config["training"]["env"]))
-    
+    config["agent"]["producer"]["model"]["input_dim"] = config["agent"]["consumer"]["model"]["input_dim"] = env.dim
+
     # create agents
     agent_info_list = env.agent_idx_list
     producers = {f"producer.{info.id}": get_dqn_agent(config["agent"]["producer"]) for info in agent_info_list}

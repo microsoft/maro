@@ -65,7 +65,7 @@ agent:
 training: 
   env: 
     scenario: supply_chain
-    topology: sample1
+    topology: random
     durations: 250
   max_episode: 1
   agent_update_interval: 50
@@ -77,6 +77,6 @@ training:
 distributed:
   group: sc-dqn
   num_actors: 8
-  redis_host: maro-redis
+  redis_host: maro-sc
   redis_port: 6379
   required_actor_finishes: 8

@@ -6,7 +6,9 @@ from os.path import dirname, join, realpath
 path = realpath(__file__)
 script_dir = dirname(path)
 sc_code_dir = dirname(script_dir)
+root_dir = dirname(dirname(sc_code_dir))
 config_path = join(sc_code_dir, "dqn", "config.yml")
+dockerfile_path = join(root_dir, "docker_files", "dev.df")
 
 with open(config_path, "r") as fp:
     config = yaml.safe_load(fp)
@@ -18,8 +20,8 @@ docker_compose_yaml = {
     "services": {
         "redis": {"image": "redis:6", "container_name": redis_host},
         "learner": {
-            "build": {"context": ".", "dockerfile": "docker_files/dev.df"},
-            "image": "maro-dev",
+            "build": {"context": root_dir, "dockerfile": dockerfile_path},
+            "image": "maro-sc",
             "container_name": "learner",
             "volumes": [f"{sc_code_dir}:/maro/supply_chain"],
             "command": ["python3", "/maro/supply_chain/dqn/distributed_launcher.py", "-w", "1"]

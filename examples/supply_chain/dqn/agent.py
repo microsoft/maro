@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from maro.rl import DQN, DQNConfig, FullyConnectedBlock, MultiAgentWrapper, OptimOption, SimpleMultiHeadModel
+from maro.rl import DQN, DQNConfig, FullyConnectedBlock, OptimOption, SimpleMultiHeadModel
 
 
 def get_dqn_agent(config):
