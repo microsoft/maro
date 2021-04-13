@@ -80,6 +80,15 @@ class PendingJobAgent(mp.Process):
             # Start job
             self._start_job(job_detail)
             self.redis_connection.lrem(f"{self.cluster_name}:pending_job_tickets", 0, job_name)
+            # Update resource
+            cluster_resource = json.loads(
+                self.redis_connection.hget(f"{self.cluster_name}:runtime_detail", "available_resource")
+            )
+            is_satisfied, updated_resource = resource_op(
+                cluster_resource,
+                job_detail["total_request_resource"],
+                ResourceOperation.ALLOCATION
+            )
             self.redis_connection.hset(
                 f"{self.cluster_name}:runtime_detail",
                 "available_resource",
