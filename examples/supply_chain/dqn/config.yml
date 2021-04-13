@@ -25,7 +25,7 @@ agent:
       loss_cls: mse
       target_update_freq: 5
       soft_update_coefficient: 0.1
-      double: false
+      double: false   # double DQN
     experience_memory:
       experience_memory_size: 50000
       experience_memory_overwrite_type: random
@@ -60,15 +60,15 @@ agent:
       experience_memory_size: 50000
       experience_memory_overwrite_type: random
       flush_experience_memory_after_step: false
-      min_new_experiences_to_trigger_learning: 16000
+      min_new_experiences_to_trigger_learning: 100000
       min_experience_memory_size: 10
 training: 
   env: 
     scenario: supply_chain
-    topology: sample1
-    durations: 250
-  max_episode: 4
-  agent_update_interval: 50
+    topology: random
+    durations: 125
+  max_episode: 1
+  agent_update_interval: 25
   exploration:
     parameter_names:
       - epsilon
@@ -76,7 +76,7 @@ training:
     end: 0.0
 distributed:
   group: sc-dqn
-  num_actors: 8
-  redis_host: localhost
+  num_actors: 16
+  redis_host: maro-sc
   redis_port: 6379
-  required_actor_finishes: 8
+  required_actor_finishes: 16

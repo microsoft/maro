@@ -39,7 +39,7 @@ NUM_ACTORS = int(getenv("NUMACTORS", default=config["distributed"]["num_actors"]
 
 
 def sc_dqn_learner():
-    # create agents that house the latest models.
+    # create agents that update themselves using experiences collected from the actors.
     env = SCEnvWrapper(Env(**config["training"]["env"]))
     config["agent"]["producer"]["model"]["input_dim"] = config["agent"]["consumer"]["model"]["input_dim"] = env.dim
     producers = {f"producer.{info.id}": get_dqn_agent(config["agent"]["producer"]) for info in env.agent_idx_list}

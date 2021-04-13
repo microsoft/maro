@@ -30,11 +30,12 @@ docker_compose_yaml = {
 }
 
 for i in range(num_actors):
-    actor_id = f"actor_{i}"
+    actor_id = f"actor.{i}"
     actor_template = deepcopy(docker_compose_yaml["services"]["learner"])
     del actor_template["build"]
     actor_template["command"][-1] = "2"
     actor_template["container_name"] = actor_id
+    actor_template["environment"] = [f"COMPONENT_NAME={actor_id}"]
     docker_compose_yaml["services"][actor_id] = actor_template
 
 with open(join(sc_code_dir, "docker-compose.yml"), "w") as fp:
