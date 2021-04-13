@@ -60,7 +60,7 @@ of user-defined functions for message auto-handling, cluster provision, and job 
 
 ## Install MARO from [PyPI](https://pypi.org/project/pymaro/#files)
 
-*Notes: The visualization tool is not included in pymaro package. To enable the visualization support, you need to install from source.*
+*Notes: The CLI commands (including the visualization tool) are not included in pymaro package. To enable these support, you need to install from source.*
 
 - Mac OS / Linux
 
@@ -78,6 +78,8 @@ of user-defined functions for message auto-handling, cluster provision, and job 
   ```
 
 ## Install MARO from Source
+
+*Notes: Install from source if you want to use the CLI commands (including the visualization tool).*
 
 - Prerequisites
   - C++ Compiler
