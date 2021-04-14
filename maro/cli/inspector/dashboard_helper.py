@@ -404,7 +404,8 @@ def _get_sampled_epoch_range(epoch_num: int, sample_ratio: float) -> List[float]
     )
     down_pooling_num = st.sidebar.select_slider(
         label="Epoch Sampling Ratio",
-        options=sample_ratio
+        options=sample_ratio,
+        value=1
     )
     if down_pooling_num == 0:
         return []

@@ -229,7 +229,8 @@ def _generate_intra_view_by_snapshot(
     # Get sample rate (between 0-1).
     selected_station_sample_ratio = st.sidebar.select_slider(
         label="Station Sampling Ratio",
-        options=sample_ratio
+        options=sample_ratio,
+        value=1
     )
 
     # Get formula input and output.
@@ -292,7 +293,8 @@ def _generate_intra_view_by_station(
     snapshot_sample_ratio_list = helper.get_sample_ratio_selection_list(snapshot_num)
     selected_snapshot_sample_ratio = st.sidebar.select_slider(
         label="Snapshot Sampling Ratio:",
-        options=snapshot_sample_ratio_list
+        options=snapshot_sample_ratio_list,
+        value=1
     )
     # Get formula input and output.
     data_formula = helper.get_filtered_formula_and_data(
