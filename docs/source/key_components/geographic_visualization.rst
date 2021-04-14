@@ -12,15 +12,15 @@ local mode for the finished epoch under real-time mode.
 Dependency
 ----------
 
-Env-geographic's startup depends on docker and docker-compose. 
+Env-geographic's startup depends on **docker** and **docker-compose**. 
 Therefore, users need to install docker on the machine and ensure that it can run normally.
 User could get docker through `Docker installation <https://docs.docker.com/get-docker/>`_.
 
 We suggest that the version of docker should >= 1.20 and the version of docker-compose
 should >= 1.27.
 
-For windows users, make sure to switch on your Hyper-V service to ensure docker could start successfully.
-Besides, users should make sure that their machine could execute shell commands in any directory. We suggest
+For windows users, make sure to switch on your **Hyper-V** service to ensure docker could start successfully.
+Besides, users should make sure that their machine could execute **shell commands** in any directory. We suggest
 that windows users could install git bash to meet this requirement.
 
 How to Use?

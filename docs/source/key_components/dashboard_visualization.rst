@@ -43,7 +43,7 @@ data would be dumped to the folder which start the command.
 If user specifies the value for key "enable-dump-snapshot" of this parameter with the
 path of a local file folder, and the dir_path of the local file folder does exist, 
 data would be dumped to this folder. To be specific, each dump request would generate
-a data folder in the local file folder, named by a timestamp. 
+a data folder with a timestamp as the suffix in the local file folder. 
 
 .. code-block:: sh
 
@@ -79,8 +79,8 @@ To start this visualization tool, user need to input command following the forma
 
 Parameter **force** refers to regenerate cross-epoch summary data or not, default value is 'true'.
 Parameter **source_path** refers to the path of dumped snapshot files. Every experiment would
-generate a data folder named by a timestamp. The input of the parameter **source_path** should be
-the path of SNAPSHOT_DUMP_DATA_FOLDER.
+generate a data folder with a timestamp as the suffix, which we refer as SNAPSHOT_DUMP_DATA_FOLDER.
+The input of the parameter **source_path** should be the path of SNAPSHOT_DUMP_DATA_FOLDER.
 
 Make sure that your SNAPSHOT_DUMP_DATA_FOLDER's structure is similar as following:
 
