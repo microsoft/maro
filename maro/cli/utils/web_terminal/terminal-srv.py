@@ -13,7 +13,7 @@ import time
 import traceback
 
 import pandas as pd
-from flask import Flask, redirect, send_file, send_from_directory
+from flask import Flask, send_file, send_from_directory
 from flask_socketio import SocketIO
 
 port = 8080
