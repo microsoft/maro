@@ -62,11 +62,11 @@ class DDPG(AbsAgent):
             unlimited size.
         experience_memory_overwrite_type (str): A string indicating how experiences in the experience memory are
             to be overwritten after its capacity has been reached. Must be "rolling" or "random".
-        flush_experience_memory_after_step (bool): If True, the experience memory will be flushed after each call
+        empty_experience_memory_after_step (bool): If True, the experience memory will be emptied  after each call
             to ``step``. Defaults to False.
         min_new_experiences_to_trigger_learning (int): Minimum number of new experiences required to trigger learning.
             Defaults to 1.
-        min_experience_memory_size (int): Minimum number of experiences in the experience memory required for training.
+        min_experiences_to_trigger_learning (int): Minimum number of experiences in the experience memory required for training.
             Defaults to 1.
         explorer (NoiseExplorer): An NoiseExplorer instance for generating exploratory actions. Defaults to None.
     """
@@ -76,18 +76,18 @@ class DDPG(AbsAgent):
         config: DDPGConfig,
         experience_memory_size: int,
         experience_memory_overwrite_type: str,
-        flush_experience_memory_after_step: bool = False,
+        empty_experience_memory_after_step: bool = False,
         min_new_experiences_to_trigger_learning: int = 1,
-        min_experience_memory_size: int = 1,
+        min_experiences_to_trigger_learning: int = 1,
         explorer: NoiseExplorer = None
     ):
         if model.task_names is None or set(model.task_names) != {"policy", "q_value"}:
             raise UnrecognizedTask(f"Expected model task names 'policy' and 'q_value', but got {model.task_names}")
         super().__init__(
             model, config, experience_memory_size, experience_memory_overwrite_type,
-            flush_experience_memory_after_step,
+            empty_experience_memory_after_step,
             min_new_experiences_to_trigger_learning=min_new_experiences_to_trigger_learning,
-            min_experience_memory_size=min_experience_memory_size    
+            min_experiences_to_trigger_learning=min_experiences_to_trigger_learning    
         )
         self._explorer = explorer
         self._target_model = model.copy() if model.trainable else None

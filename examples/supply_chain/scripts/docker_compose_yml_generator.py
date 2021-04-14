@@ -3,11 +3,13 @@ from copy import deepcopy
 from os import makedirs
 from os.path import dirname, join, realpath
 
+
 path = realpath(__file__)
 script_dir = dirname(path)
 sc_code_dir = dirname(script_dir)
 root_dir = dirname(dirname(sc_code_dir))
-config_path = join(sc_code_dir, "dqn", "config.yml")
+maro_rl_dir = join(root_dir, "maro", "rl")
+config_path = join(sc_code_dir, "config.yml")
 dockerfile_path = join(root_dir, "docker_files", "dev.df")
 
 with open(config_path, "r") as fp:
@@ -23,8 +25,8 @@ docker_compose_yaml = {
             "build": {"context": root_dir, "dockerfile": dockerfile_path},
             "image": "maro-sc",
             "container_name": "learner",
-            "volumes": [f"{sc_code_dir}:/maro/supply_chain"],
-            "command": ["python3", "/maro/supply_chain/dqn/distributed_launcher.py", "-w", "1"]
+            "volumes": [f"{sc_code_dir}:/maro/supply_chain", f"{maro_rl_dir}:/maro/maro/rl"],
+            "command": ["python3", "/maro/supply_chain/distributed_launcher.py", "-w", "1"]
         }
     }
 }

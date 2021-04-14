@@ -120,7 +120,7 @@ class Proxy:
                 self._redis_connection.ping()
                 break
             except Exception as e:
-                retry_time = self._retry_interval_base_value * (2 ** retry_number)
+                retry_time = self._retry_interval_base_value * (2 ** num_tries)
                 self._logger.error(
                     f"{self._name} failed to connect to the redis server due to {e}. Retrying in {retry_time} seconds."
                 )

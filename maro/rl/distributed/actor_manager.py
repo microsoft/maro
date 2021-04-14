@@ -2,8 +2,7 @@
 # Licensed under the MIT license.
 
 from collections import defaultdict
-from os import getcwd, makedirs
-from os.path import join
+from os import getcwd
 from typing import Union
 
 from maro.communication import Message, Proxy, SessionType
@@ -44,8 +43,6 @@ class ActorManager(object):
         self.total_env_steps = 0
         self.total_reward = defaultdict(float)
         self._log_env_metrics = log_env_metrics
-        log_dir = join(log_dir, "logs")
-        makedirs(log_dir, exist_ok=True)
         self._logger = Logger("ACTOR_MANAGER", dump_folder=log_dir)
 
     def collect(

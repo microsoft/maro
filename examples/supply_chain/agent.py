@@ -8,4 +8,10 @@ def get_dqn_agent(config):
     q_model = SimpleMultiHeadModel(
         FullyConnectedBlock(**config["model"]), optim_option=OptimOption(**config["optimization"])
     )
-    return DQN(q_model, DQNConfig(**config["algorithm"]), **config["experience_memory"])
+    return DQN(q_model, DQNConfig(**config["algorithm_config"]), **config["experience_memory"])
+
+
+def get_ppo_agent(config):
+    pass
+
+get_agent_func_map = {"dqn": get_dqn_agent}
