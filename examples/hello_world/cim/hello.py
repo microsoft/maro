@@ -25,7 +25,7 @@ if __name__ == "__main__":
         If you leave value to empty string, it will dump to current folder.
         For getting dump data, please uncomment below line and specify dump destination folder.
         """
-        # opts['enable-dump-snapshot'] = ''
+        opts['enable-dump-snapshot'] = 'C:\\Users\\v-miaorc\\Desktop\\test'
 
         # Initialize an environment with a specific scenario, related topology.
         env = Env(scenario="cim", topology="global_trade.22p_l0.1",
