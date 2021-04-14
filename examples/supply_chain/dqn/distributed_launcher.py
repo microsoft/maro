@@ -3,6 +3,7 @@
 
 import argparse
 import sys
+import time
 import yaml
 from multiprocessing import Process
 from os import getenv
@@ -59,17 +60,17 @@ def sc_dqn_learner():
         agent, scheduler, actor_manager,
         agent_update_interval=config["training"]["agent_update_interval"],
         required_actor_finishes=config["distributed"]["required_actor_finishes"],
-        discard_stale_experiences=False
+        discard_stale_experiences=config["distributed"]["discard_stale_experiences"]
     )
     learner.run()
 
 
 def sc_dqn_actor():
-    # create an env for roll-out
+    # create an env wrapper for roll-out and obtain the input dimension for the agents
     env = SCEnvWrapper(Env(**config["training"]["env"]))
     config["agent"]["producer"]["model"]["input_dim"] = config["agent"]["consumer"]["model"]["input_dim"] = env.dim
 
-    # create agents that will interact with the env
+    # create agents to interact with the env
     producers = {f"producer.{info.id}": get_dqn_agent(config["agent"]["producer"]) for info in env.agent_idx_list}
     consumers = {f"consumer.{info.id}": get_dqn_agent(config["agent"]["consumer"]) for info in env.agent_idx_list}
     agent = MultiAgentWrapper({**producers, **consumers})

@@ -65,10 +65,10 @@ agent:
 training: 
   env: 
     scenario: supply_chain
-    topology: random
-    durations: 125
-  max_episode: 1
-  agent_update_interval: 25
+    topology: sample1
+    durations: 200
+  max_episode: 3
+  agent_update_interval: 35
   exploration:
     parameter_names:
       - epsilon
@@ -76,7 +76,8 @@ training:
     end: 0.0
 distributed:
   group: sc-dqn
-  num_actors: 16
-  redis_host: maro-sc
+  num_actors: 4
+  redis_host: redis-sc
   redis_port: 6379
-  required_actor_finishes: 16
+  required_actor_finishes: 4
+  discard_stale_experiences: True
