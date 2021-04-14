@@ -69,11 +69,6 @@ def assets_files(path: str):
     return send_from_directory("assets", path)
 
 
-@app.route("/dashboard")
-def dashboard():
-    return redirect('http://localhost:8501', code=301)
-
-
 @socketio.on("pty-input", namespace="/pty")
 def pty_input(data):
     """write to the child pty. The pty sees this as if you are typing in a real
