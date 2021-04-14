@@ -68,7 +68,7 @@ class TestFrame(unittest.TestCase):
                              msg="slicing with 1 tick, 1 node and 1 attr, should return array with 1 result")
 
             if backend_name == "dynamic":
-                self.assertTrue(np.isnan(static_node_a2_states).all())
+                self.assertTrue((static_node_a2_states == 0).all())
             else:
                 self.assertEqual(0, static_node_a2_states.astype(
                     "i")[0], msg="states before taking snapshot should be 0")
@@ -159,7 +159,7 @@ class TestFrame(unittest.TestCase):
                 3, len(states), msg="states should contains 3 row")
 
             if backend_name == "dynamic":
-                self.assertTrue(np.isnan(states[0]).all())
+                self.assertTrue((states[0] == 0).all())
             else:
                 self.assertListEqual([0]*len(frame.static_nodes),
                                      list(states[0].astype("i")), msg="over-wrote tick should return 0")
@@ -206,7 +206,7 @@ class TestFrame(unittest.TestCase):
             # NOTE: raw backend will padding with nan while numpy padding with 0
             if backend_name == "dynamic":
                 # all should be nan
-                self.assertTrue(np.isnan(states).all())
+                self.assertTrue((states==0).all())
             else:
                 self.assertListEqual(list(states.astype("I")), [
                                      0]*STATIC_NODE_NUM)
@@ -222,7 +222,7 @@ class TestFrame(unittest.TestCase):
                 i for i in range(STATIC_NODE_NUM)])
 
             if backend_name == "dynamic":
-                self.assertTrue(np.isnan(states[1]).all())
+                self.assertTrue((states[1] == 0).all())
             else:
                 self.assertListEqual(list(states[1].astype("i")), [
                                      0]*STATIC_NODE_NUM)
