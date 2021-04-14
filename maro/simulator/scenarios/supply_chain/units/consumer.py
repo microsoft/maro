@@ -123,11 +123,13 @@ class ConsumerUnit(SkuUnit):
 
         if self.action is not None and self.action.quantity > 0:
             self.data_model.order_quantity = self.action.quantity
+            self.data_model.reward_discount = self.action.reward_discount
 
     def post_step(self, tick: int):
         # Clear the action states per step.
         if self.action is not None:
             self.data_model.latest_consumptions = 0
+            self.data_model.reward_discount = 0
 
             if self.action.quantity > 0:
                 self.data_model.order_quantity = 0

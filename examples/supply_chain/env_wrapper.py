@@ -275,7 +275,7 @@ class SCEnvWrapper(AbsEnvWrapper):
                     product_id = self.consumer2product.get(agent_id, 0)
                     agent_id = int(agent_id.split(".")[1])
                     env_action[agent_id] = ConsumerAction(
-                        agent_id, product_id, source_id, action, 1)
+                        agent_id, product_id, source_id, action, 1, 0)
             # manufacturer action
             elif agent_id.startswith("producer"):
                 agent_id = int(agent_id.split(".")[1])
@@ -606,7 +606,7 @@ class SCEnvWrapper(AbsEnvWrapper):
 
 class BalanceSheetCalculator:
     consumer_features = ("id", "order_quantity", "price",
-                         "order_cost", "order_product_cost")
+                         "order_cost", "order_product_cost", "reward_discount")
     seller_features = ("id", "sold", "demand", "price", "backlog_ratio")
     manufacture_features = ("id", "manufacturing_number", "product_unit_cost")
     product_features = (
@@ -682,12 +682,9 @@ class BalanceSheetCalculator:
         consumer_step_balance_sheet_loss = -1 * \
             (consumer_bs_states[:, 3] + consumer_bs_states[:, 4])
 
-        # not sure about this.
-        reward_discount = 0
-
         # consumer step reward: balance sheet los + profile * discount
         consumer_step_reward = consumer_step_balance_sheet_loss + \
-            consumer_profit * reward_discount
+            consumer_profit * consumer_bs_states[:, 5]
 
         # seller
         seller_bs_states = self.seller_ss[tick::self.seller_features].flatten(
