@@ -138,6 +138,7 @@ world:
         sku3: # sku name and attributes needed for this facility
           init_stock: 100
           product_unit_cost: 1
+          production_rate: 1
           type: "production" # production means this is the output production of this facility
           cost: 10
           price: 10
@@ -162,12 +163,14 @@ world:
         sku1:
           init_stock: 100
           product_unit_cost: 1
+          production_rate: 1
           type: "production"
           cost: 10
           price: 100
           vlt: 1
         sku3:
           init_stock: 100
+          production_rate: 1
           type: "material"
           cost: 10
           price: 100

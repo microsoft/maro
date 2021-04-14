@@ -253,42 +253,56 @@ class SCEnvWrapper(AbsEnvWrapper):
 
     def get_action(self, action_by_agent):
         # cache the sources for each consumer if not yet cached
-        if not hasattr(self, "consumer2source"):
-            self.consumer2source, self.consumer2product = {}, {}
+        if not hasattr(self, "product2source"):
+            self.product2source, self.consumer2product = {}, {}
             for facility in self.env.summary["node_mapping"]["facilities"].values():
                 products = facility["units"]["products"]
                 for product_id, product in products.items():
                     consumer = product["consumer"]
                     if consumer is not None:
-                        consumer_id = ".".join(
-                            ["consumer", str(consumer["id"])])
-                        self.consumer2source[consumer_id] = consumer["sources"]
+                        consumer_id = consumer["id"]
+                        product_unit_id = product["id"]
+                        self.product2source[product_unit_id] = consumer["sources"]
                         self.consumer2product[consumer_id] = product_id
 
         env_action = {}
         for agent_id, action in action_by_agent.items():
             unit_id = int(agent_id.split(".")[1])
 
-            sku = self._units_mapping[unit_id][3]
+            is_facility = unit_id not in self._units_mapping
+
+            # ignore facility to reduce action number
+            if is_facility:
+                continue
 
             # consumer action
             if agent_id.startswith("consumer"):
-                sources = self.consumer2source.get(agent_id, [])
+                product_id = self.consumer2product.get(unit_id, 0)
+                sources = self.product2source.get(unit_id, [])
+
                 if sources:
                     source_id = sources[0]
-                    product_id = self.consumer2product.get(agent_id, 0)
 
-                    # if the agent in products, then it is a product unit, then apply the sale mean
-                    if agent_id in self._summary["products"]:
-                        action *= self._summary["products"][unit_id]["sale_mean"]
+                    action_number = int(int(action) * self._cur_metrics["products"][unit_id]["sale_mean"])
 
+                    # ignore 0 quantity to reduce action number
+                    if action_number == 0:
+                        continue
+
+                    sku = self._units_mapping[unit_id][3]
                     reward_discount = 0
-                    env_action[agent_id] = ConsumerAction(unit_id, product_id, source_id, action, sku.vlt, reward_discount)
+
+                    env_action[unit_id] = ConsumerAction(unit_id, product_id, source_id, action_number, sku.vlt, reward_discount)
             # manufacturer action
             elif agent_id.startswith("producer"):
+                sku = self._units_mapping[unit_id][3]
                 action = sku.production_rate
 
-                env_action[agent_id] = ManufactureAction(unit_id, action)
+                # ignore invalid actions
+                if action is None or action == 0:
+                    continue
+
+                env_action[unit_id] = ManufactureAction(unit_id, action)
 
         return env_action
 
