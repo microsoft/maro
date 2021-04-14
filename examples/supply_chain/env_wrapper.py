@@ -139,26 +139,30 @@ class SCEnvWrapper(AbsEnvWrapper):
         # current seller states
         self._cur_seller_states = None
 
+        # dim for state
+        self._dim = None
+
         # built internal helpers.
         self._build_internal_helpers()
 
     @property
     def dim(self):
         """Calculate dim per shape."""
-        dim = 0
+        if self._dim is None:
+            self._dim = 0
 
-        first_state = next(iter(self._states.values()))
+            first_state = next(iter(self._states.values()))
 
-        for _, state_keys in keys_in_state:
-            for key in state_keys:
-                val = first_state[key]
+            for _, state_keys in keys_in_state:
+                for key in state_keys:
+                    val = first_state[key]
 
-                if type(val) == list:
-                    dim += len(val)
-                else:
-                    dim += 1
+                    if type(val) == list:
+                        self._dim += len(val)
+                    else:
+                        self._dim += 1
 
-        return dim
+        return self._dim
 
     def get_state(self, event):
         cur_tick = self.env.tick
