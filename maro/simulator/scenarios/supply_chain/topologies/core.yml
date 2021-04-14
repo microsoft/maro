@@ -50,6 +50,9 @@ units:
         ManufactureUnit:
           class: "ManufactureUnit"
           datamodel: "ManufactureDataModel"
+        SimpleManufactureUnit:
+          class: "SimpleManufactureUnit"
+          datamodel: "ManufactureDataModel"
         ProductUnit:
           class: "ProductUnit"
           datamodel: "ProductDataModel"

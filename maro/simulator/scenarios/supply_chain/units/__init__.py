@@ -5,6 +5,7 @@
 from .consumer import ConsumerUnit
 from .distribution import DistributionUnit
 from .manufacture import ManufactureUnit
+from .simplemanufacture import SimpleManufactureUnit
 from .product import ProductUnit
 from .seller import SellerUnit
 from .skuunit import SkuUnit
