@@ -77,6 +77,11 @@ To start this visualization tool, user need to input command following the forma
 
 ----
 
+Parameter **force** refers to regenerate cross-epoch summary data or not, default value is 'true'.
+Parameter **source_path** refers to the path of dumped snapshot files. Every experiment would
+generate a data folder named by a timestamp. The input of the parameter **source_path** should be
+the path of SNAPSHOT_DUMP_DATA_FOLDER.
+
 Make sure that your SNAPSHOT_DUMP_DATA_FOLDER's structure is similar as following:
 
 Folder Structure
@@ -93,12 +98,6 @@ Folder Structure
 
 
 ----
-
-
-Parameter **force** refers to regenerate cross-epoch summary data or not, default value is 'true'.
-Parameter **source_path** refers to the path of dumped snapshot files. Every experiment would
-generate a data folder named by a timestamp. The input of the parameter **source_path** should be
-the path of SNAPSHOT_DUMP_DATA_FOLDER.
 
 
 If any file is missed compared with the expected folder structure
