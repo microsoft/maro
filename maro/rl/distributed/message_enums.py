@@ -28,4 +28,6 @@ class MsgKey(Enum):
     EXPLORATION_PARAMS = "exploration_params"
     NUM_STEPS = "num_steps"
     SEGMENT_INDEX = "segment_index"
+    RETURN_ENV_METRICS = "return_env_metrics"
+    TOTAL_REWARD = "total_reward"
     ENV_END = "env_end"

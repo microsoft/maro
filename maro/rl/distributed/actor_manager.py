@@ -2,10 +2,12 @@
 # Licensed under the MIT license.
 
 from collections import defaultdict
+from os import getcwd, makedirs
+from os.path import join
 from typing import Union
 
 from maro.communication import Message, Proxy, SessionType
-from maro.utils import InternalLogger
+from maro.utils import Logger
 
 from .message_enums import MsgTag, MsgKey
 
@@ -29,7 +31,8 @@ class ActorManager(object):
         num_actors: int,
         group_name: str,
         proxy_options: dict = None,
-        log_env_metrics: bool = False
+        log_env_metrics: bool = False,
+        log_dir: str = getcwd()
     ):
         super().__init__()
         peers = {"actor": num_actors}
@@ -39,8 +42,11 @@ class ActorManager(object):
         self._actors = self._proxy.peers["actor"]  # remote actor ID's
         self.total_experiences_collected = 0
         self.total_env_steps = 0
+        self.total_reward = defaultdict(float)
         self._log_env_metrics = log_env_metrics
-        self._logger = InternalLogger("ACTOR_MANAGER")
+        log_dir = join(log_dir, "logs")
+        makedirs(log_dir, exist_ok=True)
+        self._logger = Logger("ACTOR_MANAGER", dump_folder=log_dir)
 
     def collect(
         self,
@@ -50,7 +56,8 @@ class ActorManager(object):
         models: dict = None,
         exploration_params=None,
         required_actor_finishes: int = None,
-        discard_stale_experiences: bool = True
+        discard_stale_experiences: bool = True,
+        return_env_metrics: bool = False
     ):
         """Collect experiences from actors."""
         if required_actor_finishes is None:
@@ -60,7 +67,8 @@ class ActorManager(object):
             MsgKey.ROLLOUT_INDEX: rollout_index,
             MsgKey.SEGMENT_INDEX: segment_index,
             MsgKey.NUM_STEPS: num_steps,
-            MsgKey.MODEL: models
+            MsgKey.MODEL: models,
+            MsgKey.RETURN_ENV_METRICS: return_env_metrics
         }
 
         if exploration_params:
@@ -68,7 +76,8 @@ class ActorManager(object):
 
         if self._log_env_metrics:
             self._logger.info(f"EPISODE-{rollout_index}, SEGMENT-{segment_index}: ")
-            self._logger.info(f"exploration_params: {exploration_params}")
+            if exploration_params:
+                self._logger.info(f"exploration_params: {exploration_params}")
 
         self._proxy.ibroadcast("actor", MsgTag.ROLLOUT, SessionType.TASK, body=msg_body)
         self._logger.info(f"Sent roll-out requests for ep-{rollout_index}, segment-{segment_index}")
@@ -88,20 +97,18 @@ class ActorManager(object):
                 env_metrics = msg.body[MsgKey.METRICS]
                 self._logger.info(f"env_metrics: {env_metrics}")
 
-            if msg.body[MsgKey.SEGMENT_INDEX] != segment_index:
-                if not discard_stale_experiences:
-                    experiences = msg.body[MsgKey.EXPERIENCES]
-                    self.total_experiences_collected += msg.body[MsgKey.NUM_EXPERIENCES]
-                    self.total_env_steps += num_steps
-                    yield msg.body[MsgKey.EXPERIENCES], msg.body[MsgKey.ENV_END]
-            else:
+            if msg.body[MsgKey.SEGMENT_INDEX] == segment_index or not discard_stale_experiences:
                 self.total_experiences_collected += msg.body[MsgKey.NUM_EXPERIENCES]
-                self.total_env_steps += num_steps
-                yield msg.body[MsgKey.EXPERIENCES], msg.body[MsgKey.ENV_END]
-                num_finishes += 1
+                self.total_env_steps += msg.body[MsgKey.NUM_STEPS]
+                is_env_end = msg.body[MsgKey.ENV_END]
+                if is_env_end:
+                    self._logger.info(f"total rewards: {msg.body[MsgKey.TOTAL_REWARD]}")
+                yield msg.body[MsgKey.EXPERIENCES], is_env_end
 
-            if num_finishes == required_actor_finishes:
-                break
+            if msg.body[MsgKey.SEGMENT_INDEX] == segment_index:
+                num_finishes += 1
+                if num_finishes == required_actor_finishes:
+                    break
 
     def exit(self):
         """Tell the remote actors to exit."""

@@ -112,13 +112,29 @@ class Proxy:
             self._logger.error(f"Unsupported driver type {driver_type}, please use DriverType class.")
             sys.exit(NON_RESTART_EXIT_CODE)
 
-        # Initialize the Redis.
+        # Initialize connection to the redis server.
         self._redis_connection = redis.Redis(host=redis_address[0], port=redis_address[1], socket_keepalive=True)
-        try:
-            self._redis_connection.ping()
-        except Exception as e:
-            self._logger.error(f"{self._name} failure to connect to redis server due to {e}")
+        num_tries = 0
+        while num_tries < self._max_retries:
+            try:
+                self._redis_connection.ping()
+                break
+            except Exception as e:
+                retry_time = self._retry_interval_base_value * (2 ** retry_number)
+                self._logger.error(
+                    f"{self._name} failed to connect to the redis server due to {e}. Retrying in {retry_time} seconds."
+                )
+                num_tries += 1
+                time.sleep(retry_time)
+
+        if num_tries == self._max_retries:
+            self._logger.error(f"{self._name} failed to connect to the redis server.")
             sys.exit(NON_RESTART_EXIT_CODE)
+        else:
+            self._logger.info(
+                f"{self._name} is successfully connected to the redis server "
+                f"at {redis_address[0]}:{redis_address[1]}."
+            )
 
         # Record the peer's redis information.
         self._peers_info_dict = {}

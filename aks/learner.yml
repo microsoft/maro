@@ -1,0 +1,27 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: learner
+  labels:
+    role: learner
+spec:
+  completions: 1
+  # backoffLimit: 2
+  template:
+    metadata:
+      name: learner
+    spec:
+      containers:
+      - name: learner
+        image: maroacr.azurecr.cn/maro-dev:latest
+        command: ["python3", "/mnt/examples/cim/dqn/main.py", "-w", "1"]
+        volumeMounts:
+        - name: maro-test
+          mountPath: /mnt
+      restartPolicy: Never
+      volumes:
+      - name: maro-test
+        azureFile:
+          secretName: azure-secret
+          shareName: marosf
+          readOnly: false

@@ -3,12 +3,14 @@
 
 import time
 from collections import defaultdict
+from os import getcwd, makedirs
+from os.path import join
 from typing import Union
 
 from maro.communication import Message, Proxy, SessionType
 from maro.rl.agent import AbsAgent, MultiAgentWrapper
 from maro.rl.scheduling import Scheduler
-from maro.utils import InternalLogger
+from maro.utils import Logger
 
 from .actor_manager import ActorManager
 from .message_enums import MsgTag, MsgKey
@@ -28,7 +30,8 @@ class DistLearner(object):
         actor_manager: ActorManager,
         agent_update_interval: int = -1,
         required_actor_finishes: str = None,
-        discard_stale_experiences: bool = True
+        discard_stale_experiences: bool = True,
+        log_dir: str = getcwd()
     ):
         super().__init__()
         self.agent = MultiAgentWrapper(agent) if isinstance(agent, AbsAgent) else agent
@@ -38,7 +41,9 @@ class DistLearner(object):
         self.required_actor_finishes = required_actor_finishes
         self.discard_stale_experiences = discard_stale_experiences
         self._total_learning_time = 0
-        self._logger = InternalLogger("LEARNER")
+        log_dir = join(log_dir, "logs")
+        makedirs(log_dir, exist_ok=True)
+        self._logger = Logger("LEARNER", dump_folder=log_dir)
 
     def run(self):
         """Main learning loop."""
@@ -59,9 +64,9 @@ class DistLearner(object):
                     updated_agents = self.agent.learn(exp)
                     num_actor_finishes += done
                     self._total_learning_time += time.time() - tl0
-                    self._logger.info(f"total running time: {time.time() - t0}")
-                    self._logger.info(f"total learning time: {self._total_learning_time}")
-                    self._logger.info(f"total env steps: {self.actor_manager.total_env_steps}")
+                    self._logger.debug(f"total running time: {time.time() - t0}")
+                    self._logger.debug(f"total learning time: {self._total_learning_time}")
+                    self._logger.debug(f"total env steps: {self.actor_manager.total_env_steps}")
                     self._logger.info(f"total experiences collected: {self.actor_manager.total_experiences_collected}")
 
                 segment_index += 1

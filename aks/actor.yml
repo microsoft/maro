@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: actor
+  labels:
+    role: actor
+spec:
+  completions: 5
+  parallelism: 5
+  # backoffLimit: 2
+  template:
+    metadata:
+      name: actor
+    spec:
+      containers:
+      - name: actor
+        image: maroacr.azurecr.cn/maro-dev:latest
+        command: ["python3", "/mnt/examples/cim/dqn/main.py", "-w", "2"]
+        volumeMounts:
+        - name: maro-test
+          mountPath: /mnt
+      restartPolicy: Never
+      volumes:
+      - name: maro-test
+        azureFile:
+          secretName: azure-secret
+          shareName: marosf
+          readOnly: false

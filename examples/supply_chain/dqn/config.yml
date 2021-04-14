@@ -2,41 +2,73 @@
 # Licensed under the MIT license.
 
 agent:
-  model:
-    hidden_dims:
-      - 16
-      - 8
-    activation: 
-    softmax: false
-    batch_norm: true
-    skip_connection: false
-    head: true
-    dropout_p: 0.0
-  optimization:
-    optim_cls: rmsprop
-    optim_params:
-      lr: 0.001
-  algorithm:
-    reward_discount: .9
-    train_iters: 10
-    batch_size: 128
-    loss_cls: mse
-    target_update_freq: 5
-    soft_update_coefficient: 0.1
-    double: false
-  experience_memory:
-    experience_memory_size: 50000
-    experience_memory_overwrite_type: random
-    flush_experience_memory_after_step: false
-    min_new_experiences_to_trigger_learning: 16
-    min_experience_memory_size: 10
+  consumer:
+    model:
+      hidden_dims:
+        - 16
+        - 8
+      output_dim: 100
+      activation: leaky_relu
+      softmax: false
+      batch_norm: true
+      skip_connection: false
+      head: true
+      dropout_p: 0.0
+    optimization:
+      optim_cls: rmsprop
+      optim_params:
+        lr: 0.001
+    algorithm:
+      reward_discount: .9
+      train_iters: 10
+      batch_size: 128
+      loss_cls: mse
+      target_update_freq: 5
+      soft_update_coefficient: 0.1
+      double: false   # double DQN
+    experience_memory:
+      experience_memory_size: 50000
+      experience_memory_overwrite_type: random
+      flush_experience_memory_after_step: false
+      min_new_experiences_to_trigger_learning: 10
+      min_experience_memory_size: 10
+  producer:
+    model:
+      hidden_dims:
+        - 16
+        - 8
+      output_dim: 10
+      activation: leaky_relu
+      softmax: false
+      batch_norm: true
+      skip_connection: false
+      head: true
+      dropout_p: 0.0
+    optimization:
+      optim_cls: rmsprop
+      optim_params:
+        lr: 0.001
+    algorithm:
+      reward_discount: .9
+      train_iters: 10
+      batch_size: 128
+      loss_cls: mse
+      target_update_freq: 5
+      soft_update_coefficient: 0.1
+      double: false
+    experience_memory:
+      experience_memory_size: 50000
+      experience_memory_overwrite_type: random
+      flush_experience_memory_after_step: false
+      min_new_experiences_to_trigger_learning: 100000
+      min_experience_memory_size: 10
 training: 
   env: 
     scenario: supply_chain
     topology: sample1
-    durations: 100
+    durations: 200
   max_episode: 3
-  agent_update_interval: 10 
+  agent_update_interval: 35
   exploration:
     parameter_names:
       - epsilon
@@ -44,7 +76,8 @@ training:
     end: 0.0
 distributed:
   group: sc-dqn
-  num_actors: 2
-  redis_host: maro-redis
+  num_actors: 4
+  redis_host: redis-sc
   redis_port: 6379
-  required_actor_finishes: 2
+  required_actor_finishes: 4
+  discard_stale_experiences: True
