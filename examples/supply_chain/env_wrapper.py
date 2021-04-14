@@ -267,19 +267,28 @@ class SCEnvWrapper(AbsEnvWrapper):
 
         env_action = {}
         for agent_id, action in action_by_agent.items():
+            unit_id = int(agent_id.split(".")[1])
+
+            sku = self._units_mapping[unit_id][3]
+
             # consumer action
             if agent_id.startswith("consumer"):
                 sources = self.consumer2source.get(agent_id, [])
                 if sources:
                     source_id = sources[0]
                     product_id = self.consumer2product.get(agent_id, 0)
-                    agent_id = int(agent_id.split(".")[1])
-                    env_action[agent_id] = ConsumerAction(
-                        agent_id, product_id, source_id, action, 1, 0)
+
+                    # if the agent in products, then it is a product unit, then apply the sale mean
+                    if agent_id in self._summary["products"]:
+                        action *= self._summary["products"][unit_id]["sale_mean"]
+
+                    reward_discount = 0
+                    env_action[agent_id] = ConsumerAction(unit_id, product_id, source_id, action, sku.vlt, reward_discount)
             # manufacturer action
             elif agent_id.startswith("producer"):
-                agent_id = int(agent_id.split(".")[1])
-                env_action[agent_id] = ManufactureAction(agent_id, action)
+                action = sku.production_rate
+
+                env_action[agent_id] = ManufactureAction(unit_id, action)
 
         return env_action
 
@@ -483,10 +492,8 @@ class SCEnvWrapper(AbsEnvWrapper):
 
             # facility features
             state["facility"] = None
-            state["facility_type"] = [
-                1 if i == agent_info.agent_type else 0 for i in range(len(self._agent_types))]
-            state["is_accepted"] = [0] * \
-                self._configs.settings["constraint_state_hist_len"]
+            state["facility_type"] = [1 if i == agent_info.agent_type else 0 for i in range(len(self._agent_types))]
+            state["is_accepted"] = [0] * self._configs.settings["constraint_state_hist_len"]
             state['constraint_idx'] = [0]
             state['facility_id'] = [0] * self._sku_number
             state['sku_info'] = {} if agent_info.is_facility else agent_info.sku

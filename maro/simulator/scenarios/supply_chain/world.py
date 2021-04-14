@@ -391,10 +391,15 @@ class World:
         id2index_mapping = {}
 
         for unit_id, unit in self.units.items():
+            sku = None
+
+            if isinstance(unit, ProductUnit):
+                sku = unit.facility.skus[unit.product_id]
+
             if unit.data_model is not None:
-                id2index_mapping[unit_id] = (unit.data_model_name, unit.data_model_index, unit.facility.id)
+                id2index_mapping[unit_id] = (unit.data_model_name, unit.data_model_index, unit.facility.id, sku)
             else:
-                id2index_mapping[unit_id] = (None, None, unit.facility.id)
+                id2index_mapping[unit_id] = (None, None, unit.facility.id, sku)
 
         return {
             "agent_types": [k for k in self.agent_type_dict.keys()],
