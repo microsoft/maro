@@ -4,7 +4,7 @@
 agent:
   consumer:
     algorithm: dqn
-    model:
+    model:  # If you want to design your model used, edit the get_dqn_agent() codes in examples\supply_chain\agent.py
       hidden_dims:
         - 16
         - 8
@@ -22,9 +22,9 @@ agent:
     algorithm_config:
       reward_discount: .9
       train_iters: 10  # number of gradient steps per call to agent.step()
-      batch_size: 128  # minibatch size for DQN training
+      batch_size: 128  # mini-batch size for DQN training
       loss_cls: mse  # refer to maro/maro/rl/utils/torch_cls_index.py for the mapping of strings to torch loss classes.
-      target_update_freq: 5  # DQN target model update 
+      target_update_freq: 5  # How many training iteration, to update DQN target model 
       soft_update_coefficient: 0.1
       double: false   # whether to enable double DQN
     experience_memory:
@@ -37,7 +37,7 @@ agent:
       empty_experience_memory_after_step: false
       # The minimum number of new experiences required to trigger learning (agent.step()). Defaults to 1.
       min_new_experiences_to_trigger_learning: 10
-      # The minimum number of experiences in the experience memory required for learning (agent.step()). Defaults to 1. 
+      # The minimum number of experiences in the experience memory required to trigger learning (agent.step()). Defaults to 1. 
       min_experiences_to_trigger_learning: 10
   producer:
     algorithm: dqn
@@ -77,7 +77,7 @@ training:
     # that contains a single config.yml and shoud be placed under examples/supply_chain/envs/
     topology: sample1
     durations: 200  # number of ticks per episode
-  max_episode: 3  # number of episodes
+  num_episodes: 3  # number of episodes to simulate
   # Number of roll-out steps in each learning cycle. Each actor will perform at most this many roll-out steps
   # before returning experiences to the learner. The learner uses these experiences to update the agents' policies
   # and sync the updated policies to the actors for the next learning cycle.
@@ -85,7 +85,7 @@ training:
   exploration:
     parameter_names:
       - epsilon
-    start: 0.4
+    start: 0.4  # Here (start: 0.4, end: 0.0) means: the exploration rate will start at 0.4 and decrease linearly to 0.0 in the last episode.
     end: 0.0
 distributed:
   # this is used to group all actor / learner processes belonging to the same job for communication purposes.

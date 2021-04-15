@@ -32,7 +32,7 @@ get_consumer_agent = get_agent_func_map[config["agent"]["consumer"]["algorithm"]
 
 # Get the env config path
 topology = config["training"]["env"]["topology"]
-config["training"]["env"]["topology"] = join(sc_code_dir, "envs", topology)
+config["training"]["env"]["topology"] = join(sc_code_dir, "topologies", topology)
 
 # for distributed / multi-process training
 GROUP = getenv("GROUP", default=config["distributed"]["group"])
@@ -53,7 +53,7 @@ def sc_learner():
     agent = MultiAgentWrapper({**producers, **consumers})
 
     # exploration schedule
-    scheduler = LinearParameterScheduler(config["training"]["max_episode"], **config["training"]["exploration"])
+    scheduler = LinearParameterScheduler(config["training"]["num_episodes"], **config["training"]["exploration"])
     
     # create an actor manager to collect simulation data from multiple actors
     actor_manager = ActorManager(

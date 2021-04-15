@@ -29,7 +29,7 @@ if __name__ == "__main__":
 
     # Get the env config path
     topology = config["training"]["env"]["topology"]
-    config["training"]["env"]["topology"] = join(dirname(realpath(__file__)), "envs", topology)
+    config["training"]["env"]["topology"] = join(dirname(realpath(__file__)), "topologies", topology)
 
     # create an env wrapper and obtain the input dimension for the agents
     env = SCEnvWrapper(Env(**config["training"]["env"]))
@@ -42,7 +42,7 @@ if __name__ == "__main__":
     agent = MultiAgentWrapper({**producers, **consumers})
 
     # exploration schedule
-    scheduler = LinearParameterScheduler(config["training"]["max_episode"], **config["training"]["exploration"])    
+    scheduler = LinearParameterScheduler(config["training"]["num_episodes"], **config["training"]["exploration"])    
 
     # create a learner to start training
     learner = Learner(env, agent, scheduler, agent_update_interval=config["training"]["agent_update_interval"])
