@@ -38,11 +38,11 @@ class PolicyGradient(AbsAgent):
             unlimited size.
         experience_memory_overwrite_type (str): A string indicating how experiences in the experience memory are
             to be overwritten after its capacity has been reached. Must be "rolling" or "random".
-        flush_experience_memory_after_step (bool): If True, the experience memory will be flushed after each call
+        empty_experience_memory_after_step (bool): If True, the experience memory will be emptied  after each call
             to ``step``. Defaults to True.
         min_new_experiences_to_trigger_learning (int): Minimum number of new experiences required to trigger learning.
             Defaults to 1.
-        min_experience_memory_size (int): Minimum number of experiences in the experience memory required for training.
+        min_experiences_to_trigger_learning (int): Minimum number of experiences in the experience memory required for training.
             Defaults to 1.
     """
     def __init__(
@@ -51,15 +51,15 @@ class PolicyGradient(AbsAgent):
         config: PolicyGradientConfig,
         experience_memory_size: int,
         experience_memory_overwrite_type: str,
-        flush_experience_memory_after_step: bool = True,
+        empty_experience_memory_after_step: bool = True,
         min_new_experiences_to_trigger_learning: int = 1,
-        min_experience_memory_size: int = 1    
+        min_experiences_to_trigger_learning: int = 1    
     ):
         super().__init__(
             model, config, experience_memory_size, experience_memory_overwrite_type,
-            flush_experience_memory_after_step,
+            empty_experience_memory_after_step,
             min_new_experiences_to_trigger_learning=min_new_experiences_to_trigger_learning,
-            min_experience_memory_size=min_experience_memory_size    
+            min_experiences_to_trigger_learning=min_experiences_to_trigger_learning    
         )
 
     def choose_action(self, state: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:

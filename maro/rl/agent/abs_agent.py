@@ -25,11 +25,11 @@ class AbsAgent(ABC):
             unlimited size.
         experience_memory_overwrite_type (str): A string indicating how experiences in the experience memory are
             to be overwritten after its capacity has been reached. Must be "rolling" or "random".
-        flush_experience_memory_after_step (bool): If True, the experience memory will be flushed after each call
+        empty_experience_memory_after_step (bool): If True, the experience memory will be emptied after each call
             to ``step``.
         min_new_experiences_to_trigger_learning (int): Minimum number of new experiences required to trigger learning.
             Defaults to 1.
-        min_experience_memory_size (int): Minimum number of experiences in the experience memory required for training.
+        min_experiences_to_trigger_learning (int): Minimum number of experiences in the experience memory required for training.
             Defaults to 1.
     """
     def __init__(
@@ -38,18 +38,18 @@ class AbsAgent(ABC):
         config,
         experience_memory_size: int,
         experience_memory_overwrite_type: str,
-        flush_experience_memory_after_step: bool,
+        empty_experience_memory_after_step: bool,
         min_new_experiences_to_trigger_learning: int = 1,
-        min_experience_memory_size: int = 1
+        min_experiences_to_trigger_learning: int = 1
     ):
         self.model = model
         self.config = config
         self.experience_memory = SimpleStore(
             ["S", "A", "R", "S_"], capacity=experience_memory_size, overwrite_type=experience_memory_overwrite_type
         )
-        self.flush_experience_memory_after_step = flush_experience_memory_after_step
+        self.empty_experience_memory_after_step = empty_experience_memory_after_step
         self.min_new_experiences_to_trigger_learning = min_new_experiences_to_trigger_learning
-        self.min_experience_memory_size = min_experience_memory_size
+        self.min_experiences_to_trigger_learning = min_experiences_to_trigger_learning
         self.device = torch.device('cpu')
         self._version_index = 0
 
@@ -88,11 +88,11 @@ class AbsAgent(ABC):
         self.experience_memory.put(experiences)
         if (
             len(experiences["S"]) >= self.min_new_experiences_to_trigger_learning and
-            len(self.experience_memory) >= self.min_experience_memory_size
+            len(self.experience_memory) >= self.min_experiences_to_trigger_learning
         ):
             self.step()
             self._version_index += 1
-            if self.flush_experience_memory_after_step:
+            if self.empty_experience_memory_after_step:
                 self.experience_memory.clear()
             return True
         return False

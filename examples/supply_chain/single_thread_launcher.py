@@ -12,11 +12,10 @@ from maro.rl import Learner, LinearParameterScheduler, MultiAgentWrapper
 from maro.simulator import Env
 from maro.utils import set_seeds
 
-sc_code_dir = dirname(dirname(realpath(__file__)))
+sc_code_dir = dirname(realpath(__file__))
 sys.path.insert(0, sc_code_dir)
-sys.path.insert(0, join(sc_code_dir, "dqn"))
 from env_wrapper import SCEnvWrapper
-from agent import get_dqn_agent
+from agent import get_agent_func_map
 
 
 # Single-threaded launcher
@@ -25,9 +24,12 @@ if __name__ == "__main__":
     with open(getenv("CONFIG_PATH", default=default_config_path), "r") as config_file:
         config = yaml.safe_load(config_file)
 
+    get_producer_agent = get_agent_func_map[config["agent"]["producer"]["algorithm"]]
+    get_consumer_agent = get_agent_func_map[config["agent"]["consumer"]["algorithm"]]
+
     # Get the env config path
     topology = config["training"]["env"]["topology"]
-    config["training"]["env"]["topology"] = join(dirname(dirname(realpath(__file__))), "envs", topology)
+    config["training"]["env"]["topology"] = join(dirname(realpath(__file__)), "topologies", topology)
 
     # create an env wrapper and obtain the input dimension for the agents
     env = SCEnvWrapper(Env(**config["training"]["env"]))
@@ -35,12 +37,12 @@ if __name__ == "__main__":
 
     # create agents
     agent_info_list = env.agent_idx_list
-    producers = {f"producer.{info.id}": get_dqn_agent(config["agent"]["producer"]) for info in agent_info_list}
-    consumers = {f"consumer.{info.id}": get_dqn_agent(config["agent"]["consumer"]) for info in agent_info_list}
+    producers = {f"producer.{info.id}": get_producer_agent(config["agent"]["producer"]) for info in agent_info_list}
+    consumers = {f"consumer.{info.id}": get_consumer_agent(config["agent"]["consumer"]) for info in agent_info_list}
     agent = MultiAgentWrapper({**producers, **consumers})
 
     # exploration schedule
-    scheduler = LinearParameterScheduler(config["training"]["max_episode"], **config["training"]["exploration"])    
+    scheduler = LinearParameterScheduler(config["training"]["num_episodes"], **config["training"]["exploration"])    
 
     # create a learner to start training
     learner = Learner(env, agent, scheduler, agent_update_interval=config["training"]["agent_update_interval"])

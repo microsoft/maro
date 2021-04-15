@@ -64,9 +64,9 @@ agent:
   experience_memory:
     experience_memory_size: -1
     experience_memory_overwrite_type: "rolling"
-    flush_experience_memory_after_step: bool,
+    empty_experience_memory_after_step: bool,
     min_new_experiences_to_trigger_learning: 1
-    min_experience_memory_size: 1
+    min_experiences_to_trigger_learning: 1
 training:
   env:
     scenario: cim

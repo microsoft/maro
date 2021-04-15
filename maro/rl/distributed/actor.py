@@ -1,8 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from os import getcwd, makedirs
-from os.path import join
+from os import getcwd
 from typing import Union
 
 from maro.communication import Message, Proxy
@@ -40,8 +39,6 @@ class Actor(object):
         if proxy_options is None:
             proxy_options = {}
         self._proxy = Proxy(group, "actor", {"actor_manager": 1}, **proxy_options)
-        log_dir = join(log_dir, "logs")
-        makedirs(log_dir, exist_ok=True)
         self._logger = Logger(self._proxy.name, dump_folder=log_dir)
 
     def run(self):

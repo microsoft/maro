@@ -23,14 +23,13 @@ RUN pip install --no-cache-dir torch==1.6.0
 RUN pip install --no-cache-dir scipy
 RUN pip install --no-cache-dir redis
 
-COPY maro /maro/maro/
+COPY maro /maro/maro
 COPY scripts /maro/scripts/
 COPY setup.py /maro/
 RUN bash /maro/scripts/install_maro.sh
 RUN pip cache purge
 
-RUN rm -r /maro/scripts
-RUN rm /maro/setup.py
+RUN rm -r /maro/maro/rl
 
 ENV PYTHONPATH=/maro
 

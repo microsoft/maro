@@ -3,8 +3,7 @@
 
 import time
 from collections import defaultdict
-from os import getcwd, makedirs
-from os.path import join
+from os import getcwd
 from typing import Union
 
 from maro.communication import Message, Proxy, SessionType
@@ -41,8 +40,6 @@ class DistLearner(object):
         self.required_actor_finishes = required_actor_finishes
         self.discard_stale_experiences = discard_stale_experiences
         self._total_learning_time = 0
-        log_dir = join(log_dir, "logs")
-        makedirs(log_dir, exist_ok=True)
         self._logger = Logger("LEARNER", dump_folder=log_dir)
 
     def run(self):
