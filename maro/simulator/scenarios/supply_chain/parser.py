@@ -183,7 +183,12 @@ class ConfigParser:
                 module_path = module_conf["path"]
 
                 for class_alias, class_def in module_conf["definitions"].items():
-                    self._result.add_facility_definition(class_alias, class_def["class"], module_path, class_def.get("datamodel", None))
+                    self._result.add_facility_definition(
+                        class_alias,
+                        class_def["class"],
+                        module_path,
+                        class_def.get("datamodel", None)
+                    )
 
     def _parse_config(self):
         """Parse configurations."""

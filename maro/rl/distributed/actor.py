@@ -4,7 +4,7 @@
 from os import getcwd
 from typing import Union
 
-from maro.communication import Message, Proxy
+from maro.communication import Proxy
 from maro.rl.agent import AbsAgent, MultiAgentWrapper
 from maro.rl.training import AbsEnvWrapper
 from maro.utils import Logger
@@ -61,7 +61,7 @@ class Actor(object):
                 while self.env.state and steps_to_go > 0:
                     action = self.agent.choose_action(self.env.state)
                     self.env.step(action)
-                    steps_to_go -= 1 
+                    steps_to_go -= 1
 
                 self._logger.info(
                     f"Roll-out finished for ep {rollout_index}, segment {segment_index}"

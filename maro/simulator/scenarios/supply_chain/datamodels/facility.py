@@ -2,8 +2,7 @@
 # Licensed under the MIT license.
 
 
-from maro.backends.backend import AttributeType
-from maro.backends.frame import NodeAttribute, node
+from maro.backends.frame import node
 
 from .base import DataModelBase
 

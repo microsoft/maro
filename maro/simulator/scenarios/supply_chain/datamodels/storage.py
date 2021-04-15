@@ -26,11 +26,13 @@ class StorageDataModel(DataModelBase):
         self._product_list = None
         self._product_number = None
 
-    def initialize(self,
-                   capacity: int = 0,
-                   remaining_space: int = None,
-                   product_list: list = None,
-                   product_number: list = None):
+    def initialize(
+        self,
+        capacity: int = 0,
+        remaining_space: int = None,
+        product_list: list = None,
+        product_number: list = None
+    ):
         self._capacity = capacity
         self._remaining_space = remaining_space
         self._product_list = product_list

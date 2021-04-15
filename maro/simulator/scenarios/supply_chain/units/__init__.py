@@ -5,10 +5,11 @@
 from .consumer import ConsumerUnit
 from .distribution import DistributionUnit
 from .manufacture import ManufactureUnit
-from .simplemanufacture import SimpleManufactureUnit
+from .outerseller import (DataFileDemandSampler, OuterSellerUnit,
+                          SellerDemandSampler)
 from .product import ProductUnit
 from .seller import SellerUnit
-from .outerseller import OuterSellerUnit, SellerDemandSampler, DataFileDemandSampler
+from .simplemanufacture import SimpleManufactureUnit
 from .skuunit import SkuUnit
 from .storage import StorageUnit
 from .storeproduct import StoreProductUnit

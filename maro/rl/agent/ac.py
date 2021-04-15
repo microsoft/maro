@@ -1,12 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import Callable, Tuple
+from typing import Tuple
 
 import numpy as np
 import torch
 from torch.distributions import Categorical
-from torch.nn import MSELoss
 
 from maro.rl.model import SimpleMultiHeadModel
 from maro.rl.utils import get_log_prob, get_torch_loss_cls
@@ -64,8 +63,8 @@ class ActorCritic(AbsAgent):
             to ``step``. Defaults to True.
         min_new_experiences_to_trigger_learning (int): Minimum number of new experiences required to trigger learning.
             Defaults to 1.
-        min_experiences_to_trigger_learning (int): Minimum number of experiences in the experience memory required for training.
-            Defaults to 1.
+        min_experiences_to_trigger_learning (int): Minimum number of experiences in the experience memory required for
+            training. Defaults to 1.
     """
     def __init__(
         self,
@@ -75,7 +74,7 @@ class ActorCritic(AbsAgent):
         experience_memory_overwrite_type: str,
         empty_experience_memory_after_step: bool = True,
         min_new_experiences_to_trigger_learning: int = 1,
-        min_experiences_to_trigger_learning: int = 1    
+        min_experiences_to_trigger_learning: int = 1
     ):
         if model.task_names is None or set(model.task_names) != {"actor", "critic"}:
             raise UnrecognizedTask(f"Expected model task names 'actor' and 'critic', but got {model.task_names}")
@@ -83,7 +82,7 @@ class ActorCritic(AbsAgent):
             model, config, experience_memory_size, experience_memory_overwrite_type,
             empty_experience_memory_after_step,
             min_new_experiences_to_trigger_learning=min_new_experiences_to_trigger_learning,
-            min_experiences_to_trigger_learning=min_experiences_to_trigger_learning    
+            min_experiences_to_trigger_learning=min_experiences_to_trigger_learning
         )
 
     def choose_action(self, state: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
@@ -105,7 +104,7 @@ class ActorCritic(AbsAgent):
         log_p = action_prob.log_prob(action)
         action, log_p = action.cpu().numpy(), log_p.cpu().numpy()
         return (action[0], log_p[0]) if is_single else (action, log_p)
-    
+
     def step(self):
         batch = self.experience_memory.get()
         states = torch.from_numpy(np.asarray(batch["S"])).to(self.device)
@@ -117,7 +116,7 @@ class ActorCritic(AbsAgent):
         state_values = self.model(states, task_name="critic").detach().squeeze()
         next_state_values = self.model(next_states, task_name="critic").detach().squeeze()
         return_est = rewards + self.config.reward_discount * next_state_values
-        advantages = return_est - state_values           
+        advantages = return_est - state_values
         for i in range(self.config.train_iters):
             # actor loss
             log_p_new = get_log_prob(self.model(states, task_name="actor"), actions)

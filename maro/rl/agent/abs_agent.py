@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 import torch
 
 from maro.rl.model import AbsCoreModel
-from maro.rl.storage import SimpleStore   
+from maro.rl.storage import SimpleStore
 
 
 class AbsAgent(ABC):
@@ -29,8 +29,8 @@ class AbsAgent(ABC):
             to ``step``.
         min_new_experiences_to_trigger_learning (int): Minimum number of new experiences required to trigger learning.
             Defaults to 1.
-        min_experiences_to_trigger_learning (int): Minimum number of experiences in the experience memory required for training.
-            Defaults to 1.
+        min_experiences_to_trigger_learning (int): Minimum number of experiences in the experience memory required for
+            training. Defaults to 1.
     """
     def __init__(
         self,

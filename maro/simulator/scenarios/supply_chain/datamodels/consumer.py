@@ -34,7 +34,7 @@ class ConsumerDataModel(SkuDataModel):
         self._price = 0
         self._order_cost = 0
 
-    def initialize(self, price:int, order_cost: int):
+    def initialize(self, price: int, order_cost: int):
         self._price = price
         self._order_cost = order_cost
 

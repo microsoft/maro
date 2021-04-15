@@ -18,4 +18,4 @@ class SimpleManufactureUnit(ManufactureUnit):
             sku_num = len(self.facility.skus)
             unit_num_upper_bound = self.facility.storage.capacity // sku_num
             current_product_number = self.facility.storage.get_product_number(self.product_id)
-            self.manufacture_number = max(0, min(unit_num_upper_bound-current_product_number, production_rate))
+            self.manufacture_number = max(0, min(unit_num_upper_bound - current_product_number, production_rate))

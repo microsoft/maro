@@ -3,10 +3,12 @@
 
 from abc import ABC
 from collections import defaultdict
-from typing import List, Dict
+from typing import Dict, List
 
 from maro.simulator.scenarios.supply_chain.easy_config import SkuInfo
-from maro.simulator.scenarios.supply_chain.units import DistributionUnit, ProductUnit, StorageUnit
+from maro.simulator.scenarios.supply_chain.units import (DistributionUnit,
+                                                         ProductUnit,
+                                                         StorageUnit)
 
 
 class FacilityBase(ABC):
@@ -166,8 +168,12 @@ class FacilityBase(ABC):
             },
             "configs": self.configs,
             "skus": self.skus,
-            "upstreams": {product_id: [f.id for f in source_list] for product_id, source_list in
-                          self.upstreams.items()},
-            "downstreams": {product_id: [f.id for f in source_list] for product_id, source_list in
-                            self.downstreams.items()}
+            "upstreams": {
+                product_id: [f.id for f in source_list]
+                for product_id, source_list in self.upstreams.items()
+            },
+            "downstreams": {
+                product_id: [f.id for f in source_list]
+                for product_id, source_list in self.downstreams.items()
+            }
         }

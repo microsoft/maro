@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import Callable, Union
+from typing import Union
 
 import numpy as np
 import torch
@@ -24,7 +24,7 @@ class DDPGConfig:
             the Q-value loss. If it is a string, it must be a key in ``TORCH_LOSS``. Defaults to "mse".
         policy_loss_coefficient (float): The coefficient for policy loss in the total loss function, e.g.,
             loss = q_value_loss + ``policy_loss_coefficient`` * policy_loss. Defaults to 1.0.
-        soft_update_coefficient (float): Soft update coefficient, e.g., 
+        soft_update_coefficient (float): Soft update coefficient, e.g.,
             target_model = (soft_update_coefficient) * eval_model + (1-soft_update_coefficient) * target_model.
             Defaults to 1.0.
     """
@@ -66,8 +66,8 @@ class DDPG(AbsAgent):
             to ``step``. Defaults to False.
         min_new_experiences_to_trigger_learning (int): Minimum number of new experiences required to trigger learning.
             Defaults to 1.
-        min_experiences_to_trigger_learning (int): Minimum number of experiences in the experience memory required for training.
-            Defaults to 1.
+        min_experiences_to_trigger_learning (int): Minimum number of experiences in the experience memory required for
+            training. Defaults to 1.
         explorer (NoiseExplorer): An NoiseExplorer instance for generating exploratory actions. Defaults to None.
     """
     def __init__(
@@ -87,7 +87,7 @@ class DDPG(AbsAgent):
             model, config, experience_memory_size, experience_memory_overwrite_type,
             empty_experience_memory_after_step,
             min_new_experiences_to_trigger_learning=min_new_experiences_to_trigger_learning,
-            min_experiences_to_trigger_learning=min_experiences_to_trigger_learning    
+            min_experiences_to_trigger_learning=min_experiences_to_trigger_learning
         )
         self._explorer = explorer
         self._target_model = model.copy() if model.trainable else None

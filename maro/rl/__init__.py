@@ -5,7 +5,7 @@ from maro.rl.agent import (
     DDPG, DQN, AbsAgent, ActorCritic, ActorCriticConfig, DDPGConfig, DQNConfig, MultiAgentWrapper, PolicyGradient,
     PolicyGradientConfig
 )
-from maro.rl.distributed import Actor, ActorManager, DistLearner 
+from maro.rl.distributed import Actor, ActorManager, DistLearner
 from maro.rl.exploration import (
     AbsExplorer, EpsilonGreedyExplorer, GaussianNoiseExplorer, NoiseExplorer, UniformNoiseExplorer
 )

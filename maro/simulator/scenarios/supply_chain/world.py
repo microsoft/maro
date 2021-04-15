@@ -6,13 +6,15 @@ from collections import namedtuple
 from typing import List, Tuple, Union
 
 import networkx as nx
+
 from maro.backends.frame import FrameBase
 
 from .easy_config import EasyConfig, SkuInfo
 from .facilities import FacilityBase
 from .frame_builder import build_frame
-from .parser import DataModelDef, FacilityDef, SupplyChainConfiguration, UnitDef
-from .units import UnitBase, ProductUnit, SkuUnit
+from .parser import (DataModelDef, FacilityDef, SupplyChainConfiguration,
+                     UnitDef)
+from .units import ProductUnit, SkuUnit, UnitBase
 
 AgentInfo = namedtuple("AgentInfo", ("id", "agent_type", "is_facility", "sku", "facility_id"))
 

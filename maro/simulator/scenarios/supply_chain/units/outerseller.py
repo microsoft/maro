@@ -29,7 +29,8 @@ class SellerDemandSampler(ABC):
 
         Args:
             product_id (int): Id of product to sample.
-            tick (int): Tick of environment, NOTE: this tick is start from 0, you may need to transform it to your time system.
+            tick (int): Tick of environment, NOTE: this tick is start from 0,
+                you may need to transform it to your time system.
         """
         pass
 

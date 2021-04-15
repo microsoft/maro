@@ -7,7 +7,6 @@ import numpy as np
 import torch
 
 from maro.rl.model import SimpleMultiHeadModel
-from maro.rl.storage import SimpleStore
 from maro.rl.utils import get_max, get_sampler_cls, get_td_errors, get_torch_loss_cls, select_by_actions
 from maro.utils.exception.rl_toolkit_exception import UnrecognizedTask
 
@@ -19,14 +18,14 @@ class DQNConfig:
 
     Args:
         reward_discount (float): Reward decay as defined in standard RL terminology.
-        target_update_freq (int): Number of training rounds between target model updates. 
+        target_update_freq (int): Number of training rounds between target model updates.
         train_iters (int): Number of batches to train the model on in each call to ``learn``.
         batch_size (int): Experience minibatch size.
-        sampler_cls: A string indicating the sampler class or a custom sampler class that provides the ``sample`` interface.
-            Defaults to "uniform".
+        sampler_cls: A string indicating the sampler class or a custom sampler class that provides the ``sample``
+            interface. Defaults to "uniform".
         sampler_params (dict): Parameters for the sampler class. Defaults to None.
         epsilon (float): Exploration rate for epsilon-greedy exploration. Defaults to None.
-        soft_update_coefficient (float): Soft update coefficient, e.g., 
+        soft_update_coefficient (float): Soft update coefficient, e.g.,
             target_model = (soft_update_coefficient) * eval_model + (1-soft_update_coefficient) * target_model.
             Defaults to 1.0.
         double (bool): If True, the next Q values will be computed according to the double DQN algorithm,
@@ -85,8 +84,8 @@ class DQN(AbsAgent):
             to ``step``. Defaults to False.
         min_new_experiences_to_trigger_learning (int): Minimum number of new experiences required to trigger learning.
             Defaults to 1.
-        min_experiences_to_trigger_learning (int): Minimum number of experiences in the experience memory required for training.
-            Defaults to 1.
+        min_experiences_to_trigger_learning (int): Minimum number of experiences in the experience memory required for
+            training. Defaults to 1.
     """
     def __init__(
         self,
@@ -108,7 +107,7 @@ class DQN(AbsAgent):
             model, config, experience_memory_size, experience_memory_overwrite_type,
             empty_experience_memory_after_step,
             min_new_experiences_to_trigger_learning=min_new_experiences_to_trigger_learning,
-            min_experiences_to_trigger_learning=min_experiences_to_trigger_learning    
+            min_experiences_to_trigger_learning=min_experiences_to_trigger_learning
         )
         self._sampler = self.config.sampler_cls(self.experience_memory, **self.config.sampler_params)
         self._training_counter = 0

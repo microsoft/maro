@@ -25,6 +25,6 @@ def trainer(id_: str):
         del request["args"]
         del request["kwargs"]
         sock.send_multipart([client, b"", pickle.dumps(request)])
-    
+
     socket.on_recv_stream(train)
     IOLoop.instance().start()

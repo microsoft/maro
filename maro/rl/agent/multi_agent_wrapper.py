@@ -2,14 +2,14 @@
 # Licensed under the MIT license.
 
 import os
-from typing import List, Union
+from typing import Union
 
 from .abs_agent import AbsAgent
 
 
 class MultiAgentWrapper:
     """Convenience wrapper of a set of agents that exposes similar interfaces as a single agent.
-    
+
     Args:
         agent_dict (Union[AbsAgent, dict]): A single agent or a homogeneous set of agents that have the same
             method signatures.
@@ -48,8 +48,8 @@ class MultiAgentWrapper:
 
     def learn(self, experiences: dict) -> set:
         """Store experiences in the agents' experience memory.
-        
-        The top-level keys of ``experiences`` will be treated as agent IDs. 
+
+        The top-level keys of ``experiences`` will be treated as agent IDs.
         """
         return {agent_id for agent_id, exp in experiences.items() if self.agent_dict[agent_id].learn(exp)}
 

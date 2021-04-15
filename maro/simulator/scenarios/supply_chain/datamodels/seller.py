@@ -25,7 +25,7 @@ class SellerDataModel(SkuDataModel):
         self._price = 0
         self._backlog_ratio = 0
 
-    def initialize(self, price:int, backlog_ratio: float):
+    def initialize(self, price: int, backlog_ratio: float):
         self._price = price
         self._backlog_ratio = backlog_ratio
 

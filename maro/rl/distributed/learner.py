@@ -56,7 +56,7 @@ class DistLearner(object):
                     exploration_params=exploration_params if segment_index == 0 else None,
                     required_actor_finishes=self.required_actor_finishes,
                     discard_stale_experiences=self.discard_stale_experiences
-                ):  
+                ):
                     tl0 = time.time()
                     updated_agents = self.agent.learn(exp)
                     num_actor_finishes += done

@@ -5,7 +5,7 @@ from collections import defaultdict
 from os import getcwd
 from typing import Union
 
-from maro.communication import Message, Proxy, SessionType
+from maro.communication import Proxy, SessionType
 from maro.utils import Logger
 
 from .message_enums import MsgTag, MsgKey

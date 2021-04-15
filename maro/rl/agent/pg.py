@@ -29,7 +29,7 @@ class PolicyGradient(AbsAgent):
     """The vanilla Policy Gradient (VPG) algorithm, a.k.a., REINFORCE.
 
     Reference: https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch.
-    
+
     Args:
         model (SimpleMultiHeadModel): Multi-task model that computes action distributions and state values.
             It may or may not have a shared bottom stack.
@@ -42,8 +42,8 @@ class PolicyGradient(AbsAgent):
             to ``step``. Defaults to True.
         min_new_experiences_to_trigger_learning (int): Minimum number of new experiences required to trigger learning.
             Defaults to 1.
-        min_experiences_to_trigger_learning (int): Minimum number of experiences in the experience memory required for training.
-            Defaults to 1.
+        min_experiences_to_trigger_learning (int): Minimum number of experiences in the experience memory required for
+            training. Defaults to 1.
     """
     def __init__(
         self,
@@ -53,13 +53,13 @@ class PolicyGradient(AbsAgent):
         experience_memory_overwrite_type: str,
         empty_experience_memory_after_step: bool = True,
         min_new_experiences_to_trigger_learning: int = 1,
-        min_experiences_to_trigger_learning: int = 1    
+        min_experiences_to_trigger_learning: int = 1
     ):
         super().__init__(
             model, config, experience_memory_size, experience_memory_overwrite_type,
             empty_experience_memory_after_step,
             min_new_experiences_to_trigger_learning=min_new_experiences_to_trigger_learning,
-            min_experiences_to_trigger_learning=min_experiences_to_trigger_learning    
+            min_experiences_to_trigger_learning=min_experiences_to_trigger_learning
         )
 
     def choose_action(self, state: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:

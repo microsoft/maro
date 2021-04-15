@@ -10,8 +10,8 @@ from zmq.eventloop.zmqstream import ZMQStream
 
 class LRUQueue(object):
     """LRUQueue class using ZMQStream/IOLoop for event dispatching.
-    
-    Code adapted from https://zguide.zeromq.org/docs/chapter3/#A-High-Level-API-for-ZeroMQ. 
+
+    Code adapted from https://zguide.zeromq.org/docs/chapter3/#A-High-Level-API-for-ZeroMQ.
     """
     def __init__(self):
         self._context = zmq.Context.instance()

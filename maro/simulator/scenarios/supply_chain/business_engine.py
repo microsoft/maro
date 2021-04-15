@@ -3,13 +3,13 @@
 
 
 import os
+from typing import List, Tuple
 
 from maro.event_buffer import MaroEvents
 from maro.simulator.scenarios import AbsBusinessEngine
-from typing import List, Tuple
 
 from .parser import ConfigParser, SupplyChainConfiguration
-from .units import UnitBase, ProductUnit
+from .units import ProductUnit, UnitBase
 from .world import World
 
 
@@ -156,13 +156,15 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
                         "sale_mean": product.get_sale_mean(),
                         "sale_std": product.get_sale_std(),
                         "selling_price": product.get_selling_price(),
-                        "pending_order_daily": None if product.consumer is None else product.consumer.pending_order_daily
+                        "pending_order_daily":
+                            None if product.consumer is None else product.consumer.pending_order_daily
                     } for product in self._product_units
                 },
                 "facilities": {
                     facility.id: {
                         "in_transit_orders": facility.get_in_transit_orders(),
-                        "pending_order": None if facility.distribution is None else facility.distribution.get_pending_order()
+                        "pending_order":
+                            None if facility.distribution is None else facility.distribution.get_pending_order()
                     } for facility in self.world.facilities.values()
                 }
             }
