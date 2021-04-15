@@ -6,9 +6,7 @@ from collections import defaultdict
 from typing import Dict, List
 
 from maro.simulator.scenarios.supply_chain.easy_config import SkuInfo
-from maro.simulator.scenarios.supply_chain.units import (DistributionUnit,
-                                                         ProductUnit,
-                                                         StorageUnit)
+from maro.simulator.scenarios.supply_chain.units import DistributionUnit, ProductUnit, StorageUnit
 
 
 class FacilityBase(ABC):

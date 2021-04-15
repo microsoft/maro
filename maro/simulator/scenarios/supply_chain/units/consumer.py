@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 
-import warnings
 from collections import Counter, defaultdict
 
 from scipy.ndimage.interpolation import shift

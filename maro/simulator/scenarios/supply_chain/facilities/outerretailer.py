@@ -2,8 +2,7 @@
 # Licensed under the MIT license.
 
 
-from maro.simulator.scenarios.supply_chain.units import (DataFileDemandSampler,
-                                                         OuterSellerUnit)
+from maro.simulator.scenarios.supply_chain.units import DataFileDemandSampler, OuterSellerUnit
 
 from .retailer import RetailerFacility
 
