@@ -3,6 +3,7 @@
 
 import io
 import os
+import sys
 import numpy
 
 # NOTE: DO NOT change the import order, as sometimes there is a conflict between setuptools and distutils,
@@ -13,6 +14,11 @@ from distutils.core import setup
 from distutils.extension import Extension
 
 from maro import __version__
+
+compile_flag = '-std=c++11'
+
+if sys.platform == "win32":
+    compile_flag = '/std:c++14'
 
 # Set environment variable to skip deployment process of MARO
 os.environ["SKIP_DEPLOYMENT"] = "TRUE"
@@ -39,7 +45,7 @@ extensions.append(
     Extension(
         f"{BASE_MODULE_NAME}.backend",
         sources=[f"{BASE_SRC_PATH}/backend.cpp"],
-        extra_compile_args=['-std=c++11'])
+        extra_compile_args=[compile_flag])
 )
 
 
@@ -50,7 +56,7 @@ extensions.append(
         f"{BASE_MODULE_NAME}.np_backend",
         sources=[f"{BASE_SRC_PATH}/np_backend.cpp"],
         include_dirs=include_dirs,
-        extra_compile_args=['-std=c++11'])
+        extra_compile_args=[compile_flag])
 )
 
 # raw implementation
@@ -60,7 +66,7 @@ extensions.append(
         f"{BASE_MODULE_NAME}.raw_backend",
         sources=[f"{BASE_SRC_PATH}/raw_backend.cpp"],
         include_dirs=include_dirs,
-        extra_compile_args=['-std=c++11'])
+        extra_compile_args=[compile_flag])
 )
 
 # frame
@@ -69,7 +75,7 @@ extensions.append(
         f"{BASE_MODULE_NAME}.frame",
         sources=[f"{BASE_SRC_PATH}/frame.cpp"],
         include_dirs=include_dirs,
-        extra_compile_args=['-std=c++11'])
+        extra_compile_args=[compile_flag])
 )
 
 
@@ -150,6 +156,7 @@ setup(
         "maro.cli.k8s": ["lib/*", "lib/*/*", "lib/*/*/*", "lib/*/*/*/*"],
         "maro.cli.grass": ["lib/*", "lib/*/*", "lib/*/*/*", "lib/*/*/*/*", "lib/*/*/*/*/*"],
         "maro.cli.project_generator/templates": ["*.jinja"],
+        "maro.cli.utils": ["web_terminal/*"],
     },
     zip_safe=False,
     ext_modules=extensions,

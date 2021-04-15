@@ -104,6 +104,10 @@ target_source_pairs = [
     (
         os.path.expanduser("~/.maro/vis/templates"),
         os.path.join(project_root, "cli/inspector")
+    ),
+    (
+        os.path.expanduser("~/.maro/web_terminal"),
+        os.path.join(project_root, "cli/utils/web_terminal")
     )
 ]
 
