@@ -41,7 +41,9 @@ this parameter.
 If the value for key "enable-dump-snapshot" of this parameter is an empty string,
 data would be dumped to the folder which start the command.
 If user specifies the value for key "enable-dump-snapshot" of this parameter with the
-path of a local file folder, data would be dumped to this folder.
+path of a local file folder, and the dir_path of the local file folder does exist, 
+data would be dumped to this folder. To be specific, each dump request would generate
+a data folder with a timestamp as the suffix in the local file folder. 
 
 .. code-block:: sh
 
@@ -71,27 +73,22 @@ To start this visualization tool, user need to input command following the forma
 
 .. code-block:: sh
 
-    maro inspector dashboard --source_path {source\_folder\_path} --force {true/false}
-
-----
-
-e.g.
-
-.. code-block:: sh
-
-    maro inspector dashboard --source_path .\maro\dumper_files --force false
+    maro inspector dashboard --source_path SNAPSHOT_DUMP_DATA_FOLDER --force {true/false}
 
 ----
 
 Parameter **force** refers to regenerate cross-epoch summary data or not, default value is 'true'.
-Parameter **source_path** refers to the path of dumped snapshot files.
-The expected structure of file folder should be like this:
+Parameter **source_path** refers to the path of dumped snapshot files. Every experiment would
+generate a data folder with a timestamp as the suffix, which we refer as SNAPSHOT_DUMP_DATA_FOLDER.
+The input of the parameter **source_path** should be the path of SNAPSHOT_DUMP_DATA_FOLDER.
+
+Make sure that your SNAPSHOT_DUMP_DATA_FOLDER's structure is similar as following:
 
 Folder Structure
 
 .. code-block:: sh
 
-    ./LOCAL_DUMPER_DATA_FOLDER
+    ./SNAPSHOT_DUMP_DATA_FOLDER
         epoch_#                         # folders to restore data of each epoch.
             {resource_holder}.csv       # attributes of current epoch.
        manifest.yml                     # basic info like scenario name, number of epoches.
@@ -101,6 +98,7 @@ Folder Structure
 
 
 ----
+
 
 If any file is missed compared with the expected folder structure
 displayed above, the command line would prompt users with an error message.
