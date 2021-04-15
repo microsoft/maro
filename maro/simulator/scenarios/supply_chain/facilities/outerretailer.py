@@ -11,9 +11,9 @@ sampler_mapping = {
 }
 
 
-class OutRetailerFacility(RetailerFacility):
+class OuterRetailerFacility(RetailerFacility):
     def initialize(self):
-        super(OutRetailerFacility, self).initialize()
+        super(OuterRetailerFacility, self).initialize()
 
         # What kind of sampler we need?
         sampler_cls = sampler_mapping[self.configs.get("seller_sampler_type", "data")]

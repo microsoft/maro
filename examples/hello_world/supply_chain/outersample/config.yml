@@ -36,7 +36,7 @@ facility_definitions:
       agent_type: 0
 
   RetailerFacility: &retailer_facility
-    class: "OutRetailerFacility"
+    class: "OuterRetailerFacility"
     children:
       storage:
         class: "StorageUnit"

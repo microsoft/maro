@@ -4,6 +4,6 @@
 
 from .facility import FacilityBase
 from .retailer import RetailerFacility
-from .outretailer import OutRetailerFacility
+from .outerretailer import OuterRetailerFacility
 from .supplier import SupplierFacility
 from .warehouse import WarehouseFacility

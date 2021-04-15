@@ -76,6 +76,6 @@ facilities:
         RetailerFacility:
           class: "RetailerFacility"
           datamodel: "FacilityDataModel"
-        OutRetailerFacility:
-          class: "OutRetailerFacility"
+        OuterRetailerFacility:
+          class: "OuterRetailerFacility"
           datamodel: "FacilityDataModel"
