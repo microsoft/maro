@@ -16,8 +16,6 @@ class SellerUnit(SkuUnit):
         super(SellerUnit, self).__init__()
 
         self.gamma = 0
-        self.durations = 0
-        self.demand_distribution = []
 
         # Attribute cache.
         self.sold = 0
@@ -37,12 +35,7 @@ class SellerUnit(SkuUnit):
         Returns:
             int: Demand number.
         """
-        if len(self.demand_distribution) == 0:
-            # Generate demand distribution of this episode.
-            for _ in range(self.durations):
-                self.demand_distribution.append(int(np.random.gamma(self.gamma)))
-
-        return self.demand_distribution[tick]
+        return int(np.random.gamma(self.gamma))
 
     def initialize(self):
         super(SellerUnit, self).initialize()
@@ -50,7 +43,6 @@ class SellerUnit(SkuUnit):
         sku = self.facility.skus[self.product_id]
 
         self.gamma = sku.sale_gamma
-        self.durations = self.world.durations
 
         self.data_model.initialize(sku.price, sku.backlog_ratio)
 
@@ -92,8 +84,6 @@ class SellerUnit(SkuUnit):
 
     def reset(self):
         super(SellerUnit, self).reset()
-
-        self.demand_distribution.clear()
 
     def sale_mean(self):
         return np.mean(self.sale_hist)

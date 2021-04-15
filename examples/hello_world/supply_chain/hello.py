@@ -31,7 +31,7 @@ if __name__ == "__main__":
     topology_name = "sample"
 
     if len(sys.argv) > 1:
-        # run: "python hello.py outersample" to run outer retailer sample.
+        # run: "python hello.py outersample" under current folder to run outer retailer sample.
         topology_name = sys.argv[1]
 
     print("running topology:", topology_name)

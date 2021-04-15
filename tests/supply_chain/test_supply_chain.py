@@ -707,9 +707,9 @@ class MyTestCase(unittest.TestCase):
         sku3_consumer_data_model_index = env.summary["node_mapping"]["unit_mapping"][sku3_consumer_unit_id][1]
 
         # zero quantity will be ignore
-        action_with_zero = ConsumerAction(sku3_consumer_unit_id, SKU3_ID, sku3_supplier_faiclity_id, 0, 1)
+        action_with_zero = ConsumerAction(sku3_consumer_unit_id, SKU3_ID, sku3_supplier_faiclity_id, 0, 1, 0)
 
-        action = ConsumerAction(sku3_consumer_unit_id, SKU3_ID, sku3_supplier_faiclity_id, 10, 1)
+        action = ConsumerAction(sku3_consumer_unit_id, SKU3_ID, sku3_supplier_faiclity_id, 10, 1, 0)
 
         sku3_consumer_unit.set_action(action_with_zero)
 
@@ -805,7 +805,7 @@ class MyTestCase(unittest.TestCase):
 
         sku3_consumer_data_model_index = env.summary["node_mapping"]["unit_mapping"][sku3_consumer_unit_id][1]
 
-        action = ConsumerAction(sku3_consumer_unit_id, SKU3_ID, sku3_supplier_facility_id, 10, 1)
+        action = ConsumerAction(sku3_consumer_unit_id, SKU3_ID, sku3_supplier_facility_id, 10, 1, 0)
 
         # 1st step must none action
         env.step(None)
@@ -1233,8 +1233,7 @@ class MyTestCase(unittest.TestCase):
 
         # from configuration
         self.assertEqual(10, sell_unit.gamma)
-        self.assertEqual(100, sell_unit.durations)
-        self.assertEqual(100, len(sell_unit.demand_distribution))
+
         self.assertEqual(0, sell_unit.sold)
         self.assertEqual(0, sell_unit.demand)
         self.assertEqual(0, sell_unit.total_sold)
@@ -1250,8 +1249,6 @@ class MyTestCase(unittest.TestCase):
 
         # from configuration
         self.assertEqual(10, sell_unit.gamma)
-        self.assertEqual(100, sell_unit.durations)
-        self.assertEqual(100, len(sell_unit.demand_distribution))
         self.assertEqual(0, sell_unit.sold)
         self.assertEqual(0, sell_unit.demand)
         self.assertEqual(0, sell_unit.total_sold)
@@ -1285,10 +1282,9 @@ class MyTestCase(unittest.TestCase):
 
         # seller unit will try to count down the product number base on demand
         # default seller use gamma distribution on each tick
-        demand = sell_unit.demand_distribution[0]
+        demand = sell_unit.demand
 
         # demand should be same with original
-        self.assertEqual(demand, sell_unit.demand)
         self.assertEqual(demand, sell_unit.data_model.demand)
 
         actual_sold = min(demand, SKU3_INIT_NUMBER)
@@ -1308,10 +1304,9 @@ class MyTestCase(unittest.TestCase):
         # move to next step to check if state is correct
         env.step(None)
 
-        demand = sell_unit.demand_distribution[1]
+        demand = sell_unit.demand
 
         # demand should be same with original
-        self.assertEqual(demand, sell_unit.demand)
         self.assertEqual(demand, sell_unit.data_model.demand)
 
         actual_sold_2 = min(demand, SKU3_INIT_NUMBER - actual_sold)
@@ -1383,6 +1378,65 @@ class MyTestCase(unittest.TestCase):
         total_sold_states = seller_nodes[:sell_unit.data_model_index:"total_sold"].flatten().astype(np.int)
         # total sold will keep same after tick 4
         self.assertListEqual([0, 1, 3, 6, 10] + [10] * 95, list(total_sold_states))
+
+    def test_outer_seller(self):
+        env = build_env("case_04", 100)
+
+        index2unitid_mapping = {}
+        skuid2index_mapping = {}
+
+        # find all the sellers
+        for unit_id, unit_detail in env.summary["node_mapping"]["unit_mapping"].items():
+            if unit_detail[0] == "seller":
+                index = unit_detail[1]
+                sku = unit_detail[3]
+                index2unitid_mapping[index] = unit_id
+                skuid2index_mapping[sku.id] = index
+
+        # tick 0
+        env.step(None)
+
+        seller_states = env.snapshot_list["seller"][0::"demand"].flatten().astype(np.int)
+
+        # at tick 0 (2010-12-01)
+        # sku1 have 10 demand
+        self.assertEqual(10, seller_states[skuid2index_mapping[SKU1_ID]])
+
+        # sku2 have 20 demand
+        self.assertEqual(20, seller_states[skuid2index_mapping[SKU2_ID]])
+
+        # sku3 have 30 demand
+        self.assertEqual(30, seller_states[skuid2index_mapping[SKU3_ID]])
+
+        # tick 1
+        env.step(None)
+
+        seller_states = env.snapshot_list["seller"][1::"demand"].flatten().astype(np.int)
+
+        # at tick 1 (2010-12-02)
+        # sku1 have 0 demand (no record in file)
+        self.assertEqual(0, seller_states[skuid2index_mapping[SKU1_ID]])
+
+        # sku2 have 20 demand
+        self.assertEqual(21, seller_states[skuid2index_mapping[SKU2_ID]])
+
+        # sku3 have 30 demand
+        self.assertEqual(31, seller_states[skuid2index_mapping[SKU3_ID]])
+
+        # tick 2
+        env.step(None)
+
+        seller_states = env.snapshot_list["seller"][2::"demand"].flatten().astype(np.int)
+
+        # at tick 2 (2010-12-03)
+        # sku1 have 13 demand
+        self.assertEqual(13, seller_states[skuid2index_mapping[SKU1_ID]])
+
+        # sku2 have 20 demand
+        self.assertEqual(22, seller_states[skuid2index_mapping[SKU2_ID]])
+
+        # sku3 have 30 demand
+        self.assertEqual(0, seller_states[skuid2index_mapping[SKU3_ID]])
 
 
 if __name__ == '__main__':
