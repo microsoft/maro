@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 import warnings
-
 from abc import ABC, abstractmethod
 from collections import namedtuple
 from csv import DictReader
@@ -19,6 +18,7 @@ class SellerDemandSampler(ABC):
         configs (dict): Configuration from retailer facility, contains keys for a special sampler.
         world (World): Current world this retail belongs to.
     """
+
     def __init__(self, configs: dict, world):
         self._configs = configs
         self._world = world
@@ -68,7 +68,7 @@ class DataFileDemandSampler(SellerDemandSampler):
         self._sale_column_name = configs.get("sale_column", "Sales")
         self._datetime_column_name = configs.get("datetime_column", "DT")
 
-        # Tick -> sku -> (sale, price)
+        # Tick -> sku -> (sale, price).
         self._cache = {}
 
         self._cache_data()

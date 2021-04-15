@@ -2,16 +2,22 @@
 # Licensed under the MIT license.
 
 
-from .retailer import RetailerFacility
 from maro.simulator.scenarios.supply_chain.units import OuterSellerUnit, DataFileDemandSampler
+from .retailer import RetailerFacility
 
-
+# Mapping for supported sampler.
 sampler_mapping = {
     "data": DataFileDemandSampler
 }
 
 
 class OuterRetailerFacility(RetailerFacility):
+    """Retailer (store) facility that use outer data as seller demand.
+
+    NOTE:
+        This require that all product seller is subclass of OuterSellerUnit.
+    """
+
     def initialize(self):
         super(OuterRetailerFacility, self).initialize()
 
