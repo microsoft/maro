@@ -1385,6 +1385,9 @@ class MyTestCase(unittest.TestCase):
         index2unitid_mapping = {}
         skuid2index_mapping = {}
 
+        # we only have one manufacture here
+        man_id = None
+
         # find all the sellers
         for unit_id, unit_detail in env.summary["node_mapping"]["unit_mapping"].items():
             if unit_detail[0] == "seller":
@@ -1392,6 +1395,9 @@ class MyTestCase(unittest.TestCase):
                 sku = unit_detail[3]
                 index2unitid_mapping[index] = unit_id
                 skuid2index_mapping[sku.id] = index
+
+            if unit_detail[0] == "manufacture":
+                man_id = unit_id
 
         # tick 0
         env.step(None)
@@ -1437,6 +1443,16 @@ class MyTestCase(unittest.TestCase):
 
         # sku3 have 30 demand
         self.assertEqual(0, seller_states[skuid2index_mapping[SKU3_ID]])
+
+        # test if simple manufacture work correctly.
+
+        action = ManufactureAction(man_id, 10)
+
+        env.step({man_id: action})
+
+        man_states = env.snapshot_list["manufacture"][env.tick::"manufacturing_number"].flatten().astype(np.int)
+
+        self.assertEqual(action.production_rate, man_states[0])
 
 
 if __name__ == '__main__':
