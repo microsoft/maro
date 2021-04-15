@@ -29,6 +29,11 @@ class DumpConverter:
         now = datetime.now()
         self._foldername = "snapshot_dump_" + now.strftime("%Y_%m_%d_%H_%M_%S_%f")[:-3]
         if parent_path != "":
+            dir_path = Path(os.path.dirname(parent_path))
+            if not dir_path.exists():
+                return
+            if not Path(parent_path).exists():
+                os.mkdir(parent_path)
             self._foldername = os.path.join(parent_path, self._foldername)
 
         folder_path = Path(self._foldername)

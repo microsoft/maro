@@ -30,7 +30,7 @@ class CIMEnvWrapper(AbsEnvWrapper):
     def get_state(self, event):
         vessel_snapshots, port_snapshots = self.env.snapshot_list["vessels"], self.env.snapshot_list["ports"]
         tick, port_idx, vessel_idx = event.tick, event.port_idx, event.vessel_idx
-        ticks = [tick - rt for rt in range(self.look_back - 1)]
+        ticks = [max(0, tick - rt) for rt in range(self.look_back - 1)]
         future_port_idx_list = vessel_snapshots[tick: vessel_idx: 'future_stop_list'].astype('int')
         port_features = port_snapshots[ticks: [port_idx] + list(future_port_idx_list): self.port_attributes]
         vessel_features = vessel_snapshots[tick: vessel_idx: self.vessel_attributes]

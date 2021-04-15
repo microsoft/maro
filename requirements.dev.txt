@@ -12,7 +12,7 @@ mccabe==0.6.1
 pyaml==20.4.0
 pyparsing==2.4.5
 python-dateutil==2.8.1
-PyYAML==5.3.1
+PyYAML==5.4
 pyzmq==19.0.2
 six==1.13.0
 torch==1.6.0

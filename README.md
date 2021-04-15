@@ -60,6 +60,8 @@ of user-defined functions for message auto-handling, cluster provision, and job 
 
 ## Install MARO from [PyPI](https://pypi.org/project/pymaro/#files)
 
+*Notes: The CLI commands (including the visualization tool) are not included in pymaro package. To enable these support, you need to install from source.*
+
 - Mac OS / Linux
 
   ```sh
@@ -75,7 +77,9 @@ of user-defined functions for message auto-handling, cluster provision, and job 
   pip install pymaro
   ```
 
-## Install MARO from Source ([Editable Mode](https://pip.pypa.io/en/stable/reference/pip_install/#editable-installs))
+## Install MARO from Source
+
+*Notes: Install from source if you want to use the CLI commands (including the visualization tool).*
 
 - Prerequisites
   - C++ Compiler
@@ -105,6 +109,11 @@ of user-defined functions for message auto-handling, cluster provision, and job 
     ```
 
 - Install MARO
+
+  ```sh
+  # Git Clone the whole source code.
+  git clone https://github.com/microsoft/maro.git
+  ```
 
   - Mac OS / Linux
 
@@ -161,7 +170,7 @@ env = Env(scenario="cim",
           options={"enable-dump-snapshot": "./dump_data"})
 
 # Inspect environment with the dump data
-maro inspector dashboard --source_path ./dump_data/snapshot_dump_folder
+maro inspector dashboard --source_path ./dump_data/YOUR_SNAPSHOT_DUMP_FOLDER
 ```
 
 ### Show Cases

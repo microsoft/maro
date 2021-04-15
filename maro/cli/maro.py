@@ -116,6 +116,15 @@ def main():
     parser_project.set_defaults(func=_help_func(parser=load_parser_project))
     load_parser_project(prev_parser=parser_project, global_parser=global_parser)
 
+    # maro admin
+    parser_admin = subparsers.add_parser(
+        "admin",
+        help="Manage maro admin tools."
+    )
+
+    parser_admin.set_defaults(func=_help_func(parser=parser_admin))
+    load_parser_admin(prev_parser=parser_admin, global_parser=global_parser)
+
     args = None
     try:
         # Get args and parse global arguments
@@ -1049,6 +1058,36 @@ def load_parser_project(prev_parser: ArgumentParser, global_parser: ArgumentPars
 
     # This command do not accept arguments as normal, instead with a simple wizard.
     new_cmd_parser.set_defaults(func=new_project)
+
+
+def load_parser_admin(prev_parser: ArgumentParser, global_parser: ArgumentParser):
+    sub_parsers = prev_parser.add_subparsers()
+    # Start
+    from maro.cli.utils.node_admin import start_admin
+    start_parser = sub_parsers.add_parser(
+        "start",
+        help="Start MARO admin web server.",
+        parents=[global_parser])
+
+    start_parser.set_defaults(func=start_admin)
+
+    # Stop
+    from maro.cli.utils.node_admin import stop_admin
+    stop_parser = sub_parsers.add_parser(
+        "stop",
+        help="Stop MARO admin web server.",
+        parents=[global_parser])
+
+    stop_parser.set_defaults(func=stop_admin)
+
+    # Requirements
+    from maro.cli.utils.node_admin import requirements_admin
+    req_parser = sub_parsers.add_parser(
+        "req",
+        help="Install requirements for MARO admin web server.",
+        parents=[global_parser])
+
+    req_parser.set_defaults(func=requirements_admin)
 
 
 def _help_func(parser):
