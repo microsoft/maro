@@ -1,0 +1,208 @@
+facility_definitions:
+  WarehouseFacility: &warehouse_facility
+    class: "WarehouseFacility"
+    children:
+      storage:
+        class: "StorageUnit"
+      distribution:
+        class: "DistributionUnit"
+      products:
+        class: "ProductUnit"
+        is_template: true
+        config:
+          agent_type: 4
+          consumer:
+            class: "ConsumerUnit"
+    config:
+      agent_type: 1
+
+  SupplierFacility: &supplier_facility
+    class: "SupplierFacility"
+    children:
+      storage:
+        class: "StorageUnit"
+      distribution:
+        class: "DistributionUnit"
+      products:
+        class: "ProductUnit"
+        is_template: true
+        config:
+          agent_type: 3
+          consumer:
+            class: "ConsumerUnit"
+          manufacture:
+            class: "ManufactureUnit"
+    config:
+      agent_type: 0
+
+  RetailerFacility: &retailer_facility
+    class: "OutRetailerFacility"
+    children:
+      storage:
+        class: "StorageUnit"
+      products:
+        class: "StoreProductUnit"
+        is_template: true
+        config:
+          agent_type: 5
+          consumer:
+            class: "ConsumerUnit"
+          seller:
+            class: "OuterSellerUnit"
+            config:
+              sale_hist_len: 4
+    config:
+      agent_type: 2
+      seller_sampler_type: data # data, model. What kind of sampler to use for seller.
+      sku_column: "SKU" # SKU column name
+      price_column: "Price" # Price column name
+      sale_column: "Sales" # Sales column name
+      datetime_column: "DT" # Datetime column name
+      file_path: "/path/to/data.csv" # full path to data file, override by each store instance
+
+normal_vehicle: &normal_vehicle
+  class: "VehicleUnit"
+  config:
+    patient: 100
+
+normal_distribution: &normal_distribution
+  class: "DistributionUnit"
+  children:
+    vehicles:
+      - *normal_vehicle
+      - *normal_vehicle
+  config:
+    unit_price: 1
+
+small_storage: &small_storage
+  config:
+    capacity: 10000
+    unit_storage_cost: 1
+
+skus: &sku_definitions
+  - id: 1
+    name: "sku1"
+    output_units_per_lot: 12
+    bom:
+      sku3: 10
+
+  - id: 2
+    name: "sku2"
+    output_units_per_lot: 1
+
+  - id: 3
+    name: "sku3"
+    output_units_per_lot: 1
+
+
+world:
+  skus: *sku_definitions
+
+  facilities:
+    - name: "Supplier_001"
+      definition_ref: "SupplierFacility"
+      skus:
+        sku3:
+          init_stock: 100
+          product_unit_cost: 1
+          production_rate: 1
+          type: "production"
+          cost: 10
+          price: 10
+          vlt: 1
+      children:
+        storage: *small_storage
+        distribution: *normal_distribution
+      config:
+        delay_order_penalty: 10
+        order_cost: 0
+    - name: "Warehouse_001"
+      definition_ref: "WarehouseFacility"
+      skus:
+        sku1:
+          init_stock: 1000
+          price: 100
+          vlt: 1
+        sku2:
+          init_stock: 1000
+          price: 100
+          vlt: 1
+        sku3:
+          init_stock: 1000
+          price: 100
+          vlt: 1
+      children:
+        storage: *small_storage
+        distribution: *normal_distribution
+      config:
+        delay_order_penalty: 10
+        order_cost: 0
+    - name: "Retailer_001"
+      definition_ref: "RetailerFacility"
+      skus:
+        sku1:
+          price: 300
+          cost: 10
+          init_stock: 100
+          sale_gamma: 100
+          backlog_ratio: 0.1 # optional
+          vlt: 1
+        sku3:
+          price: 200
+          cost: 10
+          init_stock: 100
+          sale_gamma: 100
+          backlog_ratio: 0.1
+          vlt: 1
+        sku2:
+          price: 100
+          cost: 10
+          init_stock: 100
+          sale_gamma: 100
+          backlog_ratio: 0.1
+          vlt: 1
+
+      children:
+        storage: *small_storage
+
+      config:
+        order_cost: 0
+        file_path: "store1.csv" # data file that contains demand of retailer 001
+  topology:
+    Retailer_001:
+      sku3:
+        - "Supplier_001"
+
+  grid:
+    size: [20, 20]
+
+    facilities:
+      Supplier_001: [0, 0]
+      Warehouse_001: [6, 6]
+      Retailer_001: [10, 18]
+
+    blocks:
+      railroad:
+        - [10, 10]
+        - [10, 11]
+        - [10, 12]
+        - [11, 12]
+
+settings:
+  global_reward_weight_producer: 0.50
+  global_reward_weight_consumer: 0.50
+  downsampling_rate: 1
+  episod_duration: 21
+  initial_balance: 100000
+  consumption_hist_len: 4
+  sale_hist_len: 4
+  pending_order_len: 4
+  constraint_state_hist_len: 8
+  total_echelons: 3
+  replenishment_discount: 0.9
+  reward_normalization: 1e7
+  constraint_violate_reward: -1e6
+  gamma: 0.99
+  tail_timesteps: 7
+  heading_timesteps: 7
+  start_date_time: "2010-12-01" # start time for data in files

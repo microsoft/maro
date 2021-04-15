@@ -37,6 +37,11 @@ class SellerUnit(SkuUnit):
         Returns:
             int: Demand number.
         """
+        if len(self.demand_distribution) == 0:
+            # Generate demand distribution of this episode.
+            for _ in range(self.durations):
+                self.demand_distribution.append(int(np.random.gamma(self.gamma)))
+
         return self.demand_distribution[tick]
 
     def initialize(self):
@@ -48,10 +53,6 @@ class SellerUnit(SkuUnit):
         self.durations = self.world.durations
 
         self.data_model.initialize(sku.price, sku.backlog_ratio)
-
-        # Generate demand distribution of this episode.
-        for _ in range(self.durations):
-            self.demand_distribution.append(int(np.random.gamma(self.gamma)))
 
         self.sale_hist = [self.gamma] * self.config["sale_hist_len"]
 
@@ -93,9 +94,6 @@ class SellerUnit(SkuUnit):
         super(SellerUnit, self).reset()
 
         self.demand_distribution.clear()
-
-        for _ in range(self.durations):
-            self.demand_distribution.append(np.random.gamma(self.gamma))
 
     def sale_mean(self):
         return np.mean(self.sale_hist)

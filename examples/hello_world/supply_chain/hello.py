@@ -1,16 +1,16 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import numpy as np
 
+import sys
 from maro.simulator import Env
-from maro.simulator.scenarios.supply_chain import ConsumerAction
 
 
-def main():
-    start_tick = 0
+def main(topology_name: str):
     durations = 100
-    env = Env(scenario="supply_chain", topology="sample1", start_tick=start_tick, durations=durations, max_snapshots=100)
+
+    env = Env(scenario="supply_chain", topology=topology_name, durations=durations, max_snapshots=100)
+
     total_episodes = 10
 
     is_done = False
@@ -28,4 +28,11 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    topology_name = "sample"
+
+    if len(sys.argv) > 1:
+        topology_name = sys.argv[1]
+
+    print("running topology:", topology_name)
+
+    main(topology_name)

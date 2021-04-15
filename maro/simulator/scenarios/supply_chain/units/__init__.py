@@ -8,6 +8,7 @@ from .manufacture import ManufactureUnit
 from .simplemanufacture import SimpleManufactureUnit
 from .product import ProductUnit
 from .seller import SellerUnit
+from .outerseller import OuterSellerUnit, SellerDemandSampler, DataFileDemandSampler
 from .skuunit import SkuUnit
 from .storage import StorageUnit
 from .storeproduct import StoreProductUnit

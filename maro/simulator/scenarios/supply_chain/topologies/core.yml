@@ -47,6 +47,9 @@ units:
         SellerUnit:
           class: "SellerUnit"
           datamodel: "SellerDataModel"
+        OuterSellerUnit:
+          class: "OuterSellerUnit"
+          datamodel: "SellerDataModel"
         ManufactureUnit:
           class: "ManufactureUnit"
           datamodel: "ManufactureDataModel"
@@ -72,4 +75,7 @@ facilities:
           datamodel: "FacilityDataModel"
         RetailerFacility:
           class: "RetailerFacility"
+          datamodel: "FacilityDataModel"
+        OutRetailerFacility:
+          class: "OutRetailerFacility"
           datamodel: "FacilityDataModel"
