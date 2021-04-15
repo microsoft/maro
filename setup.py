@@ -156,6 +156,7 @@ setup(
         "maro.cli.k8s": ["lib/*", "lib/*/*", "lib/*/*/*", "lib/*/*/*/*"],
         "maro.cli.grass": ["lib/*", "lib/*/*", "lib/*/*/*", "lib/*/*/*/*", "lib/*/*/*/*/*"],
         "maro.cli.project_generator/templates": ["*.jinja"],
+        "maro.cli.utils": ["web_terminal/*"],
     },
     zip_safe=False,
     ext_modules=extensions,
