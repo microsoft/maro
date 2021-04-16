@@ -7,7 +7,7 @@ from os import getcwd
 from typing import Union
 
 from maro.communication import Message, Proxy, SessionType
-from maro.rl.agent import AbsAgent, MultiAgentWrapper
+from maro.rl.agent import AbsAgent, AgentManager
 from maro.rl.scheduling import Scheduler
 from maro.utils import Logger
 
@@ -19,12 +19,12 @@ class DistLearner(object):
     """Learner class for distributed training.
 
     Args:
-        agent (Union[AbsAgent, MultiAgentWrapper]): Learning agents.
+        agent (Union[AbsAgent, AgentManager]): Learning agents.
         scheduler (Scheduler): A ``Scheduler`` instance for generating exploration parameters.
     """
     def __init__(
         self,
-        agent: Union[AbsAgent, MultiAgentWrapper],
+        agent: Union[AbsAgent, AgentManager],
         scheduler: Scheduler,
         actor_manager: ActorManager,
         agent_update_interval: int = -1,
@@ -33,7 +33,7 @@ class DistLearner(object):
         log_dir: str = getcwd()
     ):
         super().__init__()
-        self.agent = MultiAgentWrapper(agent) if isinstance(agent, AbsAgent) else agent
+        self.agent = AgentManager(agent) if isinstance(agent, AbsAgent) else agent
         self.scheduler = scheduler
         self.actor_manager = actor_manager
         self.agent_update_interval = agent_update_interval

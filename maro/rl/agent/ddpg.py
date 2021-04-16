@@ -6,12 +6,14 @@ from typing import Union
 import numpy as np
 import torch
 
+from maro.rl.cls_index import TORCH_LOSS_CLS
 from maro.rl.exploration import NoiseExplorer
 from maro.rl.model import SimpleMultiHeadModel
-from maro.rl.utils import get_torch_loss_cls
+from maro.rl.storage import SimpleStore
+from maro.rl.utils import get_cls
 from maro.utils.exception.rl_toolkit_exception import UnrecognizedTask
 
-from .abs_agent import AbsAgent
+from .agent import AbsAgent, GenericAgentConfig
 
 
 class DDPGConfig:
@@ -43,7 +45,7 @@ class DDPGConfig:
     ):
         self.reward_discount = reward_discount
         self.target_update_freq = target_update_freq
-        self.q_value_loss_func = get_torch_loss_cls(q_value_loss_cls)()
+        self.q_value_loss_func = get_cls(q_value_loss_cls, TORCH_LOSS_CLS)()
         self.policy_loss_coefficient = policy_loss_coefficient
         self.soft_update_coefficient = soft_update_coefficient
 
@@ -56,39 +58,24 @@ class DDPG(AbsAgent):
         https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch/ddpg
 
     Args:
-        model (SimpleMultiHeadModel): DDPG policy and q-value models.
-        config (DDPGConfig): Configuration for DDPG algorithm.
-        experience_memory_size (int): Size of the experience memory. If it is -1, the experience memory is of
-            unlimited size.
-        experience_memory_overwrite_type (str): A string indicating how experiences in the experience memory are
-            to be overwritten after its capacity has been reached. Must be "rolling" or "random".
-        empty_experience_memory_after_step (bool): If True, the experience memory will be emptied  after each call
-            to ``step``. Defaults to False.
-        min_new_experiences_to_trigger_learning (int): Minimum number of new experiences required to trigger learning.
-            Defaults to 1.
-        min_experiences_to_trigger_learning (int): Minimum number of experiences in the experience memory required for
-            training. Defaults to 1.
+        model (AbsCoreModel): Task model or container of task models required by the algorithm.
+        algorithm_config: Algorithm-specific configuration.
+        generic_config (GenericAgentConfig): Non-algorithm-specific configuration.  
+        experience_memory (SimpleStore): Experience memory for the agent. If None, an experience memory will be
+            created at init time. Defaults to None.
         explorer (NoiseExplorer): An NoiseExplorer instance for generating exploratory actions. Defaults to None.
     """
     def __init__(
         self,
         model: SimpleMultiHeadModel,
-        config: DDPGConfig,
-        experience_memory_size: int,
-        experience_memory_overwrite_type: str,
-        empty_experience_memory_after_step: bool = False,
-        min_new_experiences_to_trigger_learning: int = 1,
-        min_experiences_to_trigger_learning: int = 1,
+        algorithm_config,
+        generic_config: GenericAgentConfig,
+        experience_memory: SimpleStore = None,
         explorer: NoiseExplorer = None
     ):
         if model.task_names is None or set(model.task_names) != {"policy", "q_value"}:
             raise UnrecognizedTask(f"Expected model task names 'policy' and 'q_value', but got {model.task_names}")
-        super().__init__(
-            model, config, experience_memory_size, experience_memory_overwrite_type,
-            empty_experience_memory_after_step,
-            min_new_experiences_to_trigger_learning=min_new_experiences_to_trigger_learning,
-            min_experiences_to_trigger_learning=min_experiences_to_trigger_learning
-        )
+        super().__init__(model, algorithm_config, generic_config, experience_memory=experience_memory)
         self._explorer = explorer
         self._target_model = model.copy() if model.trainable else None
         self._train_cnt = 0
@@ -123,11 +110,11 @@ class DDPG(AbsAgent):
         next_q_values = self._target_model(
             torch.cat([next_states, next_actions], dim=1), task_name="q_value", training=False
         ).squeeze(1)  # (N,)
-        target_q_values = (rewards + self.config.reward_discount * next_q_values).detach()  # (N,)
-        q_value_loss = self.config.q_value_loss_func(current_q_values, target_q_values)
+        target_q_values = (rewards + self.algorithm_config.reward_discount * next_q_values).detach()  # (N,)
+        q_value_loss = self.algorithm_config.q_value_loss_func(current_q_values, target_q_values)
         actions_from_model = self.model(states, task_name="policy")
         policy_loss = -self.model(torch.cat([states, actions_from_model], dim=1), task_name="q_value").mean()
-        self.model.step(q_value_loss + self.config.policy_loss_coefficient * policy_loss)
+        self.model.step(q_value_loss + self.algorithm_config.policy_loss_coefficient * policy_loss)
         self._train_cnt += 1
-        if self._train_cnt % self.config.target_update_freq == 0:
-            self._target_model.soft_update(self.model, self.config.soft_update_coefficient)
+        if self._train_cnt % self.algorithm_config.target_update_freq == 0:
+            self._target_model.soft_update(self.model, self.algorithm_config.soft_update_coefficient)

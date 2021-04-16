@@ -8,7 +8,7 @@ from os.path import dirname, join, realpath
 import numpy as np
 
 from maro.rl import (
-    Actor, ActorCritic, ActorCriticConfig, FullyConnectedBlock, MultiAgentWrapper, Learner, Scheduler,
+    Actor, ActorCritic, ActorCriticConfig, FullyConnectedBlock, AgentManager, Learner, Scheduler,
     SimpleMultiHeadModel, OptimOption
 )
 from maro.simulator import Env
@@ -49,7 +49,7 @@ def get_ac_agent():
 if __name__ == "__main__":
     set_seeds(1024)  # for reproducibility
     env = Env(**config["training"]["env"])
-    agent = MultiAgentWrapper({name: get_ac_agent() for name in env.agent_idx_list})
+    agent = AgentManager({name: get_ac_agent() for name in env.agent_idx_list})
     scheduler = Scheduler(config["training"]["max_episode"])
     learner = Learner(
         CIMEnvWrapper(env, **config["shaping"]), agent, scheduler,

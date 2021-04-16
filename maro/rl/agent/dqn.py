@@ -6,11 +6,14 @@ from typing import Union
 import numpy as np
 import torch
 
+from maro.rl.cls_index import SAMPLER_CLS, TORCH_LOSS_CLS
 from maro.rl.model import SimpleMultiHeadModel
-from maro.rl.utils import get_max, get_sampler_cls, get_td_errors, get_torch_loss_cls, select_by_actions
+from maro.rl.storage import SimpleStore
+from maro.rl.utils import get_cls, get_max, get_td_errors, select_by_actions
 from maro.utils.exception.rl_toolkit_exception import UnrecognizedTask
 
-from .abs_agent import AbsAgent
+from .agent import AbsAgent, GenericAgentConfig
+from .experience_enum import Experience
 
 
 class DQNConfig:
@@ -59,13 +62,13 @@ class DQNConfig:
         self.target_update_freq = target_update_freq
         self.train_iters = train_iters
         self.batch_size = batch_size
-        self.sampler_cls = get_sampler_cls(sampler_cls)
+        self.sampler_cls = get_cls(sampler_cls, SAMPLER_CLS)
         self.sampler_params = sampler_params if sampler_params else {}
         self.epsilon = epsilon
         self.soft_update_coefficient = soft_update_coefficient
         self.double = double
         self.advantage_type = advantage_type
-        self.loss_func = get_torch_loss_cls(loss_cls)()
+        self.loss_func = get_cls(loss_cls, TORCH_LOSS_CLS)()
 
 
 class DQN(AbsAgent):
@@ -74,42 +77,29 @@ class DQN(AbsAgent):
     See https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf for details.
 
     Args:
-        model (SimpleMultiHeadModel): Q-value model.
-        config (DQNConfig): Configuration for DQN algorithm.
-        experience_memory_size (int): Size of the experience memory. If it is -1, the experience memory is of
-            unlimited size.
-        experience_memory_overwrite_type (str): A string indicating how experiences in the experience memory are
-            to be overwritten after its capacity has been reached. Must be "rolling" or "random".
-        empty_experience_memory_after_step (bool): If True, the experience memory will be emptied  after each call
-            to ``step``. Defaults to False.
-        min_new_experiences_to_trigger_learning (int): Minimum number of new experiences required to trigger learning.
-            Defaults to 1.
-        min_experiences_to_trigger_learning (int): Minimum number of experiences in the experience memory required for
-            training. Defaults to 1.
+        model (AbsCoreModel): Task model or container of task models required by the algorithm.
+        algorithm_config: Algorithm-specific configuration.
+        generic_config (GenericAgentConfig): Non-algorithm-specific configuration.  
+        experience_memory (SimpleStore): Experience memory for the agent. If None, an experience memory will be
+            created at init time. Defaults to None.
     """
     def __init__(
         self,
         model: SimpleMultiHeadModel,
-        config: DQNConfig,
-        experience_memory_size: int,
-        experience_memory_overwrite_type: str,
-        empty_experience_memory_after_step: bool = False,
-        min_new_experiences_to_trigger_learning: int = 1,
-        min_experiences_to_trigger_learning: int = 1
+        algorithm_config,
+        generic_config: GenericAgentConfig,
+        experience_memory: SimpleStore = None
     ):
-        if (config.advantage_type is not None and
+        if (algorithm_config.advantage_type is not None and
                 (model.task_names is None or set(model.task_names) != {"state_value", "advantage"})):
             raise UnrecognizedTask(
                 f"Expected model task names 'state_value' and 'advantage' since dueling DQN is used, "
                 f"got {model.task_names}"
             )
-        super().__init__(
-            model, config, experience_memory_size, experience_memory_overwrite_type,
-            empty_experience_memory_after_step,
-            min_new_experiences_to_trigger_learning=min_new_experiences_to_trigger_learning,
-            min_experiences_to_trigger_learning=min_experiences_to_trigger_learning
+        super().__init__(model, algorithm_config, generic_config, experience_memory=experience_memory)
+        self._sampler = self.algorithm_config.sampler_cls(
+            self.experience_memory, **self.algorithm_config.sampler_params
         )
-        self._sampler = self.config.sampler_cls(self.experience_memory, **self.config.sampler_params)
         self._training_counter = 0
         self._target_model = model.copy() if model.trainable else None
 
@@ -125,55 +115,63 @@ class DQN(AbsAgent):
         num_actions = q_values.shape[1]
         greedy_action = q_values.argmax(dim=1).data.cpu()
         # No exploration
-        if self.config.epsilon == .0:
+        if self.algorithm_config.epsilon == .0:
             return greedy_action.item() if is_single else greedy_action.numpy()
 
         if is_single:
-            return greedy_action if np.random.random() > self.config.epsilon else np.random.choice(num_actions)
+            if np.random.random() > self.algorithm_config.epsilon:
+                return greedy_action
+            else:
+                return np.random.choice(num_actions)
 
         # batch inference
         return np.array([
-            act if np.random.random() > self.config.epsilon else np.random.choice(num_actions)
+            act if np.random.random() > self.algorithm_config.epsilon else np.random.choice(num_actions)
             for act in greedy_action
         ])
 
     def step(self):
-        for _ in range(self.config.train_iters):
+        for _ in range(self.algorithm_config.train_iters):
             # sample from the replay memory
-            indexes, batch = self._sampler.sample(self.config.batch_size)
-            states = torch.from_numpy(np.asarray(batch["S"])).to(self.device)
-            actions = torch.from_numpy(np.asarray(batch["A"])).to(self.device)
-            rewards = torch.from_numpy(np.asarray(batch["R"])).to(self.device)
-            next_states = torch.from_numpy(np.asarray(batch["S_"])).to(self.device)
+            indexes, batch = self._sampler.sample(self.algorithm_config.batch_size)
+            states = torch.from_numpy(np.asarray(batch[Experience.STATE])).to(self.device)
+            actions = torch.from_numpy(np.asarray(batch[Experience.ACTION])).to(self.device)
+            rewards = torch.from_numpy(np.asarray(batch[Experience.REWARD])).to(self.device)
+            next_states = torch.from_numpy(np.asarray(batch[Experience.NEXT_STATE])).to(self.device)
 
             q_all = self._get_q_values(states)
             q = select_by_actions(q_all, actions)
             next_q_all_target = self._get_q_values(next_states, is_eval=False, training=False)
-            if self.config.double:
+            if self.algorithm_config.double:
                 next_q_all_eval = self._get_q_values(next_states, training=False)
                 next_q = select_by_actions(next_q_all_target, next_q_all_eval.max(dim=1)[1])  # (N,)
             else:
                 next_q, _ = get_max(next_q_all_target)  # (N,)
 
-            loss = get_td_errors(q, next_q, rewards, self.config.reward_discount, loss_func=self.config.loss_func)
+            loss = get_td_errors(
+                q, next_q, rewards, self.algorithm_config.reward_discount, loss_func=self.algorithm_config.loss_func
+            )
             self.model.step(loss.mean())
             self._training_counter += 1
-            if self._training_counter % self.config.target_update_freq == 0:
-                self._target_model.soft_update(self.model, self.config.soft_update_coefficient)
+            if self._training_counter % self.algorithm_config.target_update_freq == 0:
+                self._target_model.soft_update(self.model, self.algorithm_config.soft_update_coefficient)
 
             # update auxillary info for the next round of sampling
             self._sampler.update(indexes, loss.detach().numpy())
 
     def set_exploration_params(self, epsilon):
-        self.config.epsilon = epsilon
+        self.algorithm_config.epsilon = epsilon
 
     def _get_q_values(self, states: torch.Tensor, is_eval: bool = True, training: bool = True):
         output = self.model(states, training=training) if is_eval else self._target_model(states, training=False)
-        if self.config.advantage_type is None:
+        if self.algorithm_config.advantage_type is None:
             return output
         else:
             state_values = output["state_value"]
             advantages = output["advantage"]
             # Use mean or max correction to address the identifiability issue
-            corrections = advantages.mean(1) if self.config.advantage_type == "mean" else advantages.max(1)[0]
+            if self.algorithm_config.advantage_type == "mean":
+                corrections = advantages.mean(1)
+            else:
+                corrections = advantages.max(1)[0]
             return state_values + advantages - corrections.unsqueeze(1)

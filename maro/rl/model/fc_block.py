@@ -6,7 +6,8 @@ from collections import OrderedDict
 import torch
 import torch.nn as nn
 
-from maro.rl.utils import get_torch_activation_cls
+from maro.rl.cls_index import TORCH_ACTIVATION_CLS
+from maro.rl.utils import get_cls
 
 from .abs_block import AbsBlock
 
@@ -53,7 +54,7 @@ class FullyConnectedBlock(AbsBlock):
         self._output_dim = output_dim
 
         # network features
-        self._activation = get_torch_activation_cls(activation)() if activation else None
+        self._activation = get_cls(activation, TORCH_ACTIVATION_CLS)() if activation else None
         self._head = head
         self._softmax = nn.Softmax(dim=1) if softmax else None
         self._batch_norm = batch_norm

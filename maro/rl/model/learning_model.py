@@ -7,7 +7,8 @@ from typing import Dict, List, Union
 import torch
 import torch.nn as nn
 
-from maro.rl.utils import get_torch_lr_scheduler_cls, get_torch_optim_cls
+from maro.rl.cls_index import TORCH_LR_SCHEDULER_CLS, TORCH_OPTIM_CLS
+from maro.rl.utils import get_cls
 from maro.utils import clone
 from maro.utils.exception.rl_toolkit_exception import MissingOptimizer
 
@@ -26,9 +27,9 @@ class OptimOption:
     __slots__ = ["optim_cls", "optim_params", "scheduler_cls", "scheduler_params"]
 
     def __init__(self, optim_cls, optim_params: dict, scheduler_cls=None, scheduler_params: dict = None):
-        self.optim_cls = get_torch_optim_cls(optim_cls)
+        self.optim_cls = get_cls(optim_cls, TORCH_OPTIM_CLS)
         self.optim_params = optim_params
-        self.scheduler_cls = get_torch_lr_scheduler_cls(scheduler_cls)
+        self.scheduler_cls = get_cls(scheduler_cls, TORCH_LR_SCHEDULER_CLS)
         self.scheduler_params = scheduler_params
 
 

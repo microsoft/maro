@@ -10,7 +10,7 @@ from os import getenv, makedirs
 from os.path import dirname, join, realpath
 
 from maro.rl import (
-    Actor, ActorManager, DistLearner, FullyConnectedBlock, LinearParameterScheduler, MultiAgentWrapper,
+    Actor, ActorManager, DistLearner, FullyConnectedBlock, LinearParameterScheduler, AgentManager,
     OptimOption, SimpleMultiHeadModel
 )
 from maro.simulator import Env
@@ -19,7 +19,7 @@ from maro.utils import set_seeds
 sc_code_dir = dirname(realpath(__file__))
 sys.path.insert(0, sc_code_dir)
 from env_wrapper import SCEnvWrapper
-from agent import get_agent_func_map
+from agent import get_agent_func_map, get_q_model
 
 
 # Read the configuration
@@ -27,8 +27,8 @@ DEFAULT_CONFIG_PATH = join(sc_code_dir, "config.yml")
 with open(getenv("CONFIG_PATH", default=DEFAULT_CONFIG_PATH), "r") as config_file:
     config = yaml.safe_load(config_file)
 
-get_producer_agent = get_agent_func_map[config["agent"]["producer"]["algorithm"]]
-get_consumer_agent = get_agent_func_map[config["agent"]["consumer"]["algorithm"]]
+get_producer_agent_func = get_agent_func_map[config["agent"]["producer"]["algorithm"]]
+get_consumer_agent_func = get_agent_func_map[config["agent"]["consumer"]["algorithm"]]
 
 # Get the env config path
 topology = config["training"]["env"]["topology"]
@@ -44,13 +44,25 @@ log_dir = join(sc_code_dir, "logs", GROUP)
 makedirs(log_dir, exist_ok=True)
 
 
+def get_sc_agents(agent_idx_list, type_):
+    assert type_ in {"producer", "consumer"}
+    q_model = get_q_model(config["agent"][type_]["model"]) if config["agent"][type_]["share_model"] else None
+    alg_type = config["agent"][type_]["algorithm"]
+    return {
+        f"{type_}.{info.id}": get_agent_func_map[alg_type](config["agent"][type_], q_model=q_model)
+        for info in agent_idx_list
+    }
+
+
 def sc_learner():
     # create agents that update themselves using experiences collected from the actors.
     env = SCEnvWrapper(Env(**config["training"]["env"]))
     config["agent"]["producer"]["model"]["input_dim"] = config["agent"]["consumer"]["model"]["input_dim"] = env.dim
-    producers = {f"producer.{info.id}": get_producer_agent(config["agent"]["producer"]) for info in env.agent_idx_list}
-    consumers = {f"consumer.{info.id}": get_consumer_agent(config["agent"]["consumer"]) for info in env.agent_idx_list}
-    agent = MultiAgentWrapper({**producers, **consumers})
+
+    producers = get_sc_agents(env.agent_idx_list, "producer")
+    consumers = get_sc_agents(env.agent_idx_list, "consumer")
+    agent = AgentManager({**producers, **consumers})
+    print("share model: ", agent.has_shared_model)
 
     # exploration schedule
     scheduler = LinearParameterScheduler(config["training"]["num_episodes"], **config["training"]["exploration"])
@@ -78,9 +90,11 @@ def sc_actor():
     config["agent"]["producer"]["model"]["input_dim"] = config["agent"]["consumer"]["model"]["input_dim"] = env.dim
 
     # create agents to interact with the env
-    producers = {f"producer.{info.id}": get_producer_agent(config["agent"]["producer"]) for info in env.agent_idx_list}
-    consumers = {f"consumer.{info.id}": get_consumer_agent(config["agent"]["consumer"]) for info in env.agent_idx_list}
-    agent = MultiAgentWrapper({**producers, **consumers})
+    producers = get_sc_agents(env.agent_idx_list, "producer")
+    consumers = get_sc_agents(env.agent_idx_list, "consumer")
+    agent = AgentManager({**producers, **consumers})
+
+    print("share model: ", agent.has_shared_model)
 
     # create an actor that collects simulation data for the learner.
     actor = Actor(env, agent, GROUP, proxy_options={"redis_address": (REDIS_HOST, REDIS_PORT)}, log_dir=log_dir)

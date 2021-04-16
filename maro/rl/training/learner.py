@@ -5,7 +5,7 @@ import time
 from collections import defaultdict
 from typing import Dict, Union
 
-from maro.rl.agent import AbsAgent, MultiAgentWrapper
+from maro.rl.agent import AbsAgent, AgentManager
 from maro.rl.scheduling import Scheduler
 from maro.utils import InternalLogger
 
@@ -18,12 +18,12 @@ class Learner(object):
     Args:
         env (AbsEnvWrapper): An ``AbsEnvWrapper`` instance that wraps an ``Env`` instance with scenario-specific
             processing logic and stores transitions during roll-outs in a replay memory.
-        agent (Union[AbsAgent, MultiAgentWrapper]): Agent that interacts with the environment.
+        agent (Union[AbsAgent, AgentManager]): Agent that interacts with the environment.
     """
     def __init__(
         self,
         env: AbsEnvWrapper,
-        agent: Union[AbsAgent, MultiAgentWrapper],
+        agent: Union[AbsAgent, AgentManager],
         scheduler: Scheduler,
         agent_update_interval: int = -1,
         log_env_metrics: bool = False
@@ -32,7 +32,7 @@ class Learner(object):
         if agent_update_interval == 0:
             raise ValueError("agent_update_interval must be a positive integer or None.")
         self.env = env
-        self.agent = MultiAgentWrapper(agent) if isinstance(agent, AbsAgent) else agent
+        self.agent = AgentManager(agent) if isinstance(agent, AbsAgent) else agent
         self.scheduler = scheduler
         self.agent_update_interval = agent_update_interval
         self.total_env_steps = 0
@@ -56,16 +56,16 @@ class Learner(object):
                     not self.env.state or
                     self.agent_update_interval != -1 and self.env.step_index % self.agent_update_interval == 0
                 ):
-                    exp, num_exp = self.env.pull_experiences()
+                    self.env.process_replay_memory()
                     tl0 = time.time()
-                    self.agent.learn(exp)
+                    # print(self.env.replay_info())
+                    self.agent.learn(self.env.replay)
                     self.total_learning_time += time.time() - tl0
                     self.total_env_steps += self.agent_update_interval
-                    self.total_experiences_collected += num_exp
                     self._logger.debug(f"total running time: {time.time() - t0}")
                     self._logger.debug(f"total learning time: {self.total_learning_time}")
                     self._logger.debug(f"total env steps: {self.total_env_steps}")
-                    self._logger.info(f"total experiences collected: {self.total_experiences_collected}")
+                    # self._logger.info(f"total experiences collected: {self.total_experiences_collected}")
                     if not self.env.state:
                         self._logger.info(f"total reward: {self.env.total_reward}")
 
