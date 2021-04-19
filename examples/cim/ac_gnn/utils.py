@@ -32,7 +32,8 @@ def batch_states(state_list):
         for key in ["v", "p", "vo", "po", "vedge", "pedge", "ppedge", "mask"]
     }
     batch["p_idx"], batch["v_idx"] = state_list[0]["p_idx"], state_list[0]["v_idx"]
-
+    assert(np.sum([s["p_idx"] != batch["p_idx"] for s in state_list]) == 0)
+    assert(np.sum([s["v_idx"] != batch["v_idx"] for s in state_list]) == 0)
     return batch
 
 

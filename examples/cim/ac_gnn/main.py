@@ -24,6 +24,7 @@ def cim_ac_gnn_actor():
     logger = Logger(training_config["group"], dump_folder=log_path)
     # Create a demo environment to retrieve environment information.
     env = Env(**training_config["env"])
+    fix_seed(env, training_config["seed"])
     # Add some buffer to prevent overlapping.
     scale_factor, _ = return_scaler(
         env, training_config["env"]["durations"], agent_config["hyper_params"]["reward_discount"]
@@ -108,18 +109,18 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if args.whoami == 0:
         actor_processes = [Process(target=cim_ac_gnn_actor) for _ in range(training_config["actor"]["num"])]
-        # learner_process = Process(target=cim_ac_gnn_learner)
+        learner_process = Process(target=cim_ac_gnn_learner)
 
         for actor_process in actor_processes:
             actor_process.start()
 
-        # learner_process.start()
+        learner_process.start()
 
         for actor_process in actor_processes:
             actor_process.join()
 
-        # learner_process.join()
-        cim_ac_gnn_learner()
+        learner_process.join()
+        # cim_ac_gnn_learner()
     elif args.whoami == 1:
         cim_ac_gnn_learner()
     else:
