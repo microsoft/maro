@@ -4,21 +4,28 @@
 import os
 from typing import Union
 
-from .abs_agent import AbsAgent
+from .abs_agent import AbsAlgorithm
 
 
-class MultiAgentWrapper:
+class AgentManager:
     """Convenience wrapper of a set of agents that exposes similar interfaces as a single agent.
 
     Args:
-        agent_dict (Union[AbsAgent, dict]): A single agent or a homogeneous set of agents that have the same
+        agent_dict (Union[AbsAlgorithm, dict]): A single agent or a homogeneous set of agents that have the same
             method signatures.
     """
-    def __init__(self, agent_dict: Union[AbsAgent, dict]):
-        if isinstance(agent_dict, AbsAgent):
-            agent_dict = {"AGENT": agent_dict}
-        self.agent_dict = agent_dict
-        self._names = set(self.agent_dict.keys())
+    def __init__(
+        self,
+        agent_id_list: list,
+        policy_mapping: dict,
+        model_mapping: dict,
+        model_dict: dict,
+        experience_memory_dict: dict
+    ):
+        self.members = set()
+        self.agent_dict = {}
+        for agent_id, agent_cls in agent2cls.items():
+            
 
     def __getitem__(self, agent_id):
         if len(self.agent_dict) == 1:

@@ -6,11 +6,10 @@ from typing import Union
 import numpy as np
 import torch
 
-from maro.rl.model import SimpleMultiHeadModel
+from maro.rl.model import QEstimatorForDiscreteActions
 from maro.rl.utils import get_max, get_sampler_cls, get_td_errors, get_torch_loss_cls, select_by_actions
-from maro.utils.exception.rl_toolkit_exception import UnrecognizedTask
 
-from .abs_agent import AbsAgent
+from .abs_agent import AbsAlgorithm
 
 
 class DQNConfig:
@@ -68,13 +67,13 @@ class DQNConfig:
         self.loss_func = get_torch_loss_cls(loss_cls)()
 
 
-class DQN(AbsAgent):
+class DQN(AbsAlgorithm):
     """The Deep-Q-Networks algorithm.
 
     See https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf for details.
 
     Args:
-        model (SimpleMultiHeadModel): Q-value model.
+        model (QEstimatorForDiscreteActions): Q-value model.
         config (DQNConfig): Configuration for DQN algorithm.
         experience_memory_size (int): Size of the experience memory. If it is -1, the experience memory is of
             unlimited size.
@@ -89,7 +88,7 @@ class DQN(AbsAgent):
     """
     def __init__(
         self,
-        model: SimpleMultiHeadModel,
+        model: QEstimatorForDiscreteActions,
         config: DQNConfig,
         experience_memory_size: int,
         experience_memory_overwrite_type: str,
@@ -97,12 +96,6 @@ class DQN(AbsAgent):
         min_new_experiences_to_trigger_learning: int = 1,
         min_experiences_to_trigger_learning: int = 1
     ):
-        if (config.advantage_type is not None and
-                (model.task_names is None or set(model.task_names) != {"state_value", "advantage"})):
-            raise UnrecognizedTask(
-                f"Expected model task names 'state_value' and 'advantage' since dueling DQN is used, "
-                f"got {model.task_names}"
-            )
         super().__init__(
             model, config, experience_memory_size, experience_memory_overwrite_type,
             empty_experience_memory_after_step,
@@ -112,50 +105,44 @@ class DQN(AbsAgent):
         self._sampler = self.config.sampler_cls(self.experience_memory, **self.config.sampler_params)
         self._training_counter = 0
         self._target_model = model.copy() if model.trainable else None
+        self._target_model.eval()
+        self._num_actions = self.model.num_actions
 
-    def choose_action(self, state: np.ndarray) -> Union[int, np.ndarray]:
-        state = torch.from_numpy(state)
-        if self.device:
-            state = state.to(self.device)
-        is_single = len(state.shape) == 1
-        if is_single:
-            state = state.unsqueeze(dim=0)
+    def choose_action(self, states) -> Union[int, np.ndarray]:
+        with torch.no_grad():
+            self.model.eval()
+            actions, q_vals = self.model.choose_action(states)
 
-        q_values = self._get_q_values(state, training=False)
-        num_actions = q_values.shape[1]
-        greedy_action = q_values.argmax(dim=1).data.cpu()
-        # No exploration
-        if self.config.epsilon == .0:
-            return greedy_action.item() if is_single else greedy_action.numpy()
-
-        if is_single:
-            return greedy_action if np.random.random() > self.config.epsilon else np.random.choice(num_actions)
-
-        # batch inference
-        return np.array([
-            act if np.random.random() > self.config.epsilon else np.random.choice(num_actions)
-            for act in greedy_action
-        ])
+        actions, q_vals = actions.cpu().numpy(), q_vals.cpu().numpy()
+        if len(actions) == 1:
+            return actions[0] if np.random.random() > self.config.epsilon else np.random.choice(self._num_actions)
+        else:
+            return np.array([
+                action if np.random.random() > self.config.epsilon else np.random.choice(self._num_actions)
+                for action in actions
+            ])
 
     def step(self):
+        self.model.train()
         for _ in range(self.config.train_iters):
             # sample from the replay memory
             indexes, batch = self._sampler.sample(self.config.batch_size)
-            states = torch.from_numpy(np.asarray(batch["S"])).to(self.device)
-            actions = torch.from_numpy(np.asarray(batch["A"])).to(self.device)
-            rewards = torch.from_numpy(np.asarray(batch["R"])).to(self.device)
-            next_states = torch.from_numpy(np.asarray(batch["S_"])).to(self.device)
+            states, next_states = batch["S"], batch["S_"]
+            actions = torch.from_numpy(batch["A"])
+            rewards = torch.from_numpy(batch["R"])
+            q_values = self.model(states, actions)
+            # get next Q values
+            with torch.no_grad():
+                if self.config.double:
+                    next_q_values = self._target_model(next_states, self.model.choose_action(next_states)[0])  # (N,)
+                else:
+                    next_q_values = self._target_model.choose_action(next_states)[1]  # (N,)
 
-            q_all = self._get_q_values(states)
-            q = select_by_actions(q_all, actions)
-            next_q_all_target = self._get_q_values(next_states, is_eval=False, training=False)
-            if self.config.double:
-                next_q_all_eval = self._get_q_values(next_states, training=False)
-                next_q = select_by_actions(next_q_all_target, next_q_all_eval.max(dim=1)[1])  # (N,)
-            else:
-                next_q, _ = get_max(next_q_all_target)  # (N,)
+            # get TD errors
+            target_q_values = (rewards + self.config.gamma * next_q_values).detach()  # (N,)
+            loss = self.config.loss_func(q_values, target_q_values)
 
-            loss = get_td_errors(q, next_q, rewards, self.config.reward_discount, loss_func=self.config.loss_func)
+            # train and update target if necessary 
             self.model.step(loss.mean())
             self._training_counter += 1
             if self._training_counter % self.config.target_update_freq == 0:
@@ -166,14 +153,3 @@ class DQN(AbsAgent):
 
     def set_exploration_params(self, epsilon):
         self.config.epsilon = epsilon
-
-    def _get_q_values(self, states: torch.Tensor, is_eval: bool = True, training: bool = True):
-        output = self.model(states, training=training) if is_eval else self._target_model(states, training=False)
-        if self.config.advantage_type is None:
-            return output
-        else:
-            state_values = output["state_value"]
-            advantages = output["advantage"]
-            # Use mean or max correction to address the identifiability issue
-            corrections = advantages.mean(1) if self.config.advantage_type == "mean" else advantages.max(1)[0]
-            return state_values + advantages - corrections.unsqueeze(1)

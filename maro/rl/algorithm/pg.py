@@ -7,10 +7,10 @@ import numpy as np
 import torch
 from torch.distributions import Categorical
 
-from maro.rl.model import SimpleMultiHeadModel
+from maro.rl.model import ParameterizedPolicy
 from maro.rl.utils import get_truncated_cumulative_reward
 
-from .abs_agent import AbsAgent
+from .abs_agent import AbsAlgorithm
 
 
 class PolicyGradientConfig:
@@ -25,13 +25,13 @@ class PolicyGradientConfig:
         self.reward_discount = reward_discount
 
 
-class PolicyGradient(AbsAgent):
+class PolicyGradient(AbsAlgorithm):
     """The vanilla Policy Gradient (VPG) algorithm, a.k.a., REINFORCE.
 
     Reference: https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch.
 
     Args:
-        model (SimpleMultiHeadModel): Multi-task model that computes action distributions and state values.
+        model (ParameterizedPolicy): Multi-task model that computes action distributions and state values.
             It may or may not have a shared bottom stack.
         config (PolicyGradientConfig): Configuration for the PG algorithm.
         experience_memory_size (int): Size of the experience memory. If it is -1, the experience memory is of
@@ -47,14 +47,16 @@ class PolicyGradient(AbsAgent):
     """
     def __init__(
         self,
-        model: SimpleMultiHeadModel,
+        model: ParameterizedPolicy,
         config: PolicyGradientConfig,
         experience_memory_size: int,
         experience_memory_overwrite_type: str,
         empty_experience_memory_after_step: bool = True,
         min_new_experiences_to_trigger_learning: int = 1,
         min_experiences_to_trigger_learning: int = 1
-    ):
+    ):  
+        if not isinstance(model, ParameterizedPolicyWithValueEstimator):
+            raise TypeError("model must be an instance of 'ParameterizedPolicy'")
         super().__init__(
             model, config, experience_memory_size, experience_memory_overwrite_type,
             empty_experience_memory_after_step,

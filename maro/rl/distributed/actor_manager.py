@@ -15,7 +15,7 @@ class ActorManager(object):
     """Learner class for distributed training.
 
     Args:
-        agent (Union[AbsAgent, MultiAgentWrapper]): Learning agents.
+        agent (Union[AbsAlgorithm, MultiAgentWrapper]): Learning agents.
         scheduler (Scheduler): .
         num_actors (int): Expected number of actors in the group identified by ``group_name``.
         group_name (str): Identifier of the group to which the actor belongs. It must be the same group name

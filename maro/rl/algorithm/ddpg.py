@@ -11,7 +11,7 @@ from maro.rl.model import SimpleMultiHeadModel
 from maro.rl.utils import get_torch_loss_cls
 from maro.utils.exception.rl_toolkit_exception import UnrecognizedTask
 
-from .abs_agent import AbsAgent
+from .abs_agent import AbsAlgorithm
 
 
 class DDPGConfig:
@@ -48,7 +48,7 @@ class DDPGConfig:
         self.soft_update_coefficient = soft_update_coefficient
 
 
-class DDPG(AbsAgent):
+class DDPG(AbsAlgorithm):
     """The Deep Deterministic Policy Gradient (DDPG) algorithm.
 
     References:

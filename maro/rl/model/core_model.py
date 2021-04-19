@@ -6,6 +6,7 @@ from typing import Dict, List, Union
 
 import torch
 import torch.nn as nn
+from torch.distributions import Categorical
 
 from maro.rl.utils import get_torch_lr_scheduler_cls, get_torch_optim_cls
 from maro.utils import clone
@@ -70,10 +71,12 @@ class AbsCoreModel(nn.Module):
                 if optim_option.scheduler_cls:
                     self.scheduler = optim_option.scheduler_cls(self.optimizer, **optim_option.scheduler_params)
 
+        self.device = torch.device('cpu')
+
     @property
     def trainable(self) -> bool:
         return self.optimizer is not None
-
+    
     @abstractmethod
     def forward(self, *args, **kwargs):
         raise NotImplementedError
@@ -127,7 +130,7 @@ class AbsCoreModel(nn.Module):
         return model_copy
 
 
-class SimpleMultiHeadModel(AbsCoreModel):
+class QEstimatorForDiscreteActions(AbsCoreModel):
     """A compound network structure that consists of multiple task heads and an optional shared stack.
 
     Args:
@@ -136,66 +139,71 @@ class SimpleMultiHeadModel(AbsCoreModel):
             component by ``shared_component_name``.
         optim_option (Union[OptimOption, Dict[str, OptimOption]]): Optimizer option for
             the components. Defaults to None.
-        shared_component_name (str): Name of the network component to be designated as the shared component at the
-            bottom of the architecture. Must be None or a key in ``component``. If only a single component
-            is present, this is ignored. Defaults to None.
     """
-    def __init__(
-        self,
-        component: Union[nn.Module, Dict[str, nn.Module]],
-        optim_option: Union[OptimOption, Dict[str, OptimOption]] = None,
-        shared_component_name: str = None
-    ):
-        super().__init__(component, optim_option=optim_option)
-        if isinstance(component, dict):
-            if shared_component_name is not None:
-                assert (shared_component_name in component), (
-                    f"shared_component_name must be one of {list(component.keys())}, got {shared_component_name}"
-                )
-            self._task_names = [name for name in component if name != shared_component_name]
-        else:
-            self._task_names = None
-        self._shared_component_name = shared_component_name
+    @abstractmethod
+    def forward(self, states, actions: torch.tensor) -> torch.tensor:
+        raise NotImplementedError
+
+    def choose_action(self, states):
+        """
+        Given Q-values for a batch of states and all actions, return the maximum Q-value and
+        the corresponding action index for each state.
+        """
+        q_for_all_actions = self.forward(states)  # (batch_size, num_actions)
+        greedy_q, actions = q_for_all_actions.max(dim=1)
+        return actions.detach(), greedy_q.detach()
 
     @property
-    def task_names(self):
-        return self._task_names
+    @abstractmethod
+    def num_actions(self):
+        raise NotImplementedError
 
-    def _forward(self, inputs, task_name: str = None):
-        if not isinstance(self._component, nn.ModuleDict):
-            return self._component(inputs)
 
-        if self._shared_component_name is not None:
-            inputs = self._component[self._shared_component_name](inputs)  # features
+class ParameterizedPolicy(AbsCoreModel):
+    """A compound network structure that consists of multiple task heads and an optional shared stack.
 
-        if task_name is None:
-            return {name: self._component[name](inputs) for name in self._task_names}
+    Args:
+        component (Union[nn.Module, Dict[str, nn.Module]]): Network component(s) comprising the model.
+            All components must have the same input dimension except the one designated as the shared
+            component by ``shared_component_name``.
+        optim_option (Union[OptimOption, Dict[str, OptimOption]]): Optimizer option for
+            the components. Defaults to None.
+    """
+    @abstractmethod
+    def forward(self, states) -> torch.tensor:
+        raise NotImplementedError
 
-        if isinstance(task_name, list):
-            return {name: self._component[name](inputs) for name in task_name}
-        else:
-            return self._component[task_name](inputs)
-
-    def forward(self, inputs, task_name: Union[str, List[str]] = None, training: bool = True):
-        """Feedforward computations for the given head(s).
-
-        Args:
-            inputs: Inputs to the model.
-            task_name (str): The name of the task for which the network output is required. If the model contains only
-                one task module, the task_name is ignored and the output of that module will be returned. If the model
-                contains multiple task modules, then 1) if task_name is None, the output from all task modules will be
-                returned in the form of a dictionary; 2) if task_name is a list, the outputs from the task modules
-                specified in the list will be returned in the form of a dictionary; 3) if this is a single string,
-                the output from the corresponding task module will be returned.
-            training (bool): If true, all torch submodules will be set to training mode, and auto-differentiation
-                will be turned on. Defaults to True.
-
-        Returns:
-            Outputs from the required head(s).
+    def choose_action(self, states):
         """
-        self.train(mode=training)
-        if training:
-            return self._forward(inputs, task_name)
+        Given Q-values for a batch of states and all actions, return the maximum Q-value and
+        the corresponding action index for each state.
+        """
+        action_prob = Categorical(self.forward(states))  # (batch_size, num_actions)
+        action = action_prob.sample()
+        log_p = action_prob.log_prob(action)
+        return action, log_p
 
-        with torch.no_grad():
-            return self._forward(inputs, task_name)
+
+class ParameterizedPolicyWithValueEstimator(AbsCoreModel):
+    """A compound network structure that consists of multiple task heads and an optional shared stack.
+
+    Args:
+        component (Union[nn.Module, Dict[str, nn.Module]]): Network component(s) comprising the model.
+            All components must have the same input dimension except the one designated as the shared
+            component by ``shared_component_name``.
+        optim_option (Union[OptimOption, Dict[str, OptimOption]]): Optimizer option for
+            the components. Defaults to None.
+    """
+    @abstractmethod
+    def forward(self, states, output_action_probs: bool = True, output_values: bool = True):
+        raise NotImplementedError
+
+    def choose_action(self, states):
+        """
+        Given Q-values for a batch of states and all actions, return the maximum Q-value and
+        the corresponding action index for each state.
+        """
+        action_prob = Categorical(self.forward(state, output_values=False))  # (batch_size, num_actions)
+        action = action_prob.sample()
+        log_p = action_prob.log_prob(action)
+        return action, log_p
