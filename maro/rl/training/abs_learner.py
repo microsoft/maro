@@ -80,7 +80,7 @@ class AbsLearner(ABC):
 
     @abstractmethod
     def run(self):
-        raise NotADirectoryError
+        raise NotImplementedError
 
     def collect(self, rollout_index: int, training: bool = True, **rollout_kwargs) -> tuple:
         """Collect roll-out performances and details from remote actors.
