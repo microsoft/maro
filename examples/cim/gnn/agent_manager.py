@@ -3,14 +3,14 @@ from copy import copy
 import numpy as np
 import torch
 
-from maro.rl import AbsAgentManager, AgentMode
+from maro.rl import AbsAgentManager, AgentManagerMode
 from maro.utils import DummyLogger
 
-from .actor_critic import ActorCritic
-from .agent import TrainableAgent
-from .numpy_store import NumpyStore
-from .simple_gnn import SharedAC
-from .state_shaper import GNNStateShaper
+from examples.cim.gnn.actor_critic import ActorCritic
+from examples.cim.gnn.agent import TrainableAgent
+from examples.cim.gnn.numpy_store import NumpyStore
+from examples.cim.gnn.simple_gnn import SharedAC
+from examples.cim.gnn.state_shaper import GNNStateShaper
 
 
 class SimpleAgentManger(AbsAgentManager):
@@ -18,8 +18,9 @@ class SimpleAgentManger(AbsAgentManager):
             self, name, agent_id_list, port_code_list, vessel_code_list, demo_env, state_shaper: GNNStateShaper,
             logger=DummyLogger()):
         super().__init__(
-            name, AgentMode.TRAIN, agent_id_list, state_shaper=state_shaper, action_shaper=None,
-            experience_shaper=None, explorer=None)
+            name, AgentManagerMode.TRAIN, agent_id_list, state_shaper=state_shaper, action_shaper=None,
+            experience_shaper=None)
+        self._agent_dict = {}
         self.port_code_list = copy(port_code_list)
         self.vessel_code_list = copy(vessel_code_list)
         self.demo_env = demo_env
@@ -113,7 +114,13 @@ class SimpleAgentManger(AbsAgentManager):
             self._agent_dict[code].store_experiences(exp_list)
 
     def save_model(self, pth, id):
-        self._algorithm.save_model(pth, id)
+        self._algorithm.dump_models(pth, id)
 
     def load_model(self, pth):
         self._algorithm.load_model(pth)
+
+    def on_env_feedback(self, *args, **kwargs):
+        pass
+
+    def post_process(self, *args, **kwargs):
+        pass

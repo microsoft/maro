@@ -25,12 +25,12 @@ class DiscreteActionShaper(ActionShaper):
         action_scope = decision_event.action_scope
 
         if model_action < 0:
-            # Discharge resource from dynamic node.
+            # Load resource to port
             env_action = round(int(model_action) * 1.0 / self._zero_action * action_scope.load)
         elif model_action == 0:
             env_action = 0
         else:
-            # Load resource to dynamic node.
+            # Discharge resource from vessel
             env_action = round(int(model_action) * 1.0 / self._zero_action * action_scope.discharge)
         env_action = int(env_action)
 

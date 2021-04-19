@@ -13,11 +13,11 @@ from maro.rl import AbsActor
 from maro.simulator import Env
 from maro.simulator.scenarios.cim.common import Action
 
-from .action_shaper import DiscreteActionShaper
-from .experience_shaper import ExperienceShaper
-from .shared_structure import SharedStructure
-from .state_shaper import GNNStateShaper
-from .utils import fix_seed, gnn_union
+from examples.cim.gnn.action_shaper import DiscreteActionShaper
+from examples.cim.gnn.experience_shaper import ExperienceShaper
+from examples.cim.gnn.shared_structure import SharedStructure
+from examples.cim.gnn.state_shaper import GNNStateShaper
+from examples.cim.gnn.utils import fix_seed, gnn_union
 
 
 def organize_exp_list(experience_collections: dict, idx_mapping: dict):
@@ -161,6 +161,7 @@ def single_player_worker(index, config, exp_idx_mapping, pipe, action_io, exp_ou
                 index, decision_event.tick, decision_event.port_idx, decision_event.vessel_idx, model_action,
                 env_action, decision_event.action_scope.load, decision_event.action_scope.discharge])
             action = Action(decision_event.vessel_idx, decision_event.port_idx, env_action)
+            print(action)
             r, decision_event, is_done = env.step(action)
             j += 1
         action_io_np["sh"][index] = compute_shortage(env.snapshot_list, config.env.param.durations, static_code_list)

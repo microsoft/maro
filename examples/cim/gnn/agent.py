@@ -29,7 +29,7 @@ class TrainableAgent(AbsAgent):
         c_loss = np.mean(loss_dict["critic"])
         e_loss = np.mean(loss_dict["entropy"])
         tot_loss = np.mean(loss_dict["tot"])
-        self._logger.debug(
+        self._logger.info(
             f"code: {str(self._name)} \t actor: {float(a_loss)} \t critic: {float(c_loss)} \t entropy: {float(e_loss)} \
             \t tot: {float(tot_loss)}")
 

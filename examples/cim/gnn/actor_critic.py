@@ -34,9 +34,13 @@ class ActorCritic(AbsAlgorithm):
         self._device = device
         self._tot_batchs = 0
         self._p2p_adj = p2p_adj
+        self._model_dict = {"a&c": model}
+        self._optimizer = {"a&c": torch.optim.Adam(model.parameters(), lr=learning_rate)}
+        """
         super().__init__(
             model_dict={"a&c": model}, optimizer_opt={"a&c": (torch.optim.Adam, {"lr": learning_rate})},
             loss_func_dict={}, hyper_params=None)
+        """
 
     def choose_action(self, state: dict, p_idx: int, v_idx: int):
         """Get action from the AC model.
@@ -154,7 +158,13 @@ class ActorCritic(AbsAlgorithm):
     def _get_save_idx(self, fp_str):
         return int(fp_str.split(".")[0].split("_")[0])
 
-    def save_model(self, pth, id):
+    def load_models(self, *models, **model_dict):
+        return
+
+    def dump_models(self):
+        return
+
+    def dump_models_to_file(self, pth, id):
         if not os.path.exists(pth):
             os.makedirs(pth)
         pth = os.path.join(pth, f"{id}_ac.pkl")
@@ -165,7 +175,7 @@ class ActorCritic(AbsAlgorithm):
             if key in self._model_dict["a&c"].state_dict().keys():
                 self._model_dict["a&c"].state_dict()[key].copy_(weights[key])
 
-    def load_model(self, folder_pth, idx=-1):
+    def load_models_from_file(self, folder_pth, idx=-1):
         if idx == -1:
             fps = os.listdir(folder_pth)
             fps = [f for f in fps if "ac" in f]
