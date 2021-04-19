@@ -11,7 +11,7 @@ agent_config = {
     "hyper_params": {
         "reward_discount": 0.99,
         "num_batches": 1,
-        "batch_size": 16,
+        "batch_size": 256,
         "td_steps": 100,
         "actor_loss_coefficient": 0.1,
         "entropy_factor": 0.1

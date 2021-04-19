@@ -14,7 +14,7 @@ from maro.utils import Logger
 from examples.cim.ac_gnn.agent import get_gnn_agent, get_experience_pool
 from examples.cim.ac_gnn.config import agent_config, training_config
 from examples.cim.ac_gnn.shaping import ExperienceShaper, StateShaper
-from examples.cim.ac_gnn.training import BasicLearner, BasicRolloutExecutor
+from examples.cim.ac_gnn.training import BasicLearner, BasicRolloutExecutor, learner
 from examples.cim.ac_gnn.utils import decision_cnt_analysis, fix_seed, return_scaler
 
 
@@ -108,17 +108,18 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if args.whoami == 0:
         actor_processes = [Process(target=cim_ac_gnn_actor) for _ in range(training_config["actor"]["num"])]
-        learner_process = Process(target=cim_ac_gnn_learner)
+        # learner_process = Process(target=cim_ac_gnn_learner)
 
         for actor_process in actor_processes:
             actor_process.start()
 
-        learner_process.start()
+        # learner_process.start()
 
         for actor_process in actor_processes:
             actor_process.join()
 
-        learner_process.join()
+        # learner_process.join()
+        cim_ac_gnn_learner()
     elif args.whoami == 1:
         cim_ac_gnn_learner()
     else:

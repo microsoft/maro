@@ -4,27 +4,20 @@
 training_config = {
     "env": {
         "scenario": "cim",
-        "topology": "global_trade.22p_l0.8",
+        "topology": "toy.5p_ssddd_l0.0",
         "durations": 1120,
     },
     "max_episode": 500,
     "train_freq": 1,
     "model_save_freq": 1,
-    "exploration": {
-        "parameter_names": ["epsilon"],
-        "split": 0.5,
-        "start": 0.4,
-        "mid": 0.32,
-        "end": 0.0
-    },
-    "group": "cim-gnn",
+    "group": "cim-gnn-2",
     "learner": {
-        "update_trigger": 2,
-        "inference_trigger": 2
+        "update_trigger": 24,
+        "inference_trigger": 24
     },
     "actor": {
-        "num": 2,
-        "receive_action_timeout": 100,  # in milliseconds
+        "num": 24,
+        "receive_action_timeout": 500,  # in milliseconds
         "max_receive_action_attempts": 1,
         "max_null_actions_per_rollout": 15
     }
