@@ -5,18 +5,17 @@ import os
 
 from maro.rl import AbsRolloutExecutor
 from maro.simulator import Env
-from maro.utils import DummyLogger
 
 from examples.cim.common import get_env_action
 
 
 class BasicRolloutExecutor(AbsRolloutExecutor):
-    def __init__(self, env, agent, state_shaper, experience_shaper, max_null_actions=None, logger=None):
+    def __init__(self, env, agent, state_shaper, experience_shaper, logger, max_null_actions=None):
         super().__init__(env, agent)
         self.state_shaper = state_shaper
         self.experience_shaper = experience_shaper
         self._max_null_actions = max_null_actions
-        self._logger = logger if logger else DummyLogger()
+        self._logger = logger
 
     def roll_out(self, index, training=True):
         self.env.reset()

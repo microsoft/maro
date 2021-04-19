@@ -13,8 +13,6 @@ from maro.utils.exit_code import NON_RESTART_EXIT_CODE
 
 from .utils import session_id_generator
 
-logger = InternalLogger(component_name="message")
-
 
 class SessionType(Enum):
     """Communication session categories.
@@ -113,5 +111,4 @@ class SessionMessage(Message):
         elif self.session_type == SessionType.NOTIFICATION:
             self.session_stage = session_stage if session_stage else NotificationSessionStage.REQUEST
         else:
-            logger.error(f"Receive unrecognized session type {self.session_type}, please use the SessionType class.")
-            sys.exit(NON_RESTART_EXIT_CODE)
+            raise Exception(f"Receive unrecognized session type {self.session_type}, please use the SessionType class.")

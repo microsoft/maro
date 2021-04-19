@@ -4,7 +4,7 @@
 import sys
 
 from maro.communication import Message, Proxy
-from maro.utils import InternalLogger
+from maro.utils import Logger
 
 from .abs_rollout_executor import AbsRolloutExecutor
 from .message_enums import MessageTag, PayloadKey
@@ -25,7 +25,7 @@ class BaseActor(object):
         if proxy_options is None:
             proxy_options = {}
         self._proxy = Proxy(group_name, "actor", {"learner": 1}, **proxy_options)
-        self._logger = InternalLogger(self._proxy.component_name)
+        self._logger = Logger(self._proxy.component_name)
 
     def run(self):
         """Entry point method.
@@ -37,14 +37,14 @@ class BaseActor(object):
                 self.exit()
             elif msg.tag == MessageTag.ROLLOUT:
                 ep = msg.payload[PayloadKey.ROLLOUT_INDEX]
-                self._logger.info(f"Rolling out ({ep})...")
+                self._logger.debug(f"Rolling out ({ep})...")
                 rollout_data = self.rollout_executor.roll_out(
                     ep, training=msg.payload[PayloadKey.TRAINING], **msg.payload[PayloadKey.ROLLOUT_KWARGS]
                 )
                 if rollout_data is None:
                     self._logger.info(f"Roll-out {ep} aborted")
                 else:
-                    self._logger.info(f"Roll-out {ep} finished")
+                    self._logger.debug(f"Roll-out {ep} finished")
                     rollout_finish_msg = Message(
                         MessageTag.FINISHED,
                         self._proxy.component_name,

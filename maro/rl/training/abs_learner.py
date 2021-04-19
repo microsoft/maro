@@ -9,7 +9,7 @@ from typing import Callable, List, Union
 from maro.communication import Message, Proxy, RegisterTable, SessionType
 from maro.rl.agent import AbsAgent, MultiAgentWrapper
 from maro.rl.scheduling.scheduler import Scheduler
-from maro.utils import InternalLogger
+from maro.utils import Logger
 
 from .message_enums import MessageTag, PayloadKey
 
@@ -76,7 +76,7 @@ class AbsLearner(ABC):
             self._decision_clients = None
             self._state_batching_func = None
 
-        self._logger = InternalLogger(self._proxy.component_name)
+        self._logger = Logger("LEARNER")
 
     @abstractmethod
     def run(self):
@@ -100,7 +100,7 @@ class AbsLearner(ABC):
         # so that thay can perform inference on their own. If there exists exploration parameters, they
         # must also be sent to the remote actors.
         self._proxy.iscatter(MessageTag.ROLLOUT, SessionType.TASK, [(actor, payload) for actor in self._actors])
-        self._logger.info(f"Sent roll-out requests to {self._actors} for ep-{rollout_index}")
+        self._logger.debug(f"Sent roll-out requests to {self._actors} for ep-{rollout_index}")
 
         # Receive roll-out results from remote actors
         for msg in self._proxy.receive():

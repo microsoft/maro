@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 
 import argparse
+import sys
 import time
 from multiprocessing import Process
 from os import makedirs
@@ -11,11 +12,12 @@ from maro.rl import BaseActor, DecisionClient
 from maro.simulator import Env
 from maro.utils import Logger
 
-from examples.cim.ac_gnn.agent import get_gnn_agent, get_experience_pool
-from examples.cim.ac_gnn.config import agent_config, training_config
-from examples.cim.ac_gnn.shaping import ExperienceShaper, StateShaper
-from examples.cim.ac_gnn.training import BasicLearner, BasicRolloutExecutor
-from examples.cim.ac_gnn.utils import decision_cnt_analysis, fix_seed, return_scaler
+sys.path.insert(0, dirname(realpath(__file__)))
+from agent import get_gnn_agent, get_experience_pool
+from config import agent_config, training_config
+from shaping import ExperienceShaper, StateShaper
+from training import BasicLearner, BasicRolloutExecutor
+from utils import decision_cnt_analysis, fix_seed, return_scaler
 
 
 def cim_ac_gnn_actor():
@@ -24,6 +26,7 @@ def cim_ac_gnn_actor():
     logger = Logger(training_config["group"], dump_folder=log_path)
     # Create a demo environment to retrieve environment information.
     env = Env(**training_config["env"])
+    fix_seed(env, training_config["seed"])
     # Add some buffer to prevent overlapping.
     scale_factor, _ = return_scaler(
         env, training_config["env"]["durations"], agent_config["hyper_params"]["reward_discount"]
@@ -50,12 +53,16 @@ def cim_ac_gnn_actor():
         training_config["group"],
         receive_action_timeout=training_config["actor"]["receive_action_timeout"],
         max_receive_action_attempts=training_config["actor"]["max_receive_action_attempts"],
+        proxy_options={"redis_address": training_config["redis_address"]}
     )
     executor = BasicRolloutExecutor(
-        env, agent, state_shaper, experience_shaper,
-        max_null_actions=training_config["actor"]["max_null_actions_per_rollout"], logger=logger
+        env, agent, state_shaper, experience_shaper, logger,
+        max_null_actions=training_config["actor"]["max_null_actions_per_rollout"]
     )
-    actor = BaseActor(training_config["group"], executor)
+    actor = BaseActor(
+        training_config["group"], executor,
+        proxy_options={"redis_address": training_config["redis_address"]}
+    )
     actor.run()
 
 
@@ -87,10 +94,10 @@ def cim_ac_gnn_learner():
     exp_pool = get_experience_pool(len(static_nodes), len(dynamic_nodes), exp_per_ep, p_dim, v_dim)
     agent = get_gnn_agent(p_dim, v_dim, state_shaper.p2p_static_graph, exp_pool, logger=logger)
     learner = BasicLearner(
-        training_config["group"], training_config["actor"]["num"], training_config["max_episode"], agent,
+        training_config["group"], training_config["actor"]["num"], training_config["max_episode"], agent, logger,
         update_trigger=training_config["learner"]["update_trigger"],
         inference_trigger=training_config["learner"]["inference_trigger"],
-        logger=logger
+        proxy_options={"redis_address": training_config["redis_address"]}
     )
 
     time.sleep(5)
@@ -108,17 +115,18 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if args.whoami == 0:
         actor_processes = [Process(target=cim_ac_gnn_actor) for _ in range(training_config["actor"]["num"])]
-        learner_process = Process(target=cim_ac_gnn_learner)
+        #learner_process = Process(target=cim_ac_gnn_learner)
 
         for actor_process in actor_processes:
             actor_process.start()
 
-        learner_process.start()
+        #learner_process.start()
+        cim_ac_gnn_learner()
 
         for actor_process in actor_processes:
             actor_process.join()
 
-        learner_process.join()
+        #learner_process.join()    
     elif args.whoami == 1:
         cim_ac_gnn_learner()
     else:
