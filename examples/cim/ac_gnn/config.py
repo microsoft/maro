@@ -12,13 +12,13 @@ agent_config = {
     "hyper_params": {
         "reward_discount": 0.99,
         "num_batches": 1,
-        "batch_size": 256,
+        "batch_size": 150,
         "td_steps": 100,
         "actor_loss_coefficient": 0.1,
         "entropy_factor": 0.1
     },
     "model": {
-        "device": "cpu",
+        "device": "cuda:0",
         "scale": 4,
         "sequence_buffer_size": 20,
         "hidden_size": 32,
@@ -36,6 +36,9 @@ agent_config = {
     "onehot_identity": False
 }
 
+
+thread_num = 2
+
 training_config = {
     "seed": 1024,
     "env": {
@@ -46,21 +49,14 @@ training_config = {
     "max_episode": 500,
     "train_freq": 1,
     "model_save_freq": 1,
-    "exploration": {
-        "parameter_names": ["epsilon"],
-        "split": 0.5,
-        "start": 0.4,
-        "mid": 0.32,
-        "end": 0.0
-    },
     "group": f"cim-gnn.{datetime.now().timestamp()}",
     "redis_address": ("localhost", "6379"),
     "learner": {
-        "update_trigger": 2,
-        "inference_trigger": 2
+        "update_trigger": thread_num,
+        "inference_trigger": thread_num
     },
     "actor": {
-        "num": 2,
+        "num": thread_num,
         "receive_action_timeout": 300,  # in milliseconds
         "max_receive_action_attempts": 1,
         "max_null_actions_per_rollout": 15
