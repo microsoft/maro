@@ -64,9 +64,9 @@ class GNNBasedActorCritic(AbsAgent):
     """
 
     def __init__(
-        self, model: AbsCoreModel, config: GNNBasedActorCriticConfig, experience_pool, logger=DummyLogger()
+        self, model: AbsCoreModel, config: GNNBasedActorCriticConfig, experience_pool, logger=DummyLogger(), device=None
     ):
-        super().__init__(model, config, experience_pool=experience_pool)
+        super().__init__(model, config, experience_pool=experience_pool, device=device)
         self._batch_count = 0
         self._logger = logger
 

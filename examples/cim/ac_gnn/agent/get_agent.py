@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import torch
 from torch.nn import GELU, Sequential, TransformerEncoder, TransformerEncoderLayer
 
 from maro.rl import FullyConnectedBlock
@@ -76,5 +77,5 @@ def get_gnn_agent(p_dim, v_dim, p2p_adj, experience_pool, logger=None):
 
     return GNNBasedActorCritic(
         model, GNNBasedActorCriticConfig(p2p_adj=p2p_adj, **agent_config["hyper_params"]),
-        experience_pool=experience_pool, logger=logger
+        experience_pool=experience_pool, logger=logger, device=agent_config["model"]["device"]
     )

@@ -18,7 +18,7 @@ agent_config = {
         "entropy_factor": 0.1
     },
     "model": {
-        "device": "cuda:0",
+        "device": "cuda:1",
         "scale": 4,
         "sequence_buffer_size": 20,
         "hidden_size": 32,
@@ -37,13 +37,14 @@ agent_config = {
 }
 
 
-thread_num = 2
+thread_num = 24
 
 training_config = {
     "seed": 1024,
     "env": {
         "scenario": "cim",
         "topology": "global_trade.22p_l0.8",
+        # "topology": "toy.4p_ssdd_l0.6",
         "durations": 1120,
     },
     "max_episode": 500,
@@ -57,7 +58,7 @@ training_config = {
     },
     "actor": {
         "num": thread_num,
-        "receive_action_timeout": 300,  # in milliseconds
+        "receive_action_timeout": 5000,  # in milliseconds
         "max_receive_action_attempts": 1,
         "max_null_actions_per_rollout": 15
     }

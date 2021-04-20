@@ -23,8 +23,11 @@ class AbsAgent(ABC):
         experience_pool: It is used to store experiences processed by the experience shaper, which will be
             used by some value-based algorithms, such as DQN. Defaults to None.
     """
-    def __init__(self, model: AbsCoreModel, config, experience_pool=None):
-        self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    def __init__(self, model: AbsCoreModel, config, experience_pool=None, device=None):
+        if device is None:
+            self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        else:
+            self._device = torch.device(device)
         self._model = model.to(self._device)
         self._config = config
         self._experience_pool = experience_pool

@@ -47,8 +47,8 @@ class BasicLearner(AbsLearner):
             train_start = time.time()
             self.agent.store_experiences(combine(exp_by_src))
             if ep % self._train_freq == self._train_freq - 1:
+                self.logger.info("Training start")
                 self.agent.train()
-                self.logger.debug("Training finished")
             training_time += time.time() - train_start
             if (ep + 1) % self._model_save_freq == 0:
                 self.agent.dump_model_to_file(join(self._model_save_dir, str(ep)))
