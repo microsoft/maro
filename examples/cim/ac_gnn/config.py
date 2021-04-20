@@ -43,7 +43,7 @@ training_config = {
     "seed": 1024,
     "env": {
         "scenario": "cim",
-        "topology": "global_trade.22p_l0.8",
+        "topology": "global_trade.22p_l0.2",
         # "topology": "toy.4p_ssdd_l0.6",
         "durations": 1120,
     },
@@ -58,7 +58,7 @@ training_config = {
     },
     "actor": {
         "num": thread_num,
-        "receive_action_timeout": 5000,  # in milliseconds
+        "receive_action_timeout": 50000,  # in milliseconds
         "max_receive_action_attempts": 1,
         "max_null_actions_per_rollout": 15
     }
