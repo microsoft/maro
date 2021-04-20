@@ -11,8 +11,6 @@ from .skumodel import SkuDataModel
 @node("seller")
 class SellerDataModel(SkuDataModel):
     """Data model for seller unit."""
-    total_sold = NodeAttribute(AttributeType.UInt)
-
     demand = NodeAttribute(AttributeType.UInt)
     sold = NodeAttribute(AttributeType.UInt)
     total_demand = NodeAttribute(AttributeType.UInt)

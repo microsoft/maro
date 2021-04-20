@@ -19,7 +19,6 @@ class ConsumerDataModel(SkuDataModel):
     order_product_cost = NodeAttribute(AttributeType.UInt)
 
     latest_consumptions = NodeAttribute(AttributeType.Float)
-    pending_order_daily = NodeAttribute(AttributeType.UInt)
 
     order_quantity = NodeAttribute(AttributeType.UInt)
 

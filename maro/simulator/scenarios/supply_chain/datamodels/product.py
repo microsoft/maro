@@ -10,11 +10,6 @@ from .skumodel import SkuDataModel
 
 @node("product")
 class ProductDataModel(SkuDataModel):
-
-    distribution_check_order = NodeAttribute(AttributeType.UInt)
-    distribution_transport_cost = NodeAttribute(AttributeType.Float)
-    distribution_delay_order_penalty = NodeAttribute(AttributeType.Float)
-
     price = NodeAttribute(AttributeType.Float)
 
     def __init__(self):
