@@ -23,7 +23,7 @@ class MsgKey(Enum):
     NUM_EXPERIENCES = "num_experiences"
     STATE = "state"
     TRAINING = "training"
-    MODEL = "model"
+    POLICY = "policy"
     VERSION = "version"
     EXPLORATION_PARAMS = "exploration_params"
     NUM_STEPS = "num_steps"

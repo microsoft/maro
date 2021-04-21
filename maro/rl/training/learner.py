@@ -5,7 +5,7 @@ import time
 from collections import defaultdict
 from typing import Dict, Union
 
-from maro.rl.agent import AbsAlgorithm, MultiAgentWrapper
+from maro.rl.agent import AbsPolicy, MultiAgentWrapper
 from maro.rl.scheduling import Scheduler
 from maro.utils import InternalLogger
 
@@ -18,12 +18,12 @@ class Learner(object):
     Args:
         env (AbsEnvWrapper): An ``AbsEnvWrapper`` instance that wraps an ``Env`` instance with scenario-specific
             processing logic and stores transitions during roll-outs in a replay memory.
-        agent (Union[AbsAlgorithm, MultiAgentWrapper]): Agent that interacts with the environment.
+        agent (Union[AbsPolicy, MultiAgentWrapper]): Agent that interacts with the environment.
     """
     def __init__(
         self,
         env: AbsEnvWrapper,
-        agent: Union[AbsAlgorithm, MultiAgentWrapper],
+        agent: Union[AbsPolicy, MultiAgentWrapper],
         scheduler: Scheduler,
         agent_update_interval: int = -1,
         log_env_metrics: bool = False
@@ -32,7 +32,7 @@ class Learner(object):
         if agent_update_interval == 0:
             raise ValueError("agent_update_interval must be a positive integer or None.")
         self.env = env
-        self.agent = MultiAgentWrapper(agent) if isinstance(agent, AbsAlgorithm) else agent
+        self.agent = MultiAgentWrapper(agent) if isinstance(agent, AbsPolicy) else agent
         self.scheduler = scheduler
         self.agent_update_interval = agent_update_interval
         self.total_env_steps = 0

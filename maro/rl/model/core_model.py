@@ -130,7 +130,7 @@ class AbsCoreModel(nn.Module):
         return model_copy
 
 
-class QEstimatorForDiscreteActions(AbsCoreModel):
+class QNetForDiscreteActionSpace(AbsCoreModel):
     """A compound network structure that consists of multiple task heads and an optional shared stack.
 
     Args:
@@ -159,7 +159,7 @@ class QEstimatorForDiscreteActions(AbsCoreModel):
         raise NotImplementedError
 
 
-class ParameterizedPolicy(AbsCoreModel):
+class PolicyNetForDiscreteActionSpace(AbsCoreModel):
     """A compound network structure that consists of multiple task heads and an optional shared stack.
 
     Args:
@@ -184,7 +184,7 @@ class ParameterizedPolicy(AbsCoreModel):
         return action, log_p
 
 
-class ParameterizedPolicyWithValueEstimator(AbsCoreModel):
+class PolicyValueNetForDiscreteActionSpace(AbsCoreModel):
     """A compound network structure that consists of multiple task heads and an optional shared stack.
 
     Args:
@@ -203,7 +203,29 @@ class ParameterizedPolicyWithValueEstimator(AbsCoreModel):
         Given Q-values for a batch of states and all actions, return the maximum Q-value and
         the corresponding action index for each state.
         """
-        action_prob = Categorical(self.forward(state, output_values=False))  # (batch_size, num_actions)
+        action_prob = Categorical(self.forward(states, output_values=False))  # (batch_size, num_actions)
         action = action_prob.sample()
         log_p = action_prob.log_prob(action)
         return action, log_p
+
+
+class PolicyValueNetForContinuousActionSpace(AbsCoreModel):
+    """A compound network structure that consists of multiple task heads and an optional shared stack.
+
+    Args:
+        component (Union[nn.Module, Dict[str, nn.Module]]): Network component(s) comprising the model.
+            All components must have the same input dimension except the one designated as the shared
+            component by ``shared_component_name``.
+        optim_option (Union[OptimOption, Dict[str, OptimOption]]): Optimizer option for
+            the components. Defaults to None.
+    """
+    @abstractmethod
+    def forward(self, states, actions, output_action: bool = True, output_values: bool = True):
+        raise NotImplementedError
+
+    def choose_action(self, states):
+        """
+        Given Q-values for a batch of states and all actions, return the maximum Q-value and
+        the corresponding action index for each state.
+        """
+        return self.forward(states, output_values=False)

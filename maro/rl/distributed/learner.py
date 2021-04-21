@@ -7,7 +7,7 @@ from os import getcwd
 from typing import Union
 
 from maro.communication import Message, Proxy, SessionType
-from maro.rl.agent import AbsAlgorithm, MultiAgentWrapper
+from maro.rl.multi_agent import MultiAgentPolicy
 from maro.rl.scheduling import Scheduler
 from maro.utils import Logger
 
@@ -19,12 +19,12 @@ class DistLearner(object):
     """Learner class for distributed training.
 
     Args:
-        agent (Union[AbsAlgorithm, MultiAgentWrapper]): Learning agents.
+        policy (MultiAgentPolicy): Learning agents.
         scheduler (Scheduler): A ``Scheduler`` instance for generating exploration parameters.
     """
     def __init__(
         self,
-        agent: Union[AbsAlgorithm, MultiAgentWrapper],
+        policy: MultiAgentPolicy,
         scheduler: Scheduler,
         actor_manager: ActorManager,
         agent_update_interval: int = -1,
@@ -33,7 +33,7 @@ class DistLearner(object):
         log_dir: str = getcwd()
     ):
         super().__init__()
-        self.agent = MultiAgentWrapper(agent) if isinstance(agent, AbsAlgorithm) else agent
+        self.policy = policy
         self.scheduler = scheduler
         self.actor_manager = actor_manager
         self.agent_update_interval = agent_update_interval
@@ -46,19 +46,20 @@ class DistLearner(object):
         """Main learning loop."""
         t0 = time.time()
         for exploration_params in self.scheduler:
-            updated_agents, num_actor_finishes, segment_index = self.agent.names, 0, 0
+            num_actor_finishes, segment_index = 0, 0
             while num_actor_finishes < self.required_actor_finishes:
                 for exp, done in self.actor_manager.collect(
                     self.scheduler.iter,
                     segment_index,
                     self.agent_update_interval,
-                    models=self.agent.dump_model(agent_ids=updated_agents),
+                    policy_dict=self.policy.policy_dict,
                     exploration_params=exploration_params if segment_index == 0 else None,
                     required_actor_finishes=self.required_actor_finishes,
                     discard_stale_experiences=self.discard_stale_experiences
                 ):
                     tl0 = time.time()
-                    updated_agents = self.agent.learn(exp)
+                    self.policy.store_experiences(exp)
+                    self.policy.update()
                     num_actor_finishes += done
                     self._total_learning_time += time.time() - tl0
                     self._logger.debug(f"total running time: {time.time() - t0}")

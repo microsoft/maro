@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 from maro.rl.algorithm import (
-    DDPG, DQN, TORCH_LOSS_CLS, AbsAlgorithm, ActorCritic, ActorCriticConfig, DDPGConfig, DQNConfig, MultiAgentWrapper,
+    DDPG, DQN, AbsFixedPolicy, AbsTrainablePolicy, ActorCritic, ActorCriticConfig, DDPGConfig, DQNConfig,
     PolicyGradient, PolicyGradientConfig
 )
 from maro.rl.distributed import Actor, ActorManager, DistLearner
@@ -20,8 +20,8 @@ from maro.rl.utils import (
 )
 
 __all__ = [
-    "AbsAlgorithm", "ActorCritic", "ActorCriticConfig", "DDPG", "DDPGConfig", "DQN", "DQNConfig", "MultiAgentWrapper",
-    "PolicyGradient", "PolicyGradientConfig", "TORCH_LOSS_CLS",
+    "AbsFixedPolicy", "AbsTrainablePolicy", "ActorCritic", "ActorCriticConfig", "DDPG", "DDPGConfig", "DQN",
+    "DQNConfig", "PolicyGradient", "PolicyGradientConfig", 
     "Actor", "ActorManager", "DistLearner",
     "AbsExplorer", "EpsilonGreedyExplorer", "GaussianNoiseExplorer", "NoiseExplorer", "UniformNoiseExplorer",
     "AbsBlock", "AbsCoreModel", "FullyConnectedBlock", "OptimOption", "SimpleMultiHeadModel",

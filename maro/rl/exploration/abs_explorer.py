@@ -12,7 +12,7 @@ class AbsExplorer(ABC):
         pass
 
     @abstractmethod
-    def set_parameters(self, **exploration_params):
+    def update(self, exploration_params: dict):
         return NotImplementedError
 
     @abstractmethod

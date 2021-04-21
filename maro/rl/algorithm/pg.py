@@ -10,7 +10,7 @@ from torch.distributions import Categorical
 from maro.rl.model import ParameterizedPolicy
 from maro.rl.utils import get_truncated_cumulative_reward
 
-from .abs_agent import AbsAlgorithm
+from .abs_policy import AbsPolicy
 
 
 class PolicyGradientConfig:
@@ -25,7 +25,7 @@ class PolicyGradientConfig:
         self.reward_discount = reward_discount
 
 
-class PolicyGradient(AbsAlgorithm):
+class PolicyGradient(AbsPolicy):
     """The vanilla Policy Gradient (VPG) algorithm, a.k.a., REINFORCE.
 
     Reference: https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch.

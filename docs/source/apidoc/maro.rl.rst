@@ -4,7 +4,7 @@ Agent
 maro.rl.agent.abs\_agent
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.agent.abs_agent
+.. automodule:: maro.rl.agent.abs_policy
    :members:
    :undoc-members:
    :show-inheritance:
@@ -40,7 +40,7 @@ Agent Manager
 maro.rl.agent.abs\_agent\_manager
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.agent.abs_agent_manager
+.. automodule:: maro.rl.agent.abs_policy_manager
    :members:
    :undoc-members:
    :show-inheritance:

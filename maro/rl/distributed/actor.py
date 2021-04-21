@@ -5,7 +5,7 @@ from os import getcwd
 from typing import Union
 
 from maro.communication import Proxy
-from maro.rl.agent import AbsAlgorithm, MultiAgentWrapper
+from maro.rl.multi_agent import MultiAgentPolicy 
 from maro.rl.training import AbsEnvWrapper
 from maro.utils import Logger
 
@@ -18,7 +18,7 @@ class Actor(object):
     Args:
         env (AbsEnvWrapper): An ``AbsEnvWrapper`` instance that wraps an ``Env`` instance with scenario-specific
             processing logic and stores transitions during roll-outs in a replay memory.
-        agent (Union[AbsAlgorithm, MultiAgentWrapper]): Agent that interacts with the environment.
+        policy (MultiAgentPolicy): Agent that interacts with the environment.
         group (str): Identifier of the group to which the actor belongs. It must be the same group name
             assigned to the learner (and decision clients, if any).
         proxy_options (dict): Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
@@ -27,14 +27,14 @@ class Actor(object):
     def __init__(
         self,
         env: AbsEnvWrapper,
-        agent: Union[AbsAlgorithm, MultiAgentWrapper],
+        policy: MultiAgentPolicy,
         group: str,
         proxy_options: dict = None,
         pull_experiences_with_copy: bool = False,
         log_dir: str = getcwd()
     ):
         self.env = env
-        self.agent = MultiAgentWrapper(agent) if isinstance(agent, AbsAlgorithm) else agent
+        self.policy = policy
         self._pull_experiences_with_copy = pull_experiences_with_copy
         if proxy_options is None:
             proxy_options = {}
@@ -52,14 +52,14 @@ class Actor(object):
                     self.env.reset()
                     # Load exploration parameters
                     if MsgKey.EXPLORATION_PARAMS in msg.body:
-                        self.agent.set_exploration_params(msg.body[MsgKey.EXPLORATION_PARAMS])
+                        self.policy.update_exploration_params(msg.body[MsgKey.EXPLORATION_PARAMS])
                     self.env.start(rollout_index=rollout_index)  # get initial state
 
                 starting_step_index = self.env.step_index
-                self.agent.load_model(msg.body[MsgKey.MODEL])
+                self.policy.load(msg.body[MsgKey.POLICY])
                 steps_to_go = float("inf") if msg.body[MsgKey.NUM_STEPS] == -1 else msg.body[MsgKey.NUM_STEPS]
                 while self.env.state and steps_to_go > 0:
-                    action = self.agent.choose_action(self.env.state)
+                    action = self.policy.choose_action(self.env.state)
                     self.env.step(action)
                     steps_to_go -= 1
 
