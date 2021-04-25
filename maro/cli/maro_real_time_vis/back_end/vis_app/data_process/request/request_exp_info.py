@@ -2,12 +2,12 @@
 # Licensed under the MIT license.
 
 import json
+import time
 
 import requests
 
 from .request_params import request_settings
 from .utils import get_data_in_format
-import time
 
 
 def get_experiments():
@@ -121,9 +121,9 @@ def add_pending_experiment(experiment_name):
         "query": f"INSERT INTO pending_experiments(name, time) VALUES('{experiment_name}', {current_time})",
     }
     test = requests.get(
-            url=request_settings.request_url.value,
-            headers=request_settings.request_header.value,
-            params=next_exp_params
+        url=request_settings.request_url.value,
+        headers=request_settings.request_header.value,
+        params=next_exp_params
     ).json()
     print(test)
     return "succuess"
