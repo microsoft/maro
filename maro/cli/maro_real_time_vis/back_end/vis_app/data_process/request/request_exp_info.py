@@ -7,16 +7,36 @@ import requests
 
 from .request_params import request_settings
 from .utils import get_data_in_format
+import time
+
+
+def get_experiments():
+    """Get a list of existing experiments.
+
+    Returns:
+        json: List of existing experiments.
+
+    """
+    get_exps_params = {
+        "query": "select name from maro.experiments",
+    }
+    exps = requests.get(
+        url=request_settings.request_url.value,
+        headers=request_settings.request_header.value,
+        params=get_exps_params
+    ).json()
+    exp_name = json.dumps(exps["dataset"])
+    return exp_name
 
 
 def get_experiment_info() -> json:
     """Get basic information of experiment.
 
     Returns:
-            json: Basic information of current experiment.
+        json: Basic information of current experiment.
 
     """
-    get_exp_name_params = params = {
+    get_exp_name_params = {
         "query": "select name from pending_experiments order by time desc limit 1",
     }
     exp_name = requests.get(
@@ -24,7 +44,6 @@ def get_experiment_info() -> json:
         headers=request_settings.request_header.value,
         params=get_exp_name_params
     ).json()
-    print(exp_name)
     exp_name = exp_name["dataset"][0][0]
     print(exp_name)
     params = {
@@ -94,3 +113,17 @@ def get_experiment_info() -> json:
     data_in_format["port_number"] = int(port_number["dataset"][0][0])
     exp_data = data_in_format.to_json(orient='records')
     return exp_data
+
+
+def add_pending_experiment(experiment_name):
+    current_time = int(time.time())
+    next_exp_params = {
+        "query": f"INSERT INTO pending_experiments(name, time) VALUES('{experiment_name}', {current_time})",
+    }
+    test = requests.get(
+            url=request_settings.request_url.value,
+            headers=request_settings.request_header.value,
+            params=next_exp_params
+    ).json()
+    print(test)
+    return "succuess"
