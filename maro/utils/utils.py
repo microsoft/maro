@@ -90,6 +90,10 @@ target_source_pairs = [
         os.path.join(project_root, "simulator/scenarios/cim/meta")
     ),
     (
+        os.path.expanduser("~/.maro/data/vm_scheduling/meta"),
+        os.path.join(project_root, "simulator/scenarios/vm_scheduling/meta")
+    ),
+    (
         os.path.expanduser("~/.maro/lib/k8s"),
         os.path.join(project_root, "cli/k8s/lib")
     ),
@@ -100,6 +104,10 @@ target_source_pairs = [
     (
         os.path.expanduser("~/.maro/vis/templates"),
         os.path.join(project_root, "cli/inspector")
+    ),
+    (
+        os.path.expanduser("~/.maro/web_terminal"),
+        os.path.join(project_root, "cli/utils/web_terminal")
     )
 ]
 

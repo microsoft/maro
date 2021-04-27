@@ -2,6 +2,8 @@ Cython==0.29.14
 astroid==2.3.3
 certifi==2019.9.11
 cycler==0.10.0
+flask==1.1.2
+flask-cors==3.0.10
 guppy3==3.0.9
 isort==4.3.21
 kiwisolver==1.1.0
@@ -10,7 +12,7 @@ mccabe==0.6.1
 pyaml==20.4.0
 pyparsing==2.4.5
 python-dateutil==2.8.1
-PyYAML==5.3.1
+PyYAML==5.4
 pyzmq==19.0.2
 six==1.13.0
 torch==1.6.0
@@ -25,6 +27,7 @@ urllib3==1.25.8
 geopy==2.0.0
 pandas==0.25.3
 redis==3.5.3
+requests==2.25.1
 holidays==0.10.3
 sphinx
 recommonmark~=0.6.0

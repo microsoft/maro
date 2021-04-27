@@ -1,0 +1,156 @@
+[
+    {
+      "id": "m1",
+      "position": { "lat": 53.549999, "lng": 8.583333 },
+      "tooltip": "Bremerhaven",
+      "draggable": false,
+      "visible": true
+    },
+    {
+      "id":"m2",
+      "position":{"lat":-29.8579, "lng":31.0292},
+      "tooltip":"Durban",
+      "draggable": false,
+      "visible": true
+    },
+    {
+      "id":"m3",
+      "position":{"lat":-22.85222, "lng":-43.77528},
+      "tooltip":"Itagual",
+      "draggable": false,
+      "visible": true
+    },
+    {
+      "id": "m4",
+      "position": { "lat": 49.490002, "lng": 0.100000 },
+      "tooltip": "LeHavre",
+      "draggable": false,
+      "visible": true
+    },
+    {
+      "id":"m5",
+      "position":{"lat":34.052235, "lng":-118.243683},
+      "tooltip":"Los Angeles",
+      "draggable": false,
+      "visible": true
+    },
+    {
+      "id":"m6",
+      "position":{"lat":19.11695, "lng":-104.34214},
+      "tooltip":"Manzanillo",
+      "draggable": false,
+      "visible": true
+    },
+    {
+      "id":"m7",
+      "position":{"lat":-37.840935, "lng":144.946457},
+      "tooltip":"Melbourne",
+      "draggable": false,
+      "visible": true
+    },
+    {
+      "id": "m8",
+      "position": { "lat": 45.516136, "lng":  -73.656830 },
+      "tooltip": "Montreal",
+      "draggable": false,
+      "visible": true
+    },
+    {
+      "id": "m9",
+      "position": { "lat": 40.730610, "lng": -73.935242},
+      "tooltip": "New York",
+      "draggable": false,
+      "visible": true
+    },
+    {
+      "id":"m10",
+      "position":{"lat":37.804363, "lng":-122.271111},
+      "tooltip":"Oakland",
+      "draggable": false,
+      "visible": true
+    },
+    {
+      "id":"m11",
+      "position":{"lat":54.312519, "lng":-130.305405},
+      "tooltip":"Prince Rupert",
+      "draggable": false,
+      "visible": true
+    },
+    {
+      "id":"m12",
+      "position":{"lat":35.166668, "lng":129.066666},
+      "tooltip":"Pusan",
+      "draggable": false,
+      "visible": true
+    },
+    {
+      "id":"m13",
+      "position":{"lat":36.066898, "lng":120.382698},
+      "tooltip":"Qingdao",
+      "draggable": false,
+      "visible": true
+    },
+    {
+      "id":"m14",
+      "position":{"lat":29.424349, "lng":-98.491142},
+      "tooltip":"San Antonio",
+      "draggable": false,
+      "visible": true
+    },
+    {
+      "id":"m15",
+      "position":{"lat":-23.96083, "lng":-46.33361},
+      "tooltip":"Santos",
+      "draggable": false,
+      "visible": true
+    },
+    {
+      "id":"m16",
+      "position":{"lat":47.608013, "lng":-122.335167},
+      "tooltip":"Seattle",
+      "draggable": false,
+      "visible": true
+    },
+    {
+      "id":"m17",
+      "position":{"lat":31.224361, "lng":121.469170},
+      "tooltip":"Shanghai",
+      "draggable": false,
+      "visible": true
+    },
+    {
+      "id":"m18",
+      "position":{"lat":1.290270, "lng":103.851959},
+      "tooltip":"Singapore",
+      "draggable": false,
+      "visible": true
+    },
+    {
+      "id":"m19",
+      "position":{"lat":-33.865143, "lng":151.209900},
+      "tooltip":"Sydney",
+      "draggable": false,
+      "visible": true
+    },
+    {
+      "id":"m20",
+      "position":{"lat":49.246292, "lng":-123.116226},
+      "tooltip":"Vancouver",
+      "draggable": false,
+      "visible": true
+    },
+    {
+      "id":"m21",
+      "position":{"lat":26.8533, "lng":119.8575},
+      "tooltip":"Yantian",
+      "draggable": false,
+      "visible": true
+    },
+    {
+      "id":"m22",
+      "position":{"lat":35.443707, "lng":139.638031},
+      "tooltip":"Yokohama",
+      "draggable": false,
+      "visible": true
+    }
+]

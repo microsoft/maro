@@ -131,7 +131,10 @@ namespace maro
             }
 
             shape.attr_number++;
-            shape.max_slot_number = max(attr_def.slot_number, shape.max_slot_number);
+
+            shape.max_slot_number = attr_def.slot_number > shape.max_slot_number ? attr_def.slot_number : shape.max_slot_number;
+
+            shape.max_slot_number = MAX(attr_def.slot_number, shape.max_slot_number); //std::max(attr_def.slot_number, shape.max_slot_number);
           }
         }
         else
@@ -165,7 +168,7 @@ namespace maro
 
           if (target_tick_pair == _snapshots.end())
           {
-            throw SnapshotQueryNoSnapshotsError();
+            throw SnapshotQueryInvalidTickError();
           }
 
           auto& snapshot = target_tick_pair->second;

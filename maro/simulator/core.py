@@ -9,6 +9,7 @@ from typing import List
 from maro.backends.frame import FrameBase, SnapshotList
 from maro.data_lib.dump_csv_converter import DumpConverter
 from maro.event_buffer import EventBuffer, EventState
+from maro.streamit import streamit
 from maro.utils.exception.simulator_exception import BusinessEngineNotFoundError
 
 from .abs_core import AbsEnv, DecisionMode
@@ -70,6 +71,8 @@ class Env(AbsEnv):
             self._converter = DumpConverter(parent_path, self._business_engine._scenario_name)
             self._converter.reset_folder_path()
 
+        self._streamit_episode = 0
+
     def step(self, action):
         """Push the environment to next step with action.
 
@@ -107,7 +110,7 @@ class Env(AbsEnv):
             dump_folder = self._converter.get_new_snapshot_folder()
 
             self._business_engine._frame.dump(dump_folder)
-            self._converter.start_processing(self._business_engine.name_mapping_file_path)
+            self._converter.start_processing(self.configs)
             self._converter.dump_descsion_events(self._decision_events, self._start_tick, self._snapshot_resolution)
             self._business_engine.dump(dump_folder)
 
@@ -241,9 +244,15 @@ class Env(AbsEnv):
         """This is the generator to wrap each episode process."""
         is_end_tick = False
 
+        self._streamit_episode += 1
+
+        streamit.episode(self._streamit_episode)
+
         while True:
             # Ask business engine to do thing for this tick, such as generating and pushing events.
             # We do not push events now.
+            streamit.tick(self._tick)
+
             self._business_engine.step(self._tick)
 
             while True:

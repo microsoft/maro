@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <title>MARO Admin Web UI</title>
+  <link rel="stylesheet" href="assets/css/xterm.css" />
+  <link rel="shortcut icon" href="assets/images/favicon.ico" />
+  <link rel="stylesheet" href="https://unpkg.com/element-ui@2.15.1/lib/theme-chalk/index.css">
+</head>
+
+<body>
+  <style>
+    .dashboard-normal {
+      width: 100%;
+      height: calc(100vh - 60px - 340px - 20px);
+      border-width: 0px;
+    }
+
+    .dashboard-full {
+      width: 100%;
+      height: calc(100vh - 60px - 20px);
+      border-width: 0px;
+    }
+
+    .job-normal {
+      height: calc((100vh - 60px - 340px - 20px)/2);
+      border-width: 0px;
+    }
+
+    .job-full {
+      height: calc((100vh - 60px - 20px)/2);
+      border-width: 0px;
+    }
+
+    .el-header {
+      line-height: 60px;
+      font-weight: bold;
+      padding: 0 10px;
+    }
+
+    .el-main {
+      padding: 0px 10px;
+    }
+
+    .el-footer {
+      padding: 0 10px;
+    }
+
+    body {
+      background: #2e2e2e;
+      color: #ffffff80;
+    }
+
+    .cur-tab {
+      background: #242424;
+      padding-left: 10px;
+    }
+
+    .normal-tab {
+      color: #ffffff4d;
+      padding-left: 10px;
+    }
+
+    .text-resource-block {
+      border: 2px solid #2e2e2e;
+      width: 8%;
+      height: 200px;
+      text-align: center;
+      margin: 1%;
+    }
+
+    .text-resource-image {
+      padding: unset;
+      margin: 10px;
+      height: 45px;
+    }
+
+    .text-resource-num {
+      line-height: 50px;
+      font-size: large;
+      overflow: visible;
+      padding: 0px;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .text-resource-type {
+      line-height: 50px;
+      color: #92e82899;
+      overflow: visible;
+      padding: 0px;
+      text-align: center;
+    }
+
+    .axis {
+      fill: none;
+    }
+
+    /* change scroll bar style */
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: #2e2e2e #121212;
+    }
+
+    *::-webkit-scrollbar {
+      width: 12px;
+    }
+
+    *::-webkit-scrollbar-track {
+      background: #121212;
+    }
+
+    *::-webkit-scrollbar-thumb {
+      background-color: #2e2e2e;
+      border-radius: 4px;
+      border: 0px solid #121212;
+    }
+
+    .tooltip {
+      margin-left: 20px;
+      line-height: 40px;
+    }
+
+    .tooltiptext {
+      display: none;
+      background-color: #2e2e2e88;
+      color: #fff;
+      text-align: center;
+      padding: 5px 0;
+      border-radius: 5px;
+      position: absolute;
+      z-index: 10000;
+    }
+
+    .tooltip:hover+.tooltiptext {
+      display: unset;
+    }
+
+    #cluster-list {
+      overflow-x: hidden;
+    }
+  </style>
+
+  <el-container id="app">
+    <el-header>
+      <el-row>
+        <el-col :span="5" style="color: #ffffff80; font-size: x-large;">
+          <div style="display: inline-flex;">MARO Admin Web UI</div>
+          <img src="assets/images/terminal.jpg" v-on:click="toggle_terminal" alt="terminal" class="tooltip"
+            v-on:mouseover="show_tooltip('terminal-1')"
+            style="background-color: #242424; border-radius: 10px; height: 40px; transform: translateY(10px); margin: 0px;" />
+          <div class="tooltiptext" id="tooltip-terminal-1"
+            style="font-size: small; line-height: 40px; font-weight: normal;">
+            Click to toggle terminal.
+          </div>
+        </el-col>
+        <el-col :span="19" style="text-align: right; font-size: 12px">
+          <el-link type="primary" href="https://www.github.com/microsoft/maro" target="blank"
+            style="color: #ffffff80; margin-right: 20px;">
+            Multi-Agent Resource Optimization
+          </el-link>
+          <el-link type="primary" href="https://maro.readthedocs.io/en/latest/" target="blank"
+            style="color: #ffffff80;">
+            Documentation
+          </el-link>
+        </el-col>
+      </el-row>
+    </el-header>
+    <el-main>
+      <el-container :class="test_dashboard_type()">
+        <el-main style="width: 11%;" id="cluster-list">
+          <div style="font-size: large; line-height: 60px; font-weight: bold;">Cluster List</div>
+          <div v-for="item in cluster_list" :key="item"
+            style="margin-right: -10px; margin-left: 0px; line-height: 50px; text-align: left; ">
+            <div :class="test_tab_type(item)" v-on:click="show_cluster(item)"> {{ item }}</div>
+          </div>
+        </el-main>
+        <el-main style="width: 33%; background-color: #242424; overflow-y: scroll;">
+          <el-container v-if="connected">
+            <el-header>
+              Overall Resource
+            </el-header>
+            <el-main>
+              <el-container>
+                <el-main class="text-resource-block">
+                  <el-container>
+                    <el-header class="text-resource-image">
+                      <img src="assets/images/cpu.jpg" style="height: 50px;" alt="CPU" />
+                    </el-header>
+                    <el-main class="text-resource-num">
+                      {{resource_static["cpu"]}}
+                    </el-main>
+                    <el-main class="text-resource-type">
+                      CPU
+                    </el-main>
+                  </el-container>
+                </el-main>
+
+                <el-main class="text-resource-block">
+                  <el-container>
+                    <el-header class="text-resource-image">
+                      <img src="assets/images/memory.jpg" alt="Memory" />
+                    </el-header>
+                    <el-main class="text-resource-num">
+                      {{resource_static["memory"]}}
+                    </el-main>
+                    <el-main class="text-resource-type">
+                      Memory
+                    </el-main>
+                  </el-container>
+                </el-main>
+
+                <el-main class="text-resource-block">
+                  <el-container>
+                    <el-header class="text-resource-image">
+                      <img src="assets/images/gpu.jpg" alt="GPU" />
+                    </el-header>
+                    <el-main class="text-resource-num">
+                      {{resource_static["gpu"]}}
+                    </el-main>
+                    <el-main class="text-resource-type">
+                      GPU
+                    </el-main>
+                  </el-container>
+                </el-main>
+              </el-container>
+            </el-main>
+            <el-header>
+              {{status_header}}
+            </el-header>
+            <el-main v-if="dashboard_type=='process'">
+              <el-container direction="vertical">
+                <el-main>
+                  <div>CPU:</div>
+                  <div id="cpu-chart"></div>
+                  <br />
+                </el-main>
+                <el-main>
+                  <div>Memory:</div>
+                  <div id="memory-chart"></div>
+                  <br />
+                </el-main>
+                <el-main>
+                  <div>GPU:</div>
+                  <div id="gpu-chart"></div>
+                  <br />
+                </el-main>
+              </el-container>
+            </el-main>
+            <el-main v-else>
+              <el-container direction="horizontal">
+                <el-main class="text-resource-block">
+                  <el-container>
+                    <el-header class="text-resource-image">
+                      <img src="assets/images/cpu.jpg" alt="CPU" />
+                    </el-header>
+                    <el-main class="text-resource-num">
+                      {{resource_dynamic["cpu"][0]}}
+                    </el-main>
+                    <el-main class="text-resource-type">
+                      CPU
+                    </el-main>
+                  </el-container>
+                </el-main>
+
+                <el-main class="text-resource-block">
+                  <el-container>
+                    <el-header class="text-resource-image">
+                      <img src="assets/images/memory.jpg" alt="Memory" />
+                    </el-header>
+                    <el-main class="text-resource-num">
+                      {{resource_dynamic["memory"][0]}}
+                    </el-main>
+                    <el-main class="text-resource-type">
+                      Memory
+                    </el-main>
+                  </el-container>
+                </el-main>
+
+                <el-main class="text-resource-block">
+                  <el-container>
+                    <el-header class="text-resource-image">
+                      <img src="assets/images/gpu.jpg" alt="GPU" />
+                    </el-header>
+                    <el-main class="text-resource-num">
+                      {{resource_dynamic["gpu"][0]}}
+                    </el-main>
+                    <el-main class="text-resource-type">
+                      GPU
+                    </el-main>
+                  </el-container>
+                </el-main>
+
+              </el-container>
+            </el-main>
+          </el-container>
+        </el-main>
+        <el-main style="width: 55%;  background-color: #242424;">
+          <el-container direction="vertical">
+            <el-main>
+              <el-container direction="horizontal">
+                <el-main>
+                  <el-container v-if="connected" :class="test_job_type()">
+                    <el-header>
+                      Running Jobs <span class="dot"
+                        style="background-color: #b16bff; border-radius: 50%; height: 1rem; width: 1rem; display: inline-block;">
+                      </span>
+                    </el-header>
+                    <el-main>
+                      <div v-for="job_detail in job_running">
+                        <div class="tooltip" :style="'background:'+job_detail.color"
+                          v-on:mouseover="show_tooltip(job_detail.name)">
+                          {{job_detail.name}}
+                        </div>
+                        <div class="tooltiptext" :id="'tooltip-'+job_detail.name">
+                          <table style="margin: 1em;">
+                            <tr>
+                              <th>Component</th>
+                              <th>Num</th>
+                              <th>Command</th>
+                              <th v-if="job_detail.mode!='process'">Image</th>
+                              <th v-if="job_detail.mode!='process'">CPU</th>
+                              <th v-if="job_detail.mode!='process'">Memory</th>
+                              <th v-if="job_detail.mode!='process'">GPU</th>
+                            </tr>
+                            <tr v-for="component in Object.keys(job_detail.components)">
+                              <td>{{component}}</td>
+                              <td>{{job_detail.components[component]['num']}}</td>
+                              <td>{{job_detail.components[component]['command']}}</td>
+                              <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['image']}}</td>
+                              <td v-if="job_detail.mode!='process'">
+                                {{job_detail.components[component]['resources']['cpu']}}</td>
+                              <td v-if="job_detail.mode!='process'">
+                                {{job_detail.components[component]['resources']['memory']}}</td>
+                              <td v-if="job_detail.mode!='process'">
+                                {{job_detail.components[component]['resources']['gpu']}}</td>
+                            </tr>
+                          </table>
+                        </div>
+                      </div>
+                    </el-main>
+                  </el-container>
+                </el-main>
+
+                <el-main>
+                  <el-container v-if="connected" :class="test_job_type()">
+                    <el-header>
+                      Pending Jobs <span class="dot"
+                        style="background-color: #a1ff80; border-radius: 50%; height: 1rem; width: 1rem; display: inline-block;">
+                      </span>
+                    </el-header>
+                    <el-main>
+                      <div v-for="job_detail in job_pending">
+                        <div class="tooltip" :style="'background:'+job_detail.color"
+                          v-on:mouseover="show_tooltip(job_detail.name)">
+                          {{job_detail.name}}
+                        </div>
+                        <div class="tooltiptext" :id="'tooltip-'+job_detail.name">
+                          <table style="margin: 1em;">
+                            <tr>
+                              <th>Component</th>
+                              <th>Num</th>
+                              <th>Command</th>
+                              <th v-if="job_detail.mode!='process'">Image</th>
+                              <th v-if="job_detail.mode!='process'">CPU</th>
+                              <th v-if="job_detail.mode!='process'">Memory</th>
+                              <th v-if="job_detail.mode!='process'">GPU</th>
+                            </tr>
+                            <tr v-for="component in Object.keys(job_detail.components)">
+                              <td>{{component}}</td>
+                              <td>{{job_detail.components[component]['num']}}</td>
+                              <td>{{job_detail.components[component]['command']}}</td>
+                              <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['image']}}</td>
+                              <td v-if="job_detail.mode!='process'">
+                                {{job_detail.components[component]['resources']['cpu']}}</td>
+                              <td v-if="job_detail.mode!='process'">
+                                {{job_detail.components[component]['resources']['memory']}}</td>
+                              <td v-if="job_detail.mode!='process'">
+                                {{job_detail.components[component]['resources']['gpu']}}</td>
+                            </tr>
+                          </table>
+                        </div>
+                      </div>
+                    </el-main>
+                  </el-container>
+                </el-main>
+
+                <el-main>
+                  <el-container v-if="connected" :class="test_job_type()">
+                    <el-header>
+                      Killed Jobs <span class="dot"
+                        style="background-color: #80cbff; border-radius: 50%; height: 1rem; width: 1rem; display: inline-block;">
+                      </span>
+                    </el-header>
+                    <el-main>
+                      <div v-for="job_detail in job_killed">
+                        <div class="tooltip" :style="'background:'+job_detail.color"
+                          v-on:mouseover="show_tooltip(job_detail.name)">
+                          {{job_detail.name}}
+                        </div>
+                        <div class="tooltiptext" :id="'tooltip-'+job_detail.name">
+                          <table style="margin: 1em;">
+                            <tr>
+                              <th>Component</th>
+                              <th>Num</th>
+                              <th>Command</th>
+                              <th v-if="job_detail.mode!='process'">Image</th>
+                              <th v-if="job_detail.mode!='process'">CPU</th>
+                              <th v-if="job_detail.mode!='process'">Memory</th>
+                              <th v-if="job_detail.mode!='process'">GPU</th>
+                            </tr>
+                            <tr v-for="component in Object.keys(job_detail.components)">
+                              <td>{{component}}</td>
+                              <td>{{job_detail.components[component]['num']}}</td>
+                              <td>{{job_detail.components[component]['command']}}</td>
+                              <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['image']}}</td>
+                              <td v-if="job_detail.mode!='process'">
+                                {{job_detail.components[component]['resources']['cpu']}}</td>
+                              <td v-if="job_detail.mode!='process'">
+                                {{job_detail.components[component]['resources']['memory']}}</td>
+                              <td v-if="job_detail.mode!='process'">
+                                {{job_detail.components[component]['resources']['gpu']}}</td>
+                            </tr>
+                          </table>
+                        </div>
+                      </div>
+                    </el-main>
+                  </el-container>
+                </el-main>
+
+              </el-container>
+            </el-main>
+
+            <el-main>
+              <el-container direction="horizontal">
+                <el-main>
+                  <el-container v-if="connected" :class="test_job_type()">
+                    <el-header>
+                      Finish Jobs <span class="dot"
+                        style="background-color: #606669; border-radius: 50%; height: 1rem; width: 1rem; display: inline-block;">
+                      </span>
+                    </el-header>
+                    <el-main>
+                      <div v-for="job_detail in job_finish">
+                        <div class="tooltip" :style="'background:'+job_detail.color"
+                          v-on:mouseover="show_tooltip(job_detail.name)">
+                          {{job_detail.name}}
+                        </div>
+                        <div class="tooltiptext" :id="'tooltip-'+job_detail.name">
+                          <table style="margin: 1em;">
+                            <tr>
+                              <th>Component</th>
+                              <th>Num</th>
+                              <th>Command</th>
+                              <th v-if="job_detail.mode!='process'">Image</th>
+                              <th v-if="job_detail.mode!='process'">CPU</th>
+                              <th v-if="job_detail.mode!='process'">Memory</th>
+                              <th v-if="job_detail.mode!='process'">GPU</th>
+                            </tr>
+                            <tr v-for="component in Object.keys(job_detail.components)">
+                              <td>{{component}}</td>
+                              <td>{{job_detail.components[component]['num']}}</td>
+                              <td>{{job_detail.components[component]['command']}}</td>
+                              <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['image']}}</td>
+                              <td v-if="job_detail.mode!='process'">
+                                {{job_detail.components[component]['resources']['cpu']}}</td>
+                              <td v-if="job_detail.mode!='process'">
+                                {{job_detail.components[component]['resources']['memory']}}</td>
+                              <td v-if="job_detail.mode!='process'">
+                                {{job_detail.components[component]['resources']['gpu']}}</td>
+                            </tr>
+                          </table>
+                        </div>
+                      </div>
+                    </el-main>
+                  </el-container>
+                </el-main>
+
+                <el-main>
+                  <el-container v-if="connected" :class="test_job_type()">
+                    <el-header>
+                      Failed Jobs <span class="dot"
+                        style="background-color: #fe6361; border-radius: 50%; height: 1rem; width: 1rem; display: inline-block;">
+                      </span>
+                    </el-header>
+                    <el-main>
+                      <div v-for="job_detail in job_failed">
+                        <div class="tooltip" :style="'background:'+job_detail.color"
+                          v-on:mouseover="show_tooltip(job_detail.name)">
+                          {{job_detail.name}}
+                        </div>
+                        <div class="tooltiptext" :id="'tooltip-'+job_detail.name">
+                          <table style="margin: 1em;">
+                            <tr>
+                              <th>Component</th>
+                              <th>Num</th>
+                              <th>Command</th>
+                              <th v-if="job_detail.mode!='process'">Image</th>
+                              <th v-if="job_detail.mode!='process'">CPU</th>
+                              <th v-if="job_detail.mode!='process'">Memory</th>
+                              <th v-if="job_detail.mode!='process'">GPU</th>
+                            </tr>
+                            <tr v-for="component in Object.keys(job_detail.components)">
+                              <td>{{component}}</td>
+                              <td>{{job_detail.components[component]['num']}}</td>
+                              <td>{{job_detail.components[component]['command']}}</td>
+                              <td v-if="job_detail.mode!='process'">{{job_detail.components[component]['image']}}</td>
+                              <td v-if="job_detail.mode!='process'">
+                                {{job_detail.components[component]['resources']['cpu']}}</td>
+                              <td v-if="job_detail.mode!='process'">
+                                {{job_detail.components[component]['resources']['memory']}}</td>
+                              <td v-if="job_detail.mode!='process'">
+                                {{job_detail.components[component]['resources']['gpu']}}</td>
+                            </tr>
+                          </table>
+                        </div>
+                      </div>
+                    </el-main>
+                  </el-container>
+                </el-main>
+
+              </el-container>
+            </el-main>
+          </el-container>
+        </el-main>
+      </el-container>
+
+    </el-main>
+    <el-footer style="height:340px;" v-show="show_terminal">
+      <div>
+        <img src="assets/images/terminal.jpg" v-on:click="toggle_terminal" alt="terminal" class="tooltip"
+          v-on:mouseover="show_tooltip('terminal-2')"
+          style="background-color: #242424; border-radius: 10px; height: 40px; margin: 0px;" />
+        <div class="tooltiptext" id="tooltip-terminal-2" style="font-size: small;">
+          Click to toggle terminal.
+        </div>
+      </div>
+      <div id="terminal"></div>
+    </el-footer>
+  </el-container>
+
+  <script src="assets/js/jquery.3.5.1.min.js"></script>
+  <!-- Notes: Please keep all xterm.js related package version to 3.6.0 or will be connect failed.-->
+  <script src="https://unpkg.com/xterm@3.14.2/dist/xterm.js"></script>
+  <script src="https://unpkg.com/xterm@3.14.2/dist/addons/fit/fit.js"></script>
+  <script src="https://unpkg.com/xterm@3.14.2/dist/addons/webLinks/webLinks.js"></script>
+  <script src="https://unpkg.com/xterm@3.14.2/dist/addons/fullscreen/fullscreen.js"></script>
+  <script src="https://unpkg.com/xterm@3.14.2/dist/addons/search/search.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.1/socket.io.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.12/vue.js"></script>
+  <script src="https://unpkg.com/element-ui@2.15.1/lib/index.js"></script>
+  <script src="https://d3js.org/d3.v6.min.js"></script>
+  <script>
+    $(document).ready(function () {
+      let connected = false
+      let cur_tab = undefined
+
+      const vm = new Vue({
+        el: '#app',
+        data: function () {
+          return {
+            cluster_list: new Array(),
+            cluster_name: undefined,
+            show_terminal: true,
+            dashboard_type: "",
+            status_header: "Available Resource",
+            connected: false,
+            resource_static: {
+              "cpu": NaN,
+              "memory": NaN,
+              "gpu": NaN
+            },
+            resource_dynamic: {
+              "cpu": new Array(),
+              "memory": new Array(),
+              "gpu": new Array()
+            },
+            job_running: new Array(),
+            job_pending: new Array(),
+            job_killed: new Array(),
+            job_finish: new Array(),
+            job_failed: new Array(),
+          }
+        },
+        methods: {
+          show_cluster: function (message) {
+            if (cur_tab != undefined) {
+              clearInterval(cur_tab);
+            }
+            cur_tab = setInterval(() => {
+              if (connected) {
+                socket.emit('cluster_status', { cluster_name: message })
+              }
+            }, 1000)
+          },
+          test_tab_type: function (item_type) {
+            if (item_type == this.cluster_name) {
+              return "cur-tab";
+            }
+            else {
+              return "normal-tab";
+            }
+          },
+          toggle_terminal: function () {
+            this.show_terminal = !this.show_terminal;
+          },
+          test_dashboard_type: function () {
+            if (this.show_terminal) {
+              return "dashboard-normal";
+            }
+            else {
+              return "dashboard-full";
+            }
+          },
+          test_job_type: function () {
+            if (this.show_terminal) {
+              return "job-normal";
+            }
+            else {
+              return "job-full";
+            }
+          },
+          show_tooltip: function (item_name) {
+            d3.select('#tooltip-' + item_name)
+              .style('left', event.pageX + 'px')
+              .style('top', event.pageY + 'px');
+          }
+        }
+      })
+      setInterval(() => {
+        if (connected) {
+          socket.emit("cluster_list")
+        }
+      }, 1000)
+
+      // Load terminal addons.
+      Terminal.applyAddon(fullscreen)
+      Terminal.applyAddon(fit)
+      Terminal.applyAddon(webLinks)
+      Terminal.applyAddon(search)
+
+      // Create xterms.js terminal.
+      const waitMS = 50
+      const term = new Terminal({
+        cols: 75,
+        rows: 17,
+        cursorBlink: true,
+        macOptionIsMeta: true,
+        scrollback: true
+      })
+
+      // Create socket.io connection.
+      const socket = io.connect('/pty')
+
+      term.open(document.getElementById('terminal'))
+      term.fit()
+      socket.emit('resize', { cols: term.cols, rows: term.rows })
+
+      term.on('key', (key, ev) => {
+        socket.emit('pty-input', { input: key })
+      })
+      term.on('paste', function (text) {
+        socket.emit('pty-input', { input: text })
+      })
+
+      term.prompt = (content) => {
+        socket.emit('pty-input', { input: content })
+      }
+
+      socket.on('pty-output', function (data) {
+        console.log('new output', data)
+        term.write(data.output)
+      })
+
+      socket.on('connect', () => {
+        console.log('socket.io connected.')
+        connected = true
+      })
+
+      socket.on('disconnect', () => {
+        console.log('socket.io disconnected.')
+        connected = false
+      })
+
+      socket.on("cluster_list", (data) => {
+        vm.cluster_list = data
+      })
+
+      socket.on("cluster_status", (data) => {
+        console.log(data)
+        if (data != undefined) {
+          vm.connected = true
+          vm.cluster_name = data["cluster_name"]
+          vm.dashboard_type = data["dashboard_type"]
+          vm.resource_static = data["resource_static"]
+          vm.resource_dynamic = data["resource_dynamic"]
+          vm.status_header = vm.dashboard_type == "process" ? "Resource Utilization" : "Available Resource"
+          job_running = new Array()
+          job_pending = new Array()
+          job_killed = new Array()
+          job_finish = new Array()
+          job_failed = new Array()
+          data["job_detail_data"].forEach(job_detail => {
+            switch (job_detail["status"]) {
+              case "running": job_running.push(job_detail); if (job_running.length % 2 == 0) job_detail.color = "#2e2e2e"; else job_detail.color = "#242424"; break;
+              case "pending": job_pending.push(job_detail); if (job_pending.length % 2 == 0) job_detail.color = "#2e2e2e"; else job_detail.color = "#242424"; break;
+              case "killed": job_killed.push(job_detail); if (job_killed.length % 2 == 0) job_detail.color = "#2e2e2e"; else job_detail.color = "#242424"; break;
+              case "finish": job_finish.push(job_detail); if (job_finish.length % 2 == 0) job_detail.color = "#2e2e2e"; else job_detail.color = "#242424"; break;
+              case "failed": job_failed.push(job_detail); if (job_failed.length % 2 == 0) job_detail.color = "#2e2e2e"; else job_detail.color = "#242424"; break;
+              default: break;
+            }
+          });
+          vm.job_running = job_running
+          vm.job_pending = job_pending
+          vm.job_killed = job_killed
+          vm.job_finish = job_finish
+          vm.job_failed = job_failed
+
+          if (vm.dashboard_type == "process") {
+            draw_chart("cpu-chart", vm.resource_dynamic["cpu"])
+            draw_chart("memory-chart", vm.resource_dynamic["memory"])
+            draw_chart("gpu-chart", vm.resource_dynamic["gpu"])
+          }
+        }
+        else {
+          console.log("Can not get cluster status form server. Maybe cluster name issue or cluster shut down")
+          vm.connected = false
+        }
+      })
+
+      function fitToScreen() {
+        term.fit()
+        socket.emit('resize', { cols: term.cols, rows: term.rows })
+      }
+
+      function terminalResize(func, waitMS) {
+        let timeout
+        return function (...args) {
+          const context = this
+          clearTimeout(timeout)
+          timeout = setTimeout(() => func.apply(context, args), waitMS)
+        }
+      }
+
+      function draw_chart(chart_id, chart_data) {
+        function gen_color(specifier) {
+          let n = specifier.length / 6 | 0,
+            colors = new Array(n),
+            i = 0;
+          while (i < n) colors[i] = "#" + specifier.slice(i * 6, ++i * 6);
+          return colors;
+        }
+
+        let default_color = gen_color("97b7eeffc05993d586da393cf99841");
+        let color = d3.scaleOrdinal(default_color);
+
+        let chart_width = 400;
+        let chart_height = 180;
+        let chart_margin = {
+          left: 35,
+          top: 10,
+          right: 10,
+          bottom: 20,
+        };
+        d3.select("#" + chart_id)
+          .selectAll("*")
+          .remove();
+        var chart_root = d3
+          .select("#" + chart_id)
+          .style("width", "90%")
+          .append("svg")
+          .attr("viewBox", "0,0," + chart_width + "," + chart_height)
+          .append("g")
+          .attr("transform", "translate(" + chart_margin.left + "," + chart_margin.top + ")");
+
+        let x_min = Number.MAX_VALUE;
+        let x_max = 0;
+        let y_min = 0;
+        let y_max = 100;
+        let width = chart_width - chart_margin.left - chart_margin.right;
+        let height = chart_height - chart_margin.top - chart_margin.bottom;
+
+        let render_data = [];
+        for (let i = 0; i < chart_data.length; i++) {
+          let push_data = { x: i, y: chart_data[i] }
+          if (push_data.x > x_max) {
+            x_max = push_data.x;
+          }
+          if (push_data.x < x_min) {
+            x_min = push_data.x;
+          }
+          if (push_data.y > y_max) {
+            y_max = push_data.y;
+          }
+          if (push_data.y < y_min) {
+            y_min = push_data.y;
+          }
+          render_data.push(push_data);
+        }
+
+        let x = d3.scaleLinear().range([0, width]).domain([x_min, x_max]);
+        let y = d3.scaleLinear().range([height, 0]).domain([y_min, y_max]);
+        let e = chart_root.append("g");
+        let line = d3
+          .line()
+          .defined(d => !isNaN(d.y))
+          .x(function (d) {
+            return x(d.x);
+          })
+          .y(function (d) {
+            return y(d.y);
+          });
+
+        e.append("g")
+          .datum(render_data)
+          .append("path")
+          .style("stroke-width", "1px")
+          .style("stroke", color(0))
+          .style("fill", "none")
+          .style("pointer-events", "none")
+          .attr("d", function (d) {
+            return line(d);
+          });
+        let xAxis = d3.axisBottom().scale(x).ticks(5).tickFormat(d => {
+          let d_min = x_max - d + 1;
+          if (d_min >= 60) {
+            return `${(d_min / 60).toFixed(1)}H ago`;
+          }
+          else {
+            return `${d_min}M ago`;
+          }
+        });
+        e.append("g")
+          .attr("class", "x axis")
+          .attr("transform", "translate(" + 0 + "," + height + ")")
+          .call(xAxis);
+
+        let yAxis = d3.axisLeft().scale(y).ticks(5).tickFormat(d => {
+          return `${d}%`;
+        });
+        e.append("g")
+          .attr("class", "y axis")
+          .attr("transform", "translate(" + 0 + "," + 0 + ")")
+          .call(yAxis);
+
+      }
+
+      window.onresize = terminalResize(fitToScreen, waitMS)
+      term.write('Welcome to MARO.\r\n')
+      term.write('Repository: https://github.com/microsoft/maro\r\n')
+      term.write('Documentation: https://maro.readthedocs.io/en/latest/\r\n')
+      term.prompt('\n')
+    })
+  </script>
+</body>
+
+</html>

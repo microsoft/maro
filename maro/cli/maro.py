@@ -93,7 +93,7 @@ def main():
     # maro inspector
     parser_inspector = subparsers.add_parser(
         'inspector',
-        help=("Display visualization of post-experiment data."),
+        help=("Display visualization of experimental data."),
         parents=[global_parser]
     )
     parser_inspector.set_defaults(func=_help_func(parser=parser_inspector))
@@ -115,6 +115,15 @@ def main():
 
     parser_project.set_defaults(func=_help_func(parser=load_parser_project))
     load_parser_project(prev_parser=parser_project, global_parser=global_parser)
+
+    # maro admin
+    parser_admin = subparsers.add_parser(
+        "admin",
+        help="Manage maro admin tools."
+    )
+
+    parser_admin.set_defaults(func=_help_func(parser=parser_admin))
+    load_parser_admin(prev_parser=parser_admin, global_parser=global_parser)
 
     args = None
     try:
@@ -979,21 +988,21 @@ def load_parser_inspector(prev_parser: ArgumentParser, global_parser: ArgumentPa
     inspector_cmd_sub_parsers = prev_parser.add_subparsers()
 
     from maro.cli.inspector.env_data_process import start_vis
-    build_cmd_parser = inspector_cmd_sub_parsers.add_parser(
-        "env",
+    dashboard_cmd_parser = inspector_cmd_sub_parsers.add_parser(
+        "dashboard",
         fromfile_prefix_chars="@",
         help="Dashboard of selected env displayed.",
         parents=[global_parser]
     )
 
-    build_cmd_parser.add_argument(
+    dashboard_cmd_parser.add_argument(
         "--source_path",
         type=str,
         required=True,
         help="Folder path to load data, should be root path of snapshot folders. e.g. ~/project_root/dump_files/"
     )
 
-    build_cmd_parser.add_argument(
+    dashboard_cmd_parser.add_argument(
         "--force",
         type=str,
         required=False,
@@ -1001,7 +1010,38 @@ def load_parser_inspector(prev_parser: ArgumentParser, global_parser: ArgumentPa
         help="Overwrite the generated summary data or not: True/False."
     )
 
-    build_cmd_parser.set_defaults(func=start_vis)
+    dashboard_cmd_parser.set_defaults(func=start_vis)
+
+    from maro.cli.maro_real_time_vis.start_maro_geo_vis import start_geo_vis
+    geo_cmd_parser = inspector_cmd_sub_parsers.add_parser(
+        "geo",
+        fromfile_prefix_chars="@",
+        help="Geographic data display.",
+        parents=[global_parser]
+    )
+
+    geo_cmd_parser.add_argument(
+        "--start",
+        type=str,
+        help="Kind of container expected to start, Database or Service.",
+        required=True
+    )
+
+    geo_cmd_parser.add_argument(
+        "--experiment_name",
+        type=str,
+        required=False,
+        help="Name of experiment expected to be displayed."
+    )
+
+    geo_cmd_parser.add_argument(
+        "--front_end_port",
+        type=int,
+        required=False,
+        help="Specified port of front_end."
+    )
+
+    geo_cmd_parser.set_defaults(func=start_geo_vis)
 
 
 def load_parser_project(prev_parser: ArgumentParser, global_parser: ArgumentParser):
@@ -1018,6 +1058,36 @@ def load_parser_project(prev_parser: ArgumentParser, global_parser: ArgumentPars
 
     # This command do not accept arguments as normal, instead with a simple wizard.
     new_cmd_parser.set_defaults(func=new_project)
+
+
+def load_parser_admin(prev_parser: ArgumentParser, global_parser: ArgumentParser):
+    sub_parsers = prev_parser.add_subparsers()
+    # Start
+    from maro.cli.utils.node_admin import start_admin
+    start_parser = sub_parsers.add_parser(
+        "start",
+        help="Start MARO admin web server.",
+        parents=[global_parser])
+
+    start_parser.set_defaults(func=start_admin)
+
+    # Stop
+    from maro.cli.utils.node_admin import stop_admin
+    stop_parser = sub_parsers.add_parser(
+        "stop",
+        help="Stop MARO admin web server.",
+        parents=[global_parser])
+
+    stop_parser.set_defaults(func=stop_admin)
+
+    # Requirements
+    from maro.cli.utils.node_admin import requirements_admin
+    req_parser = sub_parsers.add_parser(
+        "req",
+        help="Install requirements for MARO admin web server.",
+        parents=[global_parser])
+
+    req_parser.set_defaults(func=requirements_admin)
 
 
 def _help_func(parser):

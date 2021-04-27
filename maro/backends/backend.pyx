@@ -126,3 +126,6 @@ cdef class BackendAbc:
 
     cdef list slots_not_equal(self, NODE_INDEX index, ATTR_TYPE attr_type, object value) except +:
         pass
+
+    cdef SLOT_INDEX get_slot_number(self, NODE_INDEX index, ATTR_TYPE attr_type) except +:
+        pass
