@@ -3,7 +3,7 @@
 
 import numpy as np
 import timeit
-from collections import defaultdict
+from collections import defaultdict, Counter
 from typing import List, Set
 
 from maro.data_lib import BinaryReader
@@ -28,6 +28,8 @@ class IlpAgent():
     ):
         self._simulation_logger = simulation_logger
         self._ilp_logger = ilp_logger
+        
+        self._allocation_counter = Counter()
 
         pm_capacity: List[IlpPmCapacity] = [IlpPmCapacity(core=pm[0], mem=pm[1]) for pm in pm_capacity]
         self.ilp = VmSchedulingILP(config=ilp_config, pm_capacity=pm_capacity, logger=ilp_logger, log_path=log_path)
@@ -48,12 +50,14 @@ class IlpAgent():
         self.refreshed_allocated_vm_dict = {}
 
         self.last_env_tick = -1
+        self._vm_id_to_idx = {}
         self.future_vm_req: List[IlpVmInfo] = []
         self.allocated_vm: List[IlpVmInfo] = []
 
     def choose_action(self, env_tick: int, cur_vm_id: int, live_vm_set_list: List[Set[int]]) -> Action:
         if env_tick != self.last_env_tick:
             self.last_env_tick = env_tick
+            self._vm_id_to_idx = {}
             self.future_vm_req.clear()
             self.allocated_vm.clear()
 
@@ -84,11 +88,8 @@ class IlpAgent():
                     )
                     if tick == env_tick:
                         self.refreshed_allocated_vm_dict[vm.vm_id] = vmInfo
+                    self._vm_id_to_idx[vm.vm_id] = len(self.future_vm_req)
                     self.future_vm_req.append(vmInfo)
-                    # self._simulation_logger.debug(
-                    #     f"[LP Agent] future_vm_req -- Tick {env_tick}, "
-                    #     f"vm id: {vm.vm_id}, core_req: {vm.vm_cpu_cores}, mem_req: {vm.vm_memory}"
-                    # )
 
             # Build the allocated_vm list for ILP.
             for pm_idx in range(len(live_vm_set_list)):
@@ -106,10 +107,11 @@ class IlpAgent():
         chosen_pm_idx = self.ilp.choose_pm(env_tick, cur_vm_id, self.allocated_vm, self.future_vm_req)
         self._simulation_logger.info(f"tick: {env_tick}, vm: {cur_vm_id} -> pm: {chosen_pm_idx}")
 
-        # chosen_pm_idx = NOT_ALLOCATE_NOW
-        # self._simulation_logger.info(f"tick: {env_tick}, vm: {cur_vm_id}")
-
         if chosen_pm_idx == NOT_ALLOCATE_NOW:
             return PostponeAction(vm_id=cur_vm_id, postpone_step=1)
         else:
+            self._allocation_counter[self.future_vm_req[self._vm_id_to_idx[cur_vm_id]].core] += 1
             return AllocateAction(vm_id=cur_vm_id, pm_id=chosen_pm_idx)
+
+    def report_allocation_summary(self):
+        self._simulation_logger.info(f"Allocation Counter: {sorted(self._allocation_counter.items())}")

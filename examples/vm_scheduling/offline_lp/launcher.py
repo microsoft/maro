@@ -88,4 +88,5 @@ if __name__ == "__main__":
         f" Start tick: {config.env.start_tick}."
     )
     simulation_logger.info(f"[Timer] {end_time - start_time:.2f} seconds to finish the simulation.")
+    ilp_agent.report_allocation_summary()
     simulation_logger.info(metrics)
