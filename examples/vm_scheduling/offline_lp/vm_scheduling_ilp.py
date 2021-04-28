@@ -7,7 +7,7 @@ from typing import List
 
 import math
 import numpy as np
-from pulp import GLPK, GUROBI_CMD, LpInteger, LpMaximize, LpProblem, LpStatus, LpVariable, lpSum
+from pulp import PULP_CBC_CMD, GLPK, GUROBI_CMD, LpInteger, LpMaximize, LpProblem, LpStatus, LpVariable, lpSum
 
 from maro.utils import DottableDict, Logger
 
@@ -26,13 +26,14 @@ class VmSchedulingILP():
         self._pm_num = len(self._pm_capacity)
 
         # LP solver.
-        if config.solver == "GUROBI":
-            # self._solver = GUROBI_CMD(path="/home/ham/opt/gurobi811/linux64/bin/gurobi.sh", msg=1, options=[("MIPgap", 0.9)])
-            # self._solver = GUROBI_CMD(path="/home/ham/opt/gurobi811/linux64/bin/gurobi_cl", msg=1, options=[("MIPgap", 0.9)])
-            self._solver = GUROBI_CMD(path="/home/ham/opt/gurobi811/linux64/bin/gurobi_cl", msg=1)
-        else:
-            msg = 1 if config.log.stdout_solver_message else 0
+        msg = 1 if config.log.stdout_solver_message else 0
+        if config.solver == "GLPK":
             self._solver = GLPK(msg=msg)
+        elif config.solver == "CBC":
+            self._solver = PULP_CBC_CMD(msg=msg)
+        else:
+            print(f"Solver {config.solver} not added in ILP, choose from [GLPK, CBC]")
+            exit(0)
 
         # For formulation and action application.
         self.plan_window_size = config.plan_window_size
