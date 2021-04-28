@@ -9,9 +9,9 @@ env:
   seed: 128
 
 ilp:
-  solver: GLPK  # GLPK, GUROBI
-  plan_window_size: 3
-  # apply_buffer_size: 5
+  solver: GLPK          # GLPK, CBC, GUROBI
+  plan_window_size: 20  # unit: tick
+  apply_buffer_size: 10  # unit: tick
   performance:
     core_safety_remaining_ratio: 0
     mem_safety_remaining_ratio: 0

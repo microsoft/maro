@@ -36,6 +36,7 @@ class VmSchedulingILP():
 
         # For formulation and action application.
         self.plan_window_size = config.plan_window_size
+        self.apply_buffer_size = config.apply_buffer_size
 
         # For performance.
         self.core_upper_ratio = 1 - config.performance.core_safety_remaining_ratio
@@ -50,8 +51,7 @@ class VmSchedulingILP():
         self.dump_infeasible_solution = config.log.dump_infeasible_solution
 
         # For problem formulation and application
-        self.last_env_tick = -1
-        self.last_vm_idx = -1
+        self.last_solution_env_tick = -1
 
     def _init_variables(self):
         def _init_with_shape(shape: tuple):
@@ -156,28 +156,20 @@ class VmSchedulingILP():
         vm_id: int,
         allocated_vm: List[IlpVmInfo],
         future_vm_req: List[IlpVmInfo],
+        vm_id_to_idx: dict,
     ) -> int:
         self._env_tick = env_tick
-        self._allocated_vm = allocated_vm
-        self._future_vm_req = future_vm_req
 
-        if env_tick != self.last_env_tick:
+        if self.last_solution_env_tick < 0 or self._env_tick >= self.last_solution_env_tick + self.apply_buffer_size:
+            self._allocated_vm = allocated_vm
+            self._future_vm_req = future_vm_req
+            self._vm_id_to_idx = vm_id_to_idx
+
             self._formulate_and_solve()
-            self.last_env_tick = env_tick
-            self.last_vm_idx = -1
+            self.last_solution_env_tick = self._env_tick
 
-        vm_idx = self.last_vm_idx + 1
-        while vm_idx < len(future_vm_req) and future_vm_req[vm_idx].id != vm_id:
-            vm_idx += 1
-
-        if vm_idx > self.last_vm_idx + 1:
-            self._logger.debug(
-                f"**** Tick {self._env_tick}, get vm_id: {vm_id} -- {vm_idx - self.last_vm_idx - 1} skipped."
-            )
-
-        assert vm_idx < len(future_vm_req) and future_vm_req[vm_idx].id == vm_id, \
-        f"Tick {self._env_tick}, get vm_id {vm_id} not in solution."
-        self.last_vm_idx = vm_idx
+        assert vm_id in self._vm_id_to_idx, f"Tick {self._env_tick}, get vm_id {vm_id} not in vm_id_to_idx!"
+        vm_idx = self._vm_id_to_idx[vm_id]
 
         for pm_idx in range(self._pm_num):
             if self._mapping[pm_idx][vm_idx].varValue:

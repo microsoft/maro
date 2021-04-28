@@ -4,6 +4,7 @@ import shutil
 import timeit
 from typing import List, Set
 
+import pprint
 import yaml
 
 from maro.simulator import Env
@@ -89,4 +90,4 @@ if __name__ == "__main__":
     )
     simulation_logger.info(f"[Timer] {end_time - start_time:.2f} seconds to finish the simulation.")
     ilp_agent.report_allocation_summary()
-    simulation_logger.info(metrics)
+    simulation_logger.info(pprint.pformat(metrics._original_dict))

@@ -34,6 +34,7 @@ class IlpAgent():
         pm_capacity: List[IlpPmCapacity] = [IlpPmCapacity(core=pm[0], mem=pm[1]) for pm in pm_capacity]
         self.ilp = VmSchedulingILP(config=ilp_config, pm_capacity=pm_capacity, logger=ilp_logger, log_path=log_path)
         self.ilp_plan_window_size = ilp_config.plan_window_size
+        self.ilp_apply_buffer_size = ilp_config.apply_buffer_size
 
         # Use the vm_item_picker to get the precise vm request info.
         self.vm_reader = BinaryReader(vm_table_path)
@@ -49,18 +50,20 @@ class IlpAgent():
         self.allocated_vm_dict = {}
         self.refreshed_allocated_vm_dict = {}
 
-        self.last_env_tick = -1
+        self.last_solution_env_tick = -1
         self._vm_id_to_idx = {}
         self.future_vm_req: List[IlpVmInfo] = []
         self.allocated_vm: List[IlpVmInfo] = []
 
     def choose_action(self, env_tick: int, cur_vm_id: int, live_vm_set_list: List[Set[int]]) -> Action:
-        if env_tick != self.last_env_tick:
-            self.last_env_tick = env_tick
+        # Formulate and solve only when the new request goes beyond the apply buffer size of last ILP solution.
+        if self.last_solution_env_tick < 0 or env_tick >= self.last_solution_env_tick + self.ilp_apply_buffer_size:
+            self.last_solution_env_tick = env_tick
             self._vm_id_to_idx = {}
             self.future_vm_req.clear()
             self.allocated_vm.clear()
 
+            # To clear the outdated vm_req_dict data.
             pop_num = 0
             for i, tick in enumerate(self.env_tick_in_vm_req_dict):
                 if tick < env_tick:
@@ -86,7 +89,7 @@ class IlpAgent():
                         lifetime=vm.vm_lifetime,
                         arrival_env_tick=tick
                     )
-                    if tick == env_tick:
+                    if tick < env_tick + self.ilp_apply_buffer_size:
                         self.refreshed_allocated_vm_dict[vm.vm_id] = vmInfo
                     self._vm_id_to_idx[vm.vm_id] = len(self.future_vm_req)
                     self.future_vm_req.append(vmInfo)
@@ -94,7 +97,7 @@ class IlpAgent():
             # Build the allocated_vm list for ILP.
             for pm_idx in range(len(live_vm_set_list)):
                 for vm_id in live_vm_set_list[pm_idx]:
-                    assert vm_id in self.allocated_vm_dict
+                    assert vm_id in self.allocated_vm_dict, f"ILP agent: vm_id {vm_id} not in allocated_vm_dict"
                     vm = self.allocated_vm_dict[vm_id]
                     vm.pm_idx = pm_idx
                     self.refreshed_allocated_vm_dict[vm_id] = vm
@@ -104,7 +107,9 @@ class IlpAgent():
             self.allocated_vm_dict = self.refreshed_allocated_vm_dict
             self.refreshed_allocated_vm_dict = {}
 
-        chosen_pm_idx = self.ilp.choose_pm(env_tick, cur_vm_id, self.allocated_vm, self.future_vm_req)
+        # Choose action by ILP, may trigger a new formulation and solution,
+        # may directly return the decision if the cur_vm_id is still in the apply buffer size of last solution.
+        chosen_pm_idx = self.ilp.choose_pm(env_tick, cur_vm_id, self.allocated_vm, self.future_vm_req, self._vm_id_to_idx)
         self._simulation_logger.info(f"tick: {env_tick}, vm: {cur_vm_id} -> pm: {chosen_pm_idx}")
 
         if chosen_pm_idx == NOT_ALLOCATE_NOW:
@@ -114,4 +119,4 @@ class IlpAgent():
             return AllocateAction(vm_id=cur_vm_id, pm_id=chosen_pm_idx)
 
     def report_allocation_summary(self):
-        self._simulation_logger.info(f"Allocation Counter: {sorted(self._allocation_counter.items())}")
+        self._simulation_logger.info(f"Allocation Counter(#core, #req): {sorted(self._allocation_counter.items())}")
