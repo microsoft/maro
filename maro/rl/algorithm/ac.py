@@ -8,12 +8,10 @@ import numpy as np
 import torch
 from torch.distributions import Categorical
 
+from maro.rl.experience import ExperienceMemory, ExperienceSet
 from maro.rl.model import PolicyValueNetForDiscreteActionSpace
-from maro.rl.utils import get_log_prob, get_torch_loss_cls
-
-from .abs_policy import AbsPolicy
-
-ACExperience = namedtuple("ACExperience", ["state", "action", "reward", "next_state"])
+from maro.rl.policy import AbsCorePolicy, TrainingLoopConfig
+from maro.rl.utils import get_torch_loss_cls
 
 
 class ActorCriticConfig:
@@ -43,7 +41,7 @@ class ActorCriticConfig:
         self.clip_ratio = clip_ratio
 
 
-class ActorCritic(AbsPolicy):
+class ActorCritic(AbsCorePolicy):
     """Actor Critic algorithm with separate policy and value models.
 
     References:
@@ -55,11 +53,17 @@ class ActorCritic(AbsPolicy):
             and state values.
         config: Configuration for the AC algorithm.
     """
-    def __init__(self, ac_net: PolicyValueNetForDiscreteActionSpace, config: ActorCriticConfig):
+    def __init__(
+        self,
+        ac_net: PolicyValueNetForDiscreteActionSpace,
+        experience_memory: ExperienceMemory,
+        generic_config: TrainingLoopConfig,
+        special_config: ActorCriticConfig
+    ):
         if not isinstance(ac_net, PolicyValueNetForDiscreteActionSpace):
             raise TypeError("model must be an instance of 'PolicyValueNetForDiscreteActionSpace'")
 
-        super().__init__(config)
+        super().__init__(experience_memory, generic_config, special_config)
         self.ac_net = ac_net
 
     def choose_action(self, states) -> Tuple[np.ndarray, np.ndarray]:
@@ -76,31 +80,37 @@ class ActorCritic(AbsPolicy):
         actions, log_p = actions.cpu().numpy(), log_p.cpu().numpy()
         return (actions[0], log_p[0]) if len(actions) == 1 else actions, log_p
 
-    def update(self, experience_obj: ACExperience):
-        if not isinstance(experience_obj, ACExperience):
-            raise TypeError(f"Expected experience object of type ACExperience, got {type(experience_obj)}")
+    def step(self, experience_set: ExperienceSet):
+        if not isinstance(experience_set, ExperienceSet):
+            raise TypeError(f"Expected experience object of type ACExperience, got {type(experience_set)}")
 
-        states, next_states = experience_obj.state, experience_obj.next_state
-        actions = torch.from_numpy(np.asarray([act[0] for act in experience_obj.action]))
-        log_p = torch.from_numpy(np.asarray([act[1] for act in experience_obj.action]))
-        rewards = torch.from_numpy(np.asarray(experience_obj.reward))
+        states, next_states = experience_set.states, experience_set.next_states
+        actions = torch.from_numpy(np.asarray([act[0] for act in experience_set.actions]))
+        log_p = torch.from_numpy(np.asarray([act[1] for act in experience_set.actions]))
+        rewards = torch.from_numpy(np.asarray(experience_set.rewards))
 
         state_values = self.ac_net(states, output_action_probs=False).detach().squeeze()
         next_state_values = self.ac_net(next_states, output_action_probs=False).detach().squeeze()
-        return_est = rewards + self.config.reward_discount * next_state_values
+        return_est = rewards + self.special_config.reward_discount * next_state_values
         advantages = return_est - state_values
         # actor loss
         action_prob, state_values = self.ac_net(states)
         log_p_new = torch.log(action_probs.gather(1, actions.unsqueeze(1)).squeeze())  # (N,)
-        if self.config.clip_ratio is not None:
+        if self.special_config.clip_ratio is not None:
             ratio = torch.exp(log_p_new - log_p)
-            clip_ratio = torch.clamp(ratio, 1 - self.config.clip_ratio, 1 + self.config.clip_ratio)
+            clip_ratio = torch.clamp(ratio, 1 - self.special_config.clip_ratio, 1 + self.special_config.clip_ratio)
             actor_loss = -(torch.min(ratio * advantages, clip_ratio * advantages)).mean()
         else:
             actor_loss = -(log_p_new * advantages).mean()
 
         # critic_loss
-        critic_loss = self.config.critic_loss_func(state_values, return_est)
-        loss = critic_loss + self.config.actor_loss_coefficient * actor_loss
+        critic_loss = self.special_config.critic_loss_func(state_values, return_est)
+        loss = critic_loss + self.special_config.actor_loss_coefficient * actor_loss
 
         self.ac_net.step(loss)
+
+    def update(self, policy_state):
+        self.ac_net.load_state_dict(policy_state)
+
+    def state(self):
+        return self.q_net.state_dict()

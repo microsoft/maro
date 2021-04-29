@@ -5,8 +5,8 @@ from os import getcwd
 from typing import Union
 
 from maro.communication import Proxy
-from maro.rl.multi_agent import MultiAgentPolicy 
-from maro.rl.training import AbsEnvWrapper
+from maro.rl.policy import MultiAgentPolicy 
+from maro.rl.env_wrapper import AbsEnvWrapper
 from maro.utils import Logger
 
 from .message_enums import MsgKey, MsgTag
@@ -29,13 +29,13 @@ class Actor(object):
         env: AbsEnvWrapper,
         policy: MultiAgentPolicy,
         group: str,
+        eval_env: AbsEnvWrapper = None,
         proxy_options: dict = None,
-        pull_experiences_with_copy: bool = False,
         log_dir: str = getcwd()
     ):
         self.env = env
+        self.eval_env = eval_env if eval_env else self.env
         self.policy = policy
-        self._pull_experiences_with_copy = pull_experiences_with_copy
         if proxy_options is None:
             proxy_options = {}
         self._proxy = Proxy(group, "actor", {"actor_manager": 1}, **proxy_options)
@@ -46,17 +46,17 @@ class Actor(object):
             if msg.tag == MsgTag.EXIT:
                 self._logger.info("Exiting...")
                 break
-            if msg.tag == MsgTag.ROLLOUT:
+
+            if msg.tag == MsgTag.COLLECT:
+                self.policy.train_mode()
                 rollout_index, segment_index = msg.body[MsgKey.ROLLOUT_INDEX], msg.body[MsgKey.SEGMENT_INDEX]
                 if self.env.state is None:
+                    self._logger.info(f"Training the policy with exploration parameters: {self.policy.exploration_params}")
                     self.env.reset()
-                    # Load exploration parameters
-                    if MsgKey.EXPLORATION_PARAMS in msg.body:
-                        self.policy.update_exploration_params(msg.body[MsgKey.EXPLORATION_PARAMS])
-                    self.env.start(rollout_index=rollout_index)  # get initial state
+                    self.env.start()  # get initial state
 
                 starting_step_index = self.env.step_index
-                self.policy.load(msg.body[MsgKey.POLICY])
+                self.policy.update(msg.body[MsgKey.POLICY])
                 steps_to_go = float("inf") if msg.body[MsgKey.NUM_STEPS] == -1 else msg.body[MsgKey.NUM_STEPS]
                 while self.env.state and steps_to_go > 0:
                     action = self.policy.choose_action(self.env.state)
@@ -67,7 +67,7 @@ class Actor(object):
                     f"Roll-out finished for ep {rollout_index}, segment {segment_index}"
                     f"(steps {starting_step_index} - {self.env.step_index})"
                 )
-                experiences, num_exp = self.env.pull_experiences(copy=self._pull_experiences_with_copy)
+                experiences, num_exp = self.env.get_experiences()
                 return_info = {
                     MsgKey.ENV_END: not self.env.state,
                     MsgKey.ROLLOUT_INDEX: rollout_index,
@@ -76,8 +76,27 @@ class Actor(object):
                     MsgKey.NUM_STEPS: self.env.step_index - starting_step_index,
                     MsgKey.NUM_EXPERIENCES: num_exp
                 }
+
                 if msg.body[MsgKey.RETURN_ENV_METRICS]:
                     return_info[MsgKey.METRICS] = self.env.metrics
                 if not self.env.state:
+                    self.policy.exploration_step()
                     return_info[MsgKey.TOTAL_REWARD] = self.env.total_reward
-                self._proxy.reply(msg, tag=MsgTag.ROLLOUT_DONE, body=return_info)
+                self._proxy.reply(msg, tag=MsgTag.COLLECT_DONE, body=return_info)
+            elif msg.tag == MsgTag.EVAL:
+                self._logger.info(f"Evaluating the policy")
+                self.policy.eval_mode()
+                self.eval_env.reset()
+                self.eval_env.start()  # get initial state
+
+                self.policy.update(msg.body[MsgKey.POLICY])
+                while self.eval_env.state:
+                    self.eval_env.step(self.policy.choose_action(self.eval_env.state))
+
+                self._logger.info(
+                    f"Roll-out finished for ep {rollout_index}, segment {segment_index}"
+                    f"(steps {starting_step_index} - {self.eval_env.step_index})"
+                )
+
+                return_info = {MsgKey.METRICS: self.env.metrics, MsgKey.TOTAL_REWARD: self.eval_env.total_reward}
+                self._proxy.reply(msg, tag=MsgTag.EVAL_DONE, body=return_info)

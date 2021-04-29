@@ -72,22 +72,22 @@ And performing one gradient step is simply:
   model.learn(critic_loss + actor_loss)
 
 
-Explorer
+Exploration
 --------
 
 MARO provides an abstraction for exploration in RL. Some RL algorithms such as DQN and DDPG require
-explicit exploration governed by a set of parameters. The ``AbsExplorer`` class is designed to cater
-to these needs. Simple exploration schemes, such as ``EpsilonGreedyExplorer`` for discrete action space
-and ``UniformNoiseExplorer`` and ``GaussianNoiseExplorer`` for continuous action space, are provided in
+explicit exploration governed by a set of parameters. The ``AbsExploration`` class is designed to cater
+to these needs. Simple exploration schemes, such as ``EpsilonGreedyExploration`` for discrete action space
+and ``UniformNoiseExploration`` and ``GaussianNoiseExploration`` for continuous action space, are provided in
 the toolkit.
 
-As an example, the exploration for DQN may be carried out with the aid of an ``EpsilonGreedyExplorer``:
+As an example, the exploration for DQN may be carried out with the aid of an ``EpsilonGreedyExploration``:
 
 .. code-block:: python
 
-  explorer = EpsilonGreedyExplorer(num_actions=10)
+  exploration = EpsilonGreedyExploration(num_actions=10)
   greedy_action = learning_model(state, training=False).argmax(dim=1).data
-  exploration_action = explorer(greedy_action)
+  exploration_action = exploration(greedy_action)
 
 
 Tools for Training

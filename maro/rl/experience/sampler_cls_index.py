@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from maro.rl.storage import UniformSampler
+from .sampler import UniformSampler
 
 SAMPLER = {
     "uniform": UniformSampler,

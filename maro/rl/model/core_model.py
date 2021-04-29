@@ -52,7 +52,7 @@ class AbsCoreModel(nn.Module):
         optim_option: Union[OptimOption, Dict[str, OptimOption]] = None
     ):
         super().__init__()
-        self._component = component if isinstance(component, nn.Module) else nn.ModuleDict(component)
+        self.component = component if isinstance(component, nn.Module) else nn.ModuleDict(component)
         if optim_option is None:
             self.optimizer = None
             self.scheduler = None
@@ -63,7 +63,7 @@ class AbsCoreModel(nn.Module):
             if isinstance(optim_option, dict):
                 self.optimizer = {}
                 for name, opt in optim_option.items():
-                    self.optimizer[name] = opt.optim_cls(self._component[name].parameters(), **opt.optim_params)
+                    self.optimizer[name] = opt.optim_cls(self.component[name].parameters(), **opt.optim_params)
                     if opt.scheduler_cls:
                         self.scheduler[name] = opt.scheduler_cls(self.optimizer[name], **opt.scheduler_params)
             else:
@@ -141,7 +141,7 @@ class QNetForDiscreteActionSpace(AbsCoreModel):
             the components. Defaults to None.
     """
     @abstractmethod
-    def forward(self, states, actions: torch.tensor) -> torch.tensor:
+    def forward(self, states) -> torch.tensor:
         raise NotImplementedError
 
     def choose_action(self, states):
@@ -153,10 +153,11 @@ class QNetForDiscreteActionSpace(AbsCoreModel):
         greedy_q, actions = q_for_all_actions.max(dim=1)
         return actions.detach(), greedy_q.detach()
 
-    @property
-    @abstractmethod
-    def num_actions(self):
-        raise NotImplementedError
+    def q_values(self, states, actions: torch.tensor):
+        if len(actions.shape) == 1:
+            actions = actions.unsqueeze(dim=1)
+        q_for_all_actions = self.forward(states)  # (batch_size, num_actions)
+        return q_for_all_actions.gather(1, actions).squeeze(dim=1)
 
 
 class PolicyNetForDiscreteActionSpace(AbsCoreModel):

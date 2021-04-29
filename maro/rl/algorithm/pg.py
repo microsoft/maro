@@ -7,10 +7,9 @@ import numpy as np
 import torch
 from torch.distributions import Categorical
 
-from maro.rl.model import ParameterizedPolicy
+from maro.rl.model import PolicyNetForDiscreteActionSpace
+from maro.rl.policy import AbsCorePolicy
 from maro.rl.utils import get_truncated_cumulative_reward
-
-from .abs_policy import AbsPolicy
 
 
 class PolicyGradientConfig:
@@ -25,7 +24,7 @@ class PolicyGradientConfig:
         self.reward_discount = reward_discount
 
 
-class PolicyGradient(AbsPolicy):
+class PolicyGradient(AbsCorePolicy):
     """The vanilla Policy Gradient (VPG) algorithm, a.k.a., REINFORCE.
 
     Reference: https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch.
@@ -40,28 +39,28 @@ class PolicyGradient(AbsPolicy):
             to be overwritten after its capacity has been reached. Must be "rolling" or "random".
         empty_experience_memory_after_step (bool): If True, the experience memory will be emptied  after each call
             to ``step``. Defaults to True.
-        min_new_experiences_to_trigger_learning (int): Minimum number of new experiences required to trigger learning.
+        new_experience_trigger (int): Minimum number of new experiences required to trigger learning.
             Defaults to 1.
-        min_experiences_to_trigger_learning (int): Minimum number of experiences in the experience memory required for
+        min_experiences_to_trigger_training (int): Minimum number of experiences in the experience memory required for
             training. Defaults to 1.
     """
     def __init__(
         self,
-        model: ParameterizedPolicy,
+        model: PolicyNetForDiscreteActionSpace,
         config: PolicyGradientConfig,
         experience_memory_size: int,
         experience_memory_overwrite_type: str,
         empty_experience_memory_after_step: bool = True,
-        min_new_experiences_to_trigger_learning: int = 1,
-        min_experiences_to_trigger_learning: int = 1
+        new_experience_trigger: int = 1,
+        min_experiences_to_trigger_training: int = 1
     ):  
-        if not isinstance(model, ParameterizedPolicyWithValueEstimator):
-            raise TypeError("model must be an instance of 'ParameterizedPolicy'")
+        if not isinstance(model, PolicyNetForDiscreteActionSpace):
+            raise TypeError("model must be an instance of 'PolicyNetForDiscreteActionSpace'")
         super().__init__(
             model, config, experience_memory_size, experience_memory_overwrite_type,
             empty_experience_memory_after_step,
-            min_new_experiences_to_trigger_learning=min_new_experiences_to_trigger_learning,
-            min_experiences_to_trigger_learning=min_experiences_to_trigger_learning
+            new_experience_trigger=new_experience_trigger,
+            min_experiences_to_trigger_training=min_experiences_to_trigger_training
         )
 
     def choose_action(self, state: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
@@ -87,7 +86,7 @@ class PolicyGradient(AbsPolicy):
     def step(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray):
         states = torch.from_numpy(states).to(self.device)
         actions = torch.from_numpy(actions).to(self.device)
-        returns = get_truncated_cumulative_reward(rewards, self.config.reward_discount)
+        returns = get_truncated_cumulative_reward(rewards, self.special_config.reward_discount)
         returns = torch.from_numpy(returns).to(self.device)
         action_distributions = self.model(states)
         action_prob = action_distributions.gather(1, actions.unsqueeze(1)).squeeze()   # (N, 1)

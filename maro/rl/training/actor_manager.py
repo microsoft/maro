@@ -3,6 +3,7 @@
 
 from collections import defaultdict
 from os import getcwd
+from random import choices
 from typing import Union
 
 from maro.communication import Proxy, SessionType
@@ -34,6 +35,7 @@ class ActorManager(object):
         log_dir: str = getcwd()
     ):
         super().__init__()
+        self.num_actors = num_actors
         peers = {"actor": num_actors}
         if proxy_options is None:
             proxy_options = {}
@@ -51,15 +53,12 @@ class ActorManager(object):
         segment_index: int,
         num_steps: int,
         policy_dict: dict = None,
-        exploration_params=None,
+        exploration=None,
         required_actor_finishes: int = None,
         discard_stale_experiences: bool = True,
         return_env_metrics: bool = False
     ):
         """Collect experiences from actors."""
-        if required_actor_finishes is None:
-            required_actor_finishes = len(self._actors)
-
         msg_body = {
             MsgKey.ROLLOUT_INDEX: rollout_index,
             MsgKey.SEGMENT_INDEX: segment_index,
@@ -68,24 +67,21 @@ class ActorManager(object):
             MsgKey.RETURN_ENV_METRICS: return_env_metrics
         }
 
-        if exploration_params:
-            msg_body[MsgKey.EXPLORATION_PARAMS] = exploration_params
-
         if self._log_env_metrics:
             self._logger.info(f"EPISODE-{rollout_index}, SEGMENT-{segment_index}: ")
             if exploration_params:
                 self._logger.info(f"exploration_params: {exploration_params}")
 
-        self._proxy.ibroadcast("actor", MsgTag.ROLLOUT, SessionType.TASK, body=msg_body)
-        self._logger.info(f"Sent roll-out requests for ep-{rollout_index}, segment-{segment_index}")
+        self._proxy.ibroadcast("actor", MsgTag.COLLECT, SessionType.TASK, body=msg_body)
+        self._logger.info(f"Sent collect requests for ep-{rollout_index}, segment-{segment_index}")
 
         # Receive roll-out results from remote actors
         num_finishes = 0
         for msg in self._proxy.receive():
-            if msg.body[MsgKey.ROLLOUT_INDEX] != rollout_index:
+            if msg.tag != MsgTag.COLLECT_DONE or msg.body[MsgKey.ROLLOUT_INDEX] != rollout_index:
                 self._logger.info(
-                    f"Ignore a message of type {msg.tag} with ep {msg.body[MsgKey.ROLLOUT_INDEX]} "
-                    f"(expected {rollout_index})"
+                    f"Ignore a message of type {msg.tag} with roll-out index {msg.body[MsgKey.ROLLOUT_INDEX]} "
+                    f"(expected message type {MsgTag.COLLECT} and roll-out index {rollout_index})"
                 )
                 continue
 
@@ -105,6 +101,38 @@ class ActorManager(object):
             if msg.body[MsgKey.SEGMENT_INDEX] == segment_index:
                 num_finishes += 1
                 if num_finishes == required_actor_finishes:
+                    break
+
+    def evaluate(self, rollout_index: int, policy_dict: dict, num_actors: int):
+        """Collect experiences from actors."""
+        msg_body = {
+            MsgKey.ROLLOUT_INDEX: rollout_index,
+            MsgKey.POLICY: policy_dict,
+            MsgKey.RETURN_ENV_METRICS: True
+        }
+
+        actors = choices(self._actors, k=num_actors)
+        self._proxy.iscatter(MsgTag.EVAL, SessionType.TASK, [(actor_id, msg_body) for actor_id in actors])
+        self._logger.info(f"Sent evaluation requests to {actors}")
+
+        # Receive roll-out results from remote actors
+        num_finishes = 0
+        for msg in self._proxy.receive():
+            if msg.tag != MsgTag.EVAL_DONE or msg.body[MsgKey.ROLLOUT_INDEX] != rollout_index:
+                self._logger.info(
+                    f"Ignore a message of type {msg.tag} with roll-out index {msg.body[MsgKey.ROLLOUT_INDEX]} "
+                    f"(expected message type {MsgTag.EVAL} and roll-out index {rollout_index})"
+                )
+                continue
+
+            # log roll-out summary
+            if self._log_env_metrics:
+                env_metrics = msg.body[MsgKey.METRICS]
+                self._logger.info(f"env_metrics: {env_metrics}")
+
+            if msg.body[MsgKey.SEGMENT_INDEX] == segment_index:
+                num_finishes += 1
+                if num_finishes == num_actors:
                     break
 
     def exit(self):

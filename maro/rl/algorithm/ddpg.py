@@ -7,13 +7,11 @@ from typing import Union
 import numpy as np
 import torch
 
-from maro.rl.exploration import NoiseExplorer
+from maro.rl.experience import ExperienceMemory, ExperienceSet
 from maro.rl.model import PolicyValueNetForContinuousActionSpace
+from maro.rl.policy import AbsCorePolicy, TrainingLoopConfig
 from maro.rl.utils import get_torch_loss_cls
 
-from .abs_policy import AbsPolicy
-
-DDPGExperience = namedtuple("DDPGExperience", ["state", "action", "reward", "next_state"])
 
 class DDPGConfig:
     """Configuration for the DDPG algorithm.
@@ -49,7 +47,7 @@ class DDPGConfig:
         self.soft_update_coefficient = soft_update_coefficient
 
 
-class DDPG(AbsPolicy):
+class DDPG(AbsCorePolicy):
     """The Deep Deterministic Policy Gradient (DDPG) algorithm.
 
     References:
@@ -60,33 +58,34 @@ class DDPG(AbsPolicy):
         ac_net (PolicyValueNetForContinuousActionSpace): DDPG policy and q-value models.
         config (DDPGConfig): Configuration for DDPG algorithm.
     """
-    def __init__(self, ac_net: PolicyValueNetForContinuousActionSpace, config: DDPGConfig, explorer: NoiseExplorer = None):
+    def __init__(
+        self,
+        ac_net: PolicyValueNetForContinuousActionSpace,
+        experience_memory: ExperienceMemory,
+        generic_config: TrainingLoopConfig,
+        special_config: DDPGConfig
+    ):
         if not isinstance(ac_net, PolicyValueNetForContinuousActionSpace):
             raise TypeError("model must be an instance of 'PolicyValueNetForContinuousActionSpace'")
 
-        super().__init__(config)
+        super().__init__(experience_memory, generic_config, special_config)
         self.ac_net = ac_net
         self.target_ac_net = ac_net.copy() if model.trainable else None
-        self._explorer = explorer
         self._train_cnt = 0
 
     def choose_action(self, states) -> Union[float, np.ndarray]:
         with torch.no_grad():
-            actions = self.ac_net.choose_action(states)
+            actions = self.ac_net.choose_action(states).cpu().numpy()
 
-        actions = actions.cpu().numpy()
-        if self._explorer:
-            action = self._explorer(action)
-        
         return actions[0] if len(actions) == 1 else actions
 
-    def update(self, experience_obj: DDPGExperience):
-        if not isinstance(experience_obj, DDPGExperience):
-            raise TypeError(f"Expected experience object of type DDPGExperience, got {type(experience_obj)}")
+    def step(self, experience_set: ExperienceSet):
+        if not isinstance(experience_set, ExperienceSet):
+            raise TypeError(f"Expected experience object of type DDPGExperience, got {type(experience_set)}")
 
-        states, next_states = experience_obj.state, experience_obj.next_state
-        actual_actions = torch.from_numpy(experience_obj.action)
-        rewards = torch.from_numpy(experience_obj.reward)
+        states, next_states = experience_set.states, experience_set.next_states
+        actual_actions = torch.from_numpy(experience_set.actions)
+        rewards = torch.from_numpy(experience_set.rewards)
         if len(actual_actions.shape) == 1:
             actual_actions = actual_actions.unsqueeze(dim=1)  # (N, 1)
 
@@ -96,11 +95,11 @@ class DDPG(AbsPolicy):
         next_q_values = self.target_ac_net(
             torch.cat([next_states, next_actions], dim=1), task_name="q_value", training=False
         ).squeeze(1)  # (N,)
-        target_q_values = (rewards + self.config.reward_discount * next_q_values).detach()  # (N,)
-        q_value_loss = self.config.q_value_loss_func(current_q_values, target_q_values)
+        target_q_values = (rewards + self.special_config.reward_discount * next_q_values).detach()  # (N,)
+        q_value_loss = self.special_config.q_value_loss_func(current_q_values, target_q_values)
         actions_from_model = self.ac_net(states, task_name="policy")
         policy_loss = -self.ac_net(torch.cat([states, actions_from_model], dim=1), task_name="q_value").mean()
-        self.ac_net.step(q_value_loss + self.config.policy_loss_coefficient * policy_loss)
+        self.ac_net.step(q_value_loss + self.special_config.policy_loss_coefficient * policy_loss)
         self._train_cnt += 1
-        if self._train_cnt % self.config.target_update_freq == 0:
-            self.target_ac_net.soft_update(self.ac_net, self.config.soft_update_coefficient)
+        if self._train_cnt % self.special_config.target_update_freq == 0:
+            self.target_ac_net.soft_update(self.ac_net, self.special_config.soft_update_coefficient)

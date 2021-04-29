@@ -2,18 +2,20 @@
 # Licensed under the MIT license.
 
 from abc import ABC, abstractmethod
+from typing import List
 
 import numpy as np
 
-from .abs_store import AbsStore
+from .experience_memory import ExperienceMemory
 
 
 class AbsSampler(ABC):
-    def __init__(self, data: AbsStore):
+    def __init__(self, data: ExperienceMemory, batch_size: int):
         self.data = data
+        self.batch_size = batch_size
 
     @abstractmethod
-    def sample(self, size: int):
+    def sample(self) -> List[int]:
         raise NotImplementedError
 
     @abstractmethod
@@ -23,12 +25,7 @@ class AbsSampler(ABC):
 
 
 class UniformSampler(AbsSampler):
-    def __init__(self, data, replace: bool = True):
-        super().__init__(data)
-        self.replace = replace
-
-    def sample(self, size: int):
-        """
+    """
         Obtain a random sample from the experience pool.
 
         Args:
@@ -39,9 +36,14 @@ class UniformSampler(AbsSampler):
         Returns:
             Sampled indexes and the corresponding objects,
             e.g., [1, 2, 3], ['a', 'b', 'c'].
-        """
-        indexes = np.random.choice(len(self.data), size=size, replace=self.replace)
-        return indexes, self.data.get(indexes=indexes)
+    """
+    def __init__(self, data: ExperienceMemory, batch_size: int, replace: bool = True):
+        super().__init__(data, batch_size)
+        self.replace = replace
+
+    def sample(self):
+        indexes = np.random.choice(len(self.data), size=self.batch_size, replace=self.replace)
+        return indexes
 
     def update(self, indexes, values):
         pass

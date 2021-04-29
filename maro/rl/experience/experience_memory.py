@@ -7,14 +7,54 @@ from typing import Callable, Dict, List, Tuple, Union
 import numpy as np
 
 from maro.utils import clone
-from maro.utils.exception.rl_toolkit_exception import StoreMisalignment
-
-from .abs_store import AbsStore
+from maro.utils.exception.rl_toolkit_exception import InvalidExperience
 
 
-class SimpleStore(AbsStore):
-    """
-    An implementation of ``AbsStore`` for experience storage in RL.
+class ExperienceSet:
+
+    __slots__ = ["states", "actions", "rewards", "next_states"]
+
+    def __init__(self, states: list, actions: list, rewards: list, next_states: list):
+        if not len(states) == len(actions) == len(rewards) == len(next_states):
+            raise InvalidExperience("values of contents should consist of lists of the same length")
+
+        self.states = states
+        self.actions = actions
+        self.rewards = rewards
+        self.next_states = next_states
+
+    def __len__(self):
+        return len(self.states)
+
+
+class Replay(object):
+    def __init__(self):
+        self.states = []
+        self.actions = []
+        self.rewards = []
+
+    def add(self, state, action):
+        self.states.append(state)
+        self.actions.append(action)
+
+    def take(self):
+        num_complete = min(len(self.rewards), len(self.states) - 1)
+        exp_set = ExperienceSet(
+            self.states[:num_complete],
+            self.actions[:num_complete],
+            self.rewards[:num_complete],
+            self.states[1:num_complete + 1]
+        )
+
+        del self.states[:num_complete]
+        del self.actions[:num_complete]
+        del self.rewards[:num_complete]
+
+        return exp_set
+
+
+class ExperienceMemory(object):
+    """Experience memory that stores RL experiences in the form of "state", "action", "reward", "next_state".
 
     This implementation uses a dictionary of lists as the internal data structure. The objects for each key
     are stored in a list. To be useful for experience storage in RL, uniformity checks are performed during
@@ -22,7 +62,6 @@ class SimpleStore(AbsStore):
     and limited storage are supported.
 
     Args:
-        keys (list): Keys to identify the stored lists of objects.
         capacity (int): If negative, the store is of unlimited capacity. Defaults to -1.
         overwrite_type (str): If storage capacity is bounded, this specifies how existing entries
             are overwritten when the capacity is exceeded. Two types of overwrite behavior are supported:
@@ -30,14 +69,15 @@ class SimpleStore(AbsStore):
             - "random", where overwrite occurs randomly among filled positions.
             Alternatively, the user may also specify overwrite positions (see ``put``).
     """
-    def __init__(self, keys: list, capacity: int = -1, overwrite_type: str = None):
+    def __init__(self, capacity: int = -1, overwrite_type: str = None):
         super().__init__()
         if overwrite_type not in {"rolling", "random"}:
             raise ValueError(f"overwrite_type must be 'rolling' or 'random', got {overwrite_type}")
-        self.keys = keys
         self._capacity = capacity
         self._overwrite_type = overwrite_type
-        self.data = {key: [] if self._capacity == -1 else [None] * self._capacity for key in self.keys}
+        self.data = {
+            key: [] if self._capacity == -1 else [None] * self._capacity for key in ExperienceSet.__slots__
+        }
         self._size = 0
 
     def __len__(self):
@@ -60,12 +100,13 @@ class SimpleStore(AbsStore):
         """An string indicating the overwrite behavior when the store capacity is exceeded."""
         return self._overwrite_type
 
-    def get(self, indexes: [int] = None) -> dict:
+    def get(self, indexes: [int] = None) -> ExperienceSet:
         if indexes is None:
-            return self.data
-        return {k: [self.data[k][i] for i in indexes] for k in self.data}
+            return ExperienceSet(*[self.data[k] for k in ExperienceSet.__slots__])
 
-    def put(self, contents: Dict[str, List], overwrite_indexes: list = None) -> List[int]:
+        return ExperienceSet(*[[self.data[k][i] for i in indexes] for k in ExperienceSet.__slots__])
+
+    def put(self, experience_set: ExperienceSet, overwrite_indexes: list = None) -> List[int]:
         """Put new contents in the store.
 
         Args:
@@ -78,46 +119,26 @@ class SimpleStore(AbsStore):
         Returns:
             The indexes where the newly added entries reside in the store.
         """
-        if len(self.data) > 0:
-            expected_keys, actual_keys = set(self.data.keys()), set(contents.keys())
-            if expected_keys != actual_keys:
-                raise StoreMisalignment(f"expected keys {expected_keys}, got {actual_keys}")
-        self.validate(contents)
-        added = contents[next(iter(contents))]
-        added_size = len(added) if isinstance(added, list) else 1
+        added_size = len(experience_set)
         if self._capacity == -1:
-            for key, val in contents.items():
-                self.data[key].extend(val)
+            for key in self.data:
+                self.data[key].extend(getattr(experience_set, key))
             self._size += added_size
             return list(range(self._size - added_size, self._size))
         else:
             write_indexes = self._get_update_indexes(added_size, overwrite_indexes=overwrite_indexes)
-            self.update(write_indexes, contents)
+            for key in self.data:
+                for index, value in zip(write_indexes, getattr(experience_set, key)):
+                    self.data[key][index] = value
+
             self._size = min(self._capacity, self._size + added_size)
             return write_indexes
 
-    def update(self, indexes: list, contents: Dict[str, List]):
-        """
-        Update contents at given positions.
-
-        Args:
-            indexes (list): Positions where updates are to be made.
-            contents (dict): Contents to write to the internal store at given positions. It is subject to
-                uniformity checks to ensure that all values have the same length.
-
-        Returns:
-            The indexes where store contents are updated.
-        """
-        self.validate(contents)
-        for key, val in contents.items():
-            for index, value in zip(indexes, val):
-                self.data[key][index] = value
-
-        return indexes
-
     def clear(self):
         """Empty the store."""
-        self.data = {key: [] if self._capacity == -1 else [None] * self._capacity for key in self.keys}
+        self.data = {
+            key: [] if self._capacity == -1 else [None] * self._capacity for key in ExperienceSet.__slots__
+        }
         self._size = 0
 
     def dumps(self):
@@ -149,13 +170,3 @@ class SimpleStore(AbsStore):
                 write_indexes = list(range(self._size, self._capacity)) + list(random_indexes)
 
         return write_indexes
-
-    @staticmethod
-    def validate(contents: Dict[str, List]):
-        # Ensure that all values are lists of the same length.
-        if any(not isinstance(val, list) for val in contents.values()):
-            raise TypeError("All values must be of type 'list'")
-
-        reference_val = contents[list(contents.keys())[0]]
-        if any(len(val) != len(reference_val) for val in contents.values()):
-            raise StoreMisalignment("values of contents should consist of lists of the same length")

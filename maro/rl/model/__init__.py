@@ -3,7 +3,7 @@
 
 from .abs_block import AbsBlock
 from .fc_block import FullyConnectedBlock
-from .learning_model import (
+from .core_model import (
     AbsCoreModel, OptimOption, PolicyNetForDiscreteActionSpace, PolicyValueNetForContinuousActionSpace,
     PolicyValueNetForDiscreteActionSpace, QNetForDiscreteActionSpace
 )

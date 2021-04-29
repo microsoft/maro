@@ -3,36 +3,22 @@
 
 import argparse
 import sys
-import time
 import yaml
 from multiprocessing import Process
 from os import getenv, makedirs
 from os.path import dirname, join, realpath
 
-from maro.rl import (
-    Actor, ActorManager, DistLearner, FullyConnectedBlock, LinearParameterScheduler, MultiAgentWrapper,
-    OptimOption, SimpleMultiHeadModel
-)
+from maro.rl import Actor, ActorManager, Learner, MultiAgentPolicy
 from maro.simulator import Env
 from maro.utils import set_seeds
 
 sc_code_dir = dirname(realpath(__file__))
 sys.path.insert(0, sc_code_dir)
+from config import config
 from env_wrapper import SCEnvWrapper
-from agent import get_agent_func_map
+from exploration import exploration_dict, agent_to_exploration
+from policies import policy_dict, agent_to_policy
 
-
-# Read the configuration
-DEFAULT_CONFIG_PATH = join(sc_code_dir, "config.yml")
-with open(getenv("CONFIG_PATH", default=DEFAULT_CONFIG_PATH), "r") as config_file:
-    config = yaml.safe_load(config_file)
-
-get_producer_agent = get_agent_func_map[config["agent"]["producer"]["algorithm"]]
-get_consumer_agent = get_agent_func_map[config["agent"]["consumer"]["algorithm"]]
-
-# Get the env config path
-topology = config["training"]["env"]["topology"]
-config["training"]["env"]["topology"] = join(sc_code_dir, "topologies", topology)
 
 # for distributed / multi-process training
 GROUP = getenv("GROUP", default=config["distributed"]["group"])
@@ -45,45 +31,43 @@ makedirs(log_dir, exist_ok=True)
 
 
 def sc_learner():
-    # create agents that update themselves using experiences collected from the actors.
-    env = SCEnvWrapper(Env(**config["training"]["env"]))
-    config["agent"]["producer"]["model"]["input_dim"] = config["agent"]["consumer"]["model"]["input_dim"] = env.dim
-    producers = {f"producer.{info.id}": get_producer_agent(config["agent"]["producer"]) for info in env.agent_idx_list}
-    consumers = {f"consumer.{info.id}": get_consumer_agent(config["agent"]["consumer"]) for info in env.agent_idx_list}
-    agent = MultiAgentWrapper({**producers, **consumers})
+    # create a multi-agent policy.
+    policy = MultiAgentPolicy(
+        policy_dict,
+        agent_to_policy,
+        exploration_dict=exploration_dict,
+        agent_to_exploration=agent_to_exploration
+    )
 
-    # exploration schedule
-    scheduler = LinearParameterScheduler(config["training"]["num_episodes"], **config["training"]["exploration"])
-    
     # create an actor manager to collect simulation data from multiple actors
     actor_manager = ActorManager(
         NUM_ACTORS, GROUP, proxy_options={"redis_address": (REDIS_HOST, REDIS_PORT), "log_enable": False},
         log_dir=log_dir
     )
 
-    # create a learner to start the training process
-    learner = DistLearner(
-        agent, scheduler, actor_manager,
-        agent_update_interval=config["training"]["agent_update_interval"],
+    # create a learner to start training
+    learner = Learner(
+        policy, None, config["num_episodes"],
+        actor_manager=actor_manager,
+        policy_update_interval=config["policy_update_interval"],
+        eval_points=config["eval_points"],
         required_actor_finishes=config["distributed"]["required_actor_finishes"],
-        discard_stale_experiences=config["distributed"]["discard_stale_experiences"],
-        log_dir=log_dir
+        log_env_metrics=config["log_env_metrics"]
     )
     learner.run()
 
 
 def sc_actor():
     # create an env wrapper for roll-out and obtain the input dimension for the agents
-    env = SCEnvWrapper(Env(**config["training"]["env"]))
-    config["agent"]["producer"]["model"]["input_dim"] = config["agent"]["consumer"]["model"]["input_dim"] = env.dim
-
-    # create agents to interact with the env
-    producers = {f"producer.{info.id}": get_producer_agent(config["agent"]["producer"]) for info in env.agent_idx_list}
-    consumers = {f"consumer.{info.id}": get_consumer_agent(config["agent"]["consumer"]) for info in env.agent_idx_list}
-    agent = MultiAgentWrapper({**producers, **consumers})
-
+    env = SCEnvWrapper(Env(**config["env"]))
+    policy = MultiAgentPolicy(
+        policy_dict,
+        agent_to_policy,
+        exploration_dict=exploration_dict,
+        agent_to_exploration=agent_to_exploration
+    )
     # create an actor that collects simulation data for the learner.
-    actor = Actor(env, agent, GROUP, proxy_options={"redis_address": (REDIS_HOST, REDIS_PORT)}, log_dir=log_dir)
+    actor = Actor(env, policy, GROUP, proxy_options={"redis_address": (REDIS_HOST, REDIS_PORT)}, log_dir=log_dir)
     actor.run()
 
 

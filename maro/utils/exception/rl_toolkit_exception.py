@@ -4,9 +4,11 @@
 from .base_exception import MAROException
 
 
-class StoreMisalignment(MAROException):
-    """Raised when a ``put`` operation on a ``SimpleStore`` would cause the underlying lists to have different
-    sizes."""
+class InvalidExperience(MAROException):
+    """
+    Raised when the states, actions, rewards and next states passed to an ``ExperienceSet`` do not 
+    have the same length.
+    """
     def __init__(self, msg: str = None):
         super().__init__(4000, msg)
 
