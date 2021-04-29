@@ -43,7 +43,7 @@ The main attributes of a message instance include:
    message = Message(tag="check_in",
                      source="worker_001",
                      destination="master",
-                     payload="")
+                     body="")
 
 Session Message
 ^^^^^^^^^^^^^^^
@@ -71,13 +71,13 @@ The stages of each session are maintained internally by the proxy.
    task_message = SessionMessage(tag="sum",
                                  source="master",
                                  destination="worker_001",
-                                 payload=[0, 1, 2, ...],
+                                 body=[0, 1, 2, ...],
                                  session_type=SessionType.TASK)
 
    notification_message = SessionMessage(tag="check_out",
                                          source="worker_001",
                                          destination="master",
-                                         payload="",
+                                         body="",
                                          session_type=SessionType.NOTIFICATION)
 
 Communication Primitives

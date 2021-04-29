@@ -7,6 +7,7 @@ from typing import Callable, Sequence
 
 class AbsStore(ABC):
     """A data store abstraction that supports get, put, update and sample operations."""
+
     def __init__(self):
         pass
 
@@ -50,22 +51,8 @@ class AbsStore(ABC):
 
         Args:
             filters (Sequence[Callable]): Filter list, each item is a lambda function,
-                                          e.g., [lambda d: d['a'] == 1 and d['b'] == 1].
+                                        e.g., [lambda d: d['a'] == 1 and d['b'] == 1].
         Returns:
             Filtered indexes and corresponding objects.
-        """
-        pass
-
-    @abstractmethod
-    def sample(self, size: int, weights: Sequence, replace: bool = True):
-        """Obtain a random sample from the experience pool.
-
-        Args:
-            size (int): Sample sizes for each round of sampling in the chain. If this is a single integer, it is
-                        used as the sample size for all samplers in the chain.
-            weights (Sequence): A sequence of sampling weights.
-            replace (bool): If True, sampling is performed with replacement. Defaults to True.
-        Returns:
-            A random sample from the experience pool.
         """
         pass

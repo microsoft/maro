@@ -3,7 +3,7 @@
 
 import unittest
 
-from maro.rl import SimpleStore, OverwriteType
+from maro.rl import SimpleStore
 
 
 class TestUnboundedStore(unittest.TestCase):
@@ -44,7 +44,7 @@ class TestUnboundedStore(unittest.TestCase):
 
 class TestFixedSizeStore(unittest.TestCase):
     def test_put_with_rolling_overwrite(self):
-        store = SimpleStore(["a", "b", "c"], capacity=5, overwrite_type=OverwriteType.ROLLING)
+        store = SimpleStore(["a", "b", "c"], capacity=5, overwrite_type="rolling")
         indexes = store.put({"a": [1, 2, 3], "b": [4, 5, 6], "c": [7, 8, 9]})
         expected = [0, 1, 2]
         self.assertEqual(indexes, expected, msg=f"expected indexes = {expected}, got {indexes}")
@@ -56,7 +56,7 @@ class TestFixedSizeStore(unittest.TestCase):
         self.assertEqual(actual, expected, msg=f"expected store content = {expected}, got {actual}")
 
     def test_put_with_random_overwrite(self):
-        store = SimpleStore(["a", "b", "c"], capacity=5, overwrite_type=OverwriteType.RANDOM)
+        store = SimpleStore(["a", "b", "c"], capacity=5, overwrite_type="random")
         indexes = store.put({"a": [1, 2, 3], "b": [4, 5, 6], "c": [7, 8, 9]})
         indexes_2 = store.put({"a": [10, 11, 12, 13], "b": [14, 15, 16, 17], "c": [18, 19, 20, 21]})
         for i in indexes_2[2:]:

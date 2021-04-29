@@ -40,7 +40,7 @@ class LinearParameterScheduler(Scheduler):
         elif isinstance(end, (list, tuple)):
             end = np.asarray(end)
 
-        self._delta = (end - self._current_values) / (self._max_iter - 1)
+        self._delta = (end - self._current_values) / (self._max_iter - 1) if self._max_iter != 1 else 0
 
     def next_params(self):
         current_values = self._current_values.copy()
@@ -97,8 +97,9 @@ class TwoPhaseLinearParameterScheduler(Scheduler):
         elif isinstance(end, (list, tuple)):
             end = np.asarray(end)
 
-        self._delta_1 = (mid - self._current_values) / self._split
-        self._delta_2 = (end - mid) / (max_iter - self._split - 1)
+        self._delta_1 = (mid - self._current_values) / self._split if self._split else 0
+        phase_2_eps = self._max_iter - self._split - 1
+        self._delta_2 = (end - mid) / phase_2_eps if phase_2_eps else 0
 
     def next_params(self):
         current_values = self._current_values.copy()

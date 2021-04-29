@@ -272,7 +272,6 @@ class RegisterTable:
 
         for event, handler_fn in self._event_handler_dict.items():
             message_list = event.get_qualified_message()
-
             if message_list:
                 satisfied_handler_fn.append((handler_fn, message_list))
 

@@ -75,10 +75,10 @@ class MaIlpAgent():
             event_type = finished_events[self._next_event_idx].event_type
             if event_type == CitiBikeEvents.RequireBike:
                 # TODO: Replace it with a pre-defined PayLoad.
-                payload = finished_events[self._next_event_idx].payload
+                payload = finished_events[self._next_event_idx].body
                 demand_history[interval_idx, payload.src_station] += 1
             elif event_type == CitiBikeEvents.ReturnBike:
-                payload: BikeReturnPayload = finished_events[self._next_event_idx].payload
+                payload: BikeReturnPayload = finished_events[self._next_event_idx].body
                 supply_history[interval_idx, payload.to_station_idx] += payload.number
 
             # Update the index to the finished event that has not been processed.
@@ -129,7 +129,7 @@ class MaIlpAgent():
             # Process to get the future supply from Pending Events.
             for pending_event in ENV.get_pending_events(tick=tick):
                 if pending_event.event_type == CitiBikeEvents.ReturnBike:
-                    payload: BikeReturnPayload = pending_event.payload
+                    payload: BikeReturnPayload = pending_event.body
                     supply[interval_idx, payload.to_station_idx] += payload.number
 
         return demand, supply

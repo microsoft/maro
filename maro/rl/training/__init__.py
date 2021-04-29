@@ -1,9 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from .actor import Actor
-from .actor_proxy import ActorProxy
-from .learner import AbsLearner, OffPolicyLearner, OnPolicyLearner
-from .trajectory import Trajectory
+from .env_wrapper import AbsEnvWrapper
+from .learner import Learner
 
-__all__ = ["AbsLearner", "Actor", "ActorProxy", "OffPolicyLearner", "OnPolicyLearner", "Trajectory"]
+__all__ = ["AbsEnvWrapper", "Learner"]

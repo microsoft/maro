@@ -2,58 +2,73 @@
 # Licensed under the MIT license.
 
 import argparse
-from collections import defaultdict
+import yaml
 from multiprocessing import Process
+from os import getenv
+from os.path import dirname, join, realpath
 
 from maro.rl import (
-    Actor, ActorProxy, DQN, DQNConfig, FullyConnectedBlock, MultiAgentWrapper, OffPolicyLearner,
+    Actor, ActorManager, DQN, DQNConfig, DistLearner, FullyConnectedBlock, MultiAgentWrapper, OptimOption,
     SimpleMultiHeadModel, TwoPhaseLinearParameterScheduler
 )
 from maro.simulator import Env
 from maro.utils import set_seeds
 
-from examples.cim.common import CIMTrajectory, common_config
-from examples.cim.dqn.config import agent_config, training_config
+from examples.cim.env_wrapper import CIMEnvWrapper
+
+
+DEFAULT_CONFIG_PATH = join(dirname(realpath(__file__)), "config.yml")
+with open(getenv("CONFIG_PATH", default=DEFAULT_CONFIG_PATH), "r") as config_file:
+    config = yaml.safe_load(config_file)
+
+# model input and output dimensions
+IN_DIM = (
+    (config["shaping"]["look_back"] + 1) *
+    (config["shaping"]["max_ports_downstream"] + 1) *
+    len(config["shaping"]["port_attributes"]) +
+    len(config["shaping"]["vessel_attributes"])
+)
+OUT_DIM = config["shaping"]["num_actions"]
+
+# for distributed / multi-process training
+GROUP = getenv("GROUP", default=config["distributed"]["group"])
+REDIS_HOST = getenv("REDISHOST", default=config["distributed"]["redis_host"])
+REDIS_PORT = getenv("REDISPORT", default=config["distributed"]["redis_port"])
+NUM_ACTORS = int(getenv("NUMACTORS", default=config["distributed"]["num_actors"]))
 
 
 def get_dqn_agent():
+    cfg = config["agent"]
     q_model = SimpleMultiHeadModel(
-        FullyConnectedBlock(**agent_config["model"]), optim_option=agent_config["optimization"]
+        FullyConnectedBlock(input_dim=IN_DIM, output_dim=OUT_DIM, **cfg["model"]),
+        optim_option=OptimOption(**cfg["optimization"])
     )
-    return DQN(q_model, DQNConfig(**agent_config["hyper_params"]))
-
-
-class CIMTrajectoryForDQN(CIMTrajectory):
-    def on_finish(self):
-        exp_by_agent = defaultdict(lambda: defaultdict(list))
-        for i in range(len(self.trajectory["state"]) - 1):
-            agent_id = list(self.trajectory["state"][i].keys())[0]
-            exp = exp_by_agent[agent_id]
-            exp["S"].append(self.trajectory["state"][i][agent_id])
-            exp["A"].append(self.trajectory["action"][i][agent_id])
-            exp["R"].append(self.get_offline_reward(self.trajectory["event"][i]))
-            exp["S_"].append(list(self.trajectory["state"][i + 1].values())[0])
-
-        return dict(exp_by_agent)
+    return DQN(q_model, DQNConfig(**cfg["algorithm"]), **cfg["experience_memory"])
 
 
 def cim_dqn_learner():
-    env = Env(**training_config["env"])
-    agent = MultiAgentWrapper({name: get_dqn_agent() for name in env.agent_idx_list})
-    scheduler = TwoPhaseLinearParameterScheduler(training_config["max_episode"], **training_config["exploration"])
-    actor = ActorProxy(
-        training_config["group"], training_config["num_actors"],
-        update_trigger=training_config["learner_update_trigger"]
+    agent = MultiAgentWrapper({name: get_dqn_agent() for name in Env(**config["training"]["env"]).agent_idx_list})
+    scheduler = TwoPhaseLinearParameterScheduler(config["training"]["max_episode"], **config["training"]["exploration"])
+    actor_manager = ActorManager(
+        NUM_ACTORS, GROUP, proxy_options={"redis_address": (REDIS_HOST, REDIS_PORT), "log_enable": False}
     )
-    learner = OffPolicyLearner(actor, scheduler, agent, **training_config["training"])
+    learner = DistLearner(
+        agent, scheduler, actor_manager,
+        agent_update_interval=config["training"]["agent_update_interval"],
+        required_actor_finishes=config["distributed"]["required_actor_finishes"],
+        discard_stale_experiences=False
+    )
     learner.run()
 
 
 def cim_dqn_actor():
-    env = Env(**training_config["env"])
+    env = Env(**config["training"]["env"])
     agent = MultiAgentWrapper({name: get_dqn_agent() for name in env.agent_idx_list})
-    actor = Actor(env, agent, CIMTrajectoryForDQN, trajectory_kwargs=common_config)
-    actor.as_worker(training_config["group"])
+    actor = Actor(
+        CIMEnvWrapper(env, **config["shaping"]), agent, GROUP,
+        proxy_options={"redis_address": (REDIS_HOST, REDIS_PORT)}
+    )
+    actor.run()
 
 
 if __name__ == "__main__":
@@ -62,10 +77,10 @@ if __name__ == "__main__":
         "-w", "--whoami", type=int, choices=[0, 1, 2], default=0,
         help="Identity of this process: 0 - multi-process mode, 1 - learner, 2 - actor"
     )
-    
+
     args = parser.parse_args()
     if args.whoami == 0:
-        actor_processes = [Process(target=cim_dqn_actor) for _ in range(training_config["num_actors"])]
+        actor_processes = [Process(target=cim_dqn_actor) for i in range(NUM_ACTORS)]
         learner_process = Process(target=cim_dqn_learner)
 
         for i, actor_process in enumerate(actor_processes):
