@@ -49,7 +49,7 @@ class ActorManager(object):
 
     def collect(
         self,
-        rollout_index: int,
+        episode_index: int,
         segment_index: int,
         num_steps: int,
         policy_dict: dict = None,
@@ -60,7 +60,7 @@ class ActorManager(object):
     ):
         """Collect experiences from actors."""
         msg_body = {
-            MsgKey.ROLLOUT_INDEX: rollout_index,
+            MsgKey.EPISODE_INDEX: episode_index,
             MsgKey.SEGMENT_INDEX: segment_index,
             MsgKey.NUM_STEPS: num_steps,
             MsgKey.POLICY: policy_dict,
@@ -68,20 +68,20 @@ class ActorManager(object):
         }
 
         if self._log_env_metrics:
-            self._logger.info(f"EPISODE-{rollout_index}, SEGMENT-{segment_index}: ")
+            self._logger.info(f"EPISODE-{episode_index}, SEGMENT-{segment_index}: ")
             if exploration_params:
                 self._logger.info(f"exploration_params: {exploration_params}")
 
         self._proxy.ibroadcast("actor", MsgTag.COLLECT, SessionType.TASK, body=msg_body)
-        self._logger.info(f"Sent collect requests for ep-{rollout_index}, segment-{segment_index}")
+        self._logger.info(f"Sent collect requests for ep-{episode_index}, segment-{segment_index}")
 
         # Receive roll-out results from remote actors
         num_finishes = 0
         for msg in self._proxy.receive():
-            if msg.tag != MsgTag.COLLECT_DONE or msg.body[MsgKey.ROLLOUT_INDEX] != rollout_index:
+            if msg.tag != MsgTag.COLLECT_DONE or msg.body[MsgKey.EPISODE_INDEX] != episode_index:
                 self._logger.info(
-                    f"Ignore a message of type {msg.tag} with roll-out index {msg.body[MsgKey.ROLLOUT_INDEX]} "
-                    f"(expected message type {MsgTag.COLLECT} and roll-out index {rollout_index})"
+                    f"Ignore a message of type {msg.tag} with roll-out index {msg.body[MsgKey.EPISODE_INDEX]} "
+                    f"(expected message type {MsgTag.COLLECT} and roll-out index {episode_index})"
                 )
                 continue
 
@@ -91,22 +91,23 @@ class ActorManager(object):
                 self._logger.info(f"env_metrics: {env_metrics}")
 
             if msg.body[MsgKey.SEGMENT_INDEX] == segment_index or not discard_stale_experiences:
-                self.total_experiences_collected += msg.body[MsgKey.NUM_EXPERIENCES]
+                experiences_by_agent = msg.body[MsgKey.EXPERIENCES]
+                self.total_experiences_collected += sum(len(exp) for exp in experiences_by_agent.values())
                 self.total_env_steps += msg.body[MsgKey.NUM_STEPS]
                 is_env_end = msg.body[MsgKey.ENV_END]
                 if is_env_end:
                     self._logger.info(f"total rewards: {msg.body[MsgKey.TOTAL_REWARD]}")
-                yield msg.body[MsgKey.EXPERIENCES], is_env_end
+                yield experiences_by_agent, is_env_end
 
             if msg.body[MsgKey.SEGMENT_INDEX] == segment_index:
                 num_finishes += 1
                 if num_finishes == required_actor_finishes:
                     break
 
-    def evaluate(self, rollout_index: int, policy_dict: dict, num_actors: int):
+    def evaluate(self, episode_index: int, policy_dict: dict, num_actors: int):
         """Collect experiences from actors."""
         msg_body = {
-            MsgKey.ROLLOUT_INDEX: rollout_index,
+            MsgKey.EPISODE_INDEX: episode_index,
             MsgKey.POLICY: policy_dict,
             MsgKey.RETURN_ENV_METRICS: True
         }
@@ -118,19 +119,18 @@ class ActorManager(object):
         # Receive roll-out results from remote actors
         num_finishes = 0
         for msg in self._proxy.receive():
-            if msg.tag != MsgTag.EVAL_DONE or msg.body[MsgKey.ROLLOUT_INDEX] != rollout_index:
+            if msg.tag != MsgTag.EVAL_DONE or msg.body[MsgKey.EPISODE_INDEX] != episode_index:
                 self._logger.info(
-                    f"Ignore a message of type {msg.tag} with roll-out index {msg.body[MsgKey.ROLLOUT_INDEX]} "
-                    f"(expected message type {MsgTag.EVAL} and roll-out index {rollout_index})"
+                    f"Ignore a message of type {msg.tag} with episode index {msg.body[MsgKey.EPISODE_INDEX]} "
+                    f"(expected message type {MsgTag.EVAL} and episode index {episode_index})"
                 )
                 continue
 
             # log roll-out summary
-            if self._log_env_metrics:
-                env_metrics = msg.body[MsgKey.METRICS]
-                self._logger.info(f"env_metrics: {env_metrics}")
+            env_metrics = msg.body[MsgKey.METRICS]
+            self._logger.info(f"env metrics for evaluation episode {episode_index}: {env_metrics}")
 
-            if msg.body[MsgKey.SEGMENT_INDEX] == segment_index:
+            if msg.body[MsgKey.EPISODE_INDEX] == episode_index:
                 num_finishes += 1
                 if num_finishes == num_actors:
                     break

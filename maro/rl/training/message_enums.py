@@ -18,7 +18,8 @@ class MsgTag(Enum):
 class MsgKey(Enum):
     ACTION = "action"
     AGENT_ID = "agent_id"
-    ROLLOUT_INDEX = "rollout_index"
+    EPISODE_INDEX = "episode_index"
+    SEGMENT_INDEX = "segment_index"
     TIME_STEP = "time_step"
     METRICS = "metrics"
     EXPERIENCES = "experiences"
@@ -27,7 +28,6 @@ class MsgKey(Enum):
     POLICY = "policy"
     VERSION = "version"
     NUM_STEPS = "num_steps"
-    SEGMENT_INDEX = "segment_index"
     RETURN_ENV_METRICS = "return_env_metrics"
     TOTAL_REWARD = "total_reward"
     ENV_END = "env_end"

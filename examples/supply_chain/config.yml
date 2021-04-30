@@ -11,9 +11,10 @@ num_episodes: 10  # number of episodes to simulate
 # Number of roll-out steps in each learning cycle. Each actor will perform at most this many roll-out steps
 # before returning experiences to the learner. The learner uses these experiences to update the agents' policies
 # and sync the updated policies to the actors for the next learning cycle.
-policy_update_interval: 60
+policy_update_interval: -1
 eval_points: 2
 log_env_metrics: false
+end_of_training_func_kwargs:
 policy:
   consumer:
     algorithm: dqn
@@ -45,8 +46,8 @@ policy:
         replace: true
       train_iters: 10
       new_experience_trigger: 128
-      # The minimum number of experiences in the experience memory required to trigger learning (agent.step()). Defaults to 1. 
-      experience_memory_size_trigger: 1000
+      # The minimum number of experiences in the experience memory required for learning. Defaults to 1. 
+      num_warmup_experiences: 1000
     experience_memory:
       capacity: 50000  # experience memory size
       # This determines how existing experiences are replaced when adding new experiences to a full experience

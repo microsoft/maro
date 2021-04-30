@@ -123,20 +123,24 @@ class AbsEnvWrapper(ABC):
             self._state = self.get_state(self.env.tick)
             if self.save_replay:
                 for agent_id, state in prev_state.items():
-                    self.replay[agent_id].add(state, action_by_agent[agent_id])
+                    self.replay[agent_id].states.append(state)
+                    self.replay[agent_id].actions.append(action_by_agent[agent_id])
             # t3 = time.time()
             # self._tot_step_time += t3 - t0
         else:
             self._state = None
-            self.end_ep_callback()
+            self.end_of_episode()
 
         # print(f"total raw step time: {self._tot_raw_step_time}")
         # print(f"total step time: {self._tot_step_time}")
         # self._tot_raw_step_time = 0
         # self._tot_step_time = 0
 
-    def end_ep_callback(self):
+    def end_of_episode(self):
         pass
+
+    def get_experiences(self):
+        return {agent_id: replay.to_experience_set() for agent_id, replay in self.replay.items()}
 
     def reset(self):
         self.env.reset()

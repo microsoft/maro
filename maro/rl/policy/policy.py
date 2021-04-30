@@ -11,7 +11,7 @@ from maro.rl.experience import ExperienceMemory, ExperienceSet
 class TrainingLoopConfig:
     __slots__ = [
         "sampler_cls", "batch_size", "train_iters", "sampler_kwargs", "new_experience_trigger",
-        "experience_memory_size_trigger"
+        "num_warmup_experiences"
     ]
 
     def __init__(
@@ -21,14 +21,14 @@ class TrainingLoopConfig:
         train_iters: int,
         sampler_kwargs: dict = None,
         new_experience_trigger: int = 1,
-        experience_memory_size_trigger: int = 1
+        num_warmup_experiences: int = 1
     ):
         self.sampler_cls = sampler_cls
         self.batch_size = batch_size
         self.train_iters = train_iters
         self.sampler_kwargs = sampler_kwargs if sampler_kwargs else {}
         self.new_experience_trigger = new_experience_trigger
-        self.experience_memory_size_trigger = experience_memory_size_trigger
+        self.num_warmup_experiences = num_warmup_experiences
 
 
 class AbsFixedPolicy(ABC):
@@ -66,8 +66,9 @@ class AbsCorePolicy(ABC):
         self.special_config = special_config
         sampler_cls, batch_size = generic_config.sampler_cls, generic_config.batch_size
         self.sampler = sampler_cls(experience_memory, batch_size, **generic_config.sampler_kwargs)
-        self._last_experience_memory_size = 0
-        self._ready_to_learn = False
+        self._last_exp_mem_size = 0  # experience memory size when the last update was made
+        self._warm_up = True
+        self._update_ready = False
 
     @abstractmethod
     def choose_action(self, state):
@@ -84,34 +85,30 @@ class AbsCorePolicy(ABC):
 
     def store_experiences(self, experience_set: ExperienceSet):
         self.experience_memory.put(experience_set)
-        cur_experience_memory_size = len(self.experience_memory)
-        print("cur exp mem size: ", cur_experience_memory_size)
-        num_new = cur_experience_memory_size - self._last_experience_memory_size
-        self._ready_to_learn = (
-            num_new >= self.generic_config.new_experience_trigger and
-            cur_experience_memory_size >= self.generic_config.experience_memory_size_trigger
-        )
+        exp_mem_size = len(self.experience_memory)
+        self._warm_up = exp_mem_size < self.generic_config.num_warmup_experiences
+        self._update_ready = (exp_mem_size - self._last_exp_mem_size) >= self.generic_config.new_experience_trigger
 
-    def learn(self):
-        if not self._ready_to_learn:
+    def update(self):
+        if self._warm_up or not self._update_ready:
             return False
 
-        self._last_experience_memory_size = len(self.experience_memory)
+        self._last_exp_mem_size = len(self.experience_memory)
         exp_mem, sampler, config = self.experience_memory, self.sampler, self.generic_config
         for _ in range(self.generic_config.train_iters):
-            self.step(self.experience_memory.get(self.sampler.sample()))
+            self.learn(self.experience_memory.get(self.sampler.sample()))
             return True
 
         return False
 
     @abstractmethod
-    def step(self, experience_set: ExperienceSet):
+    def learn(self, experience_set: ExperienceSet):
         raise NotImplementedError
 
     def state(self):
         pass
 
-    def update(self, policy_state):
+    def load_state(self, policy_state):
         pass
 
     def load(self, path: str):
@@ -144,16 +141,19 @@ class RLPolicy(object):
         action = self.core_policy.choose_action(state)
         return self.exploration(action)        
 
-    def learn(self):
+    def update(self):
         """Algorithm-specific training logic.
 
         The parameters are data to train the underlying model on. Algorithm-specific loss and optimization
         should be reflected here.
         """
-        self.core_policy.learn()
+        self.core_policy.update()
 
-    def update(self, policy_state):
-        self.core_policy.load(policy_state)
+    def learn(self, experience_set: ExperienceSet):
+        return self.core_policy.learn(experience_set)
+
+    def load_state(self, policy_state):
+        self.core_policy.load_state(policy_state)
 
     def load(self, path: str):
         self.core_policy.load(path)

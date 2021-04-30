@@ -31,22 +31,11 @@ class SimpleQNet(QNetForDiscreteActionSpace):
 
 def get_dqn_policy(config):
     q_net = SimpleQNet(FullyConnectedBlock(**config["model"]), optim_option=OptimOption(**config["optimization"]))
+    experience_memory = ExperienceMemory(**config["experience_memory"])
 
-    exp_config = config["experience_memory"]
-    experience_memory = ExperienceMemory(capacity=exp_config["capacity"], overwrite_type=exp_config["overwrite_type"])
-
-    train_config = config["training_loop"]
-    generic_config = TrainingLoopConfig(
-        get_sampler_cls(train_config["sampler_cls"]),
-        train_config["batch_size"],
-        train_config["train_iters"],
-        sampler_kwargs=train_config["sampler_kwargs"],
-        new_experience_trigger=train_config["new_experience_trigger"],
-        experience_memory_size_trigger=train_config["experience_memory_size_trigger"]
-    )
-
-    alg_config = config["algorithm_config"]
-    special_config = DQNConfig(**alg_config)
+    config["training_loop"]["sampler_cls"] = get_sampler_cls(config["training_loop"]["sampler_cls"])
+    generic_config = TrainingLoopConfig(**config["training_loop"])
+    special_config = DQNConfig(**config["algorithm_config"])
 
     return DQN(q_net, experience_memory, generic_config, special_config)
 

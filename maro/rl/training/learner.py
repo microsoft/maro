@@ -35,7 +35,8 @@ class Learner(object):
         required_actor_finishes: str = None,
         discard_stale_experiences: bool = True,
         log_env_metrics: bool = True,
-        log_dir: str = getcwd()
+        log_dir: str = getcwd(),
+        end_of_training_kwargs: dict = None
     ):
         if env is None and actor_manager is None:
             raise Exception("env and actor_manager cannot both be None")
@@ -83,6 +84,7 @@ class Learner(object):
             self.required_actor_finishes = required_actor_finishes
             self.discard_stale_experiences = discard_stale_experiences
 
+        self.end_of_training_kwargs = end_of_training_kwargs if end_of_training_kwargs else {} 
         self._log_env_metrics = log_env_metrics
         self._total_learning_time = 0
         self._total_env_steps = 0
@@ -106,7 +108,7 @@ class Learner(object):
             self._train_remote(ep)
 
     def evaluate(self, ep: int):
-        self._logger.info("Evaluating the policy")
+        self._logger.info("Evaluating...")
         if self.eval_env:
             self.policy.eval_mode()
             self.eval_env.save_replay = False
@@ -122,13 +124,13 @@ class Learner(object):
             if self._log_env_metrics:
                 self._logger.info(f"eval ep {ep}: {self.eval_env.metrics}")
         else:
-            self.actor_manager.evaluate(
-                ep, {id_: self.policy.policy_dict[id_] for id_ in updated_policy_ids}, self.num_eval_actors
-            )
+            self.actor_manager.evaluate(ep, self.policy.state(), self.num_eval_actors)
 
     def _train_local(self, ep: int):
         t0 = time.time()
-        self._logger.info(f"Training the policy with exploration parameters: {self.policy.exploration_params}")
+        segement_index = 1
+        self._logger.info(f"Training episode {ep}") 
+        self._logger.debug(f"exploration parameters: {self.policy.exploration_params}")
         self.policy.train_mode()
         self.env.save_replay = True
         self.env.reset()
@@ -140,43 +142,49 @@ class Learner(object):
                 not self.env.state or
                 self.policy_update_interval != -1 and self.env.step_index % self.policy_update_interval == 0
             ):
-                exp_by_agent = {agent_id: replay.take() for agent_id, replay in self.env.replay.items()}
+                exp_by_agent = self.env.get_experiences()
                 tl0 = time.time()
-                updated_policy_ids = self.policy.on_new_experiences(exp_by_agent)
-                print(
-                    {name: len(policy.experience_memory)
-                    for name, policy in self.policy.policy_dict.items() if isinstance(policy, AbsCorePolicy)
-                })
+                self.policy.store_experiences(exp_by_agent)
+                updated_policy_ids = self.policy.update()
+                self.end_of_training(ep, segement_index, **self.end_of_training_kwargs)
                 self._total_learning_time += time.time() - tl0
                 self._total_env_steps += self.policy_update_interval
                 self._total_experiences_collected += sum(len(exp) for exp in exp_by_agent.values())
                 self._logger.debug(f"total running time: {time.time() - t0}")
                 self._logger.debug(f"total learning time: {self._total_learning_time}")
                 self._logger.debug(f"total env steps: {self._total_env_steps}")
-                self._logger.info(f"total experiences collected: {self._total_experiences_collected}")
+                self._logger.debug(f"total experiences collected: {self._total_experiences_collected}")
                 if not self.env.state:
                     self._logger.info(f"total reward: {self.env.total_reward}")
+
+                segement_index += 1
 
         self.policy.exploration_step()
         if self._log_env_metrics:
             self._logger.info(f"ep {ep}: {self.env.metrics}")
 
     def _train_remote(self, ep: int):
+        t0 = time.time()
         updated_policy_ids, num_actor_finishes, segment_index = list(self.policy.policy_dict.keys()), 0, 0
         while num_actor_finishes < self.required_actor_finishes:
             for exp, done in self.actor_manager.collect(
                 ep, segment_index, self.policy_update_interval,
-                policy_dict={id_: self.policy.policy_dict[id_] for id_ in updated_policy_ids},
+                policy_dict=self.policy.state(),
                 required_actor_finishes=self.required_actor_finishes,
                 discard_stale_experiences=self.discard_stale_experiences
             ):
                 tl0 = time.time()
-                updated_policy_ids = self.policy.on_new_experiences(exp)
+                self.policy.store_experiences(exp)
+                updated_policy_ids = self.policy.update()
+                self.end_of_training(ep, segment_index, **self.end_of_training_kwargs)
                 num_actor_finishes += done
                 self._total_learning_time += time.time() - tl0
                 self._logger.debug(f"running time: {time.time() - t0}")
                 self._logger.debug(f"learning time: {self._total_learning_time}")
                 self._logger.debug(f"env steps: {self.actor_manager.total_env_steps}")
-                self._logger.info(f"experiences collected: {self.actor_manager.total_experiences_collected}")
+                self._logger.debug(f"experiences collected: {self.actor_manager.total_experiences_collected}")
 
             segment_index += 1
+
+    def end_of_training(self, ep: int, segment: int, **kwargs):
+        pass

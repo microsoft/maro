@@ -70,7 +70,7 @@ class DDPG(AbsCorePolicy):
 
         super().__init__(experience_memory, generic_config, special_config)
         self.ac_net = ac_net
-        self.target_ac_net = ac_net.copy() if model.trainable else None
+        self.target_ac_net = ac_net.copy() if self.ac_net.trainable else None
         self._train_cnt = 0
 
     def choose_action(self, states) -> Union[float, np.ndarray]:
@@ -79,7 +79,7 @@ class DDPG(AbsCorePolicy):
 
         return actions[0] if len(actions) == 1 else actions
 
-    def step(self, experience_set: ExperienceSet):
+    def learn(self, experience_set: ExperienceSet):
         if not isinstance(experience_set, ExperienceSet):
             raise TypeError(f"Expected experience object of type DDPGExperience, got {type(experience_set)}")
 
@@ -103,3 +103,10 @@ class DDPG(AbsCorePolicy):
         self._train_cnt += 1
         if self._train_cnt % self.special_config.target_update_freq == 0:
             self.target_ac_net.soft_update(self.ac_net, self.special_config.soft_update_coefficient)
+
+    def load_state(self, policy_state):
+        self.ac_net.load_state_dict(policy_state)
+        self.target_ac_net = self.ac_net.copy() if self.ac_net.trainable else None
+
+    def state(self):
+        return self.ac_net.state_dict()

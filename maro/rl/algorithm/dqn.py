@@ -81,7 +81,7 @@ class DQN(AbsCorePolicy):
         actions = actions.cpu().numpy()
         return actions[0] if len(actions) == 1 else actions
 
-    def step(self, experience_set: ExperienceSet):
+    def learn(self, experience_set: ExperienceSet):
         if not isinstance(experience_set, ExperienceSet):
             raise TypeError(
                 f"Expected experience object of type AbsCorePolicy.experience_type, got {type(experience_set)}"
@@ -110,7 +110,7 @@ class DQN(AbsCorePolicy):
         if self._training_counter % self.special_config.target_update_freq == 0:
             self.target_q_net.soft_update(self.q_net, self.special_config.soft_update_coefficient)
 
-    def update(self, policy_state):
+    def load_state(self, policy_state):
         self.q_net.load_state_dict(policy_state)
         self.target_q_net = self.q_net.copy() if self.q_net.trainable else None
         self.target_q_net.eval()

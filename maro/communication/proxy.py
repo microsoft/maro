@@ -73,6 +73,7 @@ class Proxy:
         group_name: str,
         component_type: str,
         expected_peers: dict,
+        component_name: str = None,
         driver_type: DriverType = DriverType.ZMQ,
         driver_parameters: dict = None,
         redis_address: Tuple = (HOST, PORT),
@@ -91,8 +92,8 @@ class Proxy:
         self._group_name = group_name
         self._component_type = component_type
         self._redis_hash_name = f"{self._group_name}:{self._component_type}"
-        if "COMPONENT_NAME" in os.environ:
-            self._name = os.getenv("COMPONENT_NAME")
+        if component_name is not None:
+            self._name = component_name
         else:
             unique_id = str(uuid.uuid1()).replace("-", "")
             self._name = f"{self._component_type}_{unique_id}"

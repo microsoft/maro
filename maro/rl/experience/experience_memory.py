@@ -33,11 +33,8 @@ class Replay(object):
         self.actions = []
         self.rewards = []
 
-    def add(self, state, action):
-        self.states.append(state)
-        self.actions.append(action)
-
-    def take(self):
+    def to_experience_set(self):
+        # print(len(self.rewards), len(self.states))
         num_complete = min(len(self.rewards), len(self.states) - 1)
         exp_set = ExperienceSet(
             self.states[:num_complete],
@@ -75,9 +72,8 @@ class ExperienceMemory(object):
             raise ValueError(f"overwrite_type must be 'rolling' or 'random', got {overwrite_type}")
         self._capacity = capacity
         self._overwrite_type = overwrite_type
-        self.data = {
-            key: [] if self._capacity == -1 else [None] * self._capacity for key in ExperienceSet.__slots__
-        }
+        self._keys = ExperienceSet.__slots__
+        self.data = {key: [] if self._capacity == -1 else [None] * self._capacity for key in self._keys}
         self._size = 0
 
     def __len__(self):
@@ -102,9 +98,9 @@ class ExperienceMemory(object):
 
     def get(self, indexes: [int] = None) -> ExperienceSet:
         if indexes is None:
-            return ExperienceSet(*[self.data[k] for k in ExperienceSet.__slots__])
+            return ExperienceSet(*[self.data[k] for k in self._keys])
 
-        return ExperienceSet(*[[self.data[k][i] for i in indexes] for k in ExperienceSet.__slots__])
+        return ExperienceSet(*[[self.data[k][i] for i in indexes] for k in self._keys])
 
     def put(self, experience_set: ExperienceSet, overwrite_indexes: list = None) -> List[int]:
         """Put new contents in the store.

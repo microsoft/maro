@@ -80,7 +80,7 @@ class ActorCritic(AbsCorePolicy):
         actions, log_p = actions.cpu().numpy(), log_p.cpu().numpy()
         return (actions[0], log_p[0]) if len(actions) == 1 else actions, log_p
 
-    def step(self, experience_set: ExperienceSet):
+    def learn(self, experience_set: ExperienceSet):
         if not isinstance(experience_set, ExperienceSet):
             raise TypeError(f"Expected experience object of type ACExperience, got {type(experience_set)}")
 
@@ -109,7 +109,7 @@ class ActorCritic(AbsCorePolicy):
 
         self.ac_net.step(loss)
 
-    def update(self, policy_state):
+    def load_state(self, policy_state):
         self.ac_net.load_state_dict(policy_state)
 
     def state(self):

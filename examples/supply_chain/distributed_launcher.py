@@ -17,6 +17,7 @@ sys.path.insert(0, sc_code_dir)
 from config import config
 from env_wrapper import SCEnvWrapper
 from exploration import exploration_dict, agent_to_exploration
+from learner import SCLearner
 from policies import policy_dict, agent_to_policy
 
 
@@ -46,18 +47,20 @@ def sc_learner():
     )
 
     # create a learner to start training
-    learner = Learner(
+    learner = SCLearner(
         policy, None, config["num_episodes"],
         actor_manager=actor_manager,
         policy_update_interval=config["policy_update_interval"],
         eval_points=config["eval_points"],
         required_actor_finishes=config["distributed"]["required_actor_finishes"],
-        log_env_metrics=config["log_env_metrics"]
+        log_env_metrics=config["log_env_metrics"],
+        end_of_training_kwargs=config["end_of_training_kwargs"],
+        log_dir=log_dir
     )
     learner.run()
 
 
-def sc_actor():
+def sc_actor(id_):
     # create an env wrapper for roll-out and obtain the input dimension for the agents
     env = SCEnvWrapper(Env(**config["env"]))
     policy = MultiAgentPolicy(
@@ -67,7 +70,11 @@ def sc_actor():
         agent_to_exploration=agent_to_exploration
     )
     # create an actor that collects simulation data for the learner.
-    actor = Actor(env, policy, GROUP, proxy_options={"redis_address": (REDIS_HOST, REDIS_PORT)}, log_dir=log_dir)
+    actor = Actor(
+        env, policy, GROUP,
+        proxy_options={"component_name": id_, "redis_address": (REDIS_HOST, REDIS_PORT)},
+        log_dir=log_dir
+    )
     actor.run()
 
 
@@ -80,7 +87,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     if args.whoami == 0:
-        actor_processes = [Process(target=sc_actor) for i in range(NUM_ACTORS)]
+        actor_processes = [Process(target=sc_actor, args=(i + 1,)) for i in range(NUM_ACTORS)]
         learner_process = Process(target=sc_learner)
 
         for i, actor_process in enumerate(actor_processes):
@@ -96,4 +103,4 @@ if __name__ == "__main__":
     elif args.whoami == 1:
         sc_learner()
     elif args.whoami == 2:
-        sc_actor()
+        sc_actor(getenv("COMPONENT"))
