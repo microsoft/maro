@@ -31,6 +31,16 @@ log_dir = join(sc_code_dir, "logs", GROUP)
 makedirs(log_dir, exist_ok=True)
 
 
+def get_sc_agents(agent_idx_list, type_):
+    assert type_ in {"producer", "consumer"}
+    q_model = get_q_model(config["agent"][type_]["model"]) if config["agent"][type_]["share_model"] else None
+    alg_type = config["agent"][type_]["algorithm"]
+    return {
+        f"{type_}.{info.id}": get_agent_func_map[alg_type](config["agent"][type_], q_model=q_model)
+        for info in agent_idx_list
+    }
+
+
 def sc_learner():
     # create a multi-agent policy.
     policy = MultiAgentPolicy(

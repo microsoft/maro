@@ -5,7 +5,7 @@ from os import getcwd
 from typing import Union
 
 from maro.communication import Proxy
-from maro.rl.agent import AbsAgent, MultiAgentWrapper
+from maro.rl.agent import AbsAgent, AgentManager
 from maro.rl.training import AbsEnvWrapper
 from maro.utils import Logger
 
@@ -18,7 +18,7 @@ class Actor(object):
     Args:
         env (AbsEnvWrapper): An ``AbsEnvWrapper`` instance that wraps an ``Env`` instance with scenario-specific
             processing logic and stores transitions during roll-outs in a replay memory.
-        agent (Union[AbsAgent, MultiAgentWrapper]): Agent that interacts with the environment.
+        agent (Union[AbsAgent, AgentManager]): Agent that interacts with the environment.
         group (str): Identifier of the group to which the actor belongs. It must be the same group name
             assigned to the learner (and decision clients, if any).
         proxy_options (dict): Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
@@ -27,14 +27,14 @@ class Actor(object):
     def __init__(
         self,
         env: AbsEnvWrapper,
-        agent: Union[AbsAgent, MultiAgentWrapper],
+        agent: Union[AbsAgent, AgentManager],
         group: str,
         proxy_options: dict = None,
         pull_experiences_with_copy: bool = False,
         log_dir: str = getcwd()
     ):
         self.env = env
-        self.agent = MultiAgentWrapper(agent) if isinstance(agent, AbsAgent) else agent
+        self.agent = AgentManager(agent) if isinstance(agent, AbsAgent) else agent
         self._pull_experiences_with_copy = pull_experiences_with_copy
         if proxy_options is None:
             proxy_options = {}

@@ -202,7 +202,7 @@ class SCEnvWrapper(AbsEnvWrapper):
             for sku_id, number in in_transit_orders.items():
                 self._facility_in_transit_orders[facility_id][sku_id] = number
 
-        final_state = {}
+        final_state = {"consumer": {}, "producer": {}}
 
         # calculate storage info first, then use it later to speed up.
         for facility_id, storage_index in self._facility2storage_index_dict.items():
@@ -234,12 +234,12 @@ class SCEnvWrapper(AbsEnvWrapper):
 
             np_state = self._serialize_state(state)
 
-            final_state[f"consumer.{agent_info.id}"] = np_state
-            final_state[f"producer.{agent_info.id}"] = np_state
+            final_state["consumer"][agent_info.id] = np_state
+            final_state["producer"][agent_info.id] = np_state
 
         return final_state
 
-    def get_reward(self, tick=None, target_agents=None):
+    def get_reward(self, tick=None):
         wc = self.env.configs.settings["global_reward_weight_consumer"]
         parent_facility_balance = {}
         for f_id, sheet in self.cur_balance_sheet_reward.items():
@@ -253,11 +253,11 @@ class SCEnvWrapper(AbsEnvWrapper):
                                        self.cur_balance_sheet_reward.items()}
 
         return {
-            **{f"producer.{f_id}": np.float32(reward[0]) for f_id, reward in self.cur_balance_sheet_reward.items()},
-            **{f"consumer.{f_id}": np.float32(reward) for f_id, reward in consumer_reward_by_facility.items()}
+            "producer": {f_id: np.float32(reward[0]) for f_id, reward in self.cur_balance_sheet_reward.items()},
+            "consumer": {f_id: np.float32(reward) for f_id, reward in consumer_reward_by_facility.items()}
         }
 
-    def get_action(self, action_by_agent):
+    def get_action(self, action_info):
         # cache the sources for each consumer if not yet cached
         if not hasattr(self, "product2source"):
             self.product2source, self.consumer2product = {}, {}
@@ -272,43 +272,33 @@ class SCEnvWrapper(AbsEnvWrapper):
                         self.consumer2product[consumer_id] = product_id
 
         env_action = {}
-        for agent_id, action in action_by_agent.items():
-            unit_id = int(agent_id.split(".")[1])
+        # consumer action
+        for unit_id, action in action_info["consumer"].items():
+            product_id = self.consumer2product.get(unit_id, 0)
+            sources = self.product2source.get(unit_id, [])
+            if sources:
+                source_id = sources[0]
+                action_number = int(int(action) * self._cur_metrics["products"][unit_id]["sale_mean"])
+                # ignore 0 quantity to reduce action number
+                if action_number == 0:
+                    continue
+                sku = self._units_mapping[unit_id][3]
+                reward_discount = 0
+                env_action[unit_id] = ConsumerAction(unit_id, product_id, source_id, action_number, sku.vlt, reward_discount)
 
+        # producer action
+        for unit_id, action in action_info["producer"].items():
             is_facility = unit_id not in self._units_mapping
-
             # ignore facility to reduce action number
             if is_facility:
                 continue
-
-            # consumer action
-            if agent_id.startswith("consumer"):
-                product_id = self.consumer2product.get(unit_id, 0)
-                sources = self.product2source.get(unit_id, [])
-
-                if sources:
-                    source_id = sources[0]
-
-                    action_number = int(int(action) * self._cur_metrics["products"][unit_id]["sale_mean"])
-
-                    # ignore 0 quantity to reduce action number
-                    if action_number == 0:
-                        continue
-
-                    sku = self._units_mapping[unit_id][3]
-                    reward_discount = 0
-
-                    env_action[unit_id] = ConsumerAction(unit_id, product_id, source_id, action_number, sku.vlt, reward_discount)
-            # manufacturer action
-            elif agent_id.startswith("producer"):
-                sku = self._units_mapping[unit_id][3]
-                action = sku.production_rate
-
-                # ignore invalid actions
-                if action is None or action == 0:
-                    continue
-
-                env_action[unit_id] = ManufactureAction(unit_id, action)
+            # producer action
+            sku = self._units_mapping[unit_id][3]
+            action = sku.production_rate
+            # ignore invalid actions
+            if action is None or action == 0:
+                continue
+            env_action[unit_id] = ManufactureAction(unit_id, action)
 
         return env_action
 

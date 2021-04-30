@@ -103,7 +103,7 @@ The RL toolkit provides tools that make local and distributed training easy:
   distributed fashion by loading an ``Actor`` or ``ActorProxy`` instance, respectively.  
 * Actor, which implements the ``roll_out`` method where the agent interacts with the environment for one
   episode. It consists of an environment instance and an agent (a single agent or multiple agents wrapped by
-  ``MultiAgentWrapper``). The class provides the worker() method which turns it to an event loop where roll-outs
+  ``AgentManager``). The class provides the worker() method which turns it to an event loop where roll-outs
   are performed on the learner's demand. In distributed RL, there are typically many actor processes running
   simultaneously to parallelize training data collection.
 * Actor proxy, which also implements the ``roll_out`` method with the same signature, but manages a set of remote

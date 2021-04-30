@@ -18,21 +18,23 @@ end_of_training_kwargs:
 policy:
   consumer:
     algorithm: dqn
-    model:  # If you want to design your model used, edit the get_dqn_agent() codes in examples\supply_chain\agent.py
-      hidden_dims:
-        - 16
-        - 8
-      output_dim: 10
-      activation: leaky_relu  # refer to maro/maro/rl/utils/torch_cls_index.py for the mapping of strings to torch activation classes.
-      softmax: false
-      batch_norm: true
-      skip_connection: false
-      head: true
-      dropout_p: 0.0
-    optimization:
-      optim_cls: rmsprop  # refer to maro/maro/rl/utils/torch_cls_index.py for the mapping of strings to torch optimizer classes.
-      optim_params:
-        lr: 0.001
+    share_model: true
+    model:  # Edit the get_dqn_agent() code in examples\supply_chain\agent.py if you need to customize the model.
+      network:      
+        hidden_dims:
+          - 16
+          - 8
+        output_dim: 10
+        activation: leaky_relu  # refer to maro/maro/rl/utils/torch_cls_index.py for the mapping of strings to torch activation classes.
+        softmax: false
+        batch_norm: true
+        skip_connection: false
+        head: true
+        dropout_p: 0.0
+      optimization:
+        optim_cls: rmsprop  # refer to maro/maro/rl/utils/torch_cls_index.py for the mapping of strings to torch optimizer classes.
+        optim_params:
+          lr: 0.001
     algorithm_config:
       reward_discount: .9
       loss_cls: mse  # refer to maro/maro/rl/utils/torch_cls_index.py for the mapping of strings to torch loss classes.

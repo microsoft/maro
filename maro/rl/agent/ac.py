@@ -7,11 +7,14 @@ import numpy as np
 import torch
 from torch.distributions import Categorical
 
+from maro.rl.cls_index import TORCH_LOSS_CLS
 from maro.rl.model import SimpleMultiHeadModel
-from maro.rl.utils import get_log_prob, get_torch_loss_cls
+from maro.rl.storage import SimpleStore
+from maro.rl.utils import get_cls, get_log_prob
 from maro.utils.exception.rl_toolkit_exception import UnrecognizedTask
 
-from .abs_agent import AbsAgent
+from .agent import AbsAgent, GenericAgentConfig
+from .experience_enum import Experience
 
 
 class ActorCriticConfig:
@@ -38,7 +41,7 @@ class ActorCriticConfig:
         clip_ratio: float = None
     ):
         self.reward_discount = reward_discount
-        self.critic_loss_func = get_torch_loss_cls(critic_loss_cls)()
+        self.critic_loss_func = get_cls(critic_loss_cls, TORCH_LOSS_CLS)()
         self.train_iters = train_iters
         self.actor_loss_coefficient = actor_loss_coefficient
         self.clip_ratio = clip_ratio
@@ -52,38 +55,22 @@ class ActorCritic(AbsAgent):
         https://towardsdatascience.com/understanding-actor-critic-methods-931b97b6df3f
 
     Args:
-        model (SimpleMultiHeadModel): Multi-task model that computes action distributions and state values.
-            It may or may not have a shared bottom stack.
-        config: Configuration for the AC algorithm.
-        experience_memory_size (int): Size of the experience memory. If it is -1, the experience memory is of
-            unlimited size.
-        experience_memory_overwrite_type (str): A string indicating how experiences in the experience memory are
-            to be overwritten after its capacity has been reached. Must be "rolling" or "random".
-        empty_experience_memory_after_step (bool): If True, the experience memory will be emptied  after each call
-            to ``step``. Defaults to True.
-        min_new_experiences_to_trigger_learning (int): Minimum number of new experiences required to trigger learning.
-            Defaults to 1.
-        min_experiences_to_trigger_learning (int): Minimum number of experiences in the experience memory required for
-            training. Defaults to 1.
+        model (AbsCoreModel): Task model or container of task models required by the algorithm.
+        algorithm_config: Algorithm-specific configuration.
+        generic_config (GenericAgentConfig): Non-algorithm-specific configuration.  
+        experience_memory (SimpleStore): Experience memory for the agent. If None, an experience memory will be
+            created at init time. Defaults to None.
     """
     def __init__(
         self,
         model: SimpleMultiHeadModel,
-        config: ActorCriticConfig,
-        experience_memory_size: int,
-        experience_memory_overwrite_type: str,
-        empty_experience_memory_after_step: bool = True,
-        min_new_experiences_to_trigger_learning: int = 1,
-        min_experiences_to_trigger_learning: int = 1
+        algorithm_config,
+        generic_config: GenericAgentConfig,
+        experience_memory: SimpleStore = None
     ):
         if model.task_names is None or set(model.task_names) != {"actor", "critic"}:
             raise UnrecognizedTask(f"Expected model task names 'actor' and 'critic', but got {model.task_names}")
-        super().__init__(
-            model, config, experience_memory_size, experience_memory_overwrite_type,
-            empty_experience_memory_after_step,
-            min_new_experiences_to_trigger_learning=min_new_experiences_to_trigger_learning,
-            min_experiences_to_trigger_learning=min_experiences_to_trigger_learning
-        )
+        super().__init__(model, algorithm_config, generic_config, experience_memory=experience_memory)
 
     def choose_action(self, state: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """Use the actor (policy) model to generate stochastic actions.
@@ -107,29 +94,31 @@ class ActorCritic(AbsAgent):
 
     def step(self):
         batch = self.experience_memory.get()
-        states = torch.from_numpy(np.asarray(batch["S"])).to(self.device)
-        actions = torch.from_numpy(np.asarray([act[0] for act in batch["A"]])).to(self.device)
-        log_p = torch.from_numpy(np.asarray([act[1] for act in batch["A"]])).to(self.device)
-        rewards = torch.from_numpy(np.asarray(batch["R"])).to(self.device)
-        next_states = torch.from_numpy(np.asarray(batch["S_"])).to(self.device)
+        states = torch.from_numpy(np.asarray(batch[Experience.STATE])).to(self.device)
+        actions = torch.from_numpy(np.asarray([act[0] for act in batch[Experience.ACTION]])).to(self.device)
+        log_p = torch.from_numpy(np.asarray([act[1] for act in batch[Experience.ACTION]])).to(self.device)
+        rewards = torch.from_numpy(np.asarray(batch[Experience.REWARD])).to(self.device)
+        next_states = torch.from_numpy(np.asarray(batch[Experience.NEXT_STATE])).to(self.device)
 
         state_values = self.model(states, task_name="critic").detach().squeeze()
         next_state_values = self.model(next_states, task_name="critic").detach().squeeze()
-        return_est = rewards + self.config.reward_discount * next_state_values
+        return_est = rewards + self.algorithm_config.reward_discount * next_state_values
         advantages = return_est - state_values
-        for i in range(self.config.train_iters):
+        for i in range(self.algorithm_config.train_iters):
             # actor loss
             log_p_new = get_log_prob(self.model(states, task_name="actor"), actions)
-            if self.config.clip_ratio is not None:
+            if self.algorithm_config.clip_ratio is not None:
                 ratio = torch.exp(log_p_new - log_p)
-                clip_ratio = torch.clamp(ratio, 1 - self.config.clip_ratio, 1 + self.config.clip_ratio)
+                clip_ratio = torch.clamp(
+                    ratio, 1 - self.algorithm_config.clip_ratio, 1 + self.algorithm_config.clip_ratio
+                )
                 actor_loss = -(torch.min(ratio * advantages, clip_ratio * advantages)).mean()
             else:
                 actor_loss = -(log_p_new * advantages).mean()
 
             # critic_loss
             state_values = self.model(states, task_name="critic").squeeze()
-            critic_loss = self.config.critic_loss_func(state_values, return_est)
-            loss = critic_loss + self.config.actor_loss_coefficient * actor_loss
+            critic_loss = self.algorithm_config.critic_loss_func(state_values, return_est)
+            loss = critic_loss + self.algorithm_config.actor_loss_coefficient * actor_loss
 
             self.model.step(loss)
