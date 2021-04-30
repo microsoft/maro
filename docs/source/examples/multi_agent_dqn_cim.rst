@@ -26,7 +26,7 @@ in the roll-out loop. In this example,
     class CIMTrajectoryForDQN(Trajectory):
         def __init__(
             self, env, *, port_attributes, vessel_attributes, action_space, look_back, max_ports_downstream,
-            reward_time_window, fulfillment_factor, shortage_factor, time_decay,
+            reward_eval_delay, fulfillment_factor, shortage_factor, time_decay,
             finite_vessel_space=True, has_early_discharge=True 
         ):
             super().__init__(env)
@@ -35,7 +35,7 @@ in the roll-out loop. In this example,
             self.action_space = action_space
             self.look_back = look_back
             self.max_ports_downstream = max_ports_downstream
-            self.reward_time_window = reward_time_window
+            self.reward_eval_delay = reward_eval_delay
             self.fulfillment_factor = fulfillment_factor
             self.shortage_factor = shortage_factor
             self.time_decay = time_decay
@@ -76,13 +76,13 @@ in the roll-out loop. In this example,
         def get_offline_reward(self, event):
             port_snapshots = self.env.snapshot_list["ports"]
             start_tick = event.tick + 1
-            ticks = list(range(start_tick, start_tick + self.reward_time_window))
+            ticks = list(range(start_tick, start_tick + self.reward_eval_delay))
 
             future_fulfillment = port_snapshots[ticks::"fulfillment"]
             future_shortage = port_snapshots[ticks::"shortage"]
             decay_list = [
-                self.time_decay ** i for i in range(self.reward_time_window)
-                for _ in range(future_fulfillment.shape[0] // self.reward_time_window)
+                self.time_decay ** i for i in range(self.reward_eval_delay)
+                for _ in range(future_fulfillment.shape[0] // self.reward_eval_delay)
             ]
 
             tot_fulfillment = np.dot(future_fulfillment, decay_list)
@@ -143,7 +143,7 @@ from the learner.
         env = Env(**training_config["env"])
         agent = MultiAgentWrapper({name: get_dqn_agent() for name in env.agent_idx_list})
         actor = Actor(env, agent, CIMTrajectoryForDQN, trajectory_kwargs=common_config)
-        actor.as_worker(training_config["group"])
+        actor.worker(training_config["group"])
 
 The learner's side requires a concrete learner class that inherits from ``AbsLearner`` and implements the ``run``
 method which contains the main training loop. Here the implementation is similar to the single-threaded version

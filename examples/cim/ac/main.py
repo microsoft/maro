@@ -1,53 +1,59 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import yaml
+from os import getenv
+from os.path import dirname, join, realpath
+
 import numpy as np
 
 from maro.rl import (
-    Actor, ActorCritic, ActorCriticConfig, FullyConnectedBlock, MultiAgentWrapper, SimpleMultiHeadModel,
-    Scheduler, OnPolicyLearner
+    Actor, ActorCritic, ActorCriticConfig, FullyConnectedBlock, MultiAgentWrapper, Learner, Scheduler,
+    SimpleMultiHeadModel, OptimOption
 )
 from maro.simulator import Env
 from maro.utils import set_seeds
 
-from examples.cim.ac.config import agent_config, training_config
-from examples.cim.common import CIMTrajectory, common_config
+from examples.cim.env_wrapper import CIMEnvWrapper
+
+
+DEFAULT_CONFIG_PATH = join(dirname(realpath(__file__)), "config.yml")
+with open(getenv("CONFIG_PATH", default=DEFAULT_CONFIG_PATH), "r") as config_file:
+    config = yaml.safe_load(config_file)
+
+# model input and output dimensions
+IN_DIM = (
+    (config["shaping"]["look_back"] + 1) *
+    (config["shaping"]["max_ports_downstream"] + 1) *
+    len(config["shaping"]["port_attributes"]) +
+    len(config["shaping"]["vessel_attributes"])
+)
+OUT_DIM = config["shaping"]["num_actions"]
 
 
 def get_ac_agent():
-    actor_net = FullyConnectedBlock(**agent_config["model"]["actor"])
-    critic_net = FullyConnectedBlock(**agent_config["model"]["critic"])
+    cfg = config["agent"]
+    actor_net  = FullyConnectedBlock(input_dim=IN_DIM, output_dim=OUT_DIM, **cfg["model"]["actor"])
+    critic_net = FullyConnectedBlock(input_dim=IN_DIM, output_dim=1, **cfg["model"]["critic"])
     ac_model = SimpleMultiHeadModel(
-        {"actor": actor_net, "critic": critic_net}, optim_option=agent_config["optimization"],
+        {"actor": actor_net, "critic": critic_net},
+        optim_option={
+            "actor":  OptimOption(**cfg["optimization"]["actor"]),
+            "critic": OptimOption(**cfg["optimization"]["critic"])
+        }
     )
-    return ActorCritic(ac_model, ActorCriticConfig(**agent_config["hyper_params"]))
-
-
-class CIMTrajectoryForAC(CIMTrajectory):
-    def on_finish(self):
-        training_data = {}
-        for event, state, action in zip(self.trajectory["event"], self.trajectory["state"], self.trajectory["action"]):
-            agent_id = list(state.keys())[0]
-            data = training_data.setdefault(agent_id, {"args": [[] for _ in range(4)]})
-            data["args"][0].append(state[agent_id])  # state
-            data["args"][1].append(action[agent_id][0])  # action
-            data["args"][2].append(action[agent_id][1])  # log_p
-            data["args"][3].append(self.get_offline_reward(event))  # reward
-
-        for agent_id in training_data:
-            training_data[agent_id]["args"] = [
-                np.asarray(vals, dtype=np.float32 if i == 3 else None)
-                for i, vals in enumerate(training_data[agent_id]["args"])
-            ]
-
-        return training_data
+    return ActorCritic(ac_model, ActorCriticConfig(**cfg["algorithm"]), **cfg["experience_memory"])
 
 
 # Single-threaded launcher
 if __name__ == "__main__":
     set_seeds(1024)  # for reproducibility
-    env = Env(**training_config["env"])
+    env = Env(**config["training"]["env"])
     agent = MultiAgentWrapper({name: get_ac_agent() for name in env.agent_idx_list})
-    actor = Actor(env, agent, CIMTrajectoryForAC, trajectory_kwargs=common_config)  # local actor
-    learner = OnPolicyLearner(actor, training_config["max_episode"])
+    scheduler = Scheduler(config["training"]["max_episode"])
+    learner = Learner(
+        CIMEnvWrapper(env, **config["shaping"]), agent, scheduler,
+        agent_update_interval=config["training"]["agent_update_interval"],
+        log_env_metrics=True
+    ) 
     learner.run()

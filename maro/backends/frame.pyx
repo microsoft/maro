@@ -74,6 +74,15 @@ def node(name: str):
     return node_dec
 
 
+def try_get_attribute(target, name, default=None):
+    try:
+        attr = object.__getattribute__(target, name)
+
+        return attr
+    except:
+        return default
+
+
 cdef class NodeAttribute:
     def __cinit__(self, object dtype = None, SLOT_INDEX slot_num = 1, is_const = False, is_list = False):
         # Check the type of dtype, used to compact with old version
@@ -531,6 +540,8 @@ cdef class FrameBase:
                         del node_list[i]
                     else:
                         node._is_deleted = False
+
+            # Also
 
     cpdef void take_snapshot(self, INT tick) except *:
         """Take snapshot for specified point (tick) for current frame.

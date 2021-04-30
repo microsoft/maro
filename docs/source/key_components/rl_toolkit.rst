@@ -25,7 +25,7 @@ This decoupling is achieved by the Core Model abstraction described below.
 
 .. code-block:: python
 
-  class AbsAgent(ABC):
+  class AbsPolicy(ABC):
       def __init__(self, model: AbsCoreModel, config, experience_pool=None):
           self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
           self.model = model.to(self.device)
@@ -72,22 +72,22 @@ And performing one gradient step is simply:
   model.learn(critic_loss + actor_loss)
 
 
-Explorer
+Exploration
 --------
 
 MARO provides an abstraction for exploration in RL. Some RL algorithms such as DQN and DDPG require
-explicit exploration governed by a set of parameters. The ``AbsExplorer`` class is designed to cater
-to these needs. Simple exploration schemes, such as ``EpsilonGreedyExplorer`` for discrete action space
-and ``UniformNoiseExplorer`` and ``GaussianNoiseExplorer`` for continuous action space, are provided in
+explicit exploration governed by a set of parameters. The ``AbsExploration`` class is designed to cater
+to these needs. Simple exploration schemes, such as ``EpsilonGreedyExploration`` for discrete action space
+and ``UniformNoiseExploration`` and ``GaussianNoiseExploration`` for continuous action space, are provided in
 the toolkit.
 
-As an example, the exploration for DQN may be carried out with the aid of an ``EpsilonGreedyExplorer``:
+As an example, the exploration for DQN may be carried out with the aid of an ``EpsilonGreedyExploration``:
 
 .. code-block:: python
 
-  explorer = EpsilonGreedyExplorer(num_actions=10)
+  exploration = EpsilonGreedyExploration(num_actions=10)
   greedy_action = learning_model(state, training=False).argmax(dim=1).data
-  exploration_action = explorer(greedy_action)
+  exploration_action = exploration(greedy_action)
 
 
 Tools for Training
@@ -103,7 +103,7 @@ The RL toolkit provides tools that make local and distributed training easy:
   distributed fashion by loading an ``Actor`` or ``ActorProxy`` instance, respectively.  
 * Actor, which implements the ``roll_out`` method where the agent interacts with the environment for one
   episode. It consists of an environment instance and an agent (a single agent or multiple agents wrapped by
-  ``MultiAgentWrapper``). The class provides the as_worker() method which turns it to an event loop where roll-outs
+  ``MultiAgentWrapper``). The class provides the worker() method which turns it to an event loop where roll-outs
   are performed on the learner's demand. In distributed RL, there are typically many actor processes running
   simultaneously to parallelize training data collection.
 * Actor proxy, which also implements the ``roll_out`` method with the same signature, but manages a set of remote

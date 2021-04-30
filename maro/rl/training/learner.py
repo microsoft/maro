@@ -1,176 +1,190 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from abc import ABC, abstractmethod
-from typing import Union
+import time
+from collections import defaultdict
+from os import getcwd
+from typing import Callable, Dict, List, Union
 
-from numpy import asarray
+from maro.communication import Message, Proxy, SessionType
+from maro.rl.env_wrapper import AbsEnvWrapper
+from maro.rl.policy import AbsCorePolicy, MultiAgentPolicy
+from maro.utils import Logger
 
-from maro.rl.agent import AbsAgent, MultiAgentWrapper
-from maro.rl.scheduling import Scheduler
-from maro.rl.storage import SimpleStore
-from maro.rl.utils import ExperienceCollectionUtils
-from maro.utils import InternalLogger
-
-from .actor import Actor
-from .actor_proxy import ActorProxy
+from .actor_manager import ActorManager
+from .message_enums import MsgTag, MsgKey
 
 
-class AbsLearner(ABC):
-    """Learner class.
+class Learner(object):
+    """Learner class for distributed training.
 
     Args:
-        actor (Union[Actor, ActorProxy]): ``Actor`` or ``ActorProxy`` instance responsible for collecting roll-out
-            data for learning purposes. If it is an ``Actor``, it will perform roll-outs locally. If it is an
-            ``ActorProxy``, it will coordinate a set of remote actors to perform roll-outs in parallel.
-        agent (Union[AbsAgent, MultiAgentWrapper]): Learning agents. If None, the actor must be an ``Actor`` that
-            contains actual agents, rather than an ``ActorProxy``. Defaults to None.
+        policy (MultiAgentPolicy): Learning agents.
+        
     """
-    def __init__(self, actor: Union[Actor, ActorProxy], agent: Union[AbsAgent, MultiAgentWrapper] = None):
-        super().__init__()
-        if isinstance(actor, ActorProxy):
-            assert agent, "agent cannot be None when the actor is a proxy."
-            self.agent = agent
-        else:
-            # The agent passed to __init__ is ignored in this case
-            self.agent = actor.agent
-        self.actor = actor
-        self.logger = InternalLogger("LEARNER")
-
-    @abstractmethod
-    def run(self):
-        """Main learning loop is implemented here."""
-        return NotImplementedError
-
-
-class OnPolicyLearner(AbsLearner):
     def __init__(
         self,
-        actor: Union[Actor, ActorProxy],
-        max_episode: int,
-        agent: Union[AbsAgent, MultiAgentWrapper] = None
+        policy: MultiAgentPolicy,
+        env: AbsEnvWrapper,
+        num_episodes: int,
+        eval_env: AbsEnvWrapper = None,
+        actor_manager: ActorManager = None,
+        num_eval_actors: int = 1,
+        policy_update_interval: int = -1,
+        eval_points: Union[int, List[int]] = None,
+        required_actor_finishes: str = None,
+        discard_stale_experiences: bool = True,
+        log_env_metrics: bool = True,
+        log_dir: str = getcwd(),
+        end_of_training_kwargs: dict = None
     ):
-        super().__init__(actor, agent=agent)
-        self.max_episode = max_episode
+        if env is None and actor_manager is None:
+            raise Exception("env and actor_manager cannot both be None")
+
+        self._logger = Logger("LEARNER", dump_folder=log_dir)
+        self.policy = policy
+        self.env = env
+        self.num_episodes = num_episodes
+        self.eval_env = eval_env if eval_env else self.env
+        self.policy_update_interval = policy_update_interval
+
+        if actor_manager:
+            self._logger.info(
+                "Found actor manager. Roll-outs will be performed by remote actors. Local env will not be used."
+            )
+        self.actor_manager = actor_manager
+
+        self.num_eval_actors = num_eval_actors
+
+        # evaluation points
+        if eval_points is None:
+            eval_points = []
+        elif isinstance(eval_points, int):
+            num_eval_points = num_episodes // eval_points
+            eval_points = [eval_points * i for i in range(1, num_eval_points + 1)]
+
+        self.eval_points = eval_points
+        self.eval_points.sort()
+        if not self.eval_points or num_episodes != self.eval_points[-1]:
+            self.eval_points.append(num_episodes)
+
+        self._logger.info(f"Policy will be evaluated at the end of episodes {self.eval_points}")
+        self._eval_point_index = 0
+
+        # distributed roll-out
+        self.actor_manager = actor_manager
+        if self.actor_manager:
+            if required_actor_finishes and required_actor_finishes > self.actor_manager.num_actors:
+                raise ValueError("required_actor_finishes cannot exceed the number of available actors")
+
+            if required_actor_finishes is None:
+                required_actor_finishes = self.actor_manager.num_actors
+                self._logger.info(f"Required number of actor finishes is set to {required_actor_finishes}")
+
+            self.required_actor_finishes = required_actor_finishes
+            self.discard_stale_experiences = discard_stale_experiences
+
+        self.end_of_training_kwargs = end_of_training_kwargs if end_of_training_kwargs else {} 
+        self._log_env_metrics = log_env_metrics
+        self._total_learning_time = 0
+        self._total_env_steps = 0
+        self._total_experiences_collected = 0
 
     def run(self):
-        for ep in range(self.max_episode):
-            env_metrics, exp = self.actor.roll_out(
-                ep, model_by_agent=self.agent.dump_model() if isinstance(self.actor, ActorProxy) else None
-            )
-            self.logger.info(f"ep-{ep}: {env_metrics}")
-            exp = ExperienceCollectionUtils.stack(
-                exp,
-                is_single_source=isinstance(self.actor, Actor),
-                is_single_agent=isinstance(self.agent, AbsAgent)
-            )
-            if isinstance(self.agent, AbsAgent):
-                for e in exp:
-                    self.agent.learn(*e["args"], **e.get("kwargs", {}))
-            else:
-                for agent_id, ex in exp.items():
-                    for e in ex:
-                        self.agent[agent_id].learn(*e["args"], **e.get("kwargs", {}))
+        for ep in range(1, self.num_episodes + 1):
+            self.train(ep)
+            if ep == self.eval_points[self._eval_point_index]:
+                self._eval_point_index += 1
+                self.evaluate(self._eval_point_index)
 
-            self.logger.info("Agent learning finished")
+        if self.actor_manager:
+            self.actor_manager.exit()
 
-        # Signal remote actors to quit
-        if isinstance(self.actor, ActorProxy):
-            self.actor.terminate()
-
-
-MAX_LOSS = 1e8
-
-
-class OffPolicyLearner(AbsLearner):
-    def __init__(
-        self,
-        actor: Union[Actor, ActorProxy],
-        scheduler: Scheduler,
-        agent: Union[AbsAgent, MultiAgentWrapper] = None,
-        train_iter: int = 1,
-        min_experiences_to_train: int = 0,
-        batch_size: int = 128,
-        prioritized_sampling_by_loss: bool = False
-    ):
-        super().__init__(actor, agent=agent)
-        self.scheduler = scheduler
-        if isinstance(self.agent, AbsAgent):
-            self.experience_pool = SimpleStore(["S", "A", "R", "S_", "loss"])
+    def train(self, ep: int):
+        # local mode
+        if not self.actor_manager:
+            self._train_local(ep)
         else:
-            self.experience_pool = {
-                agent: SimpleStore(["S", "A", "R", "S_", "loss"]) for agent in self.agent.agent_dict
-            }
-        self.train_iter = train_iter
-        self.min_experiences_to_train = min_experiences_to_train
-        self.batch_size = batch_size
-        self.prioritized_sampling_by_loss = prioritized_sampling_by_loss
+            self._train_remote(ep)
 
-    def run(self):
-        for exploration_params in self.scheduler:
-            rollout_index = self.scheduler.iter
-            env_metrics, exp = self.actor.roll_out(
-                rollout_index,
-                model_by_agent=self.agent.dump_model() if isinstance(self.actor, ActorProxy) else None,
-                exploration_params=exploration_params
-            )
-            self.logger.info(f"ep-{rollout_index}: {env_metrics} ({exploration_params})")
+    def evaluate(self, ep: int):
+        self._logger.info("Evaluating...")
+        if self.eval_env:
+            self.policy.eval_mode()
+            self.eval_env.save_replay = False
+            self.eval_env.reset()
+            self.eval_env.start()  # get initial state
+            while self.eval_env.state:
+                action = self.policy.choose_action(self.eval_env.state)
+                self.eval_env.step(action)
 
-            # store experiences in the experience pool.
-            exp = ExperienceCollectionUtils.concat(
-                exp,
-                is_single_source=isinstance(self.actor, Actor),
-                is_single_agent=isinstance(self.agent, AbsAgent)
-            )
-            if isinstance(self.agent, AbsAgent):
-                exp.update({"loss": [MAX_LOSS] * len(list(exp.values())[0])})
-                self.experience_pool.put(exp)
-                for i in range(self.train_iter):
-                    batch, idx = self.get_batch()
-                    loss = self.agent.learn(*batch)
-                    self.experience_pool.update(idx, {"loss": list(loss)})
-            else:
-                for agent_id, ex in exp.items():
-                    # ensure new experiences are sampled with the highest priority
-                    ex.update({"loss": [MAX_LOSS] * len(list(ex.values())[0])})
-                    self.experience_pool[agent_id].put(ex)
+            if not self.eval_env.state:
+                self._logger.info(f"total reward: {self.eval_env.total_reward}")
 
-                for i in range(self.train_iter):
-                    batch_by_agent, idx_by_agent = self.get_batch()
-                    loss_by_agent = {
-                        agent_id: self.agent[agent_id].learn(*batch) for agent_id, batch in batch_by_agent.items()
-                    }
-                    for agent_id, loss in loss_by_agent.items():
-                        self.experience_pool[agent_id].update(idx_by_agent[agent_id], {"loss": list(loss)})
-
-            self.logger.info("Agent learning finished")
-
-        # Signal remote actors to quit
-        if isinstance(self.actor, ActorProxy):
-            self.actor.terminate()
-
-    def get_batch(self):
-        if isinstance(self.agent, AbsAgent):
-            if len(self.experience_pool) < self.min_experiences_to_train:
-                return None, None
-            if self.prioritized_sampling_by_loss:
-                indexes, sample = self.experience_pool.sample_by_key("loss", self.batch_size)
-            else:
-                indexes, sample = self.experience_pool.sample(self.batch_size)
-            batch = asarray(sample["S"]), asarray(sample["A"]), asarray(sample["R"]), asarray(sample["S_"])
-            return batch, indexes
+            if self._log_env_metrics:
+                self._logger.info(f"eval ep {ep}: {self.eval_env.metrics}")
         else:
-            idx, batch = {}, {}
-            for agent_id, pool in self.experience_pool.items():
-                if len(pool) < self.min_experiences_to_train:
-                    continue
-                if self.prioritized_sampling_by_loss:
-                    indexes, sample = self.experience_pool[agent_id].sample_by_key("loss", self.batch_size)
-                else:
-                    indexes, sample = self.experience_pool[agent_id].sample(self.batch_size)
-                batch[agent_id] = (
-                    asarray(sample["S"]), asarray(sample["A"]), asarray(sample["R"]), asarray(sample["S_"])
-                )
-                idx[agent_id] = indexes
+            self.actor_manager.evaluate(ep, self.policy.state(), self.num_eval_actors)
 
-            return batch, idx
+    def _train_local(self, ep: int):
+        t0 = time.time()
+        segement_index = 1
+        self._logger.info(f"Training episode {ep}") 
+        self._logger.debug(f"exploration parameters: {self.policy.exploration_params}")
+        self.policy.train_mode()
+        self.env.save_replay = True
+        self.env.reset()
+        self.env.start()  # get initial state
+        while self.env.state:
+            action = self.policy.choose_action(self.env.state)
+            self.env.step(action)
+            if (
+                not self.env.state or
+                self.policy_update_interval != -1 and self.env.step_index % self.policy_update_interval == 0
+            ):
+                exp_by_agent = self.env.get_experiences()
+                tl0 = time.time()
+                self.policy.store_experiences(exp_by_agent)
+                updated_policy_ids = self.policy.update()
+                self.end_of_training(ep, segement_index, **self.end_of_training_kwargs)
+                self._total_learning_time += time.time() - tl0
+                self._total_env_steps += self.policy_update_interval
+                self._total_experiences_collected += sum(len(exp) for exp in exp_by_agent.values())
+                self._logger.debug(f"total running time: {time.time() - t0}")
+                self._logger.debug(f"total learning time: {self._total_learning_time}")
+                self._logger.debug(f"total env steps: {self._total_env_steps}")
+                self._logger.debug(f"total experiences collected: {self._total_experiences_collected}")
+                if not self.env.state:
+                    self._logger.info(f"total reward: {self.env.total_reward}")
+
+                segement_index += 1
+
+        self.policy.exploration_step()
+        if self._log_env_metrics:
+            self._logger.info(f"ep {ep}: {self.env.metrics}")
+
+    def _train_remote(self, ep: int):
+        t0 = time.time()
+        updated_policy_ids, num_actor_finishes, segment_index = list(self.policy.policy_dict.keys()), 0, 0
+        while num_actor_finishes < self.required_actor_finishes:
+            for exp, done in self.actor_manager.collect(
+                ep, segment_index, self.policy_update_interval,
+                policy_dict=self.policy.state(),
+                required_actor_finishes=self.required_actor_finishes,
+                discard_stale_experiences=self.discard_stale_experiences
+            ):
+                tl0 = time.time()
+                self.policy.store_experiences(exp)
+                updated_policy_ids = self.policy.update()
+                self.end_of_training(ep, segment_index, **self.end_of_training_kwargs)
+                num_actor_finishes += done
+                self._total_learning_time += time.time() - tl0
+                self._logger.debug(f"running time: {time.time() - t0}")
+                self._logger.debug(f"learning time: {self._total_learning_time}")
+                self._logger.debug(f"env steps: {self.actor_manager.total_env_steps}")
+                self._logger.debug(f"experiences collected: {self.actor_manager.total_experiences_collected}")
+
+            segment_index += 1
+
+    def end_of_training(self, ep: int, segment: int, **kwargs):
+        pass
