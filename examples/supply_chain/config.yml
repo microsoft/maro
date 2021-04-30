@@ -1,7 +1,21 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-agent:
+env: 
+  scenario: supply_chain
+  # Currently available topologies are "sample1" or "random". New topologies must consist of a single folder
+  # that contains a single config.yml and shoud be placed under examples/supply_chain/envs/
+  topology: sample1
+  durations: 200  # number of ticks per episode
+num_episodes: 10  # number of episodes to simulate
+# Number of roll-out steps in each learning cycle. Each actor will perform at most this many roll-out steps
+# before returning experiences to the learner. The learner uses these experiences to update the agents' policies
+# and sync the updated policies to the actors for the next learning cycle.
+policy_update_interval: -1
+eval_points: 2
+log_env_metrics: false
+end_of_training_kwargs:
+policy:
   consumer:
     algorithm: dqn
     model:  # If you want to design your model used, edit the get_dqn_agent() codes in examples\supply_chain\agent.py
@@ -21,72 +35,28 @@ agent:
         lr: 0.001
     algorithm_config:
       reward_discount: .9
-      train_iters: 10  # number of gradient steps per call to agent.step()
-      batch_size: 128  # mini-batch size for DQN training
       loss_cls: mse  # refer to maro/maro/rl/utils/torch_cls_index.py for the mapping of strings to torch loss classes.
       target_update_freq: 5  # How many training iteration, to update DQN target model 
       soft_update_coefficient: 0.1
       double: false   # whether to enable double DQN
+    training_loop:
+      sampler_cls: uniform
+      batch_size: 128
+      sampler_kwargs:
+        replace: true
+      train_iters: 10
+      new_experience_trigger: 128
+      # The minimum number of experiences in the experience memory required for learning. Defaults to 1. 
+      num_warmup_experiences: 1000
     experience_memory:
-      experience_memory_size: 50000  # experience memory size
+      capacity: 50000  # experience memory size
       # This determines how existing experiences are replaced when adding new experiences to a full experience
       # memory. Must be one of "rolling" or "random". If "rolling", experiences will be replaced sequentially,
       # with the oldest one being the first to be replaced. If "random", experiences will be replaced randomly.
-      experience_memory_overwrite_type: random 
-      # If true, the agent's experience memory will be emptied after calling agent.step().
-      empty_experience_memory_after_step: false
-      # The minimum number of new experiences required to trigger learning (agent.step()). Defaults to 1.
-      min_new_experiences_to_trigger_learning: 10
-      # The minimum number of experiences in the experience memory required to trigger learning (agent.step()). Defaults to 1. 
-      min_experiences_to_trigger_learning: 10
-  producer:
-    algorithm: dqn
-    model:
-      hidden_dims:
-        - 16
-        - 8
-      output_dim: 10
-      activation: leaky_relu
-      softmax: false
-      batch_norm: true
-      skip_connection: false
-      head: true
-      dropout_p: 0.0
-    optimization:
-      optim_cls: rmsprop
-      optim_params:
-        lr: 0.001
-    algorithm_config:
-      reward_discount: .9
-      train_iters: 10
-      batch_size: 128
-      loss_cls: mse
-      target_update_freq: 5
-      soft_update_coefficient: 0.1
-      double: false # double DQN
-    experience_memory:
-      experience_memory_size: 50000
-      experience_memory_overwrite_type: random
-      empty_experience_memory_after_step: false
-      min_new_experiences_to_trigger_learning: 1
-      min_experiences_to_trigger_learning: 1
-training:
-  env: 
-    scenario: supply_chain
-    # Currently available topologies are "sample1" or "random". New topologies must consist of a single folder
-    # that contains a single config.yml and shoud be placed under examples/supply_chain/envs/
-    topology: sample1
-    durations: 200  # number of ticks per episode
-  num_episodes: 3  # number of episodes to simulate
-  # Number of roll-out steps in each learning cycle. Each actor will perform at most this many roll-out steps
-  # before returning experiences to the learner. The learner uses these experiences to update the agents' policies
-  # and sync the updated policies to the actors for the next learning cycle.
-  agent_update_interval: 60
-  exploration:
-    parameter_names:
-      - epsilon
-    start: 0.4  # Here (start: 0.4, end: 0.0) means: the exploration rate will start at 0.4 and decrease linearly to 0.0 in the last episode.
-    end: 0.0
+      overwrite_type: random
+exploration:
+  initial_value: 0.4  # Here (start: 0.4, end: 0.0) means: the exploration rate will start at 0.4 and decrease linearly to 0.0 in the last episode.
+  final_value: 0.0
 distributed:
   # this is used to group all actor / learner processes belonging to the same job for communication purposes.
   # There is no need to change this if you use the scripts under examples/supply_chain/scripts to run the scenario.
@@ -95,7 +65,7 @@ distributed:
   # If you use the scripts under examples/supply_chain/scripts to run the scenario, you can set "redis_host"
   # to any string supported by the pyyaml parser. If running in multi-process mode, change this to "localhost" and make
   # sure that a local redis server is running and listening on the port specified by "redis_port".
-  redis_host: redis-sc
+  redis_host: localhost
   redis_port: 6379
   # The number of actor finishes required for the learner to enter the next learning cycle. This is used to prevent
   # slow actors from dragging down the whole process.

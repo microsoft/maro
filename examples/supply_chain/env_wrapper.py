@@ -164,6 +164,12 @@ class SCEnvWrapper(AbsEnvWrapper):
 
         return self._dim
 
+    def get_state_a(self):
+        pass
+
+    def get_state_b(self):
+        pass
+
     def get_state(self, event):
         cur_tick = self.env.tick
         settings: dict = self.env.configs.settings

@@ -85,7 +85,7 @@ TORCH_LR_SCHEDULER = {
 def get_torch_activation_cls(activation_type):
     if isinstance(activation_type, str):
         if activation_type not in TORCH_ACTIVATION:
-            raise KeyError(f"A string optim_cls must be one of {list(TORCH_ACTIVATION.keys())}.")
+            raise KeyError(f"A string activation_type must be one of {list(TORCH_ACTIVATION.keys())}.")
         return TORCH_ACTIVATION[activation_type]
 
     return activation_type
@@ -94,7 +94,7 @@ def get_torch_activation_cls(activation_type):
 def get_torch_loss_cls(loss_type):
     if isinstance(loss_type, str):
         if loss_type not in TORCH_LOSS:
-            raise KeyError(f"A string optim_cls must be one of {list(TORCH_LOSS.keys())}.")
+            raise KeyError(f"A string loss_type must be one of {list(TORCH_LOSS.keys())}.")
         return TORCH_LOSS[loss_type]
 
     return loss_type
@@ -103,7 +103,7 @@ def get_torch_loss_cls(loss_type):
 def get_torch_optim_cls(optim_type):
     if isinstance(optim_type, str):
         if optim_type not in TORCH_OPTIM:
-            raise KeyError(f"A string optim_cls must be one of {list(TORCH_OPTIM.keys())}.")
+            raise KeyError(f"A string optim_type must be one of {list(TORCH_OPTIM.keys())}.")
         return TORCH_OPTIM[optim_type]
 
     return optim_type
@@ -112,7 +112,7 @@ def get_torch_optim_cls(optim_type):
 def get_torch_lr_scheduler_cls(lr_scheduler_type):
     if isinstance(lr_scheduler_type, str):
         if lr_scheduler_type not in TORCH_LR_SCHEDULER:
-            raise KeyError(f"A string optim_cls must be one of {list(TORCH_LR_SCHEDULER.keys())}.")
+            raise KeyError(f"A string lr_scheduler_type must be one of {list(TORCH_LR_SCHEDULER.keys())}.")
         return TORCH_LR_SCHEDULER[lr_scheduler_type]
 
     return lr_scheduler_type

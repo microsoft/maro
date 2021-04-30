@@ -1,7 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from .env_wrapper import AbsEnvWrapper
+from .actor import Actor
+from .actor_manager import ActorManager
 from .learner import Learner
 
-__all__ = ["AbsEnvWrapper", "Learner"]
+__all__ = ["Actor", "ActorManager", "Learner"]
