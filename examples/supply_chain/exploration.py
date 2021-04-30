@@ -11,7 +11,7 @@ sys.path.insert(0, sc_code_dir)
 from config import config
 
 
-exploration = EpsilonGreedyExploration(config["policy"]["consumer"]["model"]["output_dim"])
+exploration = EpsilonGreedyExploration(config["policy"]["consumer"]["model"]["network"]["output_dim"])
 exploration.register_schedule(
     LinearExplorationScheduler, "epsilon", config["num_episodes"],
     initial_value=config["exploration"]["initial_value"],

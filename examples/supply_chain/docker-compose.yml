@@ -53,6 +53,6 @@ services:
     - /home/data_disk/yaqiu/maro/examples/supply_chain:/maro/supply_chain
     - /home/data_disk/yaqiu/maro/maro/rl:/maro/maro/rl
   redis:
-    container_name: redis-sc
+    container_name: maro-redis
     image: redis:6
 version: '3.9'

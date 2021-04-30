@@ -67,7 +67,7 @@ distributed:
   # If you use the scripts under examples/supply_chain/scripts to run the scenario, you can set "redis_host"
   # to any string supported by the pyyaml parser. If running in multi-process mode, change this to "localhost" and make
   # sure that a local redis server is running and listening on the port specified by "redis_port".
-  redis_host: localhost
+  redis_host: maro-redis
   redis_port: 6379
   # The number of actor finishes required for the learner to enter the next learning cycle. This is used to prevent
   # slow actors from dragging down the whole process.

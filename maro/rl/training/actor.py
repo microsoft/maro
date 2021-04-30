@@ -51,7 +51,8 @@ class Actor(object):
                 self.policy.train_mode()
                 episode_index, segment_index = msg.body[MsgKey.EPISODE_INDEX], msg.body[MsgKey.SEGMENT_INDEX]
                 if self.env.state is None:
-                    self._logger.info(f"Training with exploration parameters: {self.policy.exploration_params}")
+                    self._logger.info(f"Training episode {msg.body[MsgKey.EPISODE_INDEX]}")
+                    self._logger.debug(f"Exploration parameters: {self.policy.exploration_params}")
                     self.env.reset()
                     self.env.start()  # get initial state
 

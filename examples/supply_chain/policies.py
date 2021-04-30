@@ -30,7 +30,9 @@ class SimpleQNet(QNetForDiscreteActionSpace):
 
 
 def get_dqn_policy(config):
-    q_net = SimpleQNet(FullyConnectedBlock(**config["model"]), optim_option=OptimOption(**config["optimization"]))
+    q_net = SimpleQNet(
+        FullyConnectedBlock(**config["model"]["network"]), optim_option=OptimOption(**config["model"]["optimization"])
+    )
     experience_memory = ExperienceMemory(**config["experience_memory"])
 
     config["training_loop"]["sampler_cls"] = get_sampler_cls(config["training_loop"]["sampler_cls"])
