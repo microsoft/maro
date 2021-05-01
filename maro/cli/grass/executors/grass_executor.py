@@ -473,6 +473,46 @@ class GrassExecutor:
 
         return start_schedule_deployment
 
+    # maro grass tuner
+
+    def start_tuner(self, deployment_path: str) -> None:
+        """Start a MARO Tuner with start_tuner_deployment.
+        Args:
+            deployment_path (str): path of the start_tuner_deployment.
+        Returns:
+            None.
+        """
+        # Load start_tuner_deployment
+        with open(deployment_path, "r") as fr:
+            start_tuner_deployment = yaml.safe_load(fr)
+
+        self._start_tuner(start_tuner_deployment=start_tuner_deployment)
+
+    def _start_tuner(self, start_tuner_deployment: dict) -> None:
+        """Start a MARO Tuner by sending tuner_details to the MARO Cluster.
+        Args:
+            start_tuner_deployment (dict): raw start_tuner_deployment.
+        Returns:
+            None.
+        """
+        # Standardize start_tuner_deployment
+        tuner_details = self._standardize_job_details(start_tuner_deployment=start_tuner_deployment)
+        tuner_details['job_names'] = []
+
+        # Create tuner
+        logger.info(f"Sending job ticket '{start_tuner_deployment['name']}'")
+        self.master_api_client.create_tuner(tuner_details=tuner_details)
+        logger.info_green(f"Job ticket '{tuner_details['name']}' is sent")
+
+    def stop_tuner(self, tuner_name: str) -> None:
+        """Stop a MARO Tuner.
+        Args:
+            tuner_name (str): name of the tuner.
+        Returns:
+            None.
+        """
+        self.master_api_client.stop_tuner(tuner_name=tuner_name)
+
     # maro grass status
 
     def status(self, resource_name: str) -> None:

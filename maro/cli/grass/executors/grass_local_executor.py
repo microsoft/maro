@@ -301,3 +301,24 @@ class GrassLocalExecutor(AbsVisibleExecutor):
             "available_resource"
         )
         return json.loads(available_resource)
+
+    def start_tuner(self, deployment_path: str):
+        # Load start_tuner_deployment
+        with open(deployment_path, "r") as fr:
+            start_tuner_deployment = yaml.safe_load(fr)
+
+        start_tuner_deployment = self._completed_local_job_deployment(start_tuner_deployment)
+
+        # Check resource
+        is_satisfied, _ = resource_op(
+            self.cluster_details["master"]["resource"],
+            start_tuner_deployment["total_request_resource"],
+            ResourceOperation.ALLOCATION
+        )
+        if not is_satisfied:
+            raise BadRequestError(f"No enough resource to start tuner {start_tuner_deployment['name']}.")
+
+        self._push_pending_job(start_tuner_deployment)
+
+    def stop_tuner(self, tuner_name: str) -> None:
+        self.stop_schedule(tuner_name)
