@@ -31,7 +31,9 @@ class SimpleQNet(QNetForDiscreteActionSpace):
 
 def get_dqn_policy(config):
     q_net = SimpleQNet(
-        FullyConnectedBlock(**config["model"]["network"]), optim_option=OptimOption(**config["model"]["optimization"])
+        FullyConnectedBlock(**config["model"]["network"]),
+        optim_option=OptimOption(**config["model"]["optimization"]),
+        device=config["model"]["device"]
     )
     experience_memory = ExperienceMemory(**config["experience_memory"])
 

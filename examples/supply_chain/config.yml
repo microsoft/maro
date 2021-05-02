@@ -20,7 +20,8 @@ policy:
     algorithm: dqn
     share_model: true
     model:  # Edit the get_dqn_agent() code in examples\supply_chain\agent.py if you need to customize the model.
-      network:      
+      device: cpu
+      network:
         hidden_dims:
           - 16
           - 8
