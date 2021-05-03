@@ -94,12 +94,10 @@ class AbsCorePolicy(ABC):
             return False
 
         self._last_exp_mem_size = len(self.experience_memory)
-        exp_mem, sampler, config = self.experience_memory, self.sampler, self.generic_config
         for _ in range(self.generic_config.train_iters):
             self.learn(self.experience_memory.get(self.sampler.sample()))
-            return True
 
-        return False
+        return True
 
     @abstractmethod
     def learn(self, experience_set: ExperienceSet):
