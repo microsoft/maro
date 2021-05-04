@@ -146,7 +146,8 @@ class Learner(object):
                 tl0 = time.time()
                 self.policy.store_experiences(exp_by_agent)
                 updated_policy_ids = self.policy.update()
-                self._logger.info(f"updated policies {updated_policy_ids}")
+                if updated_policy_ids:
+                    self._logger.info(f"updated policies {updated_policy_ids}")
                 self.end_of_training(ep, segement_index, **self.end_of_training_kwargs)
                 self._total_learning_time += time.time() - tl0
                 self._total_env_steps += self.policy_update_interval
@@ -166,7 +167,7 @@ class Learner(object):
 
     def _train_remote(self, ep: int):
         t0 = time.time()
-        updated_policy_ids, num_actor_finishes, segment_index = list(self.policy.policy_dict.keys()), 0, 0
+        updated_policy_ids, num_actor_finishes, segment_index = list(self.policy.policy_dict.keys()), 0, 1
         while num_actor_finishes < self.required_actor_finishes:
             for exp, done in self.actor_manager.collect(
                 ep, segment_index, self.policy_update_interval,
@@ -177,7 +178,8 @@ class Learner(object):
                 tl0 = time.time()
                 self.policy.store_experiences(exp)
                 updated_policy_ids = self.policy.update()
-                self._logger.info(f"updated policies {updated_policy_ids}")
+                if updated_policy_ids:
+                    self._logger.info(f"updated policies {updated_policy_ids}")
                 self.end_of_training(ep, segment_index, **self.end_of_training_kwargs)
                 num_actor_finishes += done
                 self._total_learning_time += time.time() - tl0
