@@ -146,6 +146,7 @@ class Learner(object):
                 tl0 = time.time()
                 self.policy.store_experiences(exp_by_agent)
                 updated_policy_ids = self.policy.update()
+                self._logger.info(f"updated policies {updated_policy_ids}")
                 self.end_of_training(ep, segement_index, **self.end_of_training_kwargs)
                 self._total_learning_time += time.time() - tl0
                 self._total_env_steps += self.policy_update_interval
@@ -176,6 +177,7 @@ class Learner(object):
                 tl0 = time.time()
                 self.policy.store_experiences(exp)
                 updated_policy_ids = self.policy.update()
+                self._logger.info(f"updated policies {updated_policy_ids}")
                 self.end_of_training(ep, segment_index, **self.end_of_training_kwargs)
                 num_actor_finishes += done
                 self._total_learning_time += time.time() - tl0
