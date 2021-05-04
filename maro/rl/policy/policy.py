@@ -66,7 +66,7 @@ class AbsCorePolicy(ABC):
         self.special_config = special_config
         sampler_cls, batch_size = generic_config.sampler_cls, generic_config.batch_size
         self.sampler = sampler_cls(experience_memory, batch_size, **generic_config.sampler_kwargs)
-        self._last_exp_mem_size = 0  # experience memory size when the last update was made
+        self._num_new_exp = 0  # experience memory size when the last update was made
         self._warm_up = True
         self._update_ready = False
 
@@ -85,15 +85,15 @@ class AbsCorePolicy(ABC):
 
     def store_experiences(self, experience_set: ExperienceSet):
         self.experience_memory.put(experience_set)
-        exp_mem_size = len(self.experience_memory)
-        self._warm_up = exp_mem_size < self.generic_config.num_warmup_experiences
-        self._update_ready = (exp_mem_size - self._last_exp_mem_size) >= self.generic_config.new_experience_trigger
+        self._num_new_exp += len(experience_set)
+        self._warm_up = len(self.experience_memory) < self.generic_config.num_warmup_experiences
+        self._update_ready = self._num_new_exp >= self.generic_config.new_experience_trigger
 
     def update(self):
         if self._warm_up or not self._update_ready:
             return False
 
-        self._last_exp_mem_size = len(self.experience_memory)
+        self._num_new_exp = 0
         for _ in range(self.generic_config.train_iters):
             self.learn(self.experience_memory.get(self.sampler.sample()))
 
