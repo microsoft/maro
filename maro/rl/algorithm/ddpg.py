@@ -79,17 +79,17 @@ class DDPG(AbsCorePolicy):
 
         return actions[0] if len(actions) == 1 else actions
 
-    def learn(self, experience_set: ExperienceSet):
+    def step(self, experience_set: ExperienceSet):
         if not isinstance(experience_set, ExperienceSet):
-            raise TypeError(f"Expected experience object of type DDPGExperience, got {type(experience_set)}")
+            raise TypeError(f"Expected experience object of type ExperienceSet, got {type(experience_set)}")
 
         states, next_states = experience_set.states, experience_set.next_states
-        actual_actions = torch.from_numpy(experience_set.actions)
-        rewards = torch.from_numpy(experience_set.rewards)
+        actual_actions = torch.from_numpy(experience_set.actions).to(self.ac_net.device)
+        rewards = torch.from_numpy(experience_set.rewards).to(self.ac_net.device)
         if len(actual_actions.shape) == 1:
             actual_actions = actual_actions.unsqueeze(dim=1)  # (N, 1)
 
-        current_q_values = self.ac_net(torch.cat([states, actual_actions], dim=1), task_name="q_value")
+        current_q_values = self.ac_net(torch.cat([states, actual_actions], dim=1))
         current_q_values = current_q_values.squeeze(dim=1)  # (N,)
         next_actions = self.target_ac_net(states, task_name="policy", training=False)
         next_q_values = self.target_ac_net(

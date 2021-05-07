@@ -18,7 +18,6 @@ class AbsSampler(ABC):
     def sample(self) -> List[int]:
         raise NotImplementedError
 
-    @abstractmethod
     def update(self):
         """Update statistics used for sampling."""
         pass
@@ -43,7 +42,15 @@ class UniformSampler(AbsSampler):
 
     def sample(self):
         indexes = np.random.choice(len(self.data), size=self.batch_size, replace=self.replace)
-        return indexes
+        return indexes, self.data.get(indexes)
 
-    def update(self, indexes, values):
-        pass
+
+class FullSampler(AbsSampler):
+    """
+    """
+    def __init__(self, data: ExperienceMemory, batch_size: int = -1, empty_after_use: bool = True):
+        super().__init__(data, batch_size)
+        self.empty_after_use = empty_after_use
+
+    def sample(self):
+        return self.data.get()

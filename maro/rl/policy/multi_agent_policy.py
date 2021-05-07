@@ -5,7 +5,7 @@ import os
 import pickle
 import warnings
 from collections import defaultdict, namedtuple
-from typing import Dict, List, Union
+from typing import Dict, List
 
 from maro.rl.exploration import AbsExploration, NullExploration
 from maro.rl.experience import ExperienceMemory
@@ -21,16 +21,14 @@ class MultiAgentPolicy:
     """
     def __init__(
         self,
-        policy_dict: Dict[str, Union[AbsFixedPolicy, AbsCorePolicy]],
+        policy_dict: Dict[str, AbsPolicy],
         agent_to_policy: Dict[str, str],
         exploration_dict: Dict[str, AbsExploration] = None,
         agent_to_exploration: Dict[str, str] = None
     ):
         self.policy_dict = policy_dict
         self.agent_to_policy = agent_to_policy
-        self.policy = {
-            agent_id: self.policy_dict[policy_id] for agent_id, policy_id in self.agent_to_policy.items()
-        }
+        self.policy = {agent_id: policy_dict[policy_id] for agent_id, policy_id in self.agent_to_policy.items()}
         self.agent_groups_by_policy = defaultdict(list)
         for agent_id, policy_id in agent_to_policy.items():
             self.agent_groups_by_policy[policy_id].append(agent_id)
@@ -45,7 +43,7 @@ class MultiAgentPolicy:
                 agent_id: self.exploration_dict[exploration_id]
                 for agent_id, exploration_id in self.agent_to_exploration.items()
             }
-            self.with_exploration = True
+            self.exploration_enabled = True
             self.agent_groups_by_exploration = defaultdict(list)
             for agent_id, exploration_id in agent_to_exploration.items():
                 self.agent_groups_by_exploration[exploration_id].append(agent_id)
@@ -54,21 +52,15 @@ class MultiAgentPolicy:
                 self.agent_groups_by_exploration[exploration_id] = tuple(agent_ids)
 
     def train_mode(self):
-        self.with_exploration = True
+        if hasattr(self, "exploration_enabled"):
+            self.exploration_enabled = True
 
     def eval_mode(self):
-        self.with_exploration = False
-
-    @property
-    def exploration_params(self):
-        if hasattr(self, "exploration"):
-            return {
-                agent_ids: self.exploration_dict[exploration_id].parameters
-                for exploration_id, agent_ids in self.agent_groups_by_exploration.items()
-            }
+        if hasattr(self, "exploration_enabled"):
+            self.exploration_enabled = False
 
     def choose_action(self, state_by_agent: dict):
-        if self.exploration_dict and self.with_exploration:      
+        if self.exploration_dict and self.exploration_enabled:      
             return {
                 agent_id:
                     self.exploration[agent_id](self.policy[agent_id].choose_action(state))
@@ -83,16 +75,13 @@ class MultiAgentPolicy:
             if isinstance(self.policy[agent_id], AbsCorePolicy):
                 self.policy[agent_id].store_experiences(exp)
 
-    def update(self) -> List[str]:
-        return [
-            policy_id for policy_id, policy in self.policy_dict.items()
-            if isinstance(policy, AbsCorePolicy) and policy.update()
-        ]
+    def update(self, policy_ids: List[str] = None):
+        if policy_ids is None:
+            policy_ids = self.policy_dict.keys()
 
-    def exploration_step(self):
-        if self.exploration_dict:
-            for exploration in self.exploration_dict.values():
-                exploration.step()
+        for policy_id in policy_ids:
+            if self.policy_dict[policy_id].update():
+                self.policy_dict[policy_id].post_update()
 
     def load_state(self, policy_state_dict: dict):
         """Load policies from memory."""
@@ -102,11 +91,11 @@ class MultiAgentPolicy:
         for policy_id, policy_state in policy_state_dict.items():
             self.policy_dict[policy_id].load_state(policy_state)
 
-    def state(self):
-        return {
-            policy_id: policy.state() for policy_id, policy in self.policy_dict.items()
-            if isinstance(policy, AbsCorePolicy)    
-        }
+    def get_state(self, policy_ids: List[str] = None):
+        if policy_ids is None:
+            policy_ids = self.policy_dict.keys()
+
+        return {policy_id: self.policy_dict[policy_id].get_state() for policy_id in policy_ids}
 
     def load(self, dir_path: str):
         """Load models from disk."""

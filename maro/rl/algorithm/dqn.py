@@ -29,7 +29,7 @@ class DQNConfig:
             it must be a key in ``TORCH_LOSS``. Defaults to "mse".
     """
     __slots__ = [
-        "reward_discount", "target_update_freq", "train_iters", "batch_size", "sampler_cls", "sampler_params",
+        "reward_discount", "target_update_freq", "num_steps", "batch_size", "sampler_cls", "sampler_params",
         "soft_update_coefficient", "double", "loss_func"
     ]
 
@@ -81,17 +81,15 @@ class DQN(AbsCorePolicy):
         actions = actions.cpu().numpy()
         return actions[0] if len(actions) == 1 else actions
 
-    def learn(self, experience_set: ExperienceSet):
+    def step(self, experience_set: ExperienceSet):
         if not isinstance(experience_set, ExperienceSet):
-            raise TypeError(
-                f"Expected experience object of type AbsCorePolicy.experience_type, got {type(experience_set)}"
-            )
+            raise TypeError(f"Expected experience object of type ExperienceSet, got {type(experience_set)}")
 
         self.q_net.train()   
         # sample from the replay memory
         states, next_states = experience_set.states, experience_set.next_states
-        actions = torch.from_numpy(np.asarray(experience_set.actions))
-        rewards = torch.from_numpy(np.asarray(experience_set.rewards))
+        actions = torch.from_numpy(np.asarray(experience_set.actions)).to(self.q_net.device)
+        rewards = torch.from_numpy(np.asarray(experience_set.rewards)).to(self.q_net.device)
         q_values = self.q_net.q_values(states, actions)
         # get next Q values
         with torch.no_grad():

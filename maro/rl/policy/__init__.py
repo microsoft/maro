@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from .multi_agent_policy import MultiAgentPolicy
-from .policy import AbsCorePolicy, AbsFixedPolicy, NullPolicy, RLPolicy, TrainingLoopConfig
+from .policy import AbsCorePolicy, AbsPolicy, NullPolicy, RLPolicy, TrainingLoopConfig
 
-__all__ = ["AbsCorePolicy", "AbsFixedPolicy", "MultiAgentPolicy", "NullPolicy", "RLPolicy", "TrainingLoopConfig"]
+__all__ = ["AbsCorePolicy", "AbsPolicy", "NullPolicy", "RLPolicy", "TrainingLoopConfig"]

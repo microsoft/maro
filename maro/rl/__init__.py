@@ -15,8 +15,8 @@ from maro.rl.model import (
     AbsBlock, AbsCoreModel, FullyConnectedBlock, OptimOption, PolicyNetForDiscreteActionSpace,
     PolicyValueNetForContinuousActionSpace, PolicyValueNetForDiscreteActionSpace, QNetForDiscreteActionSpace
 )
-from maro.rl.policy import AbsCorePolicy, AbsFixedPolicy, MultiAgentPolicy, NullPolicy, RLPolicy, TrainingLoopConfig
-from maro.rl.training import Actor, ActorManager, Learner
+from maro.rl.policy import AbsCorePolicy, AbsPolicy, NullPolicy, RLPolicy, TrainingLoopConfig
+from maro.rl.training import Actor, ActorManager, DistributedLearner, LocalLearner, MultiPolicyUpdateSchedule
 from maro.rl.utils import (
     get_k_step_returns, get_lambda_returns, get_torch_activation_cls, get_torch_loss_cls, get_torch_lr_scheduler_cls,
     get_torch_optim_cls, get_truncated_cumulative_reward
@@ -32,8 +32,8 @@ __all__ = [
     "UniformNoiseExploration",
     "AbsBlock", "AbsCoreModel", "FullyConnectedBlock", "OptimOption", "PolicyNetForDiscreteActionSpace",
     "PolicyValueNetForContinuousActionSpace", "PolicyValueNetForDiscreteActionSpace", "QNetForDiscreteActionSpace",
-    "AbsCorePolicy", "AbsFixedPolicy", "MultiAgentPolicy", "NullPolicy", "RLPolicy", "TrainingLoopConfig",
-    "Actor", "ActorManager", "Learner",
+    "AbsCorePolicy", "AbsPolicy", "NullPolicy", "RLPolicy", "TrainingLoopConfig",
+    "Actor", "ActorManager", "DistributedLearner", "LocalLearner", "MultiPolicyUpdateSchedule",
     "get_k_step_returns", "get_lambda_returns", "get_torch_activation_cls", "get_torch_loss_cls",
     "get_torch_lr_scheduler_cls", "get_torch_optim_cls", "get_truncated_cumulative_reward"
 ]

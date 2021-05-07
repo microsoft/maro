@@ -44,7 +44,7 @@ agent:
       lr: 0.05
   algorithm: 
     reward_discount: .0
-    train_iters: 10
+    num_steps: 10
     batch_size: 128
     loss_cls: smooth_l1
     target_update_freq: 5

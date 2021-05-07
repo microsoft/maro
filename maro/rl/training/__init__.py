@@ -3,6 +3,8 @@
 
 from .actor import Actor
 from .actor_manager import ActorManager
-from .learner import Learner
+from .distributed_learner import DistributedLearner
+from .local_learner import LocalLearner
+from .policy_update_schedule import MultiPolicyUpdateSchedule
 
-__all__ = ["Actor", "ActorManager", "Learner"]
+__all__ = ["Actor", "ActorManager", "DistributedLearner", "LocalLearner", "MultiPolicyUpdateSchedule"]

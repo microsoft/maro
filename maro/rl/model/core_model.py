@@ -49,7 +49,8 @@ class AbsCoreModel(nn.Module):
     def __init__(
         self,
         component: Union[nn.Module, Dict[str, nn.Module]],
-        optim_option: Union[OptimOption, Dict[str, OptimOption]] = None
+        optim_option: Union[OptimOption, Dict[str, OptimOption]] = None,
+        device: str = "cpu"
     ):
         super().__init__()
         self.component = component if isinstance(component, nn.Module) else nn.ModuleDict(component)
@@ -71,7 +72,8 @@ class AbsCoreModel(nn.Module):
                 if optim_option.scheduler_cls:
                     self.scheduler = optim_option.scheduler_cls(self.optimizer, **optim_option.scheduler_params)
 
-        self.device = torch.device('cpu')
+        self.device = torch.device(device)
+        self.to(self.device)
 
     @property
     def trainable(self) -> bool:

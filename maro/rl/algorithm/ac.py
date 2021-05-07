@@ -80,14 +80,14 @@ class ActorCritic(AbsCorePolicy):
         actions, log_p = actions.cpu().numpy(), log_p.cpu().numpy()
         return (actions[0], log_p[0]) if len(actions) == 1 else actions, log_p
 
-    def learn(self, experience_set: ExperienceSet):
+    def step(self, experience_set: ExperienceSet):
         if not isinstance(experience_set, ExperienceSet):
-            raise TypeError(f"Expected experience object of type ACExperience, got {type(experience_set)}")
+            raise TypeError(f"Expected experience object of type ExperienceSet, got {type(experience_set)}")
 
         states, next_states = experience_set.states, experience_set.next_states
-        actions = torch.from_numpy(np.asarray([act[0] for act in experience_set.actions]))
-        log_p = torch.from_numpy(np.asarray([act[1] for act in experience_set.actions]))
-        rewards = torch.from_numpy(np.asarray(experience_set.rewards))
+        actions = torch.from_numpy(np.asarray([act[0] for act in experience_set.actions])).to(self.ac_net.device)
+        log_p = torch.from_numpy(np.asarray([act[1] for act in experience_set.actions])).to(self.ac_net.device)
+        rewards = torch.from_numpy(np.asarray(experience_set.rewards)).to(self.ac_net.device)
 
         state_values = self.ac_net(states, output_action_probs=False).detach().squeeze()
         next_state_values = self.ac_net(next_states, output_action_probs=False).detach().squeeze()

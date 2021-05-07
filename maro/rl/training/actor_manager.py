@@ -31,6 +31,7 @@ class ActorManager(object):
         num_actors: int,
         group_name: str,
         proxy_options: dict = None,
+        required_finishes: int = None, 
         log_env_metrics: bool = False,
         log_dir: str = getcwd()
     ):
@@ -41,6 +42,15 @@ class ActorManager(object):
             proxy_options = {}
         self._proxy = Proxy(group_name, "actor_manager", peers, **proxy_options)
         self._actors = self._proxy.peers["actor"]  # remote actor ID's
+
+        if required_finishes and required_finishes > self.num_actors:
+            raise ValueError("required_finishes cannot exceed the number of available actors")
+
+        if required_finishes is None:
+            required_finishes = self.num_actors
+            self._logger.info(f"Required number of actor finishes is set to {required_finishes}")
+
+        self.required_finishes = required_finishes
         self.total_experiences_collected = 0
         self.total_env_steps = 0
         self.total_reward = defaultdict(float)
@@ -54,7 +64,6 @@ class ActorManager(object):
         num_steps: int,
         policy_dict: dict = None,
         exploration=None,
-        required_actor_finishes: int = None,
         discard_stale_experiences: bool = True,
         return_env_metrics: bool = False
     ):
@@ -101,7 +110,7 @@ class ActorManager(object):
 
             if msg.body[MsgKey.SEGMENT_INDEX] == segment_index:
                 num_finishes += 1
-                if num_finishes == required_actor_finishes:
+                if num_finishes == self.required_finishes:
                     break
 
     def evaluate(self, episode_index: int, policy_dict: dict, num_actors: int):
