@@ -18,10 +18,8 @@ class AbsExploration(ABC):
         param_name: str,
         last_ep: int,
         initial_value=None,
-        kwargs: dict = None
+        **kwargs
     ):
-        if kwargs is None:
-            kwargs = {}
         self.scheduler[param_name] = scheduler_cls(self, param_name, last_ep, initial_value=initial_value, **kwargs)
 
     @abstractmethod

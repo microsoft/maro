@@ -223,7 +223,7 @@ class PolicyValueNetForContinuousActionSpace(AbsCoreModel):
             the components. Defaults to None.
     """
     @abstractmethod
-    def forward(self, states, actions, output_action: bool = True, output_values: bool = True):
+    def forward(self, states, actions=None):
         raise NotImplementedError
 
     def choose_action(self, states):
@@ -231,4 +231,7 @@ class PolicyValueNetForContinuousActionSpace(AbsCoreModel):
         Given Q-values for a batch of states and all actions, return the maximum Q-value and
         the corresponding action index for each state.
         """
-        return self.forward(states, output_values=False)
+        return self.forward(states)
+
+    def value(self, states):
+        return self.forward(states, actions=self.forward(states))

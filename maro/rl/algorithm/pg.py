@@ -84,11 +84,14 @@ class PolicyGradient(AbsCorePolicy):
         return (action[0], log_p[0]) if is_single else (action, log_p)
 
     def step(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray):
-        states = torch.from_numpy(states).to(self.device)
-        actions = torch.from_numpy(actions).to(self.device)
+        if not isinstance(experience_set, ExperienceSet):
+            raise TypeError(f"Expected experience object of type ExperienceSet, got {type(experience_set)}")
+
+        states = experience_set.states
+        actions = torch.from_numpy(np.asarray([act[0] for act in experience_set.actions]))
+        log_p = torch.from_numpy(np.asarray([act[1] for act in experience_set.actions]))
+        rewards = torch.from_numpy(np.asarray(experience_set.rewards))
         returns = get_truncated_cumulative_reward(rewards, self.special_config.reward_discount)
         returns = torch.from_numpy(returns).to(self.device)
-        action_distributions = self.model(states)
-        action_prob = action_distributions.gather(1, actions.unsqueeze(1)).squeeze()   # (N, 1)
-        loss = -(torch.log(action_prob) * returns).mean()
+        loss = -(log_p * returns).mean()
         self.model.step(loss)

@@ -9,8 +9,8 @@ import numpy as np
 import torch
 
 from maro.rl import (
-    DQN, DQNConfig, ExperienceMemory, FullyConnectedBlock, NullPolicy, OptimOption, QNetForDiscreteActionSpace,
-    TrainingLoopConfig, get_sampler_cls
+    DQN, DQNConfig, EpisodeBasedSchedule, FullyConnectedBlock, NullPolicy,
+    OptimOption, QNetForDiscreteActionSpace, StepBasedSchedule, UniformSampler
 )
 
 sc_code_dir = dirname(realpath(__file__))
@@ -35,15 +35,13 @@ def get_dqn_policy(config):
         optim_option=OptimOption(**config["model"]["optimization"]),
         device=config["model"]["device"]
     )
-    experience_memory = ExperienceMemory(**config["experience_memory"])
-
-    config["training_loop"]["sampler_cls"] = get_sampler_cls(config["training_loop"]["sampler_cls"])
-    generic_config = TrainingLoopConfig(**config["training_loop"])
-    special_config = DQNConfig(**config["algorithm_config"])
-
-    return DQN(q_net, experience_memory, generic_config, special_config)
+    experience_manager = UniformSampler(**config["experience_manager"])
+    return DQN(q_net, experience_manager, DQNConfig(**config["algorithm_config"]))
 
 # all consumers share the same underlying policy
-policy_dict = {"consumer": get_dqn_policy(config["consumer"]), "producer": NullPolicy()}
+policy_dict = {
+    "consumer": get_dqn_policy(config["consumer"]),
+    "producer": get_dqn_policy(config["consumer"])
+}
 
-agent_to_policy = {agent_id: agent_id.split(".")[0] for agent_id in agent_ids}
+agent2policy = {agent_id: agent_id.split(".")[0] for agent_id in agent_ids}
