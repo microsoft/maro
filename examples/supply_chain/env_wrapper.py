@@ -35,7 +35,7 @@ atoms = {
 }
 
 # State extracted.
-keys_in_state = [(None, ['is_over_stock', 'is_out_of_stock', 'is_below_rop', 
+keys_in_state = [(None, ['is_over_stock', 'is_out_of_stock', 'is_below_rop',
                          'constraint_idx', 'is_accepted', 'consumption_hist']),
                  ('storage_capacity', ['storage_utilization']),
                  ('sale_gamma', ['sale_std',
@@ -46,6 +46,9 @@ keys_in_state = [(None, ['is_over_stock', 'is_out_of_stock', 'is_below_rop',
                                  'inventory_estimated',
                                  'inventory_rop']),
                  ('max_price', ['sku_price', 'sku_cost'])]
+
+# Sku related agent types
+sku_agent_types = {"consumer", "producer", "product"}
 
 
 class UnitBaseInfo:
@@ -190,8 +193,7 @@ class SCEnvWrapper(AbsEnvWrapper):
 
             in_transit_orders = self._cur_metrics['facilities'][facility_id]["in_transit_orders"]
 
-            self._facility_in_transit_orders[facility_id] = [
-                0] * self._sku_number
+            self._facility_in_transit_orders[facility_id] = [0] * self._sku_number
 
             for sku_id, number in in_transit_orders.items():
                 self._facility_in_transit_orders[facility_id][sku_id] = number
@@ -228,8 +230,8 @@ class SCEnvWrapper(AbsEnvWrapper):
 
             np_state = self._serialize_state(state)
 
-            final_state[f"consumer.{agent_info.id}"] = np_state
-            final_state[f"producer.{agent_info.id}"] = np_state
+            # agent_info.agent_type -> policy
+            final_state[f"{agent_info.agent_type}.{agent_info.id}"] = np_state
 
         return final_state
 
@@ -317,12 +319,15 @@ class SCEnvWrapper(AbsEnvWrapper):
         state['storage_utilization'] = self._facility_product_utilization[facility_id]
 
     def _update_sale_features(self, state, agent_info):
-        if agent_info.is_facility:
+        if agent_info.agent_type not in sku_agent_types:
             return
 
-        product_metrics = self._cur_metrics["products"][agent_info.id]
+        # Get product unit id for current agent.
+        product_unit_id = agent_info.id if agent_info.agent_type == "product" else agent_info.parent_id
 
-        # for product unit only
+        product_metrics = self._cur_metrics["products"][product_unit_id]
+
+        # TODO: shall we keep this for both consumer and producer in same product unit?
         state['sale_mean'] = product_metrics["sale_mean"]
         state['sale_std'] = product_metrics["sale_std"]
 
@@ -346,7 +351,7 @@ class SCEnvWrapper(AbsEnvWrapper):
 
             seller_states = self._cur_seller_states[:, seller_index, :]
 
-            # for total demand, we need latest one.
+            # For total demand, we need latest one.
             state['total_backlog_demand'] = seller_states[:, 0][-1][0]
             state['sale_hist'] = list(seller_states[:, 1].flatten())
             state['backlog_demand_hist'] = list(seller_states[:, 2])
@@ -364,6 +369,7 @@ class SCEnvWrapper(AbsEnvWrapper):
         if agent_info.is_facility:
             return
 
+        # TODO: shall ignore following for other agent type?
         facility = self.facility_levels[agent_info.facility_id]
         product_info = facility[agent_info.sku.id]
 
