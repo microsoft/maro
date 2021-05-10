@@ -4,15 +4,13 @@
 import time
 from collections import defaultdict
 from os import getcwd
-from typing import Callable, Dict, List, Union
+from typing import Dict, List, Union
 
-from maro.communication import Message, Proxy, SessionType
 from maro.rl.env_wrapper import AbsEnvWrapper
-from maro.rl.policy import AbsPolicy
+from maro.rl.policy import AbsPolicy, AbsCorePolicy
 from maro.utils import Logger
 
 from .actor_manager import ActorManager
-from .message_enums import MsgTag, MsgKey
 from .policy_update_schedule import MultiPolicyUpdateSchedule
 
 
@@ -77,18 +75,20 @@ class DistributedLearner(object):
 
         self.end_of_episode_kwargs = end_of_episode_kwargs
         self._log_env_metrics = log_env_metrics
-        self._total_learning_time = 0
-        self._total_env_steps = 0
-        self._total_experiences_collected = 0
 
     def run(self):
         for ep in range(1, self.num_episodes + 1):
             self._train(ep)
 
-            policy_ids = self.policy_update_schedule.pop(ep)
+            policy_ids = self.policy_update_schedule.pop_episode(ep)
+            if policy_ids == ["*"]:
+                policy_ids = list(self.policy_dict.keys())
             for policy_id in policy_ids:
                 self.policy_dict[policy_id].update()
-            self._logger.info(f"Updated policies {policy_ids} at the end of episode {ep}")
+
+            if policy_ids:
+                self._logger.info(f"Updated policies {policy_ids} at the end of episode {ep}")
+
             self.end_of_episode(ep, **self.end_of_episode_kwargs)
 
             if ep == self.eval_schedule[self._eval_point_index]:
@@ -101,34 +101,45 @@ class DistributedLearner(object):
     def _train(self, ep: int):
         t0 = time.time()
         learning_time = 0
+        env_steps = 0
         num_experiences_collected = 0
-        num_actor_finishes, segment_index = 0, 1
+        policy_ids, num_actor_finishes, segment_index = list(self.policy_dict.keys()), 0, 1
 
-        self.policy_update_schedule.enter(ep)
-        while num_actor_finishes < self.actor_manager.required_actor_finishes:
+        while num_actor_finishes < self.actor_manager.required_finishes:
+            # parallel experience collection
             for exp_by_agent, done in self.actor_manager.collect(
                 ep, segment_index, self.experience_update_interval,
-                policy_dict=self.policy.state(),
+                policy_dict={policy_id: self.policy_dict[policy_id].get_state() for policy_id in policy_ids},
                 discard_stale_experiences=self.discard_stale_experiences
             ):
-                self._store_experiences(exp_by_agent)
+                for agent_id, exp in exp_by_agent.items():
+                    if isinstance(self.policy[agent_id], AbsCorePolicy):
+                        self.policy[agent_id].experience_manager.put(exp)
+
+                env_steps += self.experience_update_interval 
                 num_experiences_collected += sum(len(exp) for exp in exp_by_agent.values())
-
-                # policy update
-                tl0 = time.time()
-                policy_ids = self.policy_update_schedule.pop(segment_index)
-                for policy_id in policy_ids:
-                    self.policy_dict[policy_id].update()
-                learning_time += time.time() - tl0
                 num_actor_finishes += done
-                segment_index += 1
 
-        self.policy_update_schedule.exit()
+            # policy update
+            tl0 = time.time()
+            policy_ids = self.policy_update_schedule.pop_step(ep, segment_index)
+            if policy_ids == ["*"]:
+                policy_ids = list(self.policy_dict.keys())
+            for policy_id in policy_ids:
+                self.policy_dict[policy_id].update()
+
+            if policy_ids:
+                self._logger.info(f"Updated policies {policy_ids} after segment {segment_index}")
+
+            learning_time += time.time() - tl0
+
+            segment_index += 1
+
         # performance details
         self._logger.debug(
             f"ep {ep} summary - "
             f"running time: {time.time() - t0}"
-            f"env steps: {self.env.step_index}"    
+            f"env steps: {env_steps}"
             f"learning time: {learning_time}"
             f"experiences collected: {num_experiences_collected}"
         )
@@ -136,12 +147,11 @@ class DistributedLearner(object):
     def _evaluate(self, ep: int):
         self._logger.info("Evaluating...")
         if self.eval_env:
-            self.policy.eval_mode()
             self.eval_env.save_replay = False
             self.eval_env.reset()
             self.eval_env.start()  # get initial state
             while self.eval_env.state:
-                action = self.policy.choose_action(self.eval_env.state)
+                action = {id_: self.policy[id_].choose_action(st) for id_, st in self.eval_env.state.items()}
                 self.eval_env.step(action)
 
             if not self.eval_env.state:
@@ -150,12 +160,8 @@ class DistributedLearner(object):
             if self._log_env_metrics:
                 self._logger.info(f"eval ep {ep}: {self.eval_env.metrics}")
         else:
-            self.actor_manager.evaluate(ep, self.policy.state(), self.num_eval_actors)
+            policy_state = {policy_id: policy.get_state() for policy_id, policy in self.policy_dict.items()}
+            self.actor_manager.evaluate(ep, policy_state, self.num_eval_actors)
 
     def end_of_episode(self, ep: int, **kwargs):
         pass
-
-    def _store_experiences(self, experiences_by_agent: dict):
-        for agent_id, exp in experiences_by_agent.items():
-            if isinstance(self.policy[agent_id], AbsCorePolicy):
-                self.policy[agent_id].store_experiences(exp)

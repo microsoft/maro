@@ -5,6 +5,12 @@ from .actor import Actor
 from .actor_manager import ActorManager
 from .distributed_learner import DistributedLearner
 from .local_learner import LocalLearner
-from .policy_update_schedule import MultiPolicyUpdateSchedule
+from .policy_update_schedule import EpisodeBasedSchedule, MultiPolicyUpdateSchedule, StepBasedSchedule
 
-__all__ = ["Actor", "ActorManager", "DistributedLearner", "LocalLearner", "MultiPolicyUpdateSchedule"]
+__all__ = [
+    "Actor",
+    "ActorManager",
+    "DistributedLearner",
+    "LocalLearner",
+    "EpisodeBasedSchedule", "MultiPolicyUpdateSchedule", "StepBasedSchedule"
+]

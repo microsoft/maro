@@ -5,23 +5,7 @@ from abc import ABC, abstractmethod
 from collections import namedtuple
 
 from maro.rl.exploration import AbsExploration
-from maro.rl.experience import ExperienceMemory, ExperienceSet
-
-
-class TrainingLoopConfig:
-    __slots__ = ["sampler_cls", "batch_size", "train_iters", "sampler_kwargs"]
-
-    def __init__(
-        self,
-        sampler_cls,
-        batch_size: int,
-        train_iters: int,
-        sampler_kwargs: dict = None
-    ):
-        self.sampler_cls = sampler_cls
-        self.batch_size = batch_size
-        self.train_iters = train_iters
-        self.sampler_kwargs = sampler_kwargs if sampler_kwargs else {}
+from maro.rl.experience import AbsExperienceManager, ExperienceSet
 
 
 class AbsPolicy(ABC):
@@ -53,18 +37,10 @@ class NullPolicy(AbsPolicy):
 
 
 class AbsCorePolicy(AbsPolicy):
-    def __init__(
-        self,
-        experience_memory: ExperienceMemory,
-        generic_config: TrainingLoopConfig,
-        special_config
-    ):
+    def __init__(self, experience_manager: AbsExperienceManager, config):
         super().__init__()
-        self.experience_memory = experience_memory
-        self.generic_config = generic_config
-        self.special_config = special_config
-        sampler_cls, batch_size = generic_config.sampler_cls, generic_config.batch_size
-        self.sampler = sampler_cls(experience_memory, batch_size, **generic_config.sampler_kwargs)
+        self.experience_manager = experience_manager
+        self.config = config
 
     @abstractmethod
     def choose_action(self, state):
@@ -79,17 +55,8 @@ class AbsCorePolicy(AbsPolicy):
         """
         raise NotImplementedError
 
-    def store_experiences(self, experience_set: ExperienceSet):
-        self.experience_memory.put(experience_set)
-
-    def update(self):
-        for _ in range(self.generic_config.train_iters):
-            indexes, sp = self.sampler.sample()
-            step_info = self.step(sp)
-            self.sampler.update(indexes, step_info)
-
     @abstractmethod
-    def step(self, experience_set: ExperienceSet):
+    def update(self):
         raise NotImplementedError
 
     @abstractmethod
@@ -141,8 +108,8 @@ class RLPolicy(object):
     def learn(self, experience_set: ExperienceSet):
         return self.core_policy.learn(experience_set)
 
-    def load_state(self, policy_state):
-        self.core_policy.load_state(policy_state)
+    def set_state(self, policy_state):
+        self.core_policy.set_state(policy_state)
 
     def load(self, path: str):
         self.core_policy.load(path)

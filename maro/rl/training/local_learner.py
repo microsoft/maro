@@ -8,7 +8,8 @@ from os import getcwd
 from typing import Callable, Dict, List, Tuple, Union
 
 from maro.rl.env_wrapper import AbsEnvWrapper
-from maro.rl.policy import AbsPolicy
+from maro.rl.exploration import AbsExploration
+from maro.rl.policy import AbsCorePolicy, AbsPolicy
 from maro.utils import Logger
 
 from .policy_update_schedule import MultiPolicyUpdateSchedule
@@ -29,7 +30,7 @@ class LocalLearner(object):
         num_episodes: int,
         policy_update_schedule: MultiPolicyUpdateSchedule,
         exploration_dict: Dict[str, AbsExploration] = None,
-        agent_to_exploration: Dict[str, str] = None,
+        agent2exploration: Dict[str, str] = None,
         experience_update_interval: int = -1,
         eval_env: AbsEnvWrapper = None,
         eval_schedule: Union[int, List[int]] = None,
@@ -52,7 +53,7 @@ class LocalLearner(object):
             self.agent_groups_by_policy[policy_id] = tuple(agent_ids)
 
         self.agent_groups_by_policy = defaultdict(list)
-        for agent_id, policy_id in agent_to_policy.items():
+        for agent_id, policy_id in agent2policy.items():
             self.agent_groups_by_policy[policy_id].append(agent_id)
 
         for policy_id, agent_ids in self.agent_groups_by_policy.items():
@@ -61,14 +62,14 @@ class LocalLearner(object):
         # mappings between exploration schemes and agents
         self.exploration_dict = exploration_dict
         if exploration_dict:
-            self.agent_to_exploration = agent_to_exploration
+            self.agent2exploration = agent2exploration
             self.exploration = {
                 agent_id: self.exploration_dict[exploration_id]
-                for agent_id, exploration_id in self.agent_to_exploration.items()
+                for agent_id, exploration_id in self.agent2exploration.items()
             }
             self.exploration_enabled = True
             self.agent_groups_by_exploration = defaultdict(list)
-            for agent_id, exploration_id in agent_to_exploration.items():
+            for agent_id, exploration_id in agent2exploration.items():
                 self.agent_groups_by_exploration[exploration_id].append(agent_id)
 
             for exploration_id, agent_ids in self.agent_groups_by_exploration.items():
@@ -103,10 +104,14 @@ class LocalLearner(object):
         for ep in range(1, self.num_episodes + 1):
             self._train(ep)
 
-            policy_ids = self.policy_update_schedule.pop(ep)
+            policy_ids = self.policy_update_schedule.pop_episode(ep)
+            if policy_ids == ["*"]:
+                policy_ids = list(self.policy_dict.keys())
             for policy_id in policy_ids:
                 self.policy_dict[policy_id].update()
-            self._logger.info(f"Updated policies {policy_ids} at the end of episode {ep}")
+
+            if policy_ids:
+                self._logger.info(f"Updated policies {policy_ids} at the end of episode {ep}")
 
             if ep == self.eval_schedule[self._eval_point_index]:
                 self._eval_point_index += 1
@@ -120,8 +125,8 @@ class LocalLearner(object):
         num_experiences_collected = 0
 
         self._logger.info(f"Training episode {ep}")
-        if hasattr(self, "exploration_dict"):
-            exploration_parameters = {
+        if self.exploration_dict:
+            exploration_params = {
                 agent_ids: self.exploration_dict[exploration_id].parameters
                 for exploration_id, agent_ids in self.agent_groups_by_exploration.items()
             }
@@ -130,17 +135,16 @@ class LocalLearner(object):
         self.env.save_replay = True
         self.env.reset()
         self.env.start()  # get initial state
-        self.policy_update_schedule.enter(ep)
         while self.env.state:
             if self.exploration_dict:      
                 action = {
-                    agent_id:
-                        self.exploration[agent_id](self.policy[agent_id].choose_action(state))
-                        if agent_id in self.exploration else self.policy[agent_id].choose_action(state)
-                    for agent_id, state in self.env.state.items()
+                    id_:
+                        self.exploration[id_](self.policy[id_].choose_action(st))
+                        if id_ in self.exploration else self.policy[id_].choose_action(st)
+                    for id_, st in self.env.state.items()
                 }
             else:
-                action = {agent_id: self.policy[agent_id].choose_action(state) for agent_id, state in self.env.state.items()}
+                action = {id_: self.policy[id_].choose_action(st) for id_, st in self.env.state.items()}
 
             self.env.step(action)
             step_index = self.env.step_index
@@ -148,21 +152,28 @@ class LocalLearner(object):
             # experience collection
             if not self.env.state or step_index % self.experience_update_interval == 0:
                 exp_by_agent = self.env.get_experiences()
-                self._store_experiences(exp_by_agent)
+                for agent_id, exp in exp_by_agent.items():
+                    if isinstance(self.policy[agent_id], AbsCorePolicy):
+                        self.policy[agent_id].experience_manager.put(exp)
                 num_experiences_collected += sum(len(exp) for exp in exp_by_agent.values())
 
             # policy update
             tl0 = time.time()
-            policy_ids = self.policy_update_schedule.pop(step_index)
+            policy_ids = self.policy_update_schedule.pop_step(ep, step_index)
+            if policy_ids == ["*"]:
+                policy_ids = list(self.policy_dict.keys())
             for policy_id in policy_ids:
                 self.policy_dict[policy_id].update()
 
-            self._logger.info(f"Updated policies {policy_ids} after step {step_index}")
+            if policy_ids:
+                self._logger.info(f"Updated policies {policy_ids} after step {step_index}")
             learning_time += time.time() - tl0
 
         # update the exploration parameters
-        self._exploration_step()
-        self.policy_update_schedule.exit()
+        if self.exploration_dict:
+            for exploration in self.exploration_dict.values():
+                exploration.step()
+
         # performance details
         if self._log_env_metrics:
             self._logger.info(f"ep {ep}: {self.env.metrics}")
@@ -182,7 +193,7 @@ class LocalLearner(object):
         self.eval_env.reset()
         self.eval_env.start()  # get initial state
         while self.eval_env.state:
-            action = {agent_id: self.policy[agent_id].choose_action(st) for agent_id, st in self.env.state.items()}
+            action = {id_: self.policy[id_].choose_action(st) for id_, st in self.eval_env.state.items()}
             self.eval_env.step(action)
 
         if self._log_env_metrics:
@@ -192,13 +203,3 @@ class LocalLearner(object):
 
     def end_of_episode(self, ep: int, **kwargs):
         pass
-
-    def _store_experiences(self, experiences_by_agent: dict):
-        for agent_id, exp in experiences_by_agent.items():
-            if isinstance(self.policy[agent_id], AbsCorePolicy):
-                self.policy[agent_id].store_experiences(exp)
-
-    def _exploration_step(self):
-        if self.exploration_dict:
-            for exploration in self.exploration_dict.values():
-                exploration.step()
