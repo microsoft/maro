@@ -101,14 +101,15 @@ class SCEnvWrapper(AbsEnvWrapper):
         self._service_index_ppf_cache = {}
 
         # facility -> {
-        # data_model_index:int,
-        # storage:UnitBaseInfo,
-        # distribution: UnitBaseInfo,
-        # product_id: {
-        # consumer: UnitBaseInfo,
-        # seller: UnitBaseInfo,
-        # manufacture: UnitBaseInfo
-        # }
+        #   data_model_index:int,
+        #   storage:UnitBaseInfo,
+        #   distribution: UnitBaseInfo,
+        #   sku_id: {
+        #       skuproduct: UnitBaseInfo,
+        #       consumer: UnitBaseInfo,
+        #       seller: UnitBaseInfo,
+        #       manufacture: UnitBaseInfo
+        #   }
         # }
         self.facility_levels = {}
 
@@ -144,6 +145,13 @@ class SCEnvWrapper(AbsEnvWrapper):
 
         # dim for state
         self._dim = None
+
+        # use this to quick find relationship between units (consumer, manufacture, seller or product) and product unit.
+        # unit id  -> (product unit id, facility id, seller id, consumer id, manufacture id)
+        self._unit2product_mapping = {}
+
+        # agent (unit id) -> AgentInfo
+        self._agent_id2info_mapping = {}
 
         # built internal helpers.
         self._build_internal_helpers()
@@ -185,12 +193,17 @@ class SCEnvWrapper(AbsEnvWrapper):
         self.cur_balance_sheet_reward = self.balance_cal.calc()
         self._cur_metrics = self.env.metrics
 
-        self._cur_distribution_states = self.distribution_ss[cur_tick::distribution_features].flatten(
-        ).reshape(-1, 2).astype(np.int)
-        self._cur_consumer_states = self.consumer_ss[consumption_ticks::"latest_consumptions"].flatten(
-        ).reshape(-1, len(self.consumer_ss))
-        self._cur_seller_states = self.seller_ss[hist_ticks::seller_features].astype(
-            np.int)
+        self._cur_distribution_states = self.distribution_ss[cur_tick::distribution_features]\
+            .flatten()\
+            .reshape(-1, 2)\
+            .astype(np.int)
+
+        self._cur_consumer_states = self.consumer_ss[consumption_ticks::"latest_consumptions"]\
+            .flatten()\
+            .reshape(-1, len(self.consumer_ss))
+
+        self._cur_seller_states = self.seller_ss[hist_ticks::seller_features]\
+            .astype(np.int)
 
         # facility level states
         for facility_id in self._facility_product_utilization:
@@ -208,8 +221,9 @@ class SCEnvWrapper(AbsEnvWrapper):
 
         # calculate storage info first, then use it later to speed up.
         for facility_id, storage_index in self._facility2storage_index_dict.items():
-            product_numbers = self.storage_ss[cur_tick:storage_index:"product_number"].flatten(
-            ).astype(np.int)
+            product_numbers = self.storage_ss[cur_tick:storage_index:"product_number"]\
+                .flatten()\
+                .astype(np.int)
 
             for pid, index in self._storage_product_indices[facility_id].items():
                 product_number = product_numbers[index]
@@ -225,13 +239,11 @@ class SCEnvWrapper(AbsEnvWrapper):
             self._update_facility_features(state, agent_info)
             self._update_storage_features(state, agent_info)
             # bom do not need to update
-            # self._add_bom_features(state, agent_info)
             self._update_distribution_features(state, agent_info)
             self._update_sale_features(state, agent_info)
             # vlt do not need to update
-            # self._update_vlt_features(state, agent_info)
             self._update_consumer_features(state, agent_info)
-            # self._add_price_features(state, agent_info)
+            # price do not need to update
             self._update_global_features(state)
 
             np_state = self._serialize_state(state)
@@ -242,27 +254,12 @@ class SCEnvWrapper(AbsEnvWrapper):
         return final_state
 
     def get_reward(self, tick=None, target_agents=None):
-        # wc = self.env.configs.settings["global_reward_weight_consumer"]
-        # parent_facility_balance = {}
-        # for f_id, sheet in self.cur_balance_sheet_reward.items():
-        #     if f_id in self.unit_2_facility_dict:
-        #         # it is a product unit
-        #         parent_facility_balance[f_id] = self.cur_balance_sheet_reward[self.unit_2_facility_dict[f_id]]
-        #     else:
-        #         parent_facility_balance[f_id] = sheet
-
-        # TODO: or still same as before? but with the bsw is reward of consumer and producer, not product unit.
-        # TODO: or consumer is a special case here?
-        # consumer_reward_by_facility = {f_id: wc * parent_facility_balance[f_id][0] + (1 - wc) * bsw[1] for f_id, bsw in
-        #                                self.cur_balance_sheet_reward.items()}
-        #
-        # return {
-        #     **{f"producer.{f_id}": np.float32(reward[0]) for f_id, reward in self.cur_balance_sheet_reward.items()},
-        #     **{f"consumer.{f_id}": np.float32(reward) for f_id, reward in consumer_reward_by_facility.items()}
-        # }
-
+        # get related product, seller, consumer, manufacture unit id
+        # NOTE: this mapping does not contain facility id, so if id is not exist, then means it is a facility
+        # product_unit_id, facility_id, seller_id, consumer_id, producer_id = self._unit2product_mapping[id]
         return {
-            f"{bwt[2]}.{f_id}": np.float32(bwt[1]) for f_id, bwt in self.cur_balance_sheet_reward.items()
+            f"{self._agent_id2info_mapping[f_id].agent_type}.{f_id}": np.float32(bwt[1])
+            for f_id, bwt in self.cur_balance_sheet_reward.items()
         }
 
     def get_action(self, action_by_agent):
@@ -346,7 +343,6 @@ class SCEnvWrapper(AbsEnvWrapper):
 
         product_metrics = self._cur_metrics["products"][product_unit_id]
 
-        # TODO: shall we keep this for both consumer and producer in same product unit?
         state['sale_mean'] = product_metrics["sale_mean"]
         state['sale_std'] = product_metrics["sale_std"]
 
@@ -388,7 +384,6 @@ class SCEnvWrapper(AbsEnvWrapper):
         if agent_info.is_facility:
             return
 
-        # TODO: shall ignore following for other agent type?
         facility = self.facility_levels[agent_info.facility_id]
         product_info = facility[agent_info.sku.id]
 
@@ -448,6 +443,9 @@ class SCEnvWrapper(AbsEnvWrapper):
         return np.asarray(result, dtype=np.float32)
 
     def _build_internal_helpers(self):
+        for agent_info in self.env.agent_idx_list:
+            self._agent_id2info_mapping[agent_info.id] = agent_info
+
         # facility levels
         for facility_id, facility in self._summary["facilities"].items():
             self.facility_levels[facility_id] = {
@@ -514,6 +512,16 @@ class SCEnvWrapper(AbsEnvWrapper):
                                                   ] = facility_id
 
                     self.facility_levels[facility_id][product_id] = product_info
+
+                    for unit in (seller, consumer, manufacture, product):
+                        if unit is not None:
+                            self._unit2product_mapping[unit["id"]] = (
+                                product["id"],
+                                facility_id,
+                                seller["id"] if seller is not None else None,
+                                consumer["id"] if consumer is not None else None,
+                                manufacture["id"] if manufacture is not None else None
+                            )
 
         # create initial state structure
         self._build_init_state()
@@ -890,7 +898,7 @@ class BalanceSheetCalculator:
 
         # For product units.
         for id, bs, rw in zip([item[0] for item in self.products], product_balance_sheet, product_step_reward):
-            result[id] = (bs, rw, "product")
+            result[id] = (bs, rw)
 
             self.total_balance_sheet[id] += bs
 
@@ -898,7 +906,7 @@ class BalanceSheetCalculator:
 
         # For facilities.
         for id, bs, rw in zip([item[0] for item in self.facility_levels], facility_balance_sheet, facility_step_reward):
-            result[id] = (bs, rw, "facility")
+            result[id] = (bs, rw)
 
             self.total_balance_sheet[id] += bs
 
@@ -906,7 +914,7 @@ class BalanceSheetCalculator:
         consumer_step_balance_sheet = consumer_profit + consumer_step_balance_sheet_loss
 
         for id, bs, rw in zip(consumer_bs_states[:, 0], consumer_step_balance_sheet, consumer_step_reward):
-            result[int(id)] = (bs, rw, "consumer")
+            result[int(id)] = (bs, rw)
 
             self.total_balance_sheet[id] += bs
 
@@ -914,7 +922,7 @@ class BalanceSheetCalculator:
         man_step_balance_sheet = man_balance_sheet_profit_loss
 
         for id, bs, rw in zip(man_bs_states[:, 0], man_step_balance_sheet, man_step_reward):
-            result[int(id)] = (bs, rw, "producer")
+            result[int(id)] = (bs, rw)
 
             self.total_balance_sheet[id] += bs
 
@@ -944,8 +952,8 @@ if __name__ == "__main__":
 
     # cProfile.run("ss.get_state(None)", sort="cumtime")
     states = ss.get_state(None)
-
-    print(ss.cur_balance_sheet_reward)
+    # print(env.agent_idx_list)
+    # print(ss.cur_balance_sheet_reward)
     # print(states)
 
     # end_time = time()

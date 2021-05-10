@@ -5,11 +5,11 @@
 from maro.backends.backend import AttributeType
 from maro.backends.frame import NodeAttribute, node
 
-from .skumodel import SkuDataModel
+from .extend import ExtendDataModel
 
 
 @node("product")
-class ProductDataModel(SkuDataModel):
+class ProductDataModel(ExtendDataModel):
     price = NodeAttribute(AttributeType.Float)
     distribution_check_order = NodeAttribute(AttributeType.UInt)
     distribution_transport_cost = NodeAttribute(AttributeType.Float)
