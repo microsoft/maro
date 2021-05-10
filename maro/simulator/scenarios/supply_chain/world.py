@@ -13,7 +13,7 @@ from .easy_config import EasyConfig, SkuInfo
 from .facilities import FacilityBase
 from .frame_builder import build_frame
 from .parser import DataModelDef, FacilityDef, SupplyChainConfiguration, UnitDef
-from .units import ProductUnit, SkuUnit, UnitBase
+from .units import ProductUnit, ExtendUnitBase, UnitBase
 
 AgentInfo = namedtuple("AgentInfo", ("id", "agent_type", "is_facility", "sku", "facility_id", "parent_id"))
 
@@ -404,7 +404,7 @@ class World:
         for unit_id, unit in self.units.items():
             sku = None
 
-            if isinstance(unit, SkuUnit):
+            if isinstance(unit, ExtendUnitBase):
                 sku = unit.facility.skus[unit.product_id]
 
             if unit.data_model is not None:

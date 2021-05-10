@@ -7,11 +7,11 @@ from .consumer import ConsumerUnit
 from .distribution import DistributionUnit
 from .manufacture import ManufactureUnit
 from .seller import SellerUnit
-from .skuunit import SkuUnit
+from .extendunitbase import ExtendUnitBase
 from .storage import StorageUnit
 
 
-class ProductUnit(SkuUnit):
+class ProductUnit(ExtendUnitBase):
     """Unit that used to group units of one special sku, usually contains consumer, seller and manufacture."""
 
     # Consumer unit of current sku.

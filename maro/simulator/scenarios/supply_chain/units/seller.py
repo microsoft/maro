@@ -4,10 +4,10 @@
 
 import numpy as np
 
-from .skuunit import SkuUnit
+from .extendunitbase import ExtendUnitBase
 
 
-class SellerUnit(SkuUnit):
+class SellerUnit(ExtendUnitBase):
     """
     Unit that used to generate product consume demand, and move demand product from current storage.
     """
