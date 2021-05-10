@@ -3,10 +3,14 @@
 
 from .abs_block import AbsBlock
 from .fc_block import FullyConnectedBlock
-from .learning_model import AbsCoreModel, OptimOption, SimpleMultiHeadModel
+from .core_model import (
+    AbsCoreModel, OptimOption, PolicyNetForDiscreteActionSpace, PolicyValueNetForContinuousActionSpace,
+    PolicyValueNetForDiscreteActionSpace, QNetForDiscreteActionSpace
+)
 
 __all__ = [
     "AbsBlock",
     "FullyConnectedBlock",
-    "AbsCoreModel", "OptimOption", "SimpleMultiHeadModel"
+    "AbsCoreModel", "OptimOption", "PolicyNetForDiscreteActionSpace", "PolicyValueNetForContinuousActionSpace",
+    "PolicyValueNetForDiscreteActionSpace", "QNetForDiscreteActionSpace"
 ]

@@ -8,7 +8,7 @@ from os import getenv
 from os.path import dirname, join, realpath
 
 from maro.rl import (
-    Actor, ActorManager, DQN, DQNConfig, DistLearner, FullyConnectedBlock, MultiAgentWrapper, OptimOption,
+    Actor, ActorManager, DQN, DQNConfig, DistLearner, FullyConnectedBlock, OptimOption,
     SimpleMultiHeadModel, TwoPhaseLinearParameterScheduler
 )
 from maro.simulator import Env
@@ -47,11 +47,9 @@ def get_dqn_agent():
 
 
 def cim_dqn_learner():
-    agent = MultiAgentWrapper({name: get_dqn_agent() for name in Env(**config["training"]["env"]).agent_idx_list})
+    agent = AgentManager({name: get_dqn_agent() for name in Env(**config["training"]["env"]).agent_idx_list})
     scheduler = TwoPhaseLinearParameterScheduler(config["training"]["max_episode"], **config["training"]["exploration"])
-    actor_manager = ActorManager(
-        NUM_ACTORS, GROUP, proxy_options={"redis_address": (REDIS_HOST, REDIS_PORT), "log_enable": False}
-    )
+    actor_manager = ActorManager(NUM_ACTORS, GROUP, redis_address=(REDIS_HOST, REDIS_PORT), log_enable=False)
     learner = DistLearner(
         agent, scheduler, actor_manager,
         agent_update_interval=config["training"]["agent_update_interval"],
@@ -63,11 +61,8 @@ def cim_dqn_learner():
 
 def cim_dqn_actor():
     env = Env(**config["training"]["env"])
-    agent = MultiAgentWrapper({name: get_dqn_agent() for name in env.agent_idx_list})
-    actor = Actor(
-        CIMEnvWrapper(env, **config["shaping"]), agent, GROUP,
-        proxy_options={"redis_address": (REDIS_HOST, REDIS_PORT)}
-    )
+    agent = AgentManager({name: get_dqn_agent() for name in env.agent_idx_list})
+    actor = Actor(CIMEnvWrapper(env, **config["shaping"]), agent, GROUP, redis_address=(REDIS_HOST, REDIS_PORT))
     actor.run()
 
 

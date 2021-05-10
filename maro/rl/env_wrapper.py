@@ -6,8 +6,8 @@ from abc import ABC, abstractmethod
 from collections import defaultdict, deque
 from typing import List, Union
 
+from maro.rl.experience import Replay
 from maro.simulator import Env
-from maro.rl.agent import Experience
 
 
 class AbsEnvWrapper(ABC):
@@ -24,7 +24,7 @@ class AbsEnvWrapper(ABC):
     """
     def __init__(self, env: Env, save_replay: bool = True, reward_eval_delay: int = 0):
         self.env = env
-        self.replay = {}
+        self.replay = defaultdict(Replay)
         self.state_info = None  # context for converting model output to actions that can be executed by the env
         self.save_replay = save_replay
         self.reward_eval_delay = reward_eval_delay
@@ -38,17 +38,15 @@ class AbsEnvWrapper(ABC):
     @property
     def step_index(self):
         return self._step_index
-
+    
     @property
     def agent_idx_list(self):
         return self.env.agent_idx_list
 
-    def start(self, rollout_index: int = None):
+    def start(self):
         self._step_index = 0
         _, self._event, _ = self.env.step(None)
         self._state = self.get_state(self.env.tick)
-        if self.save_replay:
-            self._record_transition_obj(self._state, Experience.STATE)
 
     @property
     def metrics(self):
@@ -67,7 +65,7 @@ class AbsEnvWrapper(ABC):
         return self._total_reward
 
     @abstractmethod
-    def get_state(self, tick) -> dict:
+    def get_state(self, tick: int = None) -> dict:
         """Compute the state for a given tick.
 
         Args:
@@ -95,7 +93,7 @@ class AbsEnvWrapper(ABC):
         self._step_index += 1
         env_action = self.get_action(action_by_agent)
         self.pending_reward_ticks.append(self.env.tick)
-        self.action_history[self.env.tick] = env_action
+        self.action_history[self.env.tick] = action_by_agent
         if len(env_action) == 1:
             env_action = list(env_action.values())[0]
         # t1 = time.time()
@@ -103,53 +101,46 @@ class AbsEnvWrapper(ABC):
         # t2 = time.time()
         # self._tot_raw_step_time += t2 - t1
 
-        if self.save_replay:
-            self._record_transition_obj(action_by_agent, Experience.ACTION)
-            """
-            If roll-out is complete, evaluate rewards for all remaining events except the last.
-            Otherwise, evaluate rewards only for events at least self.reward_eval_delay ticks ago.
-            """
-            while (
-                self.pending_reward_ticks and
-                (done or self.env.tick - self.pending_reward_ticks[0] >= self.reward_eval_delay)
-            ):
-                tick = self.pending_reward_ticks.popleft()
-                reward = self.get_reward(tick=tick)
-                self._record_transition_obj(reward, Experience.REWARD)
-                # assign rewards to the agents that took action at that tick
+        """
+        If roll-out is complete, evaluate rewards for all remaining events except the last.
+        Otherwise, evaluate rewards only for events at least self.reward_eval_delay ticks ago.
+        """
+        while (
+            self.pending_reward_ticks and
+            (done or self.env.tick - self.pending_reward_ticks[0] >= self.reward_eval_delay)
+        ):
+            tick = self.pending_reward_ticks.popleft()
+            reward = self.get_reward(tick=tick)
+            # assign rewards to the agents that took action at that tick
+            for agent_id in self.action_history[tick]:
+                rw = reward.get(agent_id, 0)
+                if not done and self.save_replay:
+                    self.replay[agent_id].rewards.append(rw)
+                self._total_reward += rw
 
         if not done:
+            prev_state = self._state
             self._state = self.get_state(self.env.tick)
             if self.save_replay:
-                self._record_transition_obj(self._state, Experience.STATE)
-                self._record_transition_obj(self._state, Experience.NEXT_STATE)
-
+                for agent_id, state in prev_state.items():
+                    self.replay[agent_id].states.append(state)
+                    self.replay[agent_id].actions.append(action_by_agent[agent_id])
             # t3 = time.time()
             # self._tot_step_time += t3 - t0
         else:
             self._state = None
-            self.process_replay_memory()
-            self.end_ep_callback()
+            self.end_of_episode()
 
         # print(f"total raw step time: {self._tot_raw_step_time}")
         # print(f"total step time: {self._tot_step_time}")
         # self._tot_raw_step_time = 0
         # self._tot_step_time = 0
 
-    def process_replay_memory(self):
-        def delete_incomplete_experieces(mem):
-            if Experience.REWARD in mem:
-                num_complete = min(len(mem[Experience.REWARD]), len(mem[Experience.NEXT_STATE]))
-                for key, vals in mem.items():
-                    del vals[num_complete:]
-            else:
-                for child_mem in mem.values():
-                    delete_incomplete_experieces(child_mem)
-
-        delete_incomplete_experieces(self.replay)
-
-    def end_ep_callback(self):
+    def end_of_episode(self):
         pass
+
+    def get_experiences(self):
+        return {agent_id: replay.to_experience_set() for agent_id, replay in self.replay.items()}
 
     def reset(self):
         self.env.reset()
@@ -158,25 +149,4 @@ class AbsEnvWrapper(ABC):
         self._state = None
         self.pending_reward_ticks.clear()
         self.action_history.clear()
-        self.replay = {}
-
-    def _record_transition_obj(self, obj, base_key: str):
-        def store_multi_level_obj(obj, mem, base_key: str):
-            if not isinstance(obj, dict):
-                mem.setdefault(base_key, [])
-                mem[base_key].append(obj)
-            else:
-                for key, child_obj in obj.items():
-                    mem.setdefault(key, {})
-                    store_multi_level_obj(child_obj, mem[key], base_key)
-
-        store_multi_level_obj(obj, self.replay, base_key)
-
-    def replay_info(self):
-        def helper(mem):
-            if Experience.REWARD in mem:
-                return {key: len(vals) for key, vals in mem.items()}
-            else:
-                return {key: helper(child_mem) for key, child_mem in mem.items()}
-
-        return helper(self.replay)
+        self.replay = defaultdict(Replay)

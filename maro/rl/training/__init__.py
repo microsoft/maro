@@ -1,7 +1,16 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from .env_wrapper import AbsEnvWrapper
-from .learner import Learner
+from .actor import Actor
+from .actor_manager import ActorManager
+from .distributed_learner import DistributedLearner
+from .local_learner import LocalLearner
+from .policy_update_schedule import EpisodeBasedSchedule, MultiPolicyUpdateSchedule, StepBasedSchedule
 
-__all__ = ["AbsEnvWrapper", "Learner"]
+__all__ = [
+    "Actor",
+    "ActorManager",
+    "DistributedLearner",
+    "LocalLearner",
+    "EpisodeBasedSchedule", "MultiPolicyUpdateSchedule", "StepBasedSchedule"
+]
