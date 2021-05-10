@@ -13,7 +13,7 @@ from .easy_config import EasyConfig, SkuInfo
 from .facilities import FacilityBase
 from .frame_builder import build_frame
 from .parser import DataModelDef, FacilityDef, SupplyChainConfiguration, UnitDef
-from .units import ProductUnit, ExtendUnitBase, UnitBase
+from .units import ExtendUnitBase, UnitBase
 
 AgentInfo = namedtuple("AgentInfo", ("id", "agent_type", "is_facility", "sku", "facility_id", "parent_id"))
 
@@ -300,6 +300,16 @@ class World:
                 self.agent_type_dict[agent_type] = type(unit).__name__
 
     def build_unit_by_type(self, unit_def: UnitDef, parent: Union[FacilityBase, UnitBase], facility: FacilityBase):
+        """Build an unit by its type.
+
+        Args:
+            unit_def (UnitDef): Definition of this unit.
+            parent (Union[FacilityBase, UnitBase]): Parent of this unit.
+            facility (FacilityBase): Facility this unit belongs to.
+
+        Returns:
+            UnitBase: Unit instance.
+        """
         unit = unit_def.class_type()
 
         unit.id = self._gen_id()
