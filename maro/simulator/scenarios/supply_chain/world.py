@@ -15,7 +15,7 @@ from .frame_builder import build_frame
 from .parser import DataModelDef, FacilityDef, SupplyChainConfiguration, UnitDef
 from .units import ProductUnit, SkuUnit, UnitBase
 
-AgentInfo = namedtuple("AgentInfo", ("id", "agent_type", "is_facility", "sku", "facility_id"))
+AgentInfo = namedtuple("AgentInfo", ("id", "agent_type", "is_facility", "sku", "facility_id", "parent_id"))
 
 
 class World:
@@ -273,7 +273,7 @@ class World:
             agent_type = facility.configs.get("agent_type", None)
 
             if agent_type is not None:
-                self.agent_list.append(AgentInfo(facility.id, agent_type, True, None, facility.id))
+                self.agent_list.append(AgentInfo(facility.id, agent_type, True, None, facility.id, None))
 
                 self.agent_type_dict[agent_type] = type(facility).__name__
 
@@ -285,9 +285,17 @@ class World:
             agent_type = unit.config.get("agent_type", None)
 
             if agent_type is not None:
-                # Unit or facility id, agent type, is facility, sku info, facility id.
+                # Unit or facility id, agent type, is facility, sku info, facility id, parent id.
                 self.agent_list.append(
-                    AgentInfo(unit.id, agent_type, False, unit.facility.skus[unit.product_id], unit.facility.id))
+                    AgentInfo(
+                        unit.id,
+                        agent_type,
+                        False,
+                        unit.facility.skus[unit.product_id],
+                        unit.facility.id,
+                        unit.parent.id
+                    )
+                )
 
                 self.agent_type_dict[agent_type] = type(unit).__name__
 
@@ -405,7 +413,7 @@ class World:
                 id2index_mapping[unit_id] = (None, None, unit.facility.id, sku)
 
         return {
-            "agent_types": {k:v for k,v in self.agent_type_dict.items()},
+            "agent_types": {k: v for k, v in self.agent_type_dict.items()},
             "unit_mapping": id2index_mapping,
             "skus": {sku.id: sku for sku in self._sku_collection.values()},
             "facilities": facility_info_dict,

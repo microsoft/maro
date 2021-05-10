@@ -41,7 +41,9 @@ def get_dqn_policy(config):
 # all consumers share the same underlying policy
 policy_dict = {
     "consumer": get_dqn_policy(config["consumer"]),
-    "producer": get_dqn_policy(config["consumer"])
+    "producer": get_dqn_policy(config["consumer"]),
+    "facility": NullPolicy(),
+    "product": NullPolicy()
 }
 
 agent2policy = {agent_id: agent_id.split(".")[0] for agent_id in agent_ids}

@@ -35,6 +35,9 @@ class NullPolicy(AbsPolicy):
     def choose_action(self, state):
         return None
 
+    def update(self):
+        pass
+
 
 class AbsCorePolicy(AbsPolicy):
     def __init__(self, experience_manager: AbsExperienceManager, config):
@@ -95,7 +98,7 @@ class RLPolicy(object):
             this to an environment executable action.
         """
         action = self.core_policy.choose_action(state)
-        return self.exploration(action)        
+        return self.exploration(action)
 
     def update(self):
         """Algorithm-specific training logic.

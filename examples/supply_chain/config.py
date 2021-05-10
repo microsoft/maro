@@ -20,7 +20,6 @@ with open(getenv("CONFIG_PATH", default=default_config_path), "r") as config_fil
 topology = config["env"]["topology"]
 config["env"]["topology"] = join(sc_code_dir, "topologies", topology)
 env = SCEnvWrapper(Env(**config["env"]))
-consumer_agent_ids = [f"consumer.{info.id}" for info in env.agent_idx_list]
-producer_agent_ids = [f"producer.{info.id}" for info in env.agent_idx_list]
-config["agent_ids"] = consumer_agent_ids + producer_agent_ids
+
+config["agent_ids"] = [f"{info.agent_type}.{info.id}" for info in env.agent_idx_list]
 config["policy"]["consumer"]["model"]["network"]["input_dim"] = env.dim

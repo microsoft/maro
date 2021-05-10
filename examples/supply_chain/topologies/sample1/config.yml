@@ -23,11 +23,13 @@ facility_definitions:
         is_template: true
         # config will be passed to generator as parameters
         config:
-          agent_type: 4
+          agent_type: "product"
           consumer:
             class: "ConsumerUnit"
+            config:
+              agent_type: "consumer"
     config:
-      agent_type: 1
+      agent_type: "facility"
 
   SupplierFacility: &supplier_facility
     class: "SupplierFacility"
@@ -40,13 +42,17 @@ facility_definitions:
         class: "ProductUnit"
         is_template: true
         config:
-          agent_type: 3
+          agent_type: "product"
           consumer:
             class: "ConsumerUnit"
+            config:
+              agent_type: "consumer"
           manufacture:
             class: "ManufactureUnit"
+            config:
+              agent_type: "producer"
     config:
-      agent_type: 0
+      agent_type: "facility"
 
   RetailerFacility: &retailer_facility
     class: "RetailerFacility"
@@ -57,15 +63,17 @@ facility_definitions:
         class: "StoreProductUnit"
         is_template: true
         config:
-          agent_type: 5
+          agent_type: "product"
           consumer:
             class: "ConsumerUnit"
+            config:
+              agent_type: "consumer"
           seller:
             class: "SellerUnit"
             config:
               sale_hist_len: 4
     config:
-      agent_type: 2
+      agent_type: "facility"
 
 
   # definition for outer retailer that read demand from csv files.

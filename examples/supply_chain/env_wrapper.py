@@ -242,21 +242,27 @@ class SCEnvWrapper(AbsEnvWrapper):
         return final_state
 
     def get_reward(self, tick=None, target_agents=None):
-        wc = self.env.configs.settings["global_reward_weight_consumer"]
-        parent_facility_balance = {}
-        for f_id, sheet in self.cur_balance_sheet_reward.items():
-            if f_id in self.unit_2_facility_dict:
-                # it is a product unit
-                parent_facility_balance[f_id] = self.cur_balance_sheet_reward[self.unit_2_facility_dict[f_id]]
-            else:
-                parent_facility_balance[f_id] = sheet
+        # wc = self.env.configs.settings["global_reward_weight_consumer"]
+        # parent_facility_balance = {}
+        # for f_id, sheet in self.cur_balance_sheet_reward.items():
+        #     if f_id in self.unit_2_facility_dict:
+        #         # it is a product unit
+        #         parent_facility_balance[f_id] = self.cur_balance_sheet_reward[self.unit_2_facility_dict[f_id]]
+        #     else:
+        #         parent_facility_balance[f_id] = sheet
 
-        consumer_reward_by_facility = {f_id: wc * parent_facility_balance[f_id][0] + (1 - wc) * bsw[1] for f_id, bsw in
-                                       self.cur_balance_sheet_reward.items()}
+        # TODO: or still same as before? but with the bsw is reward of consumer and producer, not product unit.
+        # TODO: or consumer is a special case here?
+        # consumer_reward_by_facility = {f_id: wc * parent_facility_balance[f_id][0] + (1 - wc) * bsw[1] for f_id, bsw in
+        #                                self.cur_balance_sheet_reward.items()}
+        #
+        # return {
+        #     **{f"producer.{f_id}": np.float32(reward[0]) for f_id, reward in self.cur_balance_sheet_reward.items()},
+        #     **{f"consumer.{f_id}": np.float32(reward) for f_id, reward in consumer_reward_by_facility.items()}
+        # }
 
         return {
-            **{f"producer.{f_id}": np.float32(reward[0]) for f_id, reward in self.cur_balance_sheet_reward.items()},
-            **{f"consumer.{f_id}": np.float32(reward) for f_id, reward in consumer_reward_by_facility.items()}
+            f"{bwt[2]}.{f_id}": np.float32(bwt[1]) for f_id, bwt in self.cur_balance_sheet_reward.items()
         }
 
     def get_action(self, action_by_agent):
@@ -300,7 +306,14 @@ class SCEnvWrapper(AbsEnvWrapper):
                     sku = self._units_mapping[unit_id][3]
                     reward_discount = 0
 
-                    env_action[unit_id] = ConsumerAction(unit_id, product_id, source_id, action_number, sku.vlt, reward_discount)
+                    env_action[unit_id] = ConsumerAction(
+                        unit_id,
+                        product_id,
+                        source_id,
+                        action_number,
+                        sku.vlt,
+                        reward_discount
+                    )
             # manufacturer action
             elif agent_id.startswith("producer"):
                 sku = self._units_mapping[unit_id][3]
@@ -703,29 +716,30 @@ class BalanceSheetCalculator:
 
     def calc(self):
         tick = self.env.tick
+
         # consumer
-        consumer_bs_states = self.consumer_ss[tick::self.consumer_features].flatten().reshape(-1, len(
-            self.consumer_features))
+        consumer_bs_states = self.consumer_ss[tick::self.consumer_features]\
+            .flatten()\
+            .reshape(-1, len(self.consumer_features))
 
         # quantity * price
         consumer_profit = consumer_bs_states[:, 1] * consumer_bs_states[:, 2]
 
         # balance_sheet_profit = 0
         # order_cost + order_product_cost
-        consumer_step_balance_sheet_loss = -1 * \
-            (consumer_bs_states[:, 3] + consumer_bs_states[:, 4])
+        consumer_step_balance_sheet_loss = -1 * (consumer_bs_states[:, 3] + consumer_bs_states[:, 4])
 
         # consumer step reward: balance sheet los + profile * discount
         consumer_step_reward = consumer_step_balance_sheet_loss + \
             consumer_profit * consumer_bs_states[:, 5]
 
         # seller
-        seller_bs_states = self.seller_ss[tick::self.seller_features].flatten(
-        ).reshape(-1, len(self.seller_features))
+        seller_bs_states = self.seller_ss[tick::self.seller_features]\
+            .flatten()\
+            .reshape(-1, len(self.seller_features))
 
         # profit = sold * price
-        seller_balance_sheet_profit = seller_bs_states[:,
-                                                       1] * seller_bs_states[:, 3]
+        seller_balance_sheet_profit = seller_bs_states[:, 1] * seller_bs_states[:, 3]
 
         # loss = demand * price * backlog_ratio
         seller_balance_sheet_loss = -1 * \
@@ -736,8 +750,9 @@ class BalanceSheetCalculator:
         seller_step_reward = seller_balance_sheet_loss + seller_balance_sheet_profit
 
         # manufacture
-        man_bs_states = self.manufacture_ss[tick::self.manufacture_features].flatten().reshape(-1, len(
-            self.manufacture_features))
+        man_bs_states = self.manufacture_ss[tick::self.manufacture_features]\
+            .flatten()\
+            .reshape(-1, len(self.manufacture_features))
 
         # loss = manufacture number * cost
         man_balance_sheet_profit_loss = -1 * \
@@ -747,16 +762,16 @@ class BalanceSheetCalculator:
         man_step_reward = man_balance_sheet_profit_loss
 
         # product
-        product_bs_states = self.product_ss[tick::self.product_features].flatten().reshape(-1,
-                                                                                           len(self.product_features))
+        product_bs_states = self.product_ss[tick::self.product_features]\
+            .flatten()\
+            .reshape(-1, len(self.product_features))
 
         # product distribution loss = check order + delay order penalty
         product_distribution_balance_sheet_loss = -1 * \
             (product_bs_states[:, 3] + product_bs_states[:, 4])
 
         # product distribution profit = check order * price
-        product_distribution_balance_sheet_profit = product_bs_states[:,
-                                                                      2] * product_bs_states[:, 1]
+        product_distribution_balance_sheet_profit = product_bs_states[:, 2] * product_bs_states[:, 1]
 
         # result we need
         product_step_reward = np.zeros((len(self.products, )))
@@ -766,13 +781,17 @@ class BalanceSheetCalculator:
         # create product number mapping for storages
         storages_product_map = {}
         for storage_index in range(len(self.storage_ss)):
-            product_list = self.storage_ss[tick:storage_index:"product_list"].flatten(
-            ).astype(np.int)
-            product_number = self.storage_ss[tick:storage_index:"product_number"].flatten(
-            ).astype(np.int)
+            product_list = self.storage_ss[tick:storage_index:"product_list"]\
+                .flatten()\
+                .astype(np.int)
+
+            product_number = self.storage_ss[tick:storage_index:"product_number"]\
+                .flatten()\
+                .astype(np.int)
 
             storages_product_map[storage_index] = {
-                pid: pnum for pid, pnum in zip(product_list, product_number)}
+                pid: pnum for pid, pnum in zip(product_list, product_number)
+            }
 
         # product balance sheet and reward
         # loss = consumer loss + seller loss + manufacture loss + storage loss + distribution loss + downstreams loss
@@ -823,20 +842,22 @@ class BalanceSheetCalculator:
         product_balance_sheet = product_balance_sheet_profit + product_balance_sheet_loss
 
         # storage
-        storage_states = self.storage_ss[tick::self.storage_features].flatten(
-        ).reshape(-1, len(self.storage_features))
+        storage_states = self.storage_ss[tick::self.storage_features]\
+            .flatten()\
+            .reshape(-1, len(self.storage_features))
 
         # loss = (capacity-remaining space) * cost
-        storage_balance_sheet_loss = -1 * \
-            (storage_states[:, 0] - storage_states[:, 1])
+        storage_balance_sheet_loss = -1 * (storage_states[:, 0] - storage_states[:, 1])
 
         # vehicles
-        vehicle_states = self.vehicle_ss[tick::self.vehicle_features].flatten(
-        ).reshape(-1, len(self.vehicle_features))
+        vehicle_states = self.vehicle_ss[tick::self.vehicle_features]\
+            .flatten()\
+            .reshape(-1, len(self.vehicle_features))
 
         # loss = cost * payload
         vehicle_balance_sheet_loss = -1 * \
             vehicle_states[:, 1] * vehicle_states[:, 2]
+
         vehicle_step_reward = vehicle_balance_sheet_loss
 
         facility_balance_sheet_loss = np.zeros((len(self.facility_levels),))
@@ -864,19 +885,43 @@ class BalanceSheetCalculator:
                 facility_balance_sheet_profit[i] += product_balance_sheet_profit[self.product_id2index_dict[pid]]
                 facility_step_reward[i] += product_step_reward[self.product_id2index_dict[pid]]
 
+        # Final result for current tick, key is the facility/unit id, value is tuple of balance sheet and reward.
         result = {}
 
+        # For product units.
         for id, bs, rw in zip([item[0] for item in self.products], product_balance_sheet, product_step_reward):
-            result[id] = (bs, rw)
+            result[id] = (bs, rw, "product")
 
             self.total_balance_sheet[id] += bs
 
         facility_balance_sheet = facility_balance_sheet_loss + facility_balance_sheet_profit
 
+        # For facilities.
         for id, bs, rw in zip([item[0] for item in self.facility_levels], facility_balance_sheet, facility_step_reward):
-            result[id] = (bs, rw)
+            result[id] = (bs, rw, "facility")
 
             self.total_balance_sheet[id] += bs
+
+        # For consumers.
+        consumer_step_balance_sheet = consumer_profit + consumer_step_balance_sheet_loss
+
+        for id, bs, rw in zip(consumer_bs_states[:, 0], consumer_step_balance_sheet, consumer_step_reward):
+            result[int(id)] = (bs, rw, "consumer")
+
+            self.total_balance_sheet[id] += bs
+
+        # For producers.
+        man_step_balance_sheet = man_balance_sheet_profit_loss
+
+        for id, bs, rw in zip(man_bs_states[:, 0], man_step_balance_sheet, man_step_reward):
+            result[int(id)] = (bs, rw, "producer")
+
+            self.total_balance_sheet[id] += bs
+
+        # NOTE: add followings if you need.
+        # For storages.
+        # For distributions.
+        # For vehicles.
 
         return result
 
@@ -887,7 +932,7 @@ if __name__ == "__main__":
 
     env = Env(
         scenario="supply_chain",
-        topology="random",
+        topology="sample",
         durations=100,
         max_snapshots=10)
 
@@ -900,8 +945,11 @@ if __name__ == "__main__":
     # cProfile.run("ss.get_state(None)", sort="cumtime")
     states = ss.get_state(None)
 
-    end_time = time()
+    print(ss.cur_balance_sheet_reward)
+    # print(states)
 
-    print("time cost:", end_time - start_time)
-
-    print("dim:", ss.dim)
+    # end_time = time()
+    #
+    # print("time cost:", end_time - start_time)
+    #
+    # print("dim:", ss.dim)
