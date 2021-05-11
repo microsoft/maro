@@ -134,7 +134,7 @@ class DistributedLearner(object):
             tl0 = time.time()
             policy_ids = self.policy_update_schedule.pop_step(ep, segment_index)
             if policy_ids == ["*"]:
-                policy_ids = [policy_id for policy_id, policy in self.policy_dict.items() if hasattr(policy, "update")]
+                policy_ids = self._updatable_policy_ids
             for policy_id in policy_ids:
                 self.policy_dict[policy_id].update()
 
