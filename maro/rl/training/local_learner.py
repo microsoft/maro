@@ -1,18 +1,17 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import heapq
 import time
-from collections import defaultdict, namedtuple
+from collections import defaultdict
 from os import getcwd
-from typing import Callable, Dict, List, Tuple, Union
+from typing import Dict, List, Union
 
 from maro.rl.env_wrapper import AbsEnvWrapper
 from maro.rl.exploration import AbsExploration
 from maro.rl.policy import AbsCorePolicy, AbsPolicy
 from maro.utils import Logger
 
-from .policy_update_schedule import MultiPolicyUpdateSchedule
+from .policy_update_schedule import EpisodeBasedSchedule, MultiPolicyUpdateSchedule, StepBasedSchedule
 
 
 class LocalLearner(object):
@@ -28,7 +27,7 @@ class LocalLearner(object):
         agent2policy: Dict[str, str],
         env: AbsEnvWrapper,
         num_episodes: int,
-        policy_update_schedule: MultiPolicyUpdateSchedule,
+        policy_update_schedule: Union[EpisodeBasedSchedule, StepBasedSchedule, dict],
         exploration_dict: Dict[str, AbsExploration] = None,
         agent2exploration: Dict[str, str] = None,
         experience_update_interval: int = -1,
@@ -77,7 +76,7 @@ class LocalLearner(object):
 
         self.env = env
         self.num_episodes = num_episodes
-        self.policy_update_schedule = policy_update_schedule       
+        self.policy_update_schedule = MultiPolicyUpdateSchedule(policy_update_schedule)
         self.eval_env = eval_env if eval_env else self.env
         self.experience_update_interval = experience_update_interval
 
@@ -106,7 +105,7 @@ class LocalLearner(object):
 
             policy_ids = self.policy_update_schedule.pop_episode(ep)
             if policy_ids == ["*"]:
-                policy_ids = list(self.policy_dict.keys())
+                policy_ids = [policy_id for policy_id, policy in self.policy_dict.items() if hasattr(policy, "update")]
             for policy_id in policy_ids:
                 self.policy_dict[policy_id].update()
 
@@ -161,7 +160,7 @@ class LocalLearner(object):
             tl0 = time.time()
             policy_ids = self.policy_update_schedule.pop_step(ep, step_index)
             if policy_ids == ["*"]:
-                policy_ids = list(self.policy_dict.keys())
+                policy_ids = [policy_id for policy_id, policy in self.policy_dict.items() if hasattr(policy, "update")]
             for policy_id in policy_ids:
                 self.policy_dict[policy_id].update()
 

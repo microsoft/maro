@@ -11,7 +11,7 @@ from maro.rl.policy import AbsPolicy, AbsCorePolicy
 from maro.utils import Logger
 
 from .actor_manager import ActorManager
-from .policy_update_schedule import MultiPolicyUpdateSchedule
+from .policy_update_schedule import EpisodeBasedSchedule, MultiPolicyUpdateSchedule, StepBasedSchedule
 
 
 class DistributedLearner(object):
@@ -26,7 +26,7 @@ class DistributedLearner(object):
         policy_dict: Dict[str, AbsPolicy],
         agent_to_policy: Dict[str, str],
         num_episodes: int,
-        policy_update_schedule: MultiPolicyUpdateSchedule,
+        policy_update_schedule: Union[EpisodeBasedSchedule, StepBasedSchedule, dict],
         actor_manager: ActorManager,
         experience_update_interval: int = -1,
         eval_env: AbsEnvWrapper = None,
@@ -49,7 +49,15 @@ class DistributedLearner(object):
             self.agent_groups_by_policy[policy_id] = tuple(agent_ids)
 
         self.num_episodes = num_episodes
-        self.policy_update_schedule = policy_update_schedule
+        self.policy_update_schedule = MultiPolicyUpdateSchedule(policy_update_schedule)
+        if isinstance(policy_update_schedule, dict):
+            self._updatable_policy_ids = list(policy_update_schedule.keys())
+        else:
+            self._updatable_policy_ids = [
+                policy_id for policy_id, policy in self.policy_dict.items() if hasattr(policy, "update")
+            ]
+        self._updated_policy_ids = self._updatable_policy_ids
+
         self.experience_update_interval = experience_update_interval
 
         # evaluation
@@ -82,13 +90,15 @@ class DistributedLearner(object):
 
             policy_ids = self.policy_update_schedule.pop_episode(ep)
             if policy_ids == ["*"]:
-                policy_ids = list(self.policy_dict.keys())
+                policy_ids = self._updatable_policy_ids
+
             for policy_id in policy_ids:
                 self.policy_dict[policy_id].update()
 
             if policy_ids:
                 self._logger.info(f"Updated policies {policy_ids} at the end of episode {ep}")
 
+            self._updated_policy_ids = policy_ids
             self.end_of_episode(ep, **self.end_of_episode_kwargs)
 
             if ep == self.eval_schedule[self._eval_point_index]:
@@ -103,13 +113,13 @@ class DistributedLearner(object):
         learning_time = 0
         env_steps = 0
         num_experiences_collected = 0
-        policy_ids, num_actor_finishes, segment_index = list(self.policy_dict.keys()), 0, 1
+        num_actor_finishes, segment_index = 0, 1
 
         while num_actor_finishes < self.actor_manager.required_finishes:
             # parallel experience collection
             for exp_by_agent, done in self.actor_manager.collect(
                 ep, segment_index, self.experience_update_interval,
-                policy_dict={policy_id: self.policy_dict[policy_id].get_state() for policy_id in policy_ids},
+                policy_dict={policy_id: self.policy_dict[policy_id].get_state() for policy_id in self._updated_policy_ids},
                 discard_stale_experiences=self.discard_stale_experiences
             ):
                 for agent_id, exp in exp_by_agent.items():
@@ -124,13 +134,14 @@ class DistributedLearner(object):
             tl0 = time.time()
             policy_ids = self.policy_update_schedule.pop_step(ep, segment_index)
             if policy_ids == ["*"]:
-                policy_ids = list(self.policy_dict.keys())
+                policy_ids = [policy_id for policy_id, policy in self.policy_dict.items() if hasattr(policy, "update")]
             for policy_id in policy_ids:
                 self.policy_dict[policy_id].update()
 
             if policy_ids:
                 self._logger.info(f"Updated policies {policy_ids} after segment {segment_index}")
 
+            self._updated_policy_ids = policy_ids
             learning_time += time.time() - tl0
 
             segment_index += 1
@@ -160,7 +171,9 @@ class DistributedLearner(object):
             if self._log_env_metrics:
                 self._logger.info(f"eval ep {ep}: {self.eval_env.metrics}")
         else:
-            policy_state = {policy_id: policy.get_state() for policy_id, policy in self.policy_dict.items()}
+            policy_state = {
+                policy_id: self.policy_dict[policy_id].get_state() for policy_id in self._updatable_policy_ids
+            }
             self.actor_manager.evaluate(ep, policy_state, self.num_eval_actors)
 
     def end_of_episode(self, ep: int, **kwargs):
