@@ -264,16 +264,15 @@ class SCEnvWrapper(AbsEnvWrapper):
 
     def get_action(self, action_by_agent):
         # cache the sources for each consumer if not yet cached
-        if not hasattr(self, "product2source"):
-            self.product2source, self.consumer2product = {}, {}
+        if not hasattr(self, "consumer2source"):
+            self.consumer2source, self.consumer2product = {}, {}
             for facility in self.env.summary["node_mapping"]["facilities"].values():
                 products = facility["units"]["products"]
                 for product_id, product in products.items():
                     consumer = product["consumer"]
                     if consumer is not None:
                         consumer_id = consumer["id"]
-                        product_unit_id = product["id"]
-                        self.product2source[product_unit_id] = consumer["sources"]
+                        self.consumer2source[consumer_id] = consumer["sources"]
                         self.consumer2product[consumer_id] = product_id
 
         env_action = {}
@@ -289,12 +288,12 @@ class SCEnvWrapper(AbsEnvWrapper):
             # consumer action
             if agent_id.startswith("consumer"):
                 product_id = self.consumer2product.get(unit_id, 0)
-                sources = self.product2source.get(unit_id, [])
+                sources = self.consumer2source.get(unit_id, [])
 
                 if sources:
                     source_id = sources[0]
-
-                    action_number = int(int(action) * self._cur_metrics["products"][unit_id]["sale_mean"])
+                    product_unit_id = self._unit2product_mapping[unit_id][0]
+                    action_number = int(int(action) * self._cur_metrics["products"][product_unit_id]["sale_mean"])
 
                     # ignore 0 quantity to reduce action number
                     if action_number == 0:
