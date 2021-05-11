@@ -23,3 +23,4 @@ env = SCEnvWrapper(Env(**config["env"]))
 
 config["agent_ids"] = [f"{info.agent_type}.{info.id}" for info in env.agent_idx_list]
 config["policy"]["consumer"]["model"]["network"]["input_dim"] = env.dim
+config["policy"]["producer"]["model"]["network"]["input_dim"] = env.dim

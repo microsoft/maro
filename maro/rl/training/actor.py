@@ -88,7 +88,9 @@ class Actor(object):
                     self.env.reset()
                     self.env.start()  # get initial state
 
-                self._load_policy(msg.body[MsgKey.POLICY])
+                # load policies
+                self._load_policy_states(msg.body[MsgKey.POLICY])
+
                 starting_step_index = self.env.step_index + 1
                 steps_to_go = float("inf") if msg.body[MsgKey.NUM_STEPS] == -1 else msg.body[MsgKey.NUM_STEPS]
                 while self.env.state and steps_to_go > 0:
@@ -131,7 +133,7 @@ class Actor(object):
                 self._logger.info(f"Evaluation episode {ep}")
                 self.eval_env.reset()
                 self.eval_env.start()  # get initial state
-                self._load_policy(msg.body[MsgKey.POLICY])
+                self._load_policy_states(msg.body[MsgKey.POLICY])
                 while self.eval_env.state:
                     action = {id_: self.policy[id_].choose_action(st) for id_, st in self.eval_env.state.items()}
                     self.eval_env.step(action)
@@ -142,7 +144,10 @@ class Actor(object):
                     MsgKey.EPISODE_INDEX: msg.body[MsgKey.EPISODE_INDEX]  
                 }
                 self._proxy.reply(msg, tag=MsgTag.EVAL_DONE, body=return_info)
-    
-    def _load_policy(self, policy_state_dict):
+
+    def _load_policy_states(self, policy_state_dict):
         for policy_id, policy_state in policy_state_dict.items():
             self.policy_dict[policy_id].set_state(policy_state)
+
+        if policy_state_dict:
+            self._logger.info(f"updated policies {list(policy_state_dict.keys())}")

@@ -17,7 +17,6 @@ log_env_metrics: false
 policy:
   consumer:
     algorithm: dqn
-    share_model: true
     model:  # Edit the get_dqn_agent() code in examples\supply_chain\agent.py if you need to customize the model.
       device: cpu
       network:
@@ -51,6 +50,52 @@ policy:
       overwrite_type: random
       batch_size: 128
       replace: true
+    update_schedule:
+      type: step  # "step" or "episode"
+      args:
+        start_ep: 3   # must be a positive number since episode is 1-based.
+        interval: 2
+        end_ep_update: true
+  producer:
+    algorithm: dqn
+    model:  # Edit the get_dqn_agent() code in examples\supply_chain\agent.py if you need to customize the model.
+      device: cpu
+      network:
+        hidden_dims:
+          - 16
+          - 8
+        output_dim: 10
+        activation: leaky_relu  # refer to maro/maro/rl/utils/torch_cls_index.py for the mapping of strings to torch activation classes.
+        softmax: false
+        batch_norm: true
+        skip_connection: false
+        head: true
+        dropout_p: 0.0
+      optimization:
+        optim_cls: rmsprop  # refer to maro/maro/rl/utils/torch_cls_index.py for the mapping of strings to torch optimizer classes.
+        optim_params:
+          lr: 0.001
+    algorithm_config:
+      reward_discount: .9
+      train_epochs: 10
+      gradient_iters: 1
+      loss_cls: mse  # refer to maro/maro/rl/utils/torch_cls_index.py for the mapping of strings to torch loss classes.
+      target_update_freq: 5  # How many training iteration, to update DQN target model 
+      soft_update_coefficient: 0.1
+      double: false   # whether to enable double DQN
+    experience_manager:
+      capacity: 50000  # experience memory size
+      # This determines how existing experiences are replaced when adding new experiences to a full experience
+      # memory. Must be one of "rolling" or "random". If "rolling", experiences will be replaced sequentially,
+      # with the oldest one being the first to be replaced. If "random", experiences will be replaced randomly.
+      overwrite_type: random
+      batch_size: 128
+      replace: true
+    update_schedule:
+      type: episode  # "step" or "episode"
+      args:
+        start: 2  # must be a positive number since episode is 1-based
+        interval: 2 
 exploration:
   initial_value: 0.4  # Here (start: 0.4, end: 0.0) means: the exploration rate will start at 0.4 and decrease linearly to 0.0 in the last episode.
   final_value: 0.0
@@ -62,7 +107,7 @@ distributed:
   # If you use the scripts under examples/supply_chain/scripts to run the scenario, you can set "redis_host"
   # to any string supported by the pyyaml parser. If running in multi-process mode, change this to "localhost" and make
   # sure that a local redis server is running and listening on the port specified by "redis_port".
-  redis_host: localhost
+  redis_host: maro-redis
   redis_port: 6379
   # The number of actor finishes required for the learner to enter the next learning cycle. This is used to prevent
   # slow actors from dragging down the whole process.

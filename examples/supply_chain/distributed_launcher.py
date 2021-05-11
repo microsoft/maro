@@ -7,7 +7,7 @@ from multiprocessing import Process
 from os import getenv, makedirs
 from os.path import dirname, join, realpath
 
-from maro.rl import Actor, ActorManager, EpisodeBasedSchedule, MultiPolicyUpdateSchedule, StepBasedSchedule
+from maro.rl import Actor, ActorManager
 from maro.simulator import Env
 from maro.utils import set_seeds
 
@@ -17,7 +17,7 @@ from config import config
 from env_wrapper import SCEnvWrapper
 from exploration import exploration_dict, agent2exploration
 from learner import SCLearner
-from policies import policy_dict, agent2policy
+from policies import agent2policy, policy_dict, policy_update_schedule
 
 
 # for distributed / multi-process training
@@ -37,10 +37,6 @@ def sc_learner():
         redis_address=(REDIS_HOST, REDIS_PORT),
         log_enable=False,
         log_dir=log_dir
-    )
-
-    policy_update_schedule = MultiPolicyUpdateSchedule(
-        {"consumer": StepBasedSchedule(3, 2, True), "producer": EpisodeBasedSchedule(2, 3)}
     )
 
     # create a learner to start training

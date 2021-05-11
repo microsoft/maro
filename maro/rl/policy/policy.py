@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 from abc import ABC, abstractmethod
-from collections import namedtuple
 
 from maro.rl.exploration import AbsExploration
 from maro.rl.experience import AbsExperienceManager, ExperienceSet
@@ -34,9 +33,6 @@ class AbsPolicy(ABC):
 class NullPolicy(AbsPolicy):
     def choose_action(self, state):
         return None
-
-    def update(self):
-        pass
 
 
 class AbsCorePolicy(AbsPolicy):
