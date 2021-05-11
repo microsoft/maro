@@ -5,11 +5,11 @@
 from maro.backends.backend import AttributeType
 from maro.backends.frame import NodeAttribute, node
 
-from .skumodel import SkuDataModel
+from .extend import ExtendDataModel
 
 
 @node("consumer")
-class ConsumerDataModel(SkuDataModel):
+class ConsumerDataModel(ExtendDataModel):
     """Data model for consumer unit."""
     total_purchased = NodeAttribute(AttributeType.UInt)
     total_received = NodeAttribute(AttributeType.UInt)
@@ -19,7 +19,6 @@ class ConsumerDataModel(SkuDataModel):
     order_product_cost = NodeAttribute(AttributeType.UInt)
 
     latest_consumptions = NodeAttribute(AttributeType.Float)
-    pending_order_daily = NodeAttribute(AttributeType.UInt)
 
     order_quantity = NodeAttribute(AttributeType.UInt)
 

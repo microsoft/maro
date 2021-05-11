@@ -3,12 +3,11 @@
 import os
 import argparse
 import sys
-import yaml
 from multiprocessing import Process
 from os import getenv, makedirs
 from os.path import dirname, join, realpath
 
-from maro.rl import Actor, ActorManager, Learner, MultiAgentPolicy
+from maro.rl import Actor, ActorManager
 from maro.simulator import Env
 from maro.utils import set_seeds
 
@@ -16,10 +15,11 @@ sc_code_dir = dirname(realpath(__file__))
 sys.path.insert(0, sc_code_dir)
 from config import config
 from env_wrapper import SCEnvWrapper
-from exploration import exploration_dict, agent_to_exploration
+from exploration import exploration_dict, agent2exploration
 from learner import SCLearner
-# from policies import policy_dict, agent_to_policy
-from or_policies import policy_dict, agent_to_policy
+from or_policies import agent2policy, policy_dict, policy_update_schedule
+# from policies import agent2policy, policy_dict, policy_update_schedule
+
 from render_tools import SimulationTracker
 
 
@@ -33,40 +33,22 @@ log_dir = join(sc_code_dir, "logs", GROUP)
 makedirs(log_dir, exist_ok=True)
 
 
-def get_sc_agents(agent_idx_list, type_):
-    assert type_ in {"producer", "consumer"}
-    q_model = get_q_model(config["agent"][type_]["model"]) if config["agent"][type_]["share_model"] else None
-    alg_type = config["agent"][type_]["algorithm"]
-    return {
-        f"{type_}.{info.id}": get_agent_func_map[alg_type](config["agent"][type_], q_model=q_model)
-        for info in agent_idx_list
-    }
-
-
 def sc_learner():
-    # create a multi-agent policy.
-    policy = MultiAgentPolicy(
-        policy_dict,
-        agent_to_policy,
-        exploration_dict=exploration_dict,
-        agent_to_exploration=agent_to_exploration
-    )
-
     # create an actor manager to collect simulation data from multiple actors
     actor_manager = ActorManager(
-        NUM_ACTORS, GROUP, proxy_options={"redis_address": (REDIS_HOST, REDIS_PORT), "log_enable": False},
+        NUM_ACTORS, GROUP, 
+        redis_address=(REDIS_HOST, REDIS_PORT),
+        log_enable=False,
         log_dir=log_dir
     )
 
     # create a learner to start training
     learner = SCLearner(
-        policy, None, config["num_episodes"],
+        policy_dict, agent2policy, config["num_episodes"], policy_update_schedule,
         actor_manager=actor_manager,
-        policy_update_interval=config["policy_update_interval"],
-        eval_points=config["eval_points"],
-        required_actor_finishes=config["distributed"]["required_actor_finishes"],
+        experience_update_interval=config["experience_update_interval"],
+        eval_schedule=config["eval_schedule"],
         log_env_metrics=config["log_env_metrics"],
-        end_of_training_kwargs=config["end_of_training_kwargs"],
         log_dir=log_dir
     )
     # learner.run()
@@ -74,26 +56,22 @@ def sc_learner():
     env = SCEnvWrapper(Env(**config["env"]))
     tracker = SimulationTracker(60, 1, env, learner)
     loc_path = '/maro/supply_chain/output/'
-    facility_types = [5]
+    facility_types = ["consumer"]
     os.system(f"rm {loc_path}/*")
     tracker.run_and_render(loc_path, facility_types)
 
 
 def sc_actor(name: str):
-    # create an env wrapper for roll-out and obtain the input dimension for the agents
-    env = SCEnvWrapper(Env(**config["env"]))
-    policy = MultiAgentPolicy(
-        policy_dict,
-        agent_to_policy,
-        exploration_dict=exploration_dict,
-        agent_to_exploration=agent_to_exploration
-    )
     # create an actor that collects simulation data for the learner.
     actor = Actor(
-        env, policy, GROUP,
-        proxy_options={"component_name": name, "redis_address": (REDIS_HOST, REDIS_PORT)},
+        SCEnvWrapper(Env(**config["env"])), policy_dict, agent2policy, GROUP,
+        exploration_dict=exploration_dict,
+        agent2exploration=agent2exploration,
+        component_name=name,
+        redis_address=(REDIS_HOST, REDIS_PORT),
         log_dir=log_dir
     )
+
     actor.run()
 
 

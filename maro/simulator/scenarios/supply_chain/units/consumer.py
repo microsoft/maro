@@ -7,10 +7,10 @@ from collections import Counter, defaultdict
 from scipy.ndimage.interpolation import shift
 
 from .order import Order
-from .skuunit import SkuUnit
+from .extendunitbase import ExtendUnitBase
 
 
-class ConsumerUnit(SkuUnit):
+class ConsumerUnit(ExtendUnitBase):
     """Consumer unit used to generate order to purchase from upstream by action."""
 
     def __init__(self):

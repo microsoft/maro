@@ -13,12 +13,7 @@ class StorageUnit(UnitBase):
     def __init__(self):
         super().__init__()
 
-        # We use these variables to hold changes at python side, flash to frame before taking snapshot.
-        # self.product_number = []
-        # self.product_list = []
-
         # Used to map from product id to slot index.
-        # self.product_index_mapping: Dict[int, int] = {}
         self.capacity = 0
         self.remaining_space = 0
         self.product_level = {}

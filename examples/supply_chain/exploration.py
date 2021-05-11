@@ -15,10 +15,10 @@ exploration = EpsilonGreedyExploration(config["policy"]["consumer"]["model"]["ne
 exploration.register_schedule(
     LinearExplorationScheduler, "epsilon", config["num_episodes"],
     initial_value=config["exploration"]["initial_value"],
-    kwargs={"final_value": config["exploration"]["final_value"]}    
+    final_value=config["exploration"]["final_value"]
 )
 
 exploration_dict = {"consumer": exploration}
 
 # all agents shared the same exploration object
-agent_to_exploration = {agent_id: "consumer" for agent_id in config["agent_ids"] if agent_id.startswith("consumer")}
+agent2exploration = {agent_id: "consumer" for agent_id in config["agent_ids"] if agent_id.startswith("consumer")}

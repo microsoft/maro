@@ -4,7 +4,6 @@
 from collections import defaultdict
 from os import getcwd
 from random import choices
-from typing import Union
 
 from maro.communication import Proxy, SessionType
 from maro.utils import Logger
@@ -21,7 +20,7 @@ class ActorManager(object):
         num_actors (int): Expected number of actors in the group identified by ``group_name``.
         group_name (str): Identifier of the group to which the actor belongs. It must be the same group name
             assigned to the actors (and roll-out clients, if any).
-        proxy_options (dict): Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
+        proxy_kwargs: Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
             for details. Defaults to None.
         update_trigger (str): Number or percentage of ``MsgTag.ROLLOUT_DONE`` messages required to trigger
             learner updates, i.e., model training.
@@ -30,22 +29,30 @@ class ActorManager(object):
         self,
         num_actors: int,
         group_name: str,
-        proxy_options: dict = None,
+        required_finishes: int = None, 
         log_env_metrics: bool = False,
-        log_dir: str = getcwd()
+        log_dir: str = getcwd(),
+        **proxy_kwargs
     ):
         super().__init__()
+        self._logger = Logger("ACTOR_MANAGER", dump_folder=log_dir)
         self.num_actors = num_actors
         peers = {"actor": num_actors}
-        if proxy_options is None:
-            proxy_options = {}
-        self._proxy = Proxy(group_name, "actor_manager", peers, **proxy_options)
+        self._proxy = Proxy(group_name, "actor_manager", peers, **proxy_kwargs)
         self._actors = self._proxy.peers["actor"]  # remote actor ID's
+
+        if required_finishes and required_finishes > self.num_actors:
+            raise ValueError("required_finishes cannot exceed the number of available actors")
+
+        if required_finishes is None:
+            required_finishes = self.num_actors
+            self._logger.info(f"Required number of actor finishes is set to {required_finishes}")
+
+        self.required_finishes = required_finishes
         self.total_experiences_collected = 0
         self.total_env_steps = 0
         self.total_reward = defaultdict(float)
         self._log_env_metrics = log_env_metrics
-        self._logger = Logger("ACTOR_MANAGER", dump_folder=log_dir)
 
     def collect(
         self,
@@ -53,8 +60,6 @@ class ActorManager(object):
         segment_index: int,
         num_steps: int,
         policy_dict: dict = None,
-        exploration=None,
-        required_actor_finishes: int = None,
         discard_stale_experiences: bool = True,
         return_env_metrics: bool = False
     ):
@@ -69,8 +74,6 @@ class ActorManager(object):
 
         if self._log_env_metrics:
             self._logger.info(f"EPISODE-{episode_index}, SEGMENT-{segment_index}: ")
-            if exploration_params:
-                self._logger.info(f"exploration_params: {exploration_params}")
 
         self._proxy.ibroadcast("actor", MsgTag.COLLECT, SessionType.TASK, body=msg_body)
         self._logger.info(f"Sent collect requests for ep-{episode_index}, segment-{segment_index}")
@@ -101,7 +104,7 @@ class ActorManager(object):
 
             if msg.body[MsgKey.SEGMENT_INDEX] == segment_index:
                 num_finishes += 1
-                if num_finishes == required_actor_finishes:
+                if num_finishes == self.required_finishes:
                     break
 
     def evaluate(self, episode_index: int, policy_dict: dict, num_actors: int):

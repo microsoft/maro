@@ -2,10 +2,10 @@
 # Licensed under the MIT license.
 
 
-from .skuunit import SkuUnit
+from .extendunitbase import ExtendUnitBase
 
 
-class ManufactureUnit(SkuUnit):
+class ManufactureUnit(ExtendUnitBase):
     """Unit that used to produce certain product(sku) with consume specified source skus.
 
     One manufacture unit per sku.

@@ -259,3 +259,1155 @@ For better data access, we also provide some advanced features, including:
     # Also with dynamic implementation, we can get the const attributes which is shared between snapshot list, even without
     # any snapshot (need to provided one tick for padding).
     states = test_nodes_snapshots[0: [0, 1]: ["const_attribute", "const_attribute_2"]]
+
+
+
+States in built-in scenarios' snapshot list
+-------------------------------------------
+
+TODO: move to environment part?
+
+Currently there are 3 ways to expose states in built-in scenarios:
+
+Summary
+~~~~~~~~~~~
+
+Summary(env.summary) is used to expose static states to outside, it provide 3 items by default:
+node_mapping, node_detail and event payload.
+
+The "node_mapping" item usually contains node name and related index, but the structure may be different
+for different scenario.
+
+The "node_detail" usually used to expose node definitions, like node name, attribute name and slot number,
+this is useful if you want to know what attributes are support for a scenario.
+
+The "event_payload" used show that payload attributes of event in scenario, like "RETURN_FULL" event in
+CIM scenario, it contains "src_port_idx", "dest_port_idx" and "quantity".
+
+Metrics
+~~~~~~~
+
+Metrics(env.metrics) is designed that used to expose raw states of reward since we have removed reward
+support in v0.2 version, and it also can be used to export states that not supported by snapshot list, like dictionary or complex
+structures. Currently there are 2 ways to get the metrics from environment: env.metrics, or 1st result from env.step.
+
+This metrics usually is a dictionary with several keys, but this is determined by business engine.
+
+Snapshot_list
+~~~~~~~~~~~~~
+
+Snapshot list is the history of nodes (or data model) for a scenario, it only support numberic data types now.
+It supported slicing query with a numpy array, so it support batch operations, make it much faster than
+using raw python objects.
+
+Nodes and attributes may different for different scenarios, following we will introduce about those in
+built-in scenarios.
+
+NOTE:
+Per tick state means that the attribute value will be reset to 0 after each step.
+
+CIM
+---
+
+Default settings for snapshot list
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Snapshot resolution: 1
+
+
+Max snapshot number: same as durations
+
+Nodes and attributes in scenario
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In CIM scenario, there are 3 node types:
+
+
+port
+++++
+
+capacity
+********
+
+type: int
+slots: 1
+
+The capacity of port for stocking containers.
+
+empty
+*****
+
+type: int
+slots: 1
+
+Empty container volume on the port.
+
+full
+****
+
+type: int
+slots: 1
+
+Laden container volume on the port.
+
+on_shipper
+**********
+
+type: int
+slots: 1
+
+Empty containers, which are released to the shipper.
+
+on_consignee
+************
+
+type: int
+slots: 1
+
+Laden containers, which are delivered to the consignee.
+
+shortage
+********
+
+type: int
+slots: 1
+
+Per tick state. Shortage of empty container at current tick.
+
+acc_storage
+***********
+
+type: int
+slots: 1
+
+Accumulated shortage number to the current tick.
+
+booking
+*******
+
+type: int
+slots: 1
+
+Per tick state. Order booking number of a port at the current tick.
+
+acc_booking
+***********
+
+type: int
+slots: 1
+
+Accumulated order booking number of a port to the current tick.
+
+fulfillment
+***********
+
+type: int
+slots: 1
+
+Fulfilled order number of a port at the current tick.
+
+acc_fulfillment
+***************
+
+type: int
+slots: 1
+
+Accumulated fulfilled order number of a port to the current tick.
+
+transfer_cost
+*************
+
+type: float
+slots: 1
+
+Cost of transferring container, which also covers loading and discharging cost.
+
+vessel
+++++++
+
+capacity
+********
+
+type: int
+slots: 1
+
+The capacity of vessel for transferring containers.
+
+NOTE:
+This attribute is ignored in current implementation.
+
+empty
+*****
+
+type: int
+slots: 1
+
+Empty container volume on the vessel.
+
+full
+****
+
+type: int
+slots: 1
+
+Laden container volume on the vessel.
+
+remaining_space
+***************
+
+type: int
+slots: 1
+
+Remaining space of the vessel.
+
+early_discharge
+***************
+
+type: int
+slots: 1
+
+Discharged empty container number for loading laden containers.
+
+route_idx
+*********
+
+type: int
+slots: 1
+
+Which route current vessel belongs to.
+
+last_loc_idx
+************
+
+type: int
+slots: 1
+
+Last stop port index in route, it is used to identify where is current vessel.
+
+next_loc_idx
+************
+
+type: int
+slots: 1
+
+Next stop port index in route, it is used to identify where is current vessel.
+
+past_stop_list
+**************
+
+type: int
+slots: dynamic
+
+NOTE:
+This and following attribute are special, that its slot number is determined by configuration,
+but different with a list attribute, its slot number is fixed at runtime.
+
+Stop indices that we have stopped in the past.
+
+past_stop_tick_list
+*******************
+
+type: int
+slots: dynamic
+
+Ticks that we stopped at the port in the past.
+
+future_stop_list
+****************
+
+type: int
+slots: dynamic
+
+Stop indices that we will stop in the future.
+
+future_stop_tick_list
+*********************
+
+type: int
+slots: dynamic
+
+Ticks that we will stop in the future.
+
+matrices
+++++++++
+
+Matrices node is used to store big matrix for ports, vessels and containers.
+
+full_on_ports
+*************
+
+type: int
+slots: port number * port number
+
+Distribution of full from port to port.
+
+full_on_vessels
+***************
+
+type: int
+slots: vessel number * port number
+
+Distribution of full from vessel to port.
+
+vessel_plans
+************
+
+type: int
+slots: vessel number * port number
+
+Planed route info for vessels.
+
+How to
+~~~~~~
+
+How to use the matrix(s)
+++++++++++++++++++++++++
+
+Matrix is special that it only have one instance (index 0), and the value is saved as a flat 1 dim array, we can reshape it after querying.
+
+.. code-block:: python
+
+  # assuming that we want to use full_on_ports attribute.
+
+  tick = 0
+
+  # we can get the instance number of a node by calling the len method
+  port_number = len(env.snapshot_list["port"])
+  
+  # this is a 1 dim numpy array
+  full_on_ports = env.snapshot_list["matrices"][tick::"full_on_ports"]
+  
+  # reshape it, then this is a 2 dim array that from port to port.
+  full_on_ports = full_on_ports.reshape(port_number, port_number)
+
+Citi-Bike
+---------
+
+Default settings for snapshot list
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Snapshot resolution: 60
+
+
+Max snapshot number: same as durations
+
+Nodes and attributes in scenario
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+station
++++++++
+
+bikes
+*****
+
+type: int
+slots: 1
+
+How many bikes avaiable in current station.
+
+shortage
+********
+
+type: int
+slots: 1
+
+Per tick state. Lack number of bikes in current station.
+
+trip_requirement
+****************
+
+type: int
+slots: 1
+
+Per tick states. How many requirements in current station.
+
+fulfillment
+***********
+
+type: int
+slots: 1
+
+How many requirement is fit in current station.
+
+capacity
+********
+
+type: int
+slots: 1
+
+Max number of bikes this station can take.
+
+id
++++
+
+type: int
+slots: 1
+
+Id of current station.
+
+weekday
+*******
+
+type: short
+slots: 1
+
+Weekday at current tick.
+
+temperature
+***********
+
+type: short
+slots: 1
+
+Temperature at current tick.
+
+weather
+*******
+
+type: short
+slots: 1
+
+Weather at current tick.
+
+0: sunny, 1: rainy, 2: snowy， 3: sleet.
+
+holiday
+*******
+
+type: short
+slots: 1
+
+If it is holidy at current tick.
+
+0: holiday, 1: not holiday
+
+extra_cost
+**********
+
+type: int
+slots: 1
+
+Cost after we reach the capacity after executing action, we have to move extra bikes
+to other stations.
+
+transfer_cost
+*************
+
+type: int
+slots: 1
+
+Cost to execute action to transfer bikes to other station.
+
+failed_return
+*************
+
+type: int
+slots: 1
+
+Per tick state. How many bikes failed to return to current station.
+
+min_bikes
+*********
+
+type: int
+slots: 1
+
+Min bikes number in a frame.
+
+matrices
+++++++++
+
+trips_adj
+*********
+
+type: int
+slots: station number * station number
+
+Used to store trip requirement number between 2 stations.
+
+
+VM-scheduling
+-------------
+
+Default settings for snapshot list
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Snapshot resolution: 1
+
+
+Max snapshot number: same as durations
+
+Nodes and attributes in scenario
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Cluster
++++++++
+
+id
+***
+
+type: short
+slots: 1
+
+Id of the cluster.
+
+region_id
+*********
+
+type: short
+slots: 1
+
+Region is of current cluster.
+
+data_center_id
+**************
+
+type: short
+slots: 1
+
+Data center id of current cluster.
+
+total_machine_num
+******************
+
+type: int
+slots: 1
+
+Total number of machines in the cluster.
+
+empty_machine_num
+******************
+
+type: int
+slots: 1
+
+The number of empty machines in this cluster. A empty machine means that its allocated CPU cores are 0.
+
+data_centers
+++++++++++++
+
+id
+***
+
+type: short
+slots: 1
+
+Id of current data center.
+
+region_id
+*********
+
+type: short
+slots: 1
+
+Region id of current data center.
+
+zone_id
+*******
+
+type: short
+slots: 1
+
+Zone id of current data center.
+
+total_machine_num
+*****************
+
+type: int
+slots: 1
+
+Total number of machine in current data center.
+
+empty_machine_num
+*****************
+
+type: int
+slots: 1
+
+The number of empty machines in current data center.
+
+pms
++++
+
+Physical machine node.
+
+id
+***
+
+type: int
+slots: 1
+
+Id of current machine.
+
+cpu_cores_capacity
+******************
+
+type: short
+slots: 1
+
+Max number of cpu core can be used for current machine.
+
+memory_capacity
+***************
+
+type: short
+slots: 1
+
+Max number of memory can be used for current machine.
+
+pm_type
+*******
+
+type: short
+slots: 1
+
+Type of current machine.
+
+cpu_cores_allocated
+*******************
+
+type: short
+slots: 1
+
+How many cpu core is allocated.
+
+memory_allocated
+****************
+
+type: short
+slots: 1
+
+How many memory is allocated.
+
+cpu_utilization
+***************
+
+type: float
+slots: 1
+
+CPU utilization of current machine.
+
+energy_consumption
+******************
+
+type: float
+slots: 1
+
+Energy consumption of current machine.
+
+oversubscribable
+****************
+
+type: short
+slots: 1
+
+Physical machine type: non-oversubscribable is -1, empty: 0, oversubscribable is 1.
+
+region_id
+*********
+
+type: short
+slots: 1
+
+Region id of current machine.
+
+zone_id
+*******
+
+type: short
+slots: 1
+
+Zone id of current machine.
+
+data_center_id
+**************
+
+type: short
+slots: 1
+
+Data center id of current machine.
+
+cluster_id
+**********
+
+type: short
+slots: 1
+
+Cluster id of current machine.
+
+rack_id
+*******
+
+type: short
+slots: 1
+
+Rack id of current machine.
+
+Rack
+++++
+
+id
+***
+
+type: int
+slots: 1
+
+Id of current rack.
+
+region_id
+*********
+
+type: short
+slots: 1
+
+Region id of current rack.
+
+zone_id
+*******
+
+type: short
+slots: 1
+
+Zone id of current rack.
+
+data_center_id
+**************
+
+type: short
+slots: 1
+
+Data center id of current rack.
+
+cluster_id
+**********
+
+type: short
+slots: 1
+
+Cluster id of current rack.
+
+total_machine_num
+*****************
+
+type: int
+slots: 1
+
+Total number of machines on this rack.
+
+empty_machine_num
+*****************
+
+type: int
+slots: 1
+
+Number of machines that not in use on this rack.
+
+regions
++++++++
+
+id
+***
+
+type: short
+slots: 1
+
+Id of curent region.
+
+total_machine_num
+*****************
+
+type: int
+slots: 1
+
+Total number of machines in this region.
+
+empty_machine_num
+*****************
+
+type: int
+slots: 1
+
+Number of machines that not in use in this region.
+
+zones
++++++
+
+id
+***
+
+type: short
+slots: 1
+
+Id of this zone.
+
+total_machine_num
+*****************
+
+type: int
+slots: 1
+
+Total number of machines in this zone.
+
+empty_machine_num
+*****************
+
+type: int
+slots: 1
+
+Number of machines that not in use in this zone.
+
+
+supply_chain
+------------
+
+Supply chain is a special scenario that it support dynamic nodes in frame, it decide what
+nodes to use in frame by configuration file, such if you defined only a supplier facility, then
+following nodes will be added into frame (then in snapshot list):
+consumer, manufacture, facility, product, storage, vehicle and distribution.
+
+And it only support dynamic backend for now, be careful about the shape of snapshot list querying result.
+
+We will list all the nodes below for a reference.
+
+Default settings for snapshot list
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Snapshot resolution: 1
+
+
+Max snapshot number: same as durations
+
+Nodes and attributes in scenario
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Nodes in supply chain scenario have a hierarchical structure, like a sku product unit may be composed with
+seller, consumer and manufacture units, but frame (snapshot list) cannot support this, so we
+flatten the structure, append the parent id to the data model, so all the nodes will contain:
+
+id
++++
+
+Unit id, this is different with node index, this is unique between facilities and units in current world.
+
+facility_id
++++++++++++
+
+Which facility current unit belongs to.
+
+And for seller, consumer, manufacture and product units, they are sku specified, and product units contains the other
+3 units, so they all contains following attributes:
+
+product_id
+++++++++++
+
+Which product (sku) this unit related to, one sku per unit.
+
+product_unit_id
++++++++++++++++
+
+Which product unit this unit belongs to.
+
+
+Following is the special attribute for each node.
+
+storage
++++++++
+
+remaining_space
+***************
+
+type: unsigned int
+slots: 1
+
+How many avaiable space in current storage.
+
+capacity
+********
+
+type: unsigned int
+slots: 1
+
+Max space of current storage, one unit space per product (sku) for now.
+
+product_list
+************
+type: unsigned int list
+slots: dynamic
+
+What product (id) can be save in current storage.
+
+product number
+**************
+
+type: unsigned int list
+slots: dynamic
+
+How many product in current storage, aligned with product_list, used as a key-value pair.
+
+vehicle
++++++++
+
+payload
+*******
+
+type: unsigned int
+slots: 1
+
+How many product current vehicle carring.
+
+unit_transport_cost
+
+type: float
+slots: 1
+
+Transport cost per product.
+
+distribution
+++++++++++++
+
+remaining_order_quantity
+************************
+
+type: unsigned int
+slots: 1
+
+Sum of product number in current order list for now.
+
+remaining_order_number
+**********************
+
+type: unsigned int
+slots: 1
+
+How many pending order for now.
+
+consumer
+++++++++
+
+total_purchased
+***************
+
+type: unsigned int
+slots: 1
+
+How many products this node purchased from start to now.
+
+total_received
+**************
+
+type: unsigned int
+slots: 1
+
+How many products this node received from start to now.
+
+purchased
+*********
+
+type: unsigned int
+slots: 1
+
+Per tick state. How many products purchased at current tick.
+
+received
+********
+
+type: unsigned int
+slots: 1
+
+Per tick state. How many products received from source facility at current tick.
+
+order_product_cost
+******************
+
+type: unsigned int
+slots: 1
+
+Cost per product to order.
+
+latest_consumptions
+*******************
+
+type: float
+slots: 1
+
+Per tick states. Consumption of current tick, 1.0 if there is purchase, or 0.
+
+order_quantity
+**************
+
+type: unsigned int
+slots: 1
+
+How many product to order, from action.
+
+price
+*****
+
+type: float
+slots: 1
+
+Price per product.
+
+order_cost
+**********
+
+type: float
+slots: 1
+
+Cost per order.
+
+reward_discount
+***************
+
+type: float
+slots: 1
+
+Reward discount from action.
+
+manufacture
++++++++++++
+
+manufacturing_number
+********************
+
+type: unsigned int
+slots: 1
+
+How many products being produced at current tick, controlled by action.
+
+product_unit_cost
+*****************
+
+type: float
+slots: 1
+
+Cost to procedue a product.
+
+seller
+++++++
+
+total_sold
+**********
+
+type: unsigned int
+slots: 1
+
+Total products sold number from start to now.
+
+demand
+******
+
+type: unsigned int
+slots: 1
+
+Per tick state. Product demand at current tick.
+
+sold
+****
+
+type: unsigned int
+slots: 1
+
+Per tick state. How many products sold at current tick.
+
+total_demand
+************
+
+type: unsigned int
+slots: 1
+
+Total products demand from start to now.
+
+price
+*****
+
+type: float
+slots: 1
+
+Product price.
+
+backlog_ratio
+*************
+
+type: float
+slots: 1
+
+Backlog factor for current product.
+
+product
++++++++
+
+price
+*****
+
+type: float
+slots: 1
+
+Current product price.
+
+How to
+~~~~~~
+
+How to use result of dynamic backend?
+*************************************
+
+Supply chain scenario only support dynamic backend for now, so the result from snapshot list will
+be a 4 dim (tick, node, attribute, slots) Numpy array.
+
+.. code-block:: python
+
+  # we want to query sold and demand history for sellers
+  hist_ticks = (0, 1, 2, 4)
+
+  states = env.snapshot_list["seller"][hist_ticks::("sold", "demand")]
+
+  # this states will a 4 dim result as below
+  """
+  [
+      [
+          [
+              [0.0], # sold (slot = 1)
+              [0.0]  # demand (slot = 1)
+          ], # seller 0
+          [...]  # seller 1
+      ], # tick 0
+      [
+          [...],
+          [...]
+      ], # tick 1
+      [
+          [...],
+          [...]
+      ], # tick 2
+      [
+          [...],
+          [...]
+      ]  # tick 3 (latest)
+  ]
+  """
+
+  # assuming we want to sold history for seller 0 (node index)
+  cur_seller_hist = states[:, 0]
+
+  sale_hist = cur_seller_hist[:, 0].flatten()
+  demand_hist = cur_seller_hist[:, 1].flatten()
+
+How to query a dyanmic list attribute?
+**************************************
+
+With dyanmic backend, we cannot mix a list attribute and a normal attribute to query, we have to
+query, it only support one tick, one node and one attribute querying.
+
+.. code-block:: python
+
+  # quanry product and its number in a storage
+
+  tick = 0
+  node_index = 0
+  storage_ss = env.snapshot_list["storage"]
+
+  # we have to query them with 2 statements.
+  product_list = storage_ss[tick:node_index:"product_list"].flatten().astype(np.int)
+  product_number = storage_ss["storage"][tick:node_index:"product_number"].flatten().astype(np.int)
+
+  product_level = {pid: pnum for pid, pnum in zip(product_list, product_number)}

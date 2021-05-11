@@ -7,11 +7,11 @@ from .consumer import ConsumerUnit
 from .distribution import DistributionUnit
 from .manufacture import ManufactureUnit
 from .seller import SellerUnit
-from .skuunit import SkuUnit
+from .extendunitbase import ExtendUnitBase
 from .storage import StorageUnit
 
 
-class ProductUnit(SkuUnit):
+class ProductUnit(ExtendUnitBase):
     """Unit that used to group units of one special sku, usually contains consumer, seller and manufacture."""
 
     # Consumer unit of current sku.
@@ -29,6 +29,11 @@ class ProductUnit(SkuUnit):
     # Reference to facility's distribution unit.
     distribution: DistributionUnit = None
 
+    # Internal states to track distribution.
+    _checkin_order = 0
+    _transport_cost = 0
+    _delay_order_penalty = 0
+
     def initialize(self):
         super().initialize()
 
@@ -40,15 +45,45 @@ class ProductUnit(SkuUnit):
         for unit in self.children:
             unit.step(tick)
 
+        if self.distribution is not None:
+            self._checkin_order = self.distribution.check_in_order[self.product_id]
+            self._transport_cost = self.distribution.transportation_cost[self.product_id]
+            self._delay_order_penalty = self.distribution.delay_order_penalty[self.product_id]
+
+            self.distribution.check_in_order[self.product_id] = 0
+            self.distribution.transportation_cost[self.product_id] = 0
+            self.distribution.delay_order_penalty[self.product_id] = 0
+
     def flush_states(self):
         for unit in self.children:
             unit.flush_states()
+
+        if self._checkin_order > 0:
+            self.data_model.distribution_check_order = self._checkin_order
+
+        if self._transport_cost > 0:
+            self.data_model.distribution_transport_cost = self._transport_cost
+
+        if self._delay_order_penalty > 0:
+            self.data_model.distribution_delay_order_penalty = self._delay_order_penalty
 
     def post_step(self, tick: int):
         super().post_step(tick)
 
         for unit in self.children:
             unit.post_step(tick)
+
+        if self._checkin_order > 0:
+            self.data_model.distribution_check_order = 0
+            self._checkin_order = 0
+
+        if self._transport_cost > 0:
+            self.data_model.distribution_transport_cost = 0
+            self._transport_cost = 0
+
+        if self._delay_order_penalty > 0:
+            self.data_model.distribution_delay_order_penalty = 0
+            self._delay_order_penalty = 0
 
     def reset(self):
         super().reset()

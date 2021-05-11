@@ -5,6 +5,8 @@ import numpy as np
 from maro.rl import AbsEnvWrapper
 from maro.simulator.scenarios.supply_chain.actions import ConsumerAction, ManufactureAction
 
+# from exploration import exploration_dict, agent2exploration
+# from learner import SCLearner
 
 def stock_constraint(f_state):
     return 0 < f_state['inventory_in_stock'] <= (f_state['max_vlt'] + 7) * f_state['sale_mean']
@@ -35,7 +37,7 @@ atoms = {
 }
 
 # State extracted.
-keys_in_state = [(None, ['is_over_stock', 'is_out_of_stock', 'is_below_rop', 
+keys_in_state = [(None, ['is_over_stock', 'is_out_of_stock', 'is_below_rop',
                          'constraint_idx', 'is_accepted', 'consumption_hist']),
                  ('storage_capacity', ['storage_utilization']),
                  ('sale_gamma', ['sale_std',
@@ -46,6 +48,9 @@ keys_in_state = [(None, ['is_over_stock', 'is_out_of_stock', 'is_below_rop',
                                  'inventory_estimated',
                                  'inventory_rop']),
                  ('max_price', ['sku_price', 'sku_cost'])]
+
+# Sku related agent types
+sku_agent_types = {"consumer", "producer", "product"}
 
 
 class UnitBaseInfo:
@@ -98,14 +103,15 @@ class SCEnvWrapper(AbsEnvWrapper):
         self._service_index_ppf_cache = {}
 
         # facility -> {
-        # data_model_index:int,
-        # storage:UnitBaseInfo,
-        # distribution: UnitBaseInfo,
-        # product_id: {
-        # consumer: UnitBaseInfo,
-        # seller: UnitBaseInfo,
-        # manufacture: UnitBaseInfo
-        # }
+        #   data_model_index:int,
+        #   storage:UnitBaseInfo,
+        #   distribution: UnitBaseInfo,
+        #   sku_id: {
+        #       skuproduct: UnitBaseInfo,
+        #       consumer: UnitBaseInfo,
+        #       seller: UnitBaseInfo,
+        #       manufacture: UnitBaseInfo
+        #   }
         # }
         self.facility_levels = {}
 
@@ -141,6 +147,13 @@ class SCEnvWrapper(AbsEnvWrapper):
 
         # dim for state
         self._dim = None
+
+        # use this to quick find relationship between units (consumer, manufacture, seller or product) and product unit.
+        # unit id  -> (product unit id, facility id, seller id, consumer id, manufacture id)
+        self._unit2product_mapping = {}
+
+        # agent (unit id) -> AgentInfo
+        self._agent_id2info_mapping = {}
 
         # built internal helpers.
         self._build_internal_helpers()
@@ -231,12 +244,17 @@ class SCEnvWrapper(AbsEnvWrapper):
         self.cur_balance_sheet_reward = self.balance_cal.calc()
         self._cur_metrics = self.env.metrics
 
-        self._cur_distribution_states = self.distribution_ss[cur_tick::distribution_features].flatten(
-        ).reshape(-1, 2).astype(np.int)
-        self._cur_consumer_states = self.consumer_ss[consumption_ticks::"latest_consumptions"].flatten(
-        ).reshape(-1, len(self.consumer_ss))
-        self._cur_seller_states = self.seller_ss[hist_ticks::seller_features].astype(
-            np.int)
+        self._cur_distribution_states = self.distribution_ss[cur_tick::distribution_features]\
+            .flatten()\
+            .reshape(-1, 2)\
+            .astype(np.int)
+
+        self._cur_consumer_states = self.consumer_ss[consumption_ticks::"latest_consumptions"]\
+            .flatten()\
+            .reshape(-1, len(self.consumer_ss))
+
+        self._cur_seller_states = self.seller_ss[hist_ticks::seller_features]\
+            .astype(np.int)
 
 
         # facility level states
@@ -246,8 +264,7 @@ class SCEnvWrapper(AbsEnvWrapper):
 
             in_transit_orders = self._cur_metrics['facilities'][facility_id]["in_transit_orders"]
 
-            self._facility_in_transit_orders[facility_id] = [
-                0] * self._sku_number
+            self._facility_in_transit_orders[facility_id] = [0] * self._sku_number
 
             for sku_id, number in in_transit_orders.items():
                 self._facility_in_transit_orders[facility_id][sku_id] = number
@@ -256,8 +273,9 @@ class SCEnvWrapper(AbsEnvWrapper):
 
         # calculate storage info first, then use it later to speed up.
         for facility_id, storage_index in self._facility2storage_index_dict.items():
-            product_numbers = self.storage_ss[cur_tick:storage_index:"product_number"].flatten(
-            ).astype(np.int)
+            product_numbers = self.storage_ss[cur_tick:storage_index:"product_number"]\
+                .flatten()\
+                .astype(np.int)
 
             for pid, index in self._storage_product_indices[facility_id].items():
                 product_number = product_numbers[index]
@@ -267,31 +285,24 @@ class SCEnvWrapper(AbsEnvWrapper):
 
         for agent_info in self._agent_list:
             state = self._states[agent_info.id]
-            # storage_index = self._facility2storage_index_dict[agent_info.facility_id]
-            
+
+            storage_index = self._facility2storage_index_dict[agent_info.facility_id]
+
             np_state = self.get_rl_policy_state(state, agent_info)
             np_state = self.get_or_policy_state(state, agent_info)
-            final_state[f"consumer.{agent_info.id}"] = np_state
-            final_state[f"producer.{agent_info.id}"] = np_state
+
+            # agent_info.agent_type -> policy
+            final_state[f"{agent_info.agent_type}.{agent_info.id}"] = np_state
 
         return final_state
 
     def get_reward(self, tick=None, target_agents=None):
-        wc = self.env.configs.settings["global_reward_weight_consumer"]
-        parent_facility_balance = {}
-        for f_id, sheet in self.cur_balance_sheet_reward.items():
-            if f_id in self.unit_2_facility_dict:
-                # it is a product unit
-                parent_facility_balance[f_id] = self.cur_balance_sheet_reward[self.unit_2_facility_dict[f_id]]
-            else:
-                parent_facility_balance[f_id] = sheet
-
-        consumer_reward_by_facility = {f_id: wc * parent_facility_balance[f_id][0] + (1 - wc) * bsw[1] for f_id, bsw in
-                                       self.cur_balance_sheet_reward.items()}
-
-        return  {
-            **{f"producer.{f_id}": np.float32(reward[0]) for f_id, reward in self.cur_balance_sheet_reward.items()},
-            **{f"consumer.{f_id}": np.float32(reward) for f_id, reward in consumer_reward_by_facility.items()}
+        # get related product, seller, consumer, manufacture unit id
+        # NOTE: this mapping does not contain facility id, so if id is not exist, then means it is a facility
+        # product_unit_id, facility_id, seller_id, consumer_id, producer_id = self._unit2product_mapping[id]
+        return {
+            f"{self._agent_id2info_mapping[f_id].agent_type}.{f_id}": np.float32(bwt[1])
+            for f_id, bwt in self.cur_balance_sheet_reward.items()
         }
 
     def get_action(self, action_by_agent):
@@ -335,7 +346,14 @@ class SCEnvWrapper(AbsEnvWrapper):
                     sku = self._units_mapping[unit_id][3]
                     reward_discount = 0
 
-                    env_action[unit_id] = ConsumerAction(unit_id, product_id, source_id, action_number, sku.vlt, reward_discount)
+                    env_action[unit_id] = ConsumerAction(
+                        unit_id,
+                        product_id,
+                        source_id,
+                        action_number,
+                        sku.vlt,
+                        reward_discount
+                    )
             # manufacturer action
             elif agent_id.startswith("producer"):
                 sku = self._units_mapping[unit_id][3]
@@ -360,12 +378,14 @@ class SCEnvWrapper(AbsEnvWrapper):
         state['storage_utilization'] = self._facility_product_utilization[facility_id]
 
     def _update_sale_features(self, state, agent_info):
-        if agent_info.is_facility:
+        if agent_info.agent_type not in sku_agent_types:
             return
 
-        product_metrics = self._cur_metrics["products"][agent_info.id]
+        # Get product unit id for current agent.
+        product_unit_id = agent_info.id if agent_info.agent_type == "product" else agent_info.parent_id
 
-        # for product unit only
+        product_metrics = self._cur_metrics["products"][product_unit_id]
+
         state['sale_mean'] = product_metrics["sale_mean"]
         state['sale_std'] = product_metrics["sale_std"]
 
@@ -389,7 +409,7 @@ class SCEnvWrapper(AbsEnvWrapper):
 
             seller_states = self._cur_seller_states[:, seller_index, :]
 
-            # for total demand, we need latest one.
+            # For total demand, we need latest one.
             state['total_backlog_demand'] = seller_states[:, 0][-1][0]
             state['sale_hist'] = list(seller_states[:, 1].flatten())
             state['backlog_demand_hist'] = list(seller_states[:, 2])
@@ -466,6 +486,9 @@ class SCEnvWrapper(AbsEnvWrapper):
         return np.asarray(result, dtype=np.float32)
 
     def _build_internal_helpers(self):
+        for agent_info in self.env.agent_idx_list:
+            self._agent_id2info_mapping[agent_info.id] = agent_info
+
         # facility levels
         for facility_id, facility in self._summary["facilities"].items():
             self.facility_levels[facility_id] = {
@@ -532,6 +555,16 @@ class SCEnvWrapper(AbsEnvWrapper):
                                                   ] = facility_id
 
                     self.facility_levels[facility_id][product_id] = product_info
+
+                    for unit in (seller, consumer, manufacture, product):
+                        if unit is not None:
+                            self._unit2product_mapping[unit["id"]] = (
+                                product["id"],
+                                facility_id,
+                                seller["id"] if seller is not None else None,
+                                consumer["id"] if consumer is not None else None,
+                                manufacture["id"] if manufacture is not None else None
+                            )
 
         # create initial state structure
         self._build_init_state()
@@ -734,29 +767,30 @@ class BalanceSheetCalculator:
 
     def calc(self):
         tick = self.env.tick
+
         # consumer
-        consumer_bs_states = self.consumer_ss[tick::self.consumer_features].flatten().reshape(-1, len(
-            self.consumer_features))
+        consumer_bs_states = self.consumer_ss[tick::self.consumer_features]\
+            .flatten()\
+            .reshape(-1, len(self.consumer_features))
 
         # quantity * price
         consumer_profit = consumer_bs_states[:, 1] * consumer_bs_states[:, 2]
 
         # balance_sheet_profit = 0
         # order_cost + order_product_cost
-        consumer_step_balance_sheet_loss = -1 * \
-            (consumer_bs_states[:, 3] + consumer_bs_states[:, 4])
+        consumer_step_balance_sheet_loss = -1 * (consumer_bs_states[:, 3] + consumer_bs_states[:, 4])
 
         # consumer step reward: balance sheet los + profile * discount
         consumer_step_reward = consumer_step_balance_sheet_loss + \
             consumer_profit * consumer_bs_states[:, 5]
 
         # seller
-        seller_bs_states = self.seller_ss[tick::self.seller_features].flatten(
-        ).reshape(-1, len(self.seller_features))
+        seller_bs_states = self.seller_ss[tick::self.seller_features]\
+            .flatten()\
+            .reshape(-1, len(self.seller_features))
 
         # profit = sold * price
-        seller_balance_sheet_profit = seller_bs_states[:,
-                                                       1] * seller_bs_states[:, 3]
+        seller_balance_sheet_profit = seller_bs_states[:, 1] * seller_bs_states[:, 3]
 
         # loss = demand * price * backlog_ratio
         seller_balance_sheet_loss = -1 * \
@@ -767,8 +801,9 @@ class BalanceSheetCalculator:
         seller_step_reward = seller_balance_sheet_loss + seller_balance_sheet_profit
 
         # manufacture
-        man_bs_states = self.manufacture_ss[tick::self.manufacture_features].flatten().reshape(-1, len(
-            self.manufacture_features))
+        man_bs_states = self.manufacture_ss[tick::self.manufacture_features]\
+            .flatten()\
+            .reshape(-1, len(self.manufacture_features))
 
         # loss = manufacture number * cost
         man_balance_sheet_profit_loss = -1 * \
@@ -778,16 +813,16 @@ class BalanceSheetCalculator:
         man_step_reward = man_balance_sheet_profit_loss
 
         # product
-        product_bs_states = self.product_ss[tick::self.product_features].flatten().reshape(-1,
-                                                                                           len(self.product_features))
+        product_bs_states = self.product_ss[tick::self.product_features]\
+            .flatten()\
+            .reshape(-1, len(self.product_features))
 
         # product distribution loss = check order + delay order penalty
         product_distribution_balance_sheet_loss = -1 * \
             (product_bs_states[:, 3] + product_bs_states[:, 4])
 
         # product distribution profit = check order * price
-        product_distribution_balance_sheet_profit = product_bs_states[:,
-                                                                      2] * product_bs_states[:, 1]
+        product_distribution_balance_sheet_profit = product_bs_states[:, 2] * product_bs_states[:, 1]
 
         # result we need
         product_step_reward = np.zeros((len(self.products, )))
@@ -797,13 +832,17 @@ class BalanceSheetCalculator:
         # create product number mapping for storages
         storages_product_map = {}
         for storage_index in range(len(self.storage_ss)):
-            product_list = self.storage_ss[tick:storage_index:"product_list"].flatten(
-            ).astype(np.int)
-            product_number = self.storage_ss[tick:storage_index:"product_number"].flatten(
-            ).astype(np.int)
+            product_list = self.storage_ss[tick:storage_index:"product_list"]\
+                .flatten()\
+                .astype(np.int)
+
+            product_number = self.storage_ss[tick:storage_index:"product_number"]\
+                .flatten()\
+                .astype(np.int)
 
             storages_product_map[storage_index] = {
-                pid: pnum for pid, pnum in zip(product_list, product_number)}
+                pid: pnum for pid, pnum in zip(product_list, product_number)
+            }
 
         # product balance sheet and reward
         # loss = consumer loss + seller loss + manufacture loss + storage loss + distribution loss + downstreams loss
@@ -854,20 +893,22 @@ class BalanceSheetCalculator:
         product_balance_sheet = product_balance_sheet_profit + product_balance_sheet_loss
 
         # storage
-        storage_states = self.storage_ss[tick::self.storage_features].flatten(
-        ).reshape(-1, len(self.storage_features))
+        storage_states = self.storage_ss[tick::self.storage_features]\
+            .flatten()\
+            .reshape(-1, len(self.storage_features))
 
         # loss = (capacity-remaining space) * cost
-        storage_balance_sheet_loss = -1 * \
-            (storage_states[:, 0] - storage_states[:, 1])
+        storage_balance_sheet_loss = -1 * (storage_states[:, 0] - storage_states[:, 1])
 
         # vehicles
-        vehicle_states = self.vehicle_ss[tick::self.vehicle_features].flatten(
-        ).reshape(-1, len(self.vehicle_features))
+        vehicle_states = self.vehicle_ss[tick::self.vehicle_features]\
+            .flatten()\
+            .reshape(-1, len(self.vehicle_features))
 
         # loss = cost * payload
         vehicle_balance_sheet_loss = -1 * \
             vehicle_states[:, 1] * vehicle_states[:, 2]
+
         vehicle_step_reward = vehicle_balance_sheet_loss
 
         facility_balance_sheet_loss = np.zeros((len(self.facility_levels),))
@@ -895,8 +936,10 @@ class BalanceSheetCalculator:
                 facility_balance_sheet_profit[i] += product_balance_sheet_profit[self.product_id2index_dict[pid]]
                 facility_step_reward[i] += product_step_reward[self.product_id2index_dict[pid]]
 
+        # Final result for current tick, key is the facility/unit id, value is tuple of balance sheet and reward.
         result = {}
 
+        # For product units.
         for id, bs, rw in zip([item[0] for item in self.products], product_balance_sheet, product_step_reward):
             result[id] = (bs, rw)
 
@@ -904,10 +947,27 @@ class BalanceSheetCalculator:
 
         facility_balance_sheet = facility_balance_sheet_loss + facility_balance_sheet_profit
 
-        for id, bs, rw in zip([item[0] for item in self.facility_levels], facility_balance_sheet, facility_step_reward):
-            result[id] = (bs, rw)
+
+        # For consumers.
+        consumer_step_balance_sheet = consumer_profit + consumer_step_balance_sheet_loss
+
+        for id, bs, rw in zip(consumer_bs_states[:, 0], consumer_step_balance_sheet, consumer_step_reward):
+            result[int(id)] = (bs, rw)
 
             self.total_balance_sheet[id] += bs
+
+        # For producers.
+        man_step_balance_sheet = man_balance_sheet_profit_loss
+
+        for id, bs, rw in zip(man_bs_states[:, 0], man_step_balance_sheet, man_step_reward):
+            result[int(id)] = (bs, rw)
+
+            self.total_balance_sheet[id] += bs
+
+        # NOTE: add followings if you need.
+        # For storages.
+        # For distributions.
+        # For vehicles.
 
         return result
 
@@ -918,7 +978,7 @@ if __name__ == "__main__":
 
     env = Env(
         scenario="supply_chain",
-        topology="random",
+        topology="sample",
         durations=100,
         max_snapshots=10)
 
@@ -930,10 +990,12 @@ if __name__ == "__main__":
 
     # cProfile.run("ss.get_state(None)", sort="cumtime")
     states = ss.get_state(None)
+    print(env.agent_idx_list)
+    print(ss.cur_balance_sheet_reward)
     print(states)
 
-    end_time = time()
-
-    print("time cost:", end_time - start_time)
-
-    print("dim:", ss.dim)
+    # end_time = time()
+    #
+    # print("time cost:", end_time - start_time)
+    #
+    # print("dim:", ss.dim)

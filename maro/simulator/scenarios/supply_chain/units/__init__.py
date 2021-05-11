@@ -9,7 +9,7 @@ from .outerseller import DataFileDemandSampler, OuterSellerUnit, SellerDemandSam
 from .product import ProductUnit
 from .seller import SellerUnit
 from .simplemanufacture import SimpleManufactureUnit
-from .skuunit import SkuUnit
+from .extendunitbase import ExtendUnitBase
 from .storage import StorageUnit
 from .storeproduct import StoreProductUnit
 from .unitbase import UnitBase

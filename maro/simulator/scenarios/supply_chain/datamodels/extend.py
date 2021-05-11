@@ -8,7 +8,7 @@ from maro.backends.frame import NodeAttribute
 from .base import DataModelBase
 
 
-class SkuDataModel(DataModelBase):
+class ExtendDataModel(DataModelBase):
     """Data model for sku related unit."""
     # Product id of this consumer belongs to.
     product_id = NodeAttribute(AttributeType.UInt)
@@ -17,13 +17,13 @@ class SkuDataModel(DataModelBase):
     product_unit_id = NodeAttribute(AttributeType.UInt)
 
     def __init__(self):
-        super(SkuDataModel, self).__init__()
+        super(ExtendDataModel, self).__init__()
 
         self._product_id = 0
         self._product_unit_id = 0
 
     def reset(self):
-        super(SkuDataModel, self).reset()
+        super(ExtendDataModel, self).reset()
 
         self.product_id = self._product_id
         self.product_unit_id = self._product_unit_id

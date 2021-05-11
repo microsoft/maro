@@ -9,8 +9,8 @@ import numpy as np
 import torch
 
 from maro.rl import (
-    DQN, DQNConfig, ExperienceMemory, FullyConnectedBlock, NullPolicy, OptimOption, QNetForDiscreteActionSpace,
-    TrainingLoopConfig, get_sampler_cls
+    DQN, DQNConfig, EpisodeBasedSchedule, FullyConnectedBlock, NullPolicy, OptimOption, QNetForDiscreteActionSpace,
+    StepBasedSchedule, UniformSampler
 )
 
 sc_code_dir = dirname(realpath(__file__))
@@ -18,7 +18,7 @@ sys.path.insert(0, sc_code_dir)
 from config import config
 
 agent_ids = config["agent_ids"]
-config = config["policy"]
+policy_ids = ["consumer", "producer", "facility", "product"]
 
 
 class SimpleQNet(QNetForDiscreteActionSpace):
@@ -29,21 +29,33 @@ class SimpleQNet(QNetForDiscreteActionSpace):
         return self.component.forward(states)
 
 
-def get_dqn_policy(config):
+def get_dqn_policy(cfg):
     q_net = SimpleQNet(
-        FullyConnectedBlock(**config["model"]["network"]),
-        optim_option=OptimOption(**config["model"]["optimization"]),
-        device=config["model"]["device"]
+        FullyConnectedBlock(**cfg["model"]["network"]),
+        optim_option=OptimOption(**cfg["model"]["optimization"]),
+        device=cfg["model"]["device"]
     )
-    experience_memory = ExperienceMemory(**config["experience_memory"])
+    experience_manager = UniformSampler(**cfg["experience_manager"])
+    return DQN(q_net, experience_manager, DQNConfig(**cfg["algorithm_config"]))
 
-    config["training_loop"]["sampler_cls"] = get_sampler_cls(config["training_loop"]["sampler_cls"])
-    generic_config = TrainingLoopConfig(**config["training_loop"])
-    special_config = DQNConfig(**config["algorithm_config"])
 
-    return DQN(q_net, experience_memory, generic_config, special_config)
+null_policy = NullPolicy()
+policy_dict = {
+    policy_id: get_dqn_policy(config["policy"][policy_id]) if policy_id in config["policy"] else null_policy
+    for policy_id in policy_ids
+}
 
-# all consumers share the same underlying policy
-policy_dict = {"consumer": get_dqn_policy(config["consumer"]), "producer": NullPolicy()}
+agent2policy = {agent_id: agent_id.split(".")[0] for agent_id in agent_ids}
 
-agent_to_policy = {agent_id: agent_id.split(".")[0] for agent_id in agent_ids}
+# update schedules
+schedule_type = {"step": StepBasedSchedule, "episode": EpisodeBasedSchedule}
+
+def get_policy_update_schedule(cfg):
+    return schedule_type[cfg["type"]](**cfg["args"])
+
+# policy update schedule can be a dict or single EpisodeBasedSchedule or StepBasedSchedule.
+# The latter indicates that all policies shared the same update schedule 
+policy_update_schedule = {
+    policy_id: get_policy_update_schedule(config["policy"][policy_id]["update_schedule"])
+    for policy_id in policy_ids if policy_id in config["policy"]
+}

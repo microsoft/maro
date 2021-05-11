@@ -4,9 +4,10 @@ facility_definitions:
       products:
         class: StoreProductUnit
         config:
-          agent_type: 5
+          agent_type: product
           consumer:
             class: ConsumerUnit
+            config: consumer
           seller:
             class: SellerUnit
             config:
@@ -16,7 +17,7 @@ facility_definitions:
         class: StorageUnit
     class: RetailerFacility
     config:
-      agent_type: 2
+      agent_type: facility
   SupplierFacility:
     children:
       distribution:
@@ -24,17 +25,21 @@ facility_definitions:
       products:
         class: ProductUnit
         config:
-          agent_type: 3
+          agent_type: product
           consumer:
             class: ConsumerUnit
+            config:
+              agent_type: consumer
           manufacture:
             class: ManufactureUnit
+            config:
+              agent_type: producer
         is_template: true
       storage:
         class: StorageUnit
     class: SupplierFacility
     config:
-      agent_type: 0
+      agent_type: facility
   WarehouseFacility:
     children:
       distribution:
@@ -42,15 +47,17 @@ facility_definitions:
       products:
         class: ProductUnit
         config:
-          agent_type: 4
+          agent_type: product
           consumer:
             class: ConsumerUnit
+            config:
+              agent_type: consumer
         is_template: true
       storage:
         class: StorageUnit
     class: WarehouseFacility
     config:
-      agent_type: 1
+      agent_type: facility
 normal_vehicle: &id001
   class: VehicleUnit
   config:

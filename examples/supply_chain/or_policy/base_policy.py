@@ -1,10 +1,10 @@
 import numpy as np
-from maro.rl.policy import AbsFixedPolicy
+from maro.rl.policy import AbsPolicy
 import random
 import scipy.stats as st
 
 
-class ProducerBaselinePolicy(AbsFixedPolicy):
+class ProducerBaselinePolicy(AbsPolicy):
     
     def __init__(self, config):
         self.config = config
@@ -14,7 +14,7 @@ class ProducerBaselinePolicy(AbsFixedPolicy):
         return state.get('product_rate', 500)
 
 
-class ConsumerBaselinePolicy(AbsFixedPolicy):
+class ConsumerBaselinePolicy(AbsPolicy):
 
     def __init__(self, config):
         self.config = config

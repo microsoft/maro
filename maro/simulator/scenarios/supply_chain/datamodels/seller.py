@@ -5,14 +5,12 @@
 from maro.backends.backend import AttributeType
 from maro.backends.frame import NodeAttribute, node
 
-from .skumodel import SkuDataModel
+from .extend import ExtendDataModel
 
 
 @node("seller")
-class SellerDataModel(SkuDataModel):
+class SellerDataModel(ExtendDataModel):
     """Data model for seller unit."""
-    total_sold = NodeAttribute(AttributeType.UInt)
-
     demand = NodeAttribute(AttributeType.UInt)
     sold = NodeAttribute(AttributeType.UInt)
     total_demand = NodeAttribute(AttributeType.UInt)

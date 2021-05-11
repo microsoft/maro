@@ -13,9 +13,9 @@ from .easy_config import EasyConfig, SkuInfo
 from .facilities import FacilityBase
 from .frame_builder import build_frame
 from .parser import DataModelDef, FacilityDef, SupplyChainConfiguration, UnitDef
-from .units import ProductUnit, SkuUnit, UnitBase
+from .units import ExtendUnitBase, UnitBase
 
-AgentInfo = namedtuple("AgentInfo", ("id", "agent_type", "is_facility", "sku", "facility_id"))
+AgentInfo = namedtuple("AgentInfo", ("id", "agent_type", "is_facility", "sku", "facility_id", "parent_id"))
 
 
 class World:
@@ -270,26 +270,46 @@ class World:
 
         # Collection agent list
         for facility in self.facilities.values():
-            agent_type = facility.configs["agent_type"]
+            agent_type = facility.configs.get("agent_type", None)
 
-            self.agent_list.append(AgentInfo(facility.id, agent_type, True, None, facility.id))
+            if agent_type is not None:
+                self.agent_list.append(AgentInfo(facility.id, agent_type, True, None, facility.id, None))
 
-            self.agent_type_dict[agent_type] = True
+                self.agent_type_dict[agent_type] = type(facility).__name__
 
-            for sku in facility.skus.values():
-                self.max_price = max(self.max_price, sku.price)
+                for sku in facility.skus.values():
+                    self.max_price = max(self.max_price, sku.price)
 
+        # Find units that contains agent type to expose as agent.
         for unit in self.units.values():
-            if issubclass(type(unit), ProductUnit):
-                agent_type = unit.config["agent_type"]
+            agent_type = unit.config.get("agent_type", None)
 
-                # unit or facility id, agent type, is facility, sku info, facility id
+            if agent_type is not None:
+                # Unit or facility id, agent type, is facility, sku info, facility id, parent id.
                 self.agent_list.append(
-                    AgentInfo(unit.id, agent_type, False, unit.facility.skus[unit.product_id], unit.facility.id))
+                    AgentInfo(
+                        unit.id,
+                        agent_type,
+                        False,
+                        unit.facility.skus[unit.product_id],
+                        unit.facility.id,
+                        unit.parent.id
+                    )
+                )
 
-                self.agent_type_dict[agent_type] = True
+                self.agent_type_dict[agent_type] = type(unit).__name__
 
     def build_unit_by_type(self, unit_def: UnitDef, parent: Union[FacilityBase, UnitBase], facility: FacilityBase):
+        """Build an unit by its type.
+
+        Args:
+            unit_def (UnitDef): Definition of this unit.
+            parent (Union[FacilityBase, UnitBase]): Parent of this unit.
+            facility (FacilityBase): Facility this unit belongs to.
+
+        Returns:
+            UnitBase: Unit instance.
+        """
         unit = unit_def.class_type()
 
         unit.id = self._gen_id()
@@ -394,7 +414,7 @@ class World:
         for unit_id, unit in self.units.items():
             sku = None
 
-            if isinstance(unit, SkuUnit):
+            if isinstance(unit, ExtendUnitBase):
                 sku = unit.facility.skus[unit.product_id]
 
             if unit.data_model is not None:
@@ -403,7 +423,7 @@ class World:
                 id2index_mapping[unit_id] = (None, None, unit.facility.id, sku)
 
         return {
-            "agent_types": [k for k in self.agent_type_dict.keys()],
+            "agent_types": {k: v for k, v in self.agent_type_dict.items()},
             "unit_mapping": id2index_mapping,
             "skus": {sku.id: sku for sku in self._sku_collection.values()},
             "facilities": facility_info_dict,
