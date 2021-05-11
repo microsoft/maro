@@ -183,11 +183,19 @@ class SCEnvWrapper(AbsEnvWrapper):
         return self._dim
 
     def get_or_policy_state(self, state, agent_info):
-        state = {'is_facility': agent_info.is_facility}
+        state = {'is_facility': not (agent_info.agent_type in sku_agent_types)}
         if agent_info.is_facility:
             return state
+
+        product_unit_id = agent_info.id if agent_info.agent_type == "product" else agent_info.parent_id
+
         id, product_id, storage_index, unit_storage_cost, distribution_index, downstreams, consumer, seller, manufacture = \
-                        self.balance_cal.products[self.balance_cal.product_id2index_dict[agent_info.id]]
+                        self.balance_cal.products[self.balance_cal.product_id2index_dict[product_unit_id]]
+        
+        product_metrics = self._cur_metrics["products"][product_unit_id]
+        state['sale_mean'] = product_metrics["sale_mean"]
+        state['sale_std'] = product_metrics["sale_std"]
+
         facility = self.facility_levels[agent_info.facility_id]
         state['unit_storage_cost'] = unit_storage_cost
         state['order_cost'] = 1
@@ -198,8 +206,6 @@ class SCEnvWrapper(AbsEnvWrapper):
         state['storage_capacity'] = facility['storage'].config["capacity"]
         state['storage_levels'] = self._storage_product_numbers[agent_info.facility_id]
         state['consumer_in_transit_orders'] = self._facility_in_transit_orders[agent_info.facility_id]
-        state['sale_mean'] = self._cur_metrics["products"][agent_info.id]['sale_mean']
-        state['sale_std'] = self._cur_metrics["products"][agent_info.id]['sale_std']
         state['product_idx'] = self._storage_product_indices[agent_info.facility_id][agent_info.sku.id]
         state['vlt'] = agent_info.sku.vlt
         state['service_level'] = agent_info.sku.service_level
@@ -333,7 +339,7 @@ class SCEnvWrapper(AbsEnvWrapper):
             if agent_id.startswith("consumer"):
                 product_id = self.consumer2product.get(unit_id, 0)
                 sources = self.product2source.get(unit_id, [])
-
+                print(sources)
                 if sources:
                     source_id = sources[0]
 
@@ -385,6 +391,8 @@ class SCEnvWrapper(AbsEnvWrapper):
         product_unit_id = agent_info.id if agent_info.agent_type == "product" else agent_info.parent_id
 
         product_metrics = self._cur_metrics["products"][product_unit_id]
+
+
 
         state['sale_mean'] = product_metrics["sale_mean"]
         state['sale_std'] = product_metrics["sale_std"]

@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+from env_wrapper import sku_agent_types
 
 
 class SimulationTracker:
@@ -10,7 +11,10 @@ class SimulationTracker:
         self.global_rewards = np.zeros((n_episods, episod_len))
         self.env = env
         self.learner = learner
-        self.facility_names = self.env._agent_list
+        self.facility_names = []
+        for agent in self.env._agent_list:
+            if agent.agent_type in sku_agent_types:
+                self.facility_names.append(agent)
         self.step_balances = np.zeros(
             (n_episods, self.episod_len, len(self.facility_names)))
         self.step_rewards = np.zeros(
@@ -33,8 +37,7 @@ class SimulationTracker:
 
     def add_sku_status(self, episod, t, stock, order_in_transit, demands, rewards, balances, order_to_distribute):
         if self.sku_to_track is None:
-            self.sku_to_track = set(
-                list(stock.keys()) + list(order_in_transit.keys()) + list(demands.keys()))
+            self.sku_to_track = list(rewards.keys())
             self.stock_status = np.zeros(
                 (self.n_episods, self.episod_len, len(self.sku_to_track)))
             self.stock_in_transit_status = np.zeros(
@@ -111,9 +114,10 @@ class SimulationTracker:
     def run_wth_render(self, facility_types):
         self.env.reset()
         self.env.start()
-        self.learner.policy.eval_mode()
+        # self.learner.policy.eval_mode()
         for epoch in range(self.episod_len):
-            action = self.learner.policy.choose_action(self.env.state)
+            # action = self.learner.policy.choose_action(self.env.state)
+            action = {id_: self.learner.policy[id_].choose_action(st) for id_, st in self.env.state.items()}
             self.learner._logger.info(f"epoch: {epoch}, action: {action}")
             self.env.step(action)
             self.learner._logger.info(f"epoch: {epoch}, action: {self.env.get_action(action)}")
