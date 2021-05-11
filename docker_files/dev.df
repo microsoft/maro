@@ -19,6 +19,7 @@ RUN pip install --no-cache-dir Cython==0.29.14
 RUN pip install --no-cache-dir pyaml==20.4.0
 RUN pip install --no-cache-dir pyzmq==19.0.2
 RUN pip install --no-cache-dir numpy==1.19.1
+RUN pip install --no-cache-dir matplotlib
 RUN pip install --no-cache-dir torch==1.6.0
 RUN pip install --no-cache-dir scipy
 RUN pip install --no-cache-dir redis

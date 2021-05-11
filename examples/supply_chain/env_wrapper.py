@@ -145,6 +145,11 @@ class SCEnvWrapper(AbsEnvWrapper):
         # built internal helpers.
         self._build_internal_helpers()
 
+        self.stock_status = {}
+        self.demand_status = {}
+        self.order_in_transit_status = {}
+        self.order_to_distribute_status = {}
+
     @property
     def dim(self):
         """Calculate dim per shape."""
@@ -164,11 +169,55 @@ class SCEnvWrapper(AbsEnvWrapper):
 
         return self._dim
 
-    def get_state_a(self):
-        pass
+    def get_or_policy_state(self, state, agent_info):
+        state = {'is_facility': agent_info.is_facility}
+        if agent_info.is_facility:
+            return state
+        id, product_id, storage_index, unit_storage_cost, distribution_index, downstreams, consumer, seller, manufacture = \
+                        self.balance_cal.products[self.balance_cal.product_id2index_dict[agent_info.id]]
+        facility = self.facility_levels[agent_info.facility_id]
+        state['unit_storage_cost'] = unit_storage_cost
+        state['order_cost'] = 1
+        product_info = facility[agent_info.sku.id]
+        if "consumer" in product_info:
+            consumer_index = product_info["consumer"].node_index
+            state['order_cost'] = self.consumer_ss[self.env.tick:consumer_index:"order_cost"]
+        state['storage_capacity'] = facility['storage'].config["capacity"]
+        state['storage_levels'] = self._storage_product_numbers[agent_info.facility_id]
+        state['consumer_in_transit_orders'] = self._facility_in_transit_orders[agent_info.facility_id]
+        state['sale_mean'] = self._cur_metrics["products"][agent_info.id]['sale_mean']
+        state['sale_std'] = self._cur_metrics["products"][agent_info.id]['sale_std']
+        state['product_idx'] = self._storage_product_indices[agent_info.facility_id][agent_info.sku.id]
+        state['vlt'] = agent_info.sku.vlt
+        state['service_level'] = agent_info.sku.service_level
+        return state
 
-    def get_state_b(self):
-        pass
+    def get_rl_policy_state(self, state, agent_info):
+        self._update_facility_features(state, agent_info)
+        self._update_storage_features(state, agent_info)
+        # bom do not need to update
+        # self._add_bom_features(state, agent_info)
+        self._update_distribution_features(state, agent_info)
+        self._update_sale_features(state, agent_info)
+        # vlt do not need to update
+        # self._update_vlt_features(state, agent_info)
+        self._update_consumer_features(state, agent_info)
+        # self._add_price_features(state, agent_info)
+        self._update_global_features(state)
+        
+        self.stock_status[agent_info.id] = state['inventory_in_stock']
+
+        self.demand_status[agent_info.id] = state['sale_hist'][-1]
+
+        self.order_in_transit_status[agent_info.id] = state['inventory_in_transit']
+
+        self.order_to_distribute_status[agent_info.id] = state['distributor_in_transit_orders_qty']
+
+        self.reward_status = {f_id: np.float32(reward[1]) for f_id, reward in self.cur_balance_sheet_reward.items()}
+        self.balance_status = {f_id: np.float32(reward[0]) for f_id, reward in self.cur_balance_sheet_reward.items()}
+
+        np_state = self._serialize_state(state)
+        return np_state
 
     def get_state(self, event):
         cur_tick = self.env.tick
@@ -188,6 +237,7 @@ class SCEnvWrapper(AbsEnvWrapper):
         ).reshape(-1, len(self.consumer_ss))
         self._cur_seller_states = self.seller_ss[hist_ticks::seller_features].astype(
             np.int)
+
 
         # facility level states
         for facility_id in self._facility_product_utilization:
@@ -217,23 +267,10 @@ class SCEnvWrapper(AbsEnvWrapper):
 
         for agent_info in self._agent_list:
             state = self._states[agent_info.id]
-
-            storage_index = self._facility2storage_index_dict[agent_info.facility_id]
-
-            self._update_facility_features(state, agent_info)
-            self._update_storage_features(state, agent_info)
-            # bom do not need to update
-            # self._add_bom_features(state, agent_info)
-            self._update_distribution_features(state, agent_info)
-            self._update_sale_features(state, agent_info)
-            # vlt do not need to update
-            # self._update_vlt_features(state, agent_info)
-            self._update_consumer_features(state, agent_info)
-            # self._add_price_features(state, agent_info)
-            self._update_global_features(state)
-
-            np_state = self._serialize_state(state)
-
+            # storage_index = self._facility2storage_index_dict[agent_info.facility_id]
+            
+            np_state = self.get_rl_policy_state(state, agent_info)
+            np_state = self.get_or_policy_state(state, agent_info)
             final_state[f"consumer.{agent_info.id}"] = np_state
             final_state[f"producer.{agent_info.id}"] = np_state
 
@@ -252,7 +289,7 @@ class SCEnvWrapper(AbsEnvWrapper):
         consumer_reward_by_facility = {f_id: wc * parent_facility_balance[f_id][0] + (1 - wc) * bsw[1] for f_id, bsw in
                                        self.cur_balance_sheet_reward.items()}
 
-        return {
+        return  {
             **{f"producer.{f_id}": np.float32(reward[0]) for f_id, reward in self.cur_balance_sheet_reward.items()},
             **{f"consumer.{f_id}": np.float32(reward) for f_id, reward in consumer_reward_by_facility.items()}
         }
@@ -893,6 +930,7 @@ if __name__ == "__main__":
 
     # cProfile.run("ss.get_state(None)", sort="cumtime")
     states = ss.get_state(None)
+    print(states)
 
     end_time = time()
 

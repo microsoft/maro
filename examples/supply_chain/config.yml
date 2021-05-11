@@ -5,7 +5,7 @@ env:
   scenario: supply_chain
   # Currently available topologies are "sample1" or "random". New topologies must consist of a single folder
   # that contains a single config.yml and shoud be placed under examples/supply_chain/envs/
-  topology: sample1
+  topology: test
   durations: 200  # number of ticks per episode
 num_episodes: 10  # number of episodes to simulate
 # Number of roll-out steps in each learning cycle. Each actor will perform at most this many roll-out steps

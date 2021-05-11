@@ -1,6 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
-
+import os
 import argparse
 import sys
 import yaml
@@ -18,7 +18,9 @@ from config import config
 from env_wrapper import SCEnvWrapper
 from exploration import exploration_dict, agent_to_exploration
 from learner import SCLearner
-from policies import policy_dict, agent_to_policy
+# from policies import policy_dict, agent_to_policy
+from or_policies import policy_dict, agent_to_policy
+from render_tools import SimulationTracker
 
 
 # for distributed / multi-process training
@@ -67,7 +69,14 @@ def sc_learner():
         end_of_training_kwargs=config["end_of_training_kwargs"],
         log_dir=log_dir
     )
-    learner.run()
+    # learner.run()
+
+    env = SCEnvWrapper(Env(**config["env"]))
+    tracker = SimulationTracker(60, 1, env, learner)
+    loc_path = '/maro/supply_chain/output/'
+    facility_types = [5]
+    os.system(f"rm {loc_path}/*")
+    tracker.run_and_render(loc_path, facility_types)
 
 
 def sc_actor(name: str):

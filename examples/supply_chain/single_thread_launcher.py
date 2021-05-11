@@ -12,8 +12,9 @@ sys.path.insert(0, sc_code_dir)
 from config import config
 from env_wrapper import SCEnvWrapper
 from exploration import exploration_dict, agent_to_exploration
-from policies import policy_dict, agent_to_policy
-
+# from policies import policy_dict, agent_to_policy
+from or_policies import policy_dict, agent_to_policy
+from render_tools import SimulationTracker
 
 # Single-threaded launcher
 if __name__ == "__main__":
@@ -32,4 +33,8 @@ if __name__ == "__main__":
         eval_points=config["eval_points"],
         log_env_metrics=config["log_env_metrics"]
     )
-    learner.run()
+    # learner.run()
+    tracker = SimulationTracker(60, 1, env, learner)
+    loc_path = '/maro/supply_chain/output/'
+    facility_types = [5]
+    tracker.run_and_render(loc_path, facility_types)
