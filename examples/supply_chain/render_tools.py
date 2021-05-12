@@ -62,15 +62,17 @@ class SimulationTracker:
 
     def render_sku(self, loc_path):
         sku_name_dict = {}
+        facility_type_dict = {}
         for agent in self.env._agent_list:
             if agent.is_facility:
                 sku_name = f"{agent.facility_id}_{agent.agent_type}"
             else:
                 sku_name = f"{agent.id}_{agent.sku.id}_{agent.agent_type}"
             sku_name_dict[agent.id] = sku_name
+            facility_type_dict[agent.id] = self.env.env.summary["node_mapping"]["facilities"][agent.facility_id]['class'].__name__
 
         for i, sku_name in enumerate(self.sku_to_track):
-            fig, ax = plt.subplots(3, 1, figsize=(25, 10))
+            fig, ax = plt.subplots(4, 1, figsize=(25, 10))
             x = np.linspace(0, self.episod_len, self.episod_len)
             stock = self.stock_status[0, :, i]
             order_in_transit = self.stock_in_transit_status[0, :, i]
@@ -81,7 +83,6 @@ class SimulationTracker:
             ax[0].set_title('SKU Stock Status by Episod')
             for y_label, y in [('stock', stock),
                                ('order_in_transit', order_in_transit),
-                               ('demand', demand),
                                ('order_to_distribute', order_to_distribute)]:
                 ax[0].plot(x, y, label=y_label)
 
@@ -89,8 +90,12 @@ class SimulationTracker:
             ax[1].plot(x, balance, label='Balance')
             ax_r = ax[1].twinx()
             ax_r.plot(x, reward, label='Reward', color='r')
+
+            ax[3].set_title('SKU demand')
+            ax[3].plot(x, demand, label="Demand")
+
             fig.legend()
-            fig.savefig(f"{loc_path}/{sku_name_dict[sku_name]}.png")
+            fig.savefig(f"{loc_path}/{facility_type_dict[sku_name]}_{sku_name_dict[sku_name]}.png")
             plt.close(fig=fig)
 
     def render(self, file_name, metrics, facility_types):
