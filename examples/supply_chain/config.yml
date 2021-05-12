@@ -1,11 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-env: 
+env:
   scenario: supply_chain
   # Currently available topologies are "sample1" or "random". New topologies must consist of a single folder
   # that contains a single config.yml and shoud be placed under examples/supply_chain/envs/
-  topology: sample1
+  topology: test
   durations: 200  # number of ticks per episode
 num_episodes: 10  # number of episodes to simulate
 # Number of roll-out steps in each learning cycle. Each actor will perform at most this many roll-out steps
@@ -39,7 +39,7 @@ policy:
       train_epochs: 10
       gradient_iters: 1
       loss_cls: mse  # refer to maro/maro/rl/utils/torch_cls_index.py for the mapping of strings to torch loss classes.
-      target_update_freq: 5  # How many training iteration, to update DQN target model 
+      target_update_freq: 5  # How many training iteration, to update DQN target model
       soft_update_coefficient: 0.1
       double: false   # whether to enable double DQN
     experience_manager:
@@ -80,7 +80,7 @@ policy:
       train_epochs: 10
       gradient_iters: 1
       loss_cls: mse  # refer to maro/maro/rl/utils/torch_cls_index.py for the mapping of strings to torch loss classes.
-      target_update_freq: 5  # How many training iteration, to update DQN target model 
+      target_update_freq: 5  # How many training iteration, to update DQN target model
       soft_update_coefficient: 0.1
       double: false   # whether to enable double DQN
     experience_manager:
@@ -95,7 +95,7 @@ policy:
       type: episode  # "step" or "episode"
       args:
         start: 2  # must be a positive number since episode is 1-based
-        interval: 2 
+        interval: 2
 exploration:
   initial_value: 0.4  # Here (start: 0.4, end: 0.0) means: the exploration rate will start at 0.4 and decrease linearly to 0.0 in the last episode.
   final_value: 0.0
@@ -112,5 +112,5 @@ distributed:
   # The number of actor finishes required for the learner to enter the next learning cycle. This is used to prevent
   # slow actors from dragging down the whole process.
   required_actor_finishes: 3
-  # If true, experiences from older segments (usually coming from slow actors) will not be used for learning. 
+  # If true, experiences from older segments (usually coming from slow actors) will not be used for learning.
   discard_stale_experiences: True

@@ -48,7 +48,7 @@ facility_definitions:
             config:
               agent_type: "consumer"
           manufacture:
-            class: "ManufactureUnit"
+            class: "SimpleManufactureUnit"
             config:
               agent_type: "producer"
     config:
@@ -255,7 +255,7 @@ world:
       config:
         delay_order_penalty: 10
         order_cost: 0
-      
+
     - name: "Warehouse_001"
       definition_ref: "WarehouseFacility"
 
@@ -279,7 +279,7 @@ world:
       config:
         delay_order_penalty: 10
         order_cost: 0
-      
+
     - name: "Retailer_001"
       definition_ref: "RetailerFacility"
 
@@ -311,7 +311,7 @@ world:
 
       config:
         order_cost: 0
-      
+
   # topology used to specify the up/downstream for facilities
   # we split it from facility, so that we can support configuration inherit to override it
   # for a new topology

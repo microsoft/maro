@@ -13,7 +13,7 @@ from config import config
 from env_wrapper import SCEnvWrapper
 from exploration import exploration_dict, agent2exploration
 from policies import agent2policy, policy_dict, policy_update_schedule
-
+from render_tools import SimulationTracker
 
 # Single-threaded launcher
 if __name__ == "__main__":
@@ -29,6 +29,6 @@ if __name__ == "__main__":
     )
     # learner.run()
     tracker = SimulationTracker(60, 1, env, learner)
-    loc_path = '/maro/supply_chain/output/'
-    facility_types = [5]
+    loc_path = './output/'
+    facility_types = ["product"]
     tracker.run_and_render(loc_path, facility_types)
