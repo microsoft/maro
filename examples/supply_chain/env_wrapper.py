@@ -191,7 +191,7 @@ class SCEnvWrapper(AbsEnvWrapper):
 
         id, product_id, storage_index, unit_storage_cost, distribution_index, downstreams, consumer, seller, manufacture = \
                         self.balance_cal.products[self.balance_cal.product_id2index_dict[product_unit_id]]
-        
+
         product_metrics = self._cur_metrics["products"][product_unit_id]
         state['sale_mean'] = product_metrics["sale_mean"]
         state['sale_std'] = product_metrics["sale_std"]
@@ -223,7 +223,7 @@ class SCEnvWrapper(AbsEnvWrapper):
         self._update_consumer_features(state, agent_info)
         # self._add_price_features(state, agent_info)
         self._update_global_features(state)
-        
+
         self.stock_status[agent_info.id] = state['inventory_in_stock']
 
         self.demand_status[agent_info.id] = state['sale_hist'][-1]
@@ -295,7 +295,7 @@ class SCEnvWrapper(AbsEnvWrapper):
             storage_index = self._facility2storage_index_dict[agent_info.facility_id]
 
             np_state = self.get_rl_policy_state(state, agent_info)
-            np_state = self.get_or_policy_state(state, agent_info)
+            # np_state = self.get_or_policy_state(state, agent_info)
 
             # agent_info.agent_type -> policy
             final_state[f"{agent_info.agent_type}.{agent_info.id}"] = np_state
@@ -390,8 +390,6 @@ class SCEnvWrapper(AbsEnvWrapper):
 
         product_metrics = self._cur_metrics["products"][product_unit_id]
 
-
-
         state['sale_mean'] = product_metrics["sale_mean"]
         state['sale_std'] = product_metrics["sale_std"]
 
@@ -436,12 +434,14 @@ class SCEnvWrapper(AbsEnvWrapper):
         facility = self.facility_levels[agent_info.facility_id]
         product_info = facility[agent_info.sku.id]
 
-        if "consumer" not in product_info:
-            return
+        # if "consumer" not in product_info:
+        #     return
 
         state['consumer_in_transit_orders'] = self._facility_in_transit_orders[agent_info.facility_id]
 
-        product_index = self._storage_product_indices[agent_info.facility_id][agent_info.sku.id]
+        # FIX: we need plus 1 to this, as it is 0 based index, but we already aligned with 1 more
+        # slot to use sku id as index ( 1 based).
+        product_index = self._storage_product_indices[agent_info.facility_id][agent_info.sku.id] + 1
         state['inventory_in_stock'] = self._storage_product_numbers[agent_info.facility_id][product_index]
         state['inventory_in_transit'] = state['consumer_in_transit_orders'][agent_info.sku.id]
 
