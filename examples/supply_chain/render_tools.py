@@ -61,6 +61,14 @@ class SimulationTracker:
                                      i] = order_to_distribute[sku_name]
 
     def render_sku(self, loc_path):
+        sku_name_dict = {}
+        for agent in self.env._agent_list:
+            if agent.is_facility:
+                sku_name = f"{agent.facility_id}_{agent.agent_type}"
+            else:
+                sku_name = f"{agent.id}_{agent.sku.id}_{agent.agent_type}"
+            sku_name_dict[agent.id] = sku_name
+
         for i, sku_name in enumerate(self.sku_to_track):
             fig, ax = plt.subplots(3, 1, figsize=(25, 10))
             x = np.linspace(0, self.episod_len, self.episod_len)
@@ -82,7 +90,7 @@ class SimulationTracker:
             ax_r = ax[1].twinx()
             ax_r.plot(x, reward, label='Reward', color='r')
             fig.legend()
-            fig.savefig(f"{loc_path}/{sku_name}.png")
+            fig.savefig(f"{loc_path}/{sku_name_dict[sku_name]}.png")
             plt.close(fig=fig)
 
     def render(self, file_name, metrics, facility_types):
@@ -152,7 +160,6 @@ class SimulationTracker:
     def run_and_render(self, loc_path, facility_types):
         metric, metric_list = self.run_wth_render(
             facility_types=facility_types)
-        os.makedirs(loc_path, exist_ok=True)
         self.render('%s/plot_balance.png' %
                     loc_path, self.step_balances, facility_types)
         self.render('%s/plot_reward.png' %

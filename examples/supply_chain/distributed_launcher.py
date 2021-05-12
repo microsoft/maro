@@ -56,7 +56,7 @@ def sc_learner():
     env = SCEnvWrapper(Env(**config["env"]))
     tracker = SimulationTracker(60, 1, env, learner)
     loc_path = '/maro/supply_chain/output/'
-    facility_types = ["consumer"]
+    facility_types = ["product"]
     os.system(f"rm {loc_path}/*")
     tracker.run_and_render(loc_path, facility_types)
 
