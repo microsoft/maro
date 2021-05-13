@@ -29,12 +29,8 @@ def get_experiments():
     return exp_name
 
 
-def get_experiment_info() -> json:
+def get_experiment_info():
     """Get basic information of experiment.
-
-    Returns:
-        json: Basic information of current experiment.
-
     """
     get_exp_name_params = {
         "query": "select name from pending_experiments order by time desc limit 1",
@@ -49,7 +45,6 @@ def get_experiment_info() -> json:
         "query": f"select * from maro.experiments where name='{exp_name}'",
         "count": "true"
     }
-    s = requests.session()
     experiment_info = requests.get(
         url=request_settings.request_url.value,
         headers=request_settings.request_header.value,
