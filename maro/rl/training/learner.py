@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 from abc import ABC, abstractmethod
-from cmath import log
 from os import getcwd
 from typing import Union
 
@@ -32,7 +31,7 @@ class AbsLearner(ABC):
         self,
         actor: Union[Actor, ActorProxy],
         agent: Union[AbsAgent, MultiAgentWrapper] = None,
-        log_dir: str = getcwd()  
+        log_dir: str = getcwd()
     ):
         super().__init__()
         if isinstance(actor, ActorProxy):
