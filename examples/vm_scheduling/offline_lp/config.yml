@@ -1,0 +1,24 @@
+experiment_name: test
+
+env:
+  scenario: vm_scheduling
+  topology: azure.2019.10k
+  start_tick: 1
+  durations: 200
+  resolution: 1
+  seed: 128
+
+ilp:
+  solver: CBC          # GLPK, CBC
+  plan_window_size: 200  # unit: tick
+  apply_buffer_size: 200  # unit: tick
+  performance:
+    core_safety_remaining_ratio: 0
+    mem_safety_remaining_ratio: 0
+  objective:
+    successful_allocation_decay: 1
+    allocation_multiple_core_num: false
+  log:
+    dump_all_solution: false
+    dump_infeasible_solution: true
+    stdout_solver_message: false
