@@ -36,7 +36,7 @@ def get_input_range(start_tick: str, end_tick: str) -> str:
     """
     i = int(start_tick)
     input_range = "("
-    while i < end_tick:
+    while i < int(end_tick):
         if i == int(end_tick) - 1:
             input_range = input_range + "'" + str(i) + "'" + ")"
         else:
