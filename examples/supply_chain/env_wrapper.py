@@ -295,7 +295,7 @@ class SCEnvWrapper(AbsEnvWrapper):
             storage_index = self._facility2storage_index_dict[agent_info.facility_id]
 
             np_state = self.get_rl_policy_state(state, agent_info)
-            np_state = self.get_or_policy_state(state, agent_info)
+            #np_state = self.get_or_policy_state(state, agent_info)
 
             # agent_info.agent_type -> policy
             final_state[f"{agent_info.agent_type}.{agent_info.id}"] = np_state
@@ -348,7 +348,8 @@ class SCEnvWrapper(AbsEnvWrapper):
                         continue
 
                     sku = self._units_mapping[unit_id][3]
-                    reward_discount = 0
+                    # give it 1 means no discount, not 0
+                    reward_discount = 1
 
                     env_action[unit_id] = ConsumerAction(
                         unit_id,
@@ -744,13 +745,23 @@ class BalanceSheetCalculator:
 
                 self.product_id2index_dict[product["id"]] = len(self.products)
 
+                downstream_product_units = []
+                downstreams = facility["downstreams"]
+
+                if downstreams and len(downstreams) > 0 and product_id in downstreams:
+                    for dfacility in downstreams[product_id]:
+                        dproducts = self.facilities[dfacility]["units"]["products"]
+
+                        downstream_product_units.append(dproducts[product_id]["id"])
+
                 self.products.append((
                     product["id"],
                     product_id,
+                    product["node_index"],
                     facility["units"]["storage"]["node_index"],
                     facility["units"]["storage"]["config"]["unit_storage_cost"],
                     distribution["node_index"] if distribution is not None else None,
-                    facility["downstreams"],
+                    downstream_product_units,
                     None if consumer is None else (
                         consumer["id"], consumer["node_index"]),
                     None if seller is None else (
@@ -769,7 +780,54 @@ class BalanceSheetCalculator:
                  ] if distribution is not None else []
             ))
 
+        # TODO: order products make sure calculate reward from downstream to upstream
+        tmp_product_unit_dict = {}
+
+        for product in self.products:
+            tmp_product_unit_dict[product[0]] = product
+
+        self._ordered_products = []
+
+        tmp_stack = []
+
+        for product in self.products:
+            # skip if already being processed
+            if tmp_product_unit_dict[product[0]] is None:
+                continue
+
+            for dproduct in product[6]:
+                # push downstream id to stack
+                tmp_stack.append(dproduct)
+
+            # insert current product to list head
+            self._ordered_products.insert(0, product)
+            # mark it as processed
+            tmp_product_unit_dict[product[0]] = None
+
+            while len(tmp_stack) > 0:
+                # process downstream of product unit in stack
+                dproduct_unit_id = tmp_stack.pop()
+
+                # if it was processed then ignore
+                if tmp_product_unit_dict[dproduct_unit_id] is None:
+                    continue
+
+                # or extract it downstreams
+                dproduct_unit = tmp_product_unit_dict[dproduct_unit_id]
+
+                dproduct_downstreams = dproduct_unit[6]
+
+                for dproduct in dproduct_downstreams:
+                    tmp_stack.append(dproduct)
+
+                # current unit in final list
+                self._ordered_products.insert(0, dproduct_unit)
+                tmp_product_unit_dict[dproduct_unit_id] = None
+
         self.total_balance_sheet = defaultdict(int)
+
+        # tick -> (product unit id, sku id, manufacture number, manufacture cost, checkin order, delay penaty)
+        self._supplier_reward_factors = {}
 
     def calc(self):
         tick = self.env.tick
@@ -854,8 +912,8 @@ class BalanceSheetCalculator:
         # loss = consumer loss + seller loss + manufacture loss + storage loss + distribution loss + downstreams loss
         # profit = same as above
         # reward = same as above
-        for i, product in enumerate(self.products):
-            id, product_id, storage_index, unit_storage_cost, distribution_index, downstreams, consumer, seller, manufacture = product
+        for product in self._ordered_products:
+            id, product_id, i, storage_index, unit_storage_cost, distribution_index, downstreams, consumer, seller, manufacture = product
 
             if consumer:
                 product_balance_sheet_loss[i] += consumer_step_balance_sheet_loss[consumer[1]]
@@ -885,16 +943,11 @@ class BalanceSheetCalculator:
                 product_step_reward[i] += product_distribution_balance_sheet_loss[distribution_index] + \
                     product_distribution_balance_sheet_profit[distribution_index]
 
-            if downstreams and len(downstreams) > 0:
-                if product_id in downstreams:
-                    for dfacility in downstreams[product_id]:
-                        dproducts = self.facilities[dfacility]["units"]["products"]
-
-                        did = dproducts[product_id]["id"]
-
-                        product_balance_sheet_loss[i] += product_balance_sheet_loss[self.product_id2index_dict[did]]
-                        product_balance_sheet_profit[i] += product_balance_sheet_profit[self.product_id2index_dict[did]]
-                        product_step_reward[i] += product_step_reward[self.product_id2index_dict[did]]
+            if len(downstreams) > 0:
+                for did in downstreams:
+                    product_balance_sheet_loss[i] += product_balance_sheet_loss[self.product_id2index_dict[did]]
+                    product_balance_sheet_profit[i] += product_balance_sheet_profit[self.product_id2index_dict[did]]
+                    product_step_reward[i] += product_step_reward[self.product_id2index_dict[did]]
 
         product_balance_sheet = product_balance_sheet_profit + product_balance_sheet_loss
 
