@@ -26,11 +26,12 @@ class ConsumerMinMaxPolicy(ConsumerBaselinePolicy):
         
         most_needed_product_id = state['product_idx']
         # stop placing orders if no risk of out of stock
-        vlt_buffer_days = 10
+        vlt_buffer_days = 1
         vlt = state['vlt'] + vlt_buffer_days
         sale_mean, sale_std = state['sale_mean'], state['sale_std']
         service_level = state['service_level']
         r = (vlt*sale_mean + np.sqrt(vlt)*sale_std*st.norm.ppf(service_level))
+        print(booked_inventory, most_needed_product_id, r)
         if booked_inventory[most_needed_product_id] > r:
             return 0
         R = 3*r

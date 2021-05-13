@@ -202,11 +202,11 @@ class SCEnvWrapper(AbsEnvWrapper):
         product_info = facility[agent_info.sku.id]
         if "consumer" in product_info:
             consumer_index = product_info["consumer"].node_index
-            state['order_cost'] = self.consumer_ss[self.env.tick:consumer_index:"order_cost"]
+            state['order_cost'] = self.consumer_ss[self.env.tick:consumer_index:"order_cost"].flatten()[0]
         state['storage_capacity'] = facility['storage'].config["capacity"]
         state['storage_levels'] = self._storage_product_numbers[agent_info.facility_id]
         state['consumer_in_transit_orders'] = self._facility_in_transit_orders[agent_info.facility_id]
-        state['product_idx'] = self._storage_product_indices[agent_info.facility_id][agent_info.sku.id]
+        state['product_idx'] = self._storage_product_indices[agent_info.facility_id][agent_info.sku.id] + 1
         state['vlt'] = agent_info.sku.vlt
         state['service_level'] = agent_info.sku.service_level
         return state
@@ -295,7 +295,7 @@ class SCEnvWrapper(AbsEnvWrapper):
             storage_index = self._facility2storage_index_dict[agent_info.facility_id]
 
             np_state = self.get_rl_policy_state(state, agent_info)
-            # np_state = self.get_or_policy_state(state, agent_info)
+            np_state = self.get_or_policy_state(state, agent_info)
 
             # agent_info.agent_type -> policy
             final_state[f"{agent_info.agent_type}.{agent_info.id}"] = np_state
