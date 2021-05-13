@@ -60,7 +60,7 @@ class AbsExperienceManager(ABC):
         Returns:
             The indexes where the newly added entries reside in the store.
         """
-        added_size = len(experience_set)
+        added_size = experience_set.size
         if added_size > self._capacity:
             raise ValueError("size of added items should not exceed the capacity.")
 

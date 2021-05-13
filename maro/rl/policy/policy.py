@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 from abc import ABC, abstractmethod
-from collections import namedtuple
 
 from maro.rl.exploration import AbsExploration
 from maro.rl.experience import AbsExperienceManager, ExperienceSet
@@ -95,7 +94,7 @@ class RLPolicy(object):
             this to an environment executable action.
         """
         action = self.core_policy.choose_action(state)
-        return self.exploration(action)        
+        return self.exploration(action)
 
     def update(self):
         """Algorithm-specific training logic.

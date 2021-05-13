@@ -30,4 +30,4 @@ class MsgKey(Enum):
     NUM_STEPS = "num_steps"
     RETURN_ENV_METRICS = "return_env_metrics"
     TOTAL_REWARD = "total_reward"
-    ENV_END = "env_end"
+    EPISODE_END = "episode_end"

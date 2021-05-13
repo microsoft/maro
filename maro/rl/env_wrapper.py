@@ -4,9 +4,8 @@
 import time
 from abc import ABC, abstractmethod
 from collections import defaultdict, deque
-from typing import List, Union
 
-from maro.rl.experience import Replay
+from maro.rl.experience import ReplayBuffer
 from maro.simulator import Env
 
 
@@ -24,11 +23,11 @@ class AbsEnvWrapper(ABC):
     """
     def __init__(self, env: Env, save_replay: bool = True, reward_eval_delay: int = 0):
         self.env = env
-        self.replay = defaultdict(Replay)
+        self.replay = defaultdict(ReplayBuffer)
         self.state_info = None  # context for converting model output to actions that can be executed by the env
         self.save_replay = save_replay
         self.reward_eval_delay = reward_eval_delay
-        self.pending_reward_ticks = deque()  # list of ticks whose actions have not been given a reward
+        self._pending_reward_ticks = deque()  # list of ticks whose actions have not been given a reward
         self.action_history = {}   # store the tick-to-action mapping
         self._step_index = None
         self._total_reward = 0
@@ -42,11 +41,6 @@ class AbsEnvWrapper(ABC):
     @property
     def agent_idx_list(self):
         return self.env.agent_idx_list
-
-    def start(self):
-        self._step_index = 0
-        _, self._event, _ = self.env.step(None)
-        self._state = self.get_state(self.env.tick)
 
     @property
     def metrics(self):
@@ -63,6 +57,15 @@ class AbsEnvWrapper(ABC):
     @property
     def total_reward(self):
         return self._total_reward
+
+    @property
+    def num_experiences(self):
+        return {agent_id: replay.size() for agent_id, replay in self.replay.items()}
+
+    def start(self):
+        self._step_index = 0
+        _, self._event, _ = self.env.step(None)
+        self._state = self.get_state(self.env.tick)
 
     @abstractmethod
     def get_state(self, tick: int = None) -> dict:
@@ -92,7 +95,7 @@ class AbsEnvWrapper(ABC):
         # t0 = time.time()
         self._step_index += 1
         env_action = self.get_action(action_by_agent)
-        self.pending_reward_ticks.append(self.env.tick)
+        self._pending_reward_ticks.append(self.env.tick)
         self.action_history[self.env.tick] = action_by_agent
         if len(env_action) == 1:
             env_action = list(env_action.values())[0]
@@ -106,10 +109,10 @@ class AbsEnvWrapper(ABC):
         Otherwise, evaluate rewards only for events at least self.reward_eval_delay ticks ago.
         """
         while (
-            self.pending_reward_ticks and
-            (done or self.env.tick - self.pending_reward_ticks[0] >= self.reward_eval_delay)
+            self._pending_reward_ticks and
+            (done or self.env.tick - self._pending_reward_ticks[0] >= self.reward_eval_delay)
         ):
-            tick = self.pending_reward_ticks.popleft()
+            tick = self._pending_reward_ticks.popleft()
             reward = self.get_reward(tick=tick)
             # assign rewards to the agents that took action at that tick
             for agent_id in self.action_history[tick]:
@@ -139,14 +142,17 @@ class AbsEnvWrapper(ABC):
     def end_of_episode(self):
         pass
 
-    def get_experiences(self):
-        return {agent_id: replay.to_experience_set() for agent_id, replay in self.replay.items()}
+    def get_experiences(self, agent_ids: list = None):
+        if agent_ids is None:
+            return {agent_id: replay.to_experience_set() for agent_id, replay in self.replay.items()}
+        else:
+            return {agent_id: self.replay[agent_id].to_experience_set() for agent_id in agent_ids}
 
     def reset(self):
         self.env.reset()
         self.state_info = None
         self._total_reward = 0
         self._state = None
-        self.pending_reward_ticks.clear()
+        self._pending_reward_ticks.clear()
         self.action_history.clear()
-        self.replay = defaultdict(Replay)
+        self.replay = defaultdict(ReplayBuffer)
