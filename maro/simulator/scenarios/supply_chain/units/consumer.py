@@ -146,6 +146,7 @@ class ConsumerUnit(ExtendUnitBase):
 
         if self.order_product_cost > 0:
             self.data_model.order_product_cost = 0
+            self.order_product_cost = 0
 
     def reset(self):
         super(ConsumerUnit, self).reset()
