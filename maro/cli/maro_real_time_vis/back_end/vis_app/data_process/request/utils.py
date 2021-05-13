@@ -26,7 +26,7 @@ def get_data_in_format(original_data: Union[int, slice]) -> pd.DataFrame:
     return data_in_format
 
 
-def get_input_range(start_tick: str, end_tick: Union[int, slice]) -> Union[int, slice]:
+def get_input_range(start_tick: str, end_tick: Union[int, slice]) -> str:
     """Get the tick input range in string format.
 
     Args:
@@ -34,7 +34,7 @@ def get_input_range(start_tick: str, end_tick: Union[int, slice]) -> Union[int, 
         end_tick(str): End point of range.
 
     Returns:
-        Union[int, slice]: Range of tick in string format.
+        str: Range of tick in string format.
 
     """
     i = int(start_tick)
