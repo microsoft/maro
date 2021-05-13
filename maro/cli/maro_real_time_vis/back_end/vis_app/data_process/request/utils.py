@@ -2,15 +2,16 @@
 # Licensed under the MIT license.
 
 import json
+from typing import Union
 
 import pandas as pd
 
 
-def get_data_in_format(original_data: str) -> pd.DataFrame:
+def get_data_in_format(original_data: Union[int, slice]) -> pd.DataFrame:
     """Convert the json data into dataframe.
 
     Args:
-        original_data (str): Json data requested from database directly.
+        original_data (Union[int, slice]): Json data requested from database directly.
 
     Returns:
         Dataframe: Formatted dataframe.
@@ -25,7 +26,7 @@ def get_data_in_format(original_data: str) -> pd.DataFrame:
     return data_in_format
 
 
-def get_input_range(start_tick: str, end_tick: str) -> str:
+def get_input_range(start_tick: str, end_tick: Union[int, slice]) -> Union[int, slice]:
     """Get the tick input range in string format.
 
     Args:
@@ -33,13 +34,13 @@ def get_input_range(start_tick: str, end_tick: str) -> str:
         end_tick(str): End point of range.
 
     Returns:
-        str: Range of tick in string format.
+        Union[int, slice]: Range of tick in string format.
 
     """
-    i = start_tick
+    i = int(start_tick)
     input_range = "("
     while i < end_tick:
-        if i == end_tick - 1:
+        if i == int(end_tick) - 1:
             input_range = input_range + "'" + str(i) + "'" + ")"
         else:
             input_range = input_range + "'" + str(i) + "'" + ","

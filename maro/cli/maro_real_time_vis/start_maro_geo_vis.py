@@ -9,11 +9,7 @@ import time
 import requests
 
 from maro.utils.exception.cli_exception import CliError
-from maro.utils.logger import CliLogger
-
 from .back_end.vis_app.data_process.request.request_params import request_settings
-
-logger = CliLogger(name=__name__)
 
 
 def start_geo_vis(start: str, experiment_name: str, front_end_port: int, **kwargs: dict):

@@ -30,7 +30,7 @@ def get_new_epoch() -> str:
 
 
 @app_backend.route('/experiments', methods=['GET', 'POST'])
-def get_exist_experiments() -> str:
+def get_existing_experiments() -> str:
     """Get a list of existing experiments.
 
     Returns:
