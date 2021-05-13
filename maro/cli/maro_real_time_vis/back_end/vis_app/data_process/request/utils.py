@@ -1,17 +1,14 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import json
-from typing import Union
-
 import pandas as pd
 
 
-def get_data_in_format(original_data: json) -> pd.DataFrame:
+def get_data_in_format(original_data: object) -> pd.DataFrame:
     """Convert the json data into dataframe.
 
     Args:
-        original_data (json): Json data requested from database directly.
+        original_data (object): Json data requested from database directly.
 
     Returns:
         pd.Dataframe: Formatted dataframe.
@@ -26,7 +23,7 @@ def get_data_in_format(original_data: json) -> pd.DataFrame:
     return data_in_format
 
 
-def get_input_range(start_tick: str, end_tick: Union[int, slice]) -> str:
+def get_input_range(start_tick: str, end_tick: object) -> str:
     """Get the tick input range in string format.
 
     Args:
