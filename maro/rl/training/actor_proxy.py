@@ -1,10 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from os import getcwd
 from typing import List
 
 from maro.communication import Message, Proxy, RegisterTable, SessionType
-from maro.utils import InternalLogger
+from maro.utils import Logger
 
 from .message_enums import MessageTag, PayloadKey
 
@@ -26,7 +27,8 @@ class ActorProxy(object):
         group_name: str,
         num_actors: int,
         update_trigger: str = None,
-        proxy_options: dict = None
+        proxy_options: dict = None,
+        log_dir: str = getcwd()
     ):
         self.agent = None
         peers = {"actor": num_actors}
@@ -40,7 +42,7 @@ class ActorProxy(object):
         self._registry_table.register_event_handler(
             f"actor:{MessageTag.FINISHED.value}:{update_trigger}", self._on_rollout_finish
         )
-        self.logger = InternalLogger("ACTOR_PROXY")
+        self.logger = Logger("ACTOR_PROXY", dump_folder=log_dir)
 
     def roll_out(self, index: int, training: bool = True, model_by_agent: dict = None, exploration_params=None):
         """Collect roll-out data from remote actors.

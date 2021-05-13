@@ -21,9 +21,7 @@ training_config = {
         "batch_size": 128,
         "prioritized_sampling_by_loss": True
     },
-    "group": "cim-dqn",
+    "group": "dqn",
     "learner_update_trigger": 2,
     "num_actors": 2,
-    "num_trainers": 4,
-    "trainer_id": 0
 }

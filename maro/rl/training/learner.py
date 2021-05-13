@@ -2,6 +2,8 @@
 # Licensed under the MIT license.
 
 from abc import ABC, abstractmethod
+from cmath import log
+from os import getcwd
 from typing import Union
 
 from numpy import asarray
@@ -10,7 +12,7 @@ from maro.rl.agent import AbsAgent, MultiAgentWrapper
 from maro.rl.scheduling import Scheduler
 from maro.rl.storage import SimpleStore
 from maro.rl.utils import ExperienceCollectionUtils
-from maro.utils import InternalLogger
+from maro.utils import Logger
 
 from .actor import Actor
 from .actor_proxy import ActorProxy
@@ -26,7 +28,12 @@ class AbsLearner(ABC):
         agent (Union[AbsAgent, MultiAgentWrapper]): Learning agents. If None, the actor must be an ``Actor`` that
             contains actual agents, rather than an ``ActorProxy``. Defaults to None.
     """
-    def __init__(self, actor: Union[Actor, ActorProxy], agent: Union[AbsAgent, MultiAgentWrapper] = None):
+    def __init__(
+        self,
+        actor: Union[Actor, ActorProxy],
+        agent: Union[AbsAgent, MultiAgentWrapper] = None,
+        log_dir: str = getcwd()  
+    ):
         super().__init__()
         if isinstance(actor, ActorProxy):
             assert agent, "agent cannot be None when the actor is a proxy."
@@ -35,7 +42,7 @@ class AbsLearner(ABC):
             # The agent passed to __init__ is ignored in this case
             self.agent = actor.agent
         self.actor = actor
-        self.logger = InternalLogger("LEARNER")
+        self.logger = Logger("LEARNER", dump_folder=log_dir)
 
     @abstractmethod
     def run(self):
@@ -48,9 +55,10 @@ class OnPolicyLearner(AbsLearner):
         self,
         actor: Union[Actor, ActorProxy],
         max_episode: int,
-        agent: Union[AbsAgent, MultiAgentWrapper] = None
+        agent: Union[AbsAgent, MultiAgentWrapper] = None,
+        log_dir: str = getcwd()
     ):
-        super().__init__(actor, agent=agent)
+        super().__init__(actor, agent=agent, log_dir=log_dir)
         self.max_episode = max_episode
 
     def run(self):
@@ -91,9 +99,10 @@ class OffPolicyLearner(AbsLearner):
         train_iter: int = 1,
         min_experiences_to_train: int = 0,
         batch_size: int = 128,
-        prioritized_sampling_by_loss: bool = False
+        prioritized_sampling_by_loss: bool = False,
+        log_dir: str = getcwd()
     ):
-        super().__init__(actor, agent=agent)
+        super().__init__(actor, agent=agent, log_dir=log_dir)
         self.scheduler = scheduler
         if isinstance(self.agent, AbsAgent):
             self.experience_pool = SimpleStore(["S", "A", "R", "S_", "loss"])
