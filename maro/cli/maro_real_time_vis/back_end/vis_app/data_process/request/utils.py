@@ -7,14 +7,14 @@ from typing import Union
 import pandas as pd
 
 
-def get_data_in_format(original_data: Union[int, slice]) -> pd.DataFrame:
+def get_data_in_format(original_data: json) -> pd.DataFrame:
     """Convert the json data into dataframe.
 
     Args:
-        original_data (Union[int, slice]): Json data requested from database directly.
+        original_data (json): Json data requested from database directly.
 
     Returns:
-        Dataframe: Formatted dataframe.
+        pd.Dataframe: Formatted dataframe.
 
     """
     dataset = original_data["dataset"]
