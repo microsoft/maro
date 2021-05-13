@@ -49,9 +49,7 @@ def get_experiment_info() -> json:
         "query": f"select * from maro.experiments where name='{exp_name}'",
         "count": "true"
     }
-    requests.DEFAULT_RETRIES = 5
     s = requests.session()
-    s.keep_alive = False
     experiment_info = requests.get(
         url=request_settings.request_url.value,
         headers=request_settings.request_header.value,

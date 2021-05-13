@@ -4,11 +4,11 @@
 import pandas as pd
 
 
-def get_data_in_format(original_data: object) -> pd.DataFrame:
+def get_data_in_format(original_data) -> pd.DataFrame:
     """Convert the json data into dataframe.
 
     Args:
-        original_data (object): Json data requested from database directly.
+        original_data: Json data requested from database directly.
 
     Returns:
         pd.Dataframe: Formatted dataframe.
