@@ -45,7 +45,6 @@ def get_experiment_info() -> json:
         params=get_exp_name_params
     ).json()
     exp_name = exp_name["dataset"][0][0]
-    print(exp_name)
     params = {
         "query": f"select * from maro.experiments where name='{exp_name}'",
         "count": "true"
@@ -120,10 +119,9 @@ def add_pending_experiment(experiment_name):
     next_exp_params = {
         "query": f"INSERT INTO pending_experiments(name, time) VALUES('{experiment_name}', {current_time})",
     }
-    test = requests.get(
+    requests.get(
         url=request_settings.request_url.value,
         headers=request_settings.request_header.value,
         params=next_exp_params
     ).json()
-    print(test)
     return "succuess"
