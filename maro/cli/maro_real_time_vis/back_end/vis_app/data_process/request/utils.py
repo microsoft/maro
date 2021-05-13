@@ -23,7 +23,7 @@ def get_data_in_format(original_data: object) -> pd.DataFrame:
     return data_in_format
 
 
-def get_input_range(start_tick: str, end_tick: object) -> str:
+def get_input_range(start_tick: str, end_tick: str) -> str:
     """Get the tick input range in string format.
 
     Args:
