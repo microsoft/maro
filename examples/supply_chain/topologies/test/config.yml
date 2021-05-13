@@ -258,7 +258,7 @@ world:
       skus:
         sku1:
           init_stock: 1000
-          price: 100
+          price: 200
           vlt: 2
         sku2:
           init_stock: 1000

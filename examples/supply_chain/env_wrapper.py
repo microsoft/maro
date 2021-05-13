@@ -160,6 +160,9 @@ class SCEnvWrapper(AbsEnvWrapper):
 
         self.stock_status = {}
         self.demand_status = {}
+        # key: product unit id, value: number
+        self.orders_from_downstreams = {}
+        self.consumer_orders = {}
         self.order_in_transit_status = {}
         self.order_to_distribute_status = {}
 
@@ -295,7 +298,7 @@ class SCEnvWrapper(AbsEnvWrapper):
             storage_index = self._facility2storage_index_dict[agent_info.facility_id]
 
             np_state = self.get_rl_policy_state(state, agent_info)
-            #np_state = self.get_or_policy_state(state, agent_info)
+            np_state = self.get_or_policy_state(state, agent_info)
 
             # agent_info.agent_type -> policy
             final_state[f"{agent_info.agent_type}.{agent_info.id}"] = np_state
@@ -348,7 +351,7 @@ class SCEnvWrapper(AbsEnvWrapper):
                         continue
 
                     sku = self._units_mapping[unit_id][3]
-                    # give it 1 means no discount, not 0
+
                     reward_discount = 1
 
                     env_action[unit_id] = ConsumerAction(
@@ -359,6 +362,10 @@ class SCEnvWrapper(AbsEnvWrapper):
                         sku.vlt,
                         reward_discount
                     )
+
+                    self.consumer_orders[product_unit_id] = action_number
+                    self.orders_from_downstreams[self.facility_levels[source_id][product_id]["skuproduct"].id] = action_number
+
             # manufacturer action
             elif agent_id.startswith("producer"):
                 sku = self._units_mapping[unit_id][3]
@@ -838,7 +845,7 @@ class BalanceSheetCalculator:
             .reshape(-1, len(self.consumer_features))
 
         # quantity * price
-        consumer_profit = consumer_bs_states[:, 1] * consumer_bs_states[:, 2]
+        order_profit = consumer_bs_states[:, 1] * consumer_bs_states[:, 2]
 
         # balance_sheet_profit = 0
         # order_cost + order_product_cost
@@ -846,7 +853,7 @@ class BalanceSheetCalculator:
 
         # consumer step reward: balance sheet los + profile * discount
         consumer_step_reward = consumer_step_balance_sheet_loss + \
-            consumer_profit * consumer_bs_states[:, 5]
+            order_profit * consumer_bs_states[:, 5]
 
         # seller
         seller_bs_states = self.seller_ss[tick::self.seller_features]\
@@ -937,11 +944,11 @@ class BalanceSheetCalculator:
             product_balance_sheet_loss[i] += storage_reward
 
             if distribution_index is not None:
-                product_balance_sheet_loss[i] += product_distribution_balance_sheet_loss[distribution_index]
-                product_balance_sheet_profit[i] += product_distribution_balance_sheet_profit[distribution_index]
+                product_balance_sheet_loss[i] += product_distribution_balance_sheet_loss[i]
+                product_balance_sheet_profit[i] += product_distribution_balance_sheet_profit[i]
 
-                product_step_reward[i] += product_distribution_balance_sheet_loss[distribution_index] + \
-                    product_distribution_balance_sheet_profit[distribution_index]
+                product_step_reward[i] += product_distribution_balance_sheet_loss[i] + \
+                    product_distribution_balance_sheet_profit[i]
 
             if len(downstreams) > 0:
                 for did in downstreams:
@@ -1008,7 +1015,7 @@ class BalanceSheetCalculator:
 
 
         # For consumers.
-        consumer_step_balance_sheet = consumer_profit + consumer_step_balance_sheet_loss
+        consumer_step_balance_sheet = order_profit + consumer_step_balance_sheet_loss
 
         for id, bs, rw in zip(consumer_bs_states[:, 0], consumer_step_balance_sheet, consumer_step_reward):
             result[int(id)] = (bs, rw)
