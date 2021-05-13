@@ -716,3 +716,7 @@ class Proxy:
 
         self._message_cache_for_exited_peers[peer_name].append(message)
         self._logger.info(f"Temporarily save message {message.session_id} to message cache.")
+
+    def close(self):
+        self._redis_connection.hdel(self._redis_hash_name, self._name)
+        self._driver.close()

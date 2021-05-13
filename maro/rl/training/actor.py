@@ -110,3 +110,4 @@ class Actor(object):
                     )
                     proxy.isend(rollout_finish_msg)
                 self.env.reset()
+        proxy.close()

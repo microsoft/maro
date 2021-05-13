@@ -89,3 +89,4 @@ class ActorProxy(object):
             component_type="actor", tag=MessageTag.EXIT, session_type=SessionType.NOTIFICATION
         )
         self.logger.info("Exiting...")
+        self._proxy.close()
