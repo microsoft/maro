@@ -26,7 +26,7 @@ class ConsumerMinMaxPolicy(ConsumerBaselinePolicy):
         
         most_needed_product_id = state['product_idx']
         # stop placing orders if no risk of out of stock
-        vlt_buffer_days = 1
+        vlt_buffer_days = 10
         vlt = state['vlt'] + vlt_buffer_days
         sale_mean, sale_std = state['sale_mean'], state['sale_std']
         service_level = state['service_level']

@@ -17,10 +17,9 @@ from config import config
 from env_wrapper import SCEnvWrapper
 from exploration import exploration_dict, agent2exploration
 from learner import SCLearner
-from or_policies import agent2policy, policy_dict, policy_update_schedule
-# from policies import agent2policy, policy_dict, policy_update_schedule
+# from or_policies import agent2policy, policy_dict, policy_update_schedule
+from policies import agent2policy, policy_dict, policy_update_schedule
 
-from render_tools import SimulationTracker
 
 
 # for distributed / multi-process training
@@ -43,22 +42,17 @@ def sc_learner():
     )
 
     # create a learner to start training
+    env = SCEnvWrapper(Env(**config["env"]))
     learner = SCLearner(
         policy_dict, agent2policy, config["num_episodes"], policy_update_schedule,
         actor_manager=actor_manager,
         experience_update_interval=config["experience_update_interval"],
         eval_schedule=config["eval_schedule"],
+        eval_env = env,
         log_env_metrics=config["log_env_metrics"],
         log_dir=log_dir
     )
-    # learner.run()
-
-    env = SCEnvWrapper(Env(**config["env"]))
-    tracker = SimulationTracker(60, 1, env, learner)
-    loc_path = '/maro/supply_chain/output/'
-    facility_types = ["product"]
-    os.system(f"rm {loc_path}/*")
-    tracker.run_and_render(loc_path, facility_types)
+    learner.run()
 
 
 def sc_actor(name: str):

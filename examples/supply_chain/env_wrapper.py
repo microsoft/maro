@@ -50,7 +50,7 @@ keys_in_state = [(None, ['is_over_stock', 'is_out_of_stock', 'is_below_rop',
                  ('max_price', ['sku_price', 'sku_cost'])]
 
 # Sku related agent types
-sku_agent_types = {"consumer", "producer", "product"}
+sku_agent_types = {"consumer", "consumerstore", "producer", "product", "productstore"}
 
 
 class UnitBaseInfo:
@@ -187,7 +187,7 @@ class SCEnvWrapper(AbsEnvWrapper):
         if agent_info.is_facility:
             return state
 
-        product_unit_id = agent_info.id if agent_info.agent_type == "product" else agent_info.parent_id
+        product_unit_id = agent_info.id if agent_info.agent_type in ["product", "productstore"] else agent_info.parent_id
 
         id, product_id, storage_index, unit_storage_cost, distribution_index, downstreams, consumer, seller, manufacture = \
                         self.balance_cal.products[self.balance_cal.product_id2index_dict[product_unit_id]]
@@ -295,7 +295,8 @@ class SCEnvWrapper(AbsEnvWrapper):
             storage_index = self._facility2storage_index_dict[agent_info.facility_id]
 
             np_state = self.get_rl_policy_state(state, agent_info)
-            np_state = self.get_or_policy_state(state, agent_info)
+            if agent_info.agent_type in ["consumer", "producer"]:
+                np_state = self.get_or_policy_state(state, agent_info)
 
             # agent_info.agent_type -> policy
             final_state[f"{agent_info.agent_type}.{agent_info.id}"] = np_state
@@ -386,7 +387,7 @@ class SCEnvWrapper(AbsEnvWrapper):
             return
 
         # Get product unit id for current agent.
-        product_unit_id = agent_info.id if agent_info.agent_type == "product" else agent_info.parent_id
+        product_unit_id = agent_info.id if agent_info.agent_type in ["product", "productstore"] else agent_info.parent_id
 
         product_metrics = self._cur_metrics["products"][product_unit_id]
 
@@ -729,6 +730,7 @@ class BalanceSheetCalculator:
         self.products = []
         self.product_id2index_dict = {}
         self.facility_levels = []
+        self.consumer_id2product = {}
 
         self.facilities = env.summary["node_mapping"]["facilities"]
 
@@ -739,6 +741,8 @@ class BalanceSheetCalculator:
             for product_id, product in facility["units"]["products"].items():
                 pid_list.append(product["id"])
                 consumer = product["consumer"]
+                if consumer is not None:
+                    self.consumer_id2product[consumer["id"]] = product["id"]
                 seller = product["seller"]
                 manufacture = product["manufacture"]
 
@@ -787,8 +791,9 @@ class BalanceSheetCalculator:
         consumer_step_balance_sheet_loss = -1 * (consumer_bs_states[:, 3] + consumer_bs_states[:, 4])
 
         # consumer step reward: balance sheet los + profile * discount
-        consumer_step_reward = consumer_step_balance_sheet_loss + \
-            consumer_profit * consumer_bs_states[:, 5]
+        # consumer_step_reward = consumer_step_balance_sheet_loss + \
+        #     consumer_profit * consumer_bs_states[:, 5]
+        consumer_step_reward = consumer_step_balance_sheet_loss
 
         # seller
         seller_bs_states = self.seller_ss[tick::self.seller_features]\
@@ -823,7 +828,7 @@ class BalanceSheetCalculator:
             .flatten()\
             .reshape(-1, len(self.product_features))
 
-        # product distribution loss = check order + delay order penalty
+        # product distribution loss = transportation cost + delay order penalty
         product_distribution_balance_sheet_loss = -1 * \
             (product_bs_states[:, 3] + product_bs_states[:, 4])
 
@@ -885,16 +890,16 @@ class BalanceSheetCalculator:
                 product_step_reward[i] += product_distribution_balance_sheet_loss[distribution_index] + \
                     product_distribution_balance_sheet_profit[distribution_index]
 
-            if downstreams and len(downstreams) > 0:
-                if product_id in downstreams:
-                    for dfacility in downstreams[product_id]:
-                        dproducts = self.facilities[dfacility]["units"]["products"]
+            # if downstreams and len(downstreams) > 0:
+            #     if product_id in downstreams:
+            #         for dfacility in downstreams[product_id]:
+            #             dproducts = self.facilities[dfacility]["units"]["products"]
 
-                        did = dproducts[product_id]["id"]
+            #             did = dproducts[product_id]["id"]
 
-                        product_balance_sheet_loss[i] += product_balance_sheet_loss[self.product_id2index_dict[did]]
-                        product_balance_sheet_profit[i] += product_balance_sheet_profit[self.product_id2index_dict[did]]
-                        product_step_reward[i] += product_step_reward[self.product_id2index_dict[did]]
+            #             product_balance_sheet_loss[i] += product_balance_sheet_loss[self.product_id2index_dict[did]]
+            #             product_balance_sheet_profit[i] += product_balance_sheet_profit[self.product_id2index_dict[did]]
+            #             product_step_reward[i] += product_step_reward[self.product_id2index_dict[did]]
 
         product_balance_sheet = product_balance_sheet_profit + product_balance_sheet_loss
 
@@ -958,9 +963,10 @@ class BalanceSheetCalculator:
         consumer_step_balance_sheet = consumer_profit + consumer_step_balance_sheet_loss
 
         for id, bs, rw in zip(consumer_bs_states[:, 0], consumer_step_balance_sheet, consumer_step_reward):
-            result[int(id)] = (bs, rw)
-
-            self.total_balance_sheet[id] += bs
+            # result[int(id)] = (bs, rw)
+            # let reward of a consumer equate its parent product
+            result[int(id)] = result[self.consumer_id2product[int(id)]]
+            self.total_balance_sheet[id] += result[int(id)][0]
 
         # For producers.
         man_step_balance_sheet = man_balance_sheet_profit_loss

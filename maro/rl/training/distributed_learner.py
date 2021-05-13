@@ -86,8 +86,9 @@ class DistributedLearner(object):
 
     def run(self):
         for ep in range(1, self.num_episodes + 1):
+            self._logger.info(f"Learner episode: {ep}")
             self._train(ep)
-
+            
             policy_ids = self.policy_update_schedule.pop_episode(ep)
             if policy_ids == ["*"]:
                 policy_ids = self._updatable_policy_ids

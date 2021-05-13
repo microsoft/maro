@@ -105,7 +105,7 @@ class SimulationTracker:
         _agent_list = []
         _step_idx = []
         for i, agent_info in enumerate(self.facility_names):
-            if agent_info.agent_type in facility_types:
+            if agent_info.agent_type in ['productstore']:
                 _agent_list.append(agent_info.id)
                 _step_idx.append(i)
         _step_metrics = [metrics[0, :, i] for i in _step_idx]

@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from examples.supply_chain.policies import get_dqn_policy
 import sys
 from os.path import dirname, realpath
 
@@ -14,6 +15,7 @@ from maro.rl import (
 )
 
 from or_policy.minmax_policy import ConsumerMinMaxPolicy
+from or_policy.eoq_policy import ConsumerEOQPolicy
 from or_policy.base_policy import ProducerBaselinePolicy
 
 sc_code_dir = dirname(realpath(__file__))
@@ -21,12 +23,15 @@ sys.path.insert(0, sc_code_dir)
 from config import config
 
 agent_ids = config["agent_ids"]
-policy_ids = ["consumer", "producer", "facility", "product"]
+policy_ids = ["consumer", "producer", "facility", "product", "storeproduct"]
 
 config = config["policy"]
 
 def get_base_consumer_policy(config):
     return ConsumerMinMaxPolicy(config)
+
+def get_eoq_consumer_policy(config):
+    return ConsumerEOQPolicy(config)
 
 def get_base_producer_policy(config):
     return ProducerBaselinePolicy(config)
@@ -37,8 +42,10 @@ null_policy = NullPolicy()
 policy_dict = {
     'consumer': get_base_consumer_policy(config['consumer']),
     'producer': get_base_producer_policy(config['producer']),
+    'storeconsumer': get_dqn_policy(config['storeconsumer']),
     'facility': null_policy,
-    'product': null_policy
+    'product': null_policy,
+    'storeproduct': null_policy
 }
 
 agent2policy = {agent_id: agent_id.split(".")[0] for agent_id in agent_ids}
