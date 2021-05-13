@@ -85,6 +85,7 @@ class Actor(object):
         for msg in proxy.receive():
             if msg.tag == MessageTag.EXIT:
                 logger.info("Exiting...")
+                proxy.close()
                 sys.exit(0)
             elif msg.tag == MessageTag.ROLLOUT:
                 ep = msg.payload[PayloadKey.ROLLOUT_INDEX]
@@ -111,4 +112,3 @@ class Actor(object):
                     )
                     proxy.isend(rollout_finish_msg)
                 self.env.reset()
-        proxy.close()
