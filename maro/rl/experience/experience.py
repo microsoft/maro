@@ -28,29 +28,3 @@ class ExperienceSet:
         self.actions += other.actions
         self.rewards += other.rewards
         self.next_states += other.next_states
-
-
-class ReplayBuffer(object):
-    def __init__(self):
-        self.states = []
-        self.actions = []
-        self.rewards = []
-
-    def to_experience_set(self):
-        # print(len(self.rewards), len(self.states))
-        num_complete = self.size()
-        exp_set = ExperienceSet(
-            states=self.states[:num_complete],
-            actions=self.actions[:num_complete],
-            rewards=self.rewards[:num_complete],
-            next_states=self.states[1:num_complete + 1]
-        )
-
-        del self.states[:num_complete]
-        del self.actions[:num_complete]
-        del self.rewards[:num_complete]
-
-        return exp_set
-
-    def size(self):
-        return min(len(self.rewards), len(self.states) - 1)

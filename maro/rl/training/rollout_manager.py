@@ -170,7 +170,6 @@ class LocalRolloutManager(AbsRolloutManager):
         self._logger.info("Evaluating...")
         self._eval_ep += 1
         self._load_policy_states(policy_state_dict)
-        self.eval_env.save_replay = False
         self.eval_env.reset()
         self.eval_env.start()  # get initial state
         while self.eval_env.state:
