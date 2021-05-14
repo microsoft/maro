@@ -125,7 +125,7 @@ package **streamit** with following code before environment initialization:
 
 ----
 
-To get the complete reference, please view the file maro/examples/hello_world/cim/hello.py.
+To get the complete reference, please view the file maro/examples/hello_world/cim/hello_geo_vis.py.
 
 After starting the experiment, user needs to query its name in local database to make sure
 the experimental data is sent successfully.
@@ -144,12 +144,12 @@ command:
 
 ----
 
-Generally, the back end service runs on local machine, occupy the port 5000. If port 5000 is already
-occupied, program would find a free port start from 5000.
+Generally, the backend service runs on a local machine, occupying port 5000. 
+If port 5000 is already occupied, the program would find another free port starting from 5000. 
 
-To be specific, if user would like to run the back end service in docker rather on local machine, please
+To be specific, if user would like to run the backend service in docker rather on a local machine, please
 run the shell script run_docker.sh under the folder maro\maro\cli\maro_real_time_vis. It should be noted that
-if user run back end service with docker, data processing may be slower than local.
+if user run backend service with docker, data processing may be slower than local.
 
 The program will automatically determine whether to use real-time mode
 or local mode according to the data status of the current experiment.

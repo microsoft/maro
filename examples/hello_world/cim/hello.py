@@ -10,7 +10,7 @@ from maro.streamit import streamit
 
 if __name__ == "__main__":
     start_tick = 0
-    durations = 3  # 100 days
+    durations = 100  # 100 days
 
     opts = dict()
     with streamit:
@@ -24,6 +24,7 @@ if __name__ == "__main__":
         # Initialize an environment with a specific scenario, related topology.
         env = Env(scenario="cim", topology="global_trade.22p_l0.1",
                   start_tick=start_tick, durations=durations, options=opts)
+        # To reset environmental data before starting a new experiment.
         env.reset()
         # Query environment summary, which includes business instances, intra-instance attributes, etc.
         print(env.summary)
