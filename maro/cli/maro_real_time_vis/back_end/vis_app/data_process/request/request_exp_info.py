@@ -117,4 +117,3 @@ def add_pending_experiment(experiment_name):
         headers=request_settings.request_header.value,
         params=next_exp_params
     ).json()
-    return "succuess"
