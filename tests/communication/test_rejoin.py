@@ -43,7 +43,7 @@ def actor_init(queue, redis_port):
             proxy.reply(message=msg, tag="recv", payload=f"{proxy.name} finish!")
             sys.exit(0)
 
-    proxy.__del__()
+    proxy.close()
     sys.exit(1)
 
 

@@ -2,12 +2,13 @@
 # Licensed under the MIT license.
 
 import sys
+from os import getcwd
 from typing import Union
 
 from maro.communication import Message, Proxy
 from maro.rl.agent import AbsAgent, MultiAgentWrapper
 from maro.simulator import Env
-from maro.utils import InternalLogger
+from maro.utils import Logger
 
 from .message_enums import MessageTag, PayloadKey
 
@@ -68,7 +69,7 @@ class Actor(object):
 
         return self.env.metrics, self.trajectory.on_finish() if training else None
 
-    def as_worker(self, group: str, proxy_options=None):
+    def as_worker(self, group: str, proxy_options=None, log_dir: str = getcwd()):
         """Executes an event loop where roll-outs are performed on demand from a remote learner.
 
         Args:
@@ -80,10 +81,11 @@ class Actor(object):
         if proxy_options is None:
             proxy_options = {}
         proxy = Proxy(group, "actor", {"learner": 1}, **proxy_options)
-        logger = InternalLogger(proxy.name)
+        logger = Logger(proxy.name, dump_folder=log_dir)
         for msg in proxy.receive():
             if msg.tag == MessageTag.EXIT:
                 logger.info("Exiting...")
+                proxy.close()
                 sys.exit(0)
             elif msg.tag == MessageTag.ROLLOUT:
                 ep = msg.payload[PayloadKey.ROLLOUT_INDEX]
