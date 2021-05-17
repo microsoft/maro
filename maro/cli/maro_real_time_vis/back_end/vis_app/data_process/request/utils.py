@@ -1,19 +1,17 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import json
-
 import pandas as pd
 
 
-def get_data_in_format(original_data: json) -> pd.DataFrame:
+def get_data_in_format(original_data) -> pd.DataFrame:
     """Convert the json data into dataframe.
 
     Args:
-        original_data (json): Json data requested from database directly.
+        original_data: Json data requested from database directly.
 
     Returns:
-        Dataframe: Formatted dataframe.
+        pd.Dataframe: Formatted dataframe.
 
     """
     dataset = original_data["dataset"]
@@ -36,10 +34,10 @@ def get_input_range(start_tick: str, end_tick: str) -> str:
         str: Range of tick in string format.
 
     """
-    i = start_tick
+    i = int(start_tick)
     input_range = "("
-    while i < end_tick:
-        if i == end_tick - 1:
+    while i < int(end_tick):
+        if i == int(end_tick) - 1:
             input_range = input_range + "'" + str(i) + "'" + ")"
         else:
             input_range = input_range + "'" + str(i) + "'" + ","
