@@ -75,6 +75,8 @@ class SupplyChainBusinessEngine(AbsBusinessEngine):
 
         self._reset_by_facility()
 
+        self._action_cache = None
+
     def get_node_mapping(self) -> dict:
         return self._node_mapping
 
