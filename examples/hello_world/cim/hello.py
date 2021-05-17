@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-# Enable realtime data streaming with following statements.
 from maro.simulator import Env
 from maro.simulator.scenarios.cim.common import Action, ActionType
 
@@ -25,7 +24,6 @@ if __name__ == "__main__":
     print(env.summary)
 
     for ep in range(2):
-
         # Gym-like step function.
         metrics, decision_event, is_done = env.step(None)
 
