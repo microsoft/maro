@@ -87,6 +87,8 @@ class UnitBase:
         if self.data_model is not None:
             self.data_model.reset()
 
+        self.action = None
+
     def initialize(self):
         """Initialize this unit after data model is ready to use.
 
