@@ -6,13 +6,13 @@
 
 import os
 
-from maro.simulator import Env
-from maro.simulator.scenarios.cim.common import Action, ActionType
-from maro.streamit import streamit
-
 os.environ["MARO_STREAMIT_ENABLED"] = "true"
 os.environ["MARO_STREAMIT_EXPERIMENT_NAME"] = "experiment_example"
 
+
+from maro.simulator import Env
+from maro.simulator.scenarios.cim.common import Action, ActionType
+from maro.streamit import streamit
 
 if __name__ == "__main__":
     start_tick = 0
@@ -25,12 +25,12 @@ if __name__ == "__main__":
         If you leave value to empty string, it will dump to current folder.
         For getting dump data, please uncomment below line and specify dump destination folder.
         """
+        # opts['enable-dump-snapshot'] = ''
 
         # Initialize an environment with a specific scenario, related topology.
         env = Env(scenario="cim", topology="global_trade.22p_l0.1",
                   start_tick=start_tick, durations=durations, options=opts)
-        # To reset environmental data before starting a new experiment.
-        env.reset()
+
         # Query environment summary, which includes business instances, intra-instance attributes, etc.
         print(env.summary)
 
