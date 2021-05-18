@@ -5,7 +5,6 @@ from collections import defaultdict, namedtuple
 from os import getcwd
 from typing import List, Union
 
-from maro.rl.env_wrapper import AbsEnvWrapper
 from maro.utils import Logger
 
 from .policy_manager import AbsPolicyManager

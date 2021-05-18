@@ -15,9 +15,13 @@ if __name__ == "__main__":
     If you leave value to empty string, it will dump to current folder.
     For getting dump data, please uncomment below line and specify dump destination folder.
     """
+    opts['enable-dump-snapshot'] = 'YOUR_FOLDER_NAME'
+
     # Initialize an environment with a specific scenario, related topology.
-    env = Env(scenario="cim", topology="global_trade.22p_l0.1",
-                start_tick=start_tick, durations=durations)
+    env = Env(
+        scenario="cim", topology="global_trade.22p_l0.1",
+        start_tick=start_tick, durations=durations, options=opts
+    )
     # To reset environmental data before starting a new experiment.
     env.reset()
     # Query environment summary, which includes business instances, intra-instance attributes, etc.
