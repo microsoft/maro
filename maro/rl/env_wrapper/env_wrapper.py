@@ -12,7 +12,7 @@ from .replay_buffer import AbsReplayBuffer
 
 
 class AbsEnvWrapper(ABC):
-    """Environment wrapper that performs shaping, transition caching and experience generation.
+    """Environment wrapper that performs scenario-specific processing, transition caching and experience generation.
 
     Args:
         env (Env): Environment instance.

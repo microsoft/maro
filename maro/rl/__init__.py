@@ -17,7 +17,7 @@ from maro.rl.model import (
 )
 from maro.rl.policy import AbsCorePolicy, AbsPolicy, NullPolicy, RLPolicy
 from maro.rl.training import (
-    AbsPolicyManager, AbsRolloutManager, Actor, ExperienceTrigger, Learner, LocalPolicyManager, LocalRolloutManager,
+    AbsPolicyManager, AbsRolloutManager, Actor, PolicyUpdateTrigger, Learner, LocalPolicyManager, LocalRolloutManager,
     ParallelRolloutManager
 )
 from maro.rl.utils import (
@@ -36,7 +36,7 @@ __all__ = [
     "AbsBlock", "AbsCoreModel", "FullyConnectedBlock", "OptimOption", "PolicyNetForDiscreteActionSpace",
     "PolicyValueNetForContinuousActionSpace", "PolicyValueNetForDiscreteActionSpace", "QNetForDiscreteActionSpace",
     "AbsCorePolicy", "AbsPolicy", "NullPolicy", "RLPolicy",
-    "AbsPolicyManager", "AbsRolloutManager", "Actor", "ExperienceTrigger", "Learner", "LocalPolicyManager", "LocalRolloutManager",
+    "AbsPolicyManager", "AbsRolloutManager", "Actor", "PolicyUpdateTrigger", "Learner", "LocalPolicyManager", "LocalRolloutManager",
     "ParallelRolloutManager",
     "StepBasedSchedule",
     "get_k_step_returns", "get_lambda_returns", "get_torch_activation_cls", "get_torch_loss_cls",
