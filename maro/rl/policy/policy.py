@@ -3,115 +3,78 @@
 
 from abc import ABC, abstractmethod
 
-from maro.rl.exploration import AbsExploration
-from maro.rl.experience import AbsExperienceManager, ExperienceSet
+from maro.rl.experience import AbsExperienceManager
 
 
 class AbsPolicy(ABC):
-    """Abstract fixed policy class.
-
-    Args:
-        config: Settings for the algorithm.
-    """
+    """Abstract policy class."""
     def __init__(self):
         super().__init__()
 
     @abstractmethod
     def choose_action(self, state):
-        """Compute an action based on a state object.
-
-        Args:
-            state: State object.
-
-        Returns:
-            The action to be taken given the state object. It is usually necessary to use an ``ActionShaper`` to convert
-            this to an environment executable action.
-        """
         raise NotImplementedError
 
 
 class NullPolicy(AbsPolicy):
+    """Dummy policy that does nothing. 
+    
+    Note that the meaning of a "None" action may depend on the scenario. 
+    """
     def choose_action(self, state):
         return None
 
 
 class AbsCorePolicy(AbsPolicy):
-    def __init__(self, experience_manager: AbsExperienceManager, config):
+    """Policy that can update itself using simulation experiences.
+
+    Reinforcement learning (RL) policies should inherit from this.
+
+    Args:
+        experience_manager (AbsExperienceManager): An experience manager that exposes put() and get() interfaces
+            for storing and retrieving experiences for training.
+    """
+    def __init__(self, experience_manager: AbsExperienceManager):
         super().__init__()
         self.experience_manager = experience_manager
-        self.config = config
 
     @abstractmethod
     def choose_action(self, state):
-        """Compute an action based on a state object.
-
-        Args:
-            state: State object.
-
-        Returns:
-            The action to be taken given the state object. It is usually necessary to use an ``ActionShaper`` to convert
-            this to an environment executable action.
-        """
         raise NotImplementedError
 
     @abstractmethod
     def update(self):
+        """Policy update logic is implemented here.
+        
+        This usually includes retrieving experiences as training samples from the experience manager and
+        updating the underlying models using these samples.
+        """
         raise NotImplementedError
 
     @abstractmethod
     def get_state(self):
+        """Return the current state of the policy.
+        
+        The implementation must be in correspondence with that of ``set_state``. For example, if a torch model
+        is contained in the policy, ``get_state`` may include a call to ``state_dict()`` on the model, while
+        ``set_state`` should accordingly include ``load_state_dict()``.
+        """
         pass
 
     @abstractmethod
     def set_state(self, policy_state):
+        """Set the policy state to ``policy_state``.
+
+        The implementation must be in correspondence with that of ``get_state``. For example, if a torch model
+        is contained in the policy, ``set_state`` may include a call to ``load_state_dict()`` on the model, while
+        ``get_state`` should accordingly include ``state_dict()``.
+        """
         pass
 
     def load(self, path: str):
+        """Load the policy state from disk."""
         pass
 
     def save(self, path: str):
+        """Save the policy state to disk."""
         pass
-
-
-class RLPolicy(object):
-    """Abstract fixed policy class.
-
-    Args:
-        config: Settings for the algorithm.
-    """
-    def __init__(self, core_policy: AbsCorePolicy, exploration: AbsExploration = None):
-        self.core_policy = core_policy
-        self.exploration = exploration
-
-    def choose_action(self, state):
-        """Compute an action based on a state object.
-
-        Args:
-            state: State object.
-
-        Returns:
-            The action to be taken given the state object. It is usually necessary to use an ``ActionShaper`` to convert
-            this to an environment executable action.
-        """
-        action = self.core_policy.choose_action(state)
-        return self.exploration(action)
-
-    def update(self):
-        """Algorithm-specific training logic.
-
-        The parameters are data to train the underlying model on. Algorithm-specific loss and optimization
-        should be reflected here.
-        """
-        self.core_policy.update()
-
-    def learn(self, experience_set: ExperienceSet):
-        return self.core_policy.learn(experience_set)
-
-    def set_state(self, policy_state):
-        self.core_policy.set_state(policy_state)
-
-    def load(self, path: str):
-        self.core_policy.load(path)
-
-    def save(self, path: str):
-        self.core_policy.save(path)

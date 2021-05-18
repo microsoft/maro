@@ -12,7 +12,7 @@ from .replay_buffer import AbsReplayBuffer
 
 
 class AbsEnvWrapper(ABC):
-    """Environment wrapper that performs various shaping and other roll-out related logic.
+    """Environment wrapper that performs shaping, transition caching and experience generation.
 
     Args:
         env (Env): Environment instance.
@@ -20,7 +20,7 @@ class AbsEnvWrapper(ABC):
             Transitions will only be recorded for those agents whose IDs appear in the keys of the dictionary. 
             Defaults to None, in which case no transition will be recorded.
         reward_eval_delay (int): Number of ticks required after a decision event to evaluate the reward
-            for the action taken for that event. Defaults to 0, which rewards are evaluated immediately
+            for the action taken for that event. Defaults to 0, which means rewards are evaluated immediately
             after executing an action.
     """
     def __init__(
@@ -41,6 +41,7 @@ class AbsEnvWrapper(ABC):
 
     @property
     def step_index(self):
+        """Number of environmental steps taken so far."""
         return self._step_index
     
     @property
@@ -53,6 +54,7 @@ class AbsEnvWrapper(ABC):
 
     @property
     def state(self):
+        """The current environmental state."""
         return self._state
 
     @property
@@ -61,9 +63,11 @@ class AbsEnvWrapper(ABC):
 
     @property
     def total_reward(self):
+        """The total reward achieved so far."""
         return self._total_reward
 
     def start(self):
+        """Generate the initial environmental state at the beginning of a simulation episode."""
         self._step_index = 0
         _, self._event, _ = self.env.step(None)
         self._state = self.get_state(self.env.tick)
@@ -79,20 +83,27 @@ class AbsEnvWrapper(ABC):
         pass
 
     @abstractmethod
-    def get_action(self, action) -> dict:
+    def get_action(self, action):
+        """Convert policy outputs to an action that can be executed by ``self.env.step()``."""
         pass
 
     @abstractmethod
-    def get_reward(self, tick: int = None) -> dict:
-        """User-defined reward evaluation.
+    def get_reward(self, tick: int = None):
+        """Evaluate the reward for an action.
 
         Args:
-            tick (int): If given, the action that occured at this tick will be evaluated (useful for delayed
-                reward evaluation). Otherwise, the reward is evaluated for the latest action. Defaults to None.
+            tick (int): If given, the reward for the action that occured at this tick will be evaluated (in the case
+                of delayed reward evaluation). Otherwise, the reward is evaluated for the latest action.
+                Defaults to None.
         """
         pass
 
     def step(self, action_by_agent: dict):
+        """Wrapper for env.step().
+
+        The new transition is stored in the replay buffer or cached in a separate data structure if the
+        reward cannot be determined yet due to a non-zero ``reward_eval_delay``.
+        """
         # t0 = time.time()
         self._step_index += 1
         env_action = self.get_action(action_by_agent)
@@ -105,7 +116,7 @@ class AbsEnvWrapper(ABC):
         # self._tot_raw_step_time += t2 - t1
 
         """
-        If roll-out is complete, evaluate rewards for all remaining events except the last.
+        If this is the final step, evaluate rewards for all remaining events except the last.
         Otherwise, evaluate rewards only for events at least self.reward_eval_delay ticks ago.
         """
         while (
@@ -135,13 +146,12 @@ class AbsEnvWrapper(ABC):
         # self._tot_step_time = 0
 
     def end_of_episode(self):
+        """Custom processing logic at the end of an episode."""
         pass
 
-    def get_experiences(self, agent_ids: list = None):
-        if agent_ids is None:
-            return {agent_id: replay.batch() for agent_id, replay in self.replay.items()}
-        else:
-            return {agent_id: self.replay[agent_id].batch() for agent_id in agent_ids}
+    def get_experiences(self):
+        """Get per-agent experiences from the replay buffer."""
+        return {agent_id: replay.batch() for agent_id, replay in self.replay.items()}
 
     def reset(self):
         self.env.reset()

@@ -73,7 +73,8 @@ class DDPG(AbsCorePolicy):
         if not isinstance(ac_net, PolicyValueNetForContinuousActionSpace):
             raise TypeError("model must be an instance of 'PolicyValueNetForContinuousActionSpace'")
 
-        super().__init__(experience_manager, config)
+        super().__init__(experience_manager)
+        self.config = config
         self.ac_net = ac_net
         self.target_ac_net = ac_net.copy() if self.ac_net.trainable else None
         self._train_cnt = 0

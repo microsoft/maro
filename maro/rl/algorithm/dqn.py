@@ -71,7 +71,8 @@ class DQN(AbsCorePolicy):
         if not isinstance(q_net, QNetForDiscreteActionSpace):
             raise TypeError("model must be an instance of 'QNetForDiscreteActionSpace'")
 
-        super().__init__(experience_manager, config)
+        super().__init__(experience_manager)
+        self.config = config
         self.q_net = q_net
         self.target_q_net = q_net.copy() if q_net.trainable else None
         self.target_q_net.eval()

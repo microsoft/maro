@@ -68,7 +68,8 @@ class ActorCritic(AbsCorePolicy):
         if not isinstance(ac_net, PolicyValueNetForDiscreteActionSpace):
             raise TypeError("model must be an instance of 'PolicyValueNetForDiscreteActionSpace'")
 
-        super().__init__(experience_manager, config)
+        super().__init__(experience_manager)
+        self.config = config
         self.ac_net = ac_net
 
     def choose_action(self, states) -> Tuple[np.ndarray, np.ndarray]:
