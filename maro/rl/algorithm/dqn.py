@@ -7,7 +7,7 @@ import numpy as np
 import torch
 
 from maro.rl.experience import AbsExperienceManager
-from maro.rl.model import QNetForDiscreteActionSpace
+from maro.rl.model import DiscreteQNet
 from maro.rl.policy import AbsCorePolicy
 from maro.rl.utils import get_torch_loss_cls
 
@@ -59,17 +59,17 @@ class DQN(AbsCorePolicy):
     See https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf for details.
 
     Args:
-        model (QNetForDiscreteActionSpace): Q-value model.
+        model (DiscreteQNet): Q-value model.
         config (DQNConfig): Configuration for DQN algorithm.
     """
     def __init__(
         self,
-        q_net: QNetForDiscreteActionSpace,
+        q_net: DiscreteQNet,
         experience_manager: AbsExperienceManager,
         config: DQNConfig
     ):
-        if not isinstance(q_net, QNetForDiscreteActionSpace):
-            raise TypeError("model must be an instance of 'QNetForDiscreteActionSpace'")
+        if not isinstance(q_net, DiscreteQNet):
+            raise TypeError("model must be an instance of 'DiscreteQNet'")
 
         super().__init__(experience_manager)
         self.config = config

@@ -8,7 +8,7 @@ import numpy as np
 import torch
 
 from maro.rl.experience import AbsExperienceManager
-from maro.rl.model import PolicyValueNetForContinuousActionSpace
+from maro.rl.model import ContinuousACNet
 from maro.rl.policy import AbsCorePolicy
 from maro.rl.utils import get_torch_loss_cls
 
@@ -61,17 +61,17 @@ class DDPG(AbsCorePolicy):
         https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch/ddpg
 
     Args:
-        ac_net (PolicyValueNetForContinuousActionSpace): DDPG policy and q-value models.
+        ac_net (ContinuousACNet): DDPG policy and q-value models.
         config (DDPGConfig): Configuration for DDPG algorithm.
     """
     def __init__(
         self,
-        ac_net: PolicyValueNetForContinuousActionSpace,
+        ac_net: ContinuousACNet,
         experience_manager: AbsExperienceManager,
         config: DDPGConfig
     ):
-        if not isinstance(ac_net, PolicyValueNetForContinuousActionSpace):
-            raise TypeError("model must be an instance of 'PolicyValueNetForContinuousActionSpace'")
+        if not isinstance(ac_net, ContinuousACNet):
+            raise TypeError("model must be an instance of 'ContinuousACNet'")
 
         super().__init__(experience_manager)
         self.config = config

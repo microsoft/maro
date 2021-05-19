@@ -2,11 +2,10 @@
 # Licensed under the MIT license.
 
 env:
-    scenario: cim
-    topology: toy.4p_ssdd_l0.0
-    durations: 1120
+  scenario: cim
+  topology: toy.4p_ssdd_l0.0
+  durations: 1120
 max_episode: 50
-policy_update_interval: -1
 shaping:
   port_attributes:
     - empty
@@ -68,13 +67,9 @@ policy:
     num_steps: 10
     actor_loss_coefficient: 0.1
     # clip_ratio: 0.8   # for PPO
-  training_loop_config:
-    sampler_cls: full
-    batch_size: -1
-    num_steps: 10
-    sampler_kwargs:
-    new_experience_trigger: 1
-    num_warmup_experiences: 1
-  experience_memory:
-    capacity: -1
+  experience_manager:
+    capacity: 100000
     overwrite_type: "rolling"
+  update_trigger:
+    min_new_experiences: 1
+    num_warmup_experiences: 1

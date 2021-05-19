@@ -5,18 +5,18 @@ RL Toolkit
 MARO provides a full-stack abstraction for reinforcement learning (RL), which enables users to
 apply predefined and customized components to various scenarios. The main abstractions include
 fundamental components such as `Agent <#agent>`_\ and `Shaper <#shaper>`_\ , and training routine
-controllers such as `Actor <#actor>` and `Learner <#learner>`.
+controllers such as `Actor <#actor>`_\ and `Learner <#learner>`_.
 
 
-Agent
------
+Policy
+------
 
-The Agent is the kernel abstraction of the RL formulation for a real-world problem. 
-Our abstraction decouples agent and its underlying model so that an agent can exist 
-as an RL paradigm independent of the inner workings of the models it uses to generate 
-actions or estimate values. For example, the actor-critic algorithm does not need to 
-concern itself with the structures and optimizing schemes of the actor and critic models. 
-This decoupling is achieved by the Core Model abstraction described below.
+A policy is used by an agent to decide what action to take given an observation of the environment.
+Accordingly, the abstract ``AbsPolicy`` class exposes a ``choose_action`` interface. This abstraction
+can encompass both static policies, such as rule-based policies, and updatable policies, such as RL
+policies. The latter is abstracted through the ``AbsCorePolicy`` sub-class which also exposes a ``update``
+interface. By default, updatable policies require an experience manager to store and retrieve simulation
+data (in the form of "experiences") based on which updates can be made.
 
 
 .. image:: ../images/rl/agent.svg
@@ -26,23 +26,32 @@ This decoupling is achieved by the Core Model abstraction described below.
 .. code-block:: python
 
   class AbsPolicy(ABC):
-      def __init__(self, model: AbsCoreModel, config, experience_pool=None):
-          self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-          self.model = model.to(self.device)
-          self.config = config
-          self._experience_pool = experience_pool
+      @abstractmethod
+      def choose_action(self, state):
+          raise NotImplementedError
+
+
+  class AbsCorePolicy(AbsPolicy):
+      def __init__(self, experience_manager: AbsExperienceManager):
+          super().__init__()
+          self.experience_manager = experience_manager
+
+      @abstractmethod
+      def update(self):
+          raise NotImplementedError
 
 
 Core Model
 ----------
 
-MARO provides an abstraction for the underlying models used by agents to form policies and estimate values.
-The abstraction consists of ``AbsBlock`` and ``AbsCoreModel``, both of which subclass torch's nn.Module. 
-The ``AbsBlock`` represents the smallest structural unit of an NN-based model. For instance, the ``FullyConnectedBlock`` 
-provided in the toolkit is a stack of fully connected layers with features like batch normalization,
-drop-out and skip connection. The ``AbsCoreModel`` is a collection of network components with
-embedded optimizers and serves as an agent's "brain" by providing a unified interface to it. regardless of how many individual models it requires and how
-complex the model architecture might be.
+In the deep reinforcement learning (DRL) world, a core policy usually includes one or more neural-network-based models,
+which may be used to compute action preferences or estimate state / action values. The core model abstraction is designed
+to decouple the the inner workings of these models from the algorithmic aspects of the policy that uses them. For example,
+the actor-critic algorithm does not need to concern itself with the structures and optimizing schemes of the actor and
+critic models. The abstraction consists of ``AbsBlock`` and ``AbsCoreModel``, both of which subclass torch's nn.Module.
+The ``AbsBlock`` represents the smallest structural unit of an NN-based model. For instance, the ``FullyConnectedBlock``
+is a stack of fully connected layers with features like batch normalization, drop-out and skip connection.
+The ``AbsCoreModel`` is a collection of network components with embedded optimizers. Several classes are designed  
 
 As an example, the initialization of the actor-critic algorithm may look like this:
 
@@ -50,7 +59,7 @@ As an example, the initialization of the actor-critic algorithm may look like th
 
   actor_stack = FullyConnectedBlock(...)
   critic_stack = FullyConnectedBlock(...)
-  model = SimpleMultiHeadModel(
+  ac_model = SimpleMultiHeadModel(
       {"actor": actor_stack, "critic": critic_stack},
       optim_option={
         "actor": OptimizerOption(cls=Adam, params={"lr": 0.001})
@@ -73,11 +82,10 @@ And performing one gradient step is simply:
 
 
 Exploration
---------
+-----------
 
-MARO provides an abstraction for exploration in RL. Some RL algorithms such as DQN and DDPG require
-explicit exploration governed by a set of parameters. The ``AbsExploration`` class is designed to cater
-to these needs. Simple exploration schemes, such as ``EpsilonGreedyExploration`` for discrete action space
+Some RL algorithms such as DQN and DDPG require explicit exploration governed by a set of parameters. The
+``AbsExploration`` class is designed to cater to these needs. Simple exploration schemes, such as ``EpsilonGreedyExploration`` for discrete action space
 and ``UniformNoiseExploration`` and ``GaussianNoiseExploration`` for continuous action space, are provided in
 the toolkit.
 
@@ -91,7 +99,7 @@ As an example, the exploration for DQN may be carried out with the aid of an ``E
 
 
 Tools for Training
-------------------------------
+------------------
 
 .. image:: ../images/rl/learner_actor.svg
    :target: ../images/rl/learner_actor.svg

@@ -7,7 +7,7 @@ import numpy as np
 import torch
 from torch.distributions import Categorical
 
-from maro.rl.model import PolicyNetForDiscreteActionSpace
+from maro.rl.model import DiscreteActorNet
 from maro.rl.policy import AbsCorePolicy
 from maro.rl.utils import get_truncated_cumulative_reward
 
@@ -46,7 +46,7 @@ class PolicyGradient(AbsCorePolicy):
     """
     def __init__(
         self,
-        model: PolicyNetForDiscreteActionSpace,
+        model: DiscreteActorNet,
         config: PolicyGradientConfig,
         experience_memory_size: int,
         experience_memory_overwrite_type: str,
@@ -54,8 +54,8 @@ class PolicyGradient(AbsCorePolicy):
         new_experience_trigger: int = 1,
         min_experiences_to_trigger_training: int = 1
     ):  
-        if not isinstance(model, PolicyNetForDiscreteActionSpace):
-            raise TypeError("model must be an instance of 'PolicyNetForDiscreteActionSpace'")
+        if not isinstance(model, DiscreteActorNet):
+            raise TypeError("model must be an instance of 'DiscreteActorNet'")
         super().__init__(
             model, config, experience_memory_size, experience_memory_overwrite_type,
             empty_experience_memory_after_step,

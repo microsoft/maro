@@ -132,7 +132,7 @@ class AbsCoreModel(nn.Module):
         return model_copy
 
 
-class QNetForDiscreteActionSpace(AbsCoreModel):
+class DiscreteQNet(AbsCoreModel):
     """A compound network structure that consists of multiple task heads and an optional shared stack.
 
     Args:
@@ -162,7 +162,7 @@ class QNetForDiscreteActionSpace(AbsCoreModel):
         return q_for_all_actions.gather(1, actions).squeeze(dim=1)
 
 
-class PolicyNetForDiscreteActionSpace(AbsCoreModel):
+class DiscreteActorNet(AbsCoreModel):
     """A compound network structure that consists of multiple task heads and an optional shared stack.
 
     Args:
@@ -187,7 +187,7 @@ class PolicyNetForDiscreteActionSpace(AbsCoreModel):
         return action, log_p
 
 
-class PolicyValueNetForDiscreteActionSpace(AbsCoreModel):
+class DiscreteACNet(AbsCoreModel):
     """A compound network structure that consists of multiple task heads and an optional shared stack.
 
     Args:
@@ -212,7 +212,7 @@ class PolicyValueNetForDiscreteActionSpace(AbsCoreModel):
         return action, log_p
 
 
-class PolicyValueNetForContinuousActionSpace(AbsCoreModel):
+class ContinuousACNet(AbsCoreModel):
     """A compound network structure that consists of multiple task heads and an optional shared stack.
 
     Args:

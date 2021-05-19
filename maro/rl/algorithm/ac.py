@@ -7,7 +7,7 @@ import numpy as np
 import torch
 
 from maro.rl.experience import AbsExperienceManager
-from maro.rl.model import PolicyValueNetForDiscreteActionSpace
+from maro.rl.model import DiscreteACNet
 from maro.rl.policy import AbsCorePolicy
 from maro.rl.utils import get_torch_loss_cls
 
@@ -55,18 +55,18 @@ class ActorCritic(AbsCorePolicy):
         https://towardsdatascience.com/understanding-actor-critic-methods-931b97b6df3f
 
     Args:
-        ac_net (PolicyValueNetForDiscreteActionSpace): Multi-task model that computes action distributions
+        ac_net (DiscreteACNet): Multi-task model that computes action distributions
             and state values.
         config: Configuration for the AC algorithm.
     """
     def __init__(
         self,
-        ac_net: PolicyValueNetForDiscreteActionSpace,
+        ac_net: DiscreteACNet,
         experience_manager: AbsExperienceManager,
         config: ActorCriticConfig
     ):
-        if not isinstance(ac_net, PolicyValueNetForDiscreteActionSpace):
-            raise TypeError("model must be an instance of 'PolicyValueNetForDiscreteActionSpace'")
+        if not isinstance(ac_net, DiscreteACNet):
+            raise TypeError("model must be an instance of 'DiscreteACNet'")
 
         super().__init__(experience_manager)
         self.config = config

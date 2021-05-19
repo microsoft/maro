@@ -3,7 +3,6 @@
 
 from abc import ABC, abstractmethod
 from collections import defaultdict, namedtuple
-from email.policy import default
 from os import getcwd
 from typing import Dict, Union
 
@@ -90,7 +89,7 @@ class LocalPolicyManager(AbsPolicyManager):
             if hasattr(policy, "experience_manager") and hasattr(policy, "update")
         }
         if update_trigger is None:
-            default_trigger = PolicyUpdateTrigger(min_new_experiences==1, num_warmup_experiences=1)
+            default_trigger = PolicyUpdateTrigger(min_new_experiences=1, num_warmup_experiences=1)
             self._update_trigger = {policy_id: default_trigger for policy_id in self._updatable_policy_dict}
         elif isinstance(update_trigger, dict):
             self._update_trigger = update_trigger
