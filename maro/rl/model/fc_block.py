@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 
 from collections import OrderedDict
+from typing import List
 
 import torch
 import torch.nn as nn
@@ -37,7 +38,7 @@ class FullyConnectedBlock(AbsBlock):
         self,
         input_dim: int,
         output_dim: int,
-        hidden_dims: [int],
+        hidden_dims: List[int],
         activation="relu",
         head: bool = False,
         softmax: bool = False,

@@ -123,30 +123,26 @@ class AbsCoreModel(nn.Module):
         for params, other_params in zip(self.parameters(), other_model.parameters()):
             params.data = (1 - tau) * params.data + tau * other_params.data
 
-    def copy(self, with_optimizer: bool = False):
+    def copy(self, with_optimizer: bool = False, device: str = None):
         model_copy = clone(self)
         if not with_optimizer:
             model_copy.optimizer = None
             model_copy.scheduler = None
 
+        device = self.device if device is None else torch.device(device)
+        model_copy.to(device)
+
         return model_copy
 
 
 class DiscreteQNet(AbsCoreModel):
-    """A compound network structure that consists of multiple task heads and an optional shared stack.
-
-    Args:
-        component (Union[nn.Module, Dict[str, nn.Module]]): Network component(s) comprising the model.
-            All components must have the same input dimension except the one designated as the shared
-            component by ``shared_component_name``.
-        optim_option (Union[OptimOption, Dict[str, OptimOption]]): Optimizer option for
-            the components. Defaults to None.
-    """
+    """NN-based Q-value model."""
     @abstractmethod
     def forward(self, states) -> torch.tensor:
+        """Output Q values"""
         raise NotImplementedError
 
-    def choose_action(self, states):
+    def get_action(self, states):
         """
         Given Q-values for a batch of states and all actions, return the maximum Q-value and
         the corresponding action index for each state.
@@ -162,7 +158,7 @@ class DiscreteQNet(AbsCoreModel):
         return q_for_all_actions.gather(1, actions).squeeze(dim=1)
 
 
-class DiscreteActorNet(AbsCoreModel):
+class DiscretePolicyNet(AbsCoreModel):
     """A compound network structure that consists of multiple task heads and an optional shared stack.
 
     Args:
@@ -176,7 +172,7 @@ class DiscreteActorNet(AbsCoreModel):
     def forward(self, states) -> torch.tensor:
         raise NotImplementedError
 
-    def choose_action(self, states):
+    def get_action(self, states):
         """
         Given Q-values for a batch of states and all actions, return the maximum Q-value and
         the corresponding action index for each state.
@@ -201,10 +197,10 @@ class DiscreteACNet(AbsCoreModel):
     def forward(self, states, output_action_probs: bool = True, output_values: bool = True):
         raise NotImplementedError
 
-    def choose_action(self, states):
+    def get_action(self, states):
         """
-        Given Q-values for a batch of states and all actions, return the maximum Q-value and
-        the corresponding action index for each state.
+        Given Q-values for a batch of states, return the action index and the corresponding maximum Q-value
+        for each state.
         """
         action_prob = Categorical(self.forward(states, output_values=False))  # (batch_size, num_actions)
         action = action_prob.sample()
@@ -219,19 +215,17 @@ class ContinuousACNet(AbsCoreModel):
         component (Union[nn.Module, Dict[str, nn.Module]]): Network component(s) comprising the model.
             All components must have the same input dimension except the one designated as the shared
             component by ``shared_component_name``.
-        optim_option (Union[OptimOption, Dict[str, OptimOption]]): Optimizer option for
-            the components. Defaults to None.
+        optim_option (Union[OptimOption, Dict[str, OptimOption]]): Optimizer option for the components.
+            Defaults to None.
     """
     @abstractmethod
     def forward(self, states, actions=None):
         raise NotImplementedError
 
-    def choose_action(self, states):
-        """
-        Given Q-values for a batch of states and all actions, return the maximum Q-value and
-        the corresponding action index for each state.
-        """
+    def get_action(self, states):
+        """Compute the actions given a batch of states."""
         return self.forward(states)
 
     def value(self, states):
-        return self.forward(states, actions=self.forward(states))
+        """Compute the Q-values for a batch of states using the actions computed from them."""
+        return self.forward(states, actions=self.get_action(states))

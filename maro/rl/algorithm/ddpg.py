@@ -62,26 +62,28 @@ class DDPG(AbsCorePolicy):
 
     Args:
         ac_net (ContinuousACNet): DDPG policy and q-value models.
+        experience_manager (AbsExperienceManager): An experience manager with put() and get() interfaces
+            for storing and retrieving experiences for training.
         config (DDPGConfig): Configuration for DDPG algorithm.
     """
-    def __init__(
-        self,
-        ac_net: ContinuousACNet,
-        experience_manager: AbsExperienceManager,
-        config: DDPGConfig
-    ):
+    def __init__(self, ac_net: ContinuousACNet, experience_manager: AbsExperienceManager, config: DDPGConfig):
         if not isinstance(ac_net, ContinuousACNet):
             raise TypeError("model must be an instance of 'ContinuousACNet'")
 
         super().__init__(experience_manager)
-        self.config = config
         self.ac_net = ac_net
-        self.target_ac_net = ac_net.copy() if self.ac_net.trainable else None
+        if self.ac_net.trainable:
+            self.target_ac_net = ac_net.copy()
+            self.target_ac_net.eval()
+        else:
+            self.target_ac_net = None
+        self.config = config
+        self.device = self.ac_net.device
         self._train_cnt = 0
 
     def choose_action(self, states) -> Union[float, np.ndarray]:
         with torch.no_grad():
-            actions = self.ac_net.choose_action(states).cpu().numpy()
+            actions = self.ac_net.get_action(states).cpu().numpy()
 
         return actions[0] if len(actions) == 1 else actions
 
@@ -90,8 +92,8 @@ class DDPG(AbsCorePolicy):
         for _ in range(self.config.train_epochs):
             experience_set = self.experience_manager.get()
             states, next_states = experience_set.states, experience_set.next_states
-            actual_actions = torch.from_numpy(experience_set.actions).to(self.ac_net.device)
-            rewards = torch.from_numpy(experience_set.rewards).to(self.ac_net.device)
+            actual_actions = torch.from_numpy(experience_set.actions).to(self.device)
+            rewards = torch.from_numpy(experience_set.rewards).to(self.device)
             if len(actual_actions.shape) == 1:
                 actual_actions = actual_actions.unsqueeze(dim=1)  # (N, 1)
             

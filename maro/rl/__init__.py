@@ -13,7 +13,7 @@ from maro.rl.exploration import (
     UniformNoiseExploration
 )
 from maro.rl.model import (
-    AbsBlock, AbsCoreModel, ContinuousACNet, DiscreteACNet, DiscreteActorNet, DiscreteQNet, FullyConnectedBlock,
+    AbsBlock, AbsCoreModel, ContinuousACNet, DiscreteACNet, DiscretePolicyNet, DiscreteQNet, FullyConnectedBlock,
     OptimOption
 )
 from maro.rl.policy import AbsCorePolicy, AbsPolicy, NullPolicy
@@ -34,7 +34,7 @@ __all__ = [
     "AbsExploration", "AbsExplorationScheduler", "EpsilonGreedyExploration", "GaussianNoiseExploration",
     "LinearExplorationScheduler", "MultiPhaseLinearExplorationScheduler", "NoiseExploration", "NullExploration",
     "UniformNoiseExploration",
-    "AbsBlock", "AbsCoreModel", "ContinuousACNet", "DiscreteACNet", "DiscreteActorNet", "DiscreteQNet",
+    "AbsBlock", "AbsCoreModel", "ContinuousACNet", "DiscreteACNet", "DiscretePolicyNet", "DiscreteQNet",
     "FullyConnectedBlock", "OptimOption",
     "AbsCorePolicy", "AbsPolicy", "NullPolicy",
     "AbsPolicyManager", "AbsRolloutManager", "Actor", "PolicyUpdateTrigger", "Learner", "LocalPolicyManager", "LocalRolloutManager",

@@ -40,7 +40,7 @@ class CIMEnvWrapper(AbsEnvWrapper):
         state = np.concatenate((port_features, vessel_features))
         return {port_idx: state}
 
-    def get_action(self, action_by_agent):
+    def to_env_action(self, action_by_agent):
         vessel_snapshots = self.env.snapshot_list["vessels"]
         action_info = list(action_by_agent.values())[0]
         model_action = action_info[0] if isinstance(action_info, tuple) else action_info

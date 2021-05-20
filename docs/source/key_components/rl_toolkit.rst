@@ -11,7 +11,7 @@ controllers such as `Actor <#actor>`_\ and `Learner <#learner>`_.
 Policy
 ------
 
-A policy is used by an agent to decide what action to take given an observation of the environment.
+A policy is a mechanism used by an agent to determine an action to take given an observation of the environment.
 Accordingly, the abstract ``AbsPolicy`` class exposes a ``choose_action`` interface. This abstraction
 can encompass both static policies, such as rule-based policies, and updatable policies, such as RL
 policies. The latter is abstracted through the ``AbsCorePolicy`` sub-class which also exposes a ``update``
@@ -51,7 +51,8 @@ the actor-critic algorithm does not need to concern itself with the structures a
 critic models. The abstraction consists of ``AbsBlock`` and ``AbsCoreModel``, both of which subclass torch's nn.Module.
 The ``AbsBlock`` represents the smallest structural unit of an NN-based model. For instance, the ``FullyConnectedBlock``
 is a stack of fully connected layers with features like batch normalization, drop-out and skip connection.
-The ``AbsCoreModel`` is a collection of network components with embedded optimizers. Several classes are designed  
+The ``AbsCoreModel`` is a collection of network components with embedded optimizers. Subclasses of
+``AbsCoreModel`` provided for use with specific RL algorithms include
 
 As an example, the initialization of the actor-critic algorithm may look like this:
 

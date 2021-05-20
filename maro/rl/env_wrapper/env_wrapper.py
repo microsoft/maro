@@ -83,7 +83,7 @@ class AbsEnvWrapper(ABC):
         pass
 
     @abstractmethod
-    def get_action(self, action):
+    def to_env_action(self, action):
         """Convert policy outputs to an action that can be executed by ``self.env.step()``."""
         pass
 

@@ -57,20 +57,18 @@ class ActorCritic(AbsCorePolicy):
     Args:
         ac_net (DiscreteACNet): Multi-task model that computes action distributions
             and state values.
+        experience_manager (AbsExperienceManager): An experience manager with put() and get() interfaces
+            for storing and retrieving experiences for training.
         config: Configuration for the AC algorithm.
     """
-    def __init__(
-        self,
-        ac_net: DiscreteACNet,
-        experience_manager: AbsExperienceManager,
-        config: ActorCriticConfig
-    ):
+    def __init__(self, ac_net: DiscreteACNet, experience_manager: AbsExperienceManager, config: ActorCriticConfig):
         if not isinstance(ac_net, DiscreteACNet):
             raise TypeError("model must be an instance of 'DiscreteACNet'")
 
         super().__init__(experience_manager)
-        self.config = config
         self.ac_net = ac_net
+        self.config = config
+        self.device = self.ac_net.device
 
     def choose_action(self, states) -> Tuple[np.ndarray, np.ndarray]:
         """Use the actor (policy) model to generate stochastic actions.
@@ -82,7 +80,7 @@ class ActorCritic(AbsCorePolicy):
             Actions and corresponding log probabilities.
         """
         with torch.no_grad():
-            actions, log_p = self.ac_net.choose_action(states)
+            actions, log_p = self.ac_net.get_action(states)
         actions, log_p = actions.cpu().numpy(), log_p.cpu().numpy()
         return (actions[0], log_p[0]) if len(actions) == 1 else actions, log_p
 
@@ -91,9 +89,9 @@ class ActorCritic(AbsCorePolicy):
         for _ in range(self.config.train_epochs):
             experience_set = self.experience_manager.get()
             states, next_states = experience_set.states, experience_set.next_states
-            actions = torch.from_numpy(np.asarray([act[0] for act in experience_set.actions])).to(self.ac_net.device)
-            log_p = torch.from_numpy(np.asarray([act[1] for act in experience_set.actions])).to(self.ac_net.device)
-            rewards = torch.from_numpy(np.asarray(experience_set.rewards)).to(self.ac_net.device)
+            actions = torch.from_numpy(np.asarray([act[0] for act in experience_set.actions])).to(self.device)
+            log_p = torch.from_numpy(np.asarray([act[1] for act in experience_set.actions])).to(self.device)
+            rewards = torch.from_numpy(np.asarray(experience_set.rewards)).to(self.device)
 
             for _ in range(self.config.gradient_iters):
                 state_values = self.ac_net(states, output_action_probs=False).detach().squeeze()

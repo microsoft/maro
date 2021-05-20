@@ -31,7 +31,7 @@ class AbsCorePolicy(AbsPolicy):
     Reinforcement learning (RL) policies should inherit from this.
 
     Args:
-        experience_manager (AbsExperienceManager): An experience manager that exposes put() and get() interfaces
+        experience_manager (AbsExperienceManager): An experience manager with put() and get() interfaces
             for storing and retrieving experiences for training.
     """
     def __init__(self, experience_manager: AbsExperienceManager):
