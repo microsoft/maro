@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 from maro.rl.algorithm import (
-    DDPG, DQN, ActorCritic, ActorCriticConfig, DDPGConfig, DQNConfig, PolicyGradient, PolicyGradientConfig,
+    ActorCritic, ActorCriticConfig, DDPG, DDPGConfig, DQN, DQNConfig, PolicyGradient, PolicyGradientConfig,
     get_rl_policy_cls, get_rl_policy_config_cls, get_rl_policy_model_cls
 )
 from maro.rl.env_wrapper import AbsEnvWrapper, AbsReplayBuffer, FIFOReplayBuffer, FixedSizeReplayBuffer
@@ -18,8 +18,8 @@ from maro.rl.model import (
 )
 from maro.rl.policy import AbsCorePolicy, AbsPolicy, NullPolicy
 from maro.rl.training import (
-    AbsPolicyManager, AbsRolloutManager, Actor, PolicyUpdateTrigger, Learner, LocalPolicyManager, LocalRolloutManager,
-    ParallelRolloutManager
+    AbsPolicyManager, AbsRolloutManager, Actor, Learner, LocalPolicyManager, LocalRolloutManager,
+    ParallelRolloutManager, PolicyUpdateTrigger 
 )
 from maro.rl.utils import (
     get_k_step_returns, get_lambda_returns, get_torch_activation_cls, get_torch_loss_cls, get_torch_lr_scheduler_cls,
