@@ -47,14 +47,7 @@ class PolicyGradient(AbsCorePolicy):
         self.device = self.policy_net.device
 
     def choose_action(self, states: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
-        """Use the actor (policy) model to generate stochastic actions.
-
-        Args:
-            state: Input to the actor model.
-
-        Returns:
-            Actions and corresponding log probabilities.
-        """
+        """Return actions and log probabilities for given states."""
         with torch.no_grad():
             actions, log_p = self.policy_net.get_action(states)
         actions, log_p = actions.cpu().numpy(), log_p.cpu().numpy()

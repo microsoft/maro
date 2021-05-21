@@ -1,7 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from .experience import ExperienceSet
-from .experience_manager import AbsExperienceManager, UniformSampler, UseAndDispose
+from .experience_memory import ExperienceMemory, ExperienceSet
+from .sampler import AbsSampler, UniformSampler
 
-__all__ = ["AbsExperienceManager", "ExperienceSet", "UniformSampler", "UseAndDispose"]
+
+__all__ = ["AbsSampler", "ExperienceMemory", "ExperienceSet", "UniformSampler"]

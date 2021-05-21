@@ -71,14 +71,7 @@ class ActorCritic(AbsCorePolicy):
         self.device = self.ac_net.device
 
     def choose_action(self, states) -> Tuple[np.ndarray, np.ndarray]:
-        """Use the actor (policy) model to generate stochastic actions.
-
-        Args:
-            state: Input to the actor model.
-
-        Returns:
-            Actions and corresponding log probabilities.
-        """
+        """Return actions and log probabilities for given states."""
         with torch.no_grad():
             actions, log_p = self.ac_net.get_action(states)
         actions, log_p = actions.cpu().numpy(), log_p.cpu().numpy()
@@ -94,8 +87,8 @@ class ActorCritic(AbsCorePolicy):
             rewards = torch.from_numpy(np.asarray(experience_set.rewards)).to(self.device)
 
             for _ in range(self.config.gradient_iters):
-                state_values = self.ac_net(states, output_action_probs=False).detach().squeeze()
-                next_state_values = self.ac_net(next_states, output_action_probs=False).detach().squeeze()
+                state_values = self.ac_net(states, actor=False)[1].detach().squeeze()
+                next_state_values = self.ac_net(next_states, actor=False)[1].detach().squeeze()
                 return_est = rewards + self.config.reward_discount * next_state_values
                 advantages = return_est - state_values
 

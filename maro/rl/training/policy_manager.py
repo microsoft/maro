@@ -131,6 +131,7 @@ class LocalPolicyManager(AbsPolicyManager):
             self._logger.info(f"Updated policies {self._updated_policy_ids}")
 
     def get_state(self):
+        """Return the states of updated policies since the last call."""
         policy_state_dict = {
             policy_id: self.policy_dict[policy_id].get_state() for policy_id in self._updated_policy_ids
         }

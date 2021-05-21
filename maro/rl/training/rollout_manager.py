@@ -82,7 +82,7 @@ class LocalRolloutManager(AbsRolloutManager):
 
         self.env = env
         self.eval_env = eval_env if eval_env else self.env
-        
+
         # mappings between agents and policies
         self.policy_dict = policy_dict
         self._agent2policy = agent2policy
@@ -109,7 +109,7 @@ class LocalRolloutManager(AbsRolloutManager):
         self._eval_ep = 0
 
     def collect(self, ep: int, segment: int, policy_state_dict: dict):
-        """Collect simulation data, i.e., experiences for training."""
+        """Collect simulation data for training."""
         t0 = time.time()
         learning_time = 0
         num_experiences_collected = 0

@@ -15,6 +15,7 @@ from maro.utils.exception.rl_toolkit_exception import MissingOptimizer
 
 class OptimOption:
     """Model optimization options.
+
     Args:
         optim_cls: A string indicating an optimizer class provided by torch.optim or custom subclass of
             torch.optim.Optimizer. If a string is provided, it must be present in the ``TORCH_OPTIM`` index.
@@ -77,6 +78,7 @@ class AbsCoreModel(nn.Module):
 
     @property
     def trainable(self) -> bool:
+        """Return True if at least one optimizer is registered."""
         return self.optimizer is not None
     
     @abstractmethod
@@ -84,7 +86,11 @@ class AbsCoreModel(nn.Module):
         raise NotImplementedError
 
     def step(self, loss):
-        """Use the loss to back-propagate gradients and apply them to the underlying parameters."""
+        """Use the loss to back-propagate gradients and apply them to the underlying parameters.
+        
+        Args:
+            loss: Result of a computation graph that involves the underlying parameters.
+        """
         if self.optimizer is None:
             raise MissingOptimizer("No optimizer registered to the model")
         if isinstance(self.optimizer, dict):
@@ -120,10 +126,26 @@ class AbsCoreModel(nn.Module):
                 sch.step()
 
     def soft_update(self, other_model: nn.Module, tau: float):
+        """Soft-update model parameters using another model.
+
+        The update formulae is: param = (1 - tau) * param + tau * pther_param.
+
+        Args:
+            other_model: The model to update the current model with.
+            tau (float): Soft-update coefficient.
+        """
         for params, other_params in zip(self.parameters(), other_model.parameters()):
             params.data = (1 - tau) * params.data + tau * other_params.data
 
     def copy(self, with_optimizer: bool = False, device: str = None):
+        """Return a deep copy of the instance;
+
+        Args:
+            with_opimizer (bool): If True, the registered optimizers will also be deep copied.
+                Defaults to False.
+            device (str): The device the copied instance should be placed on. Defaults to None,
+                in which case the copied instance will be placed on the same device as the instance itself.
+        """
         model_copy = clone(self)
         if not with_optimizer:
             model_copy.optimizer = None
@@ -136,22 +158,23 @@ class AbsCoreModel(nn.Module):
 
 
 class DiscreteQNet(AbsCoreModel):
-    """NN-based Q-value model."""
+    """Q-value model for finite and discrete action spaces."""
     @abstractmethod
     def forward(self, states) -> torch.tensor:
-        """Output Q values"""
+        """Compute the Q-values for all actions as a tensor of shape (batch_size, action_space_size)."""
         raise NotImplementedError
 
     def get_action(self, states):
         """
-        Given Q-values for a batch of states and all actions, return the maximum Q-value and
-        the corresponding action index for each state.
+        Given Q-values for a batch of states and all actions, return the action index and the corresponding
+        Q-values for each state.
         """
         q_for_all_actions = self.forward(states)  # (batch_size, num_actions)
         greedy_q, actions = q_for_all_actions.max(dim=1)
         return actions.detach(), greedy_q.detach()
 
     def q_values(self, states, actions: torch.tensor):
+        """Return the Q-values for a batch of states and actions."""
         if len(actions.shape) == 1:
             actions = actions.unsqueeze(dim=1)
         q_for_all_actions = self.forward(states)  # (batch_size, num_actions)
@@ -159,23 +182,22 @@ class DiscreteQNet(AbsCoreModel):
 
 
 class DiscretePolicyNet(AbsCoreModel):
-    """A compound network structure that consists of multiple task heads and an optional shared stack.
-
-    Args:
-        component (Union[nn.Module, Dict[str, nn.Module]]): Network component(s) comprising the model.
-            All components must have the same input dimension except the one designated as the shared
-            component by ``shared_component_name``.
-        optim_option (Union[OptimOption, Dict[str, OptimOption]]): Optimizer option for
-            the components. Defaults to None.
-    """
+    """Parameterized policy for finite and discrete action spaces."""
     @abstractmethod
     def forward(self, states) -> torch.tensor:
+        """Compute action probabilities corresponding to each state in ``states``.
+
+        The output must be a torch tensor with shape (batch_size, action_space_size).
+
+        Args:
+            states: State batch to compute action probabilities for.
+        """
         raise NotImplementedError
 
     def get_action(self, states):
         """
-        Given Q-values for a batch of states and all actions, return the maximum Q-value and
-        the corresponding action index for each state.
+        Given a batch of states, return actions selected based on the probabilities computed by ``forward``
+        and the corresponding log probabilities.
         """
         action_prob = Categorical(self.forward(states))  # (batch_size, num_actions)
         action = action_prob.sample()
@@ -184,17 +206,20 @@ class DiscretePolicyNet(AbsCoreModel):
 
 
 class DiscreteACNet(AbsCoreModel):
-    """A compound network structure that consists of multiple task heads and an optional shared stack.
-
-    Args:
-        component (Union[nn.Module, Dict[str, nn.Module]]): Network component(s) comprising the model.
-            All components must have the same input dimension except the one designated as the shared
-            component by ``shared_component_name``.
-        optim_option (Union[OptimOption, Dict[str, OptimOption]]): Optimizer option for
-            the components. Defaults to None.
-    """
+    """Model container for the actor-critic architecture for finite and discrete action spaces."""
     @abstractmethod
-    def forward(self, states, output_action_probs: bool = True, output_values: bool = True):
+    def forward(self, states, actor: bool = True, critic: bool = True) -> tuple:
+        """Compute action probabilities and values for a state batch.
+        
+        The output is a tuple of (action_probs, values), where action probs is a tensor of shape
+        (batch_size, action_space_size) and values is a tensor of shape (batch_size,). If only one
+        of these two is needed, the return value for the other one can be set to None. 
+
+        Args:
+            states: State batch to compute action probabilities and values for.
+            actor (bool): If True, the first element of the output will be actin probabilities. Defaults to True.
+            critic (bool): If True, the second element of the output will be state values. Defaults to True.
+        """
         raise NotImplementedError
 
     def get_action(self, states):
@@ -202,28 +227,28 @@ class DiscreteACNet(AbsCoreModel):
         Given Q-values for a batch of states, return the action index and the corresponding maximum Q-value
         for each state.
         """
-        action_prob = Categorical(self.forward(states, output_values=False))  # (batch_size, num_actions)
+        action_prob = Categorical(self.forward(states, critic=False)[0])  # (batch_size, action_space_size)
         action = action_prob.sample()
         log_p = action_prob.log_prob(action)
         return action, log_p
 
 
 class ContinuousACNet(AbsCoreModel):
-    """A compound network structure that consists of multiple task heads and an optional shared stack.
-
-    Args:
-        component (Union[nn.Module, Dict[str, nn.Module]]): Network component(s) comprising the model.
-            All components must have the same input dimension except the one designated as the shared
-            component by ``shared_component_name``.
-        optim_option (Union[OptimOption, Dict[str, OptimOption]]): Optimizer option for the components.
-            Defaults to None.
-    """
+    """Model container for the actor-critic architecture for continuous action spaces."""
     @abstractmethod
     def forward(self, states, actions=None):
+        """Compute actions for a batch of states or Q-values for a batch of states and actions.
+
+        Args:
+            states: State batch to compute the Q-values for.
+            actions: Action batch. If None, the output should be a batch of actions corresponding to
+                the state batch. Otherwise, the output should be the Q-values for the given states and
+                actions. Defaults to None. 
+        """
         raise NotImplementedError
 
     def get_action(self, states):
-        """Compute the actions given a batch of states."""
+        """Compute actions given a batch of states."""
         return self.forward(states)
 
     def value(self, states):

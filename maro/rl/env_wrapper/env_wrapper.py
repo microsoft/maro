@@ -1,14 +1,12 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import time
 from abc import ABC, abstractmethod
 from collections import deque
 from typing import Dict
 
 from maro.simulator import Env
-
-from .replay_buffer import AbsReplayBuffer
+from maro.rl.experience import AbsExperienceManager, ExperienceSet
 
 
 class AbsEnvWrapper(ABC):
@@ -26,7 +24,7 @@ class AbsEnvWrapper(ABC):
     def __init__(
         self,
         env: Env,
-        replay_buffer: Dict[str, AbsReplayBuffer] = None,
+        replay_buffer: Dict[str, AbsExperienceManager] = None,
         reward_eval_delay: int = 0
     ):
         self.env = env
@@ -80,12 +78,12 @@ class AbsEnvWrapper(ABC):
             tick (int): The tick for which to compute the environmental state. If computing the current state,
                 use tick=self.env.tick.
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def to_env_action(self, action):
         """Convert policy outputs to an action that can be executed by ``self.env.step()``."""
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def get_reward(self, tick: int = None):
@@ -96,6 +94,13 @@ class AbsEnvWrapper(ABC):
                 of delayed reward evaluation). Otherwise, the reward is evaluated for the latest action.
                 Defaults to None.
         """
+        raise NotImplementedError
+
+    def get_transition_info(self):
+        """Get additional info for a transition.
+
+        The returned transition info will be stored in the experience manager alongside states, actions, rewards.
+        """
         pass
 
     def step(self, action_by_agent: dict):
@@ -104,16 +109,23 @@ class AbsEnvWrapper(ABC):
         The new transition is stored in the replay buffer or cached in a separate data structure if the
         reward cannot be determined yet due to a non-zero ``reward_eval_delay``.
         """
-        # t0 = time.time()
         self._step_index += 1
-        env_action = self.get_action(action_by_agent)
-        self._pending_reward_cache.append((self._state, action_by_agent, self.env.tick))
+        env_action = self.to_env_action(action_by_agent)
         if len(env_action) == 1:
             env_action = list(env_action.values())[0]
-        # t1 = time.time()
+        pre_action_tick = self.env.tick
         _, self._event, done = self.env.step(env_action)
-        # t2 = time.time()
-        # self._tot_raw_step_time += t2 - t1
+
+        if not done:
+            prev_state = self._state  # previous env state
+            transition_info = self.get_transition_info()
+            self._state = self.get_state(self.env.tick)  # current env state
+            self._pending_reward_cache.append(
+                (prev_state, action_by_agent, self._state, transition_info, pre_action_tick)
+            )
+        else:
+            self._state = None
+            self.end_of_episode()
 
         """
         If this is the final step, evaluate rewards for all remaining events except the last.
@@ -121,29 +133,16 @@ class AbsEnvWrapper(ABC):
         """
         while (
             self._pending_reward_cache and
-            (done or self.env.tick - self._pending_reward_cache[0][2] >= self.reward_eval_delay)
+            (done or self.env.tick - self._pending_reward_cache[0][-1] >= self.reward_eval_delay)
         ):
-            state, action, tick = self._pending_reward_cache.popleft()
+            state, action, state_, info, tick = self._pending_reward_cache.popleft()
             reward = self.get_reward(tick=tick)
             # assign rewards to the agents that took action at that tick
             for agent_id, act in action.items():
-                rw = reward.get(agent_id, 0)
-                if not done and self.replay:
-                    self.replay[agent_id].push(state[agent_id], act, rw)
+                st, st_, rw = state[agent_id], state_[agent_id], reward.get(agent_id, .0)
+                if not done and self.replay and agent_id in self.replay:
+                    self.replay[agent_id].put(ExperienceSet([st], [act], [rw], [st_], [info]))
                 self._total_reward += rw
-
-        if not done:
-            self._state = self.get_state(self.env.tick)
-            # t3 = time.time()
-            # self._tot_step_time += t3 - t0
-        else:
-            self._state = None
-            self.end_of_episode()
-
-        # print(f"total raw step time: {self._tot_raw_step_time}")
-        # print(f"total step time: {self._tot_step_time}")
-        # self._tot_raw_step_time = 0
-        # self._tot_step_time = 0
 
     def end_of_episode(self):
         """Custom processing logic at the end of an episode."""

@@ -44,8 +44,6 @@ class Learner:
 
         self.num_episodes = num_episodes
 
-        # self._init_update_schedule(policy_update_schedule)
-
         # evaluation schedule
         if eval_schedule is None:
             eval_schedule = []

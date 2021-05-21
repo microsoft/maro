@@ -5,8 +5,8 @@ from maro.rl.algorithm import (
     ActorCritic, ActorCriticConfig, DDPG, DDPGConfig, DQN, DQNConfig, PolicyGradient, PolicyGradientConfig,
     get_rl_policy_cls, get_rl_policy_config_cls, get_rl_policy_model_cls
 )
-from maro.rl.env_wrapper import AbsEnvWrapper, AbsReplayBuffer, FIFOReplayBuffer, FixedSizeReplayBuffer
-from maro.rl.experience import AbsExperienceManager, ExperienceSet, UniformSampler, UseAndDispose
+from maro.rl.env_wrapper import AbsEnvWrapper
+from maro.rl.experience import AbsSampler, ExperienceMemory, ExperienceSet, UniformSampler
 from maro.rl.exploration import (
     AbsExploration, AbsExplorationScheduler, EpsilonGreedyExploration, GaussianNoiseExploration,
     LinearExplorationScheduler, MultiPhaseLinearExplorationScheduler, NoiseExploration, NullExploration,
@@ -29,8 +29,8 @@ from maro.rl.utils import (
 __all__ = [
     "ActorCritic", "ActorCriticConfig", "DDPG", "DDPGConfig", "DQN", "DQNConfig", "PolicyGradient",
     "PolicyGradientConfig", "get_rl_policy_cls", "get_rl_policy_config_cls", "get_rl_policy_model_cls",
-    "AbsEnvWrapper", "AbsReplayBuffer", "FIFOReplayBuffer", "FixedSizeReplayBuffer",
-    "AbsExperienceManager", "ExperienceSet", "UniformSampler", "UseAndDispose",
+    "AbsEnvWrapper",
+    "AbsSampler", "ExperienceMemory", "ExperienceSet", "UniformSampler",
     "AbsExploration", "AbsExplorationScheduler", "EpsilonGreedyExploration", "GaussianNoiseExploration",
     "LinearExplorationScheduler", "MultiPhaseLinearExplorationScheduler", "NoiseExploration", "NullExploration",
     "UniformNoiseExploration",

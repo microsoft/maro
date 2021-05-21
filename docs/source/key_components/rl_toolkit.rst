@@ -16,7 +16,7 @@ Accordingly, the abstract ``AbsPolicy`` class exposes a ``choose_action`` interf
 can encompass both static policies, such as rule-based policies, and updatable policies, such as RL
 policies. The latter is abstracted through the ``AbsCorePolicy`` sub-class which also exposes a ``update``
 interface. By default, updatable policies require an experience manager to store and retrieve simulation
-data (in the form of "experiences") based on which updates can be made.
+data (in the form of "experiences sets") based on which updates can be made.
 
 
 .. image:: ../images/rl/agent.svg
@@ -50,16 +50,24 @@ to decouple the the inner workings of these models from the algorithmic aspects 
 the actor-critic algorithm does not need to concern itself with the structures and optimizing schemes of the actor and
 critic models. The abstraction consists of ``AbsBlock`` and ``AbsCoreModel``, both of which subclass torch's nn.Module.
 The ``AbsBlock`` represents the smallest structural unit of an NN-based model. For instance, the ``FullyConnectedBlock``
-is a stack of fully connected layers with features like batch normalization, drop-out and skip connection.
-The ``AbsCoreModel`` is a collection of network components with embedded optimizers. Subclasses of
-``AbsCoreModel`` provided for use with specific RL algorithms include
+is a stack of fully connected layers with features like batch normalization, drop-out and skip connection. The ``AbsCoreModel``
+is a collection of network components with embedded optimizers. Subclasses of ``AbsCoreModel`` provided for use with specific
+RL algorithms include ``DiscreteQNet`` for DQN, ``DiscretePolicyNet`` for Policy Gradient, ``DiscreteACNet`` for Actor-Critic
+and ``ContinuousACNet`` for DDPG.
 
-As an example, the initialization of the actor-critic algorithm may look like this:
+The code snippet below shows how to create a model for the actor-critic algorithm with a shared bottom stack:
 
 .. code-block:: python
 
-  actor_stack = FullyConnectedBlock(...)
-  critic_stack = FullyConnectedBlock(...)
+  class MyACModel(DiscreteACNet):
+      def forward(self, states):
+          features = self.component["representation"](states)
+          
+
+
+  shared_stack = FullyConnectedBlock(...)
+  actor_head = FullyConnectedBlock(...)
+  critic_head = FullyConnectedBlock(...)
   ac_model = SimpleMultiHeadModel(
       {"actor": actor_stack, "critic": critic_stack},
       optim_option={
