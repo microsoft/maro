@@ -1,8 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from collections import defaultdict
-
 import numpy as np
 
 from maro.rl import AbsEnvWrapper
@@ -26,18 +24,22 @@ class CIMEnvWrapper(AbsEnvWrapper):
         self.time_decay = time_decay
         self.finite_vessel_space = finite_vessel_space
         self.has_early_discharge = has_early_discharge
+        self._last_action_tick = None
 
-    def get_state(self, event):
+    def get_state(self, tick=None):
+        if tick is None:
+            tick = self.env.tick
         vessel_snapshots, port_snapshots = self.env.snapshot_list["vessels"], self.env.snapshot_list["ports"]
-        tick, port_idx, vessel_idx = event.tick, event.port_idx, event.vessel_idx
+        port_idx, vessel_idx = self.event.port_idx, self.event.vessel_idx
         ticks = [max(0, tick - rt) for rt in range(self.look_back - 1)]
         future_port_idx_list = vessel_snapshots[tick: vessel_idx: 'future_stop_list'].astype('int')
         port_features = port_snapshots[ticks: [port_idx] + list(future_port_idx_list): self.port_attributes]
         vessel_features = vessel_snapshots[tick: vessel_idx: self.vessel_attributes]
         self.state_info = {
-            "tick": tick, "action_scope": event.action_scope, "port_idx": port_idx, "vessel_idx": vessel_idx
+            "tick": tick, "action_scope": self.event.action_scope, "port_idx": port_idx, "vessel_idx": vessel_idx
         }
         state = np.concatenate((port_features, vessel_features))
+        self._last_action_tick = tick
         return {port_idx: state}
 
     def to_env_action(self, action_by_agent):
@@ -63,10 +65,10 @@ class CIMEnvWrapper(AbsEnvWrapper):
 
         return {port: Action(vessel, port, actual_action, action_type)}
 
-    def get_reward(self, tick=None, target_agents=None):
+    def get_reward(self, tick=None):
         """Delayed reward evaluation."""
         if tick is None:
-            tick = self.env.tick
+            tick = self._last_action_tick
         port_snapshots = self.env.snapshot_list["ports"]
         start_tick = tick + 1
         ticks = list(range(start_tick, start_tick + self.reward_eval_delay))
@@ -79,7 +81,7 @@ class CIMEnvWrapper(AbsEnvWrapper):
         ]
 
         return {
-            target_agents[0]: 
+            self.action_history[tick]: 
             np.float32(
                 self.fulfillment_factor * np.dot(future_fulfillment, decay_list) - 
                 self.shortage_factor * np.dot(future_shortage, decay_list)

@@ -3,7 +3,7 @@
 
 from abc import ABC, abstractmethod
 
-from maro.rl.experience import AbsExperienceManager
+from maro.rl.experience import ExperienceMemory
 
 
 class AbsPolicy(ABC):
@@ -31,12 +31,12 @@ class AbsCorePolicy(AbsPolicy):
     Reinforcement learning (RL) policies should inherit from this.
 
     Args:
-        experience_manager (AbsExperienceManager): An experience manager with put() and get() interfaces
-            for storing and retrieving experiences for training.
+        experience_memory (ExperienceMemory): An experience manager for storing and retrieving experiences
+            for training.
     """
-    def __init__(self, experience_manager: AbsExperienceManager):
+    def __init__(self, experience_memory: ExperienceMemory):
         super().__init__()
-        self.experience_manager = experience_manager
+        self.experience_memory = experience_memory
 
     @abstractmethod
     def choose_action(self, state):

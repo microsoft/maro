@@ -7,7 +7,7 @@ from typing import Union
 import numpy as np
 import torch
 
-from maro.rl.experience import AbsExperienceManager
+from maro.rl.experience import ExperienceMemory
 from maro.rl.model import ContinuousACNet
 from maro.rl.policy import AbsCorePolicy
 from maro.rl.utils import get_torch_loss_cls
@@ -62,15 +62,15 @@ class DDPG(AbsCorePolicy):
 
     Args:
         ac_net (ContinuousACNet): DDPG policy and q-value models.
-        experience_manager (AbsExperienceManager): An experience manager with put() and get() interfaces
-            for storing and retrieving experiences for training.
+        experience_memory (ExperienceMemory): An experience manager for storing and retrieving experiences
+            for training.
         config (DDPGConfig): Configuration for DDPG algorithm.
     """
-    def __init__(self, ac_net: ContinuousACNet, experience_manager: AbsExperienceManager, config: DDPGConfig):
+    def __init__(self, ac_net: ContinuousACNet, experience_memory: ExperienceMemory, config: DDPGConfig):
         if not isinstance(ac_net, ContinuousACNet):
             raise TypeError("model must be an instance of 'ContinuousACNet'")
 
-        super().__init__(experience_manager)
+        super().__init__(experience_memory)
         self.ac_net = ac_net
         if self.ac_net.trainable:
             self.target_ac_net = ac_net.copy()
@@ -90,7 +90,7 @@ class DDPG(AbsCorePolicy):
     def update(self):
         self.ac_net.train()
         for _ in range(self.config.train_epochs):
-            experience_set = self.experience_manager.get()
+            experience_set = self.experience_memory.get()
             states, next_states = experience_set.states, experience_set.next_states
             actual_actions = torch.from_numpy(experience_set.actions).to(self.device)
             rewards = torch.from_numpy(experience_set.rewards).to(self.device)

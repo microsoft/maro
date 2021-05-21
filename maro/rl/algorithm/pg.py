@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from maro.rl.experience.experience_manager import AbsExperienceManager
+from maro.rl.experience.experience_memory import ExperienceMemory
 from typing import Tuple
 
 import numpy as np
@@ -32,16 +32,16 @@ class PolicyGradient(AbsCorePolicy):
     Args:
         policy_net (DiscretePolicyNet): Multi-task model that computes action distributions and state values.
             It may or may not have a shared bottom stack.
-        experience_manager (AbsExperienceManager): An experience manager with put() and get() interfaces
-            for storing and retrieving experiences for training.
+        experience_memory (ExperienceMemory): An experience manager for storing and retrieving experiences
+            for training.
         config (PolicyGradientConfig): Configuration for the PG algorithm.
     """
     def __init__(
-        self, policy_net: DiscretePolicyNet, experience_manager: AbsExperienceManager, config: PolicyGradientConfig,
+        self, policy_net: DiscretePolicyNet, experience_memory: ExperienceMemory, config: PolicyGradientConfig,
     ):  
         if not isinstance(policy_net, DiscretePolicyNet):
             raise TypeError("model must be an instance of 'DiscretePolicyNet'")
-        super().__init__(experience_manager)
+        super().__init__(experience_memory)
         self.policy_net = policy_net
         self.config = config
         self.device = self.policy_net.device
@@ -60,7 +60,7 @@ class PolicyGradient(AbsCorePolicy):
         which they are generated during the simulation. Otherwise, the return values may be meaningless. 
         """
         self.policy_net.train()
-        experience_set = self.experience_manager.get()
+        experience_set = self.experience_memory.get()
         log_p = torch.from_numpy(np.asarray([act[1] for act in experience_set.actions])).to(self.device)
         rewards = torch.from_numpy(np.asarray(experience_set.rewards)).to(self.device)
         returns = get_truncated_cumulative_reward(rewards, self.config.reward_discount)

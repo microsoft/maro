@@ -2,11 +2,11 @@
 # Licensed under the MIT license.
 
 from abc import ABC, abstractmethod
-from collections import deque
+from collections import defaultdict, deque
 from typing import Dict
 
 from maro.simulator import Env
-from maro.rl.experience import AbsExperienceManager, ExperienceSet
+from maro.rl.experience import ExperienceSet
 
 
 class AbsEnvWrapper(ABC):
@@ -14,23 +14,22 @@ class AbsEnvWrapper(ABC):
 
     Args:
         env (Env): Environment instance.
-        replay_buffer (dict): Replay buffers for recording transitions experienced by agents in sequential fashion.
-            Transitions will only be recorded for those agents whose IDs appear in the keys of the dictionary. 
-            Defaults to None, in which case no transition will be recorded.
         reward_eval_delay (int): Number of ticks required after a decision event to evaluate the reward
             for the action taken for that event. Defaults to 0, which means rewards are evaluated immediately
             after executing an action.
+        save_replay (bool): If True, transitions for some or all agents will in stored in internal replay buffers.
+        replay_agent_ids (list): List of agent IDs whose transitions will be stored in internal replay buffers.
+            If ``save_replay`` is False, this is ignored. Otherwise, if it is None, it will be set to all agents in
+            Defaults to None.
     """
-    def __init__(
-        self,
-        env: Env,
-        replay_buffer: Dict[str, AbsExperienceManager] = None,
-        reward_eval_delay: int = 0
-    ):
+    def __init__(self, env: Env, reward_eval_delay: int = 0, save_replay: bool = True, replay_agent_ids: list = None):
         self.env = env
-        self.replay = replay_buffer
         self.state_info = None  # context for converting model output to actions that can be executed by the env
         self.reward_eval_delay = reward_eval_delay
+        self.action_history = defaultdict(dict)
+        self.save_replay = save_replay
+        self.replay_agent_ids = self.env.agent_idx_list if not replay_agent_ids else replay_agent_ids             
+        self._replay_buffer = {agent_id: defaultdict(list) for agent_id in self.replay_agent_ids}
         self._pending_reward_cache = deque()  # list of (state, action, tick) whose rewards have yet to be evaluated
         self._step_index = None
         self._total_reward = 0
@@ -41,7 +40,7 @@ class AbsEnvWrapper(ABC):
     def step_index(self):
         """Number of environmental steps taken so far."""
         return self._step_index
-    
+
     @property
     def agent_idx_list(self):
         return self.env.agent_idx_list
@@ -111,18 +110,14 @@ class AbsEnvWrapper(ABC):
         """
         self._step_index += 1
         env_action = self.to_env_action(action_by_agent)
-        if len(env_action) == 1:
-            env_action = list(env_action.values())[0]
-        pre_action_tick = self.env.tick
+        for agent_id, action in action_by_agent.items():
+            self.action_history[self.env.tick][agent_id] = action
+        transition_info = self.get_transition_info()
+        self._pending_reward_cache.append((self._state, action_by_agent, transition_info, self.env.tick))
         _, self._event, done = self.env.step(env_action)
 
         if not done:
-            prev_state = self._state  # previous env state
-            transition_info = self.get_transition_info()
             self._state = self.get_state(self.env.tick)  # current env state
-            self._pending_reward_cache.append(
-                (prev_state, action_by_agent, self._state, transition_info, pre_action_tick)
-            )
         else:
             self._state = None
             self.end_of_episode()
@@ -135,14 +130,18 @@ class AbsEnvWrapper(ABC):
             self._pending_reward_cache and
             (done or self.env.tick - self._pending_reward_cache[0][-1] >= self.reward_eval_delay)
         ):
-            state, action, state_, info, tick = self._pending_reward_cache.popleft()
+            state, action, info, tick = self._pending_reward_cache.popleft()
             reward = self.get_reward(tick=tick)
             # assign rewards to the agents that took action at that tick
-            for agent_id, act in action.items():
-                st, st_, rw = state[agent_id], state_[agent_id], reward.get(agent_id, .0)
-                if not done and self.replay and agent_id in self.replay:
-                    self.replay[agent_id].put(ExperienceSet([st], [act], [rw], [st_], [info]))
-                self._total_reward += rw
+            if self.save_replay:
+                for agent_id, st in state.items():
+                    self._total_reward += reward[agent_id]
+                    if agent_id in self._replay_buffer:
+                        buf = self._replay_buffer[agent_id]
+                        buf["states"].append(st)
+                        buf["actions"].append(action[agent_id])
+                        buf["rewards"].append(reward[agent_id])
+                        buf["info"].append(info[agent_id] if info else None)
 
     def end_of_episode(self):
         """Custom processing logic at the end of an episode."""
@@ -150,7 +149,23 @@ class AbsEnvWrapper(ABC):
 
     def get_experiences(self):
         """Get per-agent experiences from the replay buffer."""
-        return {agent_id: replay.batch() for agent_id, replay in self.replay.items()}
+        exp_by_agent = {}
+        for agent_id in self.replay_agent_ids:
+            buf = self._replay_buffer[agent_id]
+            exp_set = ExperienceSet(
+                buf["states"][:-1],
+                buf["actions"][:-1],
+                buf["rewards"][:-1],
+                buf["states"][1:],
+                buf["info"][:-1],
+            )
+            del buf["states"][:-1]
+            del buf["actions"][:-1]
+            del buf["rewards"][:-1]
+            del buf["info"][:-1]            
+            exp_by_agent[agent_id] = exp_set 
+
+        return exp_by_agent
 
     def reset(self):
         self.env.reset()
@@ -158,5 +173,5 @@ class AbsEnvWrapper(ABC):
         self._total_reward = 0
         self._state = None
         self._pending_reward_cache.clear()
-        for replay in self.replay.values():
+        for replay in self._replay_buffer.values():
             replay.clear()

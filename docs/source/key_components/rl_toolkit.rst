@@ -32,9 +32,9 @@ data (in the form of "experiences sets") based on which updates can be made.
 
 
   class AbsCorePolicy(AbsPolicy):
-      def __init__(self, experience_manager: AbsExperienceManager):
+      def __init__(self, experience_memory: ExperienceMemory):
           super().__init__()
-          self.experience_manager = experience_manager
+          self.experience_memory = experience_memory
 
       @abstractmethod
       def update(self):

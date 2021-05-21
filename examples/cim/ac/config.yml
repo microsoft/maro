@@ -67,7 +67,7 @@ policy:
     num_steps: 10
     actor_loss_coefficient: 0.1
     # clip_ratio: 0.8   # for PPO
-  experience_manager:
+  experience_memory:
     capacity: 100000
     overwrite_type: "rolling"
   update_trigger:

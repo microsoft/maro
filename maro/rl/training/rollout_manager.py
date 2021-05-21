@@ -123,7 +123,7 @@ class LocalRolloutManager(AbsRolloutManager):
 
         if self.env.state is None:
             self._logger.info(f"Collecting data from episode {ep}, segment {segment}")
-            if hasattr(self, "exploration_dict"):
+            if self.exploration_dict:
                 exploration_params = {
                     tuple(agent_ids): self.exploration_dict[exploration_id].parameters
                     for exploration_id, agent_ids in self._agent_groups_by_exploration.items()
@@ -158,9 +158,11 @@ class LocalRolloutManager(AbsRolloutManager):
         )
 
         # update the exploration parameters if an episode is finished
-        if not self.env.state and self.exploration_dict:
-            for exploration in self.exploration_dict.values():
-                exploration.step()
+        if not self.env.state:
+            self.episode_complete = True
+            if self.exploration_dict:
+                for exploration in self.exploration_dict.values():
+                    exploration.step()
 
         # performance details
         if not self.env.state:
@@ -171,9 +173,9 @@ class LocalRolloutManager(AbsRolloutManager):
 
             self._logger.debug(
                 f"ep {ep} summary - "
-                f"running time: {time.time() - t0}"
-                f"env steps: {self.env.step_index}"    
-                f"learning time: {learning_time}"
+                f"running time: {time.time() - t0} "
+                f"env steps: {self.env.step_index} "    
+                f"learning time: {learning_time} "
                 f"experiences collected: {num_experiences_collected}"
             )
 

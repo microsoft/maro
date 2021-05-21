@@ -6,7 +6,7 @@ from typing import Union
 import numpy as np
 import torch
 
-from maro.rl.experience import AbsExperienceManager
+from maro.rl.experience import ExperienceMemory
 from maro.rl.model import DiscreteQNet
 from maro.rl.policy import AbsCorePolicy
 from maro.rl.utils import get_torch_loss_cls
@@ -60,15 +60,15 @@ class DQN(AbsCorePolicy):
 
     Args:
         q_net (DiscreteQNet): Q-value model.
-        experience_manager (AbsExperienceManager): An experience manager with put() and get() interfaces
-            for storing and retrieving experiences for training.
+        experience_memory (ExperienceMemory): An experience manager for storing and retrieving experiences
+            for training.
         config (DQNConfig): Configuration for DQN algorithm.
     """
-    def __init__(self, q_net: DiscreteQNet, experience_manager: AbsExperienceManager, config: DQNConfig):
+    def __init__(self, q_net: DiscreteQNet, experience_memory: ExperienceMemory, config: DQNConfig):
         if not isinstance(q_net, DiscreteQNet):
             raise TypeError("model must be an instance of 'DiscreteQNet'")
 
-        super().__init__(experience_manager)
+        super().__init__(experience_memory)
         self.q_net = q_net
         if self.q_net.trainable:
             self.target_q_net = q_net.copy()
@@ -92,7 +92,7 @@ class DQN(AbsCorePolicy):
         self.q_net.train()
         for _ in range(self.config.train_epochs):
             # sample from the replay memory
-            experience_set = self.experience_manager.get()
+            experience_set = self.experience_memory.get()
             states, next_states = experience_set.states, experience_set.next_states
             actions = torch.from_numpy(np.asarray(experience_set.actions)).to(self.device)
             rewards = torch.from_numpy(np.asarray(experience_set.rewards)).to(self.device)

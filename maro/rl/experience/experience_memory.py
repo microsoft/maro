@@ -129,9 +129,7 @@ class ExperienceMemory:
         returned according to the sampling logic defined by the registered sampler. 
         """
         if self.sampler is None:
-            ret = ExperienceSet(*[self.data[key] for key in self._keys])
-            self.clear()
-            return ret
+            return ExperienceSet(*[self.data[key][:self._size] for key in self._keys])
         else:
             return self.sampler.get()
 

@@ -131,11 +131,15 @@ class Actor(object):
                     f"Roll-out finished for ep {episode_index}, segment {segment_index}"
                     f"(steps {starting_step_index} - {self.env.step_index})"
                 )
+                exp_by_agent = self.env.get_experiences()
+                for agent_id, exp_set in exp_by_agent.items():
+                    self.policy[agent_id].experience_memory.put(exp_set)
+
                 return_info = {
                     MsgKey.EPISODE_END: not self.env.state,
                     MsgKey.EPISODE_INDEX: episode_index,
                     MsgKey.SEGMENT_INDEX: segment_index,
-                    MsgKey.EXPERIENCES: self.env.get_experiences(),
+                    MsgKey.EXPERIENCES: exp_by_agent,
                     MsgKey.NUM_STEPS: self.env.step_index - starting_step_index + 1
                 }
 
