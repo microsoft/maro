@@ -108,7 +108,10 @@ class FullyConnectedBlock(AbsBlock):
         components = []
         if self._batch_norm:
             components.append(("batch_norm", nn.BatchNorm1d(input_dim)))
-        components.append(("linear", nn.Linear(input_dim, output_dim)))
+        ll = nn.Linear(input_dim, output_dim)
+        torch.nn.init.xavier_normal_(ll.weight)
+        torch.nn.init.zeros_(ll.bias)
+        components.append(("linear", ll))
         if not head and self._activation is not None:
             components.append(("activation", self._activation))
         if not head and self._dropout_p:

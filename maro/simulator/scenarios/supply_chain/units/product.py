@@ -45,6 +45,10 @@ class ProductUnit(ExtendUnitBase):
         for unit in self.children:
             unit.step(tick)
 
+    def flush_states(self):
+        for unit in self.children:
+            unit.flush_states()
+
         if self.distribution is not None:
             self._checkin_order = self.distribution.check_in_order[self.product_id]
             self._transport_cost = self.distribution.transportation_cost[self.product_id]
@@ -53,10 +57,6 @@ class ProductUnit(ExtendUnitBase):
             self.distribution.check_in_order[self.product_id] = 0
             self.distribution.transportation_cost[self.product_id] = 0
             self.distribution.delay_order_penalty[self.product_id] = 0
-
-    def flush_states(self):
-        for unit in self.children:
-            unit.flush_states()
 
         if self._checkin_order > 0:
             self.data_model.distribution_check_order = self._checkin_order
@@ -183,7 +183,10 @@ class ProductUnit(ExtendUnitBase):
                 product_unit.storage = product_unit.facility.storage
                 product_unit.distribution = product_unit.facility.distribution
 
-                for child_name in ("manufacture", "consumer", "seller"):
+                # NOTE: BE CAREFUL about the order, product unit will use this order update children,
+                # the order may affect the states.
+                # Here we make sure consumer is the first one, so it can place order first.
+                for child_name in ("consumer", "seller", "manufacture"):
                     conf = config.get(child_name, None)
 
                     if conf is not None:

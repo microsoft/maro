@@ -103,7 +103,6 @@ class Actor(object):
                         }
                     else:
                         action = {id_: self.policy[id_].choose_action(st) for id_, st in self.env.state.items()}
-
                     self.env.step(action)
                     steps_to_go -= 1
 

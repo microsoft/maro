@@ -14,7 +14,6 @@ class SCLearner(DistributedLearner):
         tracker = SimulationTracker(60, 1, self.eval_env, self)
         loc_path = '/maro/supply_chain/output/'
         facility_types = ["product"]
-        os.system(f"rm {loc_path}/*")
         tracker.run_and_render(loc_path, facility_types)
     
     def end_of_training(self, ep, **kwargs):
