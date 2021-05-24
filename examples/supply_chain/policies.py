@@ -66,7 +66,6 @@ policy_dict = {
     'productstore': null_policy
 }
 
-
 agent2policy = {agent_id: agent_id.split(".")[0] for agent_id in agent_ids}
 
 # update schedules

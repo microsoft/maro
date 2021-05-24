@@ -30,5 +30,5 @@ if __name__ == "__main__":
     # learner.run()
     tracker = SimulationTracker(60, 1, env, learner)
     loc_path = './output/'
-    facility_types = ["product"]
+    facility_types = ["productstore"]
     tracker.run_and_render(loc_path, facility_types)

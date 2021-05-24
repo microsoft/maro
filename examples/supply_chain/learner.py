@@ -13,7 +13,7 @@ class SCLearner(DistributedLearner):
     def _evaluate(self, ep: int):
         tracker = SimulationTracker(60, 1, self.eval_env, self)
         loc_path = '/maro/supply_chain/output/'
-        facility_types = ["product"]
+        facility_types = ["productstore"]
         tracker.run_and_render(loc_path, facility_types)
     
     def end_of_training(self, ep, **kwargs):
