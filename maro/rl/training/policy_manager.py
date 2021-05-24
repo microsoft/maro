@@ -4,7 +4,7 @@
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from os import getcwd
-from typing import List, Dict
+from typing import Dict, List
 
 from maro.rl.experience import ExperienceSet
 from maro.rl.policy import AbsPolicy

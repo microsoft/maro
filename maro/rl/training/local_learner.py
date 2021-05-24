@@ -4,7 +4,7 @@
 import time
 from collections import defaultdict
 from os import getcwd
-from typing import List, Dict, Union
+from typing import Dict, List, Union
 
 from maro.rl.env_wrapper import AbsEnvWrapper
 from maro.rl.exploration import AbsExploration
@@ -24,8 +24,7 @@ class LocalLearner:
         num_episodes (int): Number of training episodes. Each training episode may contain one or more
             collect-update cycles, depending on how the implementation of the roll-out manager.
         num_steps (int): Number of environment steps to roll out in each call to ``collect``. Defaults to -1, in which
-            case the roll-out will be executed until the end of the environment. Defaults to -1, in which case a complete
-            episode is rolled out in each call to ``collect``.
+            case the roll-out will be executed until the end of the environment.
         exploration_dict (Dict[str, AbsExploration]): A set of named exploration schemes. Defaults to None.
         agent2exploration (Dict[str, str]): Mapping from agent ID's to exploration scheme ID's. This is used to direct
             an agent's query to the correct exploration scheme. Defaults to None.

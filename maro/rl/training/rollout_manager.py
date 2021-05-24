@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 from os import getcwd
 from random import choices
-from typing import List, Dict
+from typing import Dict, List
 
 from maro.communication import Proxy, SessionType
 from maro.rl.env_wrapper import AbsEnvWrapper

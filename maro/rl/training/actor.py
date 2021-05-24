@@ -3,10 +3,9 @@
 
 from collections import defaultdict
 from os import getcwd
-from typing import List, Dict
+from typing import Dict, List
 
 from maro.communication import Proxy
-from maro.rl import policy
 from maro.rl.env_wrapper import AbsEnvWrapper
 from maro.rl.exploration import AbsExploration
 from maro.rl.policy import AbsPolicy

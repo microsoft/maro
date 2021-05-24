@@ -22,9 +22,9 @@ class AbsPolicy(ABC):
 
 
 class NullPolicy(AbsPolicy):
-    """Dummy policy that does nothing. 
-    
-    Note that the meaning of a "None" action may depend on the scenario. 
+    """Dummy policy that does nothing.
+
+    Note that the meaning of a "None" action may depend on the scenario.
     """
     def choose_action(self, state):
         return None

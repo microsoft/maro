@@ -105,7 +105,7 @@ class AbsEnvWrapper(ABC):
         """Get additional info for a transition.
 
         The returned transition info will be stored in the experience manager alongside states, actions, rewards.
-        
+
         Returns:
             A dictionary with (agent ID, transition_info) as key-value pairs.
 

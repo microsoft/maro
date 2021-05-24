@@ -211,7 +211,7 @@ class DiscreteQNet(AbsCoreModel):
 
 class DiscretePolicyNet(AbsCoreModel):
     """Parameterized policy for finite and discrete action spaces.
-    
+
     Args:
         component (Union[nn.Module, Dict[str, nn.Module]]): Network component(s) comprising the model.
         optim_option (Union[OptimOption, Dict[str, OptimOption]]): Optimizer options for the components.
@@ -257,7 +257,7 @@ class DiscretePolicyNet(AbsCoreModel):
 
 class DiscreteACNet(AbsCoreModel):
     """Model container for the actor-critic architecture for finite and discrete action spaces.
-    
+
     Args:
         component (Union[nn.Module, Dict[str, nn.Module]]): Network component(s) comprising the model.
         optim_option (Union[OptimOption, Dict[str, OptimOption]]): Optimizer options for the components.
@@ -307,7 +307,7 @@ class DiscreteACNet(AbsCoreModel):
 
 class ContinuousACNet(AbsCoreModel):
     """Model container for the actor-critic architecture for continuous action spaces.
-    
+
     Args:
         component (Union[nn.Module, Dict[str, nn.Module]]): Network component(s) comprising the model.
         optim_option (Union[OptimOption, Dict[str, OptimOption]]): Optimizer options for the components.

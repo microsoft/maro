@@ -6,7 +6,6 @@ from .ddpg import DDPG, ContinuousACNet, DDPGConfig
 from .dqn import DQN, DiscreteQNet, DQNConfig
 from .pg import DiscretePolicyNet, PolicyGradient, PolicyGradientConfig
 
-
 RL_POLICY_INDEX = {
     "ac": ActorCritic,
     "dqn": DQN,
