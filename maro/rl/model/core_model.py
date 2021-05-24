@@ -46,12 +46,15 @@ class AbsCoreModel(nn.Module):
             the component names and optimizers created for them. Note that it is possible to freeze certain
             components while optimizing others by providing a subset of the keys in ``component``.
             Defaults toNone.
+        device (str): Identifier for the torch device. The model instance will be moved to the specified
+            device. If it is None, the device will be set to "cpu" if cuda is unavailable and "cuda" otherwise.
+            Defaults to None.
     """
     def __init__(
         self,
         component: Union[nn.Module, Dict[str, nn.Module]],
         optim_option: Union[OptimOption, Dict[str, OptimOption]] = None,
-        device: str = "cpu"
+        device: str = None
     ):
         super().__init__()
         self.component = component if isinstance(component, nn.Module) else nn.ModuleDict(component)
@@ -73,7 +76,10 @@ class AbsCoreModel(nn.Module):
                 if optim_option.scheduler_cls:
                     self.scheduler = optim_option.scheduler_cls(self.optimizer, **optim_option.scheduler_params)
 
-        self.device = torch.device(device)
+        if device is None:
+            self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        else:
+            self.device = torch.device(device)
         self.to(self.device)
 
     @property
@@ -158,7 +164,29 @@ class AbsCoreModel(nn.Module):
 
 
 class DiscreteQNet(AbsCoreModel):
-    """Q-value model for finite and discrete action spaces."""
+    """Q-value model for finite and discrete action spaces.
+
+    Args:
+        component (Union[nn.Module, Dict[str, nn.Module]]): Network component(s) comprising the model.
+        optim_option (Union[OptimOption, Dict[str, OptimOption]]): Optimizer options for the components.
+            If none, no optimizer will be created for the model which means the model is not trainable.
+            If it is a OptimOption instance, a single optimizer will be created to jointly optimize all
+            parameters of the model. If it is a dictionary of OptimOptions, the keys will be matched against
+            the component names and optimizers created for them. Note that it is possible to freeze certain
+            components while optimizing others by providing a subset of the keys in ``component``.
+            Defaults toNone.
+        device (str): Identifier for the torch device. The model instance will be moved to the specified
+            device. If it is None, the device will be set to "cpu" if cuda is unavailable and "cuda" otherwise.
+            Defaults to None.
+    """
+    def __init__(
+        self,
+        component: Union[nn.Module, Dict[str, nn.Module]],
+        optim_option: Union[OptimOption, Dict[str, OptimOption]] = None,
+        device: str = None
+    ):
+        super().__init__(component, optim_option=optim_option, device=device)
+
     @abstractmethod
     def forward(self, states) -> torch.tensor:
         """Compute the Q-values for all actions as a tensor of shape (batch_size, action_space_size)."""
@@ -182,7 +210,29 @@ class DiscreteQNet(AbsCoreModel):
 
 
 class DiscretePolicyNet(AbsCoreModel):
-    """Parameterized policy for finite and discrete action spaces."""
+    """Parameterized policy for finite and discrete action spaces.
+    
+    Args:
+        component (Union[nn.Module, Dict[str, nn.Module]]): Network component(s) comprising the model.
+        optim_option (Union[OptimOption, Dict[str, OptimOption]]): Optimizer options for the components.
+            If none, no optimizer will be created for the model which means the model is not trainable.
+            If it is a OptimOption instance, a single optimizer will be created to jointly optimize all
+            parameters of the model. If it is a dictionary of OptimOptions, the keys will be matched against
+            the component names and optimizers created for them. Note that it is possible to freeze certain
+            components while optimizing others by providing a subset of the keys in ``component``.
+            Defaults toNone.
+        device (str): Identifier for the torch device. The model instance will be moved to the specified
+            device. If it is None, the device will be set to "cpu" if cuda is unavailable and "cuda" otherwise.
+            Defaults to None.
+    """
+    def __init__(
+        self,
+        component: Union[nn.Module, Dict[str, nn.Module]],
+        optim_option: Union[OptimOption, Dict[str, OptimOption]] = None,
+        device: str = None
+    ):
+        super().__init__(component, optim_option=optim_option, device=device)
+
     @abstractmethod
     def forward(self, states) -> torch.tensor:
         """Compute action probabilities corresponding to each state in ``states``.
@@ -206,7 +256,29 @@ class DiscretePolicyNet(AbsCoreModel):
 
 
 class DiscreteACNet(AbsCoreModel):
-    """Model container for the actor-critic architecture for finite and discrete action spaces."""
+    """Model container for the actor-critic architecture for finite and discrete action spaces.
+    
+    Args:
+        component (Union[nn.Module, Dict[str, nn.Module]]): Network component(s) comprising the model.
+        optim_option (Union[OptimOption, Dict[str, OptimOption]]): Optimizer options for the components.
+            If none, no optimizer will be created for the model which means the model is not trainable.
+            If it is a OptimOption instance, a single optimizer will be created to jointly optimize all
+            parameters of the model. If it is a dictionary of OptimOptions, the keys will be matched against
+            the component names and optimizers created for them. Note that it is possible to freeze certain
+            components while optimizing others by providing a subset of the keys in ``component``.
+            Defaults toNone.
+        device (str): Identifier for the torch device. The model instance will be moved to the specified
+            device. If it is None, the device will be set to "cpu" if cuda is unavailable and "cuda" otherwise.
+            Defaults to None.
+    """
+    def __init__(
+        self,
+        component: Union[nn.Module, Dict[str, nn.Module]],
+        optim_option: Union[OptimOption, Dict[str, OptimOption]] = None,
+        device: str = None
+    ):
+        super().__init__(component, optim_option=optim_option, device=device)
+
     @abstractmethod
     def forward(self, states, actor: bool = True, critic: bool = True) -> tuple:
         """Compute action probabilities and values for a state batch.
@@ -234,7 +306,29 @@ class DiscreteACNet(AbsCoreModel):
 
 
 class ContinuousACNet(AbsCoreModel):
-    """Model container for the actor-critic architecture for continuous action spaces."""
+    """Model container for the actor-critic architecture for continuous action spaces.
+    
+    Args:
+        component (Union[nn.Module, Dict[str, nn.Module]]): Network component(s) comprising the model.
+        optim_option (Union[OptimOption, Dict[str, OptimOption]]): Optimizer options for the components.
+            If none, no optimizer will be created for the model which means the model is not trainable.
+            If it is a OptimOption instance, a single optimizer will be created to jointly optimize all
+            parameters of the model. If it is a dictionary of OptimOptions, the keys will be matched against
+            the component names and optimizers created for them. Note that it is possible to freeze certain
+            components while optimizing others by providing a subset of the keys in ``component``.
+            Defaults toNone.
+        device (str): Identifier for the torch device. The model instance will be moved to the specified
+            device. If it is None, the device will be set to "cpu" if cuda is unavailable and "cuda" otherwise.
+            Defaults to None.
+    """
+    def __init__(
+        self,
+        component: Union[nn.Module, Dict[str, nn.Module]],
+        optim_option: Union[OptimOption, Dict[str, OptimOption]] = None,
+        device: str = None
+    ):
+        super().__init__(component, optim_option=optim_option, device=device)
+
     @abstractmethod
     def forward(self, states, actions=None):
         """Compute actions for a batch of states or Q-values for a batch of states and actions.

@@ -60,16 +60,28 @@ class DDPG(AbsCorePolicy):
         https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch/ddpg
 
     Args:
+        name (str): Policy name.
         ac_net (ContinuousACNet): DDPG policy and q-value models.
         experience_memory (ExperienceMemory): An experience manager for storing and retrieving experiences
             for training.
         config (DDPGConfig): Configuration for DDPG algorithm.
+        update_trigger (int): Minimum number of new experiences required to trigger an ``update`` call. Defaults to 1.
+        warmup (int): Minimum number of experiences in the experience memory required to trigger an ``update`` call.
+            Defaults to 1.
     """
-    def __init__(self, ac_net: ContinuousACNet, experience_memory: ExperienceMemory, config: DDPGConfig):
+    def __init__(
+        self,
+        name: str,
+        ac_net: ContinuousACNet,
+        experience_memory: ExperienceMemory,
+        config: DDPGConfig,
+        update_trigger: int = 1,
+        warmup: int = 1,
+    ):
         if not isinstance(ac_net, ContinuousACNet):
             raise TypeError("model must be an instance of 'ContinuousACNet'")
 
-        super().__init__(experience_memory)
+        super().__init__(name, experience_memory, update_trigger=update_trigger, warmup=warmup)
         self.ac_net = ac_net
         if self.ac_net.trainable:
             self.target_ac_net = ac_net.copy()

@@ -268,12 +268,7 @@ class ParallelRolloutManager(AbsRolloutManager):
         self._num_eval_actors = num_eval_actors
         self._eval_ep = 0
 
-    def collect(
-        self,
-        episode_index: int,
-        segment_index: int,
-        policy_state_dict: dict
-    ):
+    def collect(self, episode_index: int, segment_index: int, policy_state_dict: dict):
         """Collect simulation data, i.e., experiences for training."""
         msg_body = {
             MsgKey.EPISODE_INDEX: episode_index,
@@ -290,7 +285,7 @@ class ParallelRolloutManager(AbsRolloutManager):
         self._logger.info(f"Sent collect requests for ep-{episode_index}, segment-{segment_index}")
 
         # Receive roll-out results from remote actors
-        combined_exp_by_agent = defaultdict(ExperienceSet)
+        combined_exp_by_policy = defaultdict(ExperienceSet)
         num_segment_finishes = num_episode_finishes = 0
         for msg in self._proxy.receive():
             if msg.tag != MsgTag.COLLECT_DONE or msg.body[MsgKey.EPISODE_INDEX] != episode_index:
@@ -306,8 +301,8 @@ class ParallelRolloutManager(AbsRolloutManager):
                 self._logger.info(f"env_metrics: {env_metrics}")
 
             if segment_index - msg.body[MsgKey.SEGMENT_INDEX] <= self._max_staleness:
-                exp_by_agent = msg.body[MsgKey.EXPERIENCES]
-                self.total_experiences_collected += sum(exp.size for exp in exp_by_agent.values())
+                exp_by_policy = msg.body[MsgKey.EXPERIENCES]
+                self.total_experiences_collected += sum(exp.size for exp in exp_by_policy.values())
                 self.total_env_steps += msg.body[MsgKey.NUM_STEPS]
                 is_episode_end = msg.body[MsgKey.EPISODE_END]
                 if is_episode_end:
@@ -316,15 +311,15 @@ class ParallelRolloutManager(AbsRolloutManager):
                 if num_episode_finishes == self.required_finishes:
                     self.episode_complete = True
 
-                for agent_id, exp in exp_by_agent.items():
-                    combined_exp_by_agent[agent_id].extend(exp)
+                for policy_id, exp in exp_by_policy.items():
+                    combined_exp_by_policy[policy_id].extend(exp)
 
             if msg.body[MsgKey.SEGMENT_INDEX] == segment_index:
                 num_segment_finishes += 1
                 if num_segment_finishes == self.required_finishes:
                     break
 
-        return combined_exp_by_agent
+        return combined_exp_by_policy
 
     def evaluate(self, policy_state_dict: dict):
         """Evaluate the performance of ``policy_state_dict``."""

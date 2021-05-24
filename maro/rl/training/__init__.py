@@ -3,6 +3,7 @@
 
 from .actor import Actor
 from .learner import Learner
+from .local_learner import LocalLearner
 from .policy_manager import AbsPolicyManager, LocalPolicyManager
 from .rollout_manager import AbsRolloutManager, LocalRolloutManager, ParallelRolloutManager
 
@@ -10,6 +11,7 @@ from .rollout_manager import AbsRolloutManager, LocalRolloutManager, ParallelRol
 __all__ = [
     "Actor",
     "Learner",
+    "LocalLearner",
     "AbsPolicyManager", "LocalPolicyManager",
     "AbsRolloutManager", "LocalRolloutManager", "ParallelRolloutManager"
 ]

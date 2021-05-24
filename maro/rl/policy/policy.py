@@ -36,6 +36,7 @@ class AbsCorePolicy(AbsPolicy):
     Reinforcement learning (RL) policies should inherit from this.
 
     Args:
+        name (str): Policy name.
         experience_memory (ExperienceMemory): An experience manager for storing and retrieving experiences
             for training.
         update_trigger (int): Minimum number of new experiences required to trigger an ``update`` call. Defaults to 1.
@@ -44,11 +45,12 @@ class AbsCorePolicy(AbsPolicy):
     """
     def __init__(
         self,
+        name: str,
         experience_memory: ExperienceMemory,
         update_trigger: int = 1,
         warmup: int = 1
     ):
-        super().__init__()
+        super().__init__(name)
         self.experience_memory = experience_memory
         self.update_trigger = update_trigger
         self.warmup = warmup

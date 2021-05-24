@@ -6,6 +6,7 @@ from os import getcwd
 from typing import List, Dict
 
 from maro.communication import Proxy
+from maro.rl import policy
 from maro.rl.env_wrapper import AbsEnvWrapper
 from maro.rl.exploration import AbsExploration
 from maro.rl.policy import AbsPolicy
@@ -95,79 +96,86 @@ class Actor(object):
                 break
 
             if msg.tag == MsgTag.COLLECT:
-                episode_index, segment_index = msg.body[MsgKey.EPISODE_INDEX], msg.body[MsgKey.SEGMENT_INDEX]
-                if self.env.state is None:
-                    self._logger.info(f"Training episode {msg.body[MsgKey.EPISODE_INDEX]}")
-                    if hasattr(self, "exploration_dict"):
-                        exploration_params = {
-                            agent_ids: self.exploration_dict[exploration_id].parameters
-                            for exploration_id, agent_ids in self.agent_groups_by_exploration.items()
-                        }
-                        self._logger.debug(f"Exploration parameters: {exploration_params}")
-
-                    self.env.reset()
-                    self.env.start()  # get initial state
-
-                # load policies
-                self._load_policy_states(msg.body[MsgKey.POLICY])
-
-                starting_step_index = self.env.step_index + 1
-                steps_to_go = float("inf") if msg.body[MsgKey.NUM_STEPS] == -1 else msg.body[MsgKey.NUM_STEPS]
-                while self.env.state and steps_to_go > 0:
-                    if self.exploration_dict:
-                        action = {
-                            id_:
-                                self.exploration[id_](self.policy[id_].choose_action(st))
-                                if id_ in self.exploration else self.policy[id_].choose_action(st)
-                            for id_, st in self.env.state.items()
-                        }
-                    else:
-                        action = {id_: self.policy[id_].choose_action(st) for id_, st in self.env.state.items()}
-
-                    self.env.step(action)
-                    steps_to_go -= 1
-
-                self._logger.info(
-                    f"Roll-out finished for ep {episode_index}, segment {segment_index}"
-                    f"(steps {starting_step_index} - {self.env.step_index})"
-                )
-                exp_by_agent = self.env.get_experiences()
-                for agent_id, exp_set in exp_by_agent.items():
-                    self.policy[agent_id].experience_memory.put(exp_set)
-
-                return_info = {
-                    MsgKey.EPISODE_END: not self.env.state,
-                    MsgKey.EPISODE_INDEX: episode_index,
-                    MsgKey.SEGMENT_INDEX: segment_index,
-                    MsgKey.EXPERIENCES: exp_by_agent,
-                    MsgKey.NUM_STEPS: self.env.step_index - starting_step_index + 1
-                }
-
-                if msg.body[MsgKey.RETURN_ENV_METRICS]:
-                    return_info[MsgKey.METRICS] = self.env.metrics
-                if not self.env.state:
-                    if self.exploration_dict:
-                        for exploration in self.exploration_dict.values():
-                            exploration.step()
-
-                    return_info[MsgKey.TOTAL_REWARD] = self.env.total_reward
-                self._proxy.reply(msg, tag=MsgTag.COLLECT_DONE, body=return_info)
+                self._collect(msg)
             elif msg.tag == MsgTag.EVAL:
-                ep = msg.body[MsgKey.EPISODE_INDEX]
-                self._logger.info(f"Evaluation episode {ep}")
-                self.eval_env.reset()
-                self.eval_env.start()  # get initial state
-                self._load_policy_states(msg.body[MsgKey.POLICY])
-                while self.eval_env.state:
-                    action = {id_: self.policy[id_].choose_action(st) for id_, st in self.eval_env.state.items()}
-                    self.eval_env.step(action)
+                self._evaluate(msg)
 
-                return_info = {
-                    MsgKey.METRICS: self.env.metrics,
-                    MsgKey.TOTAL_REWARD: self.eval_env.total_reward,
-                    MsgKey.EPISODE_INDEX: msg.body[MsgKey.EPISODE_INDEX]
+    def _collect(self, msg):
+        episode_index, segment_index = msg.body[MsgKey.EPISODE_INDEX], msg.body[MsgKey.SEGMENT_INDEX]
+        if self.env.state is None:
+            self._logger.info(f"Training episode {msg.body[MsgKey.EPISODE_INDEX]}")
+            if hasattr(self, "exploration_dict"):
+                exploration_params = {
+                    agent_ids: self.exploration_dict[exploration_id].parameters
+                    for exploration_id, agent_ids in self.agent_groups_by_exploration.items()
                 }
-                self._proxy.reply(msg, tag=MsgTag.EVAL_DONE, body=return_info)
+                self._logger.debug(f"Exploration parameters: {exploration_params}")
+
+            self.env.reset()
+            self.env.start()  # get initial state
+
+        # load policies
+        self._load_policy_states(msg.body[MsgKey.POLICY])
+
+        starting_step_index = self.env.step_index + 1
+        steps_to_go = float("inf") if msg.body[MsgKey.NUM_STEPS] == -1 else msg.body[MsgKey.NUM_STEPS]
+        while self.env.state and steps_to_go > 0:
+            if self.exploration_dict:
+                action = {
+                    id_:
+                        self.exploration[id_](self.policy[id_].choose_action(st))
+                        if id_ in self.exploration else self.policy[id_].choose_action(st)
+                    for id_, st in self.env.state.items()
+                }
+            else:
+                action = {id_: self.policy[id_].choose_action(st) for id_, st in self.env.state.items()}
+
+            self.env.step(action)
+            steps_to_go -= 1
+
+        self._logger.info(
+            f"Roll-out finished for ep {episode_index}, segment {segment_index}"
+            f"(steps {starting_step_index} - {self.env.step_index})"
+        )
+        exp_by_agent = self.env.get_experiences()
+        for agent_id, exp in exp_by_agent.items():
+            self.policy[agent_id].experience_memory.put(exp)
+
+        ret_exp = {id_: policy.experience_memory.get() for id_, policy in self.policy_dict.items()}
+        return_info = {
+            MsgKey.EPISODE_END: not self.env.state,
+            MsgKey.EPISODE_INDEX: episode_index,
+            MsgKey.SEGMENT_INDEX: segment_index,
+            MsgKey.EXPERIENCES: ret_exp,
+            MsgKey.NUM_STEPS: self.env.step_index - starting_step_index + 1
+        }
+
+        if msg.body[MsgKey.RETURN_ENV_METRICS]:
+            return_info[MsgKey.METRICS] = self.env.metrics
+        if not self.env.state:
+            if self.exploration_dict:
+                for exploration in self.exploration_dict.values():
+                    exploration.step()
+
+            return_info[MsgKey.TOTAL_REWARD] = self.env.total_reward
+        self._proxy.reply(msg, tag=MsgTag.COLLECT_DONE, body=return_info)
+
+    def _evaluate(self, msg):
+        ep = msg.body[MsgKey.EPISODE_INDEX]
+        self._logger.info(f"Evaluation episode {ep}")
+        self.eval_env.reset()
+        self.eval_env.start()  # get initial state
+        self._load_policy_states(msg.body[MsgKey.POLICY])
+        while self.eval_env.state:
+            action = {id_: self.policy[id_].choose_action(st) for id_, st in self.eval_env.state.items()}
+            self.eval_env.step(action)
+
+        return_info = {
+            MsgKey.METRICS: self.env.metrics,
+            MsgKey.TOTAL_REWARD: self.eval_env.total_reward,
+            MsgKey.EPISODE_INDEX: msg.body[MsgKey.EPISODE_INDEX]
+        }
+        self._proxy.reply(msg, tag=MsgTag.EVAL_DONE, body=return_info)
 
     def _load_policy_states(self, policy_state_dict):
         for policy_id, policy_state in policy_state_dict.items():
