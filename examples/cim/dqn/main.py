@@ -39,7 +39,7 @@ OUT_DIM = config["shaping"]["num_actions"]
 # NUM_ACTORS = int(getenv("NUMACTORS", default=config["distributed"]["num_actors"]))
 
 
-def get_independent_policy():
+def get_independent_policy(policy_id):
     cfg = config["policy"]
     qnet = QNet(
         FullyConnectedBlock(input_dim=IN_DIM, output_dim=OUT_DIM, **cfg["model"]),
@@ -47,6 +47,7 @@ def get_independent_policy():
         device='cuda'
     )
     return DQN(
+        name=policy_id,
         q_net=qnet,
         experience_memory=ExperienceMemory(**cfg["experience_memory"]),
         config=DQNConfig(**cfg["algorithm"])
@@ -55,7 +56,7 @@ def get_independent_policy():
 
 if __name__ == "__main__":
     env = Env(**config["training"]["env"])
-    policy_dict = {i: get_independent_policy() for i in env.agent_idx_list}
+    policy_list = [get_independent_policy(policy_id=i) for i in env.agent_idx_list]
     agent2policy = {i: i for i in env.agent_idx_list}
 
     exploration_config = config["training"]["exploration"]
@@ -74,7 +75,7 @@ if __name__ == "__main__":
 
     rollout_manager = LocalRolloutManager(
         env=CIMEnvWrapper(env, **config["shaping"]),
-        policy_dict=policy_dict,
+        policies=policy_list,
         agent2policy=agent2policy,
         exploration_dict=None,
         agent2exploration=None,
@@ -86,8 +87,7 @@ if __name__ == "__main__":
     )
 
     policy_manager = LocalPolicyManager(
-        policy_dict=policy_dict,
-        update_trigger=None,
+        policies=policy_list,
         log_dir=log_dir
     )
 
