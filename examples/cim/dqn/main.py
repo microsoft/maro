@@ -1,24 +1,26 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import argparse
+import os
 import yaml
-from multiprocessing import Process
-from os import getenv
-from os.path import dirname, join, realpath
+# from multiprocessing import Process
 
 from maro.rl import (
-    Actor, ActorManager, DQN, DQNConfig, DistLearner, FullyConnectedBlock, MultiAgentWrapper, OptimOption,
-    SimpleMultiHeadModel, TwoPhaseLinearParameterScheduler
+    DQN, DQNConfig, EpsilonGreedyExploration, ExperienceMemory, FullyConnectedBlock,
+    MultiPhaseLinearExplorationScheduler, Learner, LocalPolicyManager,
+    LocalRolloutManager, UniformSampler, OptimOption
 )
 from maro.simulator import Env
-from maro.utils import set_seeds
+# from maro.utils import set_seeds
 
 from examples.cim.env_wrapper import CIMEnvWrapper
+from examples.cim.dqn.qnet import QNet
 
 
-DEFAULT_CONFIG_PATH = join(dirname(realpath(__file__)), "config.yml")
-with open(getenv("CONFIG_PATH", default=DEFAULT_CONFIG_PATH), "r") as config_file:
+FILE_PATH = os.path.dirname(os.path.realpath(__file__))
+
+DEFAULT_CONFIG_PATH = os.path.join(FILE_PATH, "config.yml")
+with open(os.getenv("CONFIG_PATH", default=DEFAULT_CONFIG_PATH), "r") as config_file:
     config = yaml.safe_load(config_file)
 
 # model input and output dimensions
@@ -30,70 +32,71 @@ IN_DIM = (
 )
 OUT_DIM = config["shaping"]["num_actions"]
 
-# for distributed / multi-process training
-GROUP = getenv("GROUP", default=config["distributed"]["group"])
-REDIS_HOST = getenv("REDISHOST", default=config["distributed"]["redis_host"])
-REDIS_PORT = getenv("REDISPORT", default=config["distributed"]["redis_port"])
-NUM_ACTORS = int(getenv("NUMACTORS", default=config["distributed"]["num_actors"]))
+# # for distributed / multi-process training
+# GROUP = getenv("GROUP", default=config["distributed"]["group"])
+# REDIS_HOST = getenv("REDISHOST", default=config["distributed"]["redis_host"])
+# REDIS_PORT = getenv("REDISPORT", default=config["distributed"]["redis_port"])
+# NUM_ACTORS = int(getenv("NUMACTORS", default=config["distributed"]["num_actors"]))
 
 
-def get_dqn_agent():
-    cfg = config["agent"]
-    q_model = SimpleMultiHeadModel(
+def get_independent_policy():
+    cfg = config["policy"]
+    qnet = QNet(
         FullyConnectedBlock(input_dim=IN_DIM, output_dim=OUT_DIM, **cfg["model"]),
-        optim_option=OptimOption(**cfg["optimization"])
+        optim_option=OptimOption(**cfg["optimization"]),
+        device='cuda'
     )
-    return DQN(q_model, DQNConfig(**cfg["algorithm"]), **cfg["experience_memory"])
-
-
-def cim_dqn_learner():
-    agent = MultiAgentWrapper({name: get_dqn_agent() for name in Env(**config["training"]["env"]).agent_idx_list})
-    scheduler = TwoPhaseLinearParameterScheduler(config["training"]["max_episode"], **config["training"]["exploration"])
-    actor_manager = ActorManager(
-        NUM_ACTORS, GROUP, proxy_options={"redis_address": (REDIS_HOST, REDIS_PORT), "log_enable": False}
+    return DQN(
+        q_net=qnet,
+        experience_memory=ExperienceMemory(**cfg["experience_memory"]),
+        config=DQNConfig(**cfg["algorithm"])
     )
-    learner = DistLearner(
-        agent, scheduler, actor_manager,
-        agent_update_interval=config["training"]["agent_update_interval"],
-        required_actor_finishes=config["distributed"]["required_actor_finishes"],
-        discard_stale_experiences=False
-    )
-    learner.run()
-
-
-def cim_dqn_actor():
-    env = Env(**config["training"]["env"])
-    agent = MultiAgentWrapper({name: get_dqn_agent() for name in env.agent_idx_list})
-    actor = Actor(
-        CIMEnvWrapper(env, **config["shaping"]), agent, GROUP,
-        proxy_options={"redis_address": (REDIS_HOST, REDIS_PORT)}
-    )
-    actor.run()
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "-w", "--whoami", type=int, choices=[0, 1, 2], default=0,
-        help="Identity of this process: 0 - multi-process mode, 1 - learner, 2 - actor"
+    env = Env(**config["training"]["env"])
+    policy_dict = {i: get_independent_policy() for i in env.agent_idx_list}
+    agent2policy = {i: i for i in env.agent_idx_list}
+
+    exploration_config = config["training"]["exploration"]
+    exploration_config["splits"] = [(item[0], item[1]) for item in exploration_config["splits"]]
+    epsilon_greedy = EpsilonGreedyExploration(num_actions=config["shaping"]["num_actions"])
+    epsilon_greedy.register_schedule(
+        scheduler_cls=MultiPhaseLinearExplorationScheduler,
+        param_name="epsilon",
+        **exploration_config
+    )
+    exploration_dict = {
+        f"EpsilonGreedy1": EpsilonGreedyExploration(num_actions=config["shaping"]["num_actions"])
+    }
+
+    log_dir = os.path.join(FILE_PATH, "log")
+
+    rollout_manager = LocalRolloutManager(
+        env=CIMEnvWrapper(env, **config["shaping"]),
+        policy_dict=policy_dict,
+        agent2policy=agent2policy,
+        exploration_dict=None,
+        agent2exploration=None,
+        num_steps=-1,
+        eval_env=CIMEnvWrapper(Env(**config["training"]["env"]), **config["shaping"]),
+        log_env_metrics=True,
+        log_total_reward=True,
+        log_dir=log_dir
     )
 
-    args = parser.parse_args()
-    if args.whoami == 0:
-        actor_processes = [Process(target=cim_dqn_actor) for i in range(NUM_ACTORS)]
-        learner_process = Process(target=cim_dqn_learner)
+    policy_manager = LocalPolicyManager(
+        policy_dict=policy_dict,
+        update_trigger=None,
+        log_dir=log_dir
+    )
 
-        for i, actor_process in enumerate(actor_processes):
-            set_seeds(i)  # this is to ensure that the actors explore differently.
-            actor_process.start()
+    learner = Learner(
+        policy_manager=policy_manager,
+        rollout_manager=rollout_manager,
+        num_episodes=config["training"]["num_episodes"],
+        eval_schedule=[],
+        log_dir=log_dir
+    )
 
-        learner_process.start()
-
-        for actor_process in actor_processes:
-            actor_process.join()
-
-        learner_process.join()
-    elif args.whoami == 1:
-        cim_dqn_learner()
-    elif args.whoami == 2:
-        cim_dqn_actor()
+    learner.run()

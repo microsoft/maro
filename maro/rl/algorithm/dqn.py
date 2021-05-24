@@ -88,7 +88,7 @@ class DQN(AbsCorePolicy):
         return actions[0] if len(actions) == 1 else actions
 
     def update(self):
-        assert self.q_net.trainable, "q_net needs to have at least one optimizer registered." 
+        assert self.q_net.trainable, "q_net needs to have at least one optimizer registered."
         self.q_net.train()
         for _ in range(self.config.train_epochs):
             # sample from the replay memory

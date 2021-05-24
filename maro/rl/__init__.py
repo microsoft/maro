@@ -19,7 +19,7 @@ from maro.rl.model import (
 from maro.rl.policy import AbsCorePolicy, AbsPolicy, NullPolicy
 from maro.rl.training import (
     AbsPolicyManager, AbsRolloutManager, Actor, Learner, LocalPolicyManager, LocalRolloutManager,
-    ParallelRolloutManager, PolicyUpdateTrigger 
+    ParallelRolloutManager, PolicyUpdateTrigger
 )
 from maro.rl.utils import (
     get_k_step_returns, get_lambda_returns, get_torch_activation_cls, get_torch_loss_cls, get_torch_lr_scheduler_cls,

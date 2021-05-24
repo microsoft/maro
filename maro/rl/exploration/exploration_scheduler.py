@@ -89,7 +89,7 @@ class MultiPhaseLinearExplorationScheduler(AbsExplorationScheduler):
         final_value: float,
         initial_value: float = None
     ):
-         # validate splits
+        # validate splits
         splits.append((1, initial_value))
         splits.append((last_ep, final_value))
         splits.sort()

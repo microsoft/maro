@@ -28,7 +28,7 @@ class AbsEnvWrapper(ABC):
         self.reward_eval_delay = reward_eval_delay
         self.action_history = defaultdict(dict)
         self.save_replay = save_replay
-        self.replay_agent_ids = self.env.agent_idx_list if not replay_agent_ids else replay_agent_ids             
+        self.replay_agent_ids = self.env.agent_idx_list if not replay_agent_ids else replay_agent_ids
         self._replay_buffer = {agent_id: defaultdict(list) for agent_id in self.replay_agent_ids}
         self._pending_reward_cache = deque()  # list of (state, action, tick) whose rewards have yet to be evaluated
         self._step_index = None
@@ -109,11 +109,13 @@ class AbsEnvWrapper(ABC):
         reward cannot be determined yet due to a non-zero ``reward_eval_delay``.
         """
         self._step_index += 1
-        env_action = self.to_env_action(action_by_agent)
-        for agent_id, action in action_by_agent.items():
+        env_action_dict = self.to_env_action(action_by_agent)
+        for agent_id, action in env_action_dict.items():
             self.action_history[self.env.tick][agent_id] = action
         transition_info = self.get_transition_info()
         self._pending_reward_cache.append((self._state, action_by_agent, transition_info, self.env.tick))
+
+        env_action = list(env_action_dict.values())
         _, self._event, done = self.env.step(env_action)
 
         if not done:
@@ -162,8 +164,8 @@ class AbsEnvWrapper(ABC):
             del buf["states"][:-1]
             del buf["actions"][:-1]
             del buf["rewards"][:-1]
-            del buf["info"][:-1]            
-            exp_by_agent[agent_id] = exp_set 
+            del buf["info"][:-1]
+            exp_by_agent[agent_id] = exp_set
 
         return exp_by_agent
 

@@ -1,6 +1,22 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+training:
+  env:
+    scenario: cim
+    topology: toy.4p_ssdd_l0.0
+    durations: 1120
+  num_episodes: 5
+  agent_update_interval: 200
+  exploration:
+    last_ep: 4
+    initial_value: 0.8
+    splits:
+      -
+        - 2
+        - 0.3
+    final_value: 0.0
+
 shaping:
   port_attributes:
     - empty
@@ -26,7 +42,8 @@ shaping:
   fulfillment_factor: 1.0
   shortage_factor: 1.0
   time_decay: 0.97
-agent:
+
+policy:
   model:
     hidden_dims:
       - 256
@@ -42,34 +59,19 @@ agent:
     optim_cls: rmsprop
     optim_params:
       lr: 0.05
-  algorithm: 
+  algorithm:
     reward_discount: .0
-    num_steps: 10
-    batch_size: 128
-    loss_cls: smooth_l1
     target_update_freq: 5
+    train_epochs: 10
+    gradient_iters: 1
     soft_update_coefficient: 0.1
     double: false
+    loss_cls: smooth_l1
   experience_memory:
-    experience_memory_size: -1
-    experience_memory_overwrite_type: "rolling"
-    empty_experience_memory_after_step: false
-    new_experience_trigger: 16
-    min_experiences_to_trigger_training: 1024
-training: 
-  env:
-    scenario: cim
-    topology: toy.4p_ssdd_l0.0
-    durations: 1120
-  max_episode: 5
-  agent_update_interval: 200
-  exploration:
-    parameter_names:
-      - epsilon
-    split: 0.5
-    start: 0.4
-    mid: 0.32
-    end: 0.0
+    capacity: 10000
+    # batch_size: 128
+    overwrite_type: "rolling"
+
 distributed:
   group: cim-dqn
   num_actors: 3

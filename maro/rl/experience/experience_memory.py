@@ -8,7 +8,7 @@ from maro.utils.exception.rl_toolkit_exception import InvalidExperience
 
 class ExperienceSet:
     """Wrapper for a set of experiences.
-    
+
     An experience consists of state, action, reward, next state and auxillary information.
     """
     __slots__ = ["states", "actions", "rewards", "next_states", "info"]
@@ -120,13 +120,13 @@ class ExperienceMemory:
                 self.data[key][idx] = val
 
         self._size = min(self._capacity, num_experiences)
-    
+
     def get(self):
         """Retrieve an experience set from the memory.
 
         If not sampler has been registered, the entirety of the stored data will be returned in the form of
         an ``ExperienceSet`` and the memory will be cleared. Otherwise, a sample from the memory will be
-        returned according to the sampling logic defined by the registered sampler. 
+        returned according to the sampling logic defined by the registered sampler.
         """
         if self.sampler is None:
             return ExperienceSet(*[self.data[key][:self._size] for key in self._keys])
@@ -135,7 +135,7 @@ class ExperienceMemory:
 
     def register_sampler(self, sampler_cls, **sampler_params):
         """Register a sampler to the experience memory.
-        
+
         Args:
             sampler_cls: Type of sampler to be registered. Must be a subclass of ``AbsSampler``.
             sampler_params: Keyword parameters for ``sampler_cls``.

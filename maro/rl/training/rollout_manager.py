@@ -40,7 +40,7 @@ class AbsRolloutManager(ABC):
 
 class LocalRolloutManager(AbsRolloutManager):
     """Controller for a single local roll-out actor.
-    
+
     Args:
         env (AbsEnvWrapper): An ``AbsEnvWrapper`` instance to interact with a set of agents and collect experiences
             for policy training / update.
@@ -93,13 +93,13 @@ class LocalRolloutManager(AbsRolloutManager):
 
         # mappings between exploration schemes and agents
         self.exploration_dict = exploration_dict
+        self._agent_groups_by_exploration = defaultdict(list)
         if exploration_dict:
             self._agent2exploration = agent2exploration
             self._exploration = {
                 agent_id: self.exploration_dict[exploration_id]
                 for agent_id, exploration_id in self._agent2exploration.items()
             }
-            self._agent_groups_by_exploration = defaultdict(list)
             for agent_id, exploration_id in self._agent2exploration.items():
                 self._agent_groups_by_exploration[exploration_id].append(agent_id)
 
@@ -139,7 +139,7 @@ class LocalRolloutManager(AbsRolloutManager):
         start_step_index = self.env.step_index + 1
         steps_to_go = self._num_steps
         while self.env.state and steps_to_go > 0:
-            if self.exploration_dict:      
+            if self.exploration_dict:
                 action = {
                     id_:
                         self._exploration[id_](self._policy[id_].choose_action(st))
@@ -174,7 +174,7 @@ class LocalRolloutManager(AbsRolloutManager):
             self._logger.debug(
                 f"ep {ep} summary - "
                 f"running time: {time.time() - t0} "
-                f"env steps: {self.env.step_index} "    
+                f"env steps: {self.env.step_index} "
                 f"learning time: {learning_time} "
                 f"experiences collected: {num_experiences_collected}"
             )
@@ -197,7 +197,7 @@ class LocalRolloutManager(AbsRolloutManager):
 
         if self._log_env_metrics:
             self._logger.info(f"eval ep {self._eval_ep}: {self.eval_env.metrics}")
-    
+
     def _load_policy_states(self, policy_state_dict: dict):
         for policy_id, policy_state in policy_state_dict.items():
             self.policy_dict[policy_id].set_state(policy_state)
@@ -208,7 +208,7 @@ class LocalRolloutManager(AbsRolloutManager):
 
 class ParallelRolloutManager(AbsRolloutManager):
     """Controller for a set of remote roll-out actors.
-    
+
     Args:
         num_actors (int): Number of remote roll-out actors.
         group (str): Identifier of the group to which the actor belongs. It must be the same group name
@@ -219,7 +219,7 @@ class ParallelRolloutManager(AbsRolloutManager):
             in which case the number is set to ``num_actors``.
         max_staleness (int): Maximum allowable staleness measured in the number of calls to ``collect``. Experiences
             collected from calls to ``collect`` within ``max_staleness`` calls ago will be returned to the learner.
-            Defaults to 0, in which case only experiences from the latest call to ``collect`` will be returned.    
+            Defaults to 0, in which case only experiences from the latest call to ``collect`` will be returned.
         num_eval_actors (int): Number of actors required for evaluation. Defaults to 1.
         log_env_metrics (bool): If True, the metrics provided by the environment will be logged at the end of an episode.
             Defaults to True.

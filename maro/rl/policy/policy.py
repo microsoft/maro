@@ -17,9 +17,9 @@ class AbsPolicy(ABC):
 
 
 class NullPolicy(AbsPolicy):
-    """Dummy policy that does nothing. 
-    
-    Note that the meaning of a "None" action may depend on the scenario. 
+    """Dummy policy that does nothing.
+
+    Note that the meaning of a "None" action may depend on the scenario.
     """
     def choose_action(self, state):
         return None
@@ -45,7 +45,7 @@ class AbsCorePolicy(AbsPolicy):
     @abstractmethod
     def update(self):
         """Policy update logic is implemented here.
-        
+
         This usually includes retrieving experiences as training samples from the experience manager and
         updating the underlying models using these samples.
         """
@@ -54,7 +54,7 @@ class AbsCorePolicy(AbsPolicy):
     @abstractmethod
     def get_state(self):
         """Return the current state of the policy.
-        
+
         The implementation must be in correspondence with that of ``set_state``. For example, if a torch model
         is contained in the policy, ``get_state`` may include a call to ``state_dict()`` on the model, while
         ``set_state`` should accordingly include ``load_state_dict()``.

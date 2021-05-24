@@ -24,7 +24,7 @@ class AbsExploration(ABC):
 
     @abstractmethod
     def __call__(self, action):
-        return NotImplementedError 
+        return NotImplementedError
 
     @property
     def parameters(self):
