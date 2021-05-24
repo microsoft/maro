@@ -42,7 +42,7 @@ def get_ac_policy():
             "critic": OptimOption(**cfg["optimization"]["critic"])
         }
     )
-    return ActorCritic(ac_net, , ActorCriticConfig(**cfg["algorithm"]))
+    return ActorCritic(ac_net, ActorCriticConfig(**cfg["algorithm"]))
 
 
 # Single-threaded launcher
