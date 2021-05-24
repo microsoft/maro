@@ -3,7 +3,7 @@
 
 from collections import defaultdict
 from os import getcwd
-from typing import Dict
+from typing import List, Dict
 
 from maro.communication import Proxy
 from maro.rl.env_wrapper import AbsEnvWrapper
@@ -20,7 +20,7 @@ class Actor(object):
     Args:
         env (AbsEnvWrapper): An ``AbsEnvWrapper`` instance to interact with a set of agents and collect experiences
             for policy training / update.
-        policy_dict (Dict[str, AbsPolicy]): A set of named policies for inference.
+        policies (List[AbsPolicy]): A list of policies for inference.
         agent2policy (Dict[str, str]): Mapping from agent ID's to policy ID's. This is used to direct an agent's
             queries to the correct policy.
         group (str): Identifier of the group to which the actor belongs. It must be the same group name
@@ -38,7 +38,7 @@ class Actor(object):
     def __init__(
         self,
         env: AbsEnvWrapper,
-        policy_dict: Dict[str, AbsPolicy],
+        policies: List[AbsPolicy],
         agent2policy: Dict[str, str],
         group: str,
         exploration_dict: Dict[str, AbsExploration] = None,
@@ -51,9 +51,9 @@ class Actor(object):
         self.eval_env = eval_env if eval_env else self.env
 
         # mappings between agents and policies
-        self.policy_dict = policy_dict
+        self.policy_dict = {policy.name: policy for policy in policies}
         self.agent2policy = agent2policy
-        self.policy = {agent_id: policy_dict[policy_id] for agent_id, policy_id in self.agent2policy.items()}
+        self.policy = {agent_id: self.policy_dict[policy_id] for agent_id, policy_id in self.agent2policy.items()}
         self.agent_groups_by_policy = defaultdict(list)
         for agent_id, policy_id in agent2policy.items():
             self.agent_groups_by_policy[policy_id].append(agent_id)
@@ -79,13 +79,13 @@ class Actor(object):
 
     def run(self):
         """Start the event loop.
-        
-        The event loop handles 3 types of messages from the roll-out manager: 
-            1) COLLECT, upon which the agent-environment simulation will be carried out for a specified number of steps
-               and the collected experiences will be sent back to the roll-out manager;
-            2) EVAL, upon which the policies contained in the message payload will be evaluated for the entire
-               duration of the evaluation environment.
-            3) EXIT, upon which the actor will break out of the event loop and the process will terminate. 
+
+        The event loop handles 3 types of messages from the roll-out manager:
+            1)  COLLECT, upon which the agent-environment simulation will be carried out for a specified number of steps
+                and the collected experiences will be sent back to the roll-out manager;
+            2)  EVAL, upon which the policies contained in the message payload will be evaluated for the entire
+                duration of the evaluation environment.
+            3)  EXIT, upon which the actor will break out of the event loop and the process will terminate.
 
         """
         for msg in self._proxy.receive():
@@ -114,7 +114,7 @@ class Actor(object):
                 starting_step_index = self.env.step_index + 1
                 steps_to_go = float("inf") if msg.body[MsgKey.NUM_STEPS] == -1 else msg.body[MsgKey.NUM_STEPS]
                 while self.env.state and steps_to_go > 0:
-                    if self.exploration_dict:      
+                    if self.exploration_dict:
                         action = {
                             id_:
                                 self.exploration[id_](self.policy[id_].choose_action(st))
@@ -165,7 +165,7 @@ class Actor(object):
                 return_info = {
                     MsgKey.METRICS: self.env.metrics,
                     MsgKey.TOTAL_REWARD: self.eval_env.total_reward,
-                    MsgKey.EPISODE_INDEX: msg.body[MsgKey.EPISODE_INDEX]  
+                    MsgKey.EPISODE_INDEX: msg.body[MsgKey.EPISODE_INDEX]
                 }
                 self._proxy.reply(msg, tag=MsgTag.EVAL_DONE, body=return_info)
 

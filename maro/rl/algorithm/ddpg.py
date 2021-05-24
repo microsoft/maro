@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from collections import namedtuple
 from typing import Union
 
 import numpy as np
@@ -96,7 +95,7 @@ class DDPG(AbsCorePolicy):
             rewards = torch.from_numpy(experience_set.rewards).to(self.device)
             if len(actual_actions.shape) == 1:
                 actual_actions = actual_actions.unsqueeze(dim=1)  # (N, 1)
-            
+
             with torch.no_grad():
                 next_q_values = self.target_ac_net.value(next_states)
             target_q_values = (rewards + self.config.reward_discount * next_q_values).detach()  # (N,)

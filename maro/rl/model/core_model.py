@@ -80,14 +80,14 @@ class AbsCoreModel(nn.Module):
     def trainable(self) -> bool:
         """Return True if at least one optimizer is registered."""
         return self.optimizer is not None
-    
+
     @abstractmethod
     def forward(self, *args, **kwargs):
         raise NotImplementedError
 
     def step(self, loss):
         """Use the loss to back-propagate gradients and apply them to the underlying parameters.
-        
+
         Args:
             loss: Result of a computation graph that involves the underlying parameters.
         """
@@ -210,10 +210,10 @@ class DiscreteACNet(AbsCoreModel):
     @abstractmethod
     def forward(self, states, actor: bool = True, critic: bool = True) -> tuple:
         """Compute action probabilities and values for a state batch.
-        
+
         The output is a tuple of (action_probs, values), where action probs is a tensor of shape
         (batch_size, action_space_size) and values is a tensor of shape (batch_size,). If only one
-        of these two is needed, the return value for the other one can be set to None. 
+        of these two is needed, the return value for the other one can be set to None.
 
         Args:
             states: State batch to compute action probabilities and values for.
@@ -243,7 +243,7 @@ class ContinuousACNet(AbsCoreModel):
             states: State batch to compute the Q-values for.
             actions: Action batch. If None, the output should be a batch of actions corresponding to
                 the state batch. Otherwise, the output should be the Q-values for the given states and
-                actions. Defaults to None. 
+                actions. Defaults to None.
         """
         raise NotImplementedError
 

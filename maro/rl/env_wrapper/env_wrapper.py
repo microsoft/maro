@@ -3,10 +3,9 @@
 
 from abc import ABC, abstractmethod
 from collections import defaultdict, deque
-from typing import Dict
 
-from maro.simulator import Env
 from maro.rl.experience import ExperienceSet
+from maro.simulator import Env
 
 
 class AbsEnvWrapper(ABC):
@@ -28,7 +27,7 @@ class AbsEnvWrapper(ABC):
         self.reward_eval_delay = reward_eval_delay
         self.action_history = defaultdict(dict)
         self.save_replay = save_replay
-        self.replay_agent_ids = self.env.agent_idx_list if not replay_agent_ids else replay_agent_ids             
+        self.replay_agent_ids = self.env.agent_idx_list if not replay_agent_ids else replay_agent_ids
         self._replay_buffer = {agent_id: defaultdict(list) for agent_id in self.replay_agent_ids}
         self._pending_reward_cache = deque()  # list of (state, action, tick) whose rewards have yet to be evaluated
         self._step_index = None
@@ -162,8 +161,8 @@ class AbsEnvWrapper(ABC):
             del buf["states"][:-1]
             del buf["actions"][:-1]
             del buf["rewards"][:-1]
-            del buf["info"][:-1]            
-            exp_by_agent[agent_id] = exp_set 
+            del buf["info"][:-1]
+            exp_by_agent[agent_id] = exp_set
 
         return exp_by_agent
 

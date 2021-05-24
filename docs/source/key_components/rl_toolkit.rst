@@ -100,10 +100,11 @@ Experience
 ----------
 
 An ``ExperienceSet`` is a synonym for training data for RL policies. The data originate from the simulator and
-get processed and organized into a set of transitions in the form of (state, action, reward, next_state, info).
-An ``ExperienceMemory`` is a storage facility for experience sets and is maintained by a policy to store experiences
-it generates.     
-
+get processed and organized into a set of transitions in the form of (state, action, reward, next_state, info),
+where ''info'' contains information about the transition that is not encoded in the state but may be necessary
+for sampling purposes. An ``ExperienceMemory`` is a storage facility for experience sets and is maintained by
+a policy for storing and retrieving training data. Sampling from the experience memory can be customized by 
+registering a user-defined sampler to it.  
 
 
 Exploration

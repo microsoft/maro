@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 from abc import ABC, abstractmethod
-from typing import Callable
 
 
 class AbsExploration(ABC):
@@ -24,7 +23,7 @@ class AbsExploration(ABC):
 
     @abstractmethod
     def __call__(self, action):
-        return NotImplementedError 
+        return NotImplementedError
 
     @property
     def parameters(self):

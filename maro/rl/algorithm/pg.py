@@ -1,12 +1,12 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from maro.rl.experience.experience_memory import ExperienceMemory
 from typing import Tuple
 
 import numpy as np
 import torch
 
+from maro.rl.experience.experience_memory import ExperienceMemory
 from maro.rl.model import DiscretePolicyNet
 from maro.rl.policy import AbsCorePolicy
 from maro.rl.utils import get_truncated_cumulative_reward
@@ -38,7 +38,7 @@ class PolicyGradient(AbsCorePolicy):
     """
     def __init__(
         self, policy_net: DiscretePolicyNet, experience_memory: ExperienceMemory, config: PolicyGradientConfig,
-    ):  
+    ):
         if not isinstance(policy_net, DiscretePolicyNet):
             raise TypeError("model must be an instance of 'DiscretePolicyNet'")
         super().__init__(experience_memory)
@@ -57,7 +57,7 @@ class PolicyGradient(AbsCorePolicy):
         """
         This should be called at the end of a simulation episode and the experiences obtained from
         the experience manager's ``get`` method should be a sequential set, i.e., in the order in
-        which they are generated during the simulation. Otherwise, the return values may be meaningless. 
+        which they are generated during the simulation. Otherwise, the return values may be meaningless.
         """
         self.policy_net.train()
         experience_set = self.experience_memory.get()
