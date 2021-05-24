@@ -55,17 +55,29 @@ class ActorCritic(AbsCorePolicy):
         https://towardsdatascience.com/understanding-actor-critic-methods-931b97b6df3f
 
     Args:
+        name (str): Policy name.
         ac_net (DiscreteACNet): Multi-task model that computes action distributions
             and state values.
         experience_memory (ExperienceMemory): An experience manager for storing and retrieving experiences
             for training.
         config: Configuration for the AC algorithm.
+        update_trigger (int): Minimum number of new experiences required to trigger an ``update`` call. Defaults to 1.
+        warmup (int): Minimum number of experiences in the experience memory required to trigger an ``update`` call.
+            Defaults to 1.
     """
-    def __init__(self, ac_net: DiscreteACNet, experience_memory: ExperienceMemory, config: ActorCriticConfig):
+    def __init__(
+        self,
+        name: str,
+        ac_net: DiscreteACNet,
+        experience_memory: ExperienceMemory,
+        config: ActorCriticConfig,
+        update_trigger: int = 1,
+        warmup: int = 1,
+    ):
         if not isinstance(ac_net, DiscreteACNet):
             raise TypeError("model must be an instance of 'DiscreteACNet'")
 
-        super().__init__(experience_memory)
+        super().__init__(name, experience_memory, update_trigger=update_trigger, warmup=warmup)
         self.ac_net = ac_net
         self.config = config
         self.device = self.ac_net.device

@@ -59,16 +59,28 @@ class DQN(AbsCorePolicy):
     See https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf for details.
 
     Args:
+        name (str): Policy name.
         q_net (DiscreteQNet): Q-value model.
         experience_memory (ExperienceMemory): An experience manager for storing and retrieving experiences
             for training.
         config (DQNConfig): Configuration for DQN algorithm.
+        update_trigger (int): Minimum number of new experiences required to trigger an ``update`` call. Defaults to 1.
+        warmup (int): Minimum number of experiences in the experience memory required to trigger an ``update`` call.
+            Defaults to 1.
     """
-    def __init__(self, q_net: DiscreteQNet, experience_memory: ExperienceMemory, config: DQNConfig):
+    def __init__(
+        self,
+        name: str,
+        q_net: DiscreteQNet,
+        experience_memory: ExperienceMemory,
+        config: DQNConfig,
+        update_trigger: int = 1,
+        warmup: int = 1,
+    ):
         if not isinstance(q_net, DiscreteQNet):
             raise TypeError("model must be an instance of 'DiscreteQNet'")
 
-        super().__init__(experience_memory)
+        super().__init__(name, experience_memory, update_trigger=update_trigger, warmup=warmup)
         self.q_net = q_net
         if self.q_net.trainable:
             self.target_q_net = q_net.copy()

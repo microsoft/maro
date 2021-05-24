@@ -3,10 +3,9 @@
 
 from abc import ABC, abstractmethod
 from collections import defaultdict, deque
-from typing import Dict
 
-from maro.simulator import Env
 from maro.rl.experience import ExperienceSet
+from maro.simulator import Env
 
 
 class AbsEnvWrapper(ABC):
@@ -76,6 +75,9 @@ class AbsEnvWrapper(ABC):
         Args:
             tick (int): The tick for which to compute the environmental state. If computing the current state,
                 use tick=self.env.tick.
+
+        Returns:
+            A dictionary with (agent ID, state) as key-value pairs.
         """
         raise NotImplementedError
 
@@ -89,9 +91,13 @@ class AbsEnvWrapper(ABC):
         """Evaluate the reward for an action.
 
         Args:
-            tick (int): If given, the reward for the action that occured at this tick will be evaluated (in the case
-                of delayed reward evaluation). Otherwise, the reward is evaluated for the latest action.
-                Defaults to None.
+            tick (int): Evaluate the reward for the action that occured at the given tick. The tick may be
+                None, in which case the reward is evaluated for the latest action (i.e., immediate reward).
+                Otherwise, it must be a key in the ``action_history`` attribute (i.e., there must be an action
+                at that tick). Defaults to None.
+
+        Returns:
+            A dictionary with (agent ID, reward) as key-value pairs.
         """
         raise NotImplementedError
 
@@ -99,6 +105,10 @@ class AbsEnvWrapper(ABC):
         """Get additional info for a transition.
 
         The returned transition info will be stored in the experience manager alongside states, actions, rewards.
+
+        Returns:
+            A dictionary with (agent ID, transition_info) as key-value pairs.
+
         """
         pass
 

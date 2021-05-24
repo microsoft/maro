@@ -1,13 +1,13 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from abc import ABC, abstractclassmethod
+from abc import ABC, abstractmethod
 from typing import List, Tuple
 
 from maro.rl.exploration.abs_exploration import AbsExploration
 
 
-class AbsExplorationScheduler:
+class AbsExplorationScheduler(ABC):
     def __init__(
         self,
         exploration: AbsExploration,
@@ -15,6 +15,7 @@ class AbsExplorationScheduler:
         last_ep: int,
         initial_value=None
     ):
+        super().__init__()
         self.exploration = exploration
         self.param_name = param_name
         self.last_ep = last_ep
@@ -24,7 +25,7 @@ class AbsExplorationScheduler:
     def get_value(self):
         return getattr(self.exploration, self.param_name)
 
-    @abstractclassmethod
+    @abstractmethod
     def step(self):
         raise NotImplementedError
 
@@ -122,7 +123,9 @@ class MultiPhaseLinearExplorationScheduler(AbsExplorationScheduler):
 if __name__ == "__main__":
     from maro.rl.exploration.epsilon_greedy_exploration import EpsilonGreedyExploration
     exploration = EpsilonGreedyExploration(5, epsilon=0.6)
-    scheduler = MultiPhaseLinearExplorationScheduler(exploration, "epsilon", 20, [(12, 0.25), (6, 0.5), (16, 0.15), (9, 0.4)], .0)
+    scheduler = MultiPhaseLinearExplorationScheduler(
+        exploration, "epsilon", 20, [(12, 0.25), (6, 0.5), (16, 0.15), (9, 0.4)], .0
+    )
     for ep in range(1, scheduler.last_ep + 1):
         print(f"ep = {ep}, value = {exploration.epsilon}")
         scheduler.step()

@@ -2,10 +2,9 @@
 # Licensed under the MIT license.
 
 from .ac import ActorCritic, ActorCriticConfig, DiscreteACNet
-from .ddpg import DDPG, DDPGConfig, ContinuousACNet
-from .dqn import DQN, DQNConfig, DiscreteQNet
-from .pg import PolicyGradient, PolicyGradientConfig, DiscretePolicyNet
-
+from .ddpg import DDPG, ContinuousACNet, DDPGConfig
+from .dqn import DQN, DiscreteQNet, DQNConfig
+from .pg import DiscretePolicyNet, PolicyGradient, PolicyGradientConfig
 
 RL_POLICY_INDEX = {
     "ac": ActorCritic,

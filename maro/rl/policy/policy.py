@@ -3,13 +3,18 @@
 
 from abc import ABC, abstractmethod
 
-from maro.rl.experience import ExperienceMemory
+from maro.rl.experience import ExperienceMemory, ExperienceSet
 
 
 class AbsPolicy(ABC):
     """Abstract policy class."""
-    def __init__(self):
+    def __init__(self, name: str):
+        self._name = name
         super().__init__()
+
+    @property
+    def name(self):
+        return self._name
 
     @abstractmethod
     def choose_action(self, state):
@@ -31,12 +36,25 @@ class AbsCorePolicy(AbsPolicy):
     Reinforcement learning (RL) policies should inherit from this.
 
     Args:
+        name (str): Policy name.
         experience_memory (ExperienceMemory): An experience manager for storing and retrieving experiences
             for training.
+        update_trigger (int): Minimum number of new experiences required to trigger an ``update`` call. Defaults to 1.
+        warmup (int): Minimum number of experiences in the experience memory required to trigger an ``update`` call.
+            Defaults to 1.
     """
-    def __init__(self, experience_memory: ExperienceMemory):
-        super().__init__()
+    def __init__(
+        self,
+        name: str,
+        experience_memory: ExperienceMemory,
+        update_trigger: int = 1,
+        warmup: int = 1
+    ):
+        super().__init__(name)
         self.experience_memory = experience_memory
+        self.update_trigger = update_trigger
+        self.warmup = warmup
+        self._new_exp_counter = 0
 
     @abstractmethod
     def choose_action(self, state):
@@ -70,6 +88,19 @@ class AbsCorePolicy(AbsPolicy):
         ``get_state`` should accordingly include ``state_dict()``.
         """
         pass
+
+    def on_experiences(self, exp: ExperienceSet) -> bool:
+        self.experience_memory.put(exp)
+        self._new_exp_counter += exp.size
+        print(
+            f"Policy {self._name}: exp mem size = {self.experience_memory.size}, new exp = {self._new_exp_counter}"
+        )
+        if self.experience_memory.size >= self.warmup and self._new_exp_counter >= self.update_trigger:
+            self.update()
+            self._new_exp_counter = 0
+            return True
+
+        return False
 
     def load(self, path: str):
         """Load the policy state from disk."""

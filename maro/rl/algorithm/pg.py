@@ -1,12 +1,12 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from maro.rl.experience.experience_memory import ExperienceMemory
 from typing import Tuple
 
 import numpy as np
 import torch
 
+from maro.rl.experience.experience_memory import ExperienceMemory
 from maro.rl.model import DiscretePolicyNet
 from maro.rl.policy import AbsCorePolicy
 from maro.rl.utils import get_truncated_cumulative_reward
@@ -30,18 +30,28 @@ class PolicyGradient(AbsCorePolicy):
     Reference: https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch.
 
     Args:
+        name (str): Policy name.
         policy_net (DiscretePolicyNet): Multi-task model that computes action distributions and state values.
             It may or may not have a shared bottom stack.
         experience_memory (ExperienceMemory): An experience manager for storing and retrieving experiences
             for training.
         config (PolicyGradientConfig): Configuration for the PG algorithm.
+        update_trigger (int): Minimum number of new experiences required to trigger an ``update`` call. Defaults to 1.
+        warmup (int): Minimum number of experiences in the experience memory required to trigger an ``update`` call.
+            Defaults to 1.
     """
     def __init__(
-        self, policy_net: DiscretePolicyNet, experience_memory: ExperienceMemory, config: PolicyGradientConfig,
-    ):  
+        self,
+        name: str,
+        policy_net: DiscretePolicyNet,
+        experience_memory: ExperienceMemory,
+        config: PolicyGradientConfig,
+        update_trigger: int = 1,
+        warmup: int = 1
+    ):
         if not isinstance(policy_net, DiscretePolicyNet):
             raise TypeError("model must be an instance of 'DiscretePolicyNet'")
-        super().__init__(experience_memory)
+        super().__init__(name, experience_memory, update_trigger=update_trigger, warmup=warmup)
         self.policy_net = policy_net
         self.config = config
         self.device = self.policy_net.device
@@ -57,7 +67,7 @@ class PolicyGradient(AbsCorePolicy):
         """
         This should be called at the end of a simulation episode and the experiences obtained from
         the experience manager's ``get`` method should be a sequential set, i.e., in the order in
-        which they are generated during the simulation. Otherwise, the return values may be meaningless. 
+        which they are generated during the simulation. Otherwise, the return values may be meaningless.
         """
         self.policy_net.train()
         experience_set = self.experience_memory.get()

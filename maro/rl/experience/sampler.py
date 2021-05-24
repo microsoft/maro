@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 from abc import ABC, abstractmethod
-from maro.rl.experience.experience_memory import ExperienceMemory
 
 import numpy as np
 
