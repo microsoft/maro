@@ -62,6 +62,7 @@ a data folder with a timestamp as the suffix in the local file folder.
 ----
 
 Data would be dumped automatically when the Env object is initialized.
+To get the complete reference, please view the file maro/examples/hello_world/cim/hello_streamlit.py.
 
 For more details about Environment, please refer to
 `Environment <simulation_toolkit.html>`_.

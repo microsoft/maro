@@ -2,8 +2,12 @@
 # Licensed under the MIT license.
 
 import argparse
+import sys
+
 from collections import defaultdict
 from multiprocessing import Process
+from os import makedirs
+from os.path import dirname, join, realpath
 
 from maro.rl import (
     Actor, ActorProxy, DQN, DQNConfig, FullyConnectedBlock, MultiAgentWrapper, OffPolicyLearner,
@@ -12,8 +16,15 @@ from maro.rl import (
 from maro.simulator import Env
 from maro.utils import set_seeds
 
-from examples.cim.common import CIMTrajectory, common_config
-from examples.cim.dqn.config import agent_config, training_config
+cim_dqn_path = dirname(realpath(__file__))
+cim_example_path = dirname(cim_dqn_path)
+sys.path.insert(0, cim_example_path)
+
+from common import CIMTrajectory, common_config
+from dqn.config import agent_config, training_config
+
+log_dir = join(cim_dqn_path, "logs")
+makedirs(log_dir, exist_ok=True)
 
 
 def get_dqn_agent():
@@ -43,9 +54,10 @@ def cim_dqn_learner():
     scheduler = TwoPhaseLinearParameterScheduler(training_config["max_episode"], **training_config["exploration"])
     actor = ActorProxy(
         training_config["group"], training_config["num_actors"],
-        update_trigger=training_config["learner_update_trigger"]
+        update_trigger=training_config["learner_update_trigger"],
+        log_dir=log_dir
     )
-    learner = OffPolicyLearner(actor, scheduler, agent, **training_config["training"])
+    learner = OffPolicyLearner(actor, scheduler, agent, **training_config["training"], log_dir=log_dir)
     learner.run()
 
 
@@ -53,7 +65,7 @@ def cim_dqn_actor():
     env = Env(**training_config["env"])
     agent = MultiAgentWrapper({name: get_dqn_agent() for name in env.agent_idx_list})
     actor = Actor(env, agent, CIMTrajectoryForDQN, trajectory_kwargs=common_config)
-    actor.as_worker(training_config["group"])
+    actor.as_worker(training_config["group"], log_dir=log_dir)
 
 
 if __name__ == "__main__":
