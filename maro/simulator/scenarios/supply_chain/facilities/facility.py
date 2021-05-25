@@ -98,6 +98,8 @@ class FacilityBase(ABC):
         """Initialize this facility after frame is ready."""
         self.data_model.initialize()
 
+        self.data_model.reset()
+
         # Put valid units into the children, used to simplify following usage.
         if self.storage is not None:
             self.children.append(self.storage)

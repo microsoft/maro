@@ -327,7 +327,9 @@ cdef class NumpyBackend(BackendAbc):
                 "attributes": {
                     attr.name: {
                         "type": attr.dtype,
-                        "slots": attr.slot_number
+                        "slots": attr.slot_number,
+                        "is_list": False,
+                        "is_const": False
                     } for attr in node_attrs
                 }
             }

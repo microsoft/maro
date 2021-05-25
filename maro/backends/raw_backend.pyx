@@ -112,7 +112,7 @@ cdef class RawBackend(BackendAbc):
         self._attr_type_dict[attr_type] = acc
 
         # Record the information for output.
-        self._node_info[node_type]["attrs"][attr_type] = {"type": dtype.decode(), "slots": slot_num, "name": attr_name}
+        self._node_info[node_type]["attrs"][attr_type] = {"type": dtype.decode(), "slots": slot_num, "name": attr_name, "is_const": is_const, "is_list": is_list}
 
         return attr_type
 
@@ -191,7 +191,9 @@ cdef class RawBackend(BackendAbc):
                 "attributes": {
                     attr["name"]: {
                         "type": attr["type"],
-                        "slots": attr["slots"]
+                        "slots": attr["slots"],
+                        "is_list": attr["is_list"],
+                        "is_const": attr["is_const"]
                     } for _, attr in node["attrs"].items()
                 }
             }

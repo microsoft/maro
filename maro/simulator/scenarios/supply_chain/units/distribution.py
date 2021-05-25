@@ -75,6 +75,8 @@ class DistributionUnit(UnitBase):
     def initialize(self):
         super(DistributionUnit, self).initialize()
 
+        self.data_model.reset()
+
         self.base_delay_order_penalty = self.facility.get_config("delay_order_penalty", 0)
 
     def step(self, tick: int):

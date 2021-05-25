@@ -11,12 +11,15 @@ class DataModelBase(NodeBase):
     # Id of related unit or facility, 0 is invalid by default.
     id = NodeAttribute(AttributeType.Int)
 
+    parent_id = NodeAttribute(AttributeType.Int)
+
     # Id of facility this unit belongs to.
     facility_id = NodeAttribute(AttributeType.Int)
 
     def __init__(self):
         self._unit_id = 0
         self._facility_id = 0
+        self._parent_id = 0
 
     def initialize(self, **kwargs):
         """Initialize the fields with configs, the config should be a dict.
@@ -33,8 +36,9 @@ class DataModelBase(NodeBase):
         # Called per episode.
         self.id = self._unit_id
         self.facility_id = self._facility_id
+        self.parent_id = self._parent_id
 
-    def set_id(self, unit_id: int, facility_id: int):
+    def set_id(self, unit_id: int, facility_id: int, parent_id: int):
         """Used to assign id(s), so that it will be assigned after frame rest.
 
         Args:
@@ -43,3 +47,4 @@ class DataModelBase(NodeBase):
         """
         self._unit_id = unit_id
         self._facility_id = facility_id
+        self._parent_id = parent_id
