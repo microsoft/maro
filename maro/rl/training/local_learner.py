@@ -111,7 +111,7 @@ class LocalLearner:
             self._train(ep)
             if ep == self._eval_schedule[self._eval_point_index]:
                 self._eval_point_index += 1
-                self._evaluate(self._eval_point_index)
+                self._evaluate()
 
     def _train(self, ep: int):
         """Collect simulation data for training."""

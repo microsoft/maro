@@ -2,12 +2,14 @@
 # Licensed under the MIT license.
 
 training:
+  mode: local # local, distributed
   env:
     scenario: cim
     topology: toy.4p_ssdd_l0.0
     durations: 1120
   num_episodes: 5
   agent_update_interval: 200
+  eval_schedule: 1
   exploration:
     last_ep: 4
     initial_value: 0.8
