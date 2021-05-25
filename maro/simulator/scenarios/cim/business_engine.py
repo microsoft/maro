@@ -172,7 +172,7 @@ class CimBusinessEngine(AbsBusinessEngine):
             vessel.set_stop_list(past_stops, future_stops)
 
             # Update vessel plans.
-            for plan_port_idx, plan_tick in self._data_cntr.vessel_planned_stops[vessel_idx, vessel.route_idx, loc_idx]:
+            for plan_port_idx, plan_tick in self._data_cntr.vessel_planned_stops[vessel_idx, vessel.route_idx, vessel.last_loc_idx]:
                 self._vessel_plans[vessel_idx, plan_port_idx] = plan_tick
 
             if loc_idx > 0 and stop.arrive_tick == tick:
