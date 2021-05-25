@@ -93,13 +93,13 @@ class LocalRolloutManager(AbsRolloutManager):
 
         # mappings between exploration schemes and agents
         self.exploration_dict = exploration_dict
+        self._agent_groups_by_exploration = defaultdict(list)
         if exploration_dict:
             self._agent2exploration = agent2exploration
             self._exploration = {
                 agent_id: self.exploration_dict[exploration_id]
                 for agent_id, exploration_id in self._agent2exploration.items()
             }
-            self._agent_groups_by_exploration = defaultdict(list)
             for agent_id, exploration_id in self._agent2exploration.items():
                 self._agent_groups_by_exploration[exploration_id].append(agent_id)
 

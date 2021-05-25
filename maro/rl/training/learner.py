@@ -69,7 +69,7 @@ class Learner:
             self._train(ep)
             if ep == self._eval_schedule[self._eval_point_index]:
                 self._eval_point_index += 1
-                self.rollout_manager.evaluate(self._eval_point_index)
+                self.rollout_manager.evaluate(self.policy_manager.get_state())
 
     def _train(self, ep: int):
         num_experiences_collected = 0

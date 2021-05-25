@@ -119,11 +119,13 @@ class AbsEnvWrapper(ABC):
         reward cannot be determined yet due to a non-zero ``reward_eval_delay``.
         """
         self._step_index += 1
-        env_action = self.to_env_action(action_by_agent)
-        for agent_id, action in action_by_agent.items():
+        env_action_dict = self.to_env_action(action_by_agent)
+        for agent_id, action in env_action_dict.items():
             self.action_history[self.env.tick][agent_id] = action
         transition_info = self.get_transition_info()
         self._pending_reward_cache.append((self._state, action_by_agent, transition_info, self.env.tick))
+
+        env_action = list(env_action_dict.values())
         _, self._event, done = self.env.step(env_action)
 
         if not done:
