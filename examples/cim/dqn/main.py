@@ -3,26 +3,27 @@
 
 import os
 import yaml
-# from multiprocessing import Process
+from multiprocessing import Process
 
 from maro.rl import (
-    DQN, DQNConfig, EpsilonGreedyExploration, ExperienceMemory, FullyConnectedBlock,
+    Actor, DQN, DQNConfig, EpsilonGreedyExploration, ExperienceMemory, FullyConnectedBlock,
     MultiPhaseLinearExplorationScheduler, Learner, LocalLearner, LocalPolicyManager,
-    LocalRolloutManager, UniformSampler, OptimOption
+    LocalRolloutManager, OptimOption, ParallelRolloutManager, UniformSampler
 )
 from maro.simulator import Env
-# from maro.utils import set_seeds
+from maro.utils import set_seeds
 
 from examples.cim.env_wrapper import CIMEnvWrapper
 from examples.cim.dqn.qnet import QNet
 
 
 FILE_PATH = os.path.dirname(os.path.realpath(__file__))
-log_dir = os.path.join(FILE_PATH, "log")
 
 DEFAULT_CONFIG_PATH = os.path.join(FILE_PATH, "config.yml")
 with open(os.getenv("CONFIG_PATH", default=DEFAULT_CONFIG_PATH), "r") as config_file:
     config = yaml.safe_load(config_file)
+
+log_dir = os.path.join(FILE_PATH, "log", config["experiment_name"])
 
 # model input and output dimensions
 IN_DIM = (
@@ -32,12 +33,6 @@ IN_DIM = (
     + len(config["shaping"]["vessel_attributes"])
 )
 OUT_DIM = config["shaping"]["num_actions"]
-
-# # for distributed / multi-process training
-# GROUP = getenv("GROUP", default=config["distributed"]["group"])
-# REDIS_HOST = getenv("REDISHOST", default=config["distributed"]["redis_host"])
-# REDIS_PORT = getenv("REDISPORT", default=config["distributed"]["redis_port"])
-# NUM_ACTORS = int(getenv("NUMACTORS", default=config["distributed"]["num_actors"]))
 
 
 def get_independent_policy(policy_id):
@@ -52,40 +47,6 @@ def get_independent_policy(policy_id):
         experience_memory=ExperienceMemory(**cfg["experience_memory"]),
         config=DQNConfig(**cfg["algorithm"])
     )
-
-
-def learner_with_both_local():
-    env = Env(**config["training"]["env"])
-    policy_list = [get_independent_policy(policy_id=i) for i in env.agent_idx_list]
-    agent2policy = {i: i for i in env.agent_idx_list}
-
-    rollout_manager = LocalRolloutManager(
-        env=CIMEnvWrapper(env, **config["shaping"]),
-        policies=policy_list,
-        agent2policy=agent2policy,
-        exploration_dict=None,
-        agent2exploration=None,
-        num_steps=-1,
-        eval_env=CIMEnvWrapper(Env(**config["training"]["env"]), **config["shaping"]),
-        log_env_metrics=True,
-        log_total_reward=True,
-        log_dir=log_dir
-    )
-
-    policy_manager = LocalPolicyManager(
-        policies=policy_list,
-        log_dir=log_dir
-    )
-
-    learner = Learner(
-        policy_manager=policy_manager,
-        rollout_manager=rollout_manager,
-        num_episodes=config["training"]["num_episodes"],
-        eval_schedule=[],
-        log_dir=log_dir
-    )
-
-    learner.run()
 
 
 def local_learner_mode():
@@ -118,10 +79,77 @@ def local_learner_mode():
     local_learner.run()
 
 
+def get_dqn_actor_process():
+    env = Env(**config["training"]["env"])
+    policy_list = [get_independent_policy(policy_id=i) for i in env.agent_idx_list]
+
+    actor = Actor(
+        env=CIMEnvWrapper(env, **config["shaping"]),
+        policies=policy_list,
+        agent2policy={i: i for i in env.agent_idx_list},
+        group=config["training"]["multi-process"]["group"],
+        exploration_dict=None,
+        agent2exploration=None,
+        eval_env=CIMEnvWrapper(Env(**config["training"]["env"]), **config["shaping"]),
+        log_dir=log_dir,
+        redis_address=(
+            config["training"]["multi-process"]["redis_host"],
+            config["training"]["multi-process"]["redis_port"]
+        )
+    )
+    actor.run()
+
+
+def get_dqn_learner_process():
+    env = Env(**config["training"]["env"])
+    policy_list = [get_independent_policy(policy_id=i) for i in env.agent_idx_list]
+
+    policy_manager = LocalPolicyManager(policies=policy_list, log_dir=log_dir)
+
+    rollout_manager = ParallelRolloutManager(
+        num_actors=config["training"]["multi-process"]["num_actors"],
+        group=config["training"]["multi-process"]["group"],
+        num_steps=-1,
+        required_finishes=None,
+        max_staleness=0,
+        num_eval_actors=config["training"]["multi-process"]["num_eval_actors"],
+        log_env_metrics=False,
+        log_dir=log_dir,
+        redis_address=(
+            config["training"]["multi-process"]["redis_host"],
+            config["training"]["multi-process"]["redis_port"]
+        )
+    )
+
+    learner = Learner(
+        policy_manager=policy_manager,
+        rollout_manager=rollout_manager,
+        num_episodes=config["training"]["num_episodes"],
+        eval_schedule=[],
+        log_dir=log_dir
+    )
+    learner.run()
+
+
+def multi_process_mode():
+    actor_processes = [Process(target=get_dqn_actor_process) for i in range(config["training"]["multi-process"]["num_actors"])]
+    for i, actor_process in enumerate(actor_processes):
+        set_seeds(i)
+        actor_process.start()
+
+    learner_process = Process(target=get_dqn_learner_process)
+    learner_process.start()
+
+    for actor_process in actor_processes:
+        actor_process.join()
+    learner_process.join()
+
+
 if __name__ == "__main__":
-    if config["training"]["env"] == "local":
+    if config["training"]["mode"] == "local":
         local_learner_mode()
-    elif config["training"]["env"] == "distributed":
-        print("Not implement yet.")
+    elif config["training"]["mode"] == "multi-process":
+        multi_process_mode()
     else:
-        print("Two modes are supported: local or distributed.")
+        print("Two modes are supported: local or multi-process.")
+
