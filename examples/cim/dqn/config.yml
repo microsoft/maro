@@ -1,13 +1,21 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+experiment_name: test
+
 training:
-  mode: local # local, distributed
+  mode: multi-process # local, multi-process
+  multi-process:
+    group: cim-dqn
+    num_actors: 3
+    num_eval_actors: 3
+    redis_host: localhost
+    redis_port: 6379
   env:
     scenario: cim
     topology: toy.4p_ssdd_l0.0
     durations: 1120
-  num_episodes: 5
+  num_episodes: 100
   agent_update_interval: 200
   eval_schedule: 1
   exploration:
@@ -73,10 +81,3 @@ policy:
     capacity: 10000
     # batch_size: 128
     overwrite_type: "rolling"
-
-distributed:
-  group: cim-dqn
-  num_actors: 3
-  redis_host: localhost
-  redis_port: 6379
-  required_actor_finishes: 2
