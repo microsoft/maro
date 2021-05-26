@@ -119,11 +119,11 @@ setup(
         "Topic :: Scientific/Engineering :: Artificial Intelligence"],
     python_requires=">=3.6,<3.8",
     setup_requires=[
-        "numpy<1.19.0",
+        "numpy<1.20.0",
     ],
     install_requires=[
         # TODO: use a helper function to collect these
-        "numpy<1.19.0",
+        "numpy<1.20.0",
         "torch<1.8.0",
         "holidays>=0.10.3",
         "pyaml>=20.4.0",
