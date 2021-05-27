@@ -263,7 +263,9 @@ class ParallelRolloutManager(AbsRolloutManager):
         self._logger = Logger("PARALLEL_ROLLOUT_MANAGER", dump_folder=log_dir)
         self.num_actors = num_actors
         peers = {"actor": num_actors}
-        self._proxy = Proxy(group, "actor_manager", peers, **proxy_kwargs)
+        self._proxy = Proxy(group, "rollout_manager", peers, **proxy_kwargs)
+        print("rollout manager name: ", self._proxy.name)
+        print("redis_info as seen from rollout manager: ", self._proxy._redis_connection.hgetall(self._proxy._redis_hash_name))
         self._actors = self._proxy.peers["actor"]  # remote actor ID's
 
         if max_receive_attempts is None:
@@ -294,7 +296,7 @@ class ParallelRolloutManager(AbsRolloutManager):
             MsgKey.POLICY: policy_state_dict
         }
         self._proxy.ibroadcast("actor", MsgTag.COLLECT, SessionType.TASK, body=msg_body)
-        self._logger.info(f"Sent collect requests for ep-{episode_index}, segment-{segment_index}")
+        self._logger.info(f"Sent collect requests to {self._actors} for ep-{episode_index}, segment-{segment_index}")
 
         # Receive roll-out results from remote actors
         combined_exp_by_policy = defaultdict(ExperienceSet)

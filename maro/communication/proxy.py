@@ -178,6 +178,7 @@ class Proxy:
 
         self._join()
 
+
     def _signal_handler(self, signum, frame):
         self._redis_connection.hdel(self._redis_hash_name, self._name)
         self._logger.critical(f"{self._name} received Signal: {signum} at frame: {frame}")
@@ -243,44 +244,37 @@ class Proxy:
         if not self._peers_info_dict:
             raise PeersMissError(f"Cannot get {self._name}\'s peers.")
 
-        for peer_type in self._peers_info_dict.keys():
-            peer_hash_name, peer_number = self._peers_info_dict[peer_type]
-            retry_number = 0
-            expected_peers_name = []
-            while retry_number < self._max_retries:
-                if self._redis_connection.hlen(peer_hash_name) >= peer_number:
-                    expected_peers_name = self._redis_connection.hkeys(peer_hash_name)
-                    expected_peers_name = [peer.decode() for peer in expected_peers_name]
-                    if len(expected_peers_name) > peer_number:
-                        expected_peers_name = expected_peers_name[:peer_number]
-                    self._logger.info(f"{self._name} successfully get all {peer_type}\'s name.")
+        for peer_type, (peer_hash_name, num_expected) in self._peers_info_dict.items():
+            registered_peers, next_retry = [], self._retry_interval_base_value
+            for _ in range(self._max_retries):
+                if self._redis_connection.hlen(peer_hash_name) >= num_expected:
+                    registered_peers = [peer.decode() for peer in self._redis_connection.hkeys(peer_hash_name)]
+                    if len(registered_peers) > num_expected:
+                        del registered_peers[num_expected:]
+                    self._logger.info(f"{self._name} successfully get all {peer_type}\'s names.")
                     break
                 else:
                     self._logger.warn(
-                        f"{self._name} failed to get {peer_type}\'s name. Retrying in "
-                        f"{self._retry_interval_base_value * (2 ** retry_number)} seconds."
+                        f"{self._name} failed to get {peer_type}\'s name. Retrying in {next_retry} seconds."
                     )
-                    time.sleep(self._retry_interval_base_value * (2 ** retry_number))
-                    retry_number += 1
+                    time.sleep(next_retry)
+                    next_retry *= 2
 
-            if not expected_peers_name:
+            if not registered_peers:
                 raise InformationUncompletedError(
-                    f"{self._name} failure to get enough number of {peer_type} from redis."
+                    f"{self._name} failed to get the required number of {peer_type}s from redis."
                 )
 
-            self._onboard_peer_dict[peer_type] = {peer_name: None for peer_name in expected_peers_name}
+            self._onboard_peer_dict[peer_type] = {peer_name: None for peer_name in registered_peers}
 
         self._onboard_peers_start_time = time.time()
 
     def _build_connection(self):
         """Grabbing all peers' address from Redis, and connect all peers in driver."""
-        for peer_type in self._peers_info_dict.keys():
+        for peer_type, info in self._peers_info_dict.items():
             name_list = list(self._onboard_peer_dict[peer_type].keys())
             try:
-                peers_socket_value = self._redis_connection.hmget(
-                    self._peers_info_dict[peer_type].hash_table_name,
-                    name_list
-                )
+                peers_socket_value = self._redis_connection.hmget(info.hash_table_name, name_list)
                 for idx, peer_name in enumerate(name_list):
                     self._onboard_peer_dict[peer_type][peer_name] = json.loads(peers_socket_value[idx])
                     self._logger.info(f"{self._name} successfully get {peer_name}\'s socket address")
@@ -449,7 +443,7 @@ class Proxy:
         body=None
     ) -> List[str]:
         """Broadcast message to all peers, and return list of session id."""
-        if component_type not in list(self._onboard_peer_dict.keys()):
+        if component_type not in self._onboard_peer_dict:
             self._logger.error(
                 f"peer_type: {component_type} cannot be recognized. Please check the input of proxy.broadcast."
             )
@@ -534,8 +528,8 @@ class Proxy:
             # Check message cache.
             if (
                 self._enable_message_cache
-                and message.destination in list(self._onboard_peer_dict[peer_type].keys())
-                and message.destination in list(self._message_cache_for_exited_peers.keys())
+                and message.destination in self._onboard_peer_dict[peer_type]
+                and message.destination in self._message_cache_for_exited_peers
             ):
                 self._logger.info(f"Sending pending message to {message.destination}.")
                 for pending_message in self._message_cache_for_exited_peers[message.destination]:
