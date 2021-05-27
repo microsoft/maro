@@ -230,7 +230,7 @@ class ParallelRolloutManager(AbsRolloutManager):
             None, in which case the number is set to ``num_actors``.
         receive_timeout (int): Maximum wait time (in milliseconds) for each attempt to receive from the actors. This
             This multiplied by ``max_receive_attempts`` give the upperbound for the amount of time to receive the
-            desired amount of data from actors. Defaults to 0.
+            desired amount of data from actors. Defaults to None, in which case each receive attempt is blocking.
         max_staleness (int): Maximum allowable staleness measured in the number of calls to ``collect``. Experiences
             collected from calls to ``collect`` within ``max_staleness`` calls ago will be returned to the learner.
             Defaults to 0, in which case only experiences from the latest call to ``collect`` will be returned.
@@ -249,7 +249,7 @@ class ParallelRolloutManager(AbsRolloutManager):
         group: str,
         num_steps: int = -1,
         max_receive_attempts: int = None,
-        receive_timeout: int = 0, 
+        receive_timeout: int = None, 
         max_staleness: int = 0,
         num_eval_actors: int = 1,
         log_env_summary: bool = True,
@@ -300,7 +300,7 @@ class ParallelRolloutManager(AbsRolloutManager):
         combined_exp_by_policy = defaultdict(ExperienceSet)
         num_finishes = 0
         for _ in range(self.max_receive_attempts):
-            msg = self._proxy.receive(is_continuous=False, timeout=self.receive_timeout)
+            msg = self._proxy.receive_once(timeout=self.receive_timeout)
             if msg.tag != MsgTag.COLLECT_DONE or msg.body[MsgKey.EPISODE_INDEX] != episode_index:
                 self._logger.info(
                     f"Ignore a message of type {msg.tag} with episode index {msg.body[MsgKey.EPISODE_INDEX]} "

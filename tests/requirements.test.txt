@@ -1,7 +1,7 @@
 matplotlib>=3.1.2
 geopy
 pandas<1.2
-numpy<1.19.0
+numpy<1.20.0
 holidays>=0.10.3
 pyaml>=20.4.0
 redis>=3.5.3

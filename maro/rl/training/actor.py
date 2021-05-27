@@ -146,7 +146,7 @@ class Actor(object):
             MsgKey.EPISODE_INDEX: episode_index,
             MsgKey.SEGMENT_INDEX: segment_index,
             MsgKey.EXPERIENCES: ret_exp,
-            MsgKey.ENV_METRICS: self.env.metrics,
+            MsgKey.ENV_SUMMARY: self.env.summary,
             MsgKey.NUM_STEPS: self.env.step_index - starting_step_index + 1
         }
 
@@ -155,7 +155,6 @@ class Actor(object):
                 for exploration in self.exploration_dict.values():
                     exploration.step()
 
-            return_info[MsgKey.TOTAL_REWARD] = self.env.total_reward
         self._proxy.reply(msg, tag=MsgTag.COLLECT_DONE, body=return_info)
 
     def _evaluate(self, msg):
@@ -169,8 +168,7 @@ class Actor(object):
             self.eval_env.step(action)
 
         return_info = {
-            MsgKey.METRICS: self.env.metrics,
-            MsgKey.TOTAL_REWARD: self.eval_env.total_reward,
+            MsgKey.ENV_SUMMARY: self.env.summary,
             MsgKey.EPISODE_INDEX: msg.body[MsgKey.EPISODE_INDEX]
         }
         self._proxy.reply(msg, tag=MsgTag.EVAL_DONE, body=return_info)

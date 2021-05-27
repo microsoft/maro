@@ -1,7 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-mode: local # local, distributed
+experiment_name: cim_dqn
+mode: multi-process # local, multi-process
 num_episodes: 100
 num_steps: -1
 eval_schedule: 50
@@ -71,9 +72,9 @@ policy:
     overwrite_type: "rolling"
   sampling:
     batch_size: 128
-distributed:
+multi-process:
   group: cim-dqn
   num_actors: 3
   redis_host: localhost
   redis_port: 6379
-  required_actor_finishes: 2
+  max_receive_attempts: 3

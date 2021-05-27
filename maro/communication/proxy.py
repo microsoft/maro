@@ -311,13 +311,21 @@ class Proxy:
             peer_type: list(self._onboard_peer_dict[peer_type].keys()) for peer_type in self._peers_info_dict.keys()
         }
 
-    def receive(self, is_continuous: bool = True, timeout: int = None):
-        """Receive messages from communication driver.
+    def receive(self, timeout: int = None):
+        """Enter an infinite loop of receiving messages from the communication driver.
 
         Args:
-            is_continuous (bool): Continuously receive message or not. Defaults to True.
+            timeout (int): Timeout for each receive attempt. If the first attempt times out, the function returns None.
         """
-        return self._driver.receive(is_continuous, timeout=timeout)
+        return self._driver.receive(timeout=timeout)
+
+    def receive_once(self, timeout: int = None):
+        """Receive a single message from the communication driver.
+
+        Args:
+            timeout (int): Timeout for receive attempt.
+        """
+        return self._driver.receive_once(timeout=timeout)
 
     def receive_by_id(self, targets: List[str], timeout: int = None) -> List[Message]:
         """Receive target messages from communication driver.
