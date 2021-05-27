@@ -3,7 +3,7 @@
 
 from abc import ABC, abstractmethod
 
-from maro.rl.experience import ExperienceMemory, ExperienceSet
+from maro.rl.experience import ExperienceManager, ExperienceSet
 
 
 class AbsPolicy(ABC):
@@ -37,7 +37,7 @@ class AbsCorePolicy(AbsPolicy):
 
     Args:
         name (str): Policy name.
-        experience_memory (ExperienceMemory): An experience manager for storing and retrieving experiences
+        experience_manager (ExperienceManager): An experience manager for storing and retrieving experiences
             for training.
         update_trigger (int): Minimum number of new experiences required to trigger an ``update`` call. Defaults to 1.
         warmup (int): Minimum number of experiences in the experience memory required to trigger an ``update`` call.
@@ -46,12 +46,12 @@ class AbsCorePolicy(AbsPolicy):
     def __init__(
         self,
         name: str,
-        experience_memory: ExperienceMemory,
+        experience_manager: ExperienceManager,
         update_trigger: int = 1,
         warmup: int = 1
     ):
         super().__init__(name)
-        self.experience_memory = experience_memory
+        self.experience_manager = experience_manager
         self.update_trigger = update_trigger
         self.warmup = warmup
         self._new_exp_counter = 0
@@ -90,12 +90,12 @@ class AbsCorePolicy(AbsPolicy):
         pass
 
     def on_experiences(self, exp: ExperienceSet) -> bool:
-        self.experience_memory.put(exp)
+        self.experience_manager.put(exp)
         self._new_exp_counter += exp.size
         print(
-            f"Policy {self._name}: exp mem size = {self.experience_memory.size}, incoming: {exp.size}, new exp = {self._new_exp_counter}"
+            f"Policy {self._name}: exp mem size = {self.experience_manager.size}, incoming: {exp.size}, new exp = {self._new_exp_counter}"
         )
-        if self.experience_memory.size >= self.warmup and self._new_exp_counter >= self.update_trigger:
+        if self.experience_manager.size >= self.warmup and self._new_exp_counter >= self.update_trigger:
             self.update()
             self._new_exp_counter = 0
             return True

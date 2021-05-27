@@ -31,7 +31,7 @@ def actor_init(queue, redis_port):
     )
 
     # Continuously receive messages from proxy.
-    for msg in proxy.receive(is_continuous=True):
+    for msg in proxy.receive():
         print(f"receive message from master. {msg.tag}")
         if msg.tag == "cont":
             proxy.reply(message=msg, tag="recv", body="successful receive!")

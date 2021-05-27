@@ -359,7 +359,7 @@ class Proxy:
             return received_messages
 
         # Wait for incoming messages.
-        for msg in self._driver.receive(is_continuous=True, timeout=timeout):
+        for msg in self._driver.receive(timeout=timeout):
             if not msg:
                 return received_messages
 

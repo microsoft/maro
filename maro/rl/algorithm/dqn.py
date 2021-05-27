@@ -6,7 +6,7 @@ from typing import Union
 import numpy as np
 import torch
 
-from maro.rl.experience import ExperienceMemory
+from maro.rl.experience import ExperienceManager
 from maro.rl.model import DiscreteQNet
 from maro.rl.policy import AbsCorePolicy
 from maro.rl.utils import get_torch_loss_cls
@@ -61,7 +61,7 @@ class DQN(AbsCorePolicy):
     Args:
         name (str): Policy name.
         q_net (DiscreteQNet): Q-value model.
-        experience_memory (ExperienceMemory): An experience manager for storing and retrieving experiences
+        experience_manager (ExperienceManager): An experience manager for storing and retrieving experiences
             for training.
         config (DQNConfig): Configuration for DQN algorithm.
         update_trigger (int): Minimum number of new experiences required to trigger an ``update`` call. Defaults to 1.
@@ -72,7 +72,7 @@ class DQN(AbsCorePolicy):
         self,
         name: str,
         q_net: DiscreteQNet,
-        experience_memory: ExperienceMemory,
+        experience_manager: ExperienceManager,
         config: DQNConfig,
         update_trigger: int = 1,
         warmup: int = 1,
@@ -80,7 +80,7 @@ class DQN(AbsCorePolicy):
         if not isinstance(q_net, DiscreteQNet):
             raise TypeError("model must be an instance of 'DiscreteQNet'")
 
-        super().__init__(name, experience_memory, update_trigger=update_trigger, warmup=warmup)
+        super().__init__(name, experience_manager, update_trigger=update_trigger, warmup=warmup)
         self.q_net = q_net
         if self.q_net.trainable:
             self.target_q_net = q_net.copy()
@@ -104,7 +104,7 @@ class DQN(AbsCorePolicy):
         self.q_net.train()
         for _ in range(self.config.train_epochs):
             # sample from the replay memory
-            experience_set = self.experience_memory.get()
+            experience_set = self.experience_manager.get()
             states, next_states = experience_set.states, experience_set.next_states
             actions = torch.from_numpy(np.asarray(experience_set.actions)).to(self.device)
             rewards = torch.from_numpy(np.asarray(experience_set.rewards)).to(self.device)

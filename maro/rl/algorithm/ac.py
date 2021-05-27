@@ -6,7 +6,7 @@ from typing import Tuple
 import numpy as np
 import torch
 
-from maro.rl.experience import ExperienceMemory
+from maro.rl.experience import ExperienceManager
 from maro.rl.model import DiscreteACNet
 from maro.rl.policy import AbsCorePolicy
 from maro.rl.utils import get_torch_loss_cls
@@ -58,7 +58,7 @@ class ActorCritic(AbsCorePolicy):
         name (str): Policy name.
         ac_net (DiscreteACNet): Multi-task model that computes action distributions
             and state values.
-        experience_memory (ExperienceMemory): An experience manager for storing and retrieving experiences
+        experience_manager (ExperienceManager): An experience manager for storing and retrieving experiences
             for training.
         config: Configuration for the AC algorithm.
         update_trigger (int): Minimum number of new experiences required to trigger an ``update`` call. Defaults to 1.
@@ -69,7 +69,7 @@ class ActorCritic(AbsCorePolicy):
         self,
         name: str,
         ac_net: DiscreteACNet,
-        experience_memory: ExperienceMemory,
+        experience_manager: ExperienceManager,
         config: ActorCriticConfig,
         update_trigger: int = 1,
         warmup: int = 1,
@@ -77,7 +77,7 @@ class ActorCritic(AbsCorePolicy):
         if not isinstance(ac_net, DiscreteACNet):
             raise TypeError("model must be an instance of 'DiscreteACNet'")
 
-        super().__init__(name, experience_memory, update_trigger=update_trigger, warmup=warmup)
+        super().__init__(name, experience_manager, update_trigger=update_trigger, warmup=warmup)
         self.ac_net = ac_net
         self.config = config
         self.device = self.ac_net.device
@@ -92,7 +92,7 @@ class ActorCritic(AbsCorePolicy):
     def update(self):
         self.ac_net.train()
         for _ in range(self.config.train_epochs):
-            experience_set = self.experience_memory.get()
+            experience_set = self.experience_manager.get()
             states, next_states = experience_set.states, experience_set.next_states
             actions = torch.from_numpy(np.asarray([act[0] for act in experience_set.actions])).to(self.device)
             log_p = torch.from_numpy(np.asarray([act[1] for act in experience_set.actions])).to(self.device)
@@ -121,7 +121,7 @@ class ActorCritic(AbsCorePolicy):
 
                 self.ac_net.step(loss)
 
-        self.experience_memory.clear()
+        self.experience_manager.clear()
 
     def set_state(self, policy_state):
         self.ac_net.load_state_dict(policy_state)

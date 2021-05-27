@@ -21,12 +21,12 @@ def worker(group_name):
                   expected_peers={"master": 1})
 
     # Nonrecurring receive the message from the proxy.
-    for msg in proxy.receive(is_continuous=False):
-        print(f"{proxy.name} receive message from {msg.source}. the payload is {msg.body}.")
+    msg = proxy.receive_once()
+    print(f"{proxy.name} received message from {msg.source}. the payload is {msg.body}.")
 
-        if msg.tag == "sum":
-            replied_payload = sum(msg.body)
-            proxy.reply(message=msg, tag="sum", body=replied_payload)
+    if msg.tag == "sum":
+        replied_payload = sum(msg.body)
+        proxy.reply(message=msg, tag="sum", body=replied_payload)
 
 
 def master(group_name: str, is_immediate: bool = False):

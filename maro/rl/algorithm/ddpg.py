@@ -6,7 +6,7 @@ from typing import Union
 import numpy as np
 import torch
 
-from maro.rl.experience import ExperienceMemory
+from maro.rl.experience import ExperienceManager
 from maro.rl.model import ContinuousACNet
 from maro.rl.policy import AbsCorePolicy
 from maro.rl.utils import get_torch_loss_cls
@@ -62,7 +62,7 @@ class DDPG(AbsCorePolicy):
     Args:
         name (str): Policy name.
         ac_net (ContinuousACNet): DDPG policy and q-value models.
-        experience_memory (ExperienceMemory): An experience manager for storing and retrieving experiences
+        experience_manager (ExperienceManager): An experience manager for storing and retrieving experiences
             for training.
         config (DDPGConfig): Configuration for DDPG algorithm.
         update_trigger (int): Minimum number of new experiences required to trigger an ``update`` call. Defaults to 1.
@@ -73,7 +73,7 @@ class DDPG(AbsCorePolicy):
         self,
         name: str,
         ac_net: ContinuousACNet,
-        experience_memory: ExperienceMemory,
+        experience_manager: ExperienceManager,
         config: DDPGConfig,
         update_trigger: int = 1,
         warmup: int = 1,
@@ -81,7 +81,7 @@ class DDPG(AbsCorePolicy):
         if not isinstance(ac_net, ContinuousACNet):
             raise TypeError("model must be an instance of 'ContinuousACNet'")
 
-        super().__init__(name, experience_memory, update_trigger=update_trigger, warmup=warmup)
+        super().__init__(name, experience_manager, update_trigger=update_trigger, warmup=warmup)
         self.ac_net = ac_net
         if self.ac_net.trainable:
             self.target_ac_net = ac_net.copy()
@@ -101,7 +101,7 @@ class DDPG(AbsCorePolicy):
     def update(self):
         self.ac_net.train()
         for _ in range(self.config.train_epochs):
-            experience_set = self.experience_memory.get()
+            experience_set = self.experience_manager.get()
             states, next_states = experience_set.states, experience_set.next_states
             actual_actions = torch.from_numpy(experience_set.actions).to(self.device)
             rewards = torch.from_numpy(experience_set.rewards).to(self.device)

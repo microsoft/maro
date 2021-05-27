@@ -138,9 +138,11 @@ class Actor(object):
         )
         exp_by_agent = self.env.get_experiences()
         for agent_id, exp in exp_by_agent.items():
-            self.policy[agent_id].experience_memory.put(exp)
+            self.policy[agent_id].experience_manager.put(exp)
 
-        ret_exp = {id_: policy.experience_memory.get() for id_, policy in self.policy_dict.items()}
+        ret_exp = {
+            policy_name: policy.experience_manager.get() for policy_name, policy in self.policy_dict.items()
+        }
         return_info = {
             MsgKey.EPISODE_END: not self.env.state,
             MsgKey.EPISODE_INDEX: episode_index,

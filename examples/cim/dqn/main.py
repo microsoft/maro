@@ -6,7 +6,7 @@ import yaml
 from multiprocessing import Process
 
 from maro.rl import (
-    Actor, DQN, DQNConfig, EpsilonGreedyExploration, ExperienceMemory, FullyConnectedBlock,
+    Actor, DQN, DQNConfig, EpsilonGreedyExploration, ExperienceManager, FullyConnectedBlock,
     MultiPhaseLinearExplorationScheduler, Learner, LocalLearner, LocalPolicyManager,
     OptimOption, ParallelRolloutManager
 )
@@ -44,7 +44,7 @@ def get_independent_policy(policy_id):
     return DQN(
         name=policy_id,
         q_net=qnet,
-        experience_memory=ExperienceMemory(**cfg["experience_memory"]),
+        experience_manager=ExperienceManager(**cfg["experience_manager"]),
         config=DQNConfig(**cfg["algorithm_config"])
     )
 

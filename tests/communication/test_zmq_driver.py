@@ -9,8 +9,7 @@ from maro.communication import SessionMessage, ZmqDriver
 
 
 def message_receive(driver):
-    for received_message in driver.receive(is_continuous=False):
-        return received_message.body
+    return driver.receive_once().body
 
 
 @unittest.skipUnless(os.environ.get("test_with_zmq", False), "require zmq")
@@ -49,8 +48,8 @@ class TestDriver(unittest.TestCase):
             )
             TestDriver.sender.send(message)
 
-            for received_message in TestDriver.receivers[peer].receive(is_continuous=False):
-                self.assertEqual(received_message.body, message.body)
+            recv_message = TestDriver.receivers[peer].receive_once()
+            self.assertEqual(recv_message.body, message.body)
 
     def test_broadcast(self):
         executor = ThreadPoolExecutor(max_workers=len(TestDriver.peer_list))

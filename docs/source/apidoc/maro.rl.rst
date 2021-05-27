@@ -132,7 +132,7 @@ maro.rl.experience.abs\_store
 maro.rl.experience.simple\_store
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.experience.experience_memory
+.. automodule:: maro.rl.experience.experience_manager
    :members:
    :undoc-members:
    :show-inheritance:

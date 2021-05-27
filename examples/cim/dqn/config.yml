@@ -67,10 +67,9 @@ policy:
     soft_update_coefficient: 0.1
     double: false
     loss_cls: smooth_l1
-  experience_memory:
+  experience_manager:
     capacity: 1000000
     overwrite_type: "rolling"
-  sampling:
     batch_size: 128
 multi-process:
   group: cim-dqn

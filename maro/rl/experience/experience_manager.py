@@ -45,7 +45,7 @@ class ExperienceSet:
         self.info += other.info
 
 
-class ExperienceMemory:
+class ExperienceManager:
     """Storage facility for simulation experiences.
 
     This implementation uses a dictionary of lists as the internal data structure. The objects for each key
@@ -57,8 +57,25 @@ class ExperienceMemory:
             are overwritten when the capacity is exceeded. Two types of overwrite behavior are supported:
             - "rolling", where overwrite occurs sequentially with wrap-around.
             - "random", where overwrite occurs randomly among filled positions.
+        batch_size (int): Batch size for the default uniform sampling. This can be set to -1 if the required
+            batch size is the number of items stored. To get the whole data, set this to -1 and ``replace`` to
+            False. If a sampler is registered, this is ignored, and the batch size will be determined by the
+            sampler. Defaults to 32.
+        replace (bool): A flag indicating whether the default uniform sampling is with replacement or without.
+            Ignored if a sampler is registered. Defaults to True.
+        sampler_cls: Type of sampler to be registered. Must be a subclass of ``AbsSampler``.
+            Defaults to UnifromSampler.
+        sampler_params (dict): Keyword parameters for ``sampler_cls``.
     """
-    def __init__(self, capacity: int, overwrite_type: str = "rolling"):
+    def __init__(
+        self,
+        capacity: int,
+        overwrite_type: str = "rolling",
+        batch_size: int = 32,
+        replace: bool = True,
+        sampler_cls=None,
+        sampler_params: dict = None,
+    ):
         super().__init__()
         if overwrite_type not in {"rolling", "random"}:
             raise ValueError(f"overwrite_type must be 'rolling' or 'random', got {overwrite_type}")
@@ -66,9 +83,11 @@ class ExperienceMemory:
         self._overwrite_type = overwrite_type
         self._keys = ExperienceSet.__slots__
         self.data = {key: [None] * self._capacity for key in self._keys}
+        self.batch_size = batch_size
+        self.replace = replace
+        self.sampler = None if sampler_cls is None else sampler_cls(self, **sampler_params)
         self._size = 0
         self._index = 0
-        self.sampler = None
 
     @property
     def capacity(self):
@@ -124,23 +143,15 @@ class ExperienceMemory:
     def get(self):
         """Retrieve an experience set from the memory.
 
-        If not sampler has been registered, the entirety of the stored data will be returned in the form of
-        an ``ExperienceSet`` and the memory will be cleared. Otherwise, a sample from the memory will be
-        returned according to the sampling logic defined by the registered sampler.
+        If not sampler has been registered, a uniformly random sample of the stored data will be returned
+        in the form of an ``ExperienceSet`` and the memory will be cleared. Otherwise, a sample from the
+        memory will be returned according to the sampling logic defined by the registered sampler.
         """
-        if self.sampler is None:
-            return ExperienceSet(*[self.data[key][:self._size] for key in self._keys])
+        if not self.sampler:
+            indexes = np.random.choice(self._size, size=self.batch_size, replace=self.replace)
+            return ExperienceSet(*[[self.data[key][idx] for idx in indexes] for key in self._keys])
         else:
             return self.sampler.get()
-
-    def register_sampler(self, sampler_cls, **sampler_params):
-        """Register a sampler to the experience memory.
-
-        Args:
-            sampler_cls: Type of sampler to be registered. Must be a subclass of ``AbsSampler``.
-            sampler_params: Keyword parameters for ``sampler_cls``.
-        """
-        self.sampler = sampler_cls(self, **sampler_params)
 
     def clear(self):
         """Empty the memory."""
