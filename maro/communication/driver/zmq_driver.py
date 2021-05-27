@@ -184,7 +184,7 @@ class ZmqDriver(AbsDriver):
                 recv_message = pickle.loads(recv_message)
                 self._logger.debug(f"Receive a message from {recv_message.source} through broadcast receiver.")
             else:
-                self._logger.debug(f"Cannot receive any message within {receive_timeout}.")
+                self._logger.debug(f"No message received within {receive_timeout}.")
                 return
 
             yield recv_message

@@ -31,7 +31,7 @@ class AbsEnvWrapper(ABC):
         self._replay_buffer = {agent_id: defaultdict(list) for agent_id in self.replay_agent_ids}
         self._pending_reward_cache = deque()  # list of (state, action, tick) whose rewards have yet to be evaluated
         self._step_index = None
-        self._total_reward = 0
+        self._total_reward = defaultdict(int)
         self._event = None  # the latest decision event. This is not used if the env wrapper is not event driven.
         self._state = None  # the latest extracted state is kept here
 
@@ -45,8 +45,8 @@ class AbsEnvWrapper(ABC):
         return self.env.agent_idx_list
 
     @property
-    def metrics(self):
-        return self.env.metrics
+    def summary(self):
+        return self.env.metrics, self._total_reward
 
     @property
     def state(self):
@@ -56,11 +56,6 @@ class AbsEnvWrapper(ABC):
     @property
     def event(self):
         return self._event
-
-    @property
-    def total_reward(self):
-        """The total reward achieved so far."""
-        return self._total_reward
 
     def start(self):
         """Generate the initial environmental state at the beginning of a simulation episode."""
@@ -147,7 +142,7 @@ class AbsEnvWrapper(ABC):
             # assign rewards to the agents that took action at that tick
             if self.save_replay:
                 for agent_id, st in state.items():
-                    self._total_reward += reward[agent_id]
+                    self._total_reward[agent_id] += reward[agent_id]
                     if agent_id in self._replay_buffer:
                         buf = self._replay_buffer[agent_id]
                         buf["states"].append(st)
@@ -182,7 +177,7 @@ class AbsEnvWrapper(ABC):
     def reset(self):
         self.env.reset()
         self.state_info = None
-        self._total_reward = 0
+        self._total_reward.clear()
         self._state = None
         self._pending_reward_cache.clear()
         for replay in self._replay_buffer.values():

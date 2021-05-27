@@ -5,9 +5,7 @@ from abc import ABC, abstractmethod
 
 
 class AbsExploration(ABC):
-    """Abstract exploration class for generating exploration rates.
-
-    """
+    """Abstract exploration class for generating exploration rates."""
     def __init__(self):
         self.scheduler = {}
 

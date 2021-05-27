@@ -51,7 +51,7 @@ class LocalPolicyManager(AbsPolicyManager):
         self._logger = Logger("LOCAL_POLICY_MANAGER", dump_folder=log_dir)
         self.policy_dict = {policy.name: policy for policy in policies}
         self._new_exp_counter = defaultdict(int)
-        self._updated_policy_ids = set()
+        self._updated_policy_names = set()
 
     @property
     def names(self):
@@ -63,17 +63,17 @@ class LocalPolicyManager(AbsPolicyManager):
         The incoming experiences are expected to be grouped by policy ID and will be stored in the corresponding
         policy's experience manager. Policies whose update conditions have been met will then be updated.
         """
-        for policy_id, exp in exp_by_policy.items():
-            if self.policy_dict[policy_id].on_experiences(exp):
-                self._updated_policy_ids.add(policy_id)
+        for policy_name, exp in exp_by_policy.items():
+            if self.policy_dict[policy_name].on_experiences(exp):
+                self._updated_policy_names.add(policy_name)
 
-        if self._updated_policy_ids:
-            self._logger.info(f"Updated policies {self._updated_policy_ids}")
+        if self._updated_policy_names:
+            self._logger.info(f"Updated policies {self._updated_policy_names}")
 
     def get_state(self):
         """Return the states of updated policies since the last call."""
         policy_state_dict = {
-            policy_id: self.policy_dict[policy_id].get_state() for policy_id in self._updated_policy_ids
+            policy_name: self.policy_dict[policy_name].get_state() for policy_name in self._updated_policy_names
         }
-        self._updated_policy_ids.clear()
+        self._updated_policy_names.clear()
         return policy_state_dict

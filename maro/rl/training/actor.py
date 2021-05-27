@@ -146,11 +146,10 @@ class Actor(object):
             MsgKey.EPISODE_INDEX: episode_index,
             MsgKey.SEGMENT_INDEX: segment_index,
             MsgKey.EXPERIENCES: ret_exp,
+            MsgKey.ENV_METRICS: self.env.metrics,
             MsgKey.NUM_STEPS: self.env.step_index - starting_step_index + 1
         }
 
-        if msg.body[MsgKey.RETURN_ENV_METRICS]:
-            return_info[MsgKey.METRICS] = self.env.metrics
         if not self.env.state:
             if self.exploration_dict:
                 for exploration in self.exploration_dict.values():

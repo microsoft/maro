@@ -31,15 +31,15 @@ class AbsExplorationScheduler(ABC):
 
 
 class LinearExplorationScheduler(AbsExplorationScheduler):
-    """Static exploration parameter generator based on a linear schedule.
+    """Linear exploration parameter schedule.
 
     Args:
-        max_iter (int): Maximum number of iterations.
-        parameter_names (List[str]): List of exploration parameter names.
-        start (Union[float, list, tuple, np.ndarray]): Exploration parameter values for the first episode.
-            These values must correspond to ``parameter_names``.
-        end (Union[float, list, tuple, np.ndarray]): Exploration parameter values rate for the last episode.
-            These values must correspond to ``parameter_names``.
+        exploration (AbsExploration): An exploration instance to which the scheduler is applied.
+        param_name (str): Name of the exploration parameter to which the scheduler is applied.
+        last_ep (int): Last episode. 
+        final_value (float): The value of the exploration parameter corresponding to ``last_ep``.
+        initial_value (float): The initial value for the exploration parameter. If this is None, the
+            value as specified in the exploration instance will be used as the initial value. Defaults to None. 
     """
     def __init__(
         self,
@@ -64,19 +64,19 @@ class LinearExplorationScheduler(AbsExplorationScheduler):
 
 
 class MultiPhaseLinearExplorationScheduler(AbsExplorationScheduler):
-    """Exploration parameter generator based on two linear schedules joined together.
+    """Exploration parameter schedule that consists of multiple linear phases.
 
     Args:
-        max_iter (int): Maximum number of iterations.
-        parameter_names (List[str]): List of exploration parameter names.
-        split (float): The point where the switch from the first linear schedule to the second occurs.
-        start (Union[float, list, tuple, np.ndarray]): Exploration parameter values for the first episode.
-            These values must correspond to ``parameter_names``.
-        mid (Union[float, list, tuple, np.ndarray]): Exploration parameter values where the switch from the
-            first linear schedule to the second occurs. In other words, this is the exploration rate where the first
-            linear schedule ends and the second begins. These values must correspond to ``parameter_names``.
-        end (Union[float, list, tuple, np.ndarray]): Exploration parameter values for the last episode.
-            These values must correspond to ``parameter_names``.
+        exploration (AbsExploration): An exploration instance to which the scheduler is applied.
+        param_name (str): Name of the exploration parameter to which the scheduler is applied.
+        last_ep (int): Last episode.
+        splits (List[Tuple[int, float]]): List of points that separate adjacent linear phases. Each
+            point is a (episode, parameter_value) tuple that indicates the end of one linear phase and
+            the start of another. These points do not have to be given in any particular order. There
+            cannot be two points with the same first element (episode), or a ``ValueError`` will be raised. 
+        final_value (float): The value of the exploration parameter corresponding to ``last_ep``.
+        initial_value (float): The initial value for the exploration parameter. If this is None, the
+            value as specified in the exploration instance will be used as the initial value. Defaults to None.
 
     Returns:
         An iterator over the series of exploration rates from episode 0 to ``max_iter`` - 1.
@@ -91,8 +91,8 @@ class MultiPhaseLinearExplorationScheduler(AbsExplorationScheduler):
         initial_value: float = None
     ):
         # validate splits
-        splits.append((1, initial_value))
-        splits.append((last_ep, final_value))
+        splits.append([1, initial_value])
+        splits.append([last_ep, final_value])
         splits.sort()
         for (ep, _), (ep2, _) in zip(splits, splits[1:]):
             if ep == ep2:

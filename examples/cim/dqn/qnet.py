@@ -3,8 +3,9 @@ import torch
 import torch.nn as nn
 from maro.rl import DiscreteQNet, OptimOption
 
+
 class QNet(DiscreteQNet):
-    def __init__(self, component: nn.Module, optim_option: OptimOption=None, device='cpu'):
+    def __init__(self, component: nn.Module, optim_option: OptimOption=None, device=None):
         super().__init__(component, optim_option=optim_option, device=device)
 
     def forward(self, states):
