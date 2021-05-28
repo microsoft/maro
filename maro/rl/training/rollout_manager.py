@@ -264,8 +264,6 @@ class ParallelRolloutManager(AbsRolloutManager):
         self.num_actors = num_actors
         peers = {"actor": num_actors}
         self._proxy = Proxy(group, "rollout_manager", peers, **proxy_kwargs)
-        print("rollout manager name: ", self._proxy.name)
-        print("redis_info as seen from rollout manager: ", self._proxy._redis_connection.hgetall(self._proxy._redis_hash_name))
         self._actors = self._proxy.peers["actor"]  # remote actor ID's
 
         if max_receive_attempts is None:

@@ -2,26 +2,57 @@
 RL Toolkit
 ==========
 
-MARO provides a full-stack abstraction for reinforcement learning (RL), which enables users to
-apply predefined and customized components to various scenarios. The main abstractions include
-fundamental components such as `Agent <#agent>`_\ and `Shaper <#shaper>`_\ , and training routine
-controllers such as `Actor <#actor>`_\ and `Learner <#learner>`_.
+MARO provides a full-stack abstraction for reinforcement learning (RL) which includes various customizable
+components. At the top level of a training workflow are:
+* Learner, which consists of a roll-out manager and a policy manager, is the controller for a learning process.
+The learner process executes training cycles that alternate between data collection and policy updates.   
+* Rollout manager, which is responsible for collecting simulation data. The ``LocalRolloutManager`` performs roll-outs
+locally, while the ``ParallelRolloutManager`` manages a set of remote ``Actor``s to collect simulation data in parallel.
+* Policy manager, which manages a set of policies and controls their updates. The policy instances may reside in the
+manager (``LocalPolicyManager``) or be distributed on a set of remote nodes (``ParallelPolicyManager``, to be implemented).
+* Actor, which consists of an environment instance and a set of policies that agents use to interact with it, is a
+remote roll-out worker instance managed by a ``ParallelRolloutManager``.
+
+.. image:: ../images/rl/learner.svg
+   :target: ../images/rl/learner.svg
+   :alt: Overview
+
+.. image:: ../images/rl/rollout_manager.svg
+   :target: ../images/rl/rollout_manager.svg
+   :alt: Overview
+
+.. image:: ../images/rl/policy_manager.svg
+   :target: ../images/rl/policy_manager.svg
+   :alt: RL Overview
+
+
+Environment Wrapper
+-------------------
+
+To use the training components described above, it is necessary to implement an environment wrapper for the environment of
+your choice. An environment wrapper serves as a bridge between a simulator and the policies that interact with it by providing
+unified interfaces to the interaction workflow. It is also responsible for caching transitions and preparing experiences for
+training. Key methods that need to be implemented for an environment wrapper include:
+* ``get_state``, which encodes agents' observations into policy input. The encoded state for each agent must correspond
+to the policy used by the agent.
+* ``to_env_action``, which provides model output with context so that it can be executed by the environment simulator.
+* ``get_reward``, for evaluating rewards.
+
+.. image:: ../images/rl/env_wrapper.svg
+   :target: ../images/rl/env_wrapper.svg
+   :alt: Environment Wrapper
 
 
 Policy
 ------
 
-A policy is a an agent's mechanism to determine an action to take given an observation of the environment.
+A policy is a an agent's mechanism to choose actions based on its observations of the environment.
 Accordingly, the abstract ``AbsPolicy`` class exposes a ``choose_action`` interface. This abstraction encompasses
 both static policies, such as rule-based policies, and updatable policies, such as RL policies. The latter is
 abstracted through the ``AbsCorePolicy`` sub-class which also exposes a ``update`` interface. By default, updatable
-policies require an experience manager to store and retrieve simulation data (in the form of "experiences sets") based
-on which updates can be made.
+policies require an experience manager to store and retrieve simulation data (in the form of "experiences sets")
+based on which updates can be made.
 
-
-.. image:: ../images/rl/agent.svg
-   :target: ../images/rl/agent.svg
-   :alt: Agent
 
 .. code-block:: python
 
@@ -122,38 +153,3 @@ As an example, the exploration for DQN may be carried out with the aid of an ``E
   exploration = EpsilonGreedyExploration(num_actions=10)
   greedy_action = q_net.get_action(state)
   exploration_action = exploration(greedy_action)
-
-
-Environment Wrapper
--------------------
-
-An environment wrapper a wrapper for a raw MARO environment that provides unified interfaces to the external
-RL workflow through user-defined state, action and reward shaping. It is also responsible for caching transitions and preparing experiences
-for training. It is necessary to implement an environment wrapper for the environemtn of your choice in order to
-run the RL workflow using the training tools described below. Key methods that need to be defined for an environment
-wrapper include:
-* ``get_state``, which converts observations of an environment into model input. For example, the observation
-may be represented by a multi-level data structure, which gets encoded to a one-dimensional vector as input to
-a neural network.
-* ``to_env_action``, which provides model output with necessary context so that it can be executed by the
-environment simulator.
-* ``get_reward``, for evaluating rewards.
-
-
-Tools for Training
-------------------
-
-.. image:: ../images/rl/learner_actor.svg
-   :target: ../images/rl/learner_actor.svg
-   :alt: RL Overview
-
-The RL toolkit provides tools that make local and distributed training easy:
-* Learner, which consists of a roll-out manager and a policy manager, is the controller for a learning process.
-The learner process executes training cycles that alternate between data collection and policy updates.   
-* Rollout manager, which is respnsible for collecting simulation data. The ``LocalRolloutManager`` performs roll-outs
-locally, while the ``ParallelRolloutManager`` manages a set of remote ``Actor``s to collect simulation data in
-parallel.
-* Actor, which consists of an environment instance and a set of policies that agents use to interact with it, is a
-remote roll-out worker instance managed by a ``ParallelRolloutManager``.
-* Policy manager, which manages a set of policies and controls their updates. The policy instances may reside in the
-manager (``LocalPolicyManager``) or be distributed on a set of remote nodes (``ParallelPolicyManager``, to be implemented).
