@@ -1,25 +1,30 @@
-
 RL Toolkit
 ==========
 
 MARO provides a full-stack abstraction for reinforcement learning (RL) which includes various customizable
 components. At the top level of a training workflow are:
-* Learner, which consists of a roll-out manager and a policy manager, is the controller for a learning process.
-The learner process executes training cycles that alternate between data collection and policy updates.   
+
+* Learner, which consists of a roll-out manager and a policy manager, is the controller for a learning
+  process. The learner process executes training cycles that alternate between data collection and policy
+  updates.   
 * Rollout manager, which is responsible for collecting simulation data. The ``LocalRolloutManager`` performs roll-outs
-locally, while the ``ParallelRolloutManager`` manages a set of remote ``Actor``s to collect simulation data in parallel.
+  locally, while the ``ParallelRolloutManager`` manages a set of remote ``Actor``s to collect simulation data in parallel.
 * Policy manager, which manages a set of policies and controls their updates. The policy instances may reside in the
-manager (``LocalPolicyManager``) or be distributed on a set of remote nodes (``ParallelPolicyManager``, to be implemented).
+  manager (``LocalPolicyManager``) or be distributed on a set of remote nodes (``ParallelPolicyManager``, to be implemented)
+  for parallelized training.
 * Actor, which consists of an environment instance and a set of policies that agents use to interact with it, is a
-remote roll-out worker instance managed by a ``ParallelRolloutManager``.
+  remote roll-out worker instance managed by a ``ParallelRolloutManager``.
+
 
 .. image:: ../images/rl/learner.svg
    :target: ../images/rl/learner.svg
    :alt: Overview
 
+
 .. image:: ../images/rl/rollout_manager.svg
    :target: ../images/rl/rollout_manager.svg
    :alt: Overview
+
 
 .. image:: ../images/rl/policy_manager.svg
    :target: ../images/rl/policy_manager.svg
@@ -33,8 +38,9 @@ To use the training components described above, it is necessary to implement an 
 your choice. An environment wrapper serves as a bridge between a simulator and the policies that interact with it by providing
 unified interfaces to the interaction workflow. It is also responsible for caching transitions and preparing experiences for
 training. Key methods that need to be implemented for an environment wrapper include:
+
 * ``get_state``, which encodes agents' observations into policy input. The encoded state for each agent must correspond
-to the policy used by the agent.
+    to the policy used by the agent.
 * ``to_env_action``, which provides model output with context so that it can be executed by the environment simulator.
 * ``get_reward``, for evaluating rewards.
 
