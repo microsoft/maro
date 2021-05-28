@@ -4,7 +4,7 @@ Agent
 maro.rl.agent.abs\_agent
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.agent.abs_agent
+.. automodule:: maro.rl.agent.abs_policy
    :members:
    :undoc-members:
    :show-inheritance:
@@ -40,7 +40,7 @@ Agent Manager
 maro.rl.agent.abs\_agent\_manager
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.agent.abs_agent_manager
+.. automodule:: maro.rl.agent.abs_policy_manager
    :members:
    :undoc-members:
    :show-inheritance:
@@ -58,29 +58,29 @@ maro.rl.model.learning\_model
    :show-inheritance:
 
 
-Explorer
+Exploration
 ================================================================================
 
-maro.rl.exploration.abs\_explorer
+maro.rl.exploration.abs\_exploration
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.exploration.abs_explorer
+.. automodule:: maro.rl.exploration.abs_exploration
    :members:
    :undoc-members:
    :show-inheritance:
 
-maro.rl.exploration.epsilon\_greedy\_explorer
+maro.rl.exploration.epsilon\_greedy\_exploration
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.exploration.epsilon_greedy_explorer
+.. automodule:: maro.rl.exploration.epsilon_greedy_exploration
    :members:
    :undoc-members:
    :show-inheritance:
 
-maro.rl.exploration.noise\_explorer
+maro.rl.exploration.noise\_exploration
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.exploration.noise_explorer
+.. automodule:: maro.rl.exploration.noise_exploration
    :members:
    :undoc-members:
    :show-inheritance:
@@ -121,18 +121,18 @@ maro.rl.shaping.abs\_shaper
 Storage
 ================================================================================
 
-maro.rl.storage.abs\_store
+maro.rl.experience.abs\_store
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.storage.abs_store
+.. automodule:: maro.rl.experience.abs_store
    :members:
    :undoc-members:
    :show-inheritance:
 
-maro.rl.storage.simple\_store
+maro.rl.experience.simple\_store
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.storage.simple_store
+.. automodule:: maro.rl.experience.experience_manager
    :members:
    :undoc-members:
    :show-inheritance:

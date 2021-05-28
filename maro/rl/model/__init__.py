@@ -2,15 +2,11 @@
 # Licensed under the MIT license.
 
 from .abs_block import AbsBlock
+from .core_model import AbsCoreModel, ContinuousACNet, DiscreteACNet, DiscretePolicyNet, DiscreteQNet, OptimOption
 from .fc_block import FullyConnectedBlock
-from .core_model import (
-    AbsCoreModel, OptimOption, PolicyNetForDiscreteActionSpace, PolicyValueNetForContinuousActionSpace,
-    PolicyValueNetForDiscreteActionSpace, QNetForDiscreteActionSpace
-)
 
 __all__ = [
     "AbsBlock",
+    "AbsCoreModel", "ContinuousACNet", "DiscreteACNet", "DiscretePolicyNet", "DiscreteQNet", "OptimOption",
     "FullyConnectedBlock",
-    "AbsCoreModel", "OptimOption", "PolicyNetForDiscreteActionSpace", "PolicyValueNetForContinuousActionSpace",
-    "PolicyValueNetForDiscreteActionSpace", "QNetForDiscreteActionSpace"
 ]

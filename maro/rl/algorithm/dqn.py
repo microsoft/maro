@@ -6,8 +6,8 @@ from typing import Union
 import numpy as np
 import torch
 
-from maro.rl.experience import AbsExperienceManager
-from maro.rl.model import QNetForDiscreteActionSpace
+from maro.rl.experience import ExperienceManager
+from maro.rl.model import DiscreteQNet
 from maro.rl.policy import AbsCorePolicy
 from maro.rl.utils import get_torch_loss_cls
 
@@ -59,45 +59,60 @@ class DQN(AbsCorePolicy):
     See https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf for details.
 
     Args:
-        model (QNetForDiscreteActionSpace): Q-value model.
+        name (str): Policy name.
+        q_net (DiscreteQNet): Q-value model.
+        experience_manager (ExperienceManager): An experience manager for storing and retrieving experiences
+            for training.
         config (DQNConfig): Configuration for DQN algorithm.
+        update_trigger (int): Minimum number of new experiences required to trigger an ``update`` call. Defaults to 1.
+        warmup (int): Minimum number of experiences in the experience memory required to trigger an ``update`` call.
+            Defaults to 1.
     """
     def __init__(
         self,
-        q_net: QNetForDiscreteActionSpace,
-        experience_manager: AbsExperienceManager,
-        config: DQNConfig
+        name: str,
+        q_net: DiscreteQNet,
+        experience_manager: ExperienceManager,
+        config: DQNConfig,
+        update_trigger: int = 1,
+        warmup: int = 1,
     ):
-        if not isinstance(q_net, QNetForDiscreteActionSpace):
-            raise TypeError("model must be an instance of 'QNetForDiscreteActionSpace'")
+        if not isinstance(q_net, DiscreteQNet):
+            raise TypeError("model must be an instance of 'DiscreteQNet'")
 
-        super().__init__(experience_manager, config)
+        super().__init__(name, experience_manager, update_trigger=update_trigger, warmup=warmup)
         self.q_net = q_net
-        self.target_q_net = q_net.copy() if q_net.trainable else None
-        self.target_q_net.eval()
+        if self.q_net.trainable:
+            self.target_q_net = q_net.copy()
+            self.target_q_net.eval()
+        else:
+            self.target_q_net = None
+        self.config = config
+        self.device = self.q_net.device
         self._training_counter = 0
 
     def choose_action(self, states) -> Union[int, np.ndarray]:
         with torch.no_grad():
             self.q_net.eval()
-            actions, _ = self.q_net.choose_action(states)
+            actions, _ = self.q_net.get_action(states)
 
         actions = actions.cpu().numpy()
         return actions[0] if len(actions) == 1 else actions
 
     def update(self):
+        assert self.q_net.trainable, "q_net needs to have at least one optimizer registered."
         self.q_net.train()
         for _ in range(self.config.train_epochs):
             # sample from the replay memory
             experience_set = self.experience_manager.get()
             states, next_states = experience_set.states, experience_set.next_states
-            actions = torch.from_numpy(np.asarray(experience_set.actions)).to(self.q_net.device)
-            rewards = torch.from_numpy(np.asarray(experience_set.rewards)).to(self.q_net.device)
+            actions = torch.from_numpy(np.asarray(experience_set.actions)).to(self.device)
+            rewards = torch.from_numpy(np.asarray(experience_set.rewards)).to(self.device)
             if self.config.double:
                 for _ in range(self.config.gradient_iters):
                     # get target Q values
                     with torch.no_grad():
-                        actions_by_eval_q_net = self.q_net.choose_action(next_states)[0]
+                        actions_by_eval_q_net = self.q_net.get_action(next_states)[0]
                         next_q_values = self.target_q_net.q_values(next_states, actions_by_eval_q_net)
                     target_q_values = (rewards + self.config.reward_discount * next_q_values).detach()  # (N,)
 
@@ -108,7 +123,7 @@ class DQN(AbsCorePolicy):
             else:
                 # get target Q values
                 with torch.no_grad():
-                    next_q_values = self.target_q_net.choose_action(next_states)[1]  # (N,)
+                    next_q_values = self.target_q_net.get_action(next_states)[1]  # (N,)
                 target_q_values = (rewards + self.config.reward_discount * next_q_values).detach()  # (N,)
 
                 # gradient steps

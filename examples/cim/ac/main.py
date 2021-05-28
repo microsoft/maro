@@ -31,18 +31,18 @@ IN_DIM = (
 OUT_DIM = config["shaping"]["num_actions"]
 
 
-def get_ac_agent():
+def get_ac_policy():
     cfg = config["agent"]
     actor_net  = FullyConnectedBlock(input_dim=IN_DIM, output_dim=OUT_DIM, **cfg["model"]["actor"])
     critic_net = FullyConnectedBlock(input_dim=IN_DIM, output_dim=1, **cfg["model"]["critic"])
-    ac_model = SimpleMultiHeadModel(
+    ac_net = SimpleMultiHeadModel(
         {"actor": actor_net, "critic": critic_net},
         optim_option={
             "actor":  OptimOption(**cfg["optimization"]["actor"]),
             "critic": OptimOption(**cfg["optimization"]["critic"])
         }
     )
-    return ActorCritic(ac_model, ActorCriticConfig(**cfg["algorithm"]), **cfg["experience_memory"])
+    return ActorCritic(ac_net, ActorCriticConfig(**cfg["algorithm"]))
 
 
 # Single-threaded launcher

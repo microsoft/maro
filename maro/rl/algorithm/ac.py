@@ -6,8 +6,8 @@ from typing import Tuple
 import numpy as np
 import torch
 
-from maro.rl.experience import AbsExperienceManager
-from maro.rl.model import PolicyValueNetForDiscreteActionSpace
+from maro.rl.experience import ExperienceManager
+from maro.rl.model import DiscreteACNet
 from maro.rl.policy import AbsCorePolicy
 from maro.rl.utils import get_torch_loss_cls
 
@@ -55,53 +55,58 @@ class ActorCritic(AbsCorePolicy):
         https://towardsdatascience.com/understanding-actor-critic-methods-931b97b6df3f
 
     Args:
-        ac_net (PolicyValueNetForDiscreteActionSpace): Multi-task model that computes action distributions
+        name (str): Policy name.
+        ac_net (DiscreteACNet): Multi-task model that computes action distributions
             and state values.
+        experience_manager (ExperienceManager): An experience manager for storing and retrieving experiences
+            for training.
         config: Configuration for the AC algorithm.
+        update_trigger (int): Minimum number of new experiences required to trigger an ``update`` call. Defaults to 1.
+        warmup (int): Minimum number of experiences in the experience memory required to trigger an ``update`` call.
+            Defaults to 1.
     """
     def __init__(
         self,
-        ac_net: PolicyValueNetForDiscreteActionSpace,
-        experience_manager: AbsExperienceManager,
-        config: ActorCriticConfig
+        name: str,
+        ac_net: DiscreteACNet,
+        experience_manager: ExperienceManager,
+        config: ActorCriticConfig,
+        update_trigger: int = 1,
+        warmup: int = 1,
     ):
-        if not isinstance(ac_net, PolicyValueNetForDiscreteActionSpace):
-            raise TypeError("model must be an instance of 'PolicyValueNetForDiscreteActionSpace'")
+        if not isinstance(ac_net, DiscreteACNet):
+            raise TypeError("model must be an instance of 'DiscreteACNet'")
 
-        super().__init__(experience_manager, config)
+        super().__init__(name, experience_manager, update_trigger=update_trigger, warmup=warmup)
         self.ac_net = ac_net
+        self.config = config
+        self.device = self.ac_net.device
 
     def choose_action(self, states) -> Tuple[np.ndarray, np.ndarray]:
-        """Use the actor (policy) model to generate stochastic actions.
-
-        Args:
-            state: Input to the actor model.
-
-        Returns:
-            Actions and corresponding log probabilities.
-        """
+        """Return actions and log probabilities for given states."""
         with torch.no_grad():
-            actions, log_p = self.ac_net.choose_action(states)
+            actions, log_p = self.ac_net.get_action(states)
         actions, log_p = actions.cpu().numpy(), log_p.cpu().numpy()
-        return (actions[0], log_p[0]) if len(actions) == 1 else actions, log_p
+        return (actions[0], log_p[0]) if len(actions) == 1 else (actions, log_p)
 
     def update(self):
         self.ac_net.train()
         for _ in range(self.config.train_epochs):
             experience_set = self.experience_manager.get()
             states, next_states = experience_set.states, experience_set.next_states
-            actions = torch.from_numpy(np.asarray([act[0] for act in experience_set.actions])).to(self.ac_net.device)
-            log_p = torch.from_numpy(np.asarray([act[1] for act in experience_set.actions])).to(self.ac_net.device)
-            rewards = torch.from_numpy(np.asarray(experience_set.rewards)).to(self.ac_net.device)
+            actions = torch.from_numpy(np.asarray([act[0] for act in experience_set.actions])).to(self.device)
+            log_p = torch.from_numpy(np.asarray([act[1] for act in experience_set.actions])).to(self.device)
+            rewards = torch.from_numpy(np.asarray(experience_set.rewards)).to(self.device)
 
             for _ in range(self.config.gradient_iters):
-                state_values = self.ac_net(states, output_action_probs=False).detach().squeeze()
-                next_state_values = self.ac_net(next_states, output_action_probs=False).detach().squeeze()
+                action_probs, state_values = self.ac_net(states)
+                state_values = state_values.squeeze()
+                with torch.no_grad():
+                    next_state_values = self.ac_net(next_states, actor=False)[1].detach().squeeze()
                 return_est = rewards + self.config.reward_discount * next_state_values
                 advantages = return_est - state_values
 
                 # actor loss
-                action_probs, state_values = self.ac_net(states)
                 log_p_new = torch.log(action_probs.gather(1, actions.unsqueeze(1)).squeeze())  # (N,)
                 if self.config.clip_ratio is not None:
                     ratio = torch.exp(log_p_new - log_p)
@@ -116,8 +121,10 @@ class ActorCritic(AbsCorePolicy):
 
                 self.ac_net.step(loss)
 
+        self.experience_manager.clear()
+
     def set_state(self, policy_state):
         self.ac_net.load_state_dict(policy_state)
 
     def get_state(self):
-        return self.q_net.state_dict()
+        return self.ac_net.state_dict()

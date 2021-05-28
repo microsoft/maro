@@ -1,94 +1,140 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import argparse
+import os
 import yaml
 from multiprocessing import Process
-from os import getenv
-from os.path import dirname, join, realpath
 
 from maro.rl import (
-    Actor, ActorManager, DQN, DQNConfig, DistLearner, FullyConnectedBlock, OptimOption,
-    SimpleMultiHeadModel, TwoPhaseLinearParameterScheduler
+    Actor, DQN, DQNConfig, EpsilonGreedyExploration, ExperienceManager, FullyConnectedBlock,
+    MultiPhaseLinearExplorationScheduler, Learner, LocalLearner, LocalPolicyManager,
+    OptimOption, ParallelRolloutManager
 )
 from maro.simulator import Env
 from maro.utils import set_seeds
 
 from examples.cim.env_wrapper import CIMEnvWrapper
+from examples.cim.dqn.qnet import QNet
 
 
-DEFAULT_CONFIG_PATH = join(dirname(realpath(__file__)), "config.yml")
-with open(getenv("CONFIG_PATH", default=DEFAULT_CONFIG_PATH), "r") as config_file:
+FILE_PATH = os.path.dirname(os.path.realpath(__file__))
+
+DEFAULT_CONFIG_PATH = os.path.join(FILE_PATH, "config.yml")
+with open(os.getenv("CONFIG_PATH", default=DEFAULT_CONFIG_PATH), "r") as config_file:
     config = yaml.safe_load(config_file)
+
+log_dir = os.path.join(FILE_PATH, "logs", config["experiment_name"])
 
 # model input and output dimensions
 IN_DIM = (
-    (config["shaping"]["look_back"] + 1) *
-    (config["shaping"]["max_ports_downstream"] + 1) *
-    len(config["shaping"]["port_attributes"]) +
-    len(config["shaping"]["vessel_attributes"])
+    (config["env"]["wrapper"]["look_back"] + 1)
+    * (config["env"]["wrapper"]["max_ports_downstream"] + 1)
+    * len(config["env"]["wrapper"]["port_attributes"])
+    + len(config["env"]["wrapper"]["vessel_attributes"])
 )
-OUT_DIM = config["shaping"]["num_actions"]
-
-# for distributed / multi-process training
-GROUP = getenv("GROUP", default=config["distributed"]["group"])
-REDIS_HOST = getenv("REDISHOST", default=config["distributed"]["redis_host"])
-REDIS_PORT = getenv("REDISPORT", default=config["distributed"]["redis_port"])
-NUM_ACTORS = int(getenv("NUMACTORS", default=config["distributed"]["num_actors"]))
+OUT_DIM = config["env"]["wrapper"]["num_actions"]
 
 
-def get_dqn_agent():
-    cfg = config["agent"]
-    q_model = SimpleMultiHeadModel(
-        FullyConnectedBlock(input_dim=IN_DIM, output_dim=OUT_DIM, **cfg["model"]),
-        optim_option=OptimOption(**cfg["optimization"])
+def get_independent_policy(policy_id):
+    cfg = config["policy"]
+    qnet = QNet(
+        FullyConnectedBlock(input_dim=IN_DIM, output_dim=OUT_DIM, **cfg["model"]["network"]),
+        optim_option=OptimOption(**cfg["model"]["optimization"])
     )
-    return DQN(q_model, DQNConfig(**cfg["algorithm"]), **cfg["experience_memory"])
+    return DQN(
+        name=policy_id,
+        q_net=qnet,
+        experience_manager=ExperienceManager(**cfg["experience_manager"]),
+        config=DQNConfig(**cfg["algorithm_config"])
+    )
 
 
-def cim_dqn_learner():
-    agent = AgentManager({name: get_dqn_agent() for name in Env(**config["training"]["env"]).agent_idx_list})
-    scheduler = TwoPhaseLinearParameterScheduler(config["training"]["max_episode"], **config["training"]["exploration"])
-    actor_manager = ActorManager(NUM_ACTORS, GROUP, redis_address=(REDIS_HOST, REDIS_PORT), log_enable=False)
-    learner = DistLearner(
-        agent, scheduler, actor_manager,
-        agent_update_interval=config["training"]["agent_update_interval"],
-        required_actor_finishes=config["distributed"]["required_actor_finishes"],
-        discard_stale_experiences=False
+def local_learner_mode():
+    env = Env(**config["env"]["basic"])
+    num_actions = config["env"]["wrapper"]["num_actions"]
+    epsilon_greedy = EpsilonGreedyExploration(num_actions=num_actions)
+    epsilon_greedy.register_schedule(
+        scheduler_cls=MultiPhaseLinearExplorationScheduler,
+        param_name="epsilon",
+        **config["exploration"]
+    )
+    local_learner = LocalLearner(
+        env=CIMEnvWrapper(env, **config["env"]["wrapper"]),
+        policies=[get_independent_policy(policy_id=i) for i in env.agent_idx_list],
+        agent2policy={i: i for i in env.agent_idx_list},
+        num_episodes=config["num_episodes"],
+        num_steps=config["num_steps"],
+        exploration_dict={f"EpsilonGreedy1": epsilon_greedy},
+        agent2exploration={i: f"EpsilonGreedy1" for i in env.agent_idx_list},
+        eval_schedule=config["eval_schedule"],
+        log_dir=log_dir
+    )
+
+    local_learner.run()
+
+
+def get_dqn_actor_process():
+    env = Env(**config["env"]["basic"])
+    num_actions = config["env"]["wrapper"]["num_actions"]
+    policy_list = [get_independent_policy(policy_id=i) for i in env.agent_idx_list]
+    epsilon_greedy = EpsilonGreedyExploration(num_actions=num_actions)
+    epsilon_greedy.register_schedule(
+        scheduler_cls=MultiPhaseLinearExplorationScheduler,
+        param_name="epsilon",
+        **config["exploration"]
+    )
+    actor = Actor(
+        env=CIMEnvWrapper(env, **config["env"]["wrapper"]),
+        policies=policy_list,
+        agent2policy={i: i for i in env.agent_idx_list},
+        group=config["multi-process"]["group"],
+        exploration_dict={f"EpsilonGreedy1": epsilon_greedy},
+        agent2exploration={i: f"EpsilonGreedy1" for i in env.agent_idx_list},
+        log_dir=log_dir,
+        redis_address=(config["multi-process"]["redis_host"], config["multi-process"]["redis_port"])
+    )
+    actor.run()
+
+
+def get_dqn_learner_process():
+    env = Env(**config["env"]["basic"])
+    policy_list = [get_independent_policy(policy_id=i) for i in env.agent_idx_list]
+
+    policy_manager = LocalPolicyManager(policies=policy_list, log_dir=log_dir)
+    rollout_manager = ParallelRolloutManager(
+        num_actors=config["multi-process"]["num_actors"],
+        group=config["multi-process"]["group"],
+        log_dir=log_dir,
+        redis_address=(config["multi-process"]["redis_host"], config["multi-process"]["redis_port"])
+    )
+
+    learner = Learner(
+        policy_manager=policy_manager,
+        rollout_manager=rollout_manager,
+        num_episodes=config["num_episodes"],
+        log_dir=log_dir
     )
     learner.run()
 
 
-def cim_dqn_actor():
-    env = Env(**config["training"]["env"])
-    agent = AgentManager({name: get_dqn_agent() for name in env.agent_idx_list})
-    actor = Actor(CIMEnvWrapper(env, **config["shaping"]), agent, GROUP, redis_address=(REDIS_HOST, REDIS_PORT))
-    actor.run()
+def multi_process_mode():
+    actor_processes = [Process(target=get_dqn_actor_process) for _ in range(config["multi-process"]["num_actors"])]
+    for i, actor_process in enumerate(actor_processes):
+        set_seeds(i)
+        actor_process.start()
+
+    learner_process = Process(target=get_dqn_learner_process)
+    learner_process.start()
+
+    for actor_process in actor_processes:
+        actor_process.join()
+    learner_process.join()
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "-w", "--whoami", type=int, choices=[0, 1, 2], default=0,
-        help="Identity of this process: 0 - multi-process mode, 1 - learner, 2 - actor"
-    )
-
-    args = parser.parse_args()
-    if args.whoami == 0:
-        actor_processes = [Process(target=cim_dqn_actor) for i in range(NUM_ACTORS)]
-        learner_process = Process(target=cim_dqn_learner)
-
-        for i, actor_process in enumerate(actor_processes):
-            set_seeds(i)  # this is to ensure that the actors explore differently.
-            actor_process.start()
-
-        learner_process.start()
-
-        for actor_process in actor_processes:
-            actor_process.join()
-
-        learner_process.join()
-    elif args.whoami == 1:
-        cim_dqn_learner()
-    elif args.whoami == 2:
-        cim_dqn_actor()
+    if config["mode"] == "local":
+        local_learner_mode()
+    elif config["mode"] == "multi-process":
+        multi_process_mode()
+    else:
+        print("Two modes are supported: local or multi-process.")

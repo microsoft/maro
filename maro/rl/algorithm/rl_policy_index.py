@@ -1,11 +1,10 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from .ac import ActorCritic, ActorCriticConfig, PolicyValueNetForDiscreteActionSpace
-from .ddpg import DDPG, DDPGConfig, PolicyValueNetForContinuousActionSpace
-from .dqn import DQN, DQNConfig, QNetForDiscreteActionSpace
-from .pg import PolicyGradient, PolicyGradientConfig, PolicyNetForDiscreteActionSpace
-
+from .ac import ActorCritic, ActorCriticConfig, DiscreteACNet
+from .ddpg import DDPG, ContinuousACNet, DDPGConfig
+from .dqn import DQN, DiscreteQNet, DQNConfig
+from .pg import DiscretePolicyNet, PolicyGradient, PolicyGradientConfig
 
 RL_POLICY_INDEX = {
     "ac": ActorCritic,
@@ -15,17 +14,17 @@ RL_POLICY_INDEX = {
 }
 
 RL_POLICY_CONFIG_INDEX = {
-    "ac": ActorCritic,
+    "ac": ActorCriticConfig,
     "dqn": DQNConfig,
     "ddpg": DDPGConfig,
     "pg": PolicyGradientConfig
 }
 
 RL_POLICY_MODEL_INDEX = {
-    "ac": PolicyValueNetForDiscreteActionSpace,
-    "dqn": QNetForDiscreteActionSpace,
-    "ddpg": PolicyValueNetForContinuousActionSpace,
-    "pg": PolicyNetForDiscreteActionSpace
+    "ac": DiscreteACNet,
+    "dqn": DiscreteQNet,
+    "ddpg": ContinuousACNet,
+    "pg": DiscretePolicyNet
 }
 
 

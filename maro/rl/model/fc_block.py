@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 
 from collections import OrderedDict
+from typing import List
 
 import torch
 import torch.nn as nn
@@ -37,7 +38,7 @@ class FullyConnectedBlock(AbsBlock):
         self,
         input_dim: int,
         output_dim: int,
-        hidden_dims: [int],
+        hidden_dims: List[int],
         activation="relu",
         head: bool = False,
         softmax: bool = False,
@@ -108,10 +109,7 @@ class FullyConnectedBlock(AbsBlock):
         components = []
         if self._batch_norm:
             components.append(("batch_norm", nn.BatchNorm1d(input_dim)))
-        ll = nn.Linear(input_dim, output_dim)
-        torch.nn.init.xavier_normal_(ll.weight)
-        torch.nn.init.zeros_(ll.bias)
-        components.append(("linear", ll))
+        components.append(("linear", nn.Linear(input_dim, output_dim)))
         if not head and self._activation is not None:
             components.append(("activation", self._activation))
         if not head and self._dropout_p:
