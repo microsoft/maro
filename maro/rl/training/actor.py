@@ -74,7 +74,7 @@ class Actor(object):
             for exploration_id, agent_ids in self.agent_groups_by_exploration.items():
                 self.agent_groups_by_exploration[exploration_id] = tuple(agent_ids)
 
-        self._proxy = Proxy(group, "actor", {"actor_manager": 1}, **proxy_kwargs)
+        self._proxy = Proxy(group, "actor", {"rollout_manager": 1}, **proxy_kwargs)
         self._logger = Logger(self._proxy.name, dump_folder=log_dir)
 
     def run(self):
@@ -143,6 +143,7 @@ class Actor(object):
         ret_exp = {
             policy_name: policy.experience_manager.get() for policy_name, policy in self.policy_dict.items()
         }
+
         return_info = {
             MsgKey.EPISODE_END: not self.env.state,
             MsgKey.EPISODE_INDEX: episode_index,

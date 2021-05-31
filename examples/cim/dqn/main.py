@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 
 import os
+import time
 import yaml
 from multiprocessing import Process
 
@@ -35,16 +36,17 @@ IN_DIM = (
 OUT_DIM = config["env"]["wrapper"]["num_actions"]
 
 
-def get_independent_policy(policy_id):
+def get_independent_policy(policy_id, training: bool = True):
     cfg = config["policy"]
     qnet = QNet(
         FullyConnectedBlock(input_dim=IN_DIM, output_dim=OUT_DIM, **cfg["model"]["network"]),
         optim_option=OptimOption(**cfg["model"]["optimization"])
     )
+    exp_cfg = cfg["experience_manager"]["training"] if training else cfg["experience_manager"]["rollout"]
     return DQN(
         name=policy_id,
         q_net=qnet,
-        experience_manager=ExperienceManager(**cfg["experience_manager"]),
+        experience_manager=ExperienceManager(**exp_cfg),
         config=DQNConfig(**cfg["algorithm_config"])
     )
 
@@ -76,7 +78,7 @@ def local_learner_mode():
 def get_dqn_actor_process():
     env = Env(**config["env"]["basic"])
     num_actions = config["env"]["wrapper"]["num_actions"]
-    policy_list = [get_independent_policy(policy_id=i) for i in env.agent_idx_list]
+    policy_list = [get_independent_policy(policy_id=i, training=False) for i in env.agent_idx_list]
     epsilon_greedy = EpsilonGreedyExploration(num_actions=num_actions)
     epsilon_greedy.register_schedule(
         scheduler_cls=MultiPhaseLinearExplorationScheduler,

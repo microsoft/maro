@@ -8,6 +8,18 @@ from maro.rl.exploration.abs_exploration import AbsExploration
 
 
 class AbsExplorationScheduler(ABC):
+    """Abstract exploration scheduler.
+
+    Each exploration scheduler is registered to a single parameter of an exploration instance.
+
+    Args:
+        exploration (AbsExploration): An exploration instance to which the scheduler is applied.
+        param_name (str): Name of the exploration parameter to which the scheduler is applied.
+        last_ep (int): Last episode.
+        initial_value: Initial value for the exploration parameter. If None, the value the exploration
+            instance is instantiated with will be used as the initial value. Defaults to None.
+    """
+
     def __init__(
         self,
         exploration: AbsExploration,
@@ -38,9 +50,10 @@ class LinearExplorationScheduler(AbsExplorationScheduler):
         param_name (str): Name of the exploration parameter to which the scheduler is applied.
         last_ep (int): Last episode. 
         final_value (float): The value of the exploration parameter corresponding to ``last_ep``.
-        initial_value (float): The initial value for the exploration parameter. If this is None, the
-            value as specified in the exploration instance will be used as the initial value. Defaults to None. 
+        initial_value: Initial value for the exploration parameter. If None, the value the exploration
+            instance is instantiated with will be used as the initial value. Defaults to None.
     """
+
     def __init__(
         self,
         exploration: AbsExploration,
@@ -75,8 +88,8 @@ class MultiPhaseLinearExplorationScheduler(AbsExplorationScheduler):
             the start of another. These points do not have to be given in any particular order. There
             cannot be two points with the same first element (episode), or a ``ValueError`` will be raised. 
         final_value (float): The value of the exploration parameter corresponding to ``last_ep``.
-        initial_value (float): The initial value for the exploration parameter. If this is None, the
-            value as specified in the exploration instance will be used as the initial value. Defaults to None.
+        initial_value: Initial value for the exploration parameter. If None, the value the exploration
+            instance is instantiated with will be used as the initial value. Defaults to None.
 
     Returns:
         An iterator over the series of exploration rates from episode 0 to ``max_iter`` - 1.

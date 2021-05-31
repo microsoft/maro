@@ -68,9 +68,14 @@ policy:
     double: false
     loss_cls: smooth_l1
   experience_manager:
-    capacity: 1000000
-    overwrite_type: "rolling"
-    batch_size: 128
+    rollout: # for experience managers in actor processes
+      capacity: 1000
+      overwrite_type: "rolling"
+      batch_size: -1
+    training: # for experience managers in the learner process
+      capacity: 100000
+      overwrite_type: "rolling"
+      batch_size: 128
 multi-process:
   group: cim-dqn
   num_actors: 3
