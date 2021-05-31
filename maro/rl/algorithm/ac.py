@@ -50,14 +50,15 @@ class ActorCriticConfig:
 class ActorCritic(AbsCorePolicy):
     """Actor Critic algorithm with separate policy and value models.
 
+    In accordance with its on-policy nature, the experiences manager is emptied at the end of each ``update()`` call.
+
     References:
         https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch.
         https://towardsdatascience.com/understanding-actor-critic-methods-931b97b6df3f
 
     Args:
         name (str): Policy name.
-        ac_net (DiscreteACNet): Multi-task model that computes action distributions
-            and state values.
+        ac_net (DiscreteACNet): Multi-task model that computes action distributions and state values.
         experience_manager (ExperienceManager): An experience manager for storing and retrieving experiences
             for training.
         config: Configuration for the AC algorithm.
@@ -65,6 +66,7 @@ class ActorCritic(AbsCorePolicy):
         warmup (int): Minimum number of experiences in the experience memory required to trigger an ``update`` call.
             Defaults to 1.
     """
+
     def __init__(
         self,
         name: str,
@@ -72,7 +74,7 @@ class ActorCritic(AbsCorePolicy):
         experience_manager: ExperienceManager,
         config: ActorCriticConfig,
         update_trigger: int = 1,
-        warmup: int = 1,
+        warmup: int = 1
     ):
         if not isinstance(ac_net, DiscreteACNet):
             raise TypeError("model must be an instance of 'DiscreteACNet'")
@@ -121,6 +123,7 @@ class ActorCritic(AbsCorePolicy):
 
                 self.ac_net.step(loss)
 
+        # Empty the experience manager due to the on-policy nature of the algorithm.
         self.experience_manager.clear()
 
     def set_state(self, policy_state):
