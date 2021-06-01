@@ -1,40 +1,44 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+experiment_name: cim_ac
+mode: multi-process # local, multi-process
+num_episodes: 50
+num_steps: -1
 env:
-  scenario: cim
-  topology: toy.4p_ssdd_l0.0
-  durations: 1120
-max_episode: 50
-shaping:
-  port_attributes:
-    - empty
-    - full
-    - on_shipper
-    - on_consignee
-    - booking
-    - shortage
-    - fulfillment
-  vessel_attributes:
-    - empty
-    - full
-    - remaining_space
-  num_actions: 21
-  # Parameters for computing states
-  look_back: 7
-  max_ports_downstream: 2
-  # Parameters for computing actions
-  finite_vessel_space: true
-  has_early_discharge: true
-  # Parameters for computing rewards
-  reward_eval_delay: 99
-  fulfillment_factor: 1.0
-  shortage_factor: 1.0
-  time_decay: 0.97
+  basic:
+    scenario: cim
+    topology: toy.4p_ssdd_l0.0
+    durations: 1120
+  wrapper:
+    port_attributes:
+      - empty
+      - full
+      - on_shipper
+      - on_consignee
+      - booking
+      - shortage
+      - fulfillment
+    vessel_attributes:
+      - empty
+      - full
+      - remaining_space
+    num_actions: 21
+    # Parameters for computing states
+    look_back: 7
+    max_ports_downstream: 2
+    # Parameters for computing actions
+    finite_vessel_space: true
+    has_early_discharge: true
+    # Parameters for computing rewards
+    reward_eval_delay: 99
+    fulfillment_factor: 1.0
+    shortage_factor: 1.0
+    time_decay: 0.97
 policy:
   model:
-    actor:
-      network:
+    network:
+      actor:
         hidden_dims:
           - 256
           - 128
@@ -43,12 +47,7 @@ policy:
         softmax: true
         batch_norm: False
         head: true
-      optimization:
-        optim_cls: adam
-        optim_params:
-          lr: 0.001
-    critic:
-      network:
+      critic:
         hidden_dims: 
           - 256
           - 128
@@ -57,19 +56,26 @@ policy:
         softmax: false
         batch_norm: true
         head: true
-      optimization:
+    optimization:
+      actor:
+        optim_cls: adam
+        optim_params:
+          lr: 0.001
+      critic:
         optim_cls: rmsprop
         optim_params:
           lr: 0.001
   algorithm_config:
     reward_discount: .0
     critic_loss_cls: smooth_l1
-    num_steps: 10
+    train_epochs: 10
     actor_loss_coefficient: 0.1
     # clip_ratio: 0.8   # for PPO
   experience_manager:
-    capacity: 100000
+    capacity: 400
     overwrite_type: "rolling"
+    batch_size: -1
+    replace: False
   update_trigger:
     min_new_experiences: 1
     num_warmup_experiences: 1

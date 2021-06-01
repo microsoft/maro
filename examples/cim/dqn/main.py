@@ -71,7 +71,6 @@ def local_learner_mode():
         eval_schedule=config["eval_schedule"],
         log_dir=log_dir
     )
-
     local_learner.run()
 
 
@@ -116,6 +115,7 @@ def get_dqn_learner_process():
         num_episodes=config["num_episodes"],
         log_dir=log_dir
     )
+    time.sleep(5)
     learner.run()
 
 
