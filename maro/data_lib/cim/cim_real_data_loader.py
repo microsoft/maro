@@ -268,6 +268,7 @@ class CimRealDataLoader:
 
         return orders
 
+
 def load_real_data_from_folder(source_folder: str) -> CimRealDataCollection:
     """Load real data from folder.
 
