@@ -8,7 +8,7 @@ from typing import Dict, List, Union
 
 from maro.rl.env_wrapper import AbsEnvWrapper
 from maro.rl.exploration import AbsExploration
-from maro.rl.policy import AbsPolicy
+from maro.rl.policy import AbsPolicy, AbsCorePolicy
 from maro.utils import Logger
 
 from .early_stopper import AbsEarlyStopper
@@ -141,7 +141,8 @@ class LocalLearner:
         while self.env.state:
             segment += 1
             for agent_id, exp in self._collect(ep, segment).items():
-                self._policy[agent_id].on_experiences(exp)
+                if isinstance(self._policy[agent_id], AbsCorePolicy):
+                    self._policy[agent_id].on_experiences(exp)
 
         # update the exploration parameters if an episode is finished
         if self.exploration_dict:

@@ -7,7 +7,7 @@ from os import getcwd
 from typing import Dict, List
 
 from maro.rl.experience import ExperienceSet
-from maro.rl.policy import AbsPolicy
+from maro.rl.policy import AbsPolicy, AbsCorePolicy
 from maro.utils import Logger
 
 
@@ -64,8 +64,9 @@ class LocalPolicyManager(AbsPolicyManager):
         policy's experience manager. Policies whose update conditions have been met will then be updated.
         """
         for policy_name, exp in exp_by_policy.items():
-            if self.policy_dict[policy_name].on_experiences(exp):
-                self._updated_policy_names.add(policy_name)
+            if isinstance(self.policy_dict[policy_name], AbsCorePolicy):
+                if self.policy_dict[policy_name].on_experiences(exp):
+                    self._updated_policy_names.add(policy_name)
 
         if self._updated_policy_names:
             self._logger.info(f"Updated policies {self._updated_policy_names}")
