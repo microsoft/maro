@@ -3,6 +3,7 @@
 
 import os
 import urllib.parse
+from typing import Union
 
 from yaml import safe_load
 
@@ -24,8 +25,9 @@ class CimDataContainerWrapper:
         self._start_tick = 0
 
         self._topology = topology
-        self._output_folder = os.path.join(StaticParameter.data_root, "cim",
-                                           urllib.parse.quote(self._topology), str(self._max_tick))
+        self._output_folder = os.path.join(
+            StaticParameter.data_root, "cim", urllib.parse.quote(self._topology), str(self._max_tick)
+        )
         self._meta_path = os.path.join(StaticParameter.data_root, "cim", "meta", "cim.stops.meta.yml")
 
         self._init_data_container()

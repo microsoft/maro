@@ -45,9 +45,7 @@ class CimDataDumpUtil:
         self._dump_global_order_proportions(output_folder)
 
     def _dump_global_order_proportions(self, output_folder: str):
-        """
-         global_order_proportion.txt
-        """
+        """global_order_proportion.txt"""
         global_order_prop_file = os.path.join(output_folder, "global_order_proportion.txt")
 
         np.savetxt(global_order_prop_file, self._data_collection.order_proportion)
@@ -63,12 +61,14 @@ class CimDataDumpUtil:
         def stop_generator():
             for vessel_stops in self._data_collection.vessels_stops:
                 for stop in vessel_stops:
-                    yield [vessel_idx2name_dict[stop.vessel_idx],
-                           stop.vessel_idx,
-                           port_idx2name_dict[stop.port_idx],
-                           stop.port_idx,
-                           stop.arrive_tick,
-                           stop.leave_tick]
+                    yield [
+                        vessel_idx2name_dict[stop.vessel_idx],
+                        stop.vessel_idx,
+                        port_idx2name_dict[stop.port_idx],
+                        stop.port_idx,
+                        stop.arrive_tick,
+                        stop.leave_tick
+                    ]
 
         self._dump_csv_file(stops_file_path, headers, stop_generator)
 
@@ -79,9 +79,10 @@ class CimDataDumpUtil:
         """
 
         ports_file_path = os.path.join(output_folder, "ports.csv")
-        headers = ["index", "name", "capacity", "empty", "order_proportion", "order_proportion_noise",
-                   "empty_return_buffer", "empty_return_buffer_noise",
-                   "full_return_buffer", "full_return_buffer_noise"]
+        headers = [
+            "index", "name", "capacity", "empty", "order_proportion", "order_proportion_noise",
+            "empty_return_buffer", "empty_return_buffer_noise", "full_return_buffer", "full_return_buffer_noise"
+        ]
 
         def port_generator():
             for port in self._data_collection.ports_settings:
@@ -108,9 +109,10 @@ class CimDataDumpUtil:
 
         """
         vessels_file_path = os.path.join(output_folder, "vessels.csv")
-        headers = ["index", "name", "capacity", "route_name", "route_index", "start_port_name",
-                   "start_port_index", "sailing_speed", "sailing_speed_noise", "parking_duration",
-                   "parking_noise", "period", "empty"]
+        headers = [
+            "index", "name", "capacity", "route_name", "route_index", "start_port_name", "start_port_index",
+            "sailing_speed", "sailing_speed_noise", "parking_duration", "parking_noise", "period", "empty"
+        ]
 
         route_mapping = self._data_collection.route_mapping
         port_mapping = self._data_collection.port_mapping
@@ -168,8 +170,10 @@ class CimDataDumpUtil:
         """
 
         proportion_file_path = os.path.join(output_folder, "order_proportion.csv")
-        headers = ["source_port_name", "source_port_index", "dest_port_name",
-                   "dest_port_index", "proportion", "proportion_noise"]
+        headers = [
+            "source_port_name", "source_port_index", "dest_port_name",
+            "dest_port_index", "proportion", "proportion_noise"
+        ]
 
         ports = self._data_collection.ports_settings
 

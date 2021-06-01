@@ -4,13 +4,9 @@
 import csv
 import os
 import time
-from collections import defaultdict
 from typing import Dict, List
 
-import numpy as np
 from yaml import safe_load
-
-from maro.data_lib import BinaryReader
 
 from .entities import NoisedItem, RoutePoint, Stop, VesselSetting
 from .real_entities import CimRealDataCollection, OrderTuple, RealPortSetting

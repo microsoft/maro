@@ -11,7 +11,7 @@ To build up a topology with real data as input, 2 parts of configurations are re
 
 Here is an example for the *config.yml* file:
 
-```
+```text
 input_setting:
   from_files: true
   input_type: real  # real, dumped
@@ -27,7 +27,7 @@ transfer_cost_factors:
 The required input data files includes: *misc.yml, orders.csv, ports.csv, routes.csv, stops.csv, vessels.csv*.
 
 The *misc.yml* file includes 4 settings, they are (for example):
-```
+```text
 max_tick: 224
 container_volume: 1
 past_stop_number: 4

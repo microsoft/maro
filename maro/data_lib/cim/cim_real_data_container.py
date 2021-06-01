@@ -2,14 +2,13 @@
 # Licensed under the MIT license.
 
 import warnings
-from math import ceil
 from typing import Dict, List
 
-from .entities import NoisedItem, Order, VesselSetting
-from .real_entities import CimRealDataCollection, OrderTuple, RealPortSetting
+from .entities import Order, VesselSetting
 from .port_buffer_tick_wrapper import PortBufferTickWrapper
+from .real_entities import CimRealDataCollection, OrderTuple, RealPortSetting
 from .utils import (
-    apply_noise, buffer_tick_rand, get_buffer_tick_seed, get_order_num_seed, list_sum_normalize, order_num_rand
+    buffer_tick_rand, get_buffer_tick_seed, get_order_num_seed, order_num_rand
 )
 from .vessel_future_stops_prediction import VesselFutureStopsPrediction
 from .vessel_past_stops_wrapper import VesselPastStopsWrapper

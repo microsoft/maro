@@ -82,12 +82,13 @@ class VesselFutureStopsPrediction:
             arrive_tick += duration + ceil(distance / speed)
 
             predicted_future_stops.append(
-                Stop(-1,  # predict stop do not have valid index
-                     arrive_tick,
-                     arrive_tick + duration,
-                     port_idx,
-                     vessel_idx
-                     )
+                Stop(
+                    -1,  # predict stop do not have valid index
+                    arrive_tick,
+                    arrive_tick + duration,
+                    port_idx,
+                    vessel_idx
+                )
             )
 
         return predicted_future_stops

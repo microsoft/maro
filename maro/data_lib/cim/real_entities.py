@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 from collections import namedtuple
-from enum import Enum
 
 # settings for port
 RealPortSetting = namedtuple("RealPortSetting", [
