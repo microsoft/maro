@@ -208,7 +208,11 @@ class CimDumpDataLoader:
         return route_mapping, routes
 
     def _load_stops(self, dumps_folder: str, vessel_number: int) -> List[List[Stop]]:
-        return self._load_stops_from_csv(dumps_folder, vessel_number)
+        bin_path = os.path.join(dumps_folder, "stops.bin")
+        if os.path.exists(bin_path):
+            return self._load_stops_from_bin(dumps_folder, vessel_number)
+        else:
+            return self._load_stops_from_csv(dumps_folder, vessel_number)
 
     def _load_stops_from_csv(self, dumps_folder: str, vessel_number: int) -> List[List[Stop]]:
         stops: List[List[Stop]] = []

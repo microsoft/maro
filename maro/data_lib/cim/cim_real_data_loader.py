@@ -8,6 +8,8 @@ from typing import Dict, List
 
 from yaml import safe_load
 
+from maro.data_lib import BinaryReader
+
 from .entities import NoisedItem, RoutePoint, Stop, VesselSetting
 from .real_entities import CimRealDataCollection, OrderTuple, RealPortSetting
 
@@ -169,12 +171,19 @@ class CimRealDataLoader:
         return vessel_mapping, vessels, periods_without_noise
 
     def _load_stops(self, data_folder: str, vessel_number: int) -> List[List[Stop]]:
+        bin_path = os.path.join(data_folder, "stops.bin")
+        if os.path.exists(bin_path):
+            return self._load_stops_from_bin(bin_path, vessel_number)
+        else:
+            print(f"No stops binary file in {data_folder}, read from csv file instead...")
+            csv_path = os.path.join(data_folder, "stops.csv")
+            return self._load_stops_from_csv(csv_path, vessel_number)
+
+    def _load_stops_from_csv(self, stops_file_path: str, vessel_number: int) -> List[List[Stop]]:
         stops: List[List[Stop]] = []
 
         for _ in range(vessel_number):
             stops.append([])
-
-        stops_file_path = os.path.join(data_folder, "stops.csv")
 
         for line in self._read_csv_lines(stops_file_path):
             vessel_stops: List[Stop] = stops[int(line["vessel_index"])]
@@ -191,10 +200,38 @@ class CimRealDataLoader:
 
         return stops
 
-    def _load_orders(self, data_folder: str) -> Dict[int, List[OrderTuple]]:
-        orders: Dict[int, List[OrderTuple]] = {}
+    def _load_stops_from_bin(self, stops_file_path: str, vessel_number: int) -> List[List[Stop]]:
+        stops: List[List[Stop]] = []
 
-        order_file_path = os.path.join(data_folder, "orders.csv")
+        for _ in range(vessel_number):
+            stops.append([])
+
+        reader = BinaryReader(stops_file_path)
+
+        for stop_item in reader.items():
+            vessel_stops: List[Stop] = stops[stop_item.vessel_index]
+
+            stop = Stop(len(vessel_stops),
+                        stop_item.timestamp,
+                        stop_item.leave_tick,
+                        stop_item.port_index,
+                        stop_item.vessel_index)
+
+            vessel_stops.append(stop)
+
+        return stops
+
+    def _load_orders(self, data_folder: str) -> Dict[int, List[OrderTuple]]:
+        bin_path = os.path.join(data_folder, "orders.bin")
+        if os.path.exists(bin_path):
+            return self._load_orders_from_bin(bin_path)
+        else:
+            print(f"No orders binary file in {data_folder}, read from csv file instead...")
+            csv_path = os.path.join(data_folder, "orders.csv")
+            return self._load_orders_from_csv(csv_path)
+
+    def _load_orders_from_csv(self, order_file_path: str) -> Dict[int, List[OrderTuple]]:
+        orders: Dict[int, List[OrderTuple]] = {}
 
         for line in self._read_csv_lines(order_file_path):
             tick = int(line["tick"])
@@ -211,6 +248,25 @@ class CimRealDataLoader:
 
         return orders
 
+    def _load_orders_from_bin(self, order_file_path: str) -> Dict[int, List[OrderTuple]]:
+        orders: Dict[int, List[OrderTuple]] = {}
+
+        reader = BinaryReader(order_file_path)
+
+        for order in reader.items():
+            tick = order.timestamp
+            if tick not in orders:
+                orders[tick] = []
+            orders[tick].append(
+                OrderTuple(
+                    order.timestamp,
+                    order.src_port_index,
+                    order.dest_port_index,
+                    order.quantity
+                )
+            )
+
+        return orders
 
 def load_real_data_from_folder(source_folder: str) -> CimRealDataCollection:
     """Load real data from folder.
