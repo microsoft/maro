@@ -1,7 +1,10 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from typing import Union
+
 from .entities import CimDataCollection
+from .real_entities import CimRealDataCollection
 
 
 class VesselPastStopsWrapper:
@@ -15,7 +18,7 @@ class VesselPastStopsWrapper:
             stops = data_cntr.vessel_past_stops[0]
     """
 
-    def __init__(self, data: CimDataCollection):
+    def __init__(self, data: Union[CimDataCollection, CimRealDataCollection]):
         self._stop_number = data.past_stop_number
         self._stops = data.vessels_stops
 

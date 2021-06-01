@@ -1,7 +1,10 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from typing import Union
+
 from .entities import CimDataCollection
+from .real_entities import CimRealDataCollection
 
 
 class VesselReachableStopsWrapper:
@@ -15,7 +18,7 @@ class VesselReachableStopsWrapper:
             stop_list = data_cntr.reachable_stops[0]
     """
 
-    def __init__(self, data: CimDataCollection):
+    def __init__(self, data: Union[CimDataCollection, CimRealDataCollection]):
         self._routes = data.routes
         self._stops = data.vessels_stops
 

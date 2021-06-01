@@ -235,9 +235,9 @@ def dump_from_config(config_file: str, output_folder: str, max_tick: int):
         output_folder (str): Output folder to save files.
         max_tick(int): Max tick to gen.
     """
-    assert config_file is not None and os.path.exists(config_file)
-    assert output_folder is not None and os.path.exists(output_folder)
-    assert max_tick is not None and max_tick > 0
+    assert config_file is not None and os.path.exists(config_file), f"Got config file path: {config_file}"
+    assert output_folder is not None and os.path.exists(output_folder), f"Got output folder path: {output_folder}"
+    assert max_tick is not None and max_tick > 0, f"Got max tick: {max_tick}"
 
     generator = CimDataGenerator()
 

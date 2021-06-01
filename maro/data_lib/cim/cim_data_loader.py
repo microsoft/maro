@@ -208,6 +208,34 @@ class CimDumpDataLoader:
         return route_mapping, routes
 
     def _load_stops(self, dumps_folder: str, vessel_number: int) -> List[List[Stop]]:
+        return self._load_stops_from_csv(dumps_folder, vessel_number)
+
+    def _load_stops_from_csv(self, dumps_folder: str, vessel_number: int) -> List[List[Stop]]:
+        stops: List[List[Stop]] = []
+
+        for _ in range(vessel_number):
+            stops.append([])
+
+        stops_file_path = os.path.join(dumps_folder, "stops.csv")
+
+        for line in self._read_csv_lines(stops_file_path):
+            vessel_stops: List[Stop] = stops[int(line["vessel_index"])]
+
+            # csv headers: vessel_name, vessel_index, port_name, port_index, arrive_tick, departure_tick
+            # Stop = namedtuple("Stop", ["index", "arrive_tick", "leave_tick", "port_idx", "vessel_idx"])
+            stop = Stop(
+                len(vessel_stops),
+                int(line["arrive_tick"]),
+                int(line["departure_tick"]),
+                int(line["port_index"]),
+                int(line["vessel_index"])
+            )
+
+            vessel_stops.append(stop)
+
+        return stops
+
+    def _load_stops_from_bin(self, dumps_folder: str, vessel_number: int) -> List[List[Stop]]:
         stops: List[List[Stop]] = []
 
         for _ in range(vessel_number):

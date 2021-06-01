@@ -4,17 +4,21 @@
 import os
 import urllib.parse
 
+from yaml import safe_load
+
 from maro.cli.data_pipeline.utils import StaticParameter
 
 from .cim_data_container import CimDataContainer
 from .cim_data_generator import CimDataGenerator
 from .cim_data_loader import load_from_folder
+from .cim_real_data_container import CimRealDataContainer
+from .cim_real_data_loader import load_real_data_from_folder
 
 
 class CimDataContainerWrapper:
 
     def __init__(self, config_path: str, max_tick: int, topology: str):
-        self._data_cntr: CimDataContainer = None
+        self._data_cntr: Union[CimDataContainer, CimRealDataContainer] = None
         self._max_tick = max_tick
         self._config_path = config_path
         self._start_tick = 0
@@ -27,8 +31,18 @@ class CimDataContainerWrapper:
         self._init_data_container()
 
     def _init_data_container(self):
-        self._data_cntr = data_from_generator(config_path=self._config_path,
-                                              max_tick=self._max_tick, start_tick=self._start_tick)
+        # read config
+        with open(self._config_path, "r") as fp:
+            conf: dict = safe_load(fp)
+        if "input_setting" in conf and conf["input_setting"]["from_files"]:
+            if conf["input_setting"]["input_type"] == "real":
+                self._data_cntr = real_data_from_files(data_folder=conf["input_setting"]["data_folder"])
+            else:
+                self._data_cntr = data_from_dumps(dumps_folder=conf["input_setting"]["data_folder"])
+        else:
+            self._data_cntr = data_from_generator(
+                config_path=self._config_path, max_tick=self._max_tick, start_tick=self._start_tick
+            )
 
     def reset(self):
         """Reset data container internal state"""
@@ -48,7 +62,7 @@ def data_from_dumps(dumps_folder: str) -> CimDataContainer:
     Returns:
         CimDataContainer: Data container used to provide cim data related interfaces.
     """
-    assert os.path.exists(dumps_folder)
+    assert os.path.exists(dumps_folder), f"[CIM Data Container Wrapper] dump folder not exists: {dumps_folder}"
 
     data_collection = load_from_folder(dumps_folder)
 
@@ -73,4 +87,12 @@ def data_from_generator(config_path: str, max_tick: int, start_tick: int = 0) ->
     return CimDataContainer(data_collection)
 
 
-__all__ = ['data_from_dumps', 'data_from_generator']
+def real_data_from_files(data_folder: str) -> CimRealDataContainer:
+    assert os.path.exists(data_folder), f"[CIM Data Container Wrapper] file folder not exists: {data_folder}"
+
+    data_collection = load_real_data_from_folder(data_folder)
+
+    return CimRealDataContainer(data_collection)
+
+
+__all__ = ['data_from_dumps', 'data_from_generator', 'real_data_from_files']

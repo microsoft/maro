@@ -2,8 +2,10 @@
 # Licensed under the MIT license.
 
 from math import ceil
+from typing import Union
 
 from .entities import CimDataCollection, Stop
+from .real_entities import CimRealDataCollection
 
 
 class VesselFutureStopsPrediction:
@@ -17,7 +19,7 @@ class VesselFutureStopsPrediction:
             stops = data_cntr.vessel_future_stops[0]
     """
 
-    def __init__(self, data: CimDataCollection):
+    def __init__(self, data: Union[CimDataCollection, CimRealDataCollection]):
         self._vessels = data.vessels_settings
         self._stops = data.vessels_stops
         self._routes = data.routes
