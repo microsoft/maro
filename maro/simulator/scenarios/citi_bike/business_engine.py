@@ -13,7 +13,7 @@ from yaml import safe_load
 
 from maro.backends.frame import FrameBase, SnapshotList
 from maro.cli.data_pipeline.citi_bike import CitiBikeProcess
-from maro.cli.data_pipeline.utils import chagne_file_path
+from maro.cli.data_pipeline.utils import change_file_path
 from maro.data_lib import BinaryReader
 from maro.event_buffer import AtomEvent, EventBuffer, MaroEvents
 from maro.simulator.scenarios import AbsBusinessEngine
@@ -505,13 +505,13 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
             build_folders = self._citi_bike_data_pipeline.get_build_folders()
             trip_folder = build_folders["trip"]
             weather_folder = build_folders["weather"]
-            self._conf["weather_data"] = chagne_file_path(
+            self._conf["weather_data"] = change_file_path(
                 self._conf["weather_data"], weather_folder)
-            self._conf["trip_data"] = chagne_file_path(
+            self._conf["trip_data"] = change_file_path(
                 self._conf["trip_data"], trip_folder)
-            self._conf["stations_init_data"] = chagne_file_path(
+            self._conf["stations_init_data"] = change_file_path(
                 self._conf["stations_init_data"], trip_folder)
-            self._conf["distance_adj_data"] = chagne_file_path(
+            self._conf["distance_adj_data"] = change_file_path(
                 self._conf["distance_adj_data"], trip_folder)
         else:
             raise CommandError(

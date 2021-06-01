@@ -69,7 +69,7 @@ class StaticParameter:
     data_root = os.path.expanduser(GlobalPaths.MARO_DATA)
 
 
-def chagne_file_path(source_file_path, target_dir):
+def change_file_path(source_file_path, target_dir):
     return os.path.join(target_dir, os.path.basename(source_file_path))
 
 
