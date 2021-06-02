@@ -348,7 +348,7 @@ class ParallelRolloutManager(AbsRolloutManager):
                 )
                 continue
 
-            env_summary_dict[msg.source] = msg.body[MsgKey.METRICS]
+            env_summary_dict[msg.source] = msg.body[MsgKey.ENV_SUMMARY]
 
             if msg.body[MsgKey.EPISODE_INDEX] == self._eval_ep:
                 num_finishes += 1
