@@ -81,7 +81,7 @@ class Learner:
                 self._eval_point_index += 1
                 env_metrics_dict = self.rollout_manager.evaluate(self.policy_manager.get_state())
                 # performance details
-                self._logger.info(f"ep {ep}: {env_metrics_dict}")
+                self.logger.info(f"ep {ep}: {env_metrics_dict}")
                 # early stopping check
                 if self.early_stopper:
                     self.early_stopper.push(self.eval_env.metrics)
