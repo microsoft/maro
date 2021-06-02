@@ -8,7 +8,7 @@ from typing import Dict, List
 from maro.communication import Proxy
 from maro.rl.env_wrapper import AbsEnvWrapper
 from maro.rl.exploration import AbsExploration
-from maro.rl.policy import AbsPolicy
+from maro.rl.policy import AbsCorePolicy, AbsPolicy
 from maro.utils import Logger
 
 from .message_enums import MsgKey, MsgTag
@@ -141,7 +141,9 @@ class Actor(object):
             self.policy[agent_id].experience_manager.put(exp)
 
         ret_exp = {
-            policy_name: policy.experience_manager.get() for policy_name, policy in self.policy_dict.items()
+            policy_name: policy.experience_manager.get()
+            for policy_name, policy in self.policy_dict.items()
+            if isinstance(policy, AbsCorePolicy)
         }
 
         return_info = {
