@@ -16,7 +16,7 @@ class Learner:
 
     This should be used in multi-process or distributed settings where either the policy manager or the roll-out
     manager has a distributed architecture. For pure local learning workflows, using this may cause pitfalls such
-    as duplicate experience storage. Use ``LocalLearner`` instead. 
+    as duplicate experience storage. Use ``LocalLearner`` instead.
 
     Args:
         policy_manager (AbsPolicyManager): An ``AbsPolicyManager`` instance that controls policy updates.

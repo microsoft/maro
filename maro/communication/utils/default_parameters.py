@@ -6,11 +6,15 @@ from maro.utils import convert_dottable
 proxy = convert_dottable({
     "fault_tolerant": False,
     "delay_for_slow_joiner": 3,
+    "peer_discovery": {
+        "initial_retry_interval": 0.1,
+        "max_retries": 10
+    },
     "redis": {
         "host": "localhost",
         "port": 6379,
-        "max_retries": 10,
-        "base_retry_interval": 0.1
+        "initial_retry_interval": 0.1,
+        "max_retries": 10
     },
     "peer_rejoin": {
         "enable": False,

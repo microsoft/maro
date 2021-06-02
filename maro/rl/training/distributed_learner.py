@@ -19,7 +19,7 @@ class DistributedLearner(object):
 
     Args:
         policy (MultiAgentPolicy): Learning agents.
-        
+
     """
     def __init__(
         self,
@@ -90,7 +90,7 @@ class DistributedLearner(object):
         for ep in range(1, self.num_episodes + 1):
             self._logger.info(f"Learner episode: {ep}")
             self._train(ep)
-            
+
             policy_ids = self.policy_update_schedule.pop_episode(ep)
             if policy_ids == ["*"]:
                 policy_ids = self._updatable_policy_ids
@@ -133,7 +133,7 @@ class DistributedLearner(object):
                         for a in exp.actions:
                             self._action_dict[agent_id][a] = self._action_dict[agent_id].get(a, 0) + 1
 
-                env_steps += self.experience_update_interval 
+                env_steps += self.experience_update_interval
                 num_experiences_collected += sum(len(exp) for exp in exp_by_agent.values())
                 num_actor_finishes += done
 

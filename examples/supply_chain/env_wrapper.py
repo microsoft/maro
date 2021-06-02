@@ -76,8 +76,8 @@ seller_features = ("total_demand", "sold", "demand")
 
 
 class SCEnvWrapper(AbsEnvWrapper):
-    def __init__(self, env: Env):
-        super().__init__(env)
+    def __init__(self, env: Env, reward_eval_delay: int=0, save_replay: bool=True, replay_agent_ids: list=None):
+        super().__init__(env, reward_eval_delay, save_replay, replay_agent_ids)
         self.balance_cal = BalanceSheetCalculator(env)
         self.cur_balance_sheet_reward = None
         self.storage_ss = env.snapshot_list["storage"]
@@ -323,7 +323,7 @@ class SCEnvWrapper(AbsEnvWrapper):
 
         return rewards
 
-    def get_action(self, action_by_agent):
+    def to_env_action(self, action_by_agent):
         # cache the sources for each consumer if not yet cached
         if not hasattr(self, "consumer2source"):
             self.consumer2source, self.consumer2product = {}, {}

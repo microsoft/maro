@@ -27,7 +27,7 @@ class AbsRolloutManager(ABC):
     @abstractmethod
     def collect(self, ep: int, segment: int, policy_state_dict: dict):
         """Collect simulation data, i.e., experiences for training.
-        
+
         Args:
             ep (int): Current episode index.
             segment (int): Current segment index.
@@ -249,7 +249,7 @@ class ParallelRolloutManager(AbsRolloutManager):
         group: str,
         num_steps: int = -1,
         max_receive_attempts: int = None,
-        receive_timeout: int = None, 
+        receive_timeout: int = None,
         max_staleness: int = 0,
         num_eval_actors: int = 1,
         log_env_summary: bool = True,

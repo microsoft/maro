@@ -6,10 +6,10 @@ from os import getenv
 from os.path import dirname, join, realpath
 
 import numpy as np
+import torch
 
 from maro.rl import (
-    Actor, ActorCritic, ActorCriticConfig, FullyConnectedBlock, AgentManager, Learner, Scheduler,
-    SimpleMultiHeadModel, OptimOption
+    ActorCritic, ActorCriticConfig, DiscreteACNet, ExperienceManager, FullyConnectedBlock, LocalLearner, OptimOption
 )
 from maro.simulator import Env
 from maro.utils import set_seeds
@@ -23,37 +23,48 @@ with open(getenv("CONFIG_PATH", default=DEFAULT_CONFIG_PATH), "r") as config_fil
 
 # model input and output dimensions
 IN_DIM = (
-    (config["shaping"]["look_back"] + 1) *
-    (config["shaping"]["max_ports_downstream"] + 1) *
-    len(config["shaping"]["port_attributes"]) +
-    len(config["shaping"]["vessel_attributes"])
+    (config["env"]["wrapper"]["look_back"] + 1) *
+    (config["env"]["wrapper"]["max_ports_downstream"] + 1) *
+    len(config["env"]["wrapper"]["port_attributes"]) +
+    len(config["env"]["wrapper"]["vessel_attributes"])
 )
-OUT_DIM = config["shaping"]["num_actions"]
+OUT_DIM = config["env"]["wrapper"]["num_actions"]
 
 
-def get_ac_policy():
-    cfg = config["agent"]
-    actor_net  = FullyConnectedBlock(input_dim=IN_DIM, output_dim=OUT_DIM, **cfg["model"]["actor"])
-    critic_net = FullyConnectedBlock(input_dim=IN_DIM, output_dim=1, **cfg["model"]["critic"])
-    ac_net = SimpleMultiHeadModel(
-        {"actor": actor_net, "critic": critic_net},
+def get_ac_policy(name):
+    class MyACNET(DiscreteACNet):
+        def forward(self, states, actor: bool = True, critic: bool = True):
+            states = torch.from_numpy(np.asarray(states))
+            if len(states.shape) == 1:
+                states = states.unsqueeze(dim=0)
+
+            states = states.to(self.device)
+            return (
+                self.component["actor"](states) if actor else None,
+                self.component["critic"](states) if critic else None
+            )
+
+    cfg = config["policy"]
+    ac_net = MyACNET(
+        component={
+            "actor": FullyConnectedBlock(input_dim=IN_DIM, output_dim=OUT_DIM, **cfg["model"]["network"]["actor"]),
+            "critic": FullyConnectedBlock(input_dim=IN_DIM, output_dim=1, **cfg["model"]["network"]["critic"])
+        },
         optim_option={
-            "actor":  OptimOption(**cfg["optimization"]["actor"]),
-            "critic": OptimOption(**cfg["optimization"]["critic"])
+            "actor":  OptimOption(**cfg["model"]["optimization"]["actor"]),
+            "critic": OptimOption(**cfg["model"]["optimization"]["critic"])
         }
     )
-    return ActorCritic(ac_net, ActorCriticConfig(**cfg["algorithm"]))
+    experience_manager = ExperienceManager(**cfg["experience_manager"])
+    return ActorCritic(name, ac_net, experience_manager, ActorCriticConfig(**cfg["algorithm_config"]))
 
 
 # Single-threaded launcher
 if __name__ == "__main__":
     set_seeds(1024)  # for reproducibility
-    env = Env(**config["training"]["env"])
-    agent = AgentManager({name: get_ac_agent() for name in env.agent_idx_list})
-    scheduler = Scheduler(config["training"]["max_episode"])
-    learner = Learner(
-        CIMEnvWrapper(env, **config["shaping"]), agent, scheduler,
-        agent_update_interval=config["training"]["agent_update_interval"],
-        log_env_metrics=True
-    ) 
+    env = Env(**config["env"]["basic"])
+    env_wrapper = CIMEnvWrapper(env, **config["env"]["wrapper"])
+    policies = [get_ac_policy(id_) for id_ in env.agent_idx_list]
+    agent2policy = {agent_id: agent_id for agent_id in env.agent_idx_list}
+    learner = LocalLearner(env_wrapper, policies, agent2policy, 40)  # 40 episodes
     learner.run()

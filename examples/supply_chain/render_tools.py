@@ -127,13 +127,11 @@ class SimulationTracker:
     def run_wth_render(self, facility_types):
         self.env.reset()
         self.env.start()
-        # self.learner.policy.eval_mode()
         for epoch in range(self.episod_len):
-            # action = self.learner.policy.choose_action(self.env.state)
-            action = {id_: self.learner.policy[id_].choose_action(st) for id_, st in self.env.state.items()}
+            action = {id_: self.learner._policy[id_].choose_action(st) for id_, st in self.env.state.items()}
             self.learner._logger.info(f"epoch: {epoch}, action: {action}")
             self.env.step(action)
-            self.learner._logger.info(f"epoch: {epoch}, action: {self.env.get_action(action)}")
+            self.learner._logger.info(f"epoch: {epoch}, action: {self.env.to_env_action(action)}")
             if hasattr(self.env, "consumer2product"):
                 self.learner._logger.info(f"consumer2product: {self.env.consumer2product}")
             self.env.get_reward()

@@ -19,7 +19,7 @@ with open(config_path, "r") as fp:
     redis_host = config["distributed"]["redis_host"]
 
 docker_compose_manifest = {
-    "version": "3.9", 
+    "version": "3.9",
     "services": {
         "redis": {"image": "redis:6", "container_name": redis_host},
         "learner": {
@@ -29,7 +29,7 @@ docker_compose_manifest = {
             "volumes": [
                 f"{sc_code_dir}:/maro/supply_chain",
                 f"{maro_rl_dir}:/maro/maro/rl",
-                f"{maro_sc_dir}:/maro/maro/simulator/scenarios/supply_chain"    
+                f"{maro_sc_dir}:/maro/maro/simulator/scenarios/supply_chain"
             ],
             "command": ["python3", "/maro/supply_chain/distributed_launcher.py", "-w", "1"]
         }

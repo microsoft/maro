@@ -1,12 +1,15 @@
-import numpy as np
-from maro.rl.policy import AbsPolicy
 import random
+
+import numpy as np
 import scipy.stats as st
+
+from maro.rl.policy import AbsPolicy
 
 
 class ProducerBaselinePolicy(AbsPolicy):
-    
-    def __init__(self, config):
+
+    def __init__(self, name: str, config):
+        super(ProducerBaselinePolicy, self).__init__(name=name)
         self.config = config
         # self.num_actions = config["model"]["network"]["output_dim"]
 
@@ -16,7 +19,8 @@ class ProducerBaselinePolicy(AbsPolicy):
 
 class ConsumerBaselinePolicy(AbsPolicy):
 
-    def __init__(self, config):
+    def __init__(self, name: str, config: dict):
+        super(ConsumerBaselinePolicy, self).__init__(name=name)
         self.config = config
         self.num_actions = config["model"]["network"]["output_dim"]
 
@@ -27,11 +31,11 @@ class ConsumerBaselinePolicy(AbsPolicy):
         available_inventory = np.array(state['storage_levels'])
         inflight_orders = np.array(state['consumer_in_transit_orders'])
         booked_inventory = available_inventory + inflight_orders
-        
+
         # stop placing orders when the facilty runs out of capacity
         if np.sum(booked_inventory) > state['storage_capacity']:
             return 0
-        
+
         most_needed_product_id = state['product_idx']
         sale_mean, sale_std = state['sale_mean'], state['sale_std']
         service_level = state['service_level']

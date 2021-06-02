@@ -149,7 +149,7 @@ class ExperienceManager:
         in the form of an ``ExperienceSet`` and the memory will be cleared. Otherwise, a sample from the
         memory will be returned according to the sampling logic defined by the registered sampler.
         """
-        batch_size = self._size if self.batch_size == -1 else self.batch_size 
+        batch_size = self._size if self.batch_size == -1 else self.batch_size
         if not self.sampler:
             indexes = np.random.choice(self._size, size=batch_size, replace=self.replace)
             return ExperienceSet(*[[self.data[key][idx] for idx in indexes] for key in self._keys])
