@@ -136,15 +136,14 @@ class Actor(object):
             f"Roll-out finished for ep {episode_index}, segment {segment_index}"
             f"(steps {starting_step_index} - {self.env.step_index})"
         )
+
+        policies_with_new_exp = set()
         exp_by_agent = self.env.get_experiences()
         for agent_id, exp in exp_by_agent.items():
             self.policy[agent_id].experience_manager.put(exp)
+            policies_with_new_exp.add(self.agent2policy[agent_id])
 
-        ret_exp = {
-            policy_name: policy.experience_manager.get()
-            for policy_name, policy in self.policy_dict.items()
-            if isinstance(policy, AbsCorePolicy)
-        }
+        ret_exp = {name: self.policy_dict[name].experience_manager.get() for name in policies_with_new_exp}
 
         return_info = {
             MsgKey.EPISODE_END: not self.env.state,
