@@ -224,6 +224,8 @@ class ParallelRolloutManager(AbsRolloutManager):
         num_actors (int): Number of remote roll-out actors.
         group (str): Identifier of the group to which the actor belongs. It must be the same group name
             assigned to the learner (and decision clients, if any).
+        exploration_dict (Dict[str, AbsExploration]): A set of named exploration schemes. The exploration parameters
+            from these instances will be broadcast to all actors. Defaults to None.
         num_steps (int): Number of environment steps to roll out in each call to ``collect``. Defaults to -1, in which
             case the roll-out will be executed until the end of the environment.
         max_receive_attempts (int): Maximum number of attempts to receive actor results in ``collect``. Defaults to
@@ -247,6 +249,7 @@ class ParallelRolloutManager(AbsRolloutManager):
         self,
         num_actors: int,
         group: str,
+        exploration_dict: Dict[str, AbsExploration] = None,
         num_steps: int = -1,
         max_receive_attempts: int = None,
         receive_timeout: int = None,
@@ -266,6 +269,9 @@ class ParallelRolloutManager(AbsRolloutManager):
         self._proxy = Proxy(group, "rollout_manager", peers, **proxy_kwargs)
         self._actors = self._proxy.peers["actor"]  # remote actor ID's
 
+        self.exploration_dict = exploration_dict
+        self._num_steps = num_steps
+
         if max_receive_attempts is None:
             max_receive_attempts = self.num_actors
             self._logger.info(f"Maximum receive attempts is set to {max_receive_attempts}")
@@ -273,7 +279,6 @@ class ParallelRolloutManager(AbsRolloutManager):
         self.max_receive_attempts = max_receive_attempts
         self.receive_timeout = receive_timeout
 
-        self._num_steps = num_steps
         self._max_staleness = max_staleness
         self.total_experiences_collected = 0
         self.total_env_steps = 0
@@ -281,6 +286,8 @@ class ParallelRolloutManager(AbsRolloutManager):
 
         self._num_eval_actors = num_eval_actors
         self._eval_ep = 0
+
+        self._exploration_update = True
 
     def collect(self, episode_index: int, segment_index: int, policy_state_dict: dict):
         """Collect simulation data, i.e., experiences for training."""
@@ -293,6 +300,13 @@ class ParallelRolloutManager(AbsRolloutManager):
             MsgKey.NUM_STEPS: self._num_steps,
             MsgKey.POLICY: policy_state_dict
         }
+
+        if self._exploration_update:
+            msg_body[MsgKey.EXPLORATION] = {
+                name: exploration.parameters for name, exploration in self.exploration_dict.items()
+            }
+            self._exploration_update = False
+
         self._proxy.ibroadcast("actor", MsgTag.COLLECT, SessionType.TASK, body=msg_body)
         self._logger.info(f"Sent collect requests to {self._actors} for ep-{episode_index}, segment-{segment_index}")
 
@@ -325,6 +339,12 @@ class ParallelRolloutManager(AbsRolloutManager):
                     num_finishes += 1
                     if num_finishes == self.num_actors:
                         break
+        
+        if self.episode_complete:
+            if self.exploration_dict:
+                for exploration in self.exploration_dict.values():
+                    exploration.step()
+                self._exploration_update = True
 
         return combined_exp_by_policy
 

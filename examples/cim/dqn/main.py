@@ -78,18 +78,12 @@ def get_dqn_actor_process():
     env = Env(**config["env"]["basic"])
     num_actions = config["env"]["wrapper"]["num_actions"]
     policy_list = [get_independent_policy(policy_id=i, training=False) for i in env.agent_idx_list]
-    epsilon_greedy = EpsilonGreedyExploration(num_actions=num_actions)
-    epsilon_greedy.register_schedule(
-        scheduler_cls=MultiPhaseLinearExplorationScheduler,
-        param_name="epsilon",
-        **config["exploration"]
-    )
     actor = Actor(
         env=CIMEnvWrapper(env, **config["env"]["wrapper"]),
         policies=policy_list,
         agent2policy={i: i for i in env.agent_idx_list},
         group=config["multi-process"]["group"],
-        exploration_dict={f"EpsilonGreedy1": epsilon_greedy},
+        exploration_dict={f"EpsilonGreedy1": EpsilonGreedyExploration(num_actions=num_actions)},
         agent2exploration={i: f"EpsilonGreedy1" for i in env.agent_idx_list},
         log_dir=log_dir,
         redis_address=(config["multi-process"]["redis_host"], config["multi-process"]["redis_port"])
@@ -100,11 +94,19 @@ def get_dqn_actor_process():
 def get_dqn_learner_process():
     env = Env(**config["env"]["basic"])
     policy_list = [get_independent_policy(policy_id=i) for i in env.agent_idx_list]
-
     policy_manager = LocalPolicyManager(policies=policy_list, log_dir=log_dir)
+
+    epsilon_greedy = EpsilonGreedyExploration(num_actions=config["env"]["wrapper"]["num_actions"])
+    epsilon_greedy.register_schedule(
+        scheduler_cls=MultiPhaseLinearExplorationScheduler,
+        param_name="epsilon",
+        last_ep=config["num_episodes"],
+        **config["exploration"]
+    )
     rollout_manager = ParallelRolloutManager(
         num_actors=config["multi-process"]["num_actors"],
         group=config["multi-process"]["group"],
+        exploration_dict={f"EpsilonGreedy1": epsilon_greedy},
         log_dir=log_dir,
         redis_address=(config["multi-process"]["redis_host"], config["multi-process"]["redis_port"])
     )

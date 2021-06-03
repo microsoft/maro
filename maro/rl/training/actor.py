@@ -101,20 +101,32 @@ class Actor(object):
 
     def _collect(self, msg):
         episode_index, segment_index = msg.body[MsgKey.EPISODE_INDEX], msg.body[MsgKey.SEGMENT_INDEX]
+        # load policies
+        self._load_policy_states(msg.body[MsgKey.POLICY])
+        # set exploration parameters
+        exploration_params = None
+        if MsgKey.EXPLORATION in msg.body:
+            updated_exploration_param_names = {}
+            for exploration_name, param_dict in msg.body[MsgKey.EXPLORATION].items():
+                updated_exploration_param_names[exploration_name] = param_dict.keys()
+                for param_name, value in param_dict.items():
+                    setattr(self.exploration_dict[exploration_name], param_name, value)
+
+            exploration_params = {
+                agent_ids: {
+                    param_name: getattr(self.exploration_dict[exploration_name], param_name)
+                    for param_name in updated_exploration_param_names[exploration_name]
+                }
+                for exploration_name, agent_ids in self.agent_groups_by_exploration.items()
+            }
+
         if self.env.state is None:
             self._logger.info(f"Training episode {msg.body[MsgKey.EPISODE_INDEX]}")
-            if hasattr(self, "exploration_dict"):
-                exploration_params = {
-                    agent_ids: self.exploration_dict[exploration_id].parameters
-                    for exploration_id, agent_ids in self.agent_groups_by_exploration.items()
-                }
-                self._logger.debug(f"Exploration parameters: {exploration_params}")
+            if hasattr(self, "exploration_dict"): 
+                self._logger.info(f"Exploration parameters: {exploration_params}")
 
             self.env.reset()
             self.env.start()  # get initial state
-
-        # load policies
-        self._load_policy_states(msg.body[MsgKey.POLICY])
 
         starting_step_index = self.env.step_index + 1
         steps_to_go = float("inf") if msg.body[MsgKey.NUM_STEPS] == -1 else msg.body[MsgKey.NUM_STEPS]
@@ -153,11 +165,6 @@ class Actor(object):
             MsgKey.ENV_SUMMARY: self.env.summary,
             MsgKey.NUM_STEPS: self.env.step_index - starting_step_index + 1
         }
-
-        if not self.env.state:
-            if self.exploration_dict:
-                for exploration in self.exploration_dict.values():
-                    exploration.step()
 
         self._proxy.reply(msg, tag=MsgTag.COLLECT_DONE, body=return_info)
 

@@ -6,9 +6,12 @@ from collections import defaultdict
 from os import getcwd
 from typing import Dict, List
 
+from maro.communication import Proxy, SessionType
 from maro.rl.experience import ExperienceSet
 from maro.rl.policy import AbsPolicy, AbsCorePolicy
 from maro.utils import Logger
+
+from .message_enums import MsgKey, MsgTag
 
 
 class AbsPolicyManager(ABC):
@@ -77,4 +80,43 @@ class LocalPolicyManager(AbsPolicyManager):
             policy_name: self.policy_dict[policy_name].get_state() for policy_name in self._updated_policy_names
         }
         self._updated_policy_names.clear()
+        return policy_state_dict
+
+
+class ParallelPolicyManager(AbsPolicyManager): 
+    def __init__(
+        self,
+        policy2trainer: Dict[str, str],
+        group: str,
+        log_dir: str = getcwd(),
+        **proxy_kwargs
+    ):
+        super().__init__()
+        self._logger = Logger("PARALLEL_POLICY_MANAGER", dump_folder=log_dir)
+        self.policy2trainer = policy2trainer
+        self._names = list(self.policy2trainer.keys())
+        peers = {"trainer": len(set(self.policy2trainer.values()))}
+        self._proxy = Proxy(group, "policy_manager", peers, **proxy_kwargs)
+
+    @property
+    def names(self):
+        return self._names
+
+    def on_experiences(self, exp_by_policy: Dict[str, ExperienceSet]):
+        msg_body_by_dest = defaultdict(dict)
+        for policy_name, exp in exp_by_policy.items():
+            trainer_id = self.policy2trainer[policy_name]
+            if MsgKey.EXPERIENCES not in msg_body_by_dest[trainer_id]:
+                msg_body_by_dest[trainer_id][MsgKey.EXPERIENCES] = {}
+            msg_body_by_dest[trainer_id][MsgKey.EXPERIENCES][policy_name] = exp  
+
+        self._proxy.iscatter(MsgTag.TRAIN, SessionType.TASK, list(msg_body_by_dest.items()))
+
+    def get_state(self):
+        policy_state_dict = {}
+        for msg in self._proxy.receive():
+            if msg.tag == MsgTag.POLICY_UPDATE:
+                for policy_name, state in msg.body[MsgKey.POLICY].items():
+                    policy_state_dict[policy_name] = state
+
         return policy_state_dict
