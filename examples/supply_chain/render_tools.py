@@ -86,13 +86,13 @@ class SimulationTracker:
             reward = self.reward_status[0, :, i]
             balance = self.balance_status[0, :, i]
             order_to_distribute = self.order_to_distribute[0, :, i]
-            ax[0].set_title('SKU Stock Status by Episod')
+            ax[0].set_title('SKU Stock Status by Episode')
             for y_label, y in [('stock', stock),
                                ('order_in_transit', order_in_transit),
                                ('order_to_distribute', order_to_distribute)]:
                 ax[0].plot(x, y, label=y_label)
 
-            ax[1].set_title('SKU Reward / Balance Status by Episod')
+            ax[1].set_title('SKU Reward / Balance Status by Episode')
             ax[1].plot(x, balance, label='Balance')
             ax_r = ax[1].twinx()
             ax_r.plot(x, reward, label='Reward', color='r')
