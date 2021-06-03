@@ -8,7 +8,7 @@ from maro.utils import Logger
 
 from .early_stopper import AbsEarlyStopper
 from .policy_manager import AbsPolicyManager
-from .rollout_manager import AbsRolloutManager
+from .rollout_manager import AbsRolloutManager, ParallelRolloutManager
 
 
 class Learner:
@@ -88,6 +88,9 @@ class Learner:
                         self.early_stopper.push(env_metric)
                         if self.early_stopper.stop():
                             return
+
+        if isinstance(self.rollout_manager, ParallelRolloutManager):
+            self.rollout_manager.exit()
 
     def _train(self, ep: int):
         num_experiences_collected = 0
