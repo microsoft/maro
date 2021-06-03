@@ -78,7 +78,6 @@ class SimulationTracker:
             facility_type_dict[agent.id] = self.env.env.summary["node_mapping"]["facilities"][agent.facility_id]['class'].__name__
 
         for i, sku_name in enumerate(self.sku_to_track):
-            fig, ax = plt.subplots(4, 1, figsize=(25, 10))
             x = np.linspace(0, self.episode_len, self.episode_len)
             stock = self.stock_status[0, :, i]
             order_in_transit = self.stock_in_transit_status[0, :, i]
@@ -86,10 +85,14 @@ class SimulationTracker:
             reward = self.reward_status[0, :, i]
             balance = self.balance_status[0, :, i]
             order_to_distribute = self.order_to_distribute[0, :, i]
+
+            fig, ax = plt.subplots(3, 1, figsize=(25, 10))
             ax[0].set_title('SKU Stock Status by Episode')
-            for y_label, y in [('stock', stock),
-                               ('order_in_transit', order_in_transit),
-                               ('order_to_distribute', order_to_distribute)]:
+            for y_label, y in [
+                ('stock', stock),
+                ('order_in_transit', order_in_transit),
+                ('order_to_distribute', order_to_distribute)
+            ]:
                 ax[0].plot(x, y, label=y_label)
 
             ax[1].set_title('SKU Reward / Balance Status by Episode')
@@ -97,8 +100,8 @@ class SimulationTracker:
             ax_r = ax[1].twinx()
             ax_r.plot(x, reward, label='Reward', color='r')
 
-            ax[3].set_title('SKU demand')
-            ax[3].plot(x, demand, label="Demand")
+            ax[2].set_title('SKU demand')
+            ax[2].plot(x, demand, label="Demand")
 
             fig.legend()
             fig.savefig(os.path.join(loc_path, f"{facility_type_dict[sku_name]}_{sku_name_dict[sku_name]}.png"))
