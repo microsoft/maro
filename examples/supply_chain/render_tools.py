@@ -5,15 +5,20 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
+from maro.utils import Logger
+
 from examples.supply_chain.env_wrapper import sku_agent_types, SCEnvWrapper
 
 
 class SimulationTracker:
-    def __init__(self, episode_len: int, n_episodes: int, env: SCEnvWrapper, learner):
+    def __init__(self, episode_len: int, n_episodes: int, env: SCEnvWrapper, policies: dict, log_dir="./", logger_name=None):
         self.episode_len = episode_len
         self.n_episodes = n_episodes
         self.env = env
-        self.learner = learner
+        self.policies = policies
+        self.log_dir = log_dir
+
+        self.logger = Logger(logger_name if logger_name else "SimulationTracker", dump_folder=self.log_dir)
 
         self.global_balances = np.zeros((n_episodes, episode_len))
         self.global_rewards = np.zeros((n_episodes, episode_len))
@@ -137,12 +142,12 @@ class SimulationTracker:
         self.env.reset()
         self.env.start()
         for epoch in range(self.episode_len):
-            action = {id_: self.learner._policy[id_].choose_action(st) for id_, st in self.env.state.items()}
-            self.learner._logger.info(f"epoch: {epoch}, action: {action}")
+            action = {agent_id: self.policies[agent_id].choose_action(st) for agent_id, st in self.env.state.items()}
+            self.logger.info(f"epoch: {epoch}, action: {action}")
             self.env.step(action)
-            self.learner._logger.info(f"epoch: {epoch}, action: {self.env.to_env_action(action)}")
+            self.logger.info(f"epoch: {epoch}, action: {self.env.to_env_action(action)}")
             if hasattr(self.env, "consumer2product"):
-                self.learner._logger.info(f"consumer2product: {self.env.consumer2product}")
+                self.logger.info(f"consumer2product: {self.env.consumer2product}")
             self.env.get_reward()
             step_balances = self.env.balance_status
             step_rewards = self.env.reward_status
@@ -169,11 +174,9 @@ class SimulationTracker:
         _step_metrics_list = np.cumsum(np.sum(_step_metrics, axis=0))
         return np.sum(_step_metrics), _step_metrics_list
 
-    def run_and_render(self, loc_path, facility_types):
-        if not os.path.exists(loc_path):
-            os.makedirs(loc_path)
+    def run_and_render(self, facility_types):
         metric, metric_list = self._run_wth_render(facility_types=facility_types)
-        self._render(os.path.join(loc_path, "plot_balance.png"), self.step_balances, facility_types)
-        self._render(os.path.join(loc_path, "plot_reward.png"), self.step_rewards, facility_types)
-        self._render_sku(loc_path)
+        self._render(os.path.join(self.log_dir, "plot_balance.png"), self.step_balances, facility_types)
+        self._render(os.path.join(self.log_dir, "plot_reward.png"), self.step_rewards, facility_types)
+        self._render_sku(self.log_dir)
         return metric, metric_list

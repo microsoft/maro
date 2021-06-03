@@ -9,16 +9,15 @@ from multiprocessing import Process
 
 import yaml
 
-from maro.rl import Actor, Learner, LocalLearner, LocalPolicyManager, ParallelRolloutManager
+from maro.rl import Learner, LocalPolicyManager, ParallelRolloutManager
 from maro.simulator import Env
 from maro.simulator.scenarios.supply_chain.world import AgentInfo
 from maro.utils import set_seeds
 
 from examples.supply_chain.env_wrapper import SCEnvWrapper
+from examples.supply_chain.evaluation_with_render import RenderActor, RenderLocalLearner
 from examples.supply_chain.exploration import get_exploration_mapping
-# from examples.supply_chain.learner import SCLearner
 from examples.supply_chain.policies import get_policy_mapping, get_replay_agent_ids
-from examples.supply_chain.render_tools import SimulationTracker
 
 
 # logging.basicConfig(level=logging.DEBUG)
@@ -39,7 +38,7 @@ def single_thread_mode(config, env_wrapper):
     policies, agent2policy = get_policy_mapping(config)
 
     # create a learner to start training
-    learner = LocalLearner(
+    learner = RenderLocalLearner(
         env=env_wrapper,
         policies=policies,
         agent2policy=agent2policy,
@@ -53,12 +52,7 @@ def single_thread_mode(config, env_wrapper):
         log_env_summary=config["log_env_summary"],
         log_dir=LOG_DIR
     )
-
-    tracker = SimulationTracker(60, 1, env_wrapper, learner)
-    tracker.run_and_render(
-        loc_path=OUTPUT_DIR,
-        facility_types=["productstore"]
-    )
+    learner.run()
 
 def sc_learner(config):
     policies, _ = get_policy_mapping(config)
@@ -92,7 +86,7 @@ def sc_learner(config):
 def sc_actor(component_name: str, config, env_wrapper):
     policies, agent2policy = get_policy_mapping(config)
     exploration_dict, agent2exploration = get_exploration_mapping(config)
-    actor = Actor(
+    actor = RenderActor(
         env=env_wrapper,
         policies=policies,
         agent2policy=agent2policy,
