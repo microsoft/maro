@@ -28,7 +28,7 @@ class ConsumerEOQPolicy(ConsumerBaselinePolicy):
         consumer_quantity = int(np.sqrt(2*sale_gamma*order_cost / holding_cost) / sale_gamma)
         return consumer_quantity
 
-    def compute_action(self, state):
+    def choose_action(self, state):
         if state['is_facility']:
             return 0
         # consumer_source_inventory

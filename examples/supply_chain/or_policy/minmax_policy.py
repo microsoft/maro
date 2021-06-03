@@ -17,7 +17,7 @@ class ConsumerMinMaxPolicy(ConsumerBaselinePolicy):
     def __init__(self, name:str, config: dict):
         super(ConsumerMinMaxPolicy, self).__init__(name=name, config=config)
 
-    def compute_action(self, state):
+    def choose_action(self, state):
         if state['is_facility']:
             return 0
         # consumer_source_inventory
