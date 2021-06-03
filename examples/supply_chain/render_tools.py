@@ -1,7 +1,8 @@
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 import os
-from env_wrapper import sku_agent_types
+
+from examples.supply_chain.env_wrapper import sku_agent_types
 
 
 class SimulationTracker:
@@ -161,6 +162,8 @@ class SimulationTracker:
         return np.sum(_step_metrics), _step_metrics_list
 
     def run_and_render(self, loc_path, facility_types):
+        if not os.path.exists(loc_path):
+            os.makedirs(loc_path)
         metric, metric_list = self.run_wth_render(
             facility_types=facility_types)
         self.render('%s/plot_balance.png' %

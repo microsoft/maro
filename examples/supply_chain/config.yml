@@ -1,19 +1,26 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+experiment_name: test
+
 env:
   scenario: supply_chain
   # Currently available topologies are "sample1" or "random". New topologies must consist of a single folder
-  # that contains a single config.yml and shoud be placed under examples/supply_chain/envs/
+  # that contains a single config.yml and should be placed under examples/supply_chain/envs/
   topology: test
   durations: 64  # number of ticks per episode
+
 num_episodes: 1000  # number of episodes to simulate
+
 # Number of roll-out steps in each learning cycle. Each actor will perform at most this many roll-out steps
 # before returning experiences to the learner. The learner uses these experiences to update the agents' policies
 # and sync the updated policies to the actors for the next learning cycle.
 experience_update_interval: 64
+
 eval_schedule: 100
-log_env_metrics: false
+
+log_env_summary: true
+
 policy:
   consumerstore:
     algorithm: dqn
@@ -65,10 +72,12 @@ policy:
     model:  # Edit the get_dqn_agent() code in examples\supply_chain\agent.py if you need to customize the model.
       network:
         output_dim: 10
+
 exploration:
   last_ep: 800
   initial_value: 0.8 # Here (start: 0.4, end: 0.0) means: the exploration rate will start at 0.4 and decrease linearly to 0.0 in the last episode.
   final_value: 0.0
+
 distributed:
   # this is used to group all actor / learner processes belonging to the same job for communication purposes.
   # There is no need to change this if you use the scripts under examples/supply_chain/scripts to run the scenario.

@@ -27,11 +27,11 @@ docker_compose_manifest = {
             "image": "maro-sc",
             "container_name": "learner",
             "volumes": [
-                f"{sc_code_dir}:/maro/supply_chain",
+                f"{sc_code_dir}:/maro/examples/supply_chain",
                 f"{maro_rl_dir}:/maro/maro/rl",
                 f"{maro_sc_dir}:/maro/maro/simulator/scenarios/supply_chain"
             ],
-            "command": ["python3", "/maro/supply_chain/distributed_launcher.py", "-w", "1"]
+            "command": ["python3", "/maro/examples/supply_chain/main.py", "-w", "1"]
         }
     }
 }

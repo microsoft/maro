@@ -28,6 +28,7 @@ config_path = os.getenv("CONFIG_PATH", default=os.path.join(SC_CODE_DIR, "config
 with open(config_path, "r") as config_file:
     CONFIG = yaml.safe_load(config_file)
 LOG_DIR = os.path.join(SC_CODE_DIR, "logs", CONFIG["experiment_name"])
+OUTPUT_DIR = os.path.join(LOG_DIR, "output")
 
 # AgentInfo = namedtuple("AgentInfo", ("id", "agent_type", "is_facility", "sku", "facility_id", "parent_id"))
 def agent_info_to_agent_id(info: AgentInfo) -> str:
@@ -55,7 +56,7 @@ def single_thread_mode(config, env_wrapper):
 
     tracker = SimulationTracker(60, 1, env_wrapper, learner)
     tracker.run_and_render(
-        loc_path=os.path.join(SC_CODE_DIR, "output"),
+        loc_path=OUTPUT_DIR,
         facility_types=["productstore"]
     )
 
@@ -152,7 +153,7 @@ if __name__ == "__main__":
             print(f"******** [multi-process mode] automatically change the 'redis_host' field to 'localhost' ********")
         multi_process_mode(CONFIG)
     elif args.whoami == 1:
-        sc_learner()
+        sc_learner(CONFIG)
     elif args.whoami == 2:
         component_name = os.getenv("COMPONENT")
         sc_actor(component_name, CONFIG, env_wrapper)
