@@ -9,7 +9,7 @@ from multiprocessing import Process
 from maro.rl import (
     Actor, DQN, DQNConfig, EpsilonGreedyExploration, ExperienceManager, FullyConnectedBlock,
     MultiPhaseLinearExplorationScheduler, Learner, LocalLearner, LocalPolicyManager,
-    OptimOption, ParallelRolloutManager
+    OptimOption, ParallelPolicyManager, ParallelRolloutManager, Trainer
 )
 from maro.simulator import Env
 from maro.utils import set_seeds
@@ -25,6 +25,9 @@ with open(os.getenv("CONFIG_PATH", default=DEFAULT_CONFIG_PATH), "r") as config_
     config = yaml.safe_load(config_file)
 
 log_dir = os.path.join(FILE_PATH, "logs", config["experiment_name"])
+
+# agent IDs
+AGENT_IDS = Env(**config["env"]["basic"]).agent_idx_list
 
 # model input and output dimensions
 IN_DIM = (
@@ -47,7 +50,9 @@ def get_independent_policy(policy_id, training: bool = True):
         name=policy_id,
         q_net=qnet,
         experience_manager=ExperienceManager(**exp_cfg),
-        config=DQNConfig(**cfg["algorithm_config"])
+        config=DQNConfig(**cfg["algorithm_config"]),
+        update_trigger=cfg["update_trigger"],
+        warmup=cfg["warmup"]
     )
 
 
@@ -91,11 +96,17 @@ def get_dqn_actor_process():
     actor.run()
 
 
-def get_dqn_learner_process():
-    env = Env(**config["env"]["basic"])
-    policy_list = [get_independent_policy(policy_id=i) for i in env.agent_idx_list]
-    policy_manager = LocalPolicyManager(policies=policy_list, log_dir=log_dir)
+def get_dqn_trainer_process(name, policy_names):
+    trainer = Trainer(
+        policies=[get_independent_policy(name) for name in policy_names],
+        group=config["multi-process"]["group"],
+        name=name,
+        log_dir=log_dir
+    )
+    trainer.run()
 
+
+def get_dqn_learner_process():
     epsilon_greedy = EpsilonGreedyExploration(num_actions=config["env"]["wrapper"]["num_actions"])
     epsilon_greedy.register_schedule(
         scheduler_cls=MultiPhaseLinearExplorationScheduler,
@@ -103,6 +114,7 @@ def get_dqn_learner_process():
         last_ep=config["num_episodes"],
         **config["exploration"]
     )
+
     rollout_manager = ParallelRolloutManager(
         num_actors=config["multi-process"]["num_actors"],
         group=config["multi-process"]["group"],
@@ -111,13 +123,24 @@ def get_dqn_learner_process():
         redis_address=(config["multi-process"]["redis_host"], config["multi-process"]["redis_port"])
     )
 
+    policy_list = [get_independent_policy(policy_id=i) for i in AGENT_IDS]
+    if config["multi-process"]["policy_training_mode"] == "local":
+        policy_manager = LocalPolicyManager(policies=policy_list, log_dir=log_dir)
+    else:
+        policy_manager = ParallelPolicyManager(
+            policy2trainer={i: f"TRAINER.{i}" for i in AGENT_IDS},
+            group=config["multi-process"]["group"],
+            log_dir=log_dir
+        )
     learner = Learner(
         policy_manager=policy_manager,
         rollout_manager=rollout_manager,
         num_episodes=config["num_episodes"],
+        eval_schedule=config["eval_schedule"],
         log_dir=log_dir
     )
-    time.sleep(5)
+
+    time.sleep(10)
     learner.run()
 
 
@@ -127,11 +150,23 @@ def multi_process_mode():
         set_seeds(i)
         actor_process.start()
 
+    if config["multi-process"]["policy_training_mode"] == "parallel":
+        trainer_processes = [
+            Process(target=get_dqn_trainer_process, args=(f"TRAINER.{id_}", [id_],)) for id_ in AGENT_IDS
+        ]
+        for trainer_process in trainer_processes:
+            trainer_process.start() 
+
     learner_process = Process(target=get_dqn_learner_process)
     learner_process.start()
 
     for actor_process in actor_processes:
         actor_process.join()
+    
+    if config["multi-process"]["policy_training_mode"] == "parallel":
+        for trainer_process in trainer_processes:
+            trainer_process.join()
+
     learner_process.join()
 
 

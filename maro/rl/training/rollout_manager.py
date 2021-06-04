@@ -39,10 +39,11 @@ class AbsRolloutManager(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def evaluate(self, policy_state_dict: dict):
+    def evaluate(self, ep: int, policy_state_dict: dict):
         """Evaluate the performance of ``policy_state_dict``.
 
         Args:
+            ep (int): Current training episode index.
             policy_state_dict (dict): Policy states to use for simulation.
 
         Returns:
@@ -121,7 +122,6 @@ class LocalRolloutManager(AbsRolloutManager):
 
         self._num_steps = num_steps if num_steps > 0 else float("inf")
         self._log_env_summary = log_env_summary
-        self._eval_ep = 0
 
     def collect(self, ep: int, segment: int, policy_state_dict: dict):
         """Collect simulation data for training."""
@@ -193,10 +193,17 @@ class LocalRolloutManager(AbsRolloutManager):
 
         return self.env.get_experiences(), self.env.summary
 
-    def evaluate(self, policy_state_dict: dict):
-        """Evaluate the performance of ``policy_state_dict``."""
+    def evaluate(self, ep: int, policy_state_dict: dict):
+        """Evaluate the performance of ``policy_state_dict``.
+
+        Args:
+            ep (int): Current training episode index.
+            policy_state_dict (dict): Policy states to use for simulation.
+
+        Returns:
+            Environment summary.
+        """
         self._logger.info("Evaluating...")
-        self._eval_ep += 1
         self._load_policy_states(policy_state_dict)
         self.eval_env.reset()
         self.eval_env.start()  # get initial state
@@ -205,7 +212,7 @@ class LocalRolloutManager(AbsRolloutManager):
             self.eval_env.step(action)
 
         if self._log_env_summary:
-            self._logger.info(f"eval ep {self._eval_ep}: {self.eval_env.summary}")
+            self._logger.info(f"Evaluation result: {self.eval_env.summary}")
 
         return self.eval_env.summary
 
@@ -285,7 +292,6 @@ class ParallelRolloutManager(AbsRolloutManager):
         self._log_env_summary = log_env_summary
 
         self._num_eval_actors = num_eval_actors
-        self._eval_ep = 0
 
         self._exploration_update = True
 
@@ -348,10 +354,17 @@ class ParallelRolloutManager(AbsRolloutManager):
 
         return combined_exp_by_policy
 
-    def evaluate(self, policy_state_dict: dict):
-        """Evaluate the performance of ``policy_state_dict``."""
-        self._eval_ep += 1
-        msg_body = {MsgKey.EPISODE_INDEX: self._eval_ep, MsgKey.POLICY: policy_state_dict}
+    def evaluate(self, ep: int, policy_state_dict: dict):
+        """Evaluate the performance of ``policy_state_dict``.
+
+        Args:
+            ep (int): Current training episode index.
+            policy_state_dict (dict): Policy states to use for simulation.
+
+        Returns:
+            Environment summary.
+        """
+        msg_body = {MsgKey.EPISODE_INDEX: ep, MsgKey.POLICY: policy_state_dict}
 
         actors = choices(self._actors, k=self._num_eval_actors)
         env_summary_dict = {}
@@ -361,16 +374,16 @@ class ParallelRolloutManager(AbsRolloutManager):
         # Receive roll-out results from remote actors
         num_finishes = 0
         for msg in self._proxy.receive():
-            if msg.tag != MsgTag.EVAL_DONE or msg.body[MsgKey.EPISODE_INDEX] != self._eval_ep:
+            if msg.tag != MsgTag.EVAL_DONE or msg.body[MsgKey.EPISODE_INDEX] != ep:
                 self._logger.info(
                     f"Ignore a message of type {msg.tag} with episode index {msg.body[MsgKey.EPISODE_INDEX]} "
-                    f"(expected message type {MsgTag.EVAL} and episode index {self._eval_ep})"
+                    f"(expected message type {MsgTag.EVAL_DONE} and episode index {ep})"
                 )
                 continue
 
             env_summary_dict[msg.source] = msg.body[MsgKey.ENV_SUMMARY]
 
-            if msg.body[MsgKey.EPISODE_INDEX] == self._eval_ep:
+            if msg.body[MsgKey.EPISODE_INDEX] == ep:
                 num_finishes += 1
                 if num_finishes == self._num_eval_actors:
                     break

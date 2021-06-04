@@ -8,7 +8,7 @@ from typing import Dict, List
 from maro.communication import Proxy
 from maro.rl.env_wrapper import AbsEnvWrapper
 from maro.rl.exploration import AbsExploration
-from maro.rl.policy import AbsCorePolicy, AbsPolicy
+from maro.rl.policy import AbsPolicy
 from maro.utils import Logger
 
 from .message_enums import MsgKey, MsgTag
@@ -169,8 +169,7 @@ class Actor(object):
         self._proxy.reply(msg, tag=MsgTag.COLLECT_DONE, body=return_info)
 
     def _evaluate(self, msg):
-        ep = msg.body[MsgKey.EPISODE_INDEX]
-        self._logger.info(f"Evaluation episode {ep}")
+        self._logger.info(f"Evaluating...")
         self.eval_env.reset()
         self.eval_env.start()  # get initial state
         self._load_policy_states(msg.body[MsgKey.POLICY])

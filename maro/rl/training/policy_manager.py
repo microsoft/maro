@@ -114,9 +114,8 @@ class ParallelPolicyManager(AbsPolicyManager):
 
     def get_state(self):
         policy_state_dict = {}
-        for msg in self._proxy.receive():
-            if msg.tag == MsgTag.POLICY_UPDATE:
-                for policy_name, state in msg.body[MsgKey.POLICY].items():
-                    policy_state_dict[policy_name] = state
+        for reply in self._proxy.broadcast("trainer", MsgTag.GET_POLICY_STATE, SessionType.TASK):
+            for policy_name, policy_state in reply.body[MsgKey.POLICY].items():
+                policy_state_dict[policy_name] = policy_state
 
         return policy_state_dict

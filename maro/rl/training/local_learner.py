@@ -107,7 +107,6 @@ class LocalLearner:
         self.early_stopper = early_stopper
 
         self._log_env_summary = log_env_summary
-        self._eval_ep = 0
 
     def run(self):
         """Entry point for executing a learning workflow."""
@@ -125,7 +124,6 @@ class LocalLearner:
     def _train(self, ep: int):
         """Collect simulation data for training."""
         t0 = time.time()
-        learning_time = 0
         num_experiences_collected = 0
 
         if self.exploration_dict:
@@ -141,6 +139,7 @@ class LocalLearner:
         while self.env.state:
             segment += 1
             for agent_id, exp in self._collect(ep, segment).items():
+                num_experiences_collected += exp.size
                 if isinstance(self._policy[agent_id], AbsCorePolicy):
                     self._policy[agent_id].on_experiences(exp)
 
@@ -153,18 +152,16 @@ class LocalLearner:
         if self._log_env_summary:
             self._logger.info(f"ep {ep}: {self.env.summary}")
 
-        self._logger.debug(
+        self._logger.info(
             f"ep {ep} summary - "
             f"running time: {time.time() - t0} "
             f"env steps: {self.env.step_index} "
-            f"learning time: {learning_time} "
             f"experiences collected: {num_experiences_collected}"
         )
 
     def _evaluate(self):
         """Policy evaluation."""
         self._logger.info("Evaluating...")
-        self._eval_ep += 1
         self.eval_env.reset()
         self.eval_env.start()  # get initial state
         while self.eval_env.state:
@@ -172,7 +169,7 @@ class LocalLearner:
             self.eval_env.step(action)
 
          # performance details
-        self._logger.info(f"evaluation ep {self._eval_ep}: {self.eval_env.summary}")
+        self._logger.info(f"Evaluation result: {self.eval_env.summary}")
 
     def _collect(self, ep, segment):
         start_step_index = self.env.step_index + 1

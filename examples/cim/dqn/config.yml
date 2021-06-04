@@ -3,9 +3,10 @@
 
 experiment_name: cim_dqn
 mode: multi-process # local, multi-process
-num_episodes: 100
+num_episodes: 8
+eval_schedule: 2
 num_steps: -1
-eval_schedule: 50
+# eval_schedule: 50
 env:
   basic:
     scenario: cim
@@ -37,11 +38,10 @@ env:
     shortage_factor: 1.0
     time_decay: 0.97
 exploration:
-  last_ep: 100
   initial_value: 0.4
   final_value: 0.0
   splits:
-    - [50, 0.32]
+    - [4, 0.32]
 policy:
   model:
     network:
@@ -72,13 +72,18 @@ policy:
       capacity: 1000
       overwrite_type: "rolling"
       batch_size: -1
+      replace: false
     training: # for experience managers in the learner process
       capacity: 100000
       overwrite_type: "rolling"
       batch_size: 128
+      replace: true
+  update_trigger: 32
+  warmup: 1000
 multi-process:
+  policy_training_mode: local # local, parallel
   group: cim-dqn
-  num_actors: 3
+  num_actors: 2
   redis_host: localhost
   redis_port: 6379
-  max_receive_attempts: 3
+  max_receive_attempts: 2

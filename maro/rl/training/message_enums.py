@@ -7,7 +7,8 @@ from enum import Enum
 class MsgTag(Enum):
     COLLECT = "rollout"
     EVAL = "eval"
-    POLICY_UPDATE = "agent_update"
+    GET_POLICY_STATE = "get_policy_state"
+    POLICY_STATE = "policy_state"
     CHOOSE_ACTION = "choose_action"
     ACTION = "action"
     TRAIN = "train"
