@@ -3,14 +3,14 @@
 
 from collections import defaultdict
 from os import getcwd
-from typing import Dict, List
+from typing import Dict
 
 from maro.communication import Proxy
 from maro.rl.env_wrapper import AbsEnvWrapper
 from maro.rl.exploration import AbsExploration
-from maro.rl.policy import AbsPolicy
 from maro.utils import Logger
 
+from .decision_generator import AbsDecisionGenerator
 from .message_enums import MsgKey, MsgTag
 
 
@@ -20,9 +20,8 @@ class Actor(object):
     Args:
         env (AbsEnvWrapper): An ``AbsEnvWrapper`` instance to interact with a set of agents and collect experiences
             for policy training / update.
-        policies (List[AbsPolicy]): A list of policies for inference.
-        agent2policy (Dict[str, str]): Mapping from agent ID's to policy ID's. This is used to direct an agent's
-            queries to the correct policy.
+        decision_generator (AbsDecisionGenerator): Source of action decisions which could be local or remote
+            depending on the implementation. 
         group (str): Identifier of the group to which the actor belongs. It must be the same group name
             assigned to the learner (and decision clients, if any).
         exploration_dict (Dict[str, AbsExploration]): A set of named exploration schemes. Defaults to None.
@@ -38,8 +37,7 @@ class Actor(object):
     def __init__(
         self,
         env: AbsEnvWrapper,
-        policies: List[AbsPolicy],
-        agent2policy: Dict[str, str],
+        decision_generator: AbsDecisionGenerator,
         group: str,
         exploration_dict: Dict[str, AbsExploration] = None,
         agent2exploration: Dict[str, str] = None,
@@ -50,13 +48,7 @@ class Actor(object):
         self.env = env
         self.eval_env = eval_env if eval_env else self.env
 
-        # mappings between agents and policies
-        self.policy_dict = {policy.name: policy for policy in policies}
-        self.agent2policy = agent2policy
-        self.policy = {agent_id: self.policy_dict[policy_id] for agent_id, policy_id in self.agent2policy.items()}
-        self.agent_groups_by_policy = defaultdict(list)
-        for agent_id, policy_id in agent2policy.items():
-            self.agent_groups_by_policy[policy_id].append(agent_id)
+        self.decision_generator = decision_generator
 
         # mappings between exploration schemes and agents
         self.exploration_dict = exploration_dict
@@ -100,9 +92,10 @@ class Actor(object):
                 self._evaluate(msg)
 
     def _collect(self, msg):
-        episode_index, segment_index = msg.body[MsgKey.EPISODE_INDEX], msg.body[MsgKey.SEGMENT_INDEX]
+        ep, segment = msg.body[MsgKey.EPISODE], msg.body[MsgKey.SEGMENT]
         # load policies
-        self._load_policy_states(msg.body[MsgKey.POLICY])
+        if hasattr(self.decision_generator, "update"):
+            self.decision_generator.update(msg.body[MsgKey.POLICY])
         # set exploration parameters
         exploration_params = None
         if MsgKey.EXPLORATION in msg.body:
@@ -121,7 +114,7 @@ class Actor(object):
             }
 
         if self.env.state is None:
-            self._logger.info(f"Training episode {msg.body[MsgKey.EPISODE_INDEX]}")
+            self._logger.info(f"Training episode {msg.body[MsgKey.EPISODE]}")
             if hasattr(self, "exploration_dict"): 
                 self._logger.info(f"Exploration parameters: {exploration_params}")
 
@@ -131,36 +124,26 @@ class Actor(object):
         starting_step_index = self.env.step_index + 1
         steps_to_go = float("inf") if msg.body[MsgKey.NUM_STEPS] == -1 else msg.body[MsgKey.NUM_STEPS]
         while self.env.state and steps_to_go > 0:
+            action = self.decision_generator.choose_action(self.env.state, ep, self.env.step_index)
             if self.exploration_dict:
-                action = {
-                    id_:
-                        self.exploration[id_](self.policy[id_].choose_action(st))
-                        if id_ in self.exploration else self.policy[id_].choose_action(st)
-                    for id_, st in self.env.state.items()
-                }
-            else:
-                action = {id_: self.policy[id_].choose_action(st) for id_, st in self.env.state.items()}
-
+                for agent_id, exploration in self.exploration_dict.items():
+                    action[agent_id] = exploration(action[agent_id])
             self.env.step(action)
             steps_to_go -= 1
 
         self._logger.info(
-            f"Roll-out finished for ep {episode_index}, segment {segment_index}"
+            f"Roll-out finished for ep {ep}, segment {segment}"
             f"(steps {starting_step_index} - {self.env.step_index})"
         )
 
-        policies_with_new_exp = set()
-        exp_by_agent = self.env.get_experiences()
-        for agent_id, exp in exp_by_agent.items():
-            self.policy[agent_id].experience_manager.put(exp)
-            policies_with_new_exp.add(self.agent2policy[agent_id])
-
-        ret_exp = {name: self.policy_dict[name].experience_manager.get() for name in policies_with_new_exp}
+        if hasattr(self.decision_generator, "store_experiences"):
+            policy_names = self.decision_generator.store_experiences(self.env.get_experiences())
+            ret_exp = self.decision_generator.get_experiences(policy_names)
 
         return_info = {
             MsgKey.EPISODE_END: not self.env.state,
-            MsgKey.EPISODE_INDEX: episode_index,
-            MsgKey.SEGMENT_INDEX: segment_index,
+            MsgKey.EPISODE: ep,
+            MsgKey.SEGMENT: segment,
             MsgKey.EXPERIENCES: ret_exp,
             MsgKey.ENV_SUMMARY: self.env.summary,
             MsgKey.NUM_STEPS: self.env.step_index - starting_step_index + 1
@@ -170,22 +153,17 @@ class Actor(object):
 
     def _evaluate(self, msg):
         self._logger.info(f"Evaluating...")
+        ep = msg.body[MsgKey.EPISODE]
         self.eval_env.reset()
         self.eval_env.start()  # get initial state
-        self._load_policy_states(msg.body[MsgKey.POLICY])
+        if hasattr(self.decision_generator, "update"):
+            self.decision_generator.update(msg.body[MsgKey.POLICY])
         while self.eval_env.state:
-            action = {id_: self.policy[id_].choose_action(st) for id_, st in self.eval_env.state.items()}
+            action = self.decision_generator.choose_action(self.env.state, ep, self.eval_env.step_index)
             self.eval_env.step(action)
 
         return_info = {
             MsgKey.ENV_SUMMARY: self.env.summary,
-            MsgKey.EPISODE_INDEX: msg.body[MsgKey.EPISODE_INDEX]
+            MsgKey.EPISODE: msg.body[MsgKey.EPISODE]
         }
         self._proxy.reply(msg, tag=MsgTag.EVAL_DONE, body=return_info)
-
-    def _load_policy_states(self, policy_state_dict):
-        for policy_id, policy_state in policy_state_dict.items():
-            self.policy_dict[policy_id].set_state(policy_state)
-
-        if policy_state_dict:
-            self._logger.info(f"updated policies {list(policy_state_dict.keys())}")

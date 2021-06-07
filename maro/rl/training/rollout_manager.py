@@ -301,8 +301,8 @@ class ParallelRolloutManager(AbsRolloutManager):
             self._logger.info(f"EPISODE-{episode_index}, SEGMENT-{segment_index}: ")
 
         msg_body = {
-            MsgKey.EPISODE_INDEX: episode_index,
-            MsgKey.SEGMENT_INDEX: segment_index,
+            MsgKey.EPISODE: episode_index,
+            MsgKey.SEGMENT: segment_index,
             MsgKey.NUM_STEPS: self._num_steps,
             MsgKey.POLICY: policy_state_dict
         }
@@ -321,14 +321,14 @@ class ParallelRolloutManager(AbsRolloutManager):
         num_finishes = 0
         for _ in range(self.max_receive_attempts):
             msg = self._proxy.receive_once(timeout=self.receive_timeout)
-            if msg.tag != MsgTag.COLLECT_DONE or msg.body[MsgKey.EPISODE_INDEX] != episode_index:
+            if msg.tag != MsgTag.COLLECT_DONE or msg.body[MsgKey.EPISODE] != episode_index:
                 self._logger.info(
-                    f"Ignore a message of type {msg.tag} with episode index {msg.body[MsgKey.EPISODE_INDEX]} "
+                    f"Ignore a message of type {msg.tag} with episode index {msg.body[MsgKey.EPISODE]} "
                     f"(expected message type {MsgTag.COLLECT} and episode index {episode_index})"
                 )
                 continue
 
-            if segment_index - msg.body[MsgKey.SEGMENT_INDEX] <= self._max_staleness:
+            if segment_index - msg.body[MsgKey.SEGMENT] <= self._max_staleness:
                 exp_by_policy = msg.body[MsgKey.EXPERIENCES]
                 self.total_experiences_collected += sum(exp.size for exp in exp_by_policy.values())
                 self.total_env_steps += msg.body[MsgKey.NUM_STEPS]
@@ -336,7 +336,7 @@ class ParallelRolloutManager(AbsRolloutManager):
                 for policy_name, exp in exp_by_policy.items():
                     combined_exp_by_policy[policy_name].extend(exp)
 
-                if msg.body[MsgKey.SEGMENT_INDEX] == segment_index:
+                if msg.body[MsgKey.SEGMENT] == segment_index:
                     self.episode_complete = msg.body[MsgKey.EPISODE_END]
                     if self.episode_complete:
                         # log roll-out summary
@@ -364,7 +364,7 @@ class ParallelRolloutManager(AbsRolloutManager):
         Returns:
             Environment summary.
         """
-        msg_body = {MsgKey.EPISODE_INDEX: ep, MsgKey.POLICY: policy_state_dict}
+        msg_body = {MsgKey.EPISODE: ep, MsgKey.POLICY: policy_state_dict}
 
         actors = choices(self._actors, k=self._num_eval_actors)
         env_summary_dict = {}
@@ -374,16 +374,16 @@ class ParallelRolloutManager(AbsRolloutManager):
         # Receive roll-out results from remote actors
         num_finishes = 0
         for msg in self._proxy.receive():
-            if msg.tag != MsgTag.EVAL_DONE or msg.body[MsgKey.EPISODE_INDEX] != ep:
+            if msg.tag != MsgTag.EVAL_DONE or msg.body[MsgKey.EPISODE] != ep:
                 self._logger.info(
-                    f"Ignore a message of type {msg.tag} with episode index {msg.body[MsgKey.EPISODE_INDEX]} "
+                    f"Ignore a message of type {msg.tag} with episode index {msg.body[MsgKey.EPISODE]} "
                     f"(expected message type {MsgTag.EVAL_DONE} and episode index {ep})"
                 )
                 continue
 
             env_summary_dict[msg.source] = msg.body[MsgKey.ENV_SUMMARY]
 
-            if msg.body[MsgKey.EPISODE_INDEX] == ep:
+            if msg.body[MsgKey.EPISODE] == ep:
                 num_finishes += 1
                 if num_finishes == self._num_eval_actors:
                     break
