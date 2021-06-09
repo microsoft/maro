@@ -2,15 +2,14 @@
 # Licensed under the MIT license.
 
 experiment_name: cim_dqn
-mode: local # local, multi-process
+mode: multi-process # local, multi-process
 num_episodes: 100
 # eval_schedule: 2
 num_steps: -1
 env:
   basic:
     scenario: cim
-    topology: toy.4p_ssdd_l0.0
-    # topology: global_trade.22p_l0.0
+    topology: global_trade.22p_l0.0
     durations: 1120
   wrapper:
     port_attributes:
@@ -82,11 +81,11 @@ policy:
   update_trigger: 16
   warmup: 1
 multi-process:
-  rollout_mode: local # local, parallel
+  rollout_mode: parallel # local, parallel
   policy_training_mode: parallel # local, parallel
   group: cim-dqn
-  num_actors: 2
-  num_policy_servers: 3
+  num_actors: 3
+  num_policy_servers: 2
   redis_host: localhost
   redis_port: 6379
   # max_receive_attempts: 2
