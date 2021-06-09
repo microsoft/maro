@@ -112,9 +112,9 @@ class Learner:
 
         # performance details
         self.logger.debug(
-            f"ep {ep} summary - "  
+            f"ep {ep} summary - "
             f"experiences collected: {num_experiences_collected} "
-            f"total policy update time: {total_policy_update_time}"    
+            f"total policy update time: {total_policy_update_time}"
         )
 
         self.end_of_episode(ep, **self._end_of_episode_kwargs)

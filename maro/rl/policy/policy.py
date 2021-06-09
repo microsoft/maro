@@ -94,7 +94,8 @@ class AbsCorePolicy(AbsPolicy):
         self.experience_manager.put(exp)
         self._new_exp_counter += exp.size
         print(
-            f"Policy {self._name}: exp mem size = {self.experience_manager.size}, incoming: {exp.size}, new exp = {self._new_exp_counter}"
+            f"Policy {self._name}: exp mem size = {self.experience_manager.size}, incoming: {exp.size}, "
+            f"new exp = {self._new_exp_counter}"
         )
         if self.experience_manager.size >= self.warmup and self._new_exp_counter >= self.update_trigger:
             t0 = time.time()
