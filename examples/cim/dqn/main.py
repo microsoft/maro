@@ -1,8 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from maro.rl.experience.sampler import PrioritizedSampler
-from maro.rl.experience import experience_manager
 import os
 import time
 import yaml
@@ -11,7 +9,7 @@ from multiprocessing import Process
 from maro.rl import (
     Actor, DQN, DQNConfig, EpsilonGreedyExploration, ExperienceManager, FullyConnectedBlock,
     MultiPhaseLinearExplorationScheduler, Learner, LocalLearner, LocalPolicyManager, LocalRolloutManager,
-    OptimOption, ParallelPolicyManager, ParallelRolloutManager, PolicyServer,
+    OptimOption, ParallelPolicyManager, ParallelRolloutManager, PolicyServer, PrioritizedSampler
 )
 from maro.simulator import Env
 from maro.utils import set_seeds
