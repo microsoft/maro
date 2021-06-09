@@ -1,6 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from maro.rl.experience.sampler import PrioritizedSampler
+from maro.rl.experience import experience_manager
 import os
 import time
 import yaml
@@ -9,7 +11,7 @@ from multiprocessing import Process
 from maro.rl import (
     Actor, DQN, DQNConfig, EpsilonGreedyExploration, ExperienceManager, FullyConnectedBlock,
     MultiPhaseLinearExplorationScheduler, Learner, LocalLearner, LocalPolicyManager, LocalRolloutManager,
-    OptimOption, ParallelPolicyManager, ParallelRolloutManager, PolicyServer
+    OptimOption, ParallelPolicyManager, ParallelRolloutManager, PolicyServer,
 )
 from maro.simulator import Env
 from maro.utils import set_seeds
@@ -47,11 +49,14 @@ def get_independent_policy(policy_id, training: bool = True):
         FullyConnectedBlock(input_dim=IN_DIM, output_dim=OUT_DIM, **cfg["model"]["network"]),
         optim_option=OptimOption(**cfg["model"]["optimization"])
     )
-    exp_cfg = cfg["experience_manager"]["training"] if training else cfg["experience_manager"]["rollout"]
+    if training:
+        experience_manager = ExperienceManager(sampler_cls=PrioritizedSampler, **cfg["experience_manager"]["training"])
+    else:
+        experience_manager = ExperienceManager(**cfg["experience_manager"]["rollout"])
     return DQN(
         name=policy_id,
         q_net=qnet,
-        experience_manager=ExperienceManager(**exp_cfg),
+        experience_manager=experience_manager,
         config=DQNConfig(**cfg["algorithm_config"]),
         update_trigger=cfg["update_trigger"],
         warmup=cfg["warmup"]
@@ -65,6 +70,7 @@ def local_learner_mode():
     epsilon_greedy.register_schedule(
         scheduler_cls=MultiPhaseLinearExplorationScheduler,
         param_name="epsilon",
+        last_ep=config["num_episodes"],
         **config["exploration"]
     )
     local_learner = LocalLearner(
@@ -75,7 +81,6 @@ def local_learner_mode():
         num_steps=config["num_steps"],
         exploration_dict={f"EpsilonGreedy1": epsilon_greedy},
         agent2exploration={i: f"EpsilonGreedy1" for i in env.agent_idx_list},
-        eval_schedule=config["eval_schedule"],
         log_dir=log_dir
     )
     local_learner.run()

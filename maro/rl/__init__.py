@@ -6,7 +6,7 @@ from maro.rl.algorithm import (
     get_rl_policy_cls, get_rl_policy_config_cls, get_rl_policy_model_cls
 )
 from maro.rl.env_wrapper import AbsEnvWrapper
-from maro.rl.experience import AbsSampler, ExperienceManager, ExperienceSet
+from maro.rl.experience import AbsSampler, ExperienceManager, ExperienceSet, PrioritizedSampler
 from maro.rl.exploration import (
     AbsExploration, AbsExplorationScheduler, EpsilonGreedyExploration, GaussianNoiseExploration,
     LinearExplorationScheduler, MultiPhaseLinearExplorationScheduler, NoiseExploration, NullExploration,
@@ -30,7 +30,7 @@ __all__ = [
     "ActorCritic", "ActorCriticConfig", "DDPG", "DDPGConfig", "DQN", "DQNConfig", "PolicyGradient",
     "PolicyGradientConfig", "get_rl_policy_cls", "get_rl_policy_config_cls", "get_rl_policy_model_cls",
     "AbsEnvWrapper",
-    "AbsSampler", "ExperienceManager", "ExperienceSet",
+    "AbsSampler", "ExperienceManager", "ExperienceSet", "PrioritizedSampler",
     "AbsExploration", "AbsExplorationScheduler", "EpsilonGreedyExploration", "GaussianNoiseExploration",
     "LinearExplorationScheduler", "MultiPhaseLinearExplorationScheduler", "NoiseExploration", "NullExploration",
     "UniformNoiseExploration",
