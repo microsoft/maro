@@ -1,9 +1,10 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import numpy as np
 from abc import ABC, abstractmethod
 from typing import List
+
+import numpy as np
 
 from .experience_manager import ExperienceManager, ExperienceSet
 
