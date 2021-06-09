@@ -9,7 +9,7 @@ from typing import Dict, List
 
 from maro.communication import Proxy, SessionType
 from maro.rl.experience import ExperienceSet
-from maro.rl.policy import AbsPolicy, AbsCorePolicy
+from maro.rl.policy import AbsCorePolicy, AbsPolicy
 from maro.utils import Logger
 
 from .message_enums import MsgKey, MsgTag
@@ -70,7 +70,7 @@ class LocalPolicyManager(AbsPolicyManager):
         updated = {
             name: self.policy_dict[name].get_state()
             for name, exp in exp_by_policy.items()
-            if isinstance(self.policy_dict[name], AbsCorePolicy) and self.policy_dict[name].on_experiences(exp)   
+            if isinstance(self.policy_dict[name], AbsCorePolicy) and self.policy_dict[name].on_experiences(exp)
         }
 
         if updated:
@@ -83,7 +83,7 @@ class LocalPolicyManager(AbsPolicyManager):
         return {name: policy.get_state() for name, policy in self.policy_dict.items()}
 
 
-class ParallelPolicyManager(AbsPolicyManager): 
+class ParallelPolicyManager(AbsPolicyManager):
     def __init__(
         self,
         policy2server: Dict[str, str],
@@ -108,7 +108,7 @@ class ParallelPolicyManager(AbsPolicyManager):
             policy_server_id = self.policy2server[policy_name]
             if MsgKey.EXPERIENCES not in msg_body_by_dest[policy_server_id]:
                 msg_body_by_dest[policy_server_id][MsgKey.EXPERIENCES] = {}
-            msg_body_by_dest[policy_server_id][MsgKey.EXPERIENCES][policy_name] = exp  
+            msg_body_by_dest[policy_server_id][MsgKey.EXPERIENCES][policy_name] = exp
 
         for reply in self._proxy.scatter(MsgTag.TRAIN, SessionType.TASK, list(msg_body_by_dest.items())):
             for policy_name, policy_state in reply.body[MsgKey.POLICY].items():

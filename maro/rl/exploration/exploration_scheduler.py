@@ -48,7 +48,7 @@ class LinearExplorationScheduler(AbsExplorationScheduler):
     Args:
         exploration (AbsExploration): An exploration instance to which the scheduler is applied.
         param_name (str): Name of the exploration parameter to which the scheduler is applied.
-        last_ep (int): Last episode. 
+        last_ep (int): Last episode.
         final_value (float): The value of the exploration parameter corresponding to ``last_ep``.
         initial_value: Initial value for the exploration parameter. If None, the value the exploration
             instance is instantiated with will be used as the initial value. Defaults to None.
@@ -86,7 +86,7 @@ class MultiPhaseLinearExplorationScheduler(AbsExplorationScheduler):
         splits (List[Tuple[int, float]]): List of points that separate adjacent linear phases. Each
             point is a (episode, parameter_value) tuple that indicates the end of one linear phase and
             the start of another. These points do not have to be given in any particular order. There
-            cannot be two points with the same first element (episode), or a ``ValueError`` will be raised. 
+            cannot be two points with the same first element (episode), or a ``ValueError`` will be raised.
         final_value (float): The value of the exploration parameter corresponding to ``last_ep``.
         initial_value: Initial value for the exploration parameter. If None, the value the exploration
             instance is instantiated with will be used as the initial value. Defaults to None.

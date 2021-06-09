@@ -122,7 +122,7 @@ class Actor(object):
 
         if self.env.state is None:
             self._logger.info(f"Training episode {msg.body[MsgKey.EPISODE_INDEX]}")
-            if hasattr(self, "exploration_dict"): 
+            if hasattr(self, "exploration_dict"):
                 self._logger.info(f"Exploration parameters: {exploration_params}")
 
             self.env.reset()
@@ -169,7 +169,7 @@ class Actor(object):
         self._proxy.reply(msg, tag=MsgTag.COLLECT_DONE, body=return_info)
 
     def _evaluate(self, msg):
-        self._logger.info(f"Evaluating...")
+        self._logger.info("Evaluating...")
         self.eval_env.reset()
         self.eval_env.start()  # get initial state
         self._load_policy_states(msg.body[MsgKey.POLICY])

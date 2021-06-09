@@ -65,6 +65,7 @@ def local_learner_mode():
     epsilon_greedy.register_schedule(
         scheduler_cls=MultiPhaseLinearExplorationScheduler,
         param_name="epsilon",
+        last_ep=config["num_episodes"],
         **config["exploration"]
     )
     local_learner = LocalLearner(
@@ -75,7 +76,6 @@ def local_learner_mode():
         num_steps=config["num_steps"],
         exploration_dict={f"EpsilonGreedy1": epsilon_greedy},
         agent2exploration={i: f"EpsilonGreedy1" for i in env.agent_idx_list},
-        eval_schedule=config["eval_schedule"],
         log_dir=log_dir
     )
     local_learner.run()
