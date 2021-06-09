@@ -191,7 +191,7 @@ class LocalRolloutManager(AbsRolloutManager):
                 f"experiences collected: {num_experiences_collected}"
             )
 
-        return self.env.get_experiences(), self.env.summary
+        return self.env.get_experiences()
 
     def evaluate(self, ep: int, policy_state_dict: dict):
         """Evaluate the performance of ``policy_state_dict``.

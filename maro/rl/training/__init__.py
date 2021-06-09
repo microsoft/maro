@@ -6,8 +6,8 @@ from .early_stopper import AbsEarlyStopper
 from .learner import Learner
 from .local_learner import LocalLearner
 from .policy_manager import AbsPolicyManager, LocalPolicyManager, ParallelPolicyManager
+from .policy_server import PolicyServer
 from .rollout_manager import AbsRolloutManager, LocalRolloutManager, ParallelRolloutManager
-from .trainer import Trainer
 
 __all__ = [
     "Actor",
@@ -15,6 +15,6 @@ __all__ = [
     "Learner",
     "LocalLearner",
     "AbsPolicyManager", "LocalPolicyManager", "ParallelPolicyManager",
+    "PolicyServer",
     "AbsRolloutManager", "LocalRolloutManager", "ParallelRolloutManager",
-    "Trainer"
 ]

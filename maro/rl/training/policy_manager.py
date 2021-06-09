@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import time
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from os import getcwd
@@ -54,7 +55,6 @@ class LocalPolicyManager(AbsPolicyManager):
         self._logger = Logger("LOCAL_POLICY_MANAGER", dump_folder=log_dir)
         self.policy_dict = {policy.name: policy for policy in policies}
         self._new_exp_counter = defaultdict(int)
-        self._updated_policy_names = set()
 
     @property
     def names(self):
@@ -66,36 +66,36 @@ class LocalPolicyManager(AbsPolicyManager):
         The incoming experiences are expected to be grouped by policy ID and will be stored in the corresponding
         policy's experience manager. Policies whose update conditions have been met will then be updated.
         """
-        for policy_name, exp in exp_by_policy.items():
-            if isinstance(self.policy_dict[policy_name], AbsCorePolicy):
-                if self.policy_dict[policy_name].on_experiences(exp):
-                    self._updated_policy_names.add(policy_name)
+        t0 = time.time()
+        updated = {
+            name: self.policy_dict[name].get_state()
+            for name, exp in exp_by_policy.items()
+            if isinstance(self.policy_dict[name], AbsCorePolicy) and self.policy_dict[name].on_experiences(exp)   
+        }
 
-        if self._updated_policy_names:
-            self._logger.info(f"Updated policies {self._updated_policy_names}")
+        if updated:
+            self._logger.info(f"Updated policies {list(updated.keys())}")
+
+        self._logger.debug(f"policy update time: {time.time() - t0}")
+        return updated
 
     def get_state(self):
-        """Return the states of updated policies since the last call."""
-        policy_state_dict = {
-            policy_name: self.policy_dict[policy_name].get_state() for policy_name in self._updated_policy_names
-        }
-        self._updated_policy_names.clear()
-        return policy_state_dict
+        return {name: policy.get_state() for name, policy in self.policy_dict.items()}
 
 
 class ParallelPolicyManager(AbsPolicyManager): 
     def __init__(
         self,
-        policy2trainer: Dict[str, str],
+        policy2server: Dict[str, str],
         group: str,
         log_dir: str = getcwd(),
         **proxy_kwargs
     ):
         super().__init__()
         self._logger = Logger("PARALLEL_POLICY_MANAGER", dump_folder=log_dir)
-        self.policy2trainer = policy2trainer
-        self._names = list(self.policy2trainer.keys())
-        peers = {"trainer": len(set(self.policy2trainer.values()))}
+        self.policy2server = policy2server
+        self._names = list(self.policy2server.keys())
+        peers = {"policy_server": len(set(self.policy2server.values()))}
         self._proxy = Proxy(group, "policy_manager", peers, **proxy_kwargs)
 
     @property
@@ -103,19 +103,29 @@ class ParallelPolicyManager(AbsPolicyManager):
         return self._names
 
     def on_experiences(self, exp_by_policy: Dict[str, ExperienceSet]):
-        msg_body_by_dest = defaultdict(dict)
+        msg_body_by_dest, policy_state_dict = defaultdict(dict), {}
         for policy_name, exp in exp_by_policy.items():
-            trainer_id = self.policy2trainer[policy_name]
-            if MsgKey.EXPERIENCES not in msg_body_by_dest[trainer_id]:
-                msg_body_by_dest[trainer_id][MsgKey.EXPERIENCES] = {}
-            msg_body_by_dest[trainer_id][MsgKey.EXPERIENCES][policy_name] = exp  
+            policy_server_id = self.policy2server[policy_name]
+            if MsgKey.EXPERIENCES not in msg_body_by_dest[policy_server_id]:
+                msg_body_by_dest[policy_server_id][MsgKey.EXPERIENCES] = {}
+            msg_body_by_dest[policy_server_id][MsgKey.EXPERIENCES][policy_name] = exp  
 
-        self._proxy.iscatter(MsgTag.TRAIN, SessionType.TASK, list(msg_body_by_dest.items()))
-
-    def get_state(self):
-        policy_state_dict = {}
-        for reply in self._proxy.broadcast("trainer", MsgTag.GET_POLICY_STATE, SessionType.TASK):
+        for reply in self._proxy.scatter(MsgTag.TRAIN, SessionType.TASK, list(msg_body_by_dest.items())):
             for policy_name, policy_state in reply.body[MsgKey.POLICY].items():
                 policy_state_dict[policy_name] = policy_state
 
         return policy_state_dict
+
+    def get_state(self):
+        policy_state_dict = {}
+        for reply in self._proxy.broadcast("policy_server", MsgTag.GET_POLICY_STATE, SessionType.TASK):
+            for policy_name, policy_state in reply.body[MsgKey.POLICY].items():
+                policy_state_dict[policy_name] = policy_state
+
+        return policy_state_dict
+
+    def exit(self):
+        """Tell the remote actors to exit."""
+        self._proxy.ibroadcast("policy_server", MsgTag.EXIT, SessionType.NOTIFICATION)
+        self._proxy.close()
+        self._logger.info("Exiting...")

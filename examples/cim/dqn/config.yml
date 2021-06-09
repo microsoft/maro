@@ -3,15 +3,15 @@
 
 experiment_name: cim_dqn
 mode: multi-process # local, multi-process
-num_episodes: 8
-eval_schedule: 2
+num_episodes: 3
+# eval_schedule: 2
 num_steps: -1
-# eval_schedule: 50
 env:
   basic:
     scenario: cim
-    topology: toy.4p_ssdd_l0.0
-    durations: 1120
+    topology: global_trade.22p_l0.0
+    # topology: global_trade.22p_l0.0
+    durations: 560
   wrapper:
     port_attributes:
       - empty
@@ -41,14 +41,31 @@ exploration:
   initial_value: 0.4
   final_value: 0.0
   splits:
-    - [4, 0.32]
+    - [2, 0.3]
 policy:
   model:
     network:
       hidden_dims:
         - 256
+        - 256
+        - 256
+        - 256
+        - 256
+        - 128
+        - 128
+        - 128
+        - 128
         - 128
         - 64
+        - 64
+        - 64
+        - 64
+        - 64
+        - 32
+        - 32
+        - 32
+        - 32
+        - 32
       activation: leaky_relu
       softmax: false
       batch_norm: true
@@ -63,7 +80,6 @@ policy:
     reward_discount: .0
     target_update_freq: 5
     train_epochs: 10
-    gradient_iters: 1
     soft_update_coefficient: 0.1
     double: false
     loss_cls: smooth_l1
@@ -78,12 +94,15 @@ policy:
       overwrite_type: "rolling"
       batch_size: 128
       replace: true
-  update_trigger: 32
-  warmup: 1000
+  update_trigger: 16
+  warmup: 1
 multi-process:
-  policy_training_mode: local # local, parallel
+  rollout_mode: local # local, parallel
+  policy_training_mode: parallel # local, parallel
   group: cim-dqn
   num_actors: 2
+  num_policy_servers: 3
   redis_host: localhost
   redis_port: 6379
-  max_receive_attempts: 2
+  # max_receive_attempts: 2
+  # receive_timeout: 100  # in milli-seconds
