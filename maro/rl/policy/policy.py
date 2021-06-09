@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import time
 from abc import ABC, abstractmethod
 
 from maro.rl.experience import ExperienceManager, ExperienceSet
@@ -93,10 +94,13 @@ class AbsCorePolicy(AbsPolicy):
         self.experience_manager.put(exp)
         self._new_exp_counter += exp.size
         print(
-            f"Policy {self._name}: exp mem size = {self.experience_manager.size}, incoming: {exp.size}, new exp = {self._new_exp_counter}"
+            f"Policy {self._name}: exp mem size = {self.experience_manager.size}, incoming: {exp.size}, "
+            f"new exp = {self._new_exp_counter}"
         )
         if self.experience_manager.size >= self.warmup and self._new_exp_counter >= self.update_trigger:
+            t0 = time.time()
             self.update()
+            print(f"policy update time: {time.time() - t0}")
             self._new_exp_counter = 0
             return True
 

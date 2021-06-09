@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import time
 from os import getcwd
 from typing import List, Union
 
@@ -8,7 +9,7 @@ from maro.utils import Logger
 
 from .early_stopper import AbsEarlyStopper
 from .policy_manager import AbsPolicyManager
-from .rollout_manager import AbsRolloutManager, ParallelRolloutManager
+from .rollout_manager import AbsRolloutManager
 
 
 class Learner:
@@ -89,23 +90,32 @@ class Learner:
                         if self.early_stopper.stop():
                             return
 
-        if isinstance(self.rollout_manager, ParallelRolloutManager):
+        if hasattr(self.rollout_manager, "exit"):
             self.rollout_manager.exit()
 
+        if hasattr(self.policy_manager, "exit"):
+            self.policy_manager.exit()
+
     def _train(self, ep: int):
-        num_experiences_collected = 0
-        segment = 0
+        total_policy_update_time = 0
+        num_experiences_collected = segment = 0
         self.rollout_manager.reset()
+        policy_state_dict = self.policy_manager.get_state()
         while not self.rollout_manager.episode_complete:
             segment += 1
             # experience collection
-            policy_state_dict = self.policy_manager.get_state()
             exp_by_policy = self.rollout_manager.collect(ep, segment, policy_state_dict)
-            self.policy_manager.on_experiences(exp_by_policy)
+            t0 = time.time()
+            policy_state_dict = self.policy_manager.on_experiences(exp_by_policy)
+            total_policy_update_time += time.time() - t0
             num_experiences_collected += sum(exp.size for exp in exp_by_policy.values())
 
         # performance details
-        self.logger.debug(f"ep {ep} summary - experiences collected: {num_experiences_collected}")
+        self.logger.debug(
+            f"ep {ep} summary - "
+            f"experiences collected: {num_experiences_collected} "
+            f"total policy update time: {total_policy_update_time}"
+        )
 
         self.end_of_episode(ep, **self._end_of_episode_kwargs)
 

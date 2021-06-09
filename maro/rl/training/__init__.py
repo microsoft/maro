@@ -19,5 +19,4 @@ __all__ = [
     "AbsPolicyManager", "LocalPolicyManager", "ParallelPolicyManager",
     "PolicyServer", "PolicyServerGateway",
     "AbsRolloutManager", "LocalRolloutManager", "ParallelRolloutManager",
-    "Trainer"
 ]
