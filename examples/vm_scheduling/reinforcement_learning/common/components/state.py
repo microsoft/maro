@@ -14,14 +14,11 @@ VM_ATTRIBUTES = ["cpu_cores_requirement", "memory_requirement", "lifetime", "rem
 
 class VMState(object):
     def __init__(
-        self, pm_num, durations, training, vm_window_size, pm_window_size
+        self, pm_num, durations, vm_state_path, vm_window_size, pm_window_size
     ):
         self._pm_num = pm_num
         self._durations = durations
-        if training:
-            self._vm_states = np.load("../data/train_vm_states.npy")
-        else:
-            self._vm_states = np.load("../data/test_vm_states.npy")
+        self._vm_states = np.load(vm_state_path)
         self._dim = (pm_num * 2) * pm_window_size + len(VM_ATTRIBUTES) * vm_window_size
 
         self._history_pm_state = np.zeros((pm_window_size - 1, self._pm_num, 2))

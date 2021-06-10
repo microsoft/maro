@@ -10,6 +10,8 @@ from maro.simulator.scenarios.vm_scheduling import AllocateAction, DecisionPaylo
 
 from maro.utils import Logger
 
+from examples.vm_scheduling.offline_lp.ilp_agent import IlpAgent
+
 
 class ILPAgent(object):
     def __init__(
@@ -57,7 +59,9 @@ class ILPAgent(object):
             except:
                 self.actions[action.vm_id] = self.pm_num
 
-            _, _, self.is_done = self.env.step(action)
+            metrics, _, self.is_done = self.env.step(action)
+
+        print(metrics)
 
     def choose_action(self, decision_event: DecisionPayload) -> int:
         return self.actions[decision_event.vm_id]

@@ -14,11 +14,11 @@ class VMEnvWrapper(AbsEnvWrapper):
     def __init__(
         self,
         env: Env,
-        training: bool,
         alpha: float,
         beta: float,
         pm_num: int,
         durations: int,
+        vm_state_path: str,
         vm_window_size: int = 1,
         pm_window_size: int = 1,
         gamma: float = 0.0,
@@ -41,9 +41,8 @@ class VMEnvWrapper(AbsEnvWrapper):
 
         self._legal_pm = None
         self.action_class = VMAction(pm_num) # convert the action info to the environment action
-        self.state_class = VMState(pm_num, durations, training, vm_window_size, pm_window_size) # get the state information
+        self.state_class = VMState(pm_num, durations, vm_state_path, vm_window_size, pm_window_size) # get the state information
 
-        self._training = training
         self._alpha, self._beta = alpha, beta # adjust the ratio of the success allocation and the total income when computing the reward
         self._gamma = gamma # reward discount
         self._pm_num = pm_num # the number of pms

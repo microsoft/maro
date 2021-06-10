@@ -16,11 +16,11 @@ training_config = {
             "snapshot_resolution": 1
         },
         "wrapper": {
-            "training": True,
             "alpha": 0.0,
             "beta": 1.0,
             "pm_num": 8,
             "durations": 200,
+            "vm_state_path": "../data/train_vm_states.npy",
             "vm_window_size": 1,
             "pm_window_size": 1,
             "window_type": "fix",
@@ -42,6 +42,7 @@ training_config = {
             "beta": 1.0,
             "pm_num": 8,
             "durations": 300,
+            "vm_state_path": "../data/test_vm_states.npy",
             "vm_window_size": 1,
             "pm_window_size": 1,
             "window_type": "fix",

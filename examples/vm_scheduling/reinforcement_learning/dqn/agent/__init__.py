@@ -7,7 +7,7 @@ from .exploration import VMExploration
 from .models import CombineNet, SequenceNet
 
 __all__ = [
-    "VMActor",
+    "QNet",
     "VMDQN",
     "VMExploration",
     "CombineNet", "SequenceNet"
