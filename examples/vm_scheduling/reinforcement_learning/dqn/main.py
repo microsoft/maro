@@ -57,7 +57,9 @@ def get_rule_based_policy(env, agent_config):
 
 def get_ilp_policy(env, agent_config):
     agent = ILPAgent(
-        env, **agent_config["ilp_agent"],
+        env,
+        pm_num=agent_config["pm_num"],
+        agent_config=agent_config["algorithm"],
         simulation_logger=simulation_logger,
         ilp_logger=ilp_logger,
         log_path=LOG_PATH

@@ -49,6 +49,31 @@ agent_config = {
             }
         }
     },
+    "ilp_agent": {
+        "pm_num": training_config["env"]["wrapper"]["pm_num"],
+        "algorithm": {
+            "ilp": {
+                "solver": "CBC",          # GLPK, CBC
+                "plan_window_size": 50,  # unit: tick
+                "apply_buffer_size": 50,  # unit: tick
+                "performance": {
+                    "core_safety_remaining_ratio": 0,
+                    "mem_safety_remaining_ratio": 0
+                },
+                "objective": {
+                    "successful_allocation_decay": 1,
+                    "allocation_multiple_core_num": False
+                },
+                "log": {
+                    "dump_all_solution": False,
+                    "dump_infeasible_solution": True,
+                    "stdout_solver_message": False
+                }
+            },
+            "start_tick": training_config["env"]["basic"]["start_tick"],
+            "durations": training_config["env"]["basic"]["durations"]
+        }
+    },
     "optimization": {
         "actor": OptimOption(
             optim_cls="adam",
