@@ -6,10 +6,10 @@ DELAY_DURATION: 1
 TICKS_PER_HOUR: 12
 
 # Path of the vm table data.
-VM_TABLE: "/home/ham/code/VM Allocation/maro/tests/data/vm_scheduling/vmtable_short.bin"
+VM_TABLE: "maro/tests/data/vm_scheduling/vmtable_short.bin"
 
 # Path of the cpu readings file.
-CPU_READINGS: "/home/ham/code/VM Allocation/maro/tests/data/vm_scheduling/vm_cpu_readings-file-2-of-short.bin"
+CPU_READINGS: "maro/tests/data/vm_scheduling/vm_cpu_readings-file-2-of-short.bin"
 
 PROCESSED_DATA_URL: "https://marodatasource.blob.core.windows.net/vm-scheduling-azure/azure.2019.10k/azure.2019.10k.tar.gz"
 
