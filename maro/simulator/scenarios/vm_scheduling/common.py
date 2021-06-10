@@ -79,6 +79,8 @@ class DecisionPayload:
         vm_memory_requirement: int,
         vm_sub_id: int,
         vm_category: int,
+        vm_lifetime: int,
+        vm_unit_price: int,
         remaining_buffer_time: int
     ):
         self.frame_index = frame_index
@@ -88,6 +90,8 @@ class DecisionPayload:
         self.vm_memory_requirement = vm_memory_requirement
         self.vm_sub_id = vm_sub_id
         self.vm_category = vm_category
+        self.vm_lifetime = vm_lifetime
+        self.vm_unit_price = vm_unit_price
         self.remaining_buffer_time = remaining_buffer_time
 
 

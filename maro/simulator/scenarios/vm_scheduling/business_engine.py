@@ -187,6 +187,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._total_oversubscriptions: int = 0
         self._total_overload_pms: int = 0
         self._total_overload_vms: int = 0
+        self._success_allocate_vm = dict()
 
     def _init_data(self):
         """If the file does not exist, then trigger the short data pipeline to download the processed data."""
@@ -577,7 +578,8 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             total_latency=self._total_latency,
             total_oversubscriptions=self._total_oversubscriptions,
             total_overload_pms=self._total_overload_pms,
-            total_overload_vms=self._total_overload_vms
+            total_overload_vms=self._total_overload_vms,
+            success_allocate_vm=self._success_allocate_vm
         )
 
     def _register_events(self):
@@ -832,6 +834,8 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 vm_memory_requirement=vm_info.memory_requirement,
                 vm_sub_id=vm_info.sub_id,
                 vm_category=vm_info.category,
+                vm_lifetime=vm_info.lifetime,
+                vm_unit_price = vm_info.unit_price,
                 remaining_buffer_time=remaining_buffer_time
             )
             self._pending_action_vm_id = vm_info.id
@@ -899,6 +903,9 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                     pm_type=self._pm_config_dict[pm.pm_type],
                     cpu_utilization=pm.cpu_utilization
                 )
+                if vm.cpu_cores_requirement not in self._success_allocate_vm.keys():
+                    self._success_allocate_vm[vm.cpu_cores_requirement] = 0
+                self._success_allocate_vm[vm.cpu_cores_requirement] += 1
                 self._successful_allocation += 1
 
             elif type(action) == PostponeAction:
