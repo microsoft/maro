@@ -4,15 +4,15 @@ RL Toolkit
 MARO provides a full-stack abstraction for reinforcement learning (RL) which includes various customizable
 components. At the top level of a training workflow are:
 
-* Learner, which consists of a roll-out manager and a policy manager, is the controller for a learning
+* Learner, which consists of a roll-out manager and a training manager, is the controller for a learning
   process. The learner process executes training cycles that alternate between data collection and policy
   updates.   
 * Rollout manager, which is responsible for collecting simulation data. The ``LocalRolloutManager`` performs roll-outs
   locally, while the ``ParallelRolloutManager`` manages a set of remote ``Actor``s to collect simulation data in parallel.
-* Policy manager, which manages a set of policies and controls their updates. The policy instances may reside in the
-  manager (``LocalPolicyManager``) or be distributed on a set of remote nodes (``ParallelPolicyManager``, to be implemented)
-  for parallelized training.
-* Actor, which consists of an environment instance and a set of policies that agents use to interact with it, is a
+* Training manager, which manages a set of policies and controls their updates. The policy instances may reside in the
+  manager (``LocalTrainingManager``) or be distributed on a set of remote nodes (``ParallelTrainingManager``) for parallelized
+  training.
+* roll-out worker, which consists of an environment instance and a set of policies that agents use to interact with it, is a
   remote roll-out worker instance managed by a ``ParallelRolloutManager``.
 
 
@@ -26,8 +26,8 @@ components. At the top level of a training workflow are:
    :alt: Overview
 
 
-.. image:: ../images/rl/policy_manager.svg
-   :target: ../images/rl/policy_manager.svg
+.. image:: ../images/rl/training_manager.svg
+   :target: ../images/rl/training_manager.svg
    :alt: RL Overview
 
 

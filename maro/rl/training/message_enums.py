@@ -21,8 +21,8 @@ class MsgTag(Enum):
 class MsgKey(Enum):
     ACTION = "action"
     AGENT_ID = "agent_id"
-    EPISODE_INDEX = "episode_index"
-    SEGMENT_INDEX = "segment_index"
+    EPISODE = "episode_index"
+    SEGMENT = "segment_index"
     TIME_STEP = "time_step"
     ENV_SUMMARY = "env_summary"
     EXPERIENCES = "experiences"
