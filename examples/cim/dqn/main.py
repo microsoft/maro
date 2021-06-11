@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from maro.rl.training import decision_generator
 import os
 import time
 import yaml
