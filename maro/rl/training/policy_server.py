@@ -1,8 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import os
 import time
-from os import getcwd
 from typing import List
 
 from maro.communication import Proxy
@@ -11,6 +11,8 @@ from maro.utils import Logger
 
 from .message_enums import MsgKey, MsgTag
 
+cwd = os.getcwd()
+
 
 class PolicyServer:
     def __init__(
@@ -18,12 +20,18 @@ class PolicyServer:
         policies: List[AbsPolicy],
         group: str,
         name: str,
-        log_dir: str = getcwd(),
+        inference: bool = False,
+        log_dir: str = cwd,
+        checkpoint_dir: str = cwd,
         **proxy_kwargs
     ):
         self.policy_dict = {policy.name: policy for policy in policies}
-        self._proxy = Proxy(group, "policy_server", {"policy_manager": 1}, component_name=name, **proxy_kwargs)
+        peers = {"training_manager": 1}
+        if inference:
+            peers["inference_manager"] = 1
+        self._proxy = Proxy(group, "policy_server", peers, component_name=name, **proxy_kwargs)
         self._logger = Logger(self._proxy.name, dump_folder=log_dir)
+        self._checkpoint_dir = checkpoint_dir
 
     def run(self):
         for msg in self._proxy.receive():
@@ -42,6 +50,8 @@ class PolicyServer:
                 self._logger.debug(f"total policy update time: {t1 - t0}")
                 self._proxy.reply(msg, body={MsgKey.POLICY: updated})
                 self._logger.debug(f"reply time: {time.time() - t1}")
+                for name, policy in self.policy_dict.items():
+                    policy.save(os.path.join(self._checkpoint_dir, name))
             elif msg.tag == MsgTag.GET_POLICY_STATE:
                 policy_state_dict = {name: policy.get_state() for name, policy in self.policy_dict.items()}
                 self._proxy.reply(msg, tag=MsgTag.POLICY_STATE, body={MsgKey.POLICY: policy_state_dict})

@@ -15,7 +15,7 @@ from maro.utils import Logger
 from .message_enums import MsgKey, MsgTag
 
 
-class AbsPolicyManager(ABC):
+class AbsTrainingManager(ABC):
     """Controller for policy updates.
 
     The actual policy instances may reside here or be distributed on a set of remote nodes.
@@ -40,7 +40,7 @@ class AbsPolicyManager(ABC):
         raise NotImplementedError
 
 
-class LocalPolicyManager(AbsPolicyManager):
+class LocalTrainingManager(AbsTrainingManager):
     """Policy manager that contains the actual policy instances.
 
     Args:
@@ -52,7 +52,7 @@ class LocalPolicyManager(AbsPolicyManager):
     def __init__(self, policies: List[AbsPolicy], log_dir: str = getcwd()):
         super().__init__()
         self._names = [policy.name for policy in policies]
-        self._logger = Logger("LOCAL_POLICY_MANAGER", dump_folder=log_dir)
+        self._logger = Logger("LOCAL_TRAINING_MANAGER", dump_folder=log_dir)
         self.policy_dict = {policy.name: policy for policy in policies}
         self._new_exp_counter = defaultdict(int)
 
@@ -83,7 +83,7 @@ class LocalPolicyManager(AbsPolicyManager):
         return {name: policy.get_state() for name, policy in self.policy_dict.items()}
 
 
-class ParallelPolicyManager(AbsPolicyManager):
+class ParallelTrainingManager(AbsTrainingManager):
     def __init__(
         self,
         policy2server: Dict[str, str],
@@ -92,11 +92,11 @@ class ParallelPolicyManager(AbsPolicyManager):
         **proxy_kwargs
     ):
         super().__init__()
-        self._logger = Logger("PARALLEL_POLICY_MANAGER", dump_folder=log_dir)
+        self._logger = Logger("PARALLEL_TRAINING_MANAGER", dump_folder=log_dir)
         self.policy2server = policy2server
         self._names = list(self.policy2server.keys())
         peers = {"policy_server": len(set(self.policy2server.values()))}
-        self._proxy = Proxy(group, "policy_manager", peers, **proxy_kwargs)
+        self._proxy = Proxy(group, "training_manager", peers, **proxy_kwargs)
 
     @property
     def names(self):

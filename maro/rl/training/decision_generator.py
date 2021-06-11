@@ -91,7 +91,7 @@ class PolicyClient(AbsDecisionGenerator):
         super().__init__(agent2policy)
         self._max_receive_attempts = max_receive_attempts
         self._receive_timeout = receive_timeout
-        self._proxy = Proxy(group, "policy_client", {"policy_server": 1}, **proxy_kwargs)
+        self._proxy = Proxy(group, "policy_client", {"policy_manager": 1}, **proxy_kwargs)
         self._logger = Logger(self._proxy.name, dump_folder=log_dir)
 
     def choose_action(self, state: dict, ep: int, step: int) -> dict:

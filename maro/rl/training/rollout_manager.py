@@ -56,7 +56,7 @@ class AbsRolloutManager(ABC):
 
 
 class LocalRolloutManager(AbsRolloutManager):
-    """Controller for a single local roll-out actor.
+    """Local roll-out controller.
 
     Args:
         env (AbsEnvWrapper): An ``AbsEnvWrapper`` instance to interact with a set of agents and collect experiences
@@ -225,25 +225,25 @@ class LocalRolloutManager(AbsRolloutManager):
 
 
 class ParallelRolloutManager(AbsRolloutManager):
-    """Controller for a set of remote roll-out actors.
+    """Controller for a set of remote roll-out workers.
 
     Args:
-        num_actors (int): Number of remote roll-out actors.
-        group (str): Identifier of the group to which the actor belongs. It must be the same group name
-            assigned to the learner (and decision clients, if any).
+        num_rollout_workers (int): Number of remote roll-out workers.
+        group (str): Group name for the roll-out manager and the set of roll-out workers managed by it. The roll-out
+            workers' processes must be assigned this group name in order to form a communicating cluster.
         exploration_dict (Dict[str, AbsExploration]): A set of named exploration schemes. The exploration parameters
-            from these instances will be broadcast to all actors. Defaults to None.
+            from these instances will be broadcast to all workers. Defaults to None.
         num_steps (int): Number of environment steps to roll out in each call to ``collect``. Defaults to -1, in which
             case the roll-out will be executed until the end of the environment.
-        max_receive_attempts (int): Maximum number of attempts to receive actor results in ``collect``. Defaults to
-            None, in which case the number is set to ``num_actors``.
-        receive_timeout (int): Maximum wait time (in milliseconds) for each attempt to receive from the actors. This
+        max_receive_attempts (int): Maximum number of attempts to receive  results in ``collect``. Defaults to
+            None, in which case the number is set to ``num_rollout_workers``.
+        receive_timeout (int): Maximum wait time (in milliseconds) for each attempt to receive from the workers. This
             This multiplied by ``max_receive_attempts`` give the upperbound for the amount of time to receive the
-            desired amount of data from actors. Defaults to None, in which case each receive attempt is blocking.
+            desired amount of data from workers. Defaults to None, in which case each receive attempt is blocking.
         max_staleness (int): Maximum allowable staleness measured in the number of calls to ``collect``. Experiences
             collected from calls to ``collect`` within ``max_staleness`` calls ago will be returned to the learner.
             Defaults to 0, in which case only experiences from the latest call to ``collect`` will be returned.
-        num_eval_actors (int): Number of actors required for evaluation. Defaults to 1.
+        num_eval_workers (int): Number of workers for evaluation. Defaults to 1.
         log_env_summary (bool): If True, the ``summary`` property of the environment wrapper will be logged at the end
             of each episode. Defaults to True.
         log_dir (str): Directory to store logs in. A ``Logger`` with tag "LOCAL_ROLLOUT_MANAGER" will be created at
@@ -254,33 +254,33 @@ class ParallelRolloutManager(AbsRolloutManager):
     """
     def __init__(
         self,
-        num_actors: int,
+        num_rollout_workers: int,
         group: str,
         exploration_dict: Dict[str, AbsExploration] = None,
         num_steps: int = -1,
         max_receive_attempts: int = None,
         receive_timeout: int = None,
         max_staleness: int = 0,
-        num_eval_actors: int = 1,
+        num_eval_workers: int = 1,
         log_env_summary: bool = True,
         log_dir: str = getcwd(),
         **proxy_kwargs
     ):
         super().__init__()
-        if num_eval_actors > num_actors:
-            raise ValueError("num_eval_actors cannot exceed the number of available actors")
+        if num_eval_workers > num_rollout_workers:
+            raise ValueError("num_eval_workers cannot exceed the number of available workers")
 
         self._logger = Logger("PARALLEL_ROLLOUT_MANAGER", dump_folder=log_dir)
-        self.num_actors = num_actors
-        peers = {"actor": num_actors}
+        self.num_rollout_workers = num_rollout_workers
+        peers = {"rollout_worker": num_rollout_workers}
         self._proxy = Proxy(group, "rollout_manager", peers, **proxy_kwargs)
-        self._actors = self._proxy.peers["actor"]  # remote actor ID's
+        self._workers = self._proxy.peers["rollout_worker"]  # remote roll-out worker ID's
 
         self.exploration_dict = exploration_dict
         self._num_steps = num_steps
 
         if max_receive_attempts is None:
-            max_receive_attempts = self.num_actors
+            max_receive_attempts = self.num_rollout_workers
             self._logger.info(f"Maximum receive attempts is set to {max_receive_attempts}")
 
         self.max_receive_attempts = max_receive_attempts
@@ -291,7 +291,7 @@ class ParallelRolloutManager(AbsRolloutManager):
         self.total_env_steps = 0
         self._log_env_summary = log_env_summary
 
-        self._num_eval_actors = num_eval_actors
+        self._num_eval_workers = num_eval_workers
 
         self._exploration_update = True
 
@@ -313,10 +313,10 @@ class ParallelRolloutManager(AbsRolloutManager):
             }
             self._exploration_update = False
 
-        self._proxy.ibroadcast("actor", MsgTag.COLLECT, SessionType.TASK, body=msg_body)
-        self._logger.info(f"Sent collect requests to {self._actors} for ep-{episode_index}, segment-{segment_index}")
+        self._proxy.ibroadcast("rollout_worker", MsgTag.COLLECT, SessionType.TASK, body=msg_body)
+        self._logger.info(f"Sent collect requests to {self._workers} for ep-{episode_index}, segment-{segment_index}")
 
-        # Receive roll-out results from remote actors
+        # Receive roll-out results from remote workers
         combined_exp_by_policy = defaultdict(ExperienceSet)
         num_finishes = 0
         for _ in range(self.max_receive_attempts):
@@ -343,7 +343,7 @@ class ParallelRolloutManager(AbsRolloutManager):
                         if self._log_env_summary:
                             self._logger.info(f"env summary: {msg.body[MsgKey.ENV_SUMMARY]}")
                     num_finishes += 1
-                    if num_finishes == self.num_actors:
+                    if num_finishes == self.num_rollout_workers:
                         break
 
         if self.episode_complete:
@@ -366,12 +366,12 @@ class ParallelRolloutManager(AbsRolloutManager):
         """
         msg_body = {MsgKey.EPISODE: ep, MsgKey.POLICY: policy_state_dict}
 
-        actors = choices(self._actors, k=self._num_eval_actors)
+        workers = choices(self._workers, k=self._num_eval_workers)
         env_summary_dict = {}
-        self._proxy.iscatter(MsgTag.EVAL, SessionType.TASK, [(actor_id, msg_body) for actor_id in actors])
-        self._logger.info(f"Sent evaluation requests to {actors}")
+        self._proxy.iscatter(MsgTag.EVAL, SessionType.TASK, [(worker_id, msg_body) for worker_id in workers])
+        self._logger.info(f"Sent evaluation requests to {workers}")
 
-        # Receive roll-out results from remote actors
+        # Receive roll-out results from remote workers
         num_finishes = 0
         for msg in self._proxy.receive():
             if msg.tag != MsgTag.EVAL_DONE or msg.body[MsgKey.EPISODE] != ep:
@@ -385,13 +385,13 @@ class ParallelRolloutManager(AbsRolloutManager):
 
             if msg.body[MsgKey.EPISODE] == ep:
                 num_finishes += 1
-                if num_finishes == self._num_eval_actors:
+                if num_finishes == self._num_eval_workers:
                     break
 
         return env_summary_dict
 
     def exit(self):
-        """Tell the remote actors to exit."""
-        self._proxy.ibroadcast("actor", MsgTag.EXIT, SessionType.NOTIFICATION)
+        """Tell the remote workers to exit."""
+        self._proxy.ibroadcast("rollout_worker", MsgTag.EXIT, SessionType.NOTIFICATION)
         self._proxy.close()
         self._logger.info("Exiting...")
