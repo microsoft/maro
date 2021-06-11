@@ -24,7 +24,6 @@ class MsgKey(Enum):
     EPISODE = "episode"
     SEGMENT = "segment"
     STEP = "step"
-    TIME_STEP = "time_step"
     ENV_SUMMARY = "env_summary"
     EXPERIENCES = "experiences"
     NUM_EXPERIENCES = "num_experiences"

@@ -92,8 +92,8 @@ def rollout_worker(
         while env.state and steps_to_go > 0:
             action = decision_generator.choose_action(env.state, ep, env.step_index)
             if exploration_dict:
-                for agent_id, exploration in exploration_by_agent.items():
-                    action[agent_id] = exploration(action[agent_id])
+                for agent_id in action:
+                    action[agent_id] = exploration_by_agent[agent_id](action[agent_id])
             env.step(action)
             steps_to_go -= 1
 
@@ -104,7 +104,7 @@ def rollout_worker(
 
         if hasattr(decision_generator, "store_experiences"):
             policy_names = decision_generator.store_experiences(env.get_experiences())
-            ret_exp = decision_generator.get_experiences(policy_names)
+            ret_exp = decision_generator.get_experiences_by_policy(policy_names)
 
         return_info = {
             MsgKey.EPISODE_END: not env.state,

@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from maro.rl.algorithm import (
+from maro.rl.algorithms import (
     DDPG, DQN, ActorCritic, ActorCriticConfig, DDPGConfig, DQNConfig, PolicyGradient, PolicyGradientConfig,
     get_rl_policy_cls, get_rl_policy_config_cls, get_rl_policy_model_cls
 )
