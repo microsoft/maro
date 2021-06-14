@@ -4,12 +4,11 @@
 import os
 import sys
 import time
+import torch
 import numpy as np
 from typing import Union
 import matplotlib.pyplot as plt
 from collections import defaultdict
-
-import torch
 
 from maro.rl import (
     AbsEnvWrapper, AbsPolicy, AbsExploration, AbsEarlyStopper
@@ -135,7 +134,7 @@ class VMLearner:
         self.env.reset()
         self.env.start()  # get initial state
         while self.env.state is not None:
-            action, value = self._policy.choose_action(self.env.state, self.env.legal_pm, False)
+            action, value = self._policy.choose_action((self.env.state, self.env.legal_pm), False)
             self.env.step(action)
 
         # performance details
@@ -146,7 +145,7 @@ class VMLearner:
         info = defaultdict(list)
         actions = []
         while self.eval_env.state is not None:
-            action, value = self._policy.choose_action(self.eval_env.state, self.eval_env.legal_pm, False)
+            action, value = self._policy.choose_action((self.eval_env.state, self.eval_env.legal_pm), False)
             legal_pm = self.eval_env.legal_pm.copy()
             info[self.eval_env.event.vm_cpu_cores_requirement].append([value, legal_pm])
             actions.append(action)
@@ -169,10 +168,10 @@ class VMLearner:
             else:
                 if self._exploration:
                     action = self._exploration(
-                        self._policy.choose_action(self.env.state, self.env.legal_pm), self.env.legal_pm
+                        self._policy.choose_action((self.env.state, self.env.legal_pm)), self.env.legal_pm
                     )
                 else:
-                    action = self._policy.choose_action(self.env.state, self.env.legal_pm)
+                    action = self._policy.choose_action((self.env.state, self.env.legal_pm))
             self.env.step(action)
             steps_to_go -= 1
 

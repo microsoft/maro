@@ -1,11 +1,9 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import pdb
-from collections import OrderedDict
-
 import torch
 import torch.nn as nn
+from collections import OrderedDict
 
 from maro.rl import AbsBlock
 

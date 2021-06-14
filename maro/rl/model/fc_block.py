@@ -27,7 +27,7 @@ class FullyConnectedBlock(AbsBlock):
             will be the final output layer. Defaults to False.
         softmax (bool): If true, the output of the net will be a softmax transformation of the top layer's
             output. Defaults to False.
-        batch_norm (bool): If true, batch normalization will be performed at each layer.
+        batch_norm (bool): If true, batch normalization will be performed at each layer. Defaults to False
         skip_connection (bool): If true, a skip connection will be built between the bottom (input) layer and
             top (output) layer. Defaults to False.
         dropout_p (float): Dropout probability. Defaults to None, in which case there is no drop-out.

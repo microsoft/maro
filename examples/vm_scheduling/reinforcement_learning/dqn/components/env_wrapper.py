@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import pdb
 import numpy as np
 from collections import defaultdict
 
@@ -14,7 +13,7 @@ from examples.vm_scheduling.reinforcement_learning.common import VMEnvWrapper
 class VMEnvWrapperForDQN(VMEnvWrapper):
     def __init__(
         self,
-        env,
+        env: Env,
         training: bool,
         alpha: float,
         beta: float,

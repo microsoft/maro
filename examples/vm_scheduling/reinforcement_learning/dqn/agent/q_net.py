@@ -1,5 +1,7 @@
-import numpy as np
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
 
+import numpy as np
 import torch
 import torch.nn as nn
 
@@ -13,11 +15,12 @@ class QNet(DiscreteQNet):
             states = states.unsqueeze(dim=0)
         return self.component(states)
 
-    def get_action(self, states, legal_action, training=True):
+    def get_action(self, states, training=True):
         """
         Given Q-values for a batch of states and all actions, return the action index and the corresponding
         Q-values for each state.
         """
+        states, legal_action = states
         legal_action = torch.from_numpy(np.asarray(legal_action)).to(self.device)
         illegal_action = (legal_action - 1) * 1e8
         q_for_all_actions = self.forward(states)  # (batch_size, num_actions)

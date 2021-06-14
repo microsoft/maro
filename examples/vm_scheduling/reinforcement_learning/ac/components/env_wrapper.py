@@ -1,13 +1,12 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import pdb
 import scipy.signal
 import numpy as np
 from collections import defaultdict
 
 from maro.rl import ExperienceSet
-from examples.vm_scheduling.refine_rl.common import VMEnvWrapper
+from examples.vm_scheduling.reinforcement_learning.common import VMEnvWrapper
 
 
 class VMEnvWrapperForAC(VMEnvWrapper):

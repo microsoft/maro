@@ -4,10 +4,9 @@
 import os
 import yaml
 import random
+import numpy as np
 from os import getenv
 from os.path import dirname, join, realpath
-
-import numpy as np
 
 from maro.rl import (
     ActorCritic, ActorCriticConfig, ExperienceManager

@@ -1,9 +1,9 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import numpy as np
 from typing import Tuple
 
+import numpy as np
 import torch
 from torch.distributions import Categorical
 
@@ -11,11 +11,11 @@ from maro.rl import ActorCritic
 
 
 class VMActorCritic(ActorCritic):
-    def choose_action(self, state: np.ndarray, legal_action: np.ndarray, training: bool = True) -> Tuple[np.ndarray, np.ndarray]:
+    def choose_action(self, state: np.ndarray, training: bool = True) -> Tuple[np.ndarray, np.ndarray]:
         """Return actions and log probabilities for given states."""
         with torch.no_grad():
             self.ac_net.eval()
-            action, log_p = self.ac_net.get_action(state, legal_action, training)
+            action, log_p = self.ac_net.get_action(state, training)
 
         action, log_p = action.cpu().numpy(), log_p.cpu().numpy()
         return (action[0], log_p[0])
@@ -58,7 +58,7 @@ class VMActorCritic(ActorCritic):
 
                 # critic_loss
                 critic_loss = self.config.critic_loss_func(state_values, return_est)
-                loss = critic_loss + 0.5 * actor_loss
+                loss = critic_loss + self.config.actor_loss_coefficient * actor_loss
 
                 self.ac_net.step(loss)
 

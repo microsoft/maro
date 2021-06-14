@@ -1,21 +1,20 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import pdb
-import numpy as np
 from typing import Union
 
 import torch
+import numpy as np
 
 from maro.rl import DQN
 
 
 class VMDQN(DQN):
-    def choose_action(self, state: np.ndarray, legal_action: np.ndarray, training: bool = True) -> Union[int, np.ndarray]:
+    def choose_action(self, state: np.ndarray, training: bool = True) -> Union[int, np.ndarray]:
         """Return action."""
         with torch.no_grad():
             self.q_net.eval()
-            action, q_value = self.q_net.get_action(state, legal_action, training)
+            action, q_value = self.q_net.get_action(state, training)
 
         action = action.cpu().numpy()
         q_value = q_value.cpu().numpy()

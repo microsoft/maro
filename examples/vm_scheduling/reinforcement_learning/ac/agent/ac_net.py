@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 import numpy as np
-
 import torch
 import torch.nn as nn
 from torch.distributions import Categorical
@@ -20,11 +19,12 @@ class ACNet(DiscreteACNet):
             self.component["critic"](states) if critic else None
         )
 
-    def get_action(self, states, legal_action, training=True):
+    def get_action(self, states, training=True):
         """
         Given Q-values for a batch of states, return the action index and the corresponding maximum Q-value
         for each state.
         """
+        states, legal_action = states
         legal_action = torch.from_numpy(np.asarray(legal_action)).to(self.device)
 
         if not training:
