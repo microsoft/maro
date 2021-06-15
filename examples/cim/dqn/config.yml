@@ -3,7 +3,7 @@
 
 experiment_name: cim_dqn
 mode: multi-process # local, multi-process
-num_episodes: 100
+num_episodes: 3
 # eval_schedule: 2
 num_steps: -1
 env:
@@ -82,9 +82,9 @@ policy:
   warmup: 1
 multi-process:
   rollout_mode: parallel # local, parallel
-  policy_training_mode: parallel # local, parallel
+  policy_training_mode: local # local, parallel
   group: cim-dqn
-  num_actors: 3
+  num_rollout_workers: 3
   num_policy_servers: 2
   redis_host: localhost
   redis_port: 6379

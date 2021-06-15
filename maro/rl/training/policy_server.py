@@ -22,7 +22,7 @@ class PolicyServer:
         **proxy_kwargs
     ):
         self.policy_dict = {policy.name: policy for policy in policies}
-        self._proxy = Proxy(group, "policy_server", {"policy_manager": 1}, component_name=name, **proxy_kwargs)
+        self._proxy = Proxy(group, "policy_server", {"training_manager": 1}, component_name=name, **proxy_kwargs)
         self._logger = Logger(self._proxy.name, dump_folder=log_dir)
 
     def run(self):
