@@ -4,23 +4,26 @@
 import os
 import yaml
 import random
-import numpy as np
-from os import getenv
-from os.path import dirname, join, realpath
 
 from maro.rl import (
-    ActorCritic, ActorCriticConfig, ExperienceManager
+    ActorCritic, ActorCriticConfig, ExperienceManager, OptimOption
 )
 from maro.simulator import Env
 from maro.utils import LogFormat, Logger, convert_dottable
 
-from config import agent_config, training_config
 from components import VMEnvWrapperForAC
 from agent import ACNet, VMActorCritic
-from examples.vm_scheduling.reinforcement_learning.common import VMLearner, RuleAgent, ILPAgent
+from examples.vm_scheduling.reinforcement_learning.common import (
+    VMLearner, RuleAgent, ILPAgent, CombineNet, SequenceNet
+)
 
 
 FILE_PATH = os.path.split(os.path.realpath(__file__))[0]
+CONFIG_PATH = os.path.join(FILE_PATH, "config.yml")
+with io.open(CONFIG_PATH, "r") as in_file:
+    raw_config = yaml.safe_load(in_file)
+    config = convert_dottable(raw_config)
+
 LOG_PATH = os.path.join(FILE_PATH, "log", training_config["experiment_name"])
 if not os.path.exists(LOG_PATH):
     os.makedirs(LOG_PATH)
@@ -38,16 +41,22 @@ PICTURE_PATH = os.path.join(FILE_PATH, "log", training_config["experiment_name"]
 if not os.path.exists(PICTURE_PATH):
     os.makedirs(PICTURE_PATH)
 
+input_dim = (
+    (config["env"]["wrapper"]["pm_num"] * 2)
+    * config["env"]["wrapper"]["pm_window_size"]
+    + (5 * config["env"]["wrapper"]["vm_window_size"])
+)
+
 
 def get_ac_policy(agent_config):
     ac_net = ACNet(
         component={
-            "actor": agent_config["actor_type"](**agent_config["actor"]),
-            "critic": agent_config["critic_type"](**agent_config["critic"])
+            "actor": agent_config["actor_type"](**agent_config["model"]["network"]["actor"]),
+            "critic": agent_config["critic_type"](**agent_config["model"]["network"]["critic"])
         },
         optim_option={
-            "actor":  agent_config["optimization"]["actor"],
-            "critic": agent_config["optimization"]["critic"]
+            "actor":  OptimOption(**agent_config["model"]["optimization"]["actor"]),
+            "critic": OptimOption(**agent_config["model"]["optimization"]["critic"])
         }
     )
     experience_manager = ExperienceManager(**agent_config["experience_manager"])
@@ -74,23 +83,29 @@ def get_ilp_policy(env, agent_config):
 
 
 if __name__ == "__main__":
-    env = Env(**training_config["env"]["basic"])
-    eval_env = Env(**training_config["eval_env"]["basic"])
+    env = Env(**config["env"]["basic"])
+    eval_env = Env(**config["eval_env"]["basic"])
 
-    if training_config["seed"] is not None:
-        env.set_seed(training_config["seed"])
-        eval_env.set_seed(training_config["seed"])
-        random.seed(training_config["seed"])
+    shutil.copy(
+        os.path.join(env._business_engine._config_path, "config.yml"),
+        os.path.join(LOG_PATH, "BEconfig.yml")
+    )
+    shutil.copy(CONFIG_PATH, os.path.join(LOG_PATH, "config.yml"))
+
+    if config["seed"] is not None:
+        env.set_seed(config["seed"])
+        eval_env.set_seed(config["seed"])
+        random.seed(config["seed"])
 
     local_learner = VMLearner(
-        env=VMEnvWrapperForAC(env, **training_config["env"]["wrapper"]),
-        policy=get_ac_policy(agent_config),
-        auxiliary_policy=get_rule_based_policy(env, agent_config["rule_agent"]),
-        num_episodes=training_config["num_episodes"],
-        num_steps=training_config["num_steps"],
-        eval_schedule=training_config["eval_schedule"],
-        eval_env=VMEnvWrapperForAC(eval_env, **training_config["eval_env"]["wrapper"]),
-        auxiliary_prob=training_config["auxiliary_prob"],
+        env=VMEnvWrapperForAC(env, **config["env"]["wrapper"]),
+        policy=get_ac_policy(config["policy"]),
+        auxiliary_policy=get_ilp_policy(env, config["policy"]["ilp_agent"]),
+        num_episodes=config["num_episodes"],
+        num_steps=config["num_steps"],
+        eval_schedule=config["eval_schedule"],
+        eval_env=VMEnvWrapperForAC(eval_env, **config["eval_env"]["wrapper"]),
+        auxiliary_prob=config["auxiliary_prob"],
         simulation_logger=simulation_logger,
         eval_simulation_logger=test_simulation_logger,
         rl_logger=ac_logger,

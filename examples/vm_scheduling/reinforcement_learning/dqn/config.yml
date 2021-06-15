@@ -1,0 +1,115 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
+experiment_name: vm_schedueling_dqn
+num_episodes: 400
+num_steps: -1
+eval_schedule: 10
+auxiliary_prob: 0.1
+env:
+  basic:
+    scenario: vm_scheduling
+    topology: azure.2019.10k.short
+    start_tick: 0
+    durations: 200
+    snapshot_resolution: 1
+  wrapper:
+    alpha: 0.0
+    beta: 1.0
+    pm_num: 8
+    durations: 200
+    vm_state_path: ../data/train_vm_states.npy
+    vm_window_size: 1
+    pm_window_size: 1
+    window_type: fix
+    window_size: 1
+    gamma: 0.9
+eval_env:
+  basic:
+    scenario: vm_scheduling
+    topology: azure.2019.10k.short.test
+    start_tick: 0
+    durations: 300
+    snapshot_resolution: 1
+  wrapper:
+    alpha: 0.0
+    beta: 1.0
+    pm_num: 8
+    durations: 200
+    vm_state_path: ../data/test_vm_states.npy
+    vm_window_size: 1
+    pm_window_size: 1
+    window_type: fix
+    window_size: 1
+    gamma: 0.9
+seed: 666
+exploration:
+  last_ep: 400
+  initial_value: 0.4
+  final_value: 0.0
+  splits: [[100, 0.32]]
+training:
+  min_experiences_to_train: 0
+  train_iter: 100
+  batch_size: 256,
+  prioritized_sampling_by_loss: true
+  validate_interval: 10
+policy:
+  model:
+    network:
+      output_dim: 9
+      hidden_dims:
+        - 64
+        - 128
+        - 256
+      activation: leaky_relu
+      softmax: false
+      batch_norm: false
+      skip_connection: false
+      head: true
+      dropout_p: 0.0
+    optimization:
+      optim_cls: sgd
+      optim_params:
+        lr: 0.0005
+      scheduler_cls: cosine_annealing_warm_restarts
+      scheduler_params:
+        T_0: 500
+        T_mult: 2
+  rule_agent:
+    pm_num: 8
+    algorithm:
+      type: examples.vm_scheduling.rule_based_algorithm.best_fit.BestFit
+      args:
+        metric_type: remaining_cpu_cores
+  ilp_agent:
+    pm_num: 8
+    algorithm:
+      ilp:
+        solver: CBC          # GLPK, CBC
+        plan_window_size: 50  # unit: tick
+        apply_buffer_size: 50  # unit: tick
+        performance:
+          core_safety_remaining_ratio: 0
+          mem_safety_remaining_ratio: 0
+      objective:
+        successful_allocation_decay: 1
+        allocation_multiple_core_num: false
+        log:
+          dump_all_solution: false
+          dump_infeasible_solution: true
+          stdout_solver_message: false
+          start_tick: 0
+          durations: 200
+  algorithm_config:
+    reward_discount: 0.9
+    target_update_freq: 5
+    train_epochs: 100
+    gradient_iters: 1
+    soft_update_coefficient: 0.1
+    double: false
+    loss_cls: smooth_l1
+  experience_manager:
+    capacity: 10000
+    overwrite_type: rolling
+    batch_size: 256

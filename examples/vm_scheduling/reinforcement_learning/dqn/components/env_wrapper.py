@@ -14,11 +14,11 @@ class VMEnvWrapperForDQN(VMEnvWrapper):
     def __init__(
         self,
         env: Env,
-        training: bool,
         alpha: float,
         beta: float,
         pm_num: int,
         durations: int,
+        vm_state_path: str,
         vm_window_size: int,
         pm_window_size: int,
         gamma: float,
@@ -26,8 +26,8 @@ class VMEnvWrapperForDQN(VMEnvWrapper):
         window_size: int,
     ):
         super().__init__(
-            env, training, alpha, beta, pm_num, durations,
-            vm_window_size, pm_window_size, gamma
+            env, alpha, beta, pm_num, durations,
+            vm_state_path, vm_window_size, pm_window_size, gamma
         )
         self._window_type = window_type # determine the type of the used window (fix or flexible)
         self._window_size = window_size # the size of the used window

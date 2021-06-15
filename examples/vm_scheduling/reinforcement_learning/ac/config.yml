@@ -1,0 +1,109 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
+experiment_name: vm_schedueling_ac
+num_episodes: 400
+num_steps: -1
+eval_schedule: 10
+auxiliary_prob: 0.1
+env:
+  basic:
+    scenario: vm_scheduling
+    topology: azure.2019.10k.short
+    start_tick: 0
+    durations: 200
+    snapshot_resolution: 1
+  wrapper:
+    alpha: 0.0
+    beta: 1.0
+    pm_num: 8
+    durations: 200
+    vm_state_path: ../data/train_vm_states.npy
+    vm_window_size: 1
+    pm_window_size: 1
+    gamma: 0.9
+eval_env:
+  basic:
+    scenario: vm_scheduling
+    topology: azure.2019.10k.short.test
+    start_tick: 0
+    durations: 300
+    snapshot_resolution: 1
+  wrapper:
+    alpha: 0.0
+    beta: 1.0
+    pm_num: 8
+    durations: 200
+    vm_state_path: ../data/test_vm_states.npy
+    vm_window_size: 1
+    pm_window_size: 1
+    gamma: 0.9
+seed: 666
+policy:
+  model:
+    network:
+      actor:
+        output_dim: 9
+        hidden_dims:
+          - 64
+          - 32
+          - 32
+        activation: leaky_relu
+        softmax: true
+        batch_norm: False
+        head: true
+      critic:
+        output_dim: 1
+        hidden_dims:
+          - 256
+          - 128
+          - 64
+        activation: leaky_relu
+        softmax: false
+        batch_norm: false
+        head: true
+    optimization:
+      actor:
+        optim_cls: adam
+        optim_params:
+          lr: 0.0001
+      critic:
+        optim_cls: sgd
+        optim_params:
+          lr: 0.001
+  rule_agent:
+    pm_num: 8
+    algorithm:
+      type: examples.vm_scheduling.rule_based_algorithm.best_fit.BestFit
+      args:
+        metric_type: remaining_cpu_cores
+  ilp_agent:
+    pm_num: 8
+    algorithm:
+      ilp:
+        solver: CBC          # GLPK, CBC
+        plan_window_size: 50  # unit: tick
+        apply_buffer_size: 50  # unit: tick
+        performance:
+          core_safety_remaining_ratio: 0
+          mem_safety_remaining_ratio: 0
+      objective:
+        successful_allocation_decay: 1
+        allocation_multiple_core_num: false
+        log:
+          dump_all_solution: false
+          dump_infeasible_solution: true
+          stdout_solver_message: false
+          start_tick: 0
+          durations: 200
+  algorithm_config:
+    reward_discount: 0.9
+    train_epochs: 100
+    gradient_iters: 1
+    critic_loss_cls: mse
+    actor_loss_coefficient: 0.1
+  experience_manager:
+    capacity: 10000
+    overwrite_type: rolling
+    batch_size: -1
+    replace: False
