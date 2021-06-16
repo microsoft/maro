@@ -6,10 +6,14 @@ from .early_stopper import AbsEarlyStopper
 from .inference_manager import InferenceManager
 from .learner import Learner
 from .local_learner import LocalLearner
-from .policy_server import PolicyServer
-from .rollout_manager import AbsRolloutManager, LocalRolloutManager, ParallelRolloutManager
-from .rollout_worker import rollout_worker
-from .training_manager import AbsTrainingManager, LocalTrainingManager, ParallelTrainingManager
+from .rollout_manager import (
+    AbsRolloutManager, LocalRolloutManager, MultiProcessRolloutManager, MultiNodeRolloutManager
+)
+from .rollout_worker import rollout_worker_node, rollout_worker_process
+from .trainer import trainer_node, trainer_process
+from .training_manager import (
+    AbsTrainingManager, LocalTrainingManager, MultiNodeTrainingManager, MultiProcessTrainingManager
+)
 
 __all__ = [
     "AbsDecisionGenerator", "LocalDecisionGenerator", "PolicyClient",
@@ -17,8 +21,8 @@ __all__ = [
     "InferenceManager",
     "Learner",
     "LocalLearner",
-    "PolicyServer", "PolicyServerGateway",
-    "AbsRolloutManager", "LocalRolloutManager", "ParallelRolloutManager",
-    "rollout_worker",
-    "AbsTrainingManager", "LocalTrainingManager", "ParallelTrainingManager"
+    "AbsRolloutManager", "LocalRolloutManager", "MultiProcessRolloutManager", "MultiNodeRolloutManager",
+    "rollout_worker_node", "rollout_worker_process",
+    "trainer_node", "trainer_process",
+    "AbsTrainingManager", "LocalTrainingManager", "MultiNodeTrainingManager", "MultiProcessTrainingManager"
 ]

@@ -1,26 +1,104 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from collections import defaultdict
+from multiprocessing.connection import Connection
 from os import getcwd
-from typing import Dict
+from typing import Callable
 
 from maro.communication import Proxy
 from maro.rl.env_wrapper import AbsEnvWrapper
-from maro.rl.exploration import AbsExploration
-from maro.utils import Logger
+from maro.utils import Logger, set_seeds
 
 from .decision_generator import AbsDecisionGenerator
 from .message_enums import MsgKey, MsgTag
 
 
-def rollout_worker(
-    env: AbsEnvWrapper,
-    decision_generator: AbsDecisionGenerator,
+def rollout_worker_process(
+    index: int,
+    conn: Connection,
+    create_env_wrapper_func: Callable[[], AbsEnvWrapper],
+    create_decision_generator_func: Callable[[], AbsDecisionGenerator],
+    create_eval_env_wrapper_func: Callable[[], AbsEnvWrapper],
+    log_dir: str
+):
+    set_seeds(index)
+    env_wrapper = create_env_wrapper_func()
+    eval_env_wrapper = env_wrapper if not create_eval_env_wrapper_func else create_eval_env_wrapper_func() 
+    decision_generator = create_decision_generator_func()
+    logger = Logger("ROLLOUT_WORKER", dump_folder=log_dir)
+
+    def collect(msg):
+        ep, segment = msg["episode"], msg["segment"]
+        # load policies
+        if hasattr(decision_generator, "update"):
+            decision_generator.update(msg["policy"])
+
+        # update exploration parameters
+        decision_generator.explore()
+        if msg["exploration_step"]:
+            decision_generator.exploration_step()
+
+        if env_wrapper.state is None:
+            logger.info(f"Training episode {ep}")
+            env_wrapper.reset()
+            env_wrapper.start()  # get initial state
+
+        starting_step_index = env_wrapper.step_index + 1
+        steps_to_go = float("inf") if msg["num_steps"] == -1 else msg["num_steps"]
+        while env_wrapper.state and steps_to_go > 0:
+            action = decision_generator.choose_action(env_wrapper.state, ep, env_wrapper.step_index)
+            env_wrapper.step(action)
+            steps_to_go -= 1
+
+        logger.info(
+            f"Roll-out finished for ep {ep}, segment {segment}"
+            f"(steps {starting_step_index} - {env_wrapper.step_index})"
+        )
+
+        if hasattr(decision_generator, "store_experiences"):
+            policy_names = decision_generator.store_experiences(env_wrapper.get_experiences())
+            ret_exp = decision_generator.get_experiences_by_policy(policy_names)
+
+        return_info = {
+            "worker_index": index,
+            "episode_end": not env_wrapper.state,
+            "experiences": ret_exp,
+            "env_summary": env_wrapper.summary,
+            "num_steps": env_wrapper.step_index - starting_step_index + 1
+        }
+
+        conn.send(return_info)
+
+    def evaluate(msg):
+        logger.info(f"Evaluating...")
+        eval_env_wrapper.reset()
+        eval_env_wrapper.start()  # get initial state
+        decision_generator.exploit()
+        if hasattr(decision_generator, "update"):
+            decision_generator.update(msg["policy"])
+        while eval_env_wrapper.state:
+            action = decision_generator.choose_action(
+                eval_env_wrapper.state, msg["episode"], eval_env_wrapper.step_index
+            )
+            eval_env_wrapper.step(action)
+
+        conn.send({"worker_id": index, "env_summary": eval_env_wrapper.summary})
+
+    while True:
+        msg = conn.recv()
+        if msg["type"] == "collect":
+            collect(msg)
+        elif msg["type"] == "evaluate":
+            evaluate(msg)
+        elif msg["type"] == "quit":
+            break
+
+
+def rollout_worker_node(
+    create_env_wrapper_func: Callable[[], AbsEnvWrapper],
+    create_decision_generator_func: Callable[[], AbsDecisionGenerator],
     group: str,
-    exploration_dict: Dict[str, AbsExploration] = None,
-    agent2exploration: Dict[str, str] = None,
-    eval_env: AbsEnvWrapper = None,
+    create_eval_env_wrapper_func: Callable[[], AbsEnvWrapper] = None,
     log_dir: str = getcwd(),
     **proxy_kwargs
 ):
@@ -43,18 +121,9 @@ def rollout_worker(
         proxy_kwargs: Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
             for details.
     """
-    eval_env = eval_env if eval_env else env
-    # mappings between exploration schemes and agents
-    if exploration_dict:
-        exploration_by_agent = {
-            agent_id: exploration_dict[exploration_id] for agent_id, exploration_id in agent2exploration.items()
-        }
-        agent_groups_by_exploration = defaultdict(list)
-        for agent_id, exploration_id in agent2exploration.items():
-            agent_groups_by_exploration[exploration_id].append(agent_id)
-
-        for exploration_id, agent_ids in agent_groups_by_exploration.items():
-            agent_groups_by_exploration[exploration_id] = tuple(agent_ids)
+    env_wrapper = create_env_wrapper_func()
+    eval_env_wrapper = env_wrapper if not create_eval_env_wrapper_func else create_eval_env_wrapper_func() 
+    decision_generator = create_decision_generator_func()
 
     proxy = Proxy(group, "rollout_worker", {"rollout_manager": 1}, **proxy_kwargs)
     logger = Logger(proxy.name, dump_folder=log_dir)
@@ -65,54 +134,38 @@ def rollout_worker(
         if hasattr(decision_generator, "update"):
             decision_generator.update(msg.body[MsgKey.POLICY])
         # set exploration parameters
-        exploration_params = None
-        if MsgKey.EXPLORATION in msg.body:
-            updated_exploration_param_names = {}
-            for exploration_name, param_dict in msg.body[MsgKey.EXPLORATION].items():
-                updated_exploration_param_names[exploration_name] = param_dict.keys()
-                for param_name, value in param_dict.items():
-                    setattr(exploration_dict[exploration_name], param_name, value)
+        decision_generator.explore()
+        if msg.body[MsgKey.EXPLORATION_STEP]:
+            decision_generator.exploration_step()
 
-            exploration_params = {
-                agent_ids: {
-                    param_name: getattr(exploration_dict[exploration_name], param_name)
-                    for param_name in updated_exploration_param_names[exploration_name]
-                }
-                for exploration_name, agent_ids in agent_groups_by_exploration.items()
-            }
-            logger.info(f"Exploration parameters: {exploration_params}")
-
-        if env.state is None:
+        if env_wrapper.state is None:
             logger.info(f"Training episode {msg.body[MsgKey.EPISODE]}")
-            env.reset()
-            env.start()  # get initial state
+            env_wrapper.reset()
+            env_wrapper.start()  # get initial state
 
-        starting_step_index = env.step_index + 1
+        starting_step_index = env_wrapper.step_index + 1
         steps_to_go = float("inf") if msg.body[MsgKey.NUM_STEPS] == -1 else msg.body[MsgKey.NUM_STEPS]
-        while env.state and steps_to_go > 0:
-            action = decision_generator.choose_action(env.state, ep, env.step_index)
-            if exploration_dict:
-                for agent_id in action:
-                    action[agent_id] = exploration_by_agent[agent_id](action[agent_id])
-            env.step(action)
+        while env_wrapper.state and steps_to_go > 0:
+            action = decision_generator.choose_action(env_wrapper.state, ep, env_wrapper.step_index)
+            env_wrapper.step(action)
             steps_to_go -= 1
 
         logger.info(
             f"Roll-out finished for ep {ep}, segment {segment}"
-            f"(steps {starting_step_index} - {env.step_index})"
+            f"(steps {starting_step_index} - {env_wrapper.step_index})"
         )
 
         if hasattr(decision_generator, "store_experiences"):
-            policy_names = decision_generator.store_experiences(env.get_experiences())
+            policy_names = decision_generator.store_experiences(env_wrapper.get_experiences())
             ret_exp = decision_generator.get_experiences_by_policy(policy_names)
 
         return_info = {
-            MsgKey.EPISODE_END: not env.state,
+            MsgKey.EPISODE_END: not env_wrapper.state,
             MsgKey.EPISODE: ep,
             MsgKey.SEGMENT: segment,
             MsgKey.EXPERIENCES: ret_exp,
-            MsgKey.ENV_SUMMARY: env.summary,
-            MsgKey.NUM_STEPS: env.step_index - starting_step_index + 1
+            MsgKey.ENV_SUMMARY: env_wrapper.summary,
+            MsgKey.NUM_STEPS: env_wrapper.step_index - starting_step_index + 1
         }
 
         proxy.reply(msg, tag=MsgTag.COLLECT_DONE, body=return_info)
@@ -120,15 +173,16 @@ def rollout_worker(
     def evaluate(msg):
         logger.info(f"Evaluating...")
         ep = msg.body[MsgKey.EPISODE]
-        eval_env.reset()
-        eval_env.start()  # get initial state
+        eval_env_wrapper.reset()
+        eval_env_wrapper.start()  # get initial state
+        decision_generator.exploit()
         if hasattr(decision_generator, "update"):
             decision_generator.update(msg.body[MsgKey.POLICY])
-        while eval_env.state:
-            action = decision_generator.choose_action(env.state, ep, eval_env.step_index)
-            eval_env.step(action)
+        while eval_env_wrapper.state:
+            action = decision_generator.choose_action(eval_env_wrapper.state, ep, eval_env_wrapper.step_index)
+            eval_env_wrapper.step(action)
 
-        return_info = {MsgKey.ENV_SUMMARY: env.summary, MsgKey.EPISODE: msg.body[MsgKey.EPISODE]}
+        return_info = {MsgKey.ENV_SUMMARY: eval_env_wrapper.summary, MsgKey.EPISODE: msg.body[MsgKey.EPISODE]}
         proxy.reply(msg, tag=MsgTag.EVAL_DONE, body=return_info)
 
     """
