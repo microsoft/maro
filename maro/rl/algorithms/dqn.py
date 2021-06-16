@@ -133,7 +133,8 @@ class DQN(AbsCorePolicy):
     def set_state(self, policy_state):
         self.q_net.load_state_dict(policy_state)
         self.target_q_net = self.q_net.copy() if self.q_net.trainable else None
-        self.target_q_net.eval()
+        if self.target_q_net:
+            self.target_q_net.eval()
 
     def get_state(self):
         return self.q_net.state_dict()

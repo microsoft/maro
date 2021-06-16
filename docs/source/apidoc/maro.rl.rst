@@ -177,10 +177,10 @@ maro.rl.training.local_learner
    :undoc-members:
    :show-inheritance:
 
-maro.rl.training.policy_server
+maro.rl.training.trainer
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.training.policy_server
+.. automodule:: maro.rl.training.trainer
    :members:
    :undoc-members:
    :show-inheritance:

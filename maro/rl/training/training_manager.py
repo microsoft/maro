@@ -4,8 +4,9 @@
 import time
 from abc import ABC, abstractmethod
 from collections import defaultdict
+from multiprocessing import Pipe, Process
 from os import getcwd
-from typing import Dict, List
+from typing import Callable, Dict, List
 
 from maro.communication import Proxy, SessionType
 from maro.rl.experience import ExperienceSet
@@ -13,6 +14,7 @@ from maro.rl.policy import AbsCorePolicy, AbsPolicy
 from maro.utils import Logger
 
 from .message_enums import MsgKey, MsgTag
+from .trainer import trainer_process
 
 
 class AbsTrainingManager(ABC):
@@ -83,19 +85,88 @@ class LocalTrainingManager(AbsTrainingManager):
         return {name: policy.get_state() for name, policy in self.policy_dict.items()}
 
 
-class ParallelTrainingManager(AbsTrainingManager):
+class MultiProcessTrainingManager(AbsTrainingManager):
     def __init__(
         self,
-        policy2server: Dict[str, str],
+        policy2trainer: Dict[str, str],
+        create_policy_func_dict: Dict[str, Callable],
+        log_dir: str = getcwd(),
+    ):
+        super().__init__()
+        self._logger = Logger("TRAINING_MANAGER", dump_folder=log_dir)
+        self.policy2trainer = policy2trainer
+        self._names = list(self.policy2trainer.keys())
+        self._trainer2policies = defaultdict(list)
+        for policy_name, trainer_name in policy2trainer.items():
+            self._trainer2policies[trainer_name].append(policy_name)
+
+        self._trainer_processes = []
+        self._manager_end = {}
+        for trainer_id, policy_names in self._trainer2policies.items():
+            manager_end, trainer_end = Pipe()
+            self._manager_end[trainer_id] = manager_end
+            trainer = Process(
+                target=trainer_process,
+                args=(
+                    trainer_id,
+                    trainer_end,
+                    {name: create_policy_func_dict[name] for name in policy_names},
+                    log_dir
+                )
+            )
+            self._trainer_processes.append(trainer)
+            trainer.start()
+
+    @property
+    def names(self):
+        return self._names
+
+    def on_experiences(self, exp_by_policy: Dict[str, ExperienceSet]):
+        for trainer_id, conn in self._manager_end.items():
+            conn.send({
+                "type": "train",
+                "experiences": {name: exp_by_policy[name] for name in self._trainer2policies[trainer_id]}
+            })
+
+        policy_state_dict = {}
+        for conn in self._manager_end.values():
+            result = conn.recv()
+            for policy_name, policy_state in result["policy"].items():
+                policy_state_dict[policy_name] = policy_state
+
+        return policy_state_dict
+
+    def get_state(self):
+        policy_state_dict = {}
+        for conn in self._manager_end.values():
+            conn.send({"type": "get_policy_state"})
+
+        for conn in self._manager_end.values():
+            result = conn.recv()
+            for policy_name, policy_state in result["policy"].items():
+                policy_state_dict[policy_name] = policy_state
+
+        return policy_state_dict
+
+    def exit(self):
+        """Tell the trainer processes to exit."""
+        for conn in self._manager_end.values():
+            conn.send({"type": "quit"})
+
+
+class MultiNodeTrainingManager(AbsTrainingManager):
+    def __init__(
+        self,
+        policy2trainer: Dict[str, str],
         group: str,
         log_dir: str = getcwd(),
         **proxy_kwargs
     ):
         super().__init__()
-        self._logger = Logger("PARALLEL_TRAINING_MANAGER", dump_folder=log_dir)
-        self.policy2server = policy2server
-        self._names = list(self.policy2server.keys())
-        peers = {"policy_server": len(set(self.policy2server.values()))}
+        self._logger = Logger("TRAINING_MANAGER", dump_folder=log_dir)
+        self.policy2trainer = policy2trainer
+        self._names = list(self.policy2trainer.keys())
+        peers = {"trainer": len(set(self.policy2trainer.values()))}
         self._proxy = Proxy(group, "training_manager", peers, **proxy_kwargs)
 
     @property
@@ -105,10 +176,10 @@ class ParallelTrainingManager(AbsTrainingManager):
     def on_experiences(self, exp_by_policy: Dict[str, ExperienceSet]):
         msg_body_by_dest, policy_state_dict = defaultdict(dict), {}
         for policy_name, exp in exp_by_policy.items():
-            policy_server_id = self.policy2server[policy_name]
-            if MsgKey.EXPERIENCES not in msg_body_by_dest[policy_server_id]:
-                msg_body_by_dest[policy_server_id][MsgKey.EXPERIENCES] = {}
-            msg_body_by_dest[policy_server_id][MsgKey.EXPERIENCES][policy_name] = exp
+            trainer_id = self.policy2trainer[policy_name]
+            if MsgKey.EXPERIENCES not in msg_body_by_dest[trainer_id]:
+                msg_body_by_dest[trainer_id][MsgKey.EXPERIENCES] = {}
+            msg_body_by_dest[trainer_id][MsgKey.EXPERIENCES][policy_name] = exp
 
         for reply in self._proxy.scatter(MsgTag.TRAIN, SessionType.TASK, list(msg_body_by_dest.items())):
             for policy_name, policy_state in reply.body[MsgKey.POLICY].items():
@@ -118,14 +189,14 @@ class ParallelTrainingManager(AbsTrainingManager):
 
     def get_state(self):
         policy_state_dict = {}
-        for reply in self._proxy.broadcast("policy_server", MsgTag.GET_POLICY_STATE, SessionType.TASK):
+        for reply in self._proxy.broadcast("trainer", MsgTag.GET_POLICY_STATE, SessionType.TASK):
             for policy_name, policy_state in reply.body[MsgKey.POLICY].items():
                 policy_state_dict[policy_name] = policy_state
 
         return policy_state_dict
 
     def exit(self):
-        """Tell the remote actors to exit."""
-        self._proxy.ibroadcast("policy_server", MsgTag.EXIT, SessionType.NOTIFICATION)
+        """Tell the remote trainers to exit."""
+        self._proxy.ibroadcast("trainer", MsgTag.EXIT, SessionType.NOTIFICATION)
         self._proxy.close()
         self._logger.info("Exiting...")
