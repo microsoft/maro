@@ -60,7 +60,13 @@ class World:
         self.agent_type_dict = {}
 
         self.max_sources_per_facility = 0
+
         self.max_price = 0
+
+        self._edges = {
+            "downstreams": [],
+            "upstreams": []
+        }
 
     def get_sku_by_name(self, name: str) -> EasyConfig:
         """Get sku information by name.
@@ -228,10 +234,14 @@ class World:
 
                     facility.upstreams[sku.id].append(source_facility)
 
+                    self._edges["upstreams"].append((facility.id, source_facility.id, sku.id))
+
                     if sku.id not in source_facility.downstreams:
                         source_facility.downstreams[sku.id] = []
 
                     source_facility.downstreams[sku.id].append(facility)
+
+                    self._edges["downstreams"].append((source_facility.id, facility.id, sku.id))
 
         # Call initialize method for facilities.
         for facility in self.facilities.values():
@@ -429,6 +439,7 @@ class World:
             "facilities": facility_info_dict,
             "max_price": self.max_price,
             "max_sources_per_facility": self.max_sources_per_facility,
+            "edges": self._edges
         }
 
     def _register_data_model(self, alias: str) -> int:

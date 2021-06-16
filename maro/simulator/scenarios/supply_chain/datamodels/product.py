@@ -10,7 +10,8 @@ from .extend import ExtendDataModel
 
 @node("product")
 class ProductDataModel(ExtendDataModel):
-    price = NodeAttribute(AttributeType.Float)
+    price = NodeAttribute(AttributeType.Float, is_const=True)
+
     distribution_check_order = NodeAttribute(AttributeType.UInt)
     distribution_transport_cost = NodeAttribute(AttributeType.Float)
     distribution_delay_order_penalty = NodeAttribute(AttributeType.Float)

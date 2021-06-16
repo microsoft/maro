@@ -13,10 +13,12 @@ class SellerDataModel(ExtendDataModel):
     """Data model for seller unit."""
     demand = NodeAttribute(AttributeType.UInt)
     sold = NodeAttribute(AttributeType.UInt)
+
     total_demand = NodeAttribute(AttributeType.UInt)
     total_sold = NodeAttribute(AttributeType.UInt)
-    price = NodeAttribute(AttributeType.Float)
-    backlog_ratio = NodeAttribute(AttributeType.Float)
+
+    price = NodeAttribute(AttributeType.Float, is_const=True)
+    backlog_ratio = NodeAttribute(AttributeType.Float, is_const=True)
 
     def __init__(self):
         super(SellerDataModel, self).__init__()

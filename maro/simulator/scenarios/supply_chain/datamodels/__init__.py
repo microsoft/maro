@@ -10,3 +10,6 @@ from .product import ProductDataModel
 from .seller import SellerDataModel
 from .storage import StorageDataModel
 from .vehicle import VehicleDataModel
+from .retailerfacility import RetailerFacilityDataModel
+from .supplierfacility import SupplierFacilityDataModel
+from .warehousefacility import WarehouseFacilityDataModel

@@ -27,6 +27,15 @@ datamodels:
         FacilityDataModel:
           class: "FacilityDataModel"
           name_in_frame: "facility"
+        WarehouseFacilityDataModel:
+          class: "WarehouseFacilityDataModel"
+          name_in_frame: "warehouse"
+        RetailerFacilityDataModel:
+          class: "RetailerFacilityDataModel"
+          name_in_frame: "retailer"
+        SupplierFacilityDataModel:
+          class: "SupplierFacilityDataModel"
+          name_in_frame: "supplier"
 
 units:
   modules:
@@ -69,13 +78,13 @@ facilities:
       definitions:
         WarehouseFacility:
           class: "WarehouseFacility"
-          datamodel: "FacilityDataModel"
+          datamodel: "WarehouseFacilityDataModel"
         SupplierFacility:
           class: "SupplierFacility"
-          datamodel: "FacilityDataModel"
+          datamodel: "SupplierFacilityDataModel"
         RetailerFacility:
           class: "RetailerFacility"
-          datamodel: "FacilityDataModel"
+          datamodel: "RetailerFacilityDataModel"
         OuterRetailerFacility:
           class: "OuterRetailerFacility"
-          datamodel: "FacilityDataModel"
+          datamodel: "RetailerDataModel"

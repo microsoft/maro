@@ -11,10 +11,10 @@ from .base import DataModelBase
 class ExtendDataModel(DataModelBase):
     """Data model for sku related unit."""
     # Product id of this consumer belongs to.
-    product_id = NodeAttribute(AttributeType.UInt)
+    product_id = NodeAttribute(AttributeType.UInt, is_const=True)
 
     # Parent unit id.
-    product_unit_id = NodeAttribute(AttributeType.UInt)
+    product_unit_id = NodeAttribute(AttributeType.UInt, is_const=True)
 
     def __init__(self):
         super(ExtendDataModel, self).__init__()

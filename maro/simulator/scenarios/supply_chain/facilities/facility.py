@@ -97,7 +97,7 @@ class FacilityBase(ABC):
     def initialize(self):
         """Initialize this facility after frame is ready."""
         self.data_model.initialize()
-
+        self.data_model.set_id(self.id, 0, 0)
         self.data_model.reset()
 
         # Put valid units into the children, used to simplify following usage.

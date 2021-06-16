@@ -13,7 +13,7 @@ class VehicleDataModel(DataModelBase):
     # Number of product.
     payload = NodeAttribute(AttributeType.UInt)
 
-    unit_transport_cost = NodeAttribute(AttributeType.Float)
+    unit_transport_cost = NodeAttribute(AttributeType.Float, is_const=True)
 
     def __init__(self):
         super(VehicleDataModel, self).__init__()

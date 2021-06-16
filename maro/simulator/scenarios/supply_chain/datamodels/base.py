@@ -9,12 +9,12 @@ from maro.backends.frame import NodeAttribute, NodeBase
 class DataModelBase(NodeBase):
     """Base of all data model of this scenario."""
     # Id of related unit or facility, 0 is invalid by default.
-    id = NodeAttribute(AttributeType.Int)
+    id = NodeAttribute(AttributeType.Int, is_const=True)
 
-    parent_id = NodeAttribute(AttributeType.Int)
+    parent_id = NodeAttribute(AttributeType.Int, is_const=True)
 
     # Id of facility this unit belongs to.
-    facility_id = NodeAttribute(AttributeType.Int)
+    facility_id = NodeAttribute(AttributeType.Int, is_const=True)
 
     def __init__(self):
         self._unit_id = 0

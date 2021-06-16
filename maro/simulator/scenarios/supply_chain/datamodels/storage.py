@@ -12,7 +12,7 @@ from .base import DataModelBase
 class StorageDataModel(DataModelBase):
     """Data model for storage unit."""
     remaining_space = NodeAttribute(AttributeType.UInt)
-    capacity = NodeAttribute(AttributeType.UInt)
+    capacity = NodeAttribute(AttributeType.UInt, is_const=True)
 
     # original is , used to save product and its number
     product_list = NodeAttribute(AttributeType.UInt, 1, is_list=True)
