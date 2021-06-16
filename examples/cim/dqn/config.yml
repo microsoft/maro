@@ -3,14 +3,14 @@
 
 experiment_name: cim_dqn
 mode: multi-process # local, multi-process
-num_episodes: 3
+num_episodes: 10
 # eval_schedule: 2
-num_steps: -1
+num_steps: 50
 env:
   basic:
     scenario: cim
-    topology: global_trade.22p_l0.0
-    durations: 1120
+    topology: toy.4p_ssdd_l0.0
+    durations: 280
   wrapper:
     port_attributes:
       - empty
@@ -40,8 +40,8 @@ exploration:
   initial_value: 0.4
   final_value: 0.0
   splits:
-    - [50, 0.32]
-policy:
+    - [5, 0.32]
+policies:
   model:
     network:
       hidden_dims:
@@ -79,12 +79,12 @@ policy:
       replace: true
   update_trigger: 16
   warmup: 1
-multi-process:
-  rollout_mode: parallel # local, parallel
-  policy_training_mode: local # local, parallel
+distributed:
+  rollout_mode: multi-process # local, multi-process
+  policy_training_mode: multi-process # local, multi-process
   group: cim-dqn
   num_rollout_workers: 3
-  num_policy_servers: 2
+  num_trainers: 2
   redis_host: localhost
   redis_port: 6379
   # max_receive_attempts: 2

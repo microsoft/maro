@@ -25,9 +25,6 @@ class EpsilonGreedyExploration(AbsExploration):
         else:
             return self._get_exploration_action(action_index)
 
-    def set_params(self, *, epsilon: float):
-        self.epsilon = epsilon
-
     def _get_exploration_action(self, action_index):
         assert (action_index < self._num_actions), f"Invalid action: {action_index}"
         return action_index if np.random.random() > self.epsilon else np.random.choice(self._num_actions)

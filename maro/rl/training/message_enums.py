@@ -28,7 +28,7 @@ class MsgKey(Enum):
     NUM_EXPERIENCES = "num_experiences"
     STATE = "state"
     POLICY = "policy"
-    EXPLORATION = "exploration"
+    EXPLORATION_STEP = "exploration_step"
     VERSION = "version"
     NUM_STEPS = "num_steps"
     EPISODE_END = "episode_end"

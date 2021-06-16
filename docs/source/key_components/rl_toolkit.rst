@@ -8,12 +8,12 @@ components. At the top level of a training workflow are:
   process. The learner process executes training cycles that alternate between data collection and policy
   updates.   
 * Rollout manager, which is responsible for collecting simulation data. The ``LocalRolloutManager`` performs roll-outs
-  locally, while the ``ParallelRolloutManager`` manages a set of remote ``Actor``s to collect simulation data in parallel.
+  locally, while the ``MultiNodeRolloutManager`` manages a set of remote ``Actor``s to collect simulation data in parallel.
 * Training manager, which manages a set of policies and controls their updates. The policy instances may reside in the
-  manager (``LocalTrainingManager``) or be distributed on a set of remote nodes (``ParallelTrainingManager``) for parallelized
+  manager (``LocalTrainingManager``) or be distributed on a set of remote nodes (``MultiNodeTrainingManager``) for parallelized
   training.
 * roll-out worker, which consists of an environment instance and a set of policies that agents use to interact with it, is a
-  remote roll-out worker instance managed by a ``ParallelRolloutManager``.
+  remote roll-out worker instance managed by a ``MultiNodeRolloutManager``.
 
 
 .. image:: ../images/rl/learner.svg

@@ -14,7 +14,7 @@ sys.path.insert(0, cim_path)
 sys.path.insert(0, dqn_path)
 from env_wrapper import CIMEnvWrapper
 from general import NUM_ACTIONS, config, log_dir
-from policy import get_independent_policy
+from policy import get_independent_policy_for_training
 from rollout_manager import rollout_manager
 from training_manager import training_manager
 
@@ -31,7 +31,7 @@ if __name__ == "__main__":
         )
         local_learner = LocalLearner(
             env=CIMEnvWrapper(env, **config["env"]["wrapper"]),
-            policies=[get_independent_policy(config["policy"], i) for i in env.agent_idx_list],
+            policies=[get_independent_policy_for_training(config["policy"], i) for i in env.agent_idx_list],
             agent2policy={i: i for i in env.agent_idx_list},
             num_episodes=config["num_episodes"],
             num_steps=config["num_steps"],
@@ -48,7 +48,6 @@ if __name__ == "__main__":
             # eval_schedule=config["eval_schedule"],
             log_dir=log_dir
         )
-        time.sleep(5)
         learner.run()
     else:
         print("Two modes are supported: local or multi-process.")
