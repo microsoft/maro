@@ -1,10 +1,15 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
+
 from collections import defaultdict, Iterable
 
 
 class _RelationTreeNode:
     def __init__(self, uid: int):
         # key is the edge value, value if the child nodes, one node could have same child with different edge value
-        self.children = defaultdict(list)  # sku id -> [facility Node (facility id), ]
+        # sku id -> [facility Node (facility id), ]
+        self.children = defaultdict(list)
         self.parent = None
         self.uid = uid
 
@@ -86,7 +91,7 @@ class SnapshotRelationTree:
         if len(self.flatten_nodes) == 0:
             self._flatten()
 
-        return reversed(self.flatten_nodes)
+        return [x for x in reversed(self.flatten_nodes)]
 
 
 class SnapshotRelationManager:

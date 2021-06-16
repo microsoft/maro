@@ -1,8 +1,10 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 
 from maro.simulator import AbsEnv
 from .attributewrapper import SnapshotAttributeWrapper
 
-from collections import defaultdict
 from .dynamicobject import DynamicObject
 
 
@@ -51,8 +53,7 @@ class SnapshotNodeWrapper:
             a = d[item]
 
             if type(a) == SnapshotAttributeWrapper:
-                # print(self.maro_node_name, self.maro_node_index, item)
-                values = a.value # self._cache.get_attribute(self.maro_node_name, self.maro_node_index, item)
+                values = a.value
 
                 if not a.is_list and a.slots == 1:
                     return values[0]

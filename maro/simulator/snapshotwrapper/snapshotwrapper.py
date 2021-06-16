@@ -1,3 +1,7 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
+
 import numpy as np
 
 from typing import List, Dict
@@ -7,13 +11,18 @@ from .relation import SnapshotRelationManager, SnapshotRelationTree
 from .nodewrapper import SnapshotNodeWrapper
 from .snapshotcache import PerTypeSnapshotCache, PerInstanceSnapshotCache
 
-from .dynamicobject import DynamicObject
-
 
 _AttrDef = namedtuple("_AttrDef", ("name", "type", "slots", "is_list", "is_const"))
 
 
 class SnapshotWrapper:
+    class SnapshotNodeManager:
+        def __init__(self, wrapper):
+            self._wrapper = wrapper
+
+        def __getitem__(self, node_name: str):
+            return self._wrapper._node_instances[node_name]
+
     def __init__(
             self,
             env: AbsEnv,
@@ -28,6 +37,8 @@ class SnapshotWrapper:
             self._cache = PerTypeSnapshotCache()
 
         self._env = env
+
+        self._node_manager = SnapshotWrapper.SnapshotNodeManager(self)
 
         # note type class, key is node name, value is the class type
         self.node_class_dict = {}
@@ -60,11 +71,13 @@ class SnapshotWrapper:
 
         return results
 
-    def get_node_instances(self, node_name: str) -> list:
-        return self._node_instances[node_name]
+    @property
+    def nodes(self) -> SnapshotNodeManager:
+        return self._node_manager
 
-    def get_relation(self, relation_name: str) -> SnapshotRelationTree:
-        return self._relations[relation_name]
+    @property
+    def relations(self) -> SnapshotRelationManager:
+        return self._relations
 
     def _build_node_types(self):
         """This is called after env construction to build node class types"""

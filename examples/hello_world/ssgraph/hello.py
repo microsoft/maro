@@ -19,21 +19,23 @@ def main():
 
     g.step(None)
 
-    p = g.get_node_instances("product")[0]
+    p = g.nodes["product"][0]
 
-    print(p.maro_attributes)
-
-    s = g.get_node_instances("storage")[2]
+    s = g.nodes["storage"][2]
 
     print(s.product_number)
 
     print(p.product_id)
 
-    r = g.get_node_instances("retailer")[0]
+    r = g.nodes["retailer"][0]
 
     print(r.children.storage.product_number.astype(np.int))
 
     print(p[[0, 1, 2]:'facility_id'])
+
+    downsteams = g.relations['downstreams']
+
+    print(downsteams.down_to_up())
 
 
 if __name__ == "__main__":

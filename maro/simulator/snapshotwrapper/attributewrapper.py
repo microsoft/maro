@@ -1,3 +1,7 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
+
 from maro.simulator import AbsEnv
 from typing import List
 
