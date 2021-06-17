@@ -239,20 +239,22 @@ class LocalRolloutManager(AbsRolloutManager):
 
 
 class MultiProcessRolloutManager(AbsRolloutManager):
-    """Roll-out manager that spawn a set of roll-out worker processes for parallel data collection.
+    """Roll-out manager that spawns a set of roll-out worker processes for parallel data collection.
 
     Args:
         num_workers (int): Number of remote roll-out workers.
+        create_env_wrapper_func (Callable): Function to be used by each spawned roll-out worker to create an
+            environment wrapper for training data collection. The function should take no parameters and return an
+            environment wrapper instance.
+        create_decision_generator_func (Callable): Function to be used by each spawned roll-out worker to create a
+            decision generator for interacting with the environment. The function should take no parameters and return
+            an ``AbsDecisionGenerator`` instance.
+        create_env_wrapper_func (Callable): Function to be used by each spawned roll-out worker to create an
+            environment wrapper for evaluation. The function should take no parameters and return an environment
+            wrapper instance. If this is None, the training environment wrapper will be used for evaluation in the
+            worker processes.
         num_steps (int): Number of environment steps to roll out in each call to ``collect``. Defaults to -1, in which
             case the roll-out will be executed until the end of the environment.
-        max_receive_attempts (int): Maximum number of attempts to receive  results in ``collect``. Defaults to
-            None, in which case the number is set to ``num_workers``.
-        receive_timeout (int): Maximum wait time (in milliseconds) for each attempt to receive from the workers. This
-            This multiplied by ``max_receive_attempts`` give the upperbound for the amount of time to receive the
-            desired amount of data from workers. Defaults to None, in which case each receive attempt is blocking.
-        max_staleness (int): Maximum allowable staleness measured in the number of calls to ``collect``. Experiences
-            collected from calls to ``collect`` within ``max_staleness`` calls ago will be returned to the learner.
-            Defaults to 0, in which case only experiences from the latest call to ``collect`` will be returned.
         num_eval_workers (int): Number of workers for evaluation. Defaults to 1.
         log_env_summary (bool): If True, the ``summary`` property of the environment wrapper will be logged at the end
             of each episode. Defaults to True.
@@ -357,7 +359,8 @@ class MultiProcessRolloutManager(AbsRolloutManager):
         Returns:
             Environment summary.
         """
-        for conn in self._manager_ends:
+        eval_worker_conns = choices(self._manager_ends, k=self._num_eval_workers)
+        for conn in eval_worker_conns:
             conn.send({"type": "evaluate", "episode": ep, "policy": policy_state_dict})
 
         env_summary_dict = {}
@@ -374,12 +377,12 @@ class MultiProcessRolloutManager(AbsRolloutManager):
 
 
 class MultiNodeRolloutManager(AbsRolloutManager):
-    """Controller for a set of remote roll-out workers.
+    """Controller for a set of remote roll-out workers, possibly distributed on different computation nodes.
 
     Args:
         num_workers (int): Number of remote roll-out workers.
-        group (str): Group name for the roll-out manager and the set of roll-out workers managed by it. The roll-out
-            workers' processes must be assigned this group name in order to form a communicating cluster.
+        group (str): Group name for the roll-out cluster, which includes all roll-out workers and a roll-out manager
+            that manages them.
         num_steps (int): Number of environment steps to roll out in each call to ``collect``. Defaults to -1, in which
             case the roll-out will be executed until the end of the environment.
         max_receive_attempts (int): Maximum number of attempts to receive  results in ``collect``. Defaults to
