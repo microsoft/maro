@@ -23,7 +23,7 @@ numpy<1.20.0
 tabulate==0.8.5
 networkx==2.4
 palettable==3.3.0
-urllib3==1.25.8
+urllib3==1.26.5
 geopy==2.0.0
 pandas==0.25.3
 redis==3.5.3
