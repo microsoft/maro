@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from .decision_generator import AbsDecisionGenerator, LocalDecisionGenerator
+from .decision_generator import DecisionGenerator
 from .early_stopper import AbsEarlyStopper
 from .learner import Learner
 from .local_learner import LocalLearner
@@ -13,7 +13,7 @@ from .training_manager import (
 )
 
 __all__ = [
-    "AbsDecisionGenerator", "LocalDecisionGenerator",
+    "DecisionGenerator",
     "AbsEarlyStopper",
     "Learner",
     "LocalLearner",

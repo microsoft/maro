@@ -5,8 +5,8 @@ import os
 import sys
 
 from maro.rl import (
-    EpsilonGreedyExploration, MultiPhaseLinearExplorationScheduler, LocalDecisionGenerator,
-    LocalRolloutManager, MultiProcessRolloutManager
+    DecisionGenerator, EpsilonGreedyExploration, MultiPhaseLinearExplorationScheduler, LocalRolloutManager,
+    MultiProcessRolloutManager
 )
 from maro.simulator import Env
 
@@ -30,7 +30,7 @@ def get_decision_generator():
         last_ep=config["num_episodes"],
         **config["exploration"]
     )
-    return LocalDecisionGenerator(
+    return DecisionGenerator(
         agent2policy={i: i for i in AGENT_IDS},
         policies=[get_independent_policy_for_rollout(i) for i in AGENT_IDS],
         exploration_dict={f"EpsilonGreedy": epsilon_greedy},

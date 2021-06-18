@@ -16,7 +16,6 @@ from maro.rl.exploration import AbsExploration
 from maro.rl.policy import AbsPolicy
 from maro.utils import Logger
 
-from .decision_generator import AbsDecisionGenerator
 from .message_enums import MsgKey, MsgTag
 from .rollout_worker import rollout_worker_process
 
@@ -247,7 +246,7 @@ class MultiProcessRolloutManager(AbsRolloutManager):
             environment wrapper instance.
         create_decision_generator_func (Callable): Function to be used by each spawned roll-out worker to create a
             decision generator for interacting with the environment. The function should take no parameters and return
-            an ``AbsDecisionGenerator`` instance.
+            a ``DecisionGenerator`` instance.
         create_env_wrapper_func (Callable): Function to be used by each spawned roll-out worker to create an
             environment wrapper for evaluation. The function should take no parameters and return an environment
             wrapper instance. If this is None, the training environment wrapper will be used for evaluation in the
@@ -265,7 +264,7 @@ class MultiProcessRolloutManager(AbsRolloutManager):
         self,
         num_workers: int,
         create_env_wrapper_func: Callable[[], AbsEnvWrapper],
-        create_decision_generator_func: Callable[[], AbsDecisionGenerator],
+        create_decision_generator_func: Callable[[], DecisionGenerator],
         create_eval_env_wrapper_func: Callable[[], AbsEnvWrapper] = None,
         num_steps: int = -1,
         num_eval_workers: int = 1,

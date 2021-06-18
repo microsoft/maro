@@ -18,8 +18,8 @@ from maro.rl.model import (
 )
 from maro.rl.policy import AbsCorePolicy, AbsPolicy, NullPolicy
 from maro.rl.training import (
-    AbsDecisionGenerator, AbsEarlyStopper, AbsRolloutManager, AbsTrainingManager, Learner, LocalDecisionGenerator,
-    LocalLearner, LocalRolloutManager, LocalTrainingManager, MultiNodeRolloutManager, MultiNodeTrainingManager,
+    AbsEarlyStopper, AbsRolloutManager, AbsTrainingManager, DecisionGenerator, Learner, LocalLearner,
+    LocalRolloutManager, LocalTrainingManager, MultiNodeRolloutManager, MultiNodeTrainingManager,
     MultiProcessRolloutManager, MultiProcessTrainingManager, rollout_worker_node, rollout_worker_process, trainer_node,
     trainer_process
 )
@@ -39,10 +39,10 @@ __all__ = [
     "AbsBlock", "AbsCoreModel", "ContinuousACNet", "DiscreteACNet", "DiscretePolicyNet", "DiscreteQNet",
     "FullyConnectedBlock", "OptimOption",
     "AbsCorePolicy", "AbsPolicy", "NullPolicy",
-    "AbsDecisionGenerator", "AbsEarlyStopper", "AbsRolloutManager", "AbsTrainingManager", "Learner",
-    "LocalDecisionGenerator", "LocalLearner", "LocalRolloutManager", "LocalTrainingManager", "MultiNodeRolloutManager",
-    "MultiNodeTrainingManager", "MultiProcessRolloutManager", "MultiProcessTrainingManager", "rollout_worker_node",
-    "rollout_worker_process", "trainer_node", "trainer_process",
+    "AbsEarlyStopper", "AbsRolloutManager", "AbsTrainingManager", "DecisionGenerator", "Learner", "LocalLearner",
+    "LocalRolloutManager", "LocalTrainingManager", "MultiNodeRolloutManager", "MultiNodeTrainingManager",
+    "MultiProcessRolloutManager", "MultiProcessTrainingManager", "rollout_worker_node", "rollout_worker_process",
+    "trainer_node", "trainer_process",
     "get_k_step_returns", "get_lambda_returns", "get_torch_activation_cls", "get_torch_loss_cls",
     "get_torch_lr_scheduler_cls", "get_torch_optim_cls", "get_truncated_cumulative_reward"
 ]
