@@ -9,7 +9,7 @@ from maro.communication import Proxy
 from maro.rl.env_wrapper import AbsEnvWrapper
 from maro.utils import Logger, set_seeds
 
-from .decision_generator import LocalDecisionGenerator
+from .decision_generator import DecisionGenerator
 from .message_enums import MsgKey, MsgTag
 
 
@@ -17,7 +17,7 @@ def rollout_worker_process(
     index: int,
     conn: Connection,
     create_env_wrapper_func: Callable[[], AbsEnvWrapper],
-    create_decision_generator_func: Callable[[], AbsDecisionGenerator],
+    create_decision_generator_func: Callable[[], DecisionGenerator],
     create_eval_env_wrapper_func: Callable[[], AbsEnvWrapper],
     log_dir: str
 ):
@@ -29,7 +29,7 @@ def rollout_worker_process(
         create_env_wrapper_func (Callable): Function to create an environment wrapper for training data collection.
             The function should take no parameters and return an environment wrapper instance.
         create_decision_generator_func (Callable): Function to create a decision generator for interacting with
-            the environment. The function should take no parameters and return an ``AbsDecisionGenerator`` instance.
+            the environment. The function should take no parameters and return a ``DecisionGenerator`` instance.
         create_env_wrapper_func (Callable): Function to create an environment wrapper for evaluation. The function
             should take no parameters and return an environment wrapper instance. If this is None, the training
             environment wrapper will be used for evaluation.
@@ -110,7 +110,7 @@ def rollout_worker_process(
 
 def rollout_worker_node(
     create_env_wrapper_func: Callable[[], AbsEnvWrapper],
-    create_decision_generator_func: Callable[[], AbsDecisionGenerator],
+    create_decision_generator_func: Callable[[], DecisionGenerator],
     group: str,
     create_eval_env_wrapper_func: Callable[[], AbsEnvWrapper] = None,
     log_dir: str = getcwd(),
@@ -122,7 +122,7 @@ def rollout_worker_node(
         create_env_wrapper_func (Callable): Function to create an environment wrapper for roll-out. The function
             should take no parameters and return an environment wrapper instance.
         create_decision_generator_func (Callable): Function to create a decision generator for interacting with
-            the environment. The function should take no parameters and return an ``AbsDecisionGenerator`` instance.
+            the environment. The function should take no parameters and return a ``DecisionGenerator`` instance.
         group (str): Group name for the roll-out cluster, which includes all roll-out workers and a roll-out manager
             that manages them.
         create_env_wrapper_func (Callable): Function to create an environment wrapper for evaluation. The function

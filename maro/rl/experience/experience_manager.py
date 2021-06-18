@@ -74,7 +74,7 @@ class ExperienceManager:
         batch_size: int = 32,
         replace: bool = True,
         sampler_cls=None,
-        sampler_params: dict = None,
+        **sampler_params
     ):
         super().__init__()
         if overwrite_type not in {"rolling", "random"}:
@@ -141,6 +141,8 @@ class ExperienceManager:
                 self.data[key][idx] = val
 
         self._size = min(self._capacity, num_experiences)
+        if self.sampler:
+            self.sampler.on_put(experience_set, indexes)
 
     def get(self):
         """Retrieve an experience set from the memory.

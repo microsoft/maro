@@ -2,6 +2,6 @@
 # Licensed under the MIT license.
 
 from .experience_manager import ExperienceManager, ExperienceSet
-from .sampler import AbsSampler
+from .sampler import AbsSampler, PrioritizedSampler
 
-__all__ = ["AbsSampler", "ExperienceManager", "ExperienceSet"]
+__all__ = ["AbsSampler", "ExperienceManager", "ExperienceSet", "PrioritizedSampler"]

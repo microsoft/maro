@@ -65,7 +65,6 @@ policies:
     train_epochs: 10
     soft_update_coefficient: 0.1
     double: false
-    loss_cls: smooth_l1
   experience_manager:
     rollout: # for experience managers in actor processes
       capacity: 1000
@@ -76,7 +75,9 @@ policies:
       capacity: 100000
       overwrite_type: "rolling"
       batch_size: 128
-      replace: true
+      alpha: 0.6
+      beta: 0.4
+      beta_step: 0.001
   update_trigger: 16
   warmup: 1
 distributed:

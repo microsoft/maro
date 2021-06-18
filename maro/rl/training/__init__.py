@@ -1,10 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from .decision_generator import AbsDecisionGenerator, LocalDecisionGenerator, PolicyClient
+from .decision_generator import DecisionGenerator
 from .early_stopper import AbsEarlyStopper
 from .learner import Learner
 from .local_learner import LocalLearner
+from .policy_client import PolicyClient
 from .policy_server import policy_server
 from .rollout_manager import AbsRolloutManager, LocalRolloutManager, MultiNodeRolloutManager, MultiProcessRolloutManager
 from .rollout_worker import rollout_worker_node, rollout_worker_process
@@ -14,11 +15,11 @@ from .training_manager import (
 )
 
 __all__ = [
-    "AbsDecisionGenerator", "LocalDecisionGenerator", "PolicyClient",
+    "DecisionGenerator",
     "AbsEarlyStopper",
-    "InferenceManager",
     "Learner",
     "LocalLearner",
+    "PolicyClient",
     "policy_server",
     "AbsRolloutManager", "LocalRolloutManager", "MultiProcessRolloutManager", "MultiNodeRolloutManager",
     "rollout_worker_node", "rollout_worker_process",

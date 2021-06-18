@@ -7,7 +7,7 @@ from maro.rl.algorithms import (
     get_rl_policy_cls, get_rl_policy_config_cls, get_rl_policy_model_cls
 )
 from maro.rl.env_wrapper import AbsEnvWrapper
-from maro.rl.experience import AbsSampler, ExperienceManager, ExperienceSet
+from maro.rl.experience import AbsSampler, ExperienceManager, ExperienceSet, PrioritizedSampler
 from maro.rl.exploration import (
     AbsExploration, AbsExplorationScheduler, EpsilonGreedyExploration, GaussianNoiseExploration,
     LinearExplorationScheduler, MultiPhaseLinearExplorationScheduler, NoiseExploration, NullExploration,
@@ -19,10 +19,10 @@ from maro.rl.model import (
 )
 from maro.rl.policy import AbsCorePolicy, AbsPolicy, NullPolicy
 from maro.rl.training import (
-    AbsDecisionGenerator, AbsEarlyStopper, AbsRolloutManager, AbsTrainingManager, Learner, LocalDecisionGenerator,
-    LocalLearner, LocalRolloutManager, LocalTrainingManager, MultiNodeRolloutManager, MultiNodeTrainingManager,
-    MultiProcessRolloutManager, MultiProcessTrainingManager, PolicyClient, rollout_worker_node, rollout_worker_process,
-    trainer_node, trainer_process
+    AbsEarlyStopper, AbsRolloutManager, AbsTrainingManager, DecisionGenerator, Learner, LocalLearner,
+    LocalRolloutManager, LocalTrainingManager, MultiNodeRolloutManager, MultiNodeTrainingManager,
+    MultiProcessRolloutManager, MultiProcessTrainingManager, PolicyClient, policy_server, rollout_worker_node,
+    rollout_worker_process, trainer_node, trainer_process
 )
 from maro.rl.utils import (
     get_k_step_returns, get_lambda_returns, get_torch_activation_cls, get_torch_loss_cls, get_torch_lr_scheduler_cls,
@@ -33,17 +33,17 @@ __all__ = [
     "ActorCritic", "ActorCriticConfig", "DDPG", "DDPGConfig", "DQN", "DQNConfig", "PolicyGradient",
     "PolicyGradientConfig", "get_rl_policy_cls", "get_rl_policy_config_cls", "get_rl_policy_model_cls",
     "AbsEnvWrapper",
-    "AbsSampler", "ExperienceManager", "ExperienceSet",
+    "AbsSampler", "ExperienceManager", "ExperienceSet", "PrioritizedSampler",
     "AbsExploration", "AbsExplorationScheduler", "EpsilonGreedyExploration", "GaussianNoiseExploration",
     "LinearExplorationScheduler", "MultiPhaseLinearExplorationScheduler", "NoiseExploration", "NullExploration",
     "UniformNoiseExploration",
     "AbsBlock", "AbsCoreModel", "ContinuousACNet", "DiscreteACNet", "DiscretePolicyNet", "DiscreteQNet",
     "FullyConnectedBlock", "OptimOption",
     "AbsCorePolicy", "AbsPolicy", "NullPolicy",
-    "AbsDecisionGenerator", "AbsEarlyStopper", "AbsRolloutManager", "AbsTrainingManager", "Learner",
-    "LocalDecisionGenerator", "LocalLearner", "LocalRolloutManager", "LocalTrainingManager", "MultiNodeRolloutManager",
-    "MultiNodeTrainingManager", "MultiProcessRolloutManager", "MultiProcessTrainingManager", "PolicyClient",
-    "rollout_worker_node", "rollout_worker_process", "trainer_node", "trainer_process",
+    "AbsEarlyStopper", "AbsRolloutManager", "AbsTrainingManager", "DecisionGenerator", "Learner", "LocalLearner",
+    "LocalRolloutManager", "LocalTrainingManager", "MultiNodeRolloutManager", "MultiNodeTrainingManager",
+    "MultiProcessRolloutManager", "MultiProcessTrainingManager", "PolicyClient", "policy_server", "rollout_worker_node",
+    "rollout_worker_process", "trainer_node", "trainer_process",
     "get_k_step_returns", "get_lambda_returns", "get_torch_activation_cls", "get_torch_loss_cls",
     "get_torch_lr_scheduler_cls", "get_torch_optim_cls", "get_truncated_cumulative_reward"
 ]
