@@ -36,6 +36,9 @@ class PrioritizedSampler(AbsSampler):
         https://arxiv.org/pdf/1511.05952.pdf
         https://github.com/rlcode/per
 
+    The implementation here is based on direct proportional prioritization (the first variant in the paper).
+    The rank-based variant is not implemented here.
+
     Args:
         experience_manager (ExperienceManager): experience manager the sampler is associated with.
         batch_size (int): mini-batch size. Defaults to 32.
