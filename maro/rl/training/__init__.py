@@ -6,7 +6,7 @@ from .early_stopper import AbsEarlyStopper
 from .learner import Learner
 from .local_learner import LocalLearner
 from .rollout_manager import (
-    AbsRolloutManager, LocalRolloutManager, MultiProcessRolloutManager, MultiNodeRolloutManager
+    AbsRolloutManager, LocalRolloutManager, MultiNodeRolloutManager, MultiProcessRolloutManager
 )
 from .rollout_worker import rollout_worker_node, rollout_worker_process
 from .trainer import trainer_node, trainer_process

@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 from abc import ABC, abstractmethod
-
 from os import getcwd
 from typing import Dict, List
 
@@ -25,12 +24,12 @@ class AbsDecisionGenerator(ABC):
             self.exploration_by_agent = {
                 agent_id: exploration_dict[exploration_id] for agent_id, exploration_id in agent2exploration.items()
             }
-        self.exploring = True  # Flag indicating that exploration is turned on. 
+        self.exploring = True  # Flag indicating that exploration is turned on.
 
     @abstractmethod
     def choose_action(self, state: dict, ep: int, step: int) -> dict:
         """Generate an action based on the given state.
-        
+
         Args:
             state (dict): Dicitionary of agents' states based on which action decisions will be made.
             ep (int): Current episode.
@@ -75,7 +74,7 @@ class LocalDecisionGenerator(AbsDecisionGenerator):
 
     def choose_action(self, state: dict, ep: int, step: int) -> dict:
         """Generate an action based on the given state.
-        
+
         Args:
             state (dict): Dicitionary of agents' states based on which action decisions will be made.
             ep (int): Current episode.
