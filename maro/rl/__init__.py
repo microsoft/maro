@@ -41,7 +41,7 @@ __all__ = [
     "FullyConnectedBlock", "OptimOption",
     "AbsCorePolicy", "AbsPolicy", "NullPolicy",
     "AbsDecisionGenerator", "AbsEarlyStopper", "AbsRolloutManager", "AbsTrainingManager", "Learner",
-    "LocalDecisionGenerator","LocalLearner", "LocalRolloutManager", "LocalTrainingManager", "MultiNodeRolloutManager",
+    "LocalDecisionGenerator", "LocalLearner", "LocalRolloutManager", "LocalTrainingManager", "MultiNodeRolloutManager",
     "MultiNodeTrainingManager", "MultiProcessRolloutManager", "MultiProcessTrainingManager", "PolicyClient",
     "rollout_worker_node", "rollout_worker_process", "trainer_node", "trainer_process",
     "get_k_step_returns", "get_lambda_returns", "get_torch_activation_cls", "get_torch_loss_cls",

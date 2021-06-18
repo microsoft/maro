@@ -29,12 +29,12 @@ class AbsDecisionGenerator(ABC):
             self.exploration_by_agent = {
                 agent_id: exploration_dict[exploration_id] for agent_id, exploration_id in agent2exploration.items()
             }
-        self.exploring = True  # Flag indicating that exploration is turned on. 
+        self.exploring = True  # Flag indicating that exploration is turned on.
 
     @abstractmethod
     def choose_action(self, state: dict, ep: int, step: int) -> dict:
         """Generate an action based on the given state.
-        
+
         Args:
             state (dict): Dicitionary of agents' states based on which action decisions will be made.
             ep (int): Current episode.
@@ -79,7 +79,7 @@ class LocalDecisionGenerator(AbsDecisionGenerator):
 
     def choose_action(self, state: dict, ep: int, step: int) -> dict:
         """Generate an action based on the given state.
-        
+
         Args:
             state (dict): Dicitionary of agents' states based on which action decisions will be made.
             ep (int): Current episode.
@@ -114,55 +114,4 @@ class LocalDecisionGenerator(AbsDecisionGenerator):
             self._logger.info(f"updated policies {list(policy_state_dict.keys())}")
 
 
-class PolicyClient(AbsDecisionGenerator):
-    def __init__(
-        self,
-        agent2policy: Dict[str, str],
-        group: str,
-        max_receive_attempts: int = None,
-        receive_timeout: int = None,
-        log_dir: str = getcwd(),
-        **proxy_kwargs
-    ):
-        super().__init__(agent2policy)
-        self._max_receive_attempts = max_receive_attempts
-        self._receive_timeout = receive_timeout
-        self._proxy = Proxy(group, "policy_client", {"policy_manager": 1}, **proxy_kwargs)
-        self._logger = Logger(self._proxy.name, dump_folder=log_dir)
 
-    def choose_action(self, state: dict, ep: int, step: int) -> dict:
-        """Generate an action based on the given state.
-        
-        Args:
-            state (dict): Dicitionary of agents' states based on which action decisions will be made.
-            ep (int): Current episode.
-            step (int): Current step.
-        """
-        state_by_policy_name, agent_ids_by_policy_name = defaultdict(list), defaultdict(list)
-        for agent_id, st in state.items():
-            policy_name = self.agent2policy[agent_id]
-            state_by_policy_name[policy_name].append(st)
-            agent_ids_by_policy_name[policy_name].append(agent_id)
-
-        self._proxy.isend(
-            SessionMessage(
-                MsgTag.CHOOSE_ACTION, self._proxy.name, self._proxy.peers["policy_manager"][0],
-                body={MsgKey.EPISODE: ep, MsgKey.STEP: step, MsgKey.STATE: dict(state_by_policy_name)}
-            )
-        )
-
-        action_received = False
-        for _ in range(self._max_receive_attempts):
-            msg = self._proxy.receive_once(timeout=self._receive_timeout)
-            if msg and msg.tag == MsgTag.ACTION and msg.body[MsgKey.EPISODE] == ep and msg.body[MsgKey.STEP] == step:
-                action_received = True
-                break
-        
-        if not action_received:
-            self._logger(f"Failed to receive actions for episode {ep}, step {step}")
-        else:
-            action = {}
-            for policy_name, action_batch in msg.body[MsgKey.ACTION].items():
-                action.update(dict(zip(agent_ids_by_policy_name[policy_name], action_batch)))
-
-        return action
