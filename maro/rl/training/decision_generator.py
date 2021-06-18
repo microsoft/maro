@@ -30,7 +30,6 @@ class DecisionGenerator:
         agent2exploration: Dict[str, str] = None,
         log_dir: str = getcwd()
     ):
-        super().__init__(agent2policy, exploration_dict=exploration_dict, agent2exploration=agent2exploration)
         self.policy_dict = {policy.name: policy for policy in policies}
         self.policy = {agent_id: self.policy_dict[policy_id] for agent_id, policy_id in self.agent2policy.items()}
         self.agent2policy = agent2policy
