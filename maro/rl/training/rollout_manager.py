@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from pickle import FALSE
 import time
 from abc import ABC, abstractmethod
 from collections import defaultdict
@@ -500,7 +499,7 @@ class MultiNodeRolloutManager(AbsRolloutManager):
                     num_finishes += 1
                     if num_finishes == self.num_workers:
                         break
-        
+
         if self.episode_complete:
             self._exploration_step = True
 

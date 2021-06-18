@@ -24,7 +24,7 @@ def rollout_worker_process(
     """Roll-out worker process that can be spawned by a ``MultiProcessRolloutManager``.
 
     Args:
-        index (int): Index for the worker process. This is used for bookkeeping by the parent manager process.  
+        index (int): Index for the worker process. This is used for bookkeeping by the parent manager process.
         conn (Connection): Connection end for exchanging messages with the manager process.
         create_env_wrapper_func (Callable): Function to create an environment wrapper for training data collection.
             The function should take no parameters and return an environment wrapper instance.
@@ -37,7 +37,7 @@ def rollout_worker_process(
     """
     set_seeds(index)
     env_wrapper = create_env_wrapper_func()
-    eval_env_wrapper = env_wrapper if not create_eval_env_wrapper_func else create_eval_env_wrapper_func() 
+    eval_env_wrapper = env_wrapper if not create_eval_env_wrapper_func else create_eval_env_wrapper_func()
     decision_generator = create_decision_generator_func()
     logger = Logger("ROLLOUT_WORKER", dump_folder=log_dir)
 
@@ -84,7 +84,7 @@ def rollout_worker_process(
         conn.send(return_info)
 
     def evaluate(msg):
-        logger.info(f"Evaluating...")
+        logger.info("Evaluating...")
         eval_env_wrapper.reset()
         eval_env_wrapper.start()  # get initial state
         decision_generator.exploit()
@@ -133,7 +133,7 @@ def rollout_worker_node(
             for details.
     """
     env_wrapper = create_env_wrapper_func()
-    eval_env_wrapper = env_wrapper if not create_eval_env_wrapper_func else create_eval_env_wrapper_func() 
+    eval_env_wrapper = env_wrapper if not create_eval_env_wrapper_func else create_eval_env_wrapper_func()
     decision_generator = create_decision_generator_func()
 
     proxy = Proxy(group, "rollout_worker", {"rollout_manager": 1}, **proxy_kwargs)
@@ -182,7 +182,7 @@ def rollout_worker_node(
         proxy.reply(msg, tag=MsgTag.COLLECT_DONE, body=return_info)
 
     def evaluate(msg):
-        logger.info(f"Evaluating...")
+        logger.info("Evaluating...")
         ep = msg.body[MsgKey.EPISODE]
         eval_env_wrapper.reset()
         eval_env_wrapper.start()  # get initial state
