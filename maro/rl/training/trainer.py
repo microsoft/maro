@@ -13,6 +13,16 @@ from .message_enums import MsgKey, MsgTag
 
 
 def trainer_process(trainer_id: str, conn: Connection, create_policy_func_dict: Dict[str, Callable], log_dir: str):
+    """Policy trainer process which can be spawned by a ``MultiProcessTrainingManager``.
+
+    Args:
+        trainer_id (str): Identifier for the trainer process for bookkeeping by the parent manager process.
+        conn (Connection): Connection end for exchanging messages with the manager process.
+        create_policy_func_dict (dict): A dictionary mapping policy names to functions that create them. The policy
+            creation function should have exactly one parameter which is the policy name and return an ``AbsPolicy``
+            instance.
+        log_dir (str): Directory to store logs in. Defaults to the current working directory.
+    """
     policy_dict = {policy_name: func(policy_name) for policy_name, func in create_policy_func_dict.items()}
     logger = Logger("TRAINER", dump_folder=log_dir)
     while True:
@@ -39,6 +49,19 @@ def trainer_node(
     log_dir: str = getcwd(),
     **proxy_kwargs
 ):
+    """Policy trainer process that can be launched on separate computation nodes.
+
+    Args:
+        trainer_id (str): Identifier for the trainer process for bookkeeping by the parent manager process.
+        create_policy_func_dict (dict): A dictionary mapping policy names to functions that create them. The policy
+            creation function should have exactly one parameter which is the policy name and return an ``AbsPolicy``
+            instance.
+        group (str): Group name for the training cluster, which includes all trainers and a training manager that
+            manages them.
+        log_dir (str): Directory to store logs in. Defaults to the current working directory.
+        proxy_kwargs: Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
+            for details.
+    """
     policy_dict = {policy_name: func() for policy_name, func in create_policy_func_dict.items()}
     proxy = Proxy(group, "trainer", {"training_manager": 1}, component_name=trainer_id, **proxy_kwargs)
     logger = Logger(proxy.name, dump_folder=log_dir)
