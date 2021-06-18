@@ -16,6 +16,7 @@ from maro.rl.exploration import AbsExploration
 from maro.rl.policy import AbsPolicy
 from maro.utils import Logger
 
+from .decision_generator import DecisionGenerator
 from .message_enums import MsgKey, MsgTag
 from .rollout_worker import rollout_worker_process
 
