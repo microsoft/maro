@@ -10,10 +10,10 @@ from random import choices
 from typing import Callable, Dict, List
 
 from maro.communication import Proxy, SessionType
-from maro.rl.wrappers import AbsEnvWrapper, AgentWrapper
 from maro.rl.experience import ExperienceSet
 from maro.rl.exploration import AbsExploration
 from maro.rl.policy import AbsPolicy
+from maro.rl.wrappers import AbsEnvWrapper, AgentWrapper
 from maro.utils import Logger
 
 from ..message_enums import MsgKey, MsgTag
