@@ -6,20 +6,19 @@ from os import getcwd
 from typing import Callable
 
 from maro.communication import Proxy
-from maro.rl.env_wrapper import AbsEnvWrapper
+from maro.rl.wrappers import AbsEnvWrapper, AgentWrapper
 from maro.utils import Logger, set_seeds
 
-from .decision_generator import DecisionGenerator
-from .message_enums import MsgKey, MsgTag
+from ..message_enums import MsgKey, MsgTag
 
 
 def rollout_worker_process(
     index: int,
     conn: Connection,
     create_env_wrapper_func: Callable[[], AbsEnvWrapper],
-    create_decision_generator_func: Callable[[], DecisionGenerator],
-    create_eval_env_wrapper_func: Callable[[], AbsEnvWrapper],
-    log_dir: str
+    create_agent_wrapper_func: Callable[[], AgentWrapper],
+    create_eval_env_wrapper_func: Callable[[], AbsEnvWrapper] = None,
+    log_dir: str = getcwd()
 ):
     """Roll-out worker process that can be spawned by a ``MultiProcessRolloutManager``.
 
@@ -28,29 +27,29 @@ def rollout_worker_process(
         conn (Connection): Connection end for exchanging messages with the manager process.
         create_env_wrapper_func (Callable): Function to create an environment wrapper for training data collection.
             The function should take no parameters and return an environment wrapper instance.
-        create_decision_generator_func (Callable): Function to create a decision generator for interacting with
-            the environment. The function should take no parameters and return a ``DecisionGenerator`` instance.
+        create_agent_wrapper_func (Callable): Function to create a decision generator for interacting with
+            the environment. The function should take no parameters and return a ``AgentWrapper`` instance.
         create_env_wrapper_func (Callable): Function to create an environment wrapper for evaluation. The function
             should take no parameters and return an environment wrapper instance. If this is None, the training
-            environment wrapper will be used for evaluation.
+            environment wrapper will be used for evaluation. Defaults to None.
         log_dir (str): Directory to store logs in. Defaults to the current working directory.
     """
     set_seeds(index)
     env_wrapper = create_env_wrapper_func()
     eval_env_wrapper = env_wrapper if not create_eval_env_wrapper_func else create_eval_env_wrapper_func()
-    decision_generator = create_decision_generator_func()
+    agent_wrapper = create_agent_wrapper_func()
     logger = Logger("ROLLOUT_WORKER", dump_folder=log_dir)
 
     def collect(msg):
         ep, segment = msg["episode"], msg["segment"]
         # load policies
-        if hasattr(decision_generator, "update"):
-            decision_generator.update(msg["policy"])
+        if hasattr(agent_wrapper, "update"):
+            agent_wrapper.update(msg["policy"])
 
         # update exploration parameters
-        decision_generator.explore()
+        agent_wrapper.explore()
         if msg["exploration_step"]:
-            decision_generator.exploration_step()
+            agent_wrapper.exploration_step()
 
         if env_wrapper.state is None:
             logger.info(f"Training episode {ep}")
@@ -60,7 +59,7 @@ def rollout_worker_process(
         starting_step_index = env_wrapper.step_index + 1
         steps_to_go = float("inf") if msg["num_steps"] == -1 else msg["num_steps"]
         while env_wrapper.state and steps_to_go > 0:
-            action = decision_generator.choose_action(env_wrapper.state, ep, env_wrapper.step_index)
+            action = agent_wrapper.choose_action(env_wrapper.state)
             env_wrapper.step(action)
             steps_to_go -= 1
 
@@ -69,9 +68,8 @@ def rollout_worker_process(
             f"(steps {starting_step_index} - {env_wrapper.step_index})"
         )
 
-        if hasattr(decision_generator, "store_experiences"):
-            policy_names = decision_generator.store_experiences(env_wrapper.get_experiences())
-            ret_exp = decision_generator.get_experiences_by_policy(policy_names)
+        policy_names = agent_wrapper.on_experiences(env_wrapper.get_experiences())
+        ret_exp = agent_wrapper.get_experiences_by_policy(policy_names)
 
         return_info = {
             "worker_index": index,
@@ -87,13 +85,11 @@ def rollout_worker_process(
         logger.info("Evaluating...")
         eval_env_wrapper.reset()
         eval_env_wrapper.start()  # get initial state
-        decision_generator.exploit()
-        if hasattr(decision_generator, "update"):
-            decision_generator.update(msg["policy"])
+        agent_wrapper.exploit()
+        if hasattr(agent_wrapper, "update"):
+            agent_wrapper.update(msg["policy"])
         while eval_env_wrapper.state:
-            action = decision_generator.choose_action(
-                eval_env_wrapper.state, msg["episode"], eval_env_wrapper.step_index
-            )
+            action = agent_wrapper.choose_action(eval_env_wrapper.state)
             eval_env_wrapper.step(action)
 
         conn.send({"worker_id": index, "env_summary": eval_env_wrapper.summary})
@@ -110,7 +106,7 @@ def rollout_worker_process(
 
 def rollout_worker_node(
     create_env_wrapper_func: Callable[[], AbsEnvWrapper],
-    create_decision_generator_func: Callable[[], DecisionGenerator],
+    create_agent_wrapper_func: Callable[[], AgentWrapper],
     group: str,
     create_eval_env_wrapper_func: Callable[[], AbsEnvWrapper] = None,
     log_dir: str = getcwd(),
@@ -121,8 +117,8 @@ def rollout_worker_node(
     Args:
         create_env_wrapper_func (Callable): Function to create an environment wrapper for roll-out. The function
             should take no parameters and return an environment wrapper instance.
-        create_decision_generator_func (Callable): Function to create a decision generator for interacting with
-            the environment. The function should take no parameters and return a ``DecisionGenerator`` instance.
+        create_agent_wrapper_func (Callable): Function to create a decision generator for interacting with
+            the environment. The function should take no parameters and return a ``AgentWrapper`` instance.
         group (str): Group name for the roll-out cluster, which includes all roll-out workers and a roll-out manager
             that manages them.
         create_env_wrapper_func (Callable): Function to create an environment wrapper for evaluation. The function
@@ -134,7 +130,7 @@ def rollout_worker_node(
     """
     env_wrapper = create_env_wrapper_func()
     eval_env_wrapper = env_wrapper if not create_eval_env_wrapper_func else create_eval_env_wrapper_func()
-    decision_generator = create_decision_generator_func()
+    agent_wrapper = create_agent_wrapper_func()
 
     proxy = Proxy(group, "rollout_worker", {"rollout_manager": 1}, **proxy_kwargs)
     logger = Logger(proxy.name, dump_folder=log_dir)
@@ -142,12 +138,12 @@ def rollout_worker_node(
     def collect(msg):
         ep, segment = msg.body[MsgKey.EPISODE], msg.body[MsgKey.SEGMENT]
         # load policies
-        if hasattr(decision_generator, "update"):
-            decision_generator.update(msg.body[MsgKey.POLICY])
+        if hasattr(agent_wrapper, "update"):
+            agent_wrapper.update(msg.body[MsgKey.POLICY])
         # set exploration parameters
-        decision_generator.explore()
+        agent_wrapper.explore()
         if msg.body[MsgKey.EXPLORATION_STEP]:
-            decision_generator.exploration_step()
+            agent_wrapper.exploration_step()
 
         if env_wrapper.state is None:
             logger.info(f"Training episode {msg.body[MsgKey.EPISODE]}")
@@ -157,7 +153,7 @@ def rollout_worker_node(
         starting_step_index = env_wrapper.step_index + 1
         steps_to_go = float("inf") if msg.body[MsgKey.NUM_STEPS] == -1 else msg.body[MsgKey.NUM_STEPS]
         while env_wrapper.state and steps_to_go > 0:
-            action = decision_generator.choose_action(env_wrapper.state, ep, env_wrapper.step_index)
+            action = agent_wrapper.choose_action(env_wrapper.state)
             env_wrapper.step(action)
             steps_to_go -= 1
 
@@ -166,9 +162,8 @@ def rollout_worker_node(
             f"(steps {starting_step_index} - {env_wrapper.step_index})"
         )
 
-        if hasattr(decision_generator, "store_experiences"):
-            policy_names = decision_generator.store_experiences(env_wrapper.get_experiences())
-            ret_exp = decision_generator.get_experiences_by_policy(policy_names)
+        policy_names = agent_wrapper.on_experiences(env_wrapper.get_experiences())
+        ret_exp = agent_wrapper.get_experiences_by_policy(policy_names)
 
         return_info = {
             MsgKey.EPISODE_END: not env_wrapper.state,
@@ -186,11 +181,11 @@ def rollout_worker_node(
         ep = msg.body[MsgKey.EPISODE]
         eval_env_wrapper.reset()
         eval_env_wrapper.start()  # get initial state
-        decision_generator.exploit()
-        if hasattr(decision_generator, "update"):
-            decision_generator.update(msg.body[MsgKey.POLICY])
+        agent_wrapper.exploit()
+        if hasattr(agent_wrapper, "update"):
+            agent_wrapper.update(msg.body[MsgKey.POLICY])
         while eval_env_wrapper.state:
-            action = decision_generator.choose_action(eval_env_wrapper.state, ep, eval_env_wrapper.step_index)
+            action = agent_wrapper.choose_action(eval_env_wrapper.state)
             eval_env_wrapper.step(action)
 
         return_info = {MsgKey.ENV_SUMMARY: eval_env_wrapper.summary, MsgKey.EPISODE: msg.body[MsgKey.EPISODE]}

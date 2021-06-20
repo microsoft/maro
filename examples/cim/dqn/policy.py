@@ -50,5 +50,6 @@ def get_independent_policy_for_rollout(name):
         name=name,
         q_net=qnet,
         experience_manager=ExperienceManager(**cfg["experience_manager"]["rollout"]),
-        config=DQNConfig(**cfg["algorithm_config"])
+        config=DQNConfig(**cfg["algorithm_config"]),
+        update_trigger=1e8  # set to a large number to ensure that the roll-out workers don't update policies
     )

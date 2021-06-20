@@ -5,7 +5,7 @@ import os
 import sys
 
 from maro.rl import (
-    DecisionGenerator, EpsilonGreedyExploration, MultiPhaseLinearExplorationScheduler, LocalRolloutManager,
+    AgentWrapper, EpsilonGreedyExploration, MultiPhaseLinearExplorationScheduler, LocalRolloutManager,
     MultiProcessRolloutManager
 )
 from maro.simulator import Env
@@ -19,10 +19,10 @@ from general import AGENT_IDS, NUM_ACTIONS, config, log_dir
 from policy import get_independent_policy_for_rollout
 
 
-def get_env():
+def get_env_wrapper():
     return CIMEnvWrapper(Env(**config["env"]["basic"]), **config["env"]["wrapper"])
 
-def get_decision_generator():
+def get_agent_wrapper():
     epsilon_greedy = EpsilonGreedyExploration(num_actions=NUM_ACTIONS)
     epsilon_greedy.register_schedule(
         scheduler_cls=MultiPhaseLinearExplorationScheduler,
@@ -30,9 +30,9 @@ def get_decision_generator():
         last_ep=config["num_episodes"],
         **config["exploration"]
     )
-    return DecisionGenerator(
-        agent2policy={i: i for i in AGENT_IDS},
+    return AgentWrapper(
         policies=[get_independent_policy_for_rollout(i) for i in AGENT_IDS],
+        agent2policy={i: i for i in AGENT_IDS},
         exploration_dict={f"EpsilonGreedy": epsilon_greedy},
         agent2exploration={i: "EpsilonGreedy" for i in AGENT_IDS},
         log_dir=log_dir
@@ -53,8 +53,8 @@ if config["distributed"]["rollout_mode"] == "local":
 else:
     rollout_manager = MultiProcessRolloutManager(
         config["distributed"]["num_rollout_workers"],
-        get_env,
-        get_decision_generator,
+        get_env_wrapper,
+        get_agent_wrapper,
         num_steps=config["num_steps"],
         log_dir=log_dir,
     )

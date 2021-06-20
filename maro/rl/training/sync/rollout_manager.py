@@ -10,15 +10,14 @@ from random import choices
 from typing import Callable, Dict, List
 
 from maro.communication import Proxy, SessionType
-from maro.rl.env_wrapper import AbsEnvWrapper
+from maro.rl.wrappers import AbsEnvWrapper, AgentWrapper
 from maro.rl.experience import ExperienceSet
 from maro.rl.exploration import AbsExploration
 from maro.rl.policy import AbsPolicy
 from maro.utils import Logger
 
-from .decision_generator import DecisionGenerator
-from .message_enums import MsgKey, MsgTag
 from .rollout_worker import rollout_worker_process
+from ..message_enums import MsgKey, MsgTag
 
 
 class AbsRolloutManager(ABC):
@@ -245,13 +244,13 @@ class MultiProcessRolloutManager(AbsRolloutManager):
         create_env_wrapper_func (Callable): Function to be used by each spawned roll-out worker to create an
             environment wrapper for training data collection. The function should take no parameters and return an
             environment wrapper instance.
-        create_decision_generator_func (Callable): Function to be used by each spawned roll-out worker to create a
+        create_agent_wrapper_func (Callable): Function to be used by each spawned roll-out worker to create a
             decision generator for interacting with the environment. The function should take no parameters and return
-            a ``DecisionGenerator`` instance.
+            a ``AgentWrapper`` instance.
         create_env_wrapper_func (Callable): Function to be used by each spawned roll-out worker to create an
             environment wrapper for evaluation. The function should take no parameters and return an environment
             wrapper instance. If this is None, the training environment wrapper will be used for evaluation in the
-            worker processes.
+            worker processes. Defaults to None.
         num_steps (int): Number of environment steps to roll out in each call to ``collect``. Defaults to -1, in which
             case the roll-out will be executed until the end of the environment.
         num_eval_workers (int): Number of workers for evaluation. Defaults to 1.
@@ -265,7 +264,7 @@ class MultiProcessRolloutManager(AbsRolloutManager):
         self,
         num_workers: int,
         create_env_wrapper_func: Callable[[], AbsEnvWrapper],
-        create_decision_generator_func: Callable[[], DecisionGenerator],
+        create_agent_wrapper_func: Callable[[], AgentWrapper],
         create_eval_env_wrapper_func: Callable[[], AbsEnvWrapper] = None,
         num_steps: int = -1,
         num_eval_workers: int = 1,
@@ -293,10 +292,12 @@ class MultiProcessRolloutManager(AbsRolloutManager):
                     index,
                     worker_end,
                     create_env_wrapper_func,
-                    create_decision_generator_func,
-                    create_eval_env_wrapper_func,
-                    log_dir
-                )
+                    create_agent_wrapper_func,
+                ),
+                kwargs={
+                    "create_eval_env_wrapper_func": create_eval_env_wrapper_func,
+                    "log_dir": log_dir    
+                }
             )
             self._worker_processes.append(worker)
             worker.start()

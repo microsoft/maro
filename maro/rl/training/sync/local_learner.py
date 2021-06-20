@@ -1,14 +1,12 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from maro.rl.wrappers.agent_wrapper import AgentWrapper
 import time
-from collections import defaultdict
 from os import getcwd
-from typing import Dict, List, Union
+from typing import List, Union
 
-from maro.rl.env_wrapper import AbsEnvWrapper
-from maro.rl.exploration import AbsExploration
-from maro.rl.policy import AbsCorePolicy, AbsPolicy
+from maro.rl.wrappers import AbsEnvWrapper
 from maro.utils import Logger
 
 from .early_stopper import AbsEarlyStopper
@@ -18,18 +16,13 @@ class LocalLearner:
     """Controller for single-threaded learning workflows.
 
     Args:
-        env (AbsEnvWrapper): Environment wrapper instance to interact with a set of agents and collect experiences
-            for policy updates.
-        policies (List[AbsPolicy]): A set of named policies for inference.
-        agent2policy (Dict[str, str]): Mapping from agent ID's to policy ID's. This is used to direct an agent's
-            queries to the correct policy.
+        env_wrapper (AbsEnvWrapper): Environment wrapper instance to interact with a set of agents and collect
+            experiences for learning.
+        agent_wrapper (AgentWrapper): Multi-policy wrapper that interacts with the ``env_wrapper`` directly.  
         num_episodes (int): Number of training episodes. Each training episode may contain one or more
             collect-update cycles, depending on how the implementation of the roll-out manager.
         num_steps (int): Number of environment steps to roll out in each call to ``collect``. Defaults to -1, in which
             case the roll-out will be executed until the end of the environment.
-        exploration_dict (Dict[str, AbsExploration]): A set of named exploration schemes. Defaults to None.
-        agent2exploration (Dict[str, str]): Mapping from agent ID's to exploration scheme ID's. This is used to direct
-            an agent's query to the correct exploration scheme. Defaults to None.
         eval_schedule (Union[int, List[int]]): Evaluation schedule. If an integer is provided, the policies will
             will be evaluated every ``eval_schedule`` episodes. If a list is provided, the policies will be evaluated
             at the end of the training episodes given in the list. In any case, the policies will be evaluated
@@ -48,13 +41,10 @@ class LocalLearner:
 
     def __init__(
         self,
-        env: AbsEnvWrapper,
-        policies: List[AbsPolicy],
-        agent2policy: Dict[str, str],
+        env_wrapper: AbsEnvWrapper,
+        agent_wrapper: AgentWrapper,
         num_episodes: int,
         num_steps: int = -1,
-        exploration_dict: Dict[str, AbsExploration] = None,
-        agent2exploration: Dict[str, str] = None,
         eval_schedule: Union[int, List[int]] = None,
         eval_env: AbsEnvWrapper = None,
         early_stopper: AbsEarlyStopper = None,
@@ -65,31 +55,12 @@ class LocalLearner:
             raise ValueError("num_steps must be a positive integer or -1")
 
         self._logger = Logger("LOCAL_LEARNER", dump_folder=log_dir)
-        self.env = env
+        self.env = env_wrapper
         self.eval_env = eval_env if eval_env else self.env
-
-        # mappings between agents and policies
-        self.policy_dict = {policy.name: policy for policy in policies}
-        self._agent2policy = agent2policy
-        self._policy = {agent_id: self.policy_dict[policy_id] for agent_id, policy_id in self._agent2policy.items()}
-        self._agent_groups_by_policy = defaultdict(list)
-        for agent_id, policy_id in agent2policy.items():
-            self._agent_groups_by_policy[policy_id].append(agent_id)
+        self.agent = agent_wrapper
 
         self.num_episodes = num_episodes
         self._num_steps = num_steps if num_steps > 0 else float("inf")
-
-        # mappings between exploration schemes and agents
-        self.exploration_dict = exploration_dict
-        if exploration_dict:
-            self._agent2exploration = agent2exploration
-            self._exploration = {
-                agent_id: self.exploration_dict[exploration_id]
-                for agent_id, exploration_id in self._agent2exploration.items()
-            }
-            self._agent_groups_by_exploration = defaultdict(list)
-            for agent_id, exploration_id in self._agent2exploration.items():
-                self._agent_groups_by_exploration[exploration_id].append(agent_id)
 
         # evaluation schedule
         if eval_schedule is None:
@@ -126,27 +97,17 @@ class LocalLearner:
         t0 = time.time()
         num_experiences_collected = 0
 
-        if self.exploration_dict:
-            exploration_params = {
-                tuple(agent_ids): self.exploration_dict[exploration_id].parameters
-                for exploration_id, agent_ids in self._agent_groups_by_exploration.items()
-            }
-            self._logger.debug(f"Exploration parameters: {exploration_params}")
-
+        self.agent.explore()
         self.env.reset()
         self.env.start()  # get initial state
         segment = 0
         while self.env.state:
             segment += 1
-            for agent_id, exp in self._collect(ep, segment).items():
-                num_experiences_collected += exp.size
-                if isinstance(self._policy[agent_id], AbsCorePolicy):
-                    self._policy[agent_id].on_experiences(exp)
-
+            exp_by_agent = self._collect(ep, segment)
+            self.agent.on_experiences(exp_by_agent)    
+            num_experiences_collected += sum(exp.size for exp in exp_by_agent.values())
         # update the exploration parameters if an episode is finished
-        if self.exploration_dict:
-            for exploration in self.exploration_dict.values():
-                exploration.step()
+        self.agent.exploration_step()
 
         # performance details
         if self._log_env_summary:
@@ -162,11 +123,11 @@ class LocalLearner:
     def _evaluate(self):
         """Policy evaluation."""
         self._logger.info("Evaluating...")
+        self.agent.exploit()
         self.eval_env.reset()
         self.eval_env.start()  # get initial state
         while self.eval_env.state:
-            action = {id_: self._policy[id_].choose_action(st) for id_, st in self.eval_env.state.items()}
-            self.eval_env.step(action)
+            self.eval_env.step(self.agent.choose_action(self.eval_env.state))
 
         # performance details
         self._logger.info(f"Evaluation result: {self.eval_env.summary}")
@@ -175,16 +136,7 @@ class LocalLearner:
         start_step_index = self.env.step_index + 1
         steps_to_go = self._num_steps
         while self.env.state and steps_to_go:
-            if self.exploration_dict:
-                action = {
-                    id_:
-                        self._exploration[id_](self._policy[id_].choose_action(st))
-                        if id_ in self._exploration else self._policy[id_].choose_action(st)
-                    for id_, st in self.env.state.items()
-                }
-            else:
-                action = {id_: self._policy[id_].choose_action(st) for id_, st in self.env.state.items()}
-            self.env.step(action)
+            self.env.step(self.agent.choose_action(self.env.state))
             steps_to_go -= 1
 
         self._logger.info(

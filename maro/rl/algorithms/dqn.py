@@ -83,6 +83,8 @@ class DQN(AbsCorePolicy):
         self.device = self.q_net.device
         self._training_counter = 0
         self.prioritized_experience_replay = isinstance(self.experience_manager.sampler, PrioritizedSampler)
+        if not self.prioritized_experience_replay:
+            self._loss_func = torch.nn.MSELoss()       
 
     def choose_action(self, states) -> Union[int, np.ndarray]:
         with torch.no_grad():
@@ -122,7 +124,7 @@ class DQN(AbsCorePolicy):
                 loss = (td_errors * is_weights).mean()
                 self.experience_manager.sampler.update(indexes, td_errors.detach().cpu().numpy())
             else:
-                loss = torch.nn.MSELoss(q_values, target_q_values)
+                loss = self._loss_func(q_values, target_q_values)
             self.q_net.step(loss)
 
             # soft-update target network

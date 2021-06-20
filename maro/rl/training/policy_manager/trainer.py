@@ -9,14 +9,13 @@ from typing import Callable, Dict
 from maro.communication import Proxy
 from maro.utils import Logger
 
-from .message_enums import MsgKey, MsgTag
+from ..message_enums import MsgKey, MsgTag
 
 
-def trainer_process(trainer_id: str, conn: Connection, create_policy_func_dict: Dict[str, Callable], log_dir: str):
-    """Policy trainer process which can be spawned by a ``MultiProcessTrainingManager``.
+def trainer_process(conn: Connection, create_policy_func_dict: Dict[str, Callable], log_dir: str = getcwd()):
+    """Policy trainer process which can be spawned by a ``MultiProcessPolicyManager``.
 
     Args:
-        trainer_id (str): Identifier for the trainer process for bookkeeping by the parent manager process.
         conn (Connection): Connection end for exchanging messages with the manager process.
         create_policy_func_dict (dict): A dictionary mapping policy names to functions that create them. The policy
             creation function should have exactly one parameter which is the policy name and return an ``AbsPolicy``
@@ -63,7 +62,7 @@ def trainer_node(
             for details.
     """
     policy_dict = {policy_name: func() for policy_name, func in create_policy_func_dict.items()}
-    proxy = Proxy(group, "trainer", {"training_manager": 1}, component_name=trainer_id, **proxy_kwargs)
+    proxy = Proxy(group, "trainer", {"policy_manager": 1}, component_name=trainer_id, **proxy_kwargs)
     logger = Logger(proxy.name, dump_folder=log_dir)
 
     for msg in proxy.receive():

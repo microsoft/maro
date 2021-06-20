@@ -13,12 +13,12 @@ from maro.rl.experience import ExperienceSet
 from maro.rl.policy import AbsCorePolicy, AbsPolicy
 from maro.utils import Logger
 
-from .message_enums import MsgKey, MsgTag
+from ..message_enums import MsgKey, MsgTag
 from .trainer import trainer_process
 
 
-class AbsTrainingManager(ABC):
-    """Controller for policy updates.
+class AbsPolicyManager(ABC):
+    """Manage all policies.
 
     The actual policy instances may reside here or be distributed on a set of remote nodes.
     """
@@ -42,7 +42,7 @@ class AbsTrainingManager(ABC):
         raise NotImplementedError
 
 
-class LocalTrainingManager(AbsTrainingManager):
+class LocalPolicyManager(AbsPolicyManager):
     """Policy manager that contains the actual policy instances.
 
     Args:
@@ -85,8 +85,8 @@ class LocalTrainingManager(AbsTrainingManager):
         return {name: policy.get_state() for name, policy in self.policy_dict.items()}
 
 
-class MultiProcessTrainingManager(AbsTrainingManager):
-    """Training manager that spawns a set of trainer processes for parallel training.
+class MultiProcessPolicyManager(AbsPolicyManager):
+    """Policy manager that spawns a set of trainer processes for parallel training.
 
     Args:
         policy2trainer (dict): Mapping from policy names to trainer IDs.
@@ -104,7 +104,7 @@ class MultiProcessTrainingManager(AbsTrainingManager):
         log_dir: str = getcwd(),
     ):
         super().__init__()
-        self._logger = Logger("TRAINING_MANAGER", dump_folder=log_dir)
+        self._logger = Logger("POLICY_MANAGER", dump_folder=log_dir)
         self.policy2trainer = policy2trainer
         self._names = list(self.policy2trainer.keys())
         self._trainer2policies = defaultdict(list)
@@ -119,11 +119,10 @@ class MultiProcessTrainingManager(AbsTrainingManager):
             trainer = Process(
                 target=trainer_process,
                 args=(
-                    trainer_id,
                     trainer_end,
                     {name: create_policy_func_dict[name] for name in policy_names},
-                    log_dir
-                )
+                ),
+                kwargs={"log_dir": log_dir}
             )
             self._trainer_processes.append(trainer)
             trainer.start()
@@ -165,8 +164,8 @@ class MultiProcessTrainingManager(AbsTrainingManager):
             conn.send({"type": "quit"})
 
 
-class MultiNodeTrainingManager(AbsTrainingManager):
-    """Training manager that spawns a set of trainer processes for parallel training.
+class MultiNodePolicyManager(AbsPolicyManager):
+    """Policy manager that communicates with a set of remote nodes for parallel training.
 
     Args:
         policy2trainer (dict): Mapping from policy names to trainer IDs.
@@ -189,11 +188,11 @@ class MultiNodeTrainingManager(AbsTrainingManager):
         **proxy_kwargs
     ):
         super().__init__()
-        self._logger = Logger("TRAINING_MANAGER", dump_folder=log_dir)
+        self._logger = Logger("POLICY_MANAGER", dump_folder=log_dir)
         self.policy2trainer = policy2trainer
         self._names = list(self.policy2trainer.keys())
         peers = {"trainer": len(set(self.policy2trainer.values()))}
-        self._proxy = Proxy(group, "training_manager", peers, **proxy_kwargs)
+        self._proxy = Proxy(group, "policy_manager", peers, **proxy_kwargs)
 
     @property
     def names(self):

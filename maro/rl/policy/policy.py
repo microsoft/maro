@@ -91,6 +91,9 @@ class AbsCorePolicy(AbsPolicy):
         pass
 
     def on_experiences(self, exp: ExperienceSet) -> bool:
+        """
+        Store incoming experiences and update if necessary.
+        """
         self.experience_manager.put(exp)
         self._new_exp_counter += exp.size
         print(

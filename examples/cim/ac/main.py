@@ -9,7 +9,8 @@ import numpy as np
 import torch
 
 from maro.rl import (
-    ActorCritic, ActorCriticConfig, DiscreteACNet, ExperienceManager, FullyConnectedBlock, LocalLearner, OptimOption
+    ActorCritic, ActorCriticConfig, AgentWrapper, DiscreteACNet, ExperienceManager, FullyConnectedBlock, LocalLearner,
+    OptimOption
 )
 from maro.simulator import Env
 from maro.utils import set_seeds
@@ -66,5 +67,6 @@ if __name__ == "__main__":
     env_wrapper = CIMEnvWrapper(env, **config["env"]["wrapper"])
     policies = [get_ac_policy(id_) for id_ in env.agent_idx_list]
     agent2policy = {agent_id: agent_id for agent_id in env.agent_idx_list}
-    learner = LocalLearner(env_wrapper, policies, agent2policy, 40)  # 40 episodes
+    agent_wrapper = AgentWrapper(policies, agent2policy)
+    learner = LocalLearner(env_wrapper, agent_wrapper, 40)  # 40 episodes
     learner.run()
