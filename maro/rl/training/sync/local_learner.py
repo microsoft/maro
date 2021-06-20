@@ -1,12 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from maro.rl.wrappers.agent_wrapper import AgentWrapper
 import time
 from os import getcwd
 from typing import List, Union
 
-from maro.rl.wrappers import AbsEnvWrapper
+from maro.rl.wrappers import AbsEnvWrapper, AgentWrapper
 from maro.utils import Logger
 
 from .early_stopper import AbsEarlyStopper
@@ -18,7 +17,7 @@ class LocalLearner:
     Args:
         env_wrapper (AbsEnvWrapper): Environment wrapper instance to interact with a set of agents and collect
             experiences for learning.
-        agent_wrapper (AgentWrapper): Multi-policy wrapper that interacts with the ``env_wrapper`` directly.  
+        agent_wrapper (AgentWrapper): Multi-policy wrapper that interacts with the ``env_wrapper`` directly.
         num_episodes (int): Number of training episodes. Each training episode may contain one or more
             collect-update cycles, depending on how the implementation of the roll-out manager.
         num_steps (int): Number of environment steps to roll out in each call to ``collect``. Defaults to -1, in which
@@ -104,7 +103,7 @@ class LocalLearner:
         while self.env.state:
             segment += 1
             exp_by_agent = self._collect(ep, segment)
-            self.agent.on_experiences(exp_by_agent)    
+            self.agent.on_experiences(exp_by_agent)
             num_experiences_collected += sum(exp.size for exp in exp_by_agent.values())
         # update the exploration parameters if an episode is finished
         self.agent.exploration_step()

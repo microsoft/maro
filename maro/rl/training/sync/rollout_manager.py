@@ -16,8 +16,8 @@ from maro.rl.exploration import AbsExploration
 from maro.rl.policy import AbsPolicy
 from maro.utils import Logger
 
-from .rollout_worker import rollout_worker_process
 from ..message_enums import MsgKey, MsgTag
+from .rollout_worker import rollout_worker_process
 
 
 class AbsRolloutManager(ABC):
@@ -296,7 +296,7 @@ class MultiProcessRolloutManager(AbsRolloutManager):
                 ),
                 kwargs={
                     "create_eval_env_wrapper_func": create_eval_env_wrapper_func,
-                    "log_dir": log_dir    
+                    "log_dir": log_dir
                 }
             )
             self._worker_processes.append(worker)

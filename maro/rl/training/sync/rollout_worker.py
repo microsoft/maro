@@ -178,7 +178,6 @@ def rollout_worker_node(
 
     def evaluate(msg):
         logger.info("Evaluating...")
-        ep = msg.body[MsgKey.EPISODE]
         eval_env_wrapper.reset()
         eval_env_wrapper.start()  # get initial state
         agent_wrapper.exploit()

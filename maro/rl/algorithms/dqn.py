@@ -84,7 +84,7 @@ class DQN(AbsCorePolicy):
         self._training_counter = 0
         self.prioritized_experience_replay = isinstance(self.experience_manager.sampler, PrioritizedSampler)
         if not self.prioritized_experience_replay:
-            self._loss_func = torch.nn.MSELoss()       
+            self._loss_func = torch.nn.MSELoss()
 
     def choose_action(self, states) -> Union[int, np.ndarray]:
         with torch.no_grad():
