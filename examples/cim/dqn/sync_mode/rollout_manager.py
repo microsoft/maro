@@ -4,39 +4,20 @@
 import os
 import sys
 
-from maro.rl import (
-    AgentWrapper, EpsilonGreedyExploration, MultiPhaseLinearExplorationScheduler, LocalRolloutManager,
-    MultiProcessRolloutManager
-)
+from maro.rl import EpsilonGreedyExploration, LocalRolloutManager, MultiProcessRolloutManager
+
 from maro.simulator import Env
 
-dqn_path = os.path.dirname(os.path.realpath(__file__))  # DQN directory
+sync_mode_path = os.path.dirname(os.path.realpath(__file__))  # DQN sync mode directory
+dqn_path = os.path.dirname(sync_mode_path)  # DQN directory
 cim_path = os.path.dirname(dqn_path)  # CIM example directory
 sys.path.insert(0, cim_path)
 sys.path.insert(0, dqn_path)
+sys.path.insert(0, sync_mode_path)
+from agent_wrapper import get_agent_wrapper
 from env_wrapper import CIMEnvWrapper
-from general import AGENT_IDS, NUM_ACTIONS, config, log_dir
+from general import NUM_ACTIONS, config, log_dir
 from policy import get_independent_policy_for_rollout
-
-
-def get_env_wrapper():
-    return CIMEnvWrapper(Env(**config["env"]["basic"]), **config["env"]["wrapper"])
-
-def get_agent_wrapper():
-    epsilon_greedy = EpsilonGreedyExploration(num_actions=NUM_ACTIONS)
-    epsilon_greedy.register_schedule(
-        scheduler_cls=MultiPhaseLinearExplorationScheduler,
-        param_name="epsilon",
-        last_ep=config["num_episodes"],
-        **config["exploration"]
-    )
-    return AgentWrapper(
-        policies=[get_independent_policy_for_rollout(i) for i in AGENT_IDS],
-        agent2policy={i: i for i in AGENT_IDS},
-        exploration_dict={f"EpsilonGreedy": epsilon_greedy},
-        agent2exploration={i: "EpsilonGreedy" for i in AGENT_IDS},
-        log_dir=log_dir
-    )
 
 
 if config["distributed"]["rollout_mode"] == "local":
@@ -53,7 +34,7 @@ if config["distributed"]["rollout_mode"] == "local":
 else:
     rollout_manager = MultiProcessRolloutManager(
         config["distributed"]["num_rollout_workers"],
-        get_env_wrapper,
+        lambda: CIMEnvWrapper(Env(**config["env"]["basic"]), **config["env"]["wrapper"]),
         get_agent_wrapper,
         num_steps=config["num_steps"],
         log_dir=log_dir,

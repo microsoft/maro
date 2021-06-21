@@ -7,10 +7,12 @@ import sys
 from maro.rl import EpsilonGreedyExploration, MultiPhaseLinearExplorationScheduler, Learner, LocalLearner
 from maro.simulator import Env
 
-dqn_path = os.path.dirname(os.path.realpath(__file__))  # DQN directory
+sync_mode_path = os.path.dirname(os.path.realpath(__file__))  # DQN sync mode directory
+dqn_path = os.path.dirname(sync_mode_path)  # DQN directory
 cim_path = os.path.dirname(dqn_path)  # CIM example directory
 sys.path.insert(0, cim_path)
 sys.path.insert(0, dqn_path)
+sys.path.insert(0, sync_mode_path)
 from env_wrapper import CIMEnvWrapper
 from general import NUM_ACTIONS, config, log_dir
 from policy import get_independent_policy_for_training
