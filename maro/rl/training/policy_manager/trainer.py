@@ -89,7 +89,7 @@ def trainer_node(
         elif msg.tag == MsgTag.TRAIN:
             t0 = time.time()
             msg_body = {
-                MsgKey.POLICY_STATE: { 
+                MsgKey.POLICY_STATE: {
                     name: policy_dict[name].get_state() for name, exp in msg.body[MsgKey.EXPERIENCES].items()
                     if policy_dict[name].on_experiences(exp)
                 }
