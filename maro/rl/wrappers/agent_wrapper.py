@@ -9,13 +9,13 @@ from maro.rl.policy import AbsPolicy
 from maro.utils import Logger
 
 
-class DecisionGenerator:
-    """Multi-agent multi-policy decision generator with exploration.
+class AgentWrapper:
+    """Multi-agent wrapper that interacts with an ``EnvWrapper`` with a unified inferface.
 
     Args:
+        policies (List[AbsPolicy]): A list of policies for inference.
         agent2policy (Dict[str, str]): Mapping from agent ID's to policy ID's. This is used to direct an agent's
             queries to the correct policy.
-        policies (List[AbsPolicy]): A list of policies for inference.
         exploration_dict (Dict[str, AbsExploration]): A dictionary of named ``AbsExploration`` instances. Defaults
             to None.
         agent2exploration (Dict[str, str]): Mapping from agent names to exploration instance names. Defaults to None.
@@ -24,43 +24,43 @@ class DecisionGenerator:
     """
     def __init__(
         self,
-        agent2policy: Dict[str, str],
         policies: List[AbsPolicy],
+        agent2policy: Dict[str, str],
         exploration_dict: Dict[str, AbsExploration] = None,
         agent2exploration: Dict[str, str] = None,
         log_dir: str = getcwd()
     ):
         self.policy_dict = {policy.name: policy for policy in policies}
-        self.policy = {agent_id: self.policy_dict[policy_id] for agent_id, policy_id in self.agent2policy.items()}
         self.agent2policy = agent2policy
+        self.policy = {agent_id: self.policy_dict[policy_id] for agent_id, policy_id in self.agent2policy.items()}
         self.exploration_dict = exploration_dict
         if self.exploration_dict:
             self.exploration_by_agent = {
                 agent_id: exploration_dict[exploration_id] for agent_id, exploration_id in agent2exploration.items()
             }
         self.exploring = True  # Flag indicating that exploration is turned on.
-        self._logger = Logger("local_decision_generator", dump_folder=log_dir)
+        self._logger = Logger("local_agent_wrapper", dump_folder=log_dir)
 
-    def choose_action(self, state: dict, ep: int, step: int) -> dict:
+    def choose_action(self, state: dict) -> dict:
         """Generate an action based on the given state.
 
         Args:
             state (dict): Dicitionary of agents' states based on which action decisions will be made.
-            ep (int): Current episode.
-            step (int): Current step.
         """
         action_by_agent = {agent_id: self.policy[agent_id].choose_action(st) for agent_id, st in state.items()}
         if self.exploring and self.exploration_dict:
             for agent_id in action_by_agent:
-                action_by_agent[agent_id] = self.exploration_by_agent[agent_id](action_by_agent[agent_id])
+                if agent_id in self.exploration_by_agent:
+                    action_by_agent[agent_id] = self.exploration_by_agent[agent_id](action_by_agent[agent_id])
 
         return action_by_agent
 
-    def store_experiences(self, exp_by_agent: dict) -> set:
+    def on_experiences(self, exp_by_agent: dict) -> set:
         """Store agent experiences in the policies' experience managers."""
         policies_with_new_exp = set()
         for agent_id, exp in exp_by_agent.items():
-            self.policy[agent_id].experience_manager.put(exp)
+            if hasattr(self.policy[agent_id], "on_experiences"):
+                self.policy[agent_id].on_experiences(exp)
             policies_with_new_exp.add(self.agent2policy[agent_id])
 
         return policies_with_new_exp
@@ -78,9 +78,10 @@ class DecisionGenerator:
             self._logger.info(f"updated policies {list(policy_state_dict.keys())}")
 
     def exploration_step(self):
-        for exploration in self.exploration_dict.values():
-            exploration.step()
-            print(f"epsilon: {exploration.epsilon}")
+        if self.exploration_dict:
+            for exploration in self.exploration_dict.values():
+                exploration.step()
+                # print(f"epsilon: {exploration.epsilon}")
 
     def exploit(self):
         self.exploring = False

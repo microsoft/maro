@@ -4,7 +4,7 @@
 import os
 import sys
 
-from maro.rl import LocalTrainingManager, MultiProcessTrainingManager
+from maro.rl import LocalPolicyManager, MultiProcessPolicyManager
 
 dqn_path = os.path.dirname(os.path.realpath(__file__))  # DQN directory
 cim_path = os.path.dirname(dqn_path)  # CIM example directory
@@ -15,11 +15,11 @@ from policy import get_independent_policy_for_training
 
 
 if config["distributed"]["policy_training_mode"] == "local":
-    training_manager = LocalTrainingManager(
+    policy_manager = LocalPolicyManager(
         [get_independent_policy_for_training(i) for i in AGENT_IDS], log_dir=log_dir
     )
 else:
-    training_manager = MultiProcessTrainingManager(
+    policy_manager = MultiProcessPolicyManager(
         {id_: f"TRAINER.{id_ % NUM_POLICY_TRAINERS}" for id_ in AGENT_IDS}, # policy-trainer mapping
         {i: get_independent_policy_for_training for i in AGENT_IDS},
         log_dir=log_dir

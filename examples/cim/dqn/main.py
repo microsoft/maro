@@ -3,7 +3,6 @@
 
 import os
 import sys
-import time
 
 from maro.rl import EpsilonGreedyExploration, MultiPhaseLinearExplorationScheduler, Learner, LocalLearner
 from maro.simulator import Env
@@ -16,7 +15,7 @@ from env_wrapper import CIMEnvWrapper
 from general import NUM_ACTIONS, config, log_dir
 from policy import get_independent_policy_for_training
 from rollout_manager import rollout_manager
-from training_manager import training_manager
+from policy_manager import policy_manager
 
 
 if __name__ == "__main__":
@@ -42,7 +41,7 @@ if __name__ == "__main__":
         local_learner.run()
     elif config["mode"] == "multi-process":
         learner = Learner(
-            training_manager=training_manager,
+            policy_manager=policy_manager,
             rollout_manager=rollout_manager,
             num_episodes=config["num_episodes"],
             # eval_schedule=config["eval_schedule"],

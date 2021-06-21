@@ -145,10 +145,10 @@ maro.rl.policy.policy
 Training
 ================================================================================
 
-maro.rl.training.decision_generator
+maro.rl.training.agent_wrapper
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.training.decision_generator
+.. automodule:: maro.rl.training.agent_wrapper
    :members:
    :undoc-members:
    :show-inheritance:
@@ -201,10 +201,10 @@ maro.rl.training.rollout_worker
    :undoc-members:
    :show-inheritance:
 
-maro.rl.training.training_manager
+maro.rl.training.policy_manager
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.training.training_manager
+.. automodule:: maro.rl.training.policy_manager
    :members:
    :undoc-members:
    :show-inheritance:

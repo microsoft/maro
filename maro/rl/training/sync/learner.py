@@ -7,9 +7,9 @@ from typing import List, Union
 
 from maro.utils import Logger
 
+from ..policy_manager.policy_manager import AbsPolicyManager
 from .early_stopper import AbsEarlyStopper
 from .rollout_manager import AbsRolloutManager
-from .training_manager import AbsTrainingManager
 
 
 class Learner:
@@ -20,7 +20,7 @@ class Learner:
     as duplicate experience storage. Use ``LocalLearner`` instead.
 
     Args:
-        training_manager (AbsTrainingManager): An ``AbsTrainingManager`` instance that controls policy updates.
+        policy_manager (AbsPolicyManager): An ``AbsPolicyManager`` instance that controls policy updates.
         rollout_manager (AbsRolloutManager): An ``AbsRolloutManager`` instance that controls simulation data
             collection.
         num_episodes (int): Number of training episodes. Each training episode may contain one or more
@@ -39,7 +39,7 @@ class Learner:
     """
     def __init__(
         self,
-        training_manager: AbsTrainingManager,
+        policy_manager: AbsPolicyManager,
         rollout_manager: AbsRolloutManager,
         num_episodes: int,
         eval_schedule: Union[int, List[int]] = None,
@@ -48,7 +48,7 @@ class Learner:
         **end_of_episode_kwargs
     ):
         self.logger = Logger("LEARNER", dump_folder=log_dir)
-        self.training_manager = training_manager
+        self.policy_manager = policy_manager
         self.rollout_manager = rollout_manager
 
         self.num_episodes = num_episodes
@@ -71,7 +71,6 @@ class Learner:
         self.early_stopper = early_stopper
 
         self._end_of_episode_kwargs = end_of_episode_kwargs
-        self._updated_policy_ids = self.training_manager.names
         self._last_step_set = {}
 
     def run(self):
@@ -80,7 +79,7 @@ class Learner:
             self._train(ep)
             if ep == self._eval_schedule[self._eval_point_index]:
                 self._eval_point_index += 1
-                env_metric_dict = self.rollout_manager.evaluate(ep, self.training_manager.get_state())
+                env_metric_dict = self.rollout_manager.evaluate(ep, self.policy_manager.get_state())
                 # performance details
                 self.logger.info(f"Evaluation result: {env_metric_dict}")
                 # early stopping check
@@ -93,20 +92,19 @@ class Learner:
         if hasattr(self.rollout_manager, "exit"):
             self.rollout_manager.exit()
 
-        if hasattr(self.training_manager, "exit"):
-            self.training_manager.exit()
+        if hasattr(self.policy_manager, "exit"):
+            self.policy_manager.exit()
 
     def _train(self, ep: int):
         total_policy_update_time = 0
         num_experiences_collected = segment = 0
         self.rollout_manager.reset()
-        policy_state_dict = self.training_manager.get_state()
         while not self.rollout_manager.episode_complete:
             segment += 1
             # experience collection
-            exp_by_policy = self.rollout_manager.collect(ep, segment, policy_state_dict)
+            exp_by_policy = self.rollout_manager.collect(ep, segment, self.policy_manager.get_state())
             t0 = time.time()
-            policy_state_dict = self.training_manager.on_experiences(exp_by_policy)
+            self.policy_manager.on_experiences(exp_by_policy)
             total_policy_update_time += time.time() - t0
             num_experiences_collected += sum(exp.size for exp in exp_by_policy.values())
 

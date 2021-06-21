@@ -10,14 +10,13 @@ from random import choices
 from typing import Callable, Dict, List
 
 from maro.communication import Proxy, SessionType
-from maro.rl.env_wrapper import AbsEnvWrapper
 from maro.rl.experience import ExperienceSet
 from maro.rl.exploration import AbsExploration
 from maro.rl.policy import AbsPolicy
+from maro.rl.wrappers import AbsEnvWrapper, AgentWrapper
 from maro.utils import Logger
 
-from .decision_generator import DecisionGenerator
-from .message_enums import MsgKey, MsgTag
+from ..message_enums import MsgKey, MsgTag
 from .rollout_worker import rollout_worker_process
 
 
@@ -245,13 +244,13 @@ class MultiProcessRolloutManager(AbsRolloutManager):
         create_env_wrapper_func (Callable): Function to be used by each spawned roll-out worker to create an
             environment wrapper for training data collection. The function should take no parameters and return an
             environment wrapper instance.
-        create_decision_generator_func (Callable): Function to be used by each spawned roll-out worker to create a
+        create_agent_wrapper_func (Callable): Function to be used by each spawned roll-out worker to create a
             decision generator for interacting with the environment. The function should take no parameters and return
-            a ``DecisionGenerator`` instance.
+            a ``AgentWrapper`` instance.
         create_env_wrapper_func (Callable): Function to be used by each spawned roll-out worker to create an
             environment wrapper for evaluation. The function should take no parameters and return an environment
             wrapper instance. If this is None, the training environment wrapper will be used for evaluation in the
-            worker processes.
+            worker processes. Defaults to None.
         num_steps (int): Number of environment steps to roll out in each call to ``collect``. Defaults to -1, in which
             case the roll-out will be executed until the end of the environment.
         num_eval_workers (int): Number of workers for evaluation. Defaults to 1.
@@ -265,7 +264,7 @@ class MultiProcessRolloutManager(AbsRolloutManager):
         self,
         num_workers: int,
         create_env_wrapper_func: Callable[[], AbsEnvWrapper],
-        create_decision_generator_func: Callable[[], DecisionGenerator],
+        create_agent_wrapper_func: Callable[[], AgentWrapper],
         create_eval_env_wrapper_func: Callable[[], AbsEnvWrapper] = None,
         num_steps: int = -1,
         num_eval_workers: int = 1,
@@ -293,10 +292,12 @@ class MultiProcessRolloutManager(AbsRolloutManager):
                     index,
                     worker_end,
                     create_env_wrapper_func,
-                    create_decision_generator_func,
-                    create_eval_env_wrapper_func,
-                    log_dir
-                )
+                    create_agent_wrapper_func,
+                ),
+                kwargs={
+                    "create_eval_env_wrapper_func": create_eval_env_wrapper_func,
+                    "log_dir": log_dir
+                }
             )
             self._worker_processes.append(worker)
             worker.start()
@@ -412,7 +413,7 @@ class MultiNodeRolloutManager(AbsRolloutManager):
         num_eval_workers: int = 1,
         log_env_summary: bool = True,
         log_dir: str = getcwd(),
-        **proxy_kwargs
+        proxy_kwargs: dict = {}
     ):
         if num_eval_workers > num_workers:
             raise ValueError("num_eval_workers cannot exceed the number of available workers")
@@ -460,7 +461,7 @@ class MultiNodeRolloutManager(AbsRolloutManager):
             MsgKey.EPISODE: ep,
             MsgKey.SEGMENT: segment,
             MsgKey.NUM_STEPS: self._num_steps,
-            MsgKey.POLICY: policy_state_dict,
+            MsgKey.POLICY_STATE: policy_state_dict,
             MsgKey.EXPLORATION_STEP: self._exploration_step
         }
 
@@ -515,7 +516,7 @@ class MultiNodeRolloutManager(AbsRolloutManager):
         Returns:
             Environment summary.
         """
-        msg_body = {MsgKey.EPISODE: ep, MsgKey.POLICY: policy_state_dict}
+        msg_body = {MsgKey.EPISODE: ep, MsgKey.POLICY_STATE: policy_state_dict}
 
         workers = choices(self._workers, k=self._num_eval_workers)
         env_summary_dict = {}
