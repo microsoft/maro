@@ -101,8 +101,8 @@ class MultiProcessPolicyManager(AbsPolicyManager):
         self._logger = Logger("POLICY_MANAGER", dump_folder=log_dir)
         self.policy2trainer = policy2trainer
         self._trainer2policies = defaultdict(list)
-        for policy_name, trainer_name in policy2trainer.items():
-            self._trainer2policies[trainer_name].append(policy_name)
+        for policy_name, trainer_id in policy2trainer.items():
+            self._trainer2policies[trainer_id].append(policy_name)
 
         self._trainer_processes = []
         self._manager_end = {}
@@ -112,8 +112,10 @@ class MultiProcessPolicyManager(AbsPolicyManager):
             trainer = Process(
                 target=trainer_process,
                 args=(
+                    trainer_id,
                     trainer_end,
                     {name: create_policy_func_dict[name] for name in policy_names},
+                    {name: self.policy_dict[name].get_state() for name in self._trainer2policies[trainer_id]}
                 ),
                 kwargs={"log_dir": log_dir}
             )

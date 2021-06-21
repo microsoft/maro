@@ -12,10 +12,17 @@ from maro.utils import Logger
 from ..message_enums import MsgKey, MsgTag
 
 
-def trainer_process(conn: Connection, create_policy_func_dict: Dict[str, Callable], log_dir: str = getcwd()):
+def trainer_process(
+    trainer_id: int,
+    conn: Connection,
+    create_policy_func_dict: Dict[str, Callable],
+    initial_policy_states: dict,
+    log_dir: str = getcwd()
+):
     """Policy trainer process which can be spawned by a ``MultiProcessPolicyManager``.
 
     Args:
+        trainer_id (int): Integer trainer ID.
         conn (Connection): Connection end for exchanging messages with the manager process.
         create_policy_func_dict (dict): A dictionary mapping policy names to functions that create them. The policy
             creation function should have exactly one parameter which is the policy name and return an ``AbsPolicy``
@@ -24,6 +31,10 @@ def trainer_process(conn: Connection, create_policy_func_dict: Dict[str, Callabl
     """
     policy_dict = {policy_name: func(policy_name) for policy_name, func in create_policy_func_dict.items()}
     logger = Logger("TRAINER", dump_folder=log_dir)
+    for name, state in initial_policy_states.items():
+        policy_dict[name].set_state(state)
+        logger.info(f"Trainer {trainer_id} initialized policy {name}")
+
     while True:
         msg = conn.recv()
         if msg["type"] == "train":
@@ -78,7 +89,7 @@ def trainer_node(
         elif msg.tag == MsgTag.TRAIN:
             t0 = time.time()
             msg_body = {
-                MsgKey.POLICY_STATE: { 
+                MsgKey.POLICY_STATE: {
                     name: policy_dict[name].get_state() for name, exp in msg.body[MsgKey.EXPERIENCES].items()
                     if policy_dict[name].on_experiences(exp)
                 }
