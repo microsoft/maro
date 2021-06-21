@@ -71,7 +71,6 @@ class Learner:
         self.early_stopper = early_stopper
 
         self._end_of_episode_kwargs = end_of_episode_kwargs
-        self._updated_policy_ids = self.policy_manager.names
         self._last_step_set = {}
 
     def run(self):
@@ -100,13 +99,12 @@ class Learner:
         total_policy_update_time = 0
         num_experiences_collected = segment = 0
         self.rollout_manager.reset()
-        policy_state_dict = self.policy_manager.get_state()
         while not self.rollout_manager.episode_complete:
             segment += 1
             # experience collection
-            exp_by_policy = self.rollout_manager.collect(ep, segment, policy_state_dict)
+            exp_by_policy = self.rollout_manager.collect(ep, segment, self.policy_manager.get_state())
             t0 = time.time()
-            policy_state_dict = self.policy_manager.on_experiences(exp_by_policy)
+            self.policy_manager.on_experiences(exp_by_policy)
             total_policy_update_time += time.time() - t0
             num_experiences_collected += sum(exp.size for exp in exp_by_policy.values())
 

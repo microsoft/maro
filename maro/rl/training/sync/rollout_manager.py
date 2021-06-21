@@ -413,7 +413,7 @@ class MultiNodeRolloutManager(AbsRolloutManager):
         num_eval_workers: int = 1,
         log_env_summary: bool = True,
         log_dir: str = getcwd(),
-        **proxy_kwargs
+        proxy_kwargs: dict = {}
     ):
         if num_eval_workers > num_workers:
             raise ValueError("num_eval_workers cannot exceed the number of available workers")
@@ -461,7 +461,7 @@ class MultiNodeRolloutManager(AbsRolloutManager):
             MsgKey.EPISODE: ep,
             MsgKey.SEGMENT: segment,
             MsgKey.NUM_STEPS: self._num_steps,
-            MsgKey.POLICY: policy_state_dict,
+            MsgKey.POLICY_STATE: policy_state_dict,
             MsgKey.EXPLORATION_STEP: self._exploration_step
         }
 
@@ -516,7 +516,7 @@ class MultiNodeRolloutManager(AbsRolloutManager):
         Returns:
             Environment summary.
         """
-        msg_body = {MsgKey.EPISODE: ep, MsgKey.POLICY: policy_state_dict}
+        msg_body = {MsgKey.EPISODE: ep, MsgKey.POLICY_STATE: policy_state_dict}
 
         workers = choices(self._workers, k=self._num_eval_workers)
         env_summary_dict = {}

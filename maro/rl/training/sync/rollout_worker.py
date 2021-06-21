@@ -68,8 +68,8 @@ def rollout_worker_process(
             f"(steps {starting_step_index} - {env_wrapper.step_index})"
         )
 
-        policy_names = agent_wrapper.on_experiences(env_wrapper.get_experiences())
-        ret_exp = agent_wrapper.get_experiences_by_policy(policy_names)
+        policies_with_new_exp = agent_wrapper.on_experiences(env_wrapper.get_experiences())
+        ret_exp = agent_wrapper.get_experiences_by_policy(policies_with_new_exp)
 
         return_info = {
             "worker_index": index,
@@ -83,9 +83,9 @@ def rollout_worker_process(
 
     def evaluate(msg):
         logger.info("Evaluating...")
+        agent_wrapper.exploit()
         eval_env_wrapper.reset()
         eval_env_wrapper.start()  # get initial state
-        agent_wrapper.exploit()
         if hasattr(agent_wrapper, "update"):
             agent_wrapper.update(msg["policy"])
         while eval_env_wrapper.state:
@@ -110,7 +110,7 @@ def rollout_worker_node(
     group: str,
     create_eval_env_wrapper_func: Callable[[], AbsEnvWrapper] = None,
     log_dir: str = getcwd(),
-    **proxy_kwargs
+    proxy_kwargs: dict = {}
 ):
     """Roll-out worker process that can be launched on separate computation nodes.
 
@@ -137,9 +137,10 @@ def rollout_worker_node(
 
     def collect(msg):
         ep, segment = msg.body[MsgKey.EPISODE], msg.body[MsgKey.SEGMENT]
+
         # load policies
-        if hasattr(agent_wrapper, "update"):
-            agent_wrapper.update(msg.body[MsgKey.POLICY])
+        if msg.body[MsgKey.POLICY_STATE]:
+            agent_wrapper.update(msg.body[MsgKey.POLICY_STATE])
         # set exploration parameters
         agent_wrapper.explore()
         if msg.body[MsgKey.EXPLORATION_STEP]:
@@ -182,7 +183,7 @@ def rollout_worker_node(
         eval_env_wrapper.start()  # get initial state
         agent_wrapper.exploit()
         if hasattr(agent_wrapper, "update"):
-            agent_wrapper.update(msg.body[MsgKey.POLICY])
+            agent_wrapper.update(msg.body[MsgKey.POLICY_STATE])
         while eval_env_wrapper.state:
             action = agent_wrapper.choose_action(eval_env_wrapper.state)
             eval_env_wrapper.step(action)

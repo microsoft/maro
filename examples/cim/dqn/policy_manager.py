@@ -14,12 +14,12 @@ from general import AGENT_IDS, NUM_POLICY_TRAINERS, config, log_dir
 from policy import get_independent_policy_for_training
 
 
+policies = [get_independent_policy_for_training(i) for i in AGENT_IDS]
 if config["distributed"]["policy_training_mode"] == "local":
-    policy_manager = LocalPolicyManager(
-        [get_independent_policy_for_training(i) for i in AGENT_IDS], log_dir=log_dir
-    )
+    policy_manager = LocalPolicyManager(policies, log_dir=log_dir)
 else:
     policy_manager = MultiProcessPolicyManager(
+        policies,
         {id_: f"TRAINER.{id_ % NUM_POLICY_TRAINERS}" for id_ in AGENT_IDS}, # policy-trainer mapping
         {i: get_independent_policy_for_training for i in AGENT_IDS},
         log_dir=log_dir
