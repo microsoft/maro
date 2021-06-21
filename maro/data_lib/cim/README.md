@@ -32,6 +32,7 @@ max_tick: 224
 container_volume: 1
 past_stop_number: 4
 future_stop_number: 3
+seed: 4096
 ```
 
 The required header fields for the other files are listed below (*, more fields could be included if needed.*):

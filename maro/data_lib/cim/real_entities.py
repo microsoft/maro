@@ -35,4 +35,5 @@ CimRealDataCollection = namedtuple("CimRealDataCollection", [
     "vessels_stops",
     "orders",
     "max_tick",
+    "seed"
 ])

@@ -8,6 +8,7 @@ from typing import Union
 from yaml import safe_load
 
 from maro.cli.data_pipeline.utils import StaticParameter
+from maro.simulator.utils import seed
 
 from .cim_data_container import CimDataContainer
 from .cim_data_generator import CimDataGenerator
@@ -67,6 +68,8 @@ def data_from_dumps(dumps_folder: str) -> CimDataContainer:
     assert os.path.exists(dumps_folder), f"[CIM Data Container Wrapper] dump folder not exists: {dumps_folder}"
 
     data_collection = load_from_folder(dumps_folder)
+    # set seed to generate data
+    seed(data_collection.seed)
 
     return CimDataContainer(data_collection)
 
@@ -93,6 +96,8 @@ def real_data_from_files(data_folder: str) -> CimRealDataContainer:
     assert os.path.exists(data_folder), f"[CIM Data Container Wrapper] file folder not exists: {data_folder}"
 
     data_collection = load_real_data_from_folder(data_folder)
+    # set seed to generate data
+    seed(data_collection.seed)
 
     return CimRealDataContainer(data_collection)
 

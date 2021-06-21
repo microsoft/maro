@@ -55,6 +55,7 @@ class CimRealDataLoader:
             stops,
             orders,
             misc_items["max_tick"],
+            misc_items["seed"]
         )
 
         return data_collection
