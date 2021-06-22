@@ -6,7 +6,10 @@ from abc import ABC, abstractmethod
 from math import ceil
 from typing import Dict, List
 
-from .entities import CimBaseDataCollection, CimSyntheticDataCollection, NoisedItem, Order, OrderGenerateMode, VesselSetting, PortSetting, CimRealDataCollection
+from .entities import (
+    CimBaseDataCollection, CimRealDataCollection, CimSyntheticDataCollection, NoisedItem, Order, OrderGenerateMode,
+    PortSetting, VesselSetting
+)
 from .port_buffer_tick_wrapper import PortBufferTickWrapper
 from .utils import (
     apply_noise, buffer_tick_rand, get_buffer_tick_seed, get_order_num_seed, list_sum_normalize, order_num_rand
@@ -238,6 +241,7 @@ class CimBaseDataContainer(ABC):
     def get_orders(self, tick: int, total_empty_container: int) -> List[Order]:
         pass
 
+
 class CimSyntheticDataContainer(CimBaseDataContainer):
     """Data container for synthetic data from generator and dump files for cim scenario.
 
@@ -376,8 +380,10 @@ class CimSyntheticDataContainer(CimBaseDataContainer):
 
         return order_list
 
+
 class CimRealDataContainer(CimBaseDataContainer):
-    """Data container for input data files following a specific data schema as introduced in maro\data_lib\cim\README.md.
+    """Data container for input data files following a specific data schema as introduced in
+    maro\\data_lib\\cim\\README.md.
 
     Example:
 
