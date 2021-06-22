@@ -32,6 +32,12 @@ class AbsPolicyManager(ABC):
 
         super().__init__()
         self.policy_dict = {policy.name: policy for policy in policies}
+        self.updated = set(self.policy_dict.keys())
+        self._version = 0
+
+    @property
+    def version(self):
+        return self._version
 
     @abstractmethod
     def on_experiences(self, exp_by_policy: Dict[str, ExperienceSet]):
@@ -39,7 +45,10 @@ class AbsPolicyManager(ABC):
         raise NotImplementedError
 
     def get_state(self):
-        return {policy_name: policy.get_state() for policy_name, policy in self.policy_dict.items()}
+        return {name: self.policy_dict[name].get_state() for name in self.updated}
+
+    def reset_update_status(self):
+        self.updated.clear()
 
 
 class LocalPolicyManager(AbsPolicyManager):
@@ -63,16 +72,15 @@ class LocalPolicyManager(AbsPolicyManager):
         policy's experience manager. Policies whose update conditions have been met will then be updated.
         """
         t0 = time.time()
-        updated = []
         for policy_name, exp in exp_by_policy.items():
             if (
                 isinstance(self.policy_dict[policy_name], AbsCorePolicy) and
                 self.policy_dict[policy_name].on_experiences(exp)
             ):
-                updated.append(policy_name)
+                self.updated.add(policy_name)
 
-        if updated:
-            self._logger.info(f"Updated policies {updated}")
+        if self.updated:
+            self._logger.info(f"Updated policies {self.updated}")
 
         self._logger.debug(f"policy update time: {time.time() - t0}")
 
@@ -133,6 +141,10 @@ class MultiProcessPolicyManager(AbsPolicyManager):
             result = conn.recv()
             for policy_name, policy_state in result["policy"].items():
                 self.policy_dict[policy_name].set_state(policy_state)
+                self.updated.add(policy_name)
+
+        if self.updated:
+            self._version += 1
 
     def exit(self):
         """Tell the trainer processes to exit."""
@@ -144,6 +156,7 @@ class MultiNodePolicyManager(AbsPolicyManager):
     """Policy manager that communicates with a set of remote nodes for parallel training.
 
     Args:
+        policies (List[AbsPolicy]): A list of policies managed by the manager.
         policy2trainer (dict): Mapping from policy names to trainer IDs.
         create_policy_func_dict (dict): A dictionary mapping policy names to functions that create them. The policy
             creation function should have exactly one parameter which is the policy name and return an ``AbsPolicy``
@@ -158,12 +171,13 @@ class MultiNodePolicyManager(AbsPolicyManager):
     """
     def __init__(
         self,
+        policies: List[AbsPolicy],
         policy2trainer: Dict[str, str],
         group: str,
         log_dir: str = getcwd(),
         proxy_kwargs: dict = {}
     ):
-        super().__init__()
+        super().__init__(policies)
         self._logger = Logger("POLICY_MANAGER", dump_folder=log_dir)
         self.policy2trainer = policy2trainer
         self._trainer2policies = defaultdict(list)
@@ -190,6 +204,10 @@ class MultiNodePolicyManager(AbsPolicyManager):
         for reply in self._proxy.scatter(MsgTag.TRAIN, SessionType.TASK, list(msg_body_by_dest.items())):
             for policy_name, policy_state in reply.body[MsgKey.POLICY_STATE].items():
                 self.policy_dict[policy_name].set_state(policy_state)
+                self.updated.add(policy_name)
+
+        if self.updated:
+            self._version += 1
 
     def exit(self):
         """Tell the remote trainers to exit."""

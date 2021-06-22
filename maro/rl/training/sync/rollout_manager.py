@@ -27,13 +27,14 @@ class AbsRolloutManager(ABC):
         self.episode_complete = False
 
     @abstractmethod
-    def collect(self, ep: int, segment: int, policy_state_dict: dict):
+    def collect(self, ep: int, segment: int, policy_state_dict: dict, version: int):
         """Collect simulation data, i.e., experiences for training.
 
         Args:
             ep (int): Current episode index.
             segment (int): Current segment index.
             policy_state_dict (dict): Policy states to use for simulation.
+            version (int): Version index from the policy manager from which the ``policy_state_dict`` is obtained.
 
         Returns:
             Experiences for policy training.
@@ -126,13 +127,14 @@ class LocalRolloutManager(AbsRolloutManager):
         self._num_steps = num_steps if num_steps > 0 else float("inf")
         self._log_env_summary = log_env_summary
 
-    def collect(self, ep: int, segment: int, policy_state_dict: dict):
+    def collect(self, ep: int, segment: int, policy_state_dict: dict, version: int):
         """Collect simulation data, i.e., experiences for training.
 
         Args:
             ep (int): Current episode index.
             segment (int): Current segment index.
             policy_state_dict (dict): Policy states to use for simulation.
+            version (int): Version index from the policy manager from which the ``policy_state_dict`` is obtained.
 
         Returns:
             Experiences for policy training.
@@ -302,13 +304,14 @@ class MultiProcessRolloutManager(AbsRolloutManager):
             self._worker_processes.append(worker)
             worker.start()
 
-    def collect(self, ep: int, segment: int, policy_state_dict: dict):
+    def collect(self, ep: int, segment: int, policy_state_dict: dict, version: int):
         """Collect simulation data, i.e., experiences for training.
 
         Args:
             ep (int): Current episode index.
             segment (int): Current segment index.
             policy_state_dict (dict): Policy states to use for simulation.
+            version (int): Version index from the policy manager from which the ``policy_state_dict`` is obtained.
 
         Returns:
             Experiences for policy training.
@@ -324,6 +327,8 @@ class MultiProcessRolloutManager(AbsRolloutManager):
 
         for conn in self._manager_ends:
             conn.send(rollout_req)
+
+        self._logger.info(f"Collecting simulation data (episode {ep}, segment {segment}, policy version {version})")
 
         if self._exploration_step:
             self._exploration_step = False
@@ -390,9 +395,9 @@ class MultiNodeRolloutManager(AbsRolloutManager):
         receive_timeout (int): Maximum wait time (in milliseconds) for each attempt to receive from the workers. This
             This multiplied by ``max_receive_attempts`` give the upperbound for the amount of time to receive the
             desired amount of data from workers. Defaults to None, in which case each receive attempt is blocking.
-        max_staleness (int): Maximum allowable staleness measured in the number of calls to ``collect``. Experiences
-            collected from calls to ``collect`` within ``max_staleness`` calls ago will be returned to the learner.
-            Defaults to 0, in which case only experiences from the latest call to ``collect`` will be returned.
+        max_lag (int): Maximum policy version lag allowed for experiences collected from remote roll-out workers.
+            Experiences collected using policy versions older than (current_version - max_lag) will be discarded.
+            Defaults to 0, in which case only experiences collected using the latest policy version will be returned.
         num_eval_workers (int): Number of workers for evaluation. Defaults to 1.
         log_env_summary (bool): If True, the ``summary`` property of the environment wrapper will be logged at the end
             of each episode. Defaults to True.
@@ -409,7 +414,7 @@ class MultiNodeRolloutManager(AbsRolloutManager):
         num_steps: int = -1,
         max_receive_attempts: int = None,
         receive_timeout: int = None,
-        max_staleness: int = 0,
+        max_lag: int = 0,
         num_eval_workers: int = 1,
         log_env_summary: bool = True,
         log_dir: str = getcwd(),
@@ -434,7 +439,7 @@ class MultiNodeRolloutManager(AbsRolloutManager):
         self.max_receive_attempts = max_receive_attempts
         self.receive_timeout = receive_timeout
 
-        self._max_staleness = max_staleness
+        self._max_lag = max_lag
         self.total_experiences_collected = 0
         self.total_env_steps = 0
         self._log_env_summary = log_env_summary
@@ -443,13 +448,14 @@ class MultiNodeRolloutManager(AbsRolloutManager):
 
         self._exploration_step = False
 
-    def collect(self, ep: int, segment: int, policy_state_dict: dict):
+    def collect(self, ep: int, segment: int, policy_state_dict: dict, version: int):
         """Collect simulation data, i.e., experiences for training.
 
         Args:
             ep (int): Current episode index.
             segment (int): Current segment index.
             policy_state_dict (dict): Policy states to use for simulation.
+            version (int): Version index from the policy manager from which the ``policy_state_dict`` is obtained.
 
         Returns:
             Experiences for policy training.
@@ -462,11 +468,12 @@ class MultiNodeRolloutManager(AbsRolloutManager):
             MsgKey.SEGMENT: segment,
             MsgKey.NUM_STEPS: self._num_steps,
             MsgKey.POLICY_STATE: policy_state_dict,
+            MsgKey.VERSION: version,
             MsgKey.EXPLORATION_STEP: self._exploration_step
         }
 
         self._proxy.ibroadcast("rollout_worker", MsgTag.COLLECT, SessionType.TASK, body=msg_body)
-        self._logger.info(f"Sent collect requests to {self._workers} for ep-{ep}, segment-{segment}")
+        self._logger.info(f"Collecting simulation data (episode {ep}, segment {segment}, policy version {version})")
 
         if self._exploration_step:
             self._exploration_step = False
@@ -476,30 +483,36 @@ class MultiNodeRolloutManager(AbsRolloutManager):
         num_finishes = 0
         for _ in range(self.max_receive_attempts):
             msg = self._proxy.receive_once(timeout=self.receive_timeout)
-            if msg.tag != MsgTag.COLLECT_DONE or msg.body[MsgKey.EPISODE] != ep:
+            if msg.tag != MsgTag.COLLECT_DONE:
                 self._logger.info(
-                    f"Ignore a message of type {msg.tag} with episode index {msg.body[MsgKey.EPISODE]} "
-                    f"(expected message type {MsgTag.COLLECT} and episode index {ep})"
+                    f"Ignored a message of type {msg.tag} (expected message type {MsgTag.COLLECT_DONE})"
                 )
                 continue
 
-            if segment - msg.body[MsgKey.SEGMENT] <= self._max_staleness:
-                exp_by_policy = msg.body[MsgKey.EXPERIENCES]
-                self.total_experiences_collected += sum(exp.size for exp in exp_by_policy.values())
-                self.total_env_steps += msg.body[MsgKey.NUM_STEPS]
+            if version - msg.body[MsgKey.VERSION] > self._max_lag:
+                self._logger.info(
+                    f"Ignored a message because it contains experiences generated using a stale policy version. "
+                    f"Expected experiences generated using policy versions no earlier than {version - self._max_lag} "
+                    f"got {msg.body[MsgKey.VERSION]}"
+                )
+                continue
 
-                for policy_name, exp in exp_by_policy.items():
-                    combined_exp_by_policy[policy_name].extend(exp)
+            exp_by_policy = msg.body[MsgKey.EXPERIENCES]
+            self.total_experiences_collected += sum(exp.size for exp in exp_by_policy.values())
+            self.total_env_steps += msg.body[MsgKey.NUM_STEPS]
 
-                if msg.body[MsgKey.SEGMENT] == segment:
-                    self.episode_complete = msg.body[MsgKey.EPISODE_END]
-                    if self.episode_complete:
-                        # log roll-out summary
-                        if self._log_env_summary:
-                            self._logger.info(f"env summary: {msg.body[MsgKey.ENV_SUMMARY]}")
-                    num_finishes += 1
-                    if num_finishes == self.num_workers:
-                        break
+            for policy_name, exp in exp_by_policy.items():
+                combined_exp_by_policy[policy_name].extend(exp)
+
+            if msg.body[MsgKey.SEGMENT] == segment:
+                self.episode_complete = msg.body[MsgKey.EPISODE_END]
+                if self.episode_complete:
+                    # log roll-out summary
+                    if self._log_env_summary:
+                        self._logger.info(f"env summary: {msg.body[MsgKey.ENV_SUMMARY]}")
+                num_finishes += 1
+                if num_finishes == self.num_workers:
+                    break
 
         if self.episode_complete:
             self._exploration_step = True

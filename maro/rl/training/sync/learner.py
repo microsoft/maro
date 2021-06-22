@@ -102,7 +102,10 @@ class Learner:
         while not self.rollout_manager.episode_complete:
             segment += 1
             # experience collection
-            exp_by_policy = self.rollout_manager.collect(ep, segment, self.policy_manager.get_state())
+            policy_state_dict = self.policy_manager.get_state()
+            self.policy_manager.reset_update_status()
+            policy_version = self.policy_manager.version
+            exp_by_policy = self.rollout_manager.collect(ep, segment, policy_state_dict, policy_version)
             t0 = time.time()
             self.policy_manager.on_experiences(exp_by_policy)
             total_policy_update_time += time.time() - t0

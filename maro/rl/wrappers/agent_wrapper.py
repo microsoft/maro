@@ -69,7 +69,7 @@ class AgentWrapper:
         """Get experiences by policy names."""
         return {name: self.policy_dict[name].experience_manager.get() for name in policy_names}
 
-    def update(self, policy_state_dict: dict):
+    def set_policy_states(self, policy_state_dict: dict):
         """Update policy states."""
         for policy_id, policy_state in policy_state_dict.items():
             self.policy_dict[policy_id].set_state(policy_state)
