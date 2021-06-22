@@ -7,12 +7,14 @@ from typing import Dict, List
 
 import numpy as np
 
+
 # item used to hold base value and related noise
 @dataclass(frozen=True)
 class NoisedItem:
     index: int
     base: float
     noise: float
+
 
 # stop for vessel
 @dataclass(frozen=True)
@@ -22,6 +24,7 @@ class Stop:
     leave_tick: int
     port_idx: int
     vessel_idx: int
+
 
 # settings for port
 @dataclass(frozen=True)
@@ -33,10 +36,12 @@ class PortSetting:
     empty_return_buffer: int
     full_return_buffer: int
 
+
 @dataclass(frozen=True)
 class SyntheticPortSetting(PortSetting):
     source_proportion: float
     target_proportions: float
+
 
 # settings for vessel
 @dataclass(frozen=True)
@@ -52,12 +57,14 @@ class VesselSetting:
     parking_noise: float
     empty: int
 
+
 # a point in rote definition
 @dataclass(frozen=True)
 class RoutePoint:
     index: int
     port_name: str
     distance_to_next_port: int
+
 
 class OrderGenerateMode(Enum):
     """Mode to generate orders from configuration.
@@ -69,6 +76,7 @@ class OrderGenerateMode(Enum):
     """
     FIXED = "fixed"
     UNFIXED = "unfixed"
+
 
 # TODO: use object pooling to reduce memory cost
 class Order:
@@ -98,6 +106,7 @@ class Order:
             f"dest port: {self.dest_port_idx} quantity: {self.quantity}}}"
         )
 
+
 @dataclass(frozen=True)
 class CimBaseDataCollection:
     # Port
@@ -123,6 +132,7 @@ class CimBaseDataCollection:
     # Random Seed for Data Generation
     seed: int
 
+
 # data collection from data generator
 @dataclass(frozen=True)
 class CimSyntheticDataCollection(CimBaseDataCollection):
@@ -132,6 +142,7 @@ class CimSyntheticDataCollection(CimBaseDataCollection):
     order_proportion: np.ndarray
     # Data Generator Version
     version: str
+
 
 @dataclass(frozen=True)
 class CimRealDataCollection(CimBaseDataCollection):

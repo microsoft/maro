@@ -1,8 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import Union
-
 from .entities import CimBaseDataCollection, Stop
 from .vessel_future_stops_prediction import VesselFutureStopsPrediction
 

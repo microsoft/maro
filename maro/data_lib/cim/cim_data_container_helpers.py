@@ -3,7 +3,6 @@
 
 import os
 import urllib.parse
-from typing import Union
 
 from yaml import safe_load
 

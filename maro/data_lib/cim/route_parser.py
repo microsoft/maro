@@ -19,7 +19,7 @@ class RoutesParser:
 
         Returns:
             (Dict[str, int], List[List[RoutePoint]]): Route mapping (name to index),
-                 and list of route point list (index is route index).
+                and list of route point list (index is route index).
         """
         routes: List[List[RoutePoint]] = []
         route_mapping: Dict[str, int] = {}  # name->idx

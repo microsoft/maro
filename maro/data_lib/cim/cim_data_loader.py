@@ -420,6 +420,7 @@ def load_from_folder(source_folder: str) -> CimSyntheticDataCollection:
 
     return loader.load(source_folder)
 
+
 def load_real_data_from_folder(source_folder: str) -> CimRealDataCollection:
     """Load real data from folder.
 

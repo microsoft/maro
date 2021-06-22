@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 from math import ceil
-from typing import Union
 
 from .entities import CimBaseDataCollection, Stop
 
