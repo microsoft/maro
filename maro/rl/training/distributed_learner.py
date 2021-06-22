@@ -84,10 +84,13 @@ class DistributedLearner(object):
         self.end_of_episode_kwargs = end_of_episode_kwargs
         self._log_env_metrics = log_env_metrics
 
+        self._action_dict = {}
+
     def run(self):
         for ep in range(1, self.num_episodes + 1):
+            self._logger.info(f"Learner episode: {ep}")
             self._train(ep)
-
+            
             policy_ids = self.policy_update_schedule.pop_episode(ep)
             if policy_ids == ["*"]:
                 policy_ids = self._updatable_policy_ids
@@ -125,6 +128,10 @@ class DistributedLearner(object):
                 for agent_id, exp in exp_by_agent.items():
                     if isinstance(self.policy[agent_id], AbsCorePolicy):
                         self.policy[agent_id].experience_manager.put(exp)
+                        if agent_id not in self._action_dict.keys():
+                            self._action_dict[agent_id] = {}
+                        for a in exp.actions:
+                            self._action_dict[agent_id][a] = self._action_dict[agent_id].get(a, 0) + 1
 
                 env_steps += self.experience_update_interval 
                 num_experiences_collected += sum(len(exp) for exp in exp_by_agent.values())
@@ -149,10 +156,11 @@ class DistributedLearner(object):
         # performance details
         self._logger.debug(
             f"ep {ep} summary - "
-            f"running time: {time.time() - t0}"
-            f"env steps: {env_steps}"
-            f"learning time: {learning_time}"
-            f"experiences collected: {num_experiences_collected}"
+            f"running time: {time.time() - t0} - "
+            f"env steps: {env_steps} - "
+            f"learning time: {learning_time} - "
+            f"experiences collected: {num_experiences_collected} - ",
+            f"action dist: {self._action_dict} - "
         )
 
     def _evaluate(self, ep: int):

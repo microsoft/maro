@@ -1,5 +1,10 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
+from policies import agent2policy, policy_dict, policy_update_schedule
+from learner import SCLearner
+from exploration import exploration_dict, agent2exploration
+from env_wrapper import SCEnvWrapper
+from config import config
 import os
 import argparse
 import sys
@@ -13,15 +18,10 @@ from maro.utils import set_seeds
 
 sc_code_dir = dirname(realpath(__file__))
 sys.path.insert(0, sc_code_dir)
-from config import config
-from env_wrapper import SCEnvWrapper
-from exploration import exploration_dict, agent2exploration
-from learner import SCLearner
-from or_policies import agent2policy, policy_dict, policy_update_schedule
-# from policies import agent2policy, policy_dict, policy_update_schedule
+# from or_policies import agent2policy, policy_dict, policy_update_schedule
 
-from render_tools import SimulationTracker
-
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
 # for distributed / multi-process training
 GROUP = getenv("GROUP", default=config["distributed"]["group"])
@@ -36,29 +36,24 @@ makedirs(log_dir, exist_ok=True)
 def sc_learner():
     # create an actor manager to collect simulation data from multiple actors
     actor_manager = ActorManager(
-        NUM_ACTORS, GROUP, 
+        NUM_ACTORS, GROUP,
         redis_address=(REDIS_HOST, REDIS_PORT),
         log_enable=False,
         log_dir=log_dir
     )
 
     # create a learner to start training
+    env = SCEnvWrapper(Env(**config["env"]))
     learner = SCLearner(
         policy_dict, agent2policy, config["num_episodes"], policy_update_schedule,
         actor_manager=actor_manager,
         experience_update_interval=config["experience_update_interval"],
         eval_schedule=config["eval_schedule"],
+        eval_env=env,
         log_env_metrics=config["log_env_metrics"],
         log_dir=log_dir
     )
-    # learner.run()
-
-    env = SCEnvWrapper(Env(**config["env"]))
-    tracker = SimulationTracker(60, 1, env, learner)
-    loc_path = '/maro/supply_chain/output/'
-    facility_types = ["product"]
-    os.system(f"rm {loc_path}/*")
-    tracker.run_and_render(loc_path, facility_types)
+    learner.run()
 
 
 def sc_actor(name: str):
@@ -84,11 +79,13 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     if args.whoami == 0:
-        actor_processes = [Process(target=sc_actor, args=(f"actor_{i + 1}",)) for i in range(NUM_ACTORS)]
+        actor_processes = [Process(target=sc_actor, args=(
+            f"actor_{i + 1}",)) for i in range(NUM_ACTORS)]
         learner_process = Process(target=sc_learner)
 
         for i, actor_process in enumerate(actor_processes):
-            set_seeds(i)  # this is to ensure that the actors explore differently.
+            # this is to ensure that the actors explore differently.
+            set_seeds(i)
             actor_process.start()
 
         learner_process.start()

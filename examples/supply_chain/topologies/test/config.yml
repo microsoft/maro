@@ -59,11 +59,11 @@ facility_definitions:
         class: "StoreProductUnit"
         is_template: true
         config:
-          agent_type: "product"
+          agent_type: "productstore"
           consumer:
             class: "ConsumerUnit"
             config:
-              agent_type: "consumer"
+              agent_type: "consumerstore"
           seller:
             class: "SellerUnit"
             config:
@@ -217,7 +217,7 @@ world:
         sku1: # sku name and attributes needed for this facility
           init_stock: 1000
           product_unit_cost: 90
-          production_rate: 100
+          production_rate: 1000
           type: "production" # production means this is the output production of this facility
           cost: 90
           price: 100
@@ -225,7 +225,7 @@ world:
         sku2:
           init_stock: 1000
           product_unit_cost: 150
-          production_rate: 100
+          production_rate: 1000
           type: "production"
           cost: 150
           price: 200
@@ -273,31 +273,31 @@ world:
         storage: *medium_storage
         distribution: *normal_distribution
       config:
-        delay_order_penalty: 10
-        order_cost: 0
+        delay_order_penalty: 1
+        order_cost: 10
 
     - name: "Retailer_001"
       definition_ref: "RetailerFacility"
 
       skus:
         sku1:
-          price: 150
+          price: 200
           cost: 100
-          init_stock: 80
+          init_stock: 40
           sale_gamma: 20
           backlog_ratio: 0.1 # optional
           vlt: 1
         sku2:
-          price: 300
+          price: 350
           cost: 200
-          init_stock: 400
+          init_stock: 160
           sale_gamma: 80
           backlog_ratio: 0.1
           vlt: 1
         sku3:
-          price: 450
+          price: 650
           cost: 300
-          init_stock: 200
+          init_stock: 100
           sale_gamma: 50
           backlog_ratio: 0.1
           vlt: 1
@@ -359,7 +359,7 @@ settings:
   constraint_state_hist_len: 8
   total_echelons: 3
   replenishment_discount: 0.9
-  reward_normalization: 1e7
+  reward_normalization: 1e6
   constraint_violate_reward: -1e6
   gamma: 0.99
   tail_timesteps: 7

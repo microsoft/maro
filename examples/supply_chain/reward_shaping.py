@@ -81,6 +81,9 @@ class RewardShaping:
 
         return result
 
+    def get_product(self, id: int):
+        return self._sswraper.get_node_by_id(id)
+
     def _process_facility(self, bsr_dict: dict, facility: SnapshotNodeWrapper) -> BalancSheetReward:
         facility_cls_name = type(facility).__name__
 

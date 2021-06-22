@@ -19,3 +19,5 @@ class DynamicObject:
             else:
                 self.__dict__[key] = [pre_value, value]
 
+    def get(self, key, default=None):
+        return self.__dict__.get(key, default)
