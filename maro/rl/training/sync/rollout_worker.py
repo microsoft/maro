@@ -5,8 +5,6 @@ from multiprocessing.connection import Connection
 from os import getcwd
 from typing import Callable
 
-from bleach import VERSION
-
 from maro.communication import Proxy
 from maro.rl.wrappers import AbsEnvWrapper, AgentWrapper
 from maro.utils import Logger, set_seeds
