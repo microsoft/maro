@@ -242,11 +242,11 @@ class FlattenRewardShaping:
                 product_step_reward[i] += product_distribution_balance_sheet_loss[i] + \
                     product_distribution_balance_sheet_profit[i]
 
-            # if len(downstreams) > 0:
-            #     for did in downstreams:
-            #         product_balance_sheet_loss[i] += product_balance_sheet_loss[self.product_id2index_dict[did]]
-            #         product_balance_sheet_profit[i] += product_balance_sheet_profit[self.product_id2index_dict[did]]
-            #         product_step_reward[i] += product_step_reward[self.product_id2index_dict[did]]
+            if len(downstreams) > 0:
+                for did in downstreams:
+                    product_balance_sheet_loss[i] += product_balance_sheet_loss[self.product_id2index_dict[did]]
+                    product_balance_sheet_profit[i] += product_balance_sheet_profit[self.product_id2index_dict[did]]
+                    product_step_reward[i] += product_step_reward[self.product_id2index_dict[did]]
 
         product_balance_sheet = product_balance_sheet_profit + product_balance_sheet_loss
 

@@ -21,6 +21,7 @@ class SnapshotRelationTree:
 
         # flatten node from up to down
         self.flatten_nodes = []
+        self._id2node = {}
 
     def add(self, edge_info: tuple):
         from_uid, to_uid, edge_value = edge_info
@@ -51,8 +52,12 @@ class SnapshotRelationTree:
 
             self.root.children[None].append(src_node)
 
+            self._id2node[from_uid] = src_node
+
         if to_node is None:
             to_node = _RelationTreeNode(to_uid)
+
+            self._id2node[to_uid] = to_node
         else:
             # if to node has parent and its root, then remove it from root
             if to_node.parent is not None and to_node.parent == self.root:
@@ -61,6 +66,9 @@ class SnapshotRelationTree:
         to_node.parent = src_node
 
         src_node.children[edge_value].append(to_node)
+
+    def get_node(self, id: int) -> _RelationTreeNode:
+        return self._id2node[id]
 
     def _flatten(self):
         # flatten the tree first to speedup further using, as this is a static tree.

@@ -230,7 +230,26 @@ class RewardShaping:
         bs_list.append(storage_bs)
         reward_list.append(storage_loss)
 
-        # NOTE: no downstream included.
+        # find and add downstreams
+        parent_relation_node = self._sswraper.relations['downstreams'].get_node(unit.maro_parent_uid)
+
+        downstream_facility_relation_nodes = parent_relation_node.children[unit.product_id]
+
+        for node in downstream_facility_relation_nodes:
+            downstream_facility_id = node.uid
+            downstream_facility = self._sswraper.get_node_by_id(downstream_facility_id)
+
+            products = downstream_facility.children.product
+
+            if type(products) != list:
+                products = [products]
+
+            for product_unit in products:
+                if product_unit.product_id == unit.product_id:
+                    _, downstream_bs, downstream_reward = bsr_dict[product_unit.maro_uid]
+
+                    bs_list.append(downstream_bs)
+                    reward_list.append(downstream_reward)
 
         total_bs, total_reward = bslist_sum(bs_list), sum(reward_list)
 

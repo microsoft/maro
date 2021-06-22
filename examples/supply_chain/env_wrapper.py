@@ -314,11 +314,6 @@ class SCEnvWrapper(AbsEnvWrapper):
             f"{self._agent_id2info_mapping[f_id].agent_type}.{f_id}": np.float32(bwt[1])
             for f_id, bwt in self.cur_balance_sheet_reward.items()
         }
-        #
-        # return {
-        #     f"{agent_info.agent_type}.{agent_id}": np.float32(self.cur_balance_sheet_reward[agent_id][1])
-        #     for agent_id, agent_info in self._agent_id2info_mapping.items()
-        # }
 
     def get_action(self, action_by_agent):
         # cache the sources for each consumer if not yet cached
