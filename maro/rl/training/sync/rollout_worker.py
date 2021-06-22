@@ -5,6 +5,8 @@ from multiprocessing.connection import Connection
 from os import getcwd
 from typing import Callable
 
+from bleach import VERSION
+
 from maro.communication import Proxy
 from maro.rl.wrappers import AbsEnvWrapper, AgentWrapper
 from maro.utils import Logger, set_seeds
@@ -43,8 +45,7 @@ def rollout_worker_process(
     def collect(msg):
         ep, segment = msg["episode"], msg["segment"]
         # load policies
-        if hasattr(agent_wrapper, "update"):
-            agent_wrapper.update(msg["policy"])
+        agent_wrapper.set_policy_states(msg["policy"])
 
         # update exploration parameters
         agent_wrapper.explore()
@@ -87,7 +88,7 @@ def rollout_worker_process(
         eval_env_wrapper.reset()
         eval_env_wrapper.start()  # get initial state
         if hasattr(agent_wrapper, "update"):
-            agent_wrapper.update(msg["policy"])
+            agent_wrapper.set_policy_states(msg["policy"])
         while eval_env_wrapper.state:
             action = agent_wrapper.choose_action(eval_env_wrapper.state)
             eval_env_wrapper.step(action)
@@ -140,7 +141,8 @@ def rollout_worker_node(
 
         # load policies
         if msg.body[MsgKey.POLICY_STATE]:
-            agent_wrapper.update(msg.body[MsgKey.POLICY_STATE])
+            agent_wrapper.set_policy_states(msg.body[MsgKey.POLICY_STATE])
+
         # set exploration parameters
         agent_wrapper.explore()
         if msg.body[MsgKey.EXPLORATION_STEP]:
@@ -170,6 +172,7 @@ def rollout_worker_node(
             MsgKey.EPISODE_END: not env_wrapper.state,
             MsgKey.EPISODE: ep,
             MsgKey.SEGMENT: segment,
+            MsgKey.VERSION: msg.body[MsgKey.VERSION],
             MsgKey.EXPERIENCES: ret_exp,
             MsgKey.ENV_SUMMARY: env_wrapper.summary,
             MsgKey.NUM_STEPS: env_wrapper.step_index - starting_step_index + 1
@@ -183,7 +186,7 @@ def rollout_worker_node(
         eval_env_wrapper.start()  # get initial state
         agent_wrapper.exploit()
         if hasattr(agent_wrapper, "update"):
-            agent_wrapper.update(msg.body[MsgKey.POLICY_STATE])
+            agent_wrapper.set_policy_states(msg.body[MsgKey.POLICY_STATE])
         while eval_env_wrapper.state:
             action = agent_wrapper.choose_action(eval_env_wrapper.state)
             eval_env_wrapper.step(action)
