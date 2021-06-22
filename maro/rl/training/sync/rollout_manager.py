@@ -9,8 +9,6 @@ from os import getcwd
 from random import choices
 from typing import Callable, Dict, List
 
-from bleach import VERSION
-
 from maro.communication import Proxy, SessionType
 from maro.rl.experience import ExperienceSet
 from maro.rl.exploration import AbsExploration
@@ -494,7 +492,7 @@ class MultiNodeRolloutManager(AbsRolloutManager):
             if version - msg.body[MsgKey.VERSION] > self._max_lag:
                 self._logger.info(
                     f"Ignored a message because it contains experiences generated using a stale policy version. "
-                    f"Expected experiences generated using policy versions no earlier than {version - self._max_lag} " 
+                    f"Expected experiences generated using policy versions no earlier than {version - self._max_lag} "
                     f"got {msg.body[MsgKey.VERSION]}"
                 )
                 continue

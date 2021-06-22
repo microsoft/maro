@@ -46,7 +46,7 @@ class AbsPolicyManager(ABC):
 
     def get_state(self):
         return {name: self.policy_dict[name].get_state() for name in self.updated}
-    
+
     def reset_update_status(self):
         self.updated.clear()
 
