@@ -18,6 +18,8 @@ class StorageDataModel(DataModelBase):
     product_list = NodeAttribute(AttributeType.UInt, 1, is_list=True)
     product_number = NodeAttribute(AttributeType.UInt, 1, is_list=True)
 
+    unit_storage_cost = NodeAttribute(AttributeType.Float, 1, is_const=True)
+
     def __init__(self):
         super(StorageDataModel, self).__init__()
 
@@ -25,9 +27,11 @@ class StorageDataModel(DataModelBase):
         self._remaining_space = None
         self._product_list = None
         self._product_number = None
+        self._unit_storage_cost = 0
 
     def initialize(
         self,
+        unit_storage_cost: float = 0,
         capacity: int = 0,
         remaining_space: int = None,
         product_list: list = None,
@@ -37,6 +41,7 @@ class StorageDataModel(DataModelBase):
         self._remaining_space = remaining_space
         self._product_list = product_list
         self._product_number = product_number
+        self._unit_storage_cost = unit_storage_cost
 
         self.reset()
 
@@ -44,6 +49,7 @@ class StorageDataModel(DataModelBase):
         super(StorageDataModel, self).reset()
 
         self.capacity = self._capacity
+        self.unit_storage_cost = self._unit_storage_cost
 
         if self._remaining_space is not None:
             self.remaining_space = self._remaining_space

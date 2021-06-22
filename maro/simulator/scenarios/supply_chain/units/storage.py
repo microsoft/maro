@@ -17,6 +17,7 @@ class StorageUnit(UnitBase):
         self.capacity = 0
         self.remaining_space = 0
         self.product_level = {}
+        self.unit_storage_cost = 0
 
         # Which product's number has changed.
         self._changed_product_cache = {}
@@ -106,6 +107,7 @@ class StorageUnit(UnitBase):
         super(StorageUnit, self).initialize()
 
         self.capacity = self.config.get("capacity", 100)
+        self.unit_storage_cost = self.config.get("unit_storage_cost", 1)
         self.remaining_space = self.capacity
 
         for sku in self.facility.skus.values():
@@ -115,6 +117,7 @@ class StorageUnit(UnitBase):
             self.remaining_space -= sku.init_stock
 
         self.data_model.initialize(
+            unit_storage_cost = self.unit_storage_cost,
             capacity=self.capacity,
             remaining_space=self.remaining_space,
             product_list=[id for id in self.product_level.keys()],

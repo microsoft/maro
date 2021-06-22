@@ -64,12 +64,8 @@ class SnapshotWrapper:
 
         self._relations = SnapshotRelationManager(self._env.summary["node_mapping"]["edges"])
 
-    def step(self, action: object):
-        results = self._env.step(action)
-
+    def update(self):
         self._init_node_instance()
-
-        return results
 
     @property
     def nodes(self) -> SnapshotNodeManager:
@@ -78,6 +74,9 @@ class SnapshotWrapper:
     @property
     def relations(self) -> SnapshotRelationManager:
         return self._relations
+
+    def get_node_by_id(self, uid: int):
+        return self._id2node_dict[uid]
 
     def _build_node_types(self):
         """This is called after env construction to build node class types"""

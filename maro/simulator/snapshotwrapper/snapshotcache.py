@@ -87,7 +87,7 @@ class PerInstanceSnapshotCache(SnapshotCacheABC):
     def get_attribute(self, node_name: str, node_index: int, attr_name: str):
         self._update_cache(node_name, node_index)
 
-        key = (node_name, node_index)
+        key = (node_name, node_index, self._env.frame_index,)
 
         if attr_name in self._normal_node_attrs[node_name]:
             attr = self._normal_node_attrs[node_name][attr_name]
@@ -96,7 +96,7 @@ class PerInstanceSnapshotCache(SnapshotCacheABC):
         elif attr_name in self._const_node_attrs[node_name]:
             attr = self._const_node_attrs[node_name][attr_name]
 
-            return self._const_cache[key][attr.offset: attr.offset + attr.slots]
+            return self._const_cache[(node_name, node_index,)][attr.offset: attr.offset + attr.slots]
         else:
             # list attribute
             return self._list_cache[key][attr_name]
@@ -115,29 +115,25 @@ class PerInstanceSnapshotCache(SnapshotCacheABC):
             return values
 
     def _update_cache(self, node_name: str, node_index: int):
-        key = (node_name, node_index)
+        frame_index = self._env.frame_index
+        key = (node_name, node_index, frame_index,)
+        node_def = self._node_query_attrs[node_name]
+        ss = self._env.snapshot_list[node_name]
 
         # update cache if frame index not match, or key not exist
-        if self._current_cache_frame_index != self._env.frame_index or \
-            (key not in self._normal_cache and key not in self._list_cache):
-
-            self._current_cache_frame_index = self._env.frame_index
-
-            ss = self._env.snapshot_list[node_name]
-            key = (node_name, node_index)
-
-            node_def = self._node_query_attrs[node_name]
-            frame_index = self._env.frame_index
-
+        if len(node_def["normal"]) > 0 and key not in self._normal_cache:
             # cache normal attribute
             self._normal_cache[key] = ss[frame_index:node_index:node_def["normal"]].flatten()
 
+        if len(node_def["list"]) > 0 and key not in self._list_cache:
             # cache list attribute
             for attr in node_def["list"]:
                 self._list_cache[key][attr] = ss[frame_index:node_index:attr].flatten()
 
-            if key not in self._const_cache and len(self._const_node_attrs) > 0:
-                self._const_cache[key] = ss[frame_index:node_index:node_def["const"]].flatten()
+        const_key = (node_name, node_index,)
+
+        if const_key not in self._const_cache and len(self._const_node_attrs) > 0:
+            self._const_cache[const_key] = ss[frame_index:node_index:node_def["const"]].flatten()
 
 
 class PerTypeSnapshotCache(SnapshotCacheABC):
