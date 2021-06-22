@@ -108,8 +108,8 @@ def rollout_worker_node(
     create_agent_wrapper_func: Callable[[], AgentWrapper],
     group: str,
     create_eval_env_wrapper_func: Callable[[], AbsEnvWrapper] = None,
-    log_dir: str = getcwd(),
-    proxy_kwargs: dict = {}
+    proxy_kwargs: dict = {},
+    log_dir: str = getcwd()
 ):
     """Roll-out worker process that can be launched on separate computation nodes.
 
@@ -123,9 +123,9 @@ def rollout_worker_node(
         create_env_wrapper_func (Callable): Function to create an environment wrapper for evaluation. The function
             should take no parameters and return an environment wrapper instance. If this is None, the training
             environment wrapper will be used for evaluation.
-        log_dir (str): Directory to store logs in. Defaults to the current working directory.
         proxy_kwargs: Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
-            for details.
+            for details. Defaults to the empty dictionary.
+        log_dir (str): Directory to store logs in. Defaults to the current working directory.
     """
     env_wrapper = create_env_wrapper_func()
     eval_env_wrapper = env_wrapper if not create_eval_env_wrapper_func else create_eval_env_wrapper_func()
