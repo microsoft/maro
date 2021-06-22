@@ -9,7 +9,7 @@ import numpy as np
 from yaml import safe_dump
 
 from .cim_data_generator import CimDataGenerator
-from .entities import CimDataCollection
+from .entities import CimSyntheticDataCollection
 
 
 class CimDataDumpUtil:
@@ -17,10 +17,10 @@ class CimDataDumpUtil:
     ports.csv, vessels.csv, stops.csv, routes.csv, order_proportion.csv, global_order_proportion.txt, misc.yml
 
     Args:
-        data_collection (CimDataCollection): Data collection to dump.
+        data_collection (CimSyntheticDataCollection): Data collection to dump.
     """
 
-    def __init__(self, data_collection: CimDataCollection):
+    def __init__(self, data_collection: CimSyntheticDataCollection):
         self._data_collection = data_collection
 
     def dump(self, output_folder: str):
@@ -117,7 +117,7 @@ class CimDataDumpUtil:
         route_mapping = self._data_collection.route_mapping
         port_mapping = self._data_collection.port_mapping
         vessels = self._data_collection.vessels_settings
-        vessel_period = self._data_collection.vessel_period_no_noise
+        vessel_period = self._data_collection.vessel_period_without_noise
 
         def vessel_generator():
             for vessel in vessels:
@@ -142,10 +142,10 @@ class CimDataDumpUtil:
     def _dump_routes(self, output_folder: str, route_idx2name_dict: dict):
         """
         routes.csv -> used to get vessel plan (without noise)
-            index, name, port_name, port_index, distance
+            index, name, port_name, port_index, distance_to_next_port
         """
         routes_file_path = os.path.join(output_folder, "routes.csv")
-        headers = ["index", "name", "port_name", "port_index", "distance"]
+        headers = ["index", "name", "port_name", "port_index", "distance_to_next_port"]
 
         routes = self._data_collection.routes
         port_mapping = self._data_collection.port_mapping
@@ -158,7 +158,7 @@ class CimDataDumpUtil:
                         route_idx2name_dict[point.index],
                         point.port_name,
                         port_mapping[point.port_name],
-                        point.distance
+                        point.distance_to_next_port
                     ]
 
         self._dump_csv_file(routes_file_path, headers, route_generator)
@@ -200,7 +200,7 @@ class CimDataDumpUtil:
             "total_container": self._data_collection.total_containers,
             "past_stop_number": self._data_collection.past_stop_number,
             "future_stop_number": self._data_collection.future_stop_number,
-            "container_volume": self._data_collection.cntr_volume,
+            "container_volume": self._data_collection.container_volume,
             "max_tick": self._data_collection.max_tick,
             "seed": self._data_collection.seed,
             "version": self._data_collection.version

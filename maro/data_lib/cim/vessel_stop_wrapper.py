@@ -3,8 +3,7 @@
 
 from typing import Union
 
-from .entities import CimDataCollection
-from .real_entities import CimRealDataCollection
+from .entities import CimBaseDataCollection
 
 
 class VesselStopsWrapper:
@@ -24,7 +23,7 @@ class VesselStopsWrapper:
             stops = data_cntr.vessel_stops[:]
     """
 
-    def __init__(self, data: Union[CimDataCollection, CimRealDataCollection]):
+    def __init__(self, data: CimBaseDataCollection):
         self._stops = data.vessels_stops
 
     def __getitem__(self, key):

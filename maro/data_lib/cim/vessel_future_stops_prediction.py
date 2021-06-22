@@ -4,8 +4,7 @@
 from math import ceil
 from typing import Union
 
-from .entities import CimDataCollection, Stop
-from .real_entities import CimRealDataCollection
+from .entities import CimBaseDataCollection, Stop
 
 
 class VesselFutureStopsPrediction:
@@ -19,7 +18,7 @@ class VesselFutureStopsPrediction:
             stops = data_cntr.vessel_future_stops[0]
     """
 
-    def __init__(self, data: Union[CimDataCollection, CimRealDataCollection]):
+    def __init__(self, data: CimBaseDataCollection):
         self._vessels = data.vessels_settings
         self._stops = data.vessels_stops
         self._routes = data.routes
@@ -76,10 +75,10 @@ class VesselFutureStopsPrediction:
         # predict from configured sailing plan, not from stops
         for loc_idx in range(last_loc_idx + 1, last_loc_idx + stop_number + 1):
             route_info = route_points[loc_idx % route_length]
-            port_idx, distance = self._port_mapping[route_info.port_name], route_info.distance
+            port_idx, distance_to_next_port = self._port_mapping[route_info.port_name], route_info.distance_to_next_port
 
             # NO noise for speed
-            arrive_tick += duration + ceil(distance / speed)
+            arrive_tick += duration + ceil(distance_to_next_port / speed)
 
             predicted_future_stops.append(
                 Stop(

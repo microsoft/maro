@@ -1,6 +1,6 @@
 # CIM: Using Real Data as the Input of the Simulation
 
-Current the real data input are supported by the **CimRealDataLoader** and **CimRealDataContainer** implemented in *maro/data_lib/cim/cim_real_data_loader.py* and *maro/data_lib/cim/cim_real_data_container.py* respectively.
+Current the real data input are supported by the **CimRealDataLoader** and **CimRealDataContainer** implemented in *maro/data_lib/cim/cim_data_loader.py* and *maro/data_lib/cim/cim_data_container.py* respectively.
 
 ## Configurations in the Topology File *config.yml*
 
@@ -44,7 +44,7 @@ index | name | capacity | empty | empty_return_buffer | empty_return_buffer_nois
 
 ### routes.csv
 
-index | name | port_name | distance
+index | name | port_name | distance_to_next_port
 ---|---|---|---
 
 ### vessels.csv

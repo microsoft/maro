@@ -29,7 +29,7 @@ class RoutesParser:
         for name, node in conf.items():
             route_mapping[name] = idx
 
-            routes.append([RoutePoint(idx, n["port_name"], n["distance"]) for n in node])
+            routes.append([RoutePoint(idx, n["port_name"], n["distance_to_next_port"]) for n in node])
 
             idx += 1
 

@@ -3,8 +3,7 @@
 
 from typing import Union
 
-from .entities import CimDataCollection
-from .real_entities import CimRealDataCollection
+from .entities import CimBaseDataCollection
 
 
 class VesselReachableStopsWrapper:
@@ -18,7 +17,7 @@ class VesselReachableStopsWrapper:
             stop_list = data_cntr.reachable_stops[0]
     """
 
-    def __init__(self, data: Union[CimDataCollection, CimRealDataCollection]):
+    def __init__(self, data: CimBaseDataCollection):
         self._routes = data.routes
         self._stops = data.vessels_stops
 

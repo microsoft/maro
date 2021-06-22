@@ -10,7 +10,7 @@ from maro.data_lib import BinaryConverter
 from maro.data_lib.cim import dump_from_config, load_from_folder
 from maro.data_lib.cim.cim_data_dump import CimDataDumpUtil
 from maro.data_lib.cim.cim_data_generator import CimDataGenerator
-from maro.data_lib.cim.entities import CimDataCollection, NoisedItem, PortSetting, RoutePoint, Stop, VesselSetting
+from maro.data_lib.cim.entities import CimSyntheticDataCollection, NoisedItem, SyntheticPortSetting, RoutePoint, Stop, VesselSetting
 
 MAX_TICK = 20
 
@@ -22,7 +22,7 @@ class TestDumpsLoad(unittest.TestCase):
         output_folder = tempfile.mkdtemp()
 
         # here we need to use CimDataDumpUtil manually to compare the result
-        dc: CimDataCollection =  CimDataGenerator().gen_data(config_path, 20)
+        dc: CimSyntheticDataCollection =  CimDataGenerator().gen_data(config_path, 20)
 
         dumper = CimDataDumpUtil(dc)
 
@@ -45,16 +45,16 @@ class TestDumpsLoad(unittest.TestCase):
         self._compare_misc(dc, dc2)
         self._compare_order_proportion(dc, dc2)
 
-    def _compare_order_proportion(self, dc1: CimDataCollection, dc2: CimDataCollection):
+    def _compare_order_proportion(self, dc1: CimSyntheticDataCollection, dc2: CimSyntheticDataCollection):
         self.assertListEqual(list(dc1.order_proportion), list(dc2.order_proportion))
 
-    def _compare_misc(self, dc1: CimDataCollection, dc2: CimDataCollection):
+    def _compare_misc(self, dc1: CimSyntheticDataCollection, dc2: CimSyntheticDataCollection):
         self.assertEqual(dc1.max_tick, dc2.max_tick)
         self.assertEqual(dc1.order_mode, dc2.order_mode)
         self.assertEqual(dc1.total_containers, dc2.total_containers)
-        self.assertEqual(dc1.cntr_volume, dc2.cntr_volume)
+        self.assertEqual(dc1.container_volume, dc2.container_volume)
 
-    def _compare_routes(self, dc1: CimDataCollection, dc2: CimDataCollection):
+    def _compare_routes(self, dc1: CimSyntheticDataCollection, dc2: CimSyntheticDataCollection):
         routes_1 = dc1.routes
         routes_2 = dc2.routes
 
@@ -71,17 +71,17 @@ class TestDumpsLoad(unittest.TestCase):
                 p2: RoutePoint = route2_points[pidx]
 
                 self.assertTrue(p1.port_name == p2.port_name)
-                self.assertTrue(p1.distance, p2.distance)
+                self.assertTrue(p1.distance_to_next_port, p2.distance_to_next_port)
 
-    def _compare_ports(self, dc1: CimDataCollection, dc2: CimDataCollection):
+    def _compare_ports(self, dc1: CimSyntheticDataCollection, dc2: CimSyntheticDataCollection):
         ports_1 = dc1.ports_settings
         ports_2 = dc2.ports_settings
 
         self.assertTrue(len(ports_1) == len(ports_2))
 
         for port_index in range(len(ports_1)):
-            port1: PortSetting = ports_1[port_index]
-            port2: PortSetting = ports_2[port_index]
+            port1: SyntheticPortSetting = ports_1[port_index]
+            port2: SyntheticPortSetting = ports_2[port_index]
 
             self.assertTrue(port1.index == port2.index, f"{port1.index}, {port2.index}")
             self.assertTrue(port1.name == port2.name, f"{port1.name}, {port2.name}")
@@ -103,7 +103,7 @@ class TestDumpsLoad(unittest.TestCase):
                 self.assertTrue(tprop1.noise == tprop2.noise)
 
 
-    def _compare_vessels(self, dc1: CimDataCollection, dc2: CimDataCollection):
+    def _compare_vessels(self, dc1: CimSyntheticDataCollection, dc2: CimSyntheticDataCollection):
         vessels_1: List[VesselSetting] = dc1.vessels_settings
         vessels_2: List[VesselSetting] = dc2.vessels_settings
 
@@ -124,7 +124,7 @@ class TestDumpsLoad(unittest.TestCase):
             self.assertTrue(vessel1.parking_noise == vessel2.parking_noise)
 
 
-    def _compare_stops(self, dc1: CimDataCollection, dc2: CimDataCollection):
+    def _compare_stops(self, dc1: CimSyntheticDataCollection, dc2: CimSyntheticDataCollection):
         stops_1: List[List[Stop]] = dc1.vessels_stops
         stops_2: List[List[Stop]] = dc2.vessels_stops
 

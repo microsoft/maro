@@ -1,75 +1,63 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from collections import namedtuple
+from dataclasses import dataclass
 from enum import Enum
+from typing import Dict, List
+
+import numpy as np
 
 # item used to hold base value and related noise
-NoisedItem = namedtuple("NoisedItem", ["index", "base", "noise"])
-
-# data collection from data generator
-CimDataCollection = namedtuple("CimDataCollection", [
-    "total_containers",
-    "past_stop_number",
-    "future_stop_number",
-    "cntr_volume",
-    "order_mode",
-    "ports_settings",
-    "port_mapping",
-    "vessels_settings",
-    "vessel_mapping",
-    "vessels_stops",
-    "order_proportion",
-    "routes",
-    "route_mapping",
-    "vessel_period_no_noise",
-    "max_tick",
-    "seed",
-    "version"
-])
+@dataclass(frozen=True)
+class NoisedItem:
+    index: int
+    base: float
+    noise: float
 
 # stop for vessel
-Stop = namedtuple("Stop", [
-    "index",
-    "arrive_tick",
-    "leave_tick",
-    "port_idx",
-    "vessel_idx"
-])
+@dataclass(frozen=True)
+class Stop:
+    index: int
+    arrive_tick: int
+    leave_tick: int
+    port_idx: int
+    vessel_idx: int
 
 # settings for port
-PortSetting = namedtuple("PortSetting", [
-    "index",
-    "name",
-    "capacity",
-    "empty",
-    "source_proportion",
-    "target_proportions",
-    "empty_return_buffer",
-    "full_return_buffer"
-])
+@dataclass(frozen=True)
+class PortSetting:
+    index: int
+    name: str
+    capacity: int
+    empty: int
+    empty_return_buffer: int
+    full_return_buffer: int
+
+@dataclass(frozen=True)
+class SyntheticPortSetting(PortSetting):
+    source_proportion: float
+    target_proportions: float
 
 # settings for vessel
-VesselSetting = namedtuple("VesselSettings", [
-    "index",
-    "name",
-    "capacity",
-    "route_name",
-    "start_port_name",
-    "sailing_speed",
-    "sailing_noise",
-    "parking_duration",
-    "parking_noise",
-    "empty"
-])
+@dataclass(frozen=True)
+class VesselSetting:
+    index: int
+    name: str
+    capacity: int
+    route_name: str
+    start_port_name: str
+    sailing_speed: float
+    sailing_noise: float
+    parking_duration: int
+    parking_noise: float
+    empty: int
 
 # a point in rote definition
-RoutePoint = namedtuple("RoutePoint", [
-    "index",
-    "port_name",
-    "distance"
-])
-
+@dataclass(frozen=True)
+class RoutePoint:
+    index: int
+    port_name: str
+    distance_to_next_port: int
 
 class OrderGenerateMode(Enum):
     """Mode to generate orders from configuration.
@@ -81,7 +69,6 @@ class OrderGenerateMode(Enum):
     """
     FIXED = "fixed"
     UNFIXED = "unfixed"
-
 
 # TODO: use object pooling to reduce memory cost
 class Order:
@@ -110,3 +97,43 @@ class Order:
             f"Order {{tick:{self.tick}, source port: {self.src_port_idx}, "
             f"dest port: {self.dest_port_idx} quantity: {self.quantity}}}"
         )
+
+@dataclass(frozen=True)
+class CimBaseDataCollection:
+    # Port
+    ports_settings: List[PortSetting]
+    port_mapping: Dict[str, int]
+    # Vessel
+    vessels_settings: List[VesselSetting]
+    vessel_mapping: Dict[str, int]
+    # Stop
+    vessels_stops: List[List[Stop]]
+    # Route
+    routes: List[List[RoutePoint]]
+    route_mapping: Dict[str, int]
+    # Vessel Period
+    vessel_period_without_noise: List[int]
+    # Volume/Container
+    container_volume: int
+    # Visible Voyage Window
+    past_stop_number: int
+    future_stop_number: int
+    # Time Length of the Data Collection
+    max_tick: int
+    # Random Seed for Data Generation
+    seed: int
+
+# data collection from data generator
+@dataclass(frozen=True)
+class CimSyntheticDataCollection(CimBaseDataCollection):
+    # For Order Generation
+    total_containers: int
+    order_mode: OrderGenerateMode
+    order_proportion: np.ndarray
+    # Data Generator Version
+    version: str
+
+@dataclass(frozen=True)
+class CimRealDataCollection(CimBaseDataCollection):
+    # Order Read from Files
+    orders: Dict[int, List[Order]]

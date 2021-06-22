@@ -3,8 +3,7 @@
 
 from typing import Union
 
-from .entities import CimDataCollection, Stop
-from .real_entities import CimRealDataCollection
+from .entities import CimBaseDataCollection, Stop
 from .vessel_future_stops_prediction import VesselFutureStopsPrediction
 
 
@@ -20,7 +19,7 @@ class VesselSailingPlanWrapper(VesselFutureStopsPrediction):
             stops = data_cntr.vessel_planned_stops[0]
     """
 
-    def __init__(self, data: Union[CimDataCollection, CimRealDataCollection]):
+    def __init__(self, data: CimBaseDataCollection):
         super().__init__(data)
 
     def __getitem__(self, key):

@@ -5,7 +5,7 @@ import csv
 import os
 from collections import defaultdict
 
-from maro.data_lib.cim.entities import Order, PortSetting, Stop, VesselSetting
+from maro.data_lib.cim.entities import Order, SyntheticPortSetting, Stop, VesselSetting
 
 PORT_NUM = 3
 VESSEL_NUM = 2
@@ -214,7 +214,7 @@ class MockDataContainer:
                     if port_id not in self.ports_dict:
                         self.ports_dict[port_id] = {}
 
-                    port = PortSetting(port_id, f"p{port_id}", cap, cntr, None, None, None, None)
+                    port = SyntheticPortSetting(port_id, f"p{port_id}", cap, cntr, None, None, None, None)
 
                     self._ports.append(port)
 
