@@ -140,10 +140,76 @@ class PerTypeSnapshotCache(SnapshotCacheABC):
     def __init__(self):
         super(PerInstanceSnapshotCache, self).__init__()
 
-        self._cache = {}
+        # key: (tick, node_name), value: list of attribute value for all node instance
+        self._normal_cache = {}
+
+        # key: (tick, node_name), value: a dict with key as attr name, value is value list
+        self._list_cache = defaultdict(dict)
+
+        # key: node_nme, value: attr value list
+        self._const_cache = {}
 
     def get_attribute(self, node_name: str, node_index: int, attr_name: str):
-        pass
+        self._update_cache(node_name)
+
+        ss = self._env.snapshot_list[node_name]
+
+        key = (node_name, self._env.frame_index,)
+
+        if attr_name in self._normal_node_attrs[node_name]:
+            attr = self._normal_node_attrs[node_name][attr_name]
+
+            node_values = self._normal_cache[key]
+            per_node_len = len(node_values) / len(ss)
+            cur_node_offset = per_node_len * node_index
+
+            node_index_values = node_values[cur_node_offset:cur_node_offset+per_node_len]
+
+            return node_index_values[attr.offset: attr.offset + attr.slots]
+        elif attr_name in self._const_node_attrs[node_name]:
+            attr = self._const_node_attrs[node_name][attr_name]
+
+            node_values = self._const_cache[node_name]
+            per_node_len = len(node_values) / len(ss)
+            cur_node_offset = per_node_len * node_index
+
+            cur_node_values = node_values[cur_node_offset: cur_node_offset+per_node_len]
+
+            return cur_node_values[attr.offset: attr.offset + attr.slots]
+        else:
+            # list attribute
+            return self._list_cache[key][attr_name]
 
     def get_attribute_range(self, node_name: str, node_index: int, attr_name: str, ticks: List[int]):
-        pass
+        ss = self._env.snapshot_list[node_name]
+
+        if attr_name in self._normal_node_attrs[node_name] or attr_name in self._const_node_attrs[node_name]:
+            return ss[ticks:node_index:attr_name].flatten()
+        else:
+            # combine one by one
+            values = []
+            for tick in ticks:
+                values.append(ss[tick:node_index:attr_name].flatten())
+
+            return values
+
+    def _update_cache(self, node_name: str):
+        frame_index = self._env.frame_index
+        key = (node_name, frame_index)
+
+        node_def = self._node_query_attrs[node_name]
+        ss = self._env.snapshot_list[node_name]
+
+        if len(node_def["normal"]) > 0 and key not in self._normal_cache:
+            self._normal_cache[key] = ss[frame_index::node_def["normal"]].flatten()
+
+        if len(node_def["list"]) > 0 and key not in self._list_cache:
+            # cache list attribute
+            for node_index in range(len(ss)):
+                for attr in node_def["list"]:
+                    self._list_cache[key][(node_index, attr)] = ss[frame_index:node_index:attr].flatten()
+
+        const_key = node_name
+
+        if const_key not in self._const_cache:
+            self._const_cache[const_key] = ss[frame_index::node_def["const"]].flatten()
