@@ -3,9 +3,7 @@
 
 from collections import defaultdict
 from os import getcwd
-from typing import Dict, List
 
-from maro.rl.policy import AbsPolicy
 from maro.communication import Proxy
 from maro.utils import Logger
 
@@ -18,18 +16,35 @@ def policy_server(
     num_actors: int,
     group: str,
     num_requests_per_inference: int,
-    proxy_kwargs: dict = {}
+    max_lag: int = 0,
+    proxy_kwargs: dict = {},
+    log_dir: str = getcwd()
 ):
     peers = {"actor": num_actors}
     proxy = Proxy(group, "inference_server", peers, **proxy_kwargs)
-
+    logger = Logger("LOCAL_LEARNER", dump_folder=log_dir)
     request_cache = {}
     state_batch_cache_by_policy = defaultdict(list)
     actor_offset = {policy_name: {} for policy_name in policy_manager.policy_dict}
     action_batch_by_actor = defaultdict(dict)
 
     for msg in proxy.receive():
-        if msg.tag == MsgTag.CHOOSE_ACTION:
+        if msg.tag == MsgTag.GET_INITIAL_POLICY_STATE:
+            proxy.reply(msg, tag=MsgTag.POLICY_STATE, body={MsgKey.POLICY_STATE: policy_manager.get_state()})
+            policy_manager.reset_update_status()
+        elif msg.tag == MsgTag.COLLECT_DONE:
+            if policy_manager.version - msg.body[MsgKey.VERSION] > max_lag:
+                logger.info(
+                    f"Ignored a message because it contains experiences generated using a stale policy version. "
+                    f"Expected experiences generated using policy versions no earlier than "
+                    f"{policy_manager.version - max_lag}, got {msg.body[MsgKey.VERSION]}"
+                )
+                continue
+
+            policy_manager.on_experiences(msg.body[MsgKey.EXPERIENCES])
+            proxy.reply(msg, tag=MsgTag.POLICY_STATE, body={MsgKey.POLICY_STATE: policy_manager.get_state()})
+            policy_manager.reset_update_status()
+        elif msg.tag == MsgTag.CHOOSE_ACTION:
             # accumulate states for batch inference
             for policy_name, state_batch in msg.body[MsgKey.STATE].items():
                 state_batch_cache_by_policy[policy_name].extend(state_batch)

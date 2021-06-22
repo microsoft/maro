@@ -21,8 +21,8 @@ class PolicyClient:
         agent2exploration: Dict[str, str] = None,
         max_receive_attempts: int = None,
         receive_timeout: int = None,
-        log_dir: str = getcwd(),
-        proxy_kwargs: dict = {}
+        proxy_kwargs: dict = {},
+        log_dir: str = getcwd()
     ):
         self.agent2policy = agent2policy
         self.exploration_dict = exploration_dict

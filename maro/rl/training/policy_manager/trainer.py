@@ -56,8 +56,8 @@ def trainer_node(
     trainer_id: str,
     create_policy_func_dict: Dict[str, Callable],
     group: str,
-    log_dir: str = getcwd(),
-    proxy_kwargs: dict = {}
+    proxy_kwargs: dict = {},
+    log_dir: str = getcwd()
 ):
     """Policy trainer process that can be launched on separate computation nodes.
 
@@ -68,9 +68,9 @@ def trainer_node(
             instance.
         group (str): Group name for the training cluster, which includes all trainers and a training manager that
             manages them.
-        log_dir (str): Directory to store logs in. Defaults to the current working directory.
         proxy_kwargs: Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
-            for details.
+            for details. Defaults to the empty dictionary.
+        log_dir (str): Directory to store logs in. Defaults to the current working directory.
     """
     policy_dict = {policy_name: func() for policy_name, func in create_policy_func_dict.items()}
     proxy = Proxy(group, "trainer", {"policy_manager": 1}, component_name=trainer_id, **proxy_kwargs)

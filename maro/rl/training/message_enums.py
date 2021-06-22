@@ -8,6 +8,7 @@ class MsgTag(Enum):
     COLLECT = "rollout"
     EVAL = "eval"
     INIT_POLICY_STATE = "init_policy_state"
+    GET_INITIAL_POLICY_STATE = "get_initial_policy_state"
     POLICY_STATE = "policy_state"
     CHOOSE_ACTION = "choose_action"
     ACTION = "action"
