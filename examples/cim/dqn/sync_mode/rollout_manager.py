@@ -20,7 +20,7 @@ from general import NUM_ACTIONS, config, log_dir
 from policy import get_independent_policy_for_rollout
 
 
-if config["sync"]["rollout_mode"] == "local":
+if config["sync"]["rollout_mode"] == "single-process":
     env = Env(**config["env"]["basic"])
     rollout_manager = LocalRolloutManager(
         CIMEnvWrapper(env, **config["env"]["wrapper"]),

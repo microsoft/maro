@@ -188,7 +188,7 @@ class MultiNodePolicyManager(AbsPolicyManager):
         for trainer_name, policy_names in self._trainer2policies.items():
             self._proxy.send(
                 SessionMessage(
-                    MsgTag.POLICY_STATE, self._proxy.name,
+                    MsgTag.INIT_POLICY_STATE, self._proxy.name, trainer_name,
                     body={MsgKey.POLICY_STATE: {name: self.policy_dict[name].get_state() for name in policy_names}}
                 )
             )

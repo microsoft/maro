@@ -10,13 +10,11 @@ from maro.rl.wrappers import AbsEnvWrapper, AgentWrapper
 from maro.utils import Logger
 
 from ..message_enums import MsgKey, MsgTag
-from .policy_client import PolicyClient
 
 
 def actor(
-    actor_id: int,
     create_env_wrapper_func: Callable[[], AbsEnvWrapper],
-    create_agent_wrapper_func: Callable[[], Union[AgentWrapper, PolicyClient]],
+    create_agent_wrapper_func: Callable[[], AgentWrapper],
     num_episodes: int,
     group: str,
     num_steps: int = -1,
@@ -29,7 +27,6 @@ def actor(
     """Controller for single-threaded learning workflows.
 
     Args:
-        actor_id (int): Integer actor ID.
         create_env_wrapper_func (Callable): Function to create an environment wrapper for training data collection.
             The function should take no parameters and return an environment wrapper instance.
         create_agent_wrapper_func (Callable): Function to create a decision generator for interacting with
@@ -60,11 +57,10 @@ def actor(
     env_wrapper = create_env_wrapper_func()
     eval_env_wrapper = env_wrapper if not create_eval_env_wrapper_func else create_eval_env_wrapper_func()
     agent_wrapper = create_agent_wrapper_func()
-    peers = {"policy_manager": 1}
-    if isinstance(agent_wrapper, PolicyClient):
-        peers["policy_server"] = 1
+    peers = {"policy_server": 1}
     proxy = Proxy(group, "actor", peers, **proxy_kwargs)
-    logger = Logger("LOCAL_LEARNER", dump_folder=log_dir)
+    policy_server_address = proxy.peers["policy_server"][0]
+    logger = Logger(proxy.name, dump_folder=log_dir)
     policy_version = None
 
     # evaluation schedule
@@ -81,8 +77,8 @@ def actor(
 
     # get initial policy states from the policy manager
     if isinstance(agent_wrapper, AgentWrapper):
-        msg = SessionMessage(MsgTag.COLLECT_DONE, proxy.name)
-        reply = proxy.send(msg)
+        msg = SessionMessage(MsgTag.GET_INITIAL_POLICY_STATE, proxy.name, policy_server_address)
+        reply = proxy.send(msg)[0]
         policy_version = reply.body[MsgKey.VERSION]
         agent_wrapper.set_policy_states(reply.body[MsgKey.POLICY_STATE])
     
@@ -96,6 +92,9 @@ def actor(
         segment = 0
         while env_wrapper.state:
             segment += 1
+            logger.info(
+                f"Collecting simulation data (episode {ep}, segment {segment}, policy version {policy_version})"
+            )
             start_step_index = env_wrapper.step_index + 1
             steps_to_go = num_steps
             while env_wrapper.state and steps_to_go:
@@ -103,25 +102,22 @@ def actor(
                 steps_to_go -= 1
 
             logger.info(
-                f"Roll-out finished for episode {ep}, segment {segment}"
-                f"(steps {start_step_index} - {env_wrapper.step_index})"
+                f"Roll-out finished (episode {ep}, segment {segment}, "
+                f"steps {start_step_index} - {env_wrapper.step_index})"
             )
 
             exp_by_agent = env_wrapper.get_experiences()
             policies_with_new_exp = agent_wrapper.on_experiences(exp_by_agent)
             num_experiences_collected += sum(exp.size for exp in exp_by_agent.values())
             exp_by_policy = agent_wrapper.get_experiences_by_policy(policies_with_new_exp)
-            msg = SessionMessage(
-                MsgTag.COLLECT_DONE, proxy.name,
-                body={MsgKey.EXPERIENCES: exp_by_policy, MsgKey.VERSION: policy_version}
-            )
-            if isinstance(agent_wrapper, AgentWrapper):
-                msg = SessionMessage(MsgTag.COLLECT_DONE, proxy.name)
-                reply = proxy.send(msg)
-                policy_version = reply.body[MsgKey.VERSION]
-                agent_wrapper.set_policy_states(reply.body[MsgKey.POLICY_STATE])
-            else:
-                proxy.isend(msg)
+            reply = proxy.send(
+                SessionMessage(
+                    MsgTag.COLLECT_DONE, proxy.name, policy_server_address,
+                    body={MsgKey.EXPERIENCES: exp_by_policy, MsgKey.VERSION: policy_version}
+                )
+            )[0]
+            policy_version = reply.body[MsgKey.VERSION]
+            agent_wrapper.set_policy_states(reply.body[MsgKey.POLICY_STATE])
 
         # update the exploration parameters
         agent_wrapper.exploration_step()
