@@ -1,4 +1,5 @@
 from examples.supply_chain.reward_shaping import RewardShaping
+from examples.supply_chain.flatten_reward_shaping import FlattenRewardShaping
 from maro.simulator import Env
 from collections import defaultdict, namedtuple
 import scipy.stats as st
@@ -79,8 +80,9 @@ seller_features = ("total_demand", "sold", "demand")
 class SCEnvWrapper(AbsEnvWrapper):
     def __init__(self, env: Env):
         super().__init__(env)
-        self.balance_cal = RewardShaping(env)
+        self.balance_cal = RewardShaping(env, product_include_downstream=True)
         self.cur_balance_sheet_reward = None
+
         self.storage_ss = env.snapshot_list["storage"]
         self.distribution_ss = env.snapshot_list["distribution"]
         self.consumer_ss = env.snapshot_list["consumer"]
@@ -259,6 +261,7 @@ class SCEnvWrapper(AbsEnvWrapper):
         hist_ticks = [cur_tick - i for i in range(hist_len-1, -1, -1)]
 
         self.cur_balance_sheet_reward = self.balance_cal.calc()
+
         self._cur_metrics = self.env.metrics
 
         self._cur_distribution_states = self.distribution_ss[cur_tick::distribution_features]\

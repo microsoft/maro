@@ -17,7 +17,8 @@ class FlattenRewardShaping:
     storage_features = ("capacity", "remaining_space")
     vehicle_features = ("id", "payload", "unit_transport_cost")
 
-    def __init__(self, env: Env):
+    def __init__(self, env: Env, product_include_downstream: bool = True):
+        self.product_include_downstreams = product_include_downstream
         self.env = env
         self.consumer_ss = env.snapshot_list["consumer"]
         self.seller_ss = env.snapshot_list["seller"]
@@ -242,11 +243,12 @@ class FlattenRewardShaping:
                 product_step_reward[i] += product_distribution_balance_sheet_loss[i] + \
                     product_distribution_balance_sheet_profit[i]
 
-            if len(downstreams) > 0:
-                for did in downstreams:
-                    product_balance_sheet_loss[i] += product_balance_sheet_loss[self.product_id2index_dict[did]]
-                    product_balance_sheet_profit[i] += product_balance_sheet_profit[self.product_id2index_dict[did]]
-                    product_step_reward[i] += product_step_reward[self.product_id2index_dict[did]]
+            if self.product_include_downstreams:
+                if len(downstreams) > 0:
+                    for did in downstreams:
+                        product_balance_sheet_loss[i] += product_balance_sheet_loss[self.product_id2index_dict[did]]
+                        product_balance_sheet_profit[i] += product_balance_sheet_profit[self.product_id2index_dict[did]]
+                        product_step_reward[i] += product_step_reward[self.product_id2index_dict[did]]
 
         product_balance_sheet = product_balance_sheet_profit + product_balance_sheet_loss
 

@@ -38,9 +38,9 @@ class SnapshotRelationTree:
                 src_node = n
             elif n.uid == to_uid:
                 to_node = n
-            else:
-                for child in n.children.values():
-                    stack.extend(child)
+
+            for child in n.children.values():
+                stack.extend(child)
 
             if src_node is not None and to_node is not None:
                 break
