@@ -15,7 +15,7 @@ from policy import get_independent_policy_for_training
 
 
 policies = [get_independent_policy_for_training(i) for i in AGENT_IDS]
-if config["distributed"]["policy_training_mode"] == "local":
+if config["policy_manager"]["policy_training_mode"] == "local":
     policy_manager = LocalPolicyManager(policies, log_dir=log_dir)
 else:
     policy_manager = MultiProcessPolicyManager(
