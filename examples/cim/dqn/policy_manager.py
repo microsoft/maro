@@ -29,6 +29,6 @@ elif config["policy_manager"]["policy_training_mode"] == "multi-node":
         policies,
         {id_: f"TRAINER.{id_ % NUM_POLICY_TRAINERS}" for id_ in AGENT_IDS}, # policy-trainer mapping
         config["policy_manager"]["group"],
-        proxy_kwargs={"redis_address": (config["async"]["redis"]["host"], config["async"]["redis"]["port"])},
+        proxy_kwargs={"redis_address": (config["redis"]["host"], config["redis"]["port"])},
         log_dir=log_dir
     )

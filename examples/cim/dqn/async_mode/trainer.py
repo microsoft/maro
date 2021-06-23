@@ -18,7 +18,7 @@ if __name__ == "__main__":
         config["policy_manager"]["group"],
         proxy_kwargs={
             "component_name": os.environ["TRAINERID"],
-            "redis_address": (config["async"]["redis"]["host"], config["async"]["redis"]["port"])
+            "redis_address": (config["redis"]["host"], config["redis"]["port"])
         },
         log_dir=log_dir
     )
