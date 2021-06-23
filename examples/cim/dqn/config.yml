@@ -80,13 +80,15 @@ policies:
       beta_step: 0.001
   update_trigger: 16
   warmup: 1
-distributed:
-  rollout_mode: multi-process # local, multi-process
-  policy_training_mode: multi-process # local, multi-process
-  group: cim-dqn
+sync:
+  rollout_mode: multi-process # single-process, multi-process, multi-node
   num_rollout_workers: 3
-  num_trainers: 2
-  redis_host: localhost
-  redis_port: 6379
   # max_receive_attempts: 2
   # receive_timeout: 100  # in milli-seconds
+policy_manager:
+  group: cim-dqn-policy-manager
+  policy_training_mode: multi-process # single-process, multi-process, multi-node
+  num_trainers: 2
+redis:
+  host: localhost
+  port: 6379

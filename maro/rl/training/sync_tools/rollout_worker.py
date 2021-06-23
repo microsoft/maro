@@ -63,8 +63,8 @@ def rollout_worker_process(
             steps_to_go -= 1
 
         logger.info(
-            f"Roll-out finished for ep {ep}, segment {segment}"
-            f"(steps {starting_step_index} - {env_wrapper.step_index})"
+            f"Roll-out finished (episode {ep}, segment {segment}, "
+            f"steps {starting_step_index} - {env_wrapper.step_index})"
         )
 
         policies_with_new_exp = agent_wrapper.on_experiences(env_wrapper.get_experiences())
@@ -159,8 +159,8 @@ def rollout_worker_node(
             steps_to_go -= 1
 
         logger.info(
-            f"Roll-out finished for ep {ep}, segment {segment}"
-            f"(steps {starting_step_index} - {env_wrapper.step_index})"
+            f"Roll-out finished (episode {ep}, segment {segment}, "
+            f"steps {starting_step_index} - {env_wrapper.step_index})"
         )
 
         policy_names = agent_wrapper.on_experiences(env_wrapper.get_experiences())

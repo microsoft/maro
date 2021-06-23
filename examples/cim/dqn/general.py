@@ -25,4 +25,4 @@ config["policies"]["model"]["network"]["output_dim"] = config["env"]["wrapper"][
 
 NUM_ACTIONS = config["env"]["wrapper"]["num_actions"]
 AGENT_IDS = Env(**config["env"]["basic"]).agent_idx_list
-NUM_POLICY_TRAINERS = config["distributed"]["num_trainers"]
+NUM_POLICY_TRAINERS = config["policy_manager"]["num_trainers"]

@@ -53,7 +53,6 @@ def trainer_process(
 
 
 def trainer_node(
-    trainer_id: str,
     create_policy_func_dict: Dict[str, Callable],
     group: str,
     proxy_kwargs: dict = {},
@@ -62,7 +61,6 @@ def trainer_node(
     """Policy trainer process that can be launched on separate computation nodes.
 
     Args:
-        trainer_id (str): Identifier for the trainer process for bookkeeping by the parent manager process.
         create_policy_func_dict (dict): A dictionary mapping policy names to functions that create them. The policy
             creation function should have exactly one parameter which is the policy name and return an ``AbsPolicy``
             instance.
@@ -72,8 +70,8 @@ def trainer_node(
             for details. Defaults to the empty dictionary.
         log_dir (str): Directory to store logs in. Defaults to the current working directory.
     """
-    policy_dict = {policy_name: func() for policy_name, func in create_policy_func_dict.items()}
-    proxy = Proxy(group, "trainer", {"policy_manager": 1}, component_name=trainer_id, **proxy_kwargs)
+    policy_dict = {policy_name: func(policy_name) for policy_name, func in create_policy_func_dict.items()}
+    proxy = Proxy(group, "trainer", {"policy_manager": 1}, **proxy_kwargs)
     logger = Logger(proxy.name, dump_folder=log_dir)
 
     for msg in proxy.receive():
@@ -85,7 +83,8 @@ def trainer_node(
         if msg.tag == MsgTag.INIT_POLICY_STATE:
             for name, state in msg.body[MsgKey.POLICY_STATE].items():
                 policy_dict[name].set_state(state)
-                logger.info(f"Trainer {trainer_id} initialized policy {name}")
+                logger.info(f"{proxy.name} initialized policy {name}")
+            proxy.reply(msg, tag=MsgTag.INIT_POLICY_STATE_DONE)
         elif msg.tag == MsgTag.TRAIN:
             t0 = time.time()
             msg_body = {
