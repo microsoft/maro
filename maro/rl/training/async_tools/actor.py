@@ -81,7 +81,7 @@ def actor(
         reply = proxy.send(msg)[0]
         policy_version = reply.body[MsgKey.VERSION]
         agent_wrapper.set_policy_states(reply.body[MsgKey.POLICY_STATE])
-    
+
     # main loop
     for ep in range(1, num_episodes + 1):
         t0 = time.time()
