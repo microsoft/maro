@@ -85,6 +85,9 @@ class CimBusinessEngine(AbsBusinessEngine):
         # As we already unpack the route to the max tick, we can insert all departure events at the beginning.
         self._load_departure_events()
 
+        # Since there is no Arrival Event at the very beginning, init the vessel states maunally.
+        self._init_vessel_plans()
+
         self._stream_base_info()
 
     @property
@@ -161,21 +164,6 @@ class CimBusinessEngine(AbsBusinessEngine):
                     decision_event: CascadeEvent = self._event_buffer.gen_decision_event(tick, decision_payload)
 
                     decision_evt_list.append(decision_event)
-
-                    # Update vessel location so that later logic will get correct value.
-                    vessel.last_loc_idx = vessel.next_loc_idx
-
-            # We should update the future stop list at each tick.
-            past_stops = self._data_cntr.vessel_past_stops[vessel.idx, vessel.last_loc_idx, loc_idx]
-            future_stops = self._data_cntr.vessel_future_stops[vessel.idx, vessel.last_loc_idx, loc_idx]
-
-            vessel.set_stop_list(past_stops, future_stops)
-
-            # Update vessel plans.
-            for plan_port_idx, plan_tick in self._data_cntr.vessel_planned_stops[
-                vessel_idx, vessel.route_idx, vessel.last_loc_idx
-            ]:
-                self._vessel_plans[vessel_idx, plan_port_idx] = plan_tick
 
             if loc_idx > 0 and stop.arrive_tick == tick:
                 self._vessel_plans[vessel_idx, port_idx] = stop.arrive_tick
@@ -344,6 +332,7 @@ class CimBusinessEngine(AbsBusinessEngine):
         register_handler(Events.RETURN_EMPTY, self._on_empty_return)
         register_handler(Events.ORDER, self._on_order_generated)
         register_handler(Events.LOAD_FULL, self._on_full_load)
+        register_handler(Events.VESSEL_ARRIVAL, self._on_arrival)
         register_handler(Events.VESSEL_DEPARTURE, self._on_departure)
         register_handler(Events.DISCHARGE_FULL, self._on_discharge)
         register_handler(MaroEvents.TAKE_ACTION, self._on_action_received)
@@ -357,6 +346,19 @@ class CimBusinessEngine(AbsBusinessEngine):
                 dep_evt = self._event_buffer.gen_atom_event(stop.leave_tick, Events.VESSEL_DEPARTURE, payload)
 
                 self._event_buffer.insert_event(dep_evt)
+
+    def _init_vessel_plans(self):
+        for vessel in self._vessels:
+            # Initialize the past and future stop list.
+            past_stops = self._data_cntr.vessel_past_stops[vessel.idx, vessel.last_loc_idx, vessel.next_loc_idx]
+            future_stops = self._data_cntr.vessel_future_stops[vessel.idx, vessel.last_loc_idx, vessel.next_loc_idx]
+            vessel.set_stop_list(past_stops, future_stops)
+
+            # Update the vessel plans.
+            for plan_port_idx, plan_tick in self._data_cntr.vessel_planned_stops[
+                vessel.idx, vessel.route_idx, vessel.last_loc_idx
+            ]:
+                self._vessel_plans[vessel.idx, plan_port_idx] = plan_tick
 
     def _init_frame(self):
         """Initialize the frame based on data generator."""
@@ -538,11 +540,41 @@ class CimBusinessEngine(AbsBusinessEngine):
             port.empty += early_discharge_number
             vessel.early_discharge = early_discharge_number
 
+    def _on_arrival(self, event: AtomEvent):
+        """Handler for processing event when there is a vessel arriving at the port.
+
+        When the vessel arriving at the port:
+        1. Update the location index.
+        2. Update the future stops information of this vessel.
+        3. Update the vessel plan.
+
+        Args:
+            event (AtomEvent): Arrival event object.
+        """
+
+        arrival_payload: VesselStatePayload = event.payload
+        vessel_idx = arrival_payload.vessel_idx
+        vessel = self._vessels[vessel_idx]
+
+        # Update vessel location so that later logic will get correct value.
+        vessel.last_loc_idx = vessel.next_loc_idx
+
+        # We should update the future stop list once the vessel arrives.
+        future_stops = self._data_cntr.vessel_future_stops[vessel.idx, vessel.last_loc_idx, vessel.next_loc_idx]
+        vessel.set_stop_list(None, future_stops)
+
+        # Update vessel plans.
+        for plan_port_idx, plan_tick in self._data_cntr.vessel_planned_stops[
+            vessel_idx, vessel.route_idx, vessel.last_loc_idx
+        ]:
+            self._vessel_plans[vessel_idx, plan_port_idx] = plan_tick
+
     def _on_departure(self, event: AtomEvent):
         """Handler for processing event when there is a vessel leaving from port.
 
         When the vessel departing from port:
         1. Update location to next stop.
+        2. Update the past stops information of this vessel.
 
         Args:
             event (AtomEvent): Departure event object.
@@ -554,6 +586,10 @@ class CimBusinessEngine(AbsBusinessEngine):
 
         # As we have unfold all the route stop, we can just location ++.
         vessel.next_loc_idx += 1
+
+        # We should update the past stop list once the vessel departs.
+        past_stops = self._data_cntr.vessel_past_stops[vessel.idx, vessel.last_loc_idx, vessel.next_loc_idx]
+        vessel.set_stop_list(past_stops, None)
 
     def _on_discharge(self, event: CascadeEvent):
         """Handler for processing event the there are some full need to be discharged.
