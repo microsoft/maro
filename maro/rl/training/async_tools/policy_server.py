@@ -18,6 +18,22 @@ def policy_server(
     proxy_kwargs: dict = {},
     log_dir: str = getcwd()
 ):
+    """Policy server process.
+
+    The process serves the latest policy states to a set of remote actors and receives simulated experiences from them.
+
+    Args:
+        policy_manager (AbsPolicyManager): An ``AbsPolicyManager`` instance that hosts all policies and updates
+            them using experiences collected by the actors.
+        num_actors (int): Number of remote actors to collect simulation experiences.
+        group (str): Group name for the cluster that includes the server and all actors.
+        max_lag (int): Maximum policy version lag allowed for experiences collected from remote roll-out workers.
+            Experiences collected using policy versions older than (current_version - max_lag) will be discarded.
+            Defaults to 0, in which case only experiences collected using the latest policy version will be returned.
+        proxy_kwargs: Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
+            for details. Defaults to the empty dictionary.
+        log_dir (str): Directory to store logs in. Defaults to the current working directory.
+    """
     peers = {"actor": num_actors}
     proxy = Proxy(group, "policy_server", peers, **proxy_kwargs)
     logger = Logger("POLICY_SERVER", dump_folder=log_dir)
