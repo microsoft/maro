@@ -15,6 +15,9 @@ class Action:
     def __init__(self, vm_id: int):
         self.vm_id = vm_id
 
+    def __repr__(self):
+        return "%s {vm_id: %r}" % (self.__class__.__name__, self.vm_id)
+
 
 class PostponeAction(Action):
     """Postpone action object.
@@ -27,6 +30,9 @@ class PostponeAction(Action):
         super().__init__(vm_id)
         self.postpone_step = postpone_step
 
+    def __repr__(self):
+        return "%s {vm_id: %r, postpone_step: %r}" % (self.__class__.__name__, self.vm_id, self.postpone_step)
+
 
 class AllocateAction(Action):
     """Allocation action object.
@@ -38,6 +44,9 @@ class AllocateAction(Action):
     def __init__(self, vm_id: int, pm_id: int):
         super().__init__(vm_id)
         self.pm_id = pm_id
+
+    def __repr__(self):
+        return "%s {vm_id: %r, pm_id: %r}" % (self.__class__.__name__, self.vm_id, self.pm_id)
 
 
 class VmRequestPayload:
@@ -52,6 +61,10 @@ class VmRequestPayload:
     def __init__(self, vm_info: VirtualMachine, remaining_buffer_time: int):
         self.vm_info = vm_info
         self.remaining_buffer_time = remaining_buffer_time
+
+    def __repr__(self):
+        return "%s {vm_info: %r, remaining_buffer_time: %r}" % \
+            (self.__class__.__name__, self.vm_info, self.remaining_buffer_time)
 
 
 class DecisionPayload:
@@ -90,6 +103,10 @@ class DecisionPayload:
         self.vm_category = vm_category
         self.remaining_buffer_time = remaining_buffer_time
 
+    def __repr__(self):
+        return "%s {frame_index: %r, valid_pms: %r, vm_id: %r, vm_cpu_cores_requirement: %r, vm_memory_requirement: %r, vm_sub_id: %r, vm_category: %r, remaining_buffer_time: %r}" % \
+            (self.__class__.__name__, self.frame_index, self.valid_pms, self.vm_id, self.vm_cpu_cores_requirement, self.vm_memory_requirement, self.vm_sub_id, self.vm_category, self.remaining_buffer_time)
+
 
 class Latency:
     """Accumulative latency.
@@ -103,7 +120,5 @@ class Latency:
         self.due_to_resource: int = 0
 
     def __repr__(self):
-        return self.__str__()
-
-    def __str__(self):
-        return f'Latency(Agent={self.due_to_agent}, Resource={self.due_to_resource})'
+        return "%s {due_to_agent: %r, due_to_resource: %r}" % \
+            (self.__class__.__name__, self.due_to_agent, self.due_to_resource)

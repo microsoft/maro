@@ -2,6 +2,12 @@
 # Licensed under the MIT license.
 
 
+import mmap
+import yaml
+import json
+import numpy as np
+import csv
+
 from collections import defaultdict
 from typing import Callable
 
@@ -12,6 +18,21 @@ from .event_pool import EventPool
 from .event_state import EventState
 from .maro_events import MaroEvents
 from .typings import Event, EventList
+
+
+class EventRecorder:
+    def __init__(self, path: str):
+        self._fp = open(path, "wt+", newline='')
+        self._writer = csv.writer(self._fp)
+        self._writer.writerow(['episode', 'tick', 'event_type', 'payload'])
+
+    def record(self, o: dict):
+        # yaml.dump(o, self._fp, sort_keys=False)
+        self._writer.writerow([o['episode'], o["tick"], o["type"], o["payload"]])
+
+    def __del__(self):
+        if self._fp is not None and not self._fp.closed:
+            self._fp.close()
 
 
 class EventBuffer:
@@ -34,7 +55,7 @@ class EventBuffer:
             empty list.
     """
 
-    def __init__(self, disable_finished_events: bool = False):
+    def __init__(self, disable_finished_events: bool = False, record_events: bool = False):
         # id for events that generate from this instance
         self._pending_events = defaultdict(EventLinkedList)
         self._handlers = defaultdict(list)
@@ -45,6 +66,14 @@ class EventBuffer:
         self._event_pool = EventPool()
 
         self._disable_finished_events = disable_finished_events
+
+        self._record_events = record_events
+
+        self._recorder = None
+        self._recorder_ep = None
+
+        if self._record_events:
+            self._recorder = EventRecorder("events.csv")
 
     def get_finished_events(self) -> EventList:
         """Get all the processed events, call this function before reset method.
@@ -80,6 +109,12 @@ class EventBuffer:
             self._event_pool.recycle(pending_pool)
 
             pending_pool.clear()
+
+        if self._record_events:
+            if self._recorder_ep is not None:
+                self._recorder_ep += 1
+            else:
+                self._recorder_ep = 0
 
     def gen_atom_event(self, tick: int, event_type: object, payload: object = None) -> AtomEvent:
         """Generate an atom event, an atom event is for normal usages,
@@ -200,4 +235,11 @@ class EventBuffer:
                     self._event_pool.recycle(next_events)
                 else:
                     self._finished_events.append(next_events)
+
+                if self._record_events:
+                    if self._recorder_ep is None:
+                        self._recorder_ep = 0
+
+                    self._recorder.record({"episode": self._recorder_ep, "tick": next_events.tick, "type": str(next_events.event_type), "payload": next_events.payload})
+
         return []
