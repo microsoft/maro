@@ -18,13 +18,13 @@ from general import config, log_dir
 
 if __name__ == "__main__":
     actor(
-        lambda: CIMEnvWrapper(Env(**config["env"]["basic"]), **config["env"]["wrapper"]),
-        get_agent_wrapper,
-        config["num_episodes"],
         config["async"]["group"],
+        CIMEnvWrapper(Env(**config["env"]["basic"]), **config["env"]["wrapper"]),
+        get_agent_wrapper(),
+        config["num_episodes"],
         num_steps=config["num_steps"],
         proxy_kwargs={
-            "redis_address": (config["async"]["redis"]["host"], config["async"]["redis"]["port"]),
+            "redis_address": (config["redis"]["host"], config["redis"]["port"]),
             "component_name": os.environ["ACTORID"],
         },
         log_dir=log_dir,

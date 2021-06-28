@@ -3,9 +3,9 @@
 
 import time
 from os import getcwd
-from typing import Callable, List, Union
+from typing import List, Union
 
-from maro.communication import Proxy, SessionMessage
+from maro.communication import Proxy, SessionMessage, SessionType
 from maro.rl.wrappers import AbsEnvWrapper, AgentWrapper
 from maro.utils import Logger
 
@@ -13,12 +13,12 @@ from ..message_enums import MsgKey, MsgTag
 
 
 def actor(
-    create_env_wrapper_func: Callable[[], AbsEnvWrapper],
-    create_agent_wrapper_func: Callable[[], AgentWrapper],
-    num_episodes: int,
     group: str,
+    env_wrapper: AbsEnvWrapper,
+    agent_wrapper: AgentWrapper,
+    num_episodes: int,
     num_steps: int = -1,
-    create_eval_env_wrapper_func: Callable[[], AbsEnvWrapper] = None,
+    eval_env_wrapper: AbsEnvWrapper = None,
     eval_schedule: Union[int, List[int]] = None,
     log_env_summary: bool = True,
     proxy_kwargs: dict = {},
@@ -27,16 +27,14 @@ def actor(
     """Controller for single-threaded learning workflows.
 
     Args:
-        create_env_wrapper_func (Callable): Function to create an environment wrapper for training data collection.
-            The function should take no parameters and return an environment wrapper instance.
-        create_agent_wrapper_func (Callable): Function to create a decision generator for interacting with
-            the environment. The function should take no parameters and return a ``AgentWrapper`` instance.
+        group (str): Group name for the cluster that includes the server and all actors.
+        env_wrapper (AbsEnvWrapper): Environment wrapper for training data collection.
+        agent_wrapper (AgentWrapper): Agent wrapper to interact with the environment wrapper.
         num_episodes (int): Number of training episodes. Each training episode may contain one or more
             collect-update cycles, depending on how the implementation of the roll-out manager.
-        num_steps (int): Number of environment steps to roll out in each call to ``collect``. Defaults to -1, in which
-            case the roll-out will be executed until the end of the environment.
-        create_env_wrapper_func (Callable): Function to create an environment wrapper for evaluation. The function
-            should take no parameters and return an environment wrapper instance. If this is None, the training
+        num_steps (int): Number of environment steps to roll out in each call to ``collect``. Defaults to -1, in
+            which case the roll-out will be executed until the end of the environment.
+        eval_env_wrapper_func (AbsEnvWrapper): Environment wrapper for evaluation. If this is None, the training
             environment wrapper will be used for evaluation. Defaults to None.
         eval_schedule (Union[int, List[int]]): Evaluation schedule. If an integer is provided, the policies will
             will be evaluated every ``eval_schedule`` episodes. If a list is provided, the policies will be evaluated
@@ -54,9 +52,7 @@ def actor(
     if num_steps == 0 or num_steps < -1:
         raise ValueError("num_steps must be a positive integer or -1")
 
-    env_wrapper = create_env_wrapper_func()
-    eval_env_wrapper = env_wrapper if not create_eval_env_wrapper_func else create_eval_env_wrapper_func()
-    agent_wrapper = create_agent_wrapper_func()
+    eval_env_wrapper = env_wrapper if not eval_env_wrapper else eval_env_wrapper
     peers = {"policy_server": 1}
     proxy = Proxy(group, "actor", peers, **proxy_kwargs)
     policy_server_address = proxy.peers["policy_server"][0]
@@ -76,11 +72,10 @@ def actor(
     eval_point_index = 0
 
     # get initial policy states from the policy manager
-    if isinstance(agent_wrapper, AgentWrapper):
-        msg = SessionMessage(MsgTag.GET_INITIAL_POLICY_STATE, proxy.name, policy_server_address)
-        reply = proxy.send(msg)[0]
-        policy_version = reply.body[MsgKey.VERSION]
-        agent_wrapper.set_policy_states(reply.body[MsgKey.POLICY_STATE])
+    msg = SessionMessage(MsgTag.GET_INITIAL_POLICY_STATE, proxy.name, policy_server_address)
+    reply = proxy.send(msg)[0]
+    policy_version = reply.body[MsgKey.VERSION]
+    agent_wrapper.set_policy_states(reply.body[MsgKey.POLICY_STATE])
 
     # main loop
     for ep in range(1, num_episodes + 1):
@@ -145,3 +140,6 @@ def actor(
 
             # performance details
             logger.info(f"Evaluation result: {eval_env_wrapper.summary}")
+
+    # tell the policy server I'm all done.
+    proxy.isend(SessionMessage(MsgTag.DONE, proxy.name, policy_server_address, session_type=SessionType.NOTIFICATION))

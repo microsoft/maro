@@ -93,5 +93,6 @@ def trainer_node(
                     if policy_dict[name].on_experiences(exp)
                 }
             }
+            logger.info(f"updated policies {list(msg_body[MsgKey.POLICY_STATE].keys())}")
             logger.debug(f"total policy update time: {time.time() - t0}")
             proxy.reply(msg, body=msg_body)

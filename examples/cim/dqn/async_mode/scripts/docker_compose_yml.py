@@ -21,7 +21,7 @@ with open(config_path, "r") as fp:
     config = yaml.safe_load(fp)
     num_actors = config["async"]["num_actors"]
     num_trainers = config["policy_manager"]["num_trainers"]
-    redis_host = config["async"]["redis"]["host"]
+    redis_host = config["redis"]["host"]
 
 docker_compose_manifest = {
     "version": "3.9",
@@ -50,14 +50,15 @@ for i in range(num_actors):
     actor_manifest["environment"] = [f"ACTORID={actor_id}"]
     docker_compose_manifest["services"][actor_id] = actor_manifest
 
-for i in range(num_trainers):
-    trainer_id = f"TRAINER.{i}"
-    trainer_manifest = deepcopy(docker_compose_manifest["services"]["policy_server"])
-    del trainer_manifest["build"]
-    trainer_manifest["command"] = "python3 /maro/cim/dqn/async_mode/trainer.py"
-    trainer_manifest["container_name"] = trainer_id
-    trainer_manifest["environment"] = [f"TRAINERID={trainer_id}"]
-    docker_compose_manifest["services"][trainer_id] = trainer_manifest
+if config["policy_manager"]["policy_training_mode"] == "multi-node":
+    for i in range(num_trainers):
+        trainer_id = f"TRAINER.{i}"
+        trainer_manifest = deepcopy(docker_compose_manifest["services"]["policy_server"])
+        del trainer_manifest["build"]
+        trainer_manifest["command"] = "python3 /maro/cim/dqn/async_mode/trainer.py"
+        trainer_manifest["container_name"] = trainer_id
+        trainer_manifest["environment"] = [f"TRAINERID={trainer_id}"]
+        docker_compose_manifest["services"][trainer_id] = trainer_manifest
 
 with open(join(cim_dqn_async_dir, "docker-compose.yml"), "w") as fp:
     yaml.safe_dump(docker_compose_manifest, fp)

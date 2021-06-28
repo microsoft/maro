@@ -14,9 +14,9 @@ from policy_manager import policy_manager
 
 if __name__ == "__main__":
     policy_server(
+        config["async"]["group"],
         policy_manager,
         config["async"]["num_actors"],
-        config["async"]["group"],
-        proxy_kwargs={"redis_address": (config["async"]["redis"]["host"], config["async"]["redis"]["port"])},
+        proxy_kwargs={"redis_address": (config["redis"]["host"], config["redis"]["port"])},
         log_dir=log_dir
     )
