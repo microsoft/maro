@@ -37,7 +37,7 @@ def policy_server(
     peers = {"actor": num_actors}
     proxy = Proxy(group, "policy_server", peers, **proxy_kwargs)
     logger = Logger("POLICY_SERVER", dump_folder=log_dir)
-    
+
     num_active_actors = num_actors
     for msg in proxy.receive():
         if msg.tag == MsgTag.GET_INITIAL_POLICY_STATE:
