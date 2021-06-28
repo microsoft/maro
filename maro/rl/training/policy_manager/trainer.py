@@ -4,9 +4,10 @@
 import time
 from multiprocessing.connection import Connection
 from os import getcwd
-from typing import Callable, Dict
+from typing import Callable, Dict, List
 
 from maro.communication import Proxy
+from maro.rl.policy import AbsCorePolicy
 from maro.utils import Logger
 
 from ..message_enums import MsgKey, MsgTag
@@ -53,24 +54,22 @@ def trainer_process(
 
 
 def trainer_node(
-    create_policy_func_dict: Dict[str, Callable],
     group: str,
+    policies: List[AbsCorePolicy],
     proxy_kwargs: dict = {},
     log_dir: str = getcwd()
 ):
     """Policy trainer process that can be launched on separate computation nodes.
 
     Args:
-        create_policy_func_dict (dict): A dictionary mapping policy names to functions that create them. The policy
-            creation function should have exactly one parameter which is the policy name and return an ``AbsPolicy``
-            instance.
         group (str): Group name for the training cluster, which includes all trainers and a training manager that
             manages them.
+        policies (List[AbsCorePolicy]): List of policies maintained by the trainer.
         proxy_kwargs: Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
             for details. Defaults to the empty dictionary.
         log_dir (str): Directory to store logs in. Defaults to the current working directory.
     """
-    policy_dict = {policy_name: func(policy_name) for policy_name, func in create_policy_func_dict.items()}
+    policy_dict = {policy.name: policy for policy in policies}
     proxy = Proxy(group, "trainer", {"policy_manager": 1}, **proxy_kwargs)
     logger = Logger(proxy.name, dump_folder=log_dir)
 
@@ -93,5 +92,6 @@ def trainer_node(
                     if policy_dict[name].on_experiences(exp)
                 }
             }
+            logger.info(f"updated policies {list(msg_body[MsgKey.POLICY_STATE].keys())}")
             logger.debug(f"total policy update time: {time.time() - t0}")
             proxy.reply(msg, body=msg_body)

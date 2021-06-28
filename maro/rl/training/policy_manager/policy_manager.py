@@ -156,13 +156,10 @@ class MultiNodePolicyManager(AbsPolicyManager):
     """Policy manager that communicates with a set of remote nodes for parallel training.
 
     Args:
-        policies (List[AbsPolicy]): A list of policies managed by the manager.
-        policy2trainer (dict): Mapping from policy names to trainer IDs.
-        create_policy_func_dict (dict): A dictionary mapping policy names to functions that create them. The policy
-            creation function should have exactly one parameter which is the policy name and return an ``AbsPolicy``
-            instance.
         group (str): Group name for the training cluster, which includes all trainers and a training manager that
             manages them.
+        policies (List[AbsPolicy]): A list of policies managed by the manager.
+        policy2trainer (dict): Mapping from policy names to trainer IDs.
         proxy_kwargs: Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
             for details. Defaults to the empty dictionary.
         log_dir (str): Directory to store logs in. A ``Logger`` with tag "LOCAL_ROLLOUT_MANAGER" will be created at
@@ -171,9 +168,9 @@ class MultiNodePolicyManager(AbsPolicyManager):
     """
     def __init__(
         self,
+        group: str,
         policies: List[AbsPolicy],
         policy2trainer: Dict[str, str],
-        group: str,
         proxy_kwargs: dict = {},
         log_dir: str = getcwd()
     ):

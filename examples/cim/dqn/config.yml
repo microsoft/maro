@@ -1,10 +1,10 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-experiment_name: cim_dqn
-mode: multi-process # local, multi-process
+experiment_name: cim-dqn 
+mode: sync
 num_episodes: 10
-# eval_schedule: 2
+eval_schedule: 2
 num_steps: 50
 env:
   basic:
@@ -80,9 +80,10 @@ policies:
       beta_step: 0.001
   update_trigger: 16
   warmup: 1
-sync:
-  rollout_mode: multi-process # single-process, multi-process, multi-node
-  num_rollout_workers: 3
+roll_out:
+  group: cim-dqn-rollout
+  mode: multi-node # single-process, multi-process, multi-node
+  num_workers: 3
   # max_receive_attempts: 2
   # receive_timeout: 100  # in milli-seconds
 policy_manager:
@@ -90,5 +91,5 @@ policy_manager:
   policy_training_mode: multi-process # single-process, multi-process, multi-node
   num_trainers: 2
 redis:
-  host: localhost
+  host: maro-redis
   port: 6379

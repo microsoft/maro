@@ -385,9 +385,9 @@ class MultiNodeRolloutManager(AbsRolloutManager):
     """Controller for a set of remote roll-out workers, possibly distributed on different computation nodes.
 
     Args:
-        num_workers (int): Number of remote roll-out workers.
         group (str): Group name for the roll-out cluster, which includes all roll-out workers and a roll-out manager
             that manages them.
+        num_workers (int): Number of remote roll-out workers.
         num_steps (int): Number of environment steps to roll out in each call to ``collect``. Defaults to -1, in which
             case the roll-out will be executed until the end of the environment.
         max_receive_attempts (int): Maximum number of attempts to receive  results in ``collect``. Defaults to
@@ -409,8 +409,8 @@ class MultiNodeRolloutManager(AbsRolloutManager):
     """
     def __init__(
         self,
-        num_workers: int,
         group: str,
+        num_workers: int,
         num_steps: int = -1,
         max_receive_attempts: int = None,
         receive_timeout: int = None,

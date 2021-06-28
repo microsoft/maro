@@ -104,32 +104,27 @@ def rollout_worker_process(
 
 
 def rollout_worker_node(
-    create_env_wrapper_func: Callable[[], AbsEnvWrapper],
-    create_agent_wrapper_func: Callable[[], AgentWrapper],
     group: str,
-    create_eval_env_wrapper_func: Callable[[], AbsEnvWrapper] = None,
+    env_wrapper: AbsEnvWrapper,
+    agent_wrapper: AgentWrapper,
+    eval_env_wrapper: AbsEnvWrapper = None,
     proxy_kwargs: dict = {},
     log_dir: str = getcwd()
 ):
     """Roll-out worker process that can be launched on separate computation nodes.
 
     Args:
-        create_env_wrapper_func (Callable): Function to create an environment wrapper for roll-out. The function
-            should take no parameters and return an environment wrapper instance.
-        create_agent_wrapper_func (Callable): Function to create a decision generator for interacting with
-            the environment. The function should take no parameters and return a ``AgentWrapper`` instance.
         group (str): Group name for the roll-out cluster, which includes all roll-out workers and a roll-out manager
             that manages them.
-        create_env_wrapper_func (Callable): Function to create an environment wrapper for evaluation. The function
-            should take no parameters and return an environment wrapper instance. If this is None, the training
-            environment wrapper will be used for evaluation.
+        env_wrapper (AbsEnvWrapper): Environment wrapper for training data collection.
+        agent_wrapper (AgentWrapper): Agent wrapper to interact with the environment wrapper.
+        eval_env_wrapper (AbsEnvWrapper): Environment wrapper for evaluation. If this is None, the training
+            environment wrapper will be used for evaluation. Defaults to None.
         proxy_kwargs: Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
             for details. Defaults to the empty dictionary.
         log_dir (str): Directory to store logs in. Defaults to the current working directory.
     """
-    env_wrapper = create_env_wrapper_func()
-    eval_env_wrapper = env_wrapper if not create_eval_env_wrapper_func else create_eval_env_wrapper_func()
-    agent_wrapper = create_agent_wrapper_func()
+    eval_env_wrapper = env_wrapper if not eval_env_wrapper else eval_env_wrapper
 
     proxy = Proxy(group, "rollout_worker", {"rollout_manager": 1}, **proxy_kwargs)
     logger = Logger(proxy.name, dump_folder=log_dir)
