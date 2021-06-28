@@ -65,10 +65,11 @@ def actor(
     elif isinstance(eval_schedule, int):
         num_eval_schedule = num_episodes // eval_schedule
         eval_schedule = [eval_schedule * i for i in range(1, num_eval_schedule + 1)]
+    else:
+        eval_schedule.sort()
+        if not eval_schedule or num_episodes != eval_schedule[-1]:
+            eval_schedule.append(num_episodes)
 
-    eval_schedule.sort()
-    if not eval_schedule or num_episodes != eval_schedule[-1]:
-        eval_schedule.append(num_episodes)
     eval_point_index = 0
 
     # get initial policy states from the policy manager
