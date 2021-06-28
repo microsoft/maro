@@ -350,7 +350,8 @@ class CimBusinessEngine(AbsBusinessEngine):
     def _init_vessel_plans(self):
         for vessel in self._vessels:
             vessel.is_parking = 1 if vessel.last_loc_idx == vessel.next_loc_idx else 0
-            vessel.loc_port_idx = -1
+            stop: Stop = self._data_cntr.vessel_stops[vessel.idx, vessel.last_loc_idx]
+            vessel.loc_port_idx = stop.port_idx
 
             # Initialize the past and future stop list.
             past_stops = self._data_cntr.vessel_past_stops[vessel.idx, vessel.last_loc_idx, vessel.next_loc_idx]
@@ -362,8 +363,6 @@ class CimBusinessEngine(AbsBusinessEngine):
                 vessel.idx, vessel.route_idx, vessel.last_loc_idx
             ]:
                 self._vessel_plans[vessel.idx, plan_port_idx] = plan_tick
-                if plan_tick == 0:
-                    vessel.loc_port_idx = plan_port_idx
 
     def _init_frame(self):
         """Initialize the frame based on data generator."""
