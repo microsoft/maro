@@ -25,7 +25,7 @@ class ConsumerMinMaxPolicy(ConsumerBaselinePolicy):
         inflight_orders = np.array(state['consumer_in_transit_orders'])
         booked_inventory = available_inventory + inflight_orders
 
-        # stop placing orders when the facilty runs out of capacity
+        # stop placing orders when the facility runs out of capacity
         if np.sum(booked_inventory) > state['storage_capacity']:
             return 0
 
