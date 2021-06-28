@@ -63,10 +63,10 @@ class LocalLearner:
 
         # evaluation schedule
         if eval_schedule is None:
-            self.eval_schedule = []
+            self._eval_schedule = []
         elif isinstance(eval_schedule, int):
             num_eval_schedule = num_episodes // eval_schedule
-            self.eval_schedule = [eval_schedule * i for i in range(1, num_eval_schedule + 1)]
+            self._eval_schedule = [eval_schedule * i for i in range(1, num_eval_schedule + 1)]
         else:
             self._eval_schedule = eval_schedule
             self._eval_schedule.sort()
