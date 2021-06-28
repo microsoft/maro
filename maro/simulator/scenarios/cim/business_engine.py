@@ -349,6 +349,9 @@ class CimBusinessEngine(AbsBusinessEngine):
 
     def _init_vessel_plans(self):
         for vessel in self._vessels:
+            vessel.is_parking = 1 if vessel.last_loc_idx == vessel.next_loc_idx else 0
+            vessel.loc_port_idx = -1
+
             # Initialize the past and future stop list.
             past_stops = self._data_cntr.vessel_past_stops[vessel.idx, vessel.last_loc_idx, vessel.next_loc_idx]
             future_stops = self._data_cntr.vessel_future_stops[vessel.idx, vessel.last_loc_idx, vessel.next_loc_idx]
@@ -359,6 +362,8 @@ class CimBusinessEngine(AbsBusinessEngine):
                 vessel.idx, vessel.route_idx, vessel.last_loc_idx
             ]:
                 self._vessel_plans[vessel.idx, plan_port_idx] = plan_tick
+                if plan_tick == 0:
+                    vessel.loc_port_idx = plan_port_idx
 
     def _init_frame(self):
         """Initialize the frame based on data generator."""
@@ -558,6 +563,9 @@ class CimBusinessEngine(AbsBusinessEngine):
 
         # Update vessel location so that later logic will get correct value.
         vessel.last_loc_idx = vessel.next_loc_idx
+        vessel.is_parking = 1
+        stop: Stop = self._data_cntr.vessel_stops[vessel.idx, vessel.next_loc_idx]
+        vessel.loc_port_idx = stop.port_idx
 
         # We should update the future stop list once the vessel arrives.
         future_stops = self._data_cntr.vessel_future_stops[vessel.idx, vessel.last_loc_idx, vessel.next_loc_idx]
@@ -586,6 +594,8 @@ class CimBusinessEngine(AbsBusinessEngine):
 
         # As we have unfold all the route stop, we can just location ++.
         vessel.next_loc_idx += 1
+        vessel.is_parking = 0
+        vessel.loc_port_idx = -1
 
         # We should update the past stop list once the vessel departs.
         past_stops = self._data_cntr.vessel_past_stops[vessel.idx, vessel.last_loc_idx, vessel.next_loc_idx]

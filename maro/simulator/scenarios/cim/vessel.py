@@ -25,6 +25,12 @@ def gen_vessel_definition(stop_nums: tuple):
         # Discharged empty container number for loading laden containers.
         early_discharge = NodeAttribute("i")
 
+        # Is parking or not, 1 means parking, 0 means sailing.
+        is_parking = NodeAttribute("i2")
+
+        # The port index the vessel is parking at.
+        loc_port_idx = NodeAttribute("i")
+
         # Which route current vessel belongs to.
         route_idx = NodeAttribute("i")
 
