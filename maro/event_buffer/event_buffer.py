@@ -21,6 +21,7 @@ from .typings import Event, EventList
 
 
 class EventRecorder:
+    """Recorder used to record events to csv file."""
     def __init__(self, path: str):
         self._fp = open(path, "wt+", newline='')
         self._writer = csv.writer(self._fp)
@@ -53,9 +54,11 @@ class EventBuffer:
             EventBuffer will recycle the finished events for furthure using, not push them
             into finished events list, so it will cause method "get_finished_events" return
             empty list.
+        record_events (bool): If record finished events into csv file.
+        record_path (str): Where to save the csv file.
     """
 
-    def __init__(self, disable_finished_events: bool = False, record_events: bool = False):
+    def __init__(self, disable_finished_events: bool = False, record_events: bool = False, record_path: str = None):
         # id for events that generate from this instance
         self._pending_events = defaultdict(EventLinkedList)
         self._handlers = defaultdict(list)
@@ -73,7 +76,10 @@ class EventBuffer:
         self._recorder_ep = None
 
         if self._record_events:
-            self._recorder = EventRecorder("events.csv")
+            if record_path is None:
+                raise ValueError("Invalid path to save finished events.")
+
+            self._recorder = EventRecorder(record_path)
 
     def get_finished_events(self) -> EventList:
         """Get all the processed events, call this function before reset method.
@@ -87,7 +93,7 @@ class EventBuffer:
         """Get pending event at specified tick.
 
         Args:
-            Tick (int): tick of events to get.
+            tick (int): tick of events to get.
 
         Returns:
             EventList: List of event object.

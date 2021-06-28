@@ -35,6 +35,8 @@ class Env(AbsEnv):
             or search internally by scenario.
         disable_finished_events (bool): Disable finished events list, with this set to True, EventBuffer will
             re-use finished event object, this reduce event object number.
+        record_finished_events (bool): If record finished events into csv file, default is False.
+        record_file_path (str): Where to save the recording file, only work if record_finished_events is True.
         options (dict): Additional parameters passed to business engine.
     """
 
@@ -42,7 +44,9 @@ class Env(AbsEnv):
         self, scenario: str = None, topology: str = None,
         start_tick: int = 0, durations: int = 100, snapshot_resolution: int = 1, max_snapshots: int = None,
         decision_mode: DecisionMode = DecisionMode.Sequential,
-        business_engine_cls: type = None, disable_finished_events: bool = False, record_finished_events: bool = False,
+        business_engine_cls: type = None, disable_finished_events: bool = False,
+        record_finished_events: bool = False,
+        record_file_path: str = None,
         options: dict = {}
     ):
         super().__init__(
@@ -55,7 +59,7 @@ class Env(AbsEnv):
             else business_engine_cls.__name__
         self._business_engine: AbsBusinessEngine = None
 
-        self._event_buffer = EventBuffer(disable_finished_events, record_finished_events)
+        self._event_buffer = EventBuffer(disable_finished_events, record_finished_events, record_file_path)
 
         # decision_events array for dump.
         self._decision_events = []
