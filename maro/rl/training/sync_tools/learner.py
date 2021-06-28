@@ -59,11 +59,11 @@ class Learner:
         elif isinstance(eval_schedule, int):
             num_eval_schedule = num_episodes // eval_schedule
             eval_schedule = [eval_schedule * i for i in range(1, num_eval_schedule + 1)]
-
-        self._eval_schedule = eval_schedule
-        self._eval_schedule.sort()
-        if not self._eval_schedule or num_episodes != self._eval_schedule[-1]:
-            self._eval_schedule.append(num_episodes)
+        else:
+            self._eval_schedule = eval_schedule
+            self._eval_schedule.sort()
+            if not self._eval_schedule or num_episodes != self._eval_schedule[-1]:
+                self._eval_schedule.append(num_episodes)
 
         self.logger.info(f"Policy will be evaluated at the end of episodes {self._eval_schedule}")
         self._eval_point_index = 0
