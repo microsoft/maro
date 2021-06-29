@@ -143,7 +143,7 @@ class TestDumpsLoad(unittest.TestCase):
 
                 self.assertTrue(stop1.index == stop2.index, f"{stop1.index}, {stop2.index}")
                 self.assertTrue(stop1.leave_tick == stop2.leave_tick)
-                self.assertTrue(stop1.arrive_tick == stop2.arrive_tick)
+                self.assertTrue(stop1.arrival_tick == stop2.arrival_tick)
                 self.assertTrue(stop1.port_idx == stop2.port_idx)
                 self.assertTrue(stop1.vessel_idx == stop2.vessel_idx)
 

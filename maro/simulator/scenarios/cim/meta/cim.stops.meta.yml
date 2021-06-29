@@ -1,6 +1,6 @@
 entity:
     timestamp:
-        column: 'arrive_tick'
+        column: 'arrival_tick'
         dtype: 'i8'
     vessel_index:
         column: 'vessel_index'

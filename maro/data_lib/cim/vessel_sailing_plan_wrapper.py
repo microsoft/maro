@@ -32,9 +32,9 @@ class VesselSailingPlanWrapper(VesselFutureStopsPrediction):
 
         last_stop: Stop = self._stops[vessel_idx][next_loc_idx]
         last_port_idx = last_stop.port_idx
-        last_port_arrive_tick = last_stop.arrive_tick
+        last_port_arrival_tick = last_stop.arrival_tick
 
         stops = self._predict_future_stops(
-            vessel_idx, last_port_idx, last_port_arrive_tick, route_length)
+            vessel_idx, last_port_idx, last_port_arrival_tick, route_length)
 
-        return [(stop.port_idx, stop.arrive_tick) for stop in stops]
+        return [(stop.port_idx, stop.arrival_tick) for stop in stops]

@@ -31,4 +31,4 @@ class VesselReachableStopsWrapper:
         stops = self._stops[vessel_idx][
             next_loc_idx + 1: next_loc_idx + 1 + route_length]
 
-        return [(stop.port_idx, stop.arrive_tick) for stop in stops]
+        return [(stop.port_idx, stop.arrival_tick) for stop in stops]

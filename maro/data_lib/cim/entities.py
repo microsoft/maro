@@ -20,7 +20,7 @@ class NoisedItem:
 @dataclass(frozen=True)
 class Stop:
     index: int
-    arrive_tick: int
+    arrival_tick: int
     leave_tick: int
     port_idx: int
     vessel_idx: int

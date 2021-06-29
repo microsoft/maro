@@ -53,10 +53,10 @@ class CimDataDumpUtil:
     def _dump_stops(self, output_folder: str, vessel_idx2name_dict: dict, port_idx2name_dict: dict):
         """
         stops.csv: (stops.metal.yml)
-            vessel_name, vessel_index, port_name, port_index, arrive_tick, departure_tick
+            vessel_name, vessel_index, port_name, port_index, arrival_tick, departure_tick
         """
         stops_file_path = os.path.join(output_folder, "stops.csv")
-        headers = ["vessel_name", "vessel_index", "port_name", "port_index", "arrive_tick", "departure_tick"]
+        headers = ["vessel_name", "vessel_index", "port_name", "port_index", "arrival_tick", "departure_tick"]
 
         def stop_generator():
             for vessel_stops in self._data_collection.vessels_stops:
@@ -66,7 +66,7 @@ class CimDataDumpUtil:
                         stop.vessel_idx,
                         port_idx2name_dict[stop.port_idx],
                         stop.port_idx,
-                        stop.arrive_tick,
+                        stop.arrival_tick,
                         stop.leave_tick
                     ]
 

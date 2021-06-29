@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 
 import csv
+import math
 import os
 import time
 from abc import ABC, abstractmethod
@@ -26,9 +27,9 @@ class CimBaseDataLoader(ABC):
     def load(self, data_folder: str) -> CimBaseDataCollection:
         pass
 
-    def _load_misc(self, dumps_folder: str) -> dict:
+    def _load_misc(self, data_folder: str) -> dict:
         """Load misc items from yaml"""
-        misc_file_path = os.path.join(dumps_folder, "misc.yml")
+        misc_file_path = os.path.join(data_folder, "misc.yml")
         for _ in range(3):
             if not os.path.exists(misc_file_path):
                 time.sleep(10)
@@ -46,19 +47,17 @@ class CimBaseDataLoader(ABC):
             for line in reader:
                 yield line
 
-    def _load_vessels(self, dumps_folder: str) -> (Dict[str, int], List[VesselSetting], List[int]):
+    def _load_vessels(self, data_folder: str) -> (Dict[str, int], List[VesselSetting]):
         vessel_mapping: Dict[str, int] = {}
         vessels: List[VesselSetting] = []
-        periods_without_noise: List[int] = []
 
-        vessels_file_path = os.path.join(dumps_folder, "vessels.csv")
+        vessels_file_path = os.path.join(data_folder, "vessels.csv")
 
         for line in self._read_csv_lines(vessels_file_path):
             vessel_name = line["name"]
             vessel_index = int(line["index"])
 
             vessel_mapping[vessel_name] = vessel_index
-            periods_without_noise.append(int(line["period"]))
 
             vessel = VesselSetting(
                 vessel_index,
@@ -75,13 +74,39 @@ class CimBaseDataLoader(ABC):
 
             vessels.append(vessel)
 
-        return vessel_mapping, vessels, periods_without_noise
+        return vessel_mapping, vessels
 
-    def _load_routes(self, dumps_folder: str) -> (Dict[str, int], List[List[RoutePoint]]):
+    def _load_vessel_period(self, data_folder: str) -> List[int]:
+        vessels_file_path = os.path.join(data_folder, "vessels.csv")
+
+        periods_without_noise: List[int] = []
+        for line in self._read_csv_lines(vessels_file_path):
+            periods_without_noise.append(int(line["period"]))
+
+        return periods_without_noise
+
+    def _calculate_vessel_period(
+        self, vessels: List[VesselSetting], routes: List[List[RoutePoint]], route_mapping: Dict[str, int]
+    ) -> List[int]:
+        expected_periods: List[int] = []
+        for vessel in vessels:
+            route_points = routes[route_mapping[vessel.route_name]]
+
+            expected_period = 0
+            for route_point in route_points:
+                expected_period += (
+                    vessel.parking_duration
+                    + math.ceil(route_point.distance_to_next_port / vessel.sailing_speed)
+                )
+            expected_periods.append(expected_period)
+
+        return expected_periods
+
+    def _load_routes(self, data_folder: str) -> (Dict[str, int], List[List[RoutePoint]]):
         route_mapping: Dict[str, int] = {}
         routes: List[List[RoutePoint]] = []
 
-        route_file_path = os.path.join(dumps_folder, "routes.csv")
+        route_file_path = os.path.join(data_folder, "routes.csv")
 
         for line in self._read_csv_lines(route_file_path):
             route_index = int(line["index"])
@@ -119,7 +144,7 @@ class CimBaseDataLoader(ABC):
 
             stop = Stop(
                 len(vessel_stops),
-                int(line["arrive_tick"]),
+                int(line["arrival_tick"]),
                 int(line["departure_tick"]),
                 int(line["port_index"]),
                 int(line["vessel_index"])
@@ -154,7 +179,7 @@ class CimBaseDataLoader(ABC):
 class CimDumpDataLoader(CimBaseDataLoader):
     """Utility to load data from dump folder"""
 
-    def load(self, dumps_folder: str) -> CimSyntheticDataCollection:
+    def load(self, data_folder: str) -> CimSyntheticDataCollection:
         """Load data from dump folder
 
         NOTE:
@@ -163,19 +188,20 @@ class CimDumpDataLoader(CimBaseDataLoader):
         global_order_proportion.txt, misc.yml, stops.bin
 
         Args:
-            dumps_folders(str): folder that contains dumped files
+            data_folders(str): folder that contains dumped files
 
         Returns:
             CimSyntheticDataCollection: data collection for data container
         """
         # load from files
-        misc_items = self._load_misc(dumps_folder)
-        order_target_proportion = self._load_order_proportions(dumps_folder)
-        port_mapping, ports = self._load_ports(dumps_folder, order_target_proportion)
-        route_mapping, routes = self._load_routes(dumps_folder)
-        vessel_mapping, vessels, periods_without_noise = self._load_vessels(dumps_folder)
-        stops = self._load_stops(dumps_folder, len(vessels))
-        global_order_proportions = self._load_global_order_proportions(dumps_folder)
+        misc_items = self._load_misc(data_folder)
+        order_target_proportion = self._load_order_proportions(data_folder)
+        port_mapping, ports = self._load_ports(data_folder, order_target_proportion)
+        route_mapping, routes = self._load_routes(data_folder)
+        vessel_mapping, vessels = self._load_vessels(data_folder)
+        periods_without_noise = self._load_vessel_period(data_folder)
+        stops = self._load_stops(data_folder, len(vessels))
+        global_order_proportions = self._load_global_order_proportions(data_folder)
 
         # construct data collection
         # NOTE: this is a namedtuple, so out-side cannot change it
@@ -201,18 +227,18 @@ class CimDumpDataLoader(CimBaseDataLoader):
 
         return data_collection
 
-    def _load_global_order_proportions(self, dumps_folder: str) -> np.ndarray:
+    def _load_global_order_proportions(self, data_folder: str) -> np.ndarray:
         """load global order proportions from txt file"""
         global_order_prop_file = os.path.join(
-            dumps_folder, "global_order_proportion.txt")
+            data_folder, "global_order_proportion.txt")
 
         return np.loadtxt(global_order_prop_file)
 
-    def _load_order_proportions(self, dumps_folder: str) -> Dict[int, List[NoisedItem]]:
+    def _load_order_proportions(self, data_folder: str) -> Dict[int, List[NoisedItem]]:
         """Load target order proportions from file"""
         target_proportions: Dict[int, List[NoisedItem]] = defaultdict(list)
 
-        proportion_file_path = os.path.join(dumps_folder, "order_proportion.csv")
+        proportion_file_path = os.path.join(data_folder, "order_proportion.csv")
 
         for line in self._read_csv_lines(proportion_file_path):
             source_port_index = int(line["source_port_index"])
@@ -227,8 +253,8 @@ class CimDumpDataLoader(CimBaseDataLoader):
 
         return target_proportions
 
-    def _load_ports(self, dumps_folder: str, order_target_proportion: dict) -> dict:
-        ports_file_path = os.path.join(dumps_folder, "ports.csv")
+    def _load_ports(self, data_folder: str, order_target_proportion: dict) -> dict:
+        ports_file_path = os.path.join(data_folder, "ports.csv")
 
         port_mapping: Dict[str, int] = {}
         ports: List[SyntheticPortSetting] = []
@@ -292,7 +318,8 @@ class CimRealDataLoader(CimBaseDataLoader):
         misc_items = self._load_misc(data_folder)
         port_mapping, ports = self._load_ports(data_folder)
         route_mapping, routes = self._load_routes(data_folder)
-        vessel_mapping, vessels, periods_without_noise = self._load_vessels(data_folder)
+        vessel_mapping, vessels = self._load_vessels(data_folder)
+        periods_without_noise = self._calculate_vessel_period(vessels, routes, route_mapping)
         stops = self._load_stops(data_folder, len(vessels))
         orders = self._load_orders(data_folder)
 

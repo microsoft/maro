@@ -78,7 +78,7 @@ class MockReachableStopsWrapper:
         route_idx = key[1]
         next_loc_idx = key[2]
 
-        return [(stop.port_idx, stop.arrive_tick) for stop in
+        return [(stop.port_idx, stop.arrival_tick) for stop in
                     self._stops[vessel_idx][next_loc_idx + 1:next_loc_idx + 1 + self._route_length[route_idx]]]
 
 class MockDataContainer:
