@@ -26,7 +26,7 @@ transfer_cost_factors:
 
 The required input data files includes: *misc.yml, orders.csv, ports.csv, routes.csv, stops.csv, vessels.csv*.
 
-The *misc.yml* file includes 4 settings, they are (for example):
+The *misc.yml* file includes 5 settings, they are (for example):
 ```text
 max_tick: 224
 container_volume: 1
@@ -51,6 +51,10 @@ index | name | port_name | distance_to_next_port
 
 index | name | capacity | route_name | start_port_name | sailing_speed | sailing_speed_noise | parking_duration | parking_noise | empty
 ---|---|---|---|---|---|---|---|---|---
+
+* *If the actual arrival_tick and departure_tick are provided, the vessels move according to the stops information (instead of the sailing_speed, sailing_speed_noise, parking_duration, parking_noise fields).*
+
+* *But the sailing_speed and parking_duration will also be used to calculate the expected sailing period for each vessel on its route.*
 
 ### stops.csv
 
