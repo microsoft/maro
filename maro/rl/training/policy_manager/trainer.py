@@ -4,10 +4,9 @@
 import time
 from multiprocessing.connection import Connection
 from os import getcwd
-from typing import Callable, Dict, List
+from typing import Callable, Dict
 
 from maro.communication import Proxy
-from maro.rl.policy import AbsCorePolicy
 from maro.utils import Logger
 
 from ..message_enums import MsgKey, MsgTag
@@ -34,7 +33,7 @@ def trainer_process(
     logger = Logger("TRAINER", dump_folder=log_dir)
     for name, state in initial_policy_states.items():
         policy_dict[name].set_state(state)
-        logger.info(f"Trainer {trainer_id} initialized policy {name}")
+        logger.info(f"{trainer_id} initialized policy {name}")
 
     while True:
         msg = conn.recv()
@@ -55,7 +54,8 @@ def trainer_process(
 
 def trainer_node(
     group: str,
-    policies: List[AbsCorePolicy],
+    trainer_id: int,
+    create_policy_func_dict: Dict[str, Callable],
     proxy_kwargs: dict = {},
     log_dir: str = getcwd()
 ):
@@ -64,13 +64,16 @@ def trainer_node(
     Args:
         group (str): Group name for the training cluster, which includes all trainers and a training manager that
             manages them.
-        policies (List[AbsCorePolicy]): List of policies maintained by the trainer.
+        trainer_id (int): Integer trainer ID.
+        create_policy_func_dict (dict): A dictionary mapping policy names to functions that create them. The policy
+            creation function should have exactly one parameter which is the policy name and return an ``AbsPolicy``
+            instance.
         proxy_kwargs: Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
             for details. Defaults to the empty dictionary.
         log_dir (str): Directory to store logs in. Defaults to the current working directory.
     """
-    policy_dict = {policy.name: policy for policy in policies}
-    proxy = Proxy(group, "trainer", {"policy_manager": 1}, **proxy_kwargs)
+    policy_dict = {}
+    proxy = Proxy(group, "trainer", {"policy_manager": 1}, component_name=f"TRAINER.{trainer_id}", **proxy_kwargs)
     logger = Logger(proxy.name, dump_folder=log_dir)
 
     for msg in proxy.receive():
@@ -81,6 +84,7 @@ def trainer_node(
 
         if msg.tag == MsgTag.INIT_POLICY_STATE:
             for name, state in msg.body[MsgKey.POLICY_STATE].items():
+                policy_dict[name] = create_policy_func_dict[name](name)
                 policy_dict[name].set_state(state)
                 logger.info(f"{proxy.name} initialized policy {name}")
             proxy.reply(msg, tag=MsgTag.INIT_POLICY_STATE_DONE)

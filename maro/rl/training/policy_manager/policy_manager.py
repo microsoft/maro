@@ -14,7 +14,7 @@ from maro.rl.policy import AbsCorePolicy, AbsPolicy
 from maro.utils import Logger
 
 from ..message_enums import MsgKey, MsgTag
-from .trainer import trainer_process
+from .trainer import trainer_process    
 
 
 class AbsPolicyManager(ABC):
@@ -101,16 +101,18 @@ class MultiProcessPolicyManager(AbsPolicyManager):
     def __init__(
         self,
         policies: List[AbsPolicy],
-        policy2trainer: Dict[str, str],
+        num_trainers: int,
         create_policy_func_dict: Dict[str, Callable],
         log_dir: str = getcwd(),
     ):
         super().__init__(policies)
         self._logger = Logger("POLICY_MANAGER", dump_folder=log_dir)
-        self.policy2trainer = policy2trainer
+        self._policy2trainer = {}
         self._trainer2policies = defaultdict(list)
-        for policy_name, trainer_id in policy2trainer.items():
-            self._trainer2policies[trainer_id].append(policy_name)
+        for i, policy in enumerate(policies):
+            trainer_id = i % num_trainers
+            self._policy2trainer[policy.name] = f"TRAINER.{trainer_id}"
+            self._trainer2policies[f"TRAINER.{trainer_id}"].append(policy.name)
 
         self._trainer_processes = []
         self._manager_end = {}
@@ -156,10 +158,11 @@ class MultiNodePolicyManager(AbsPolicyManager):
     """Policy manager that communicates with a set of remote nodes for parallel training.
 
     Args:
+        policies (List[AbsPolicy]): A list of policies managed by the manager.
         group (str): Group name for the training cluster, which includes all trainers and a training manager that
             manages them.
-        policies (List[AbsPolicy]): A list of policies managed by the manager.
-        policy2trainer (dict): Mapping from policy names to trainer IDs.
+        num_trainers (int): Number of trainers. The trainers will be identified by "TRAINER.i", where
+            0 <= i < num_trainers. 
         proxy_kwargs: Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
             for details. Defaults to the empty dictionary.
         log_dir (str): Directory to store logs in. A ``Logger`` with tag "LOCAL_ROLLOUT_MANAGER" will be created at
@@ -168,20 +171,23 @@ class MultiNodePolicyManager(AbsPolicyManager):
     """
     def __init__(
         self,
-        group: str,
         policies: List[AbsPolicy],
-        policy2trainer: Dict[str, str],
+        group: str,
+        num_trainers: int,
         proxy_kwargs: dict = {},
         log_dir: str = getcwd()
     ):
         super().__init__(policies)
         self._logger = Logger("POLICY_MANAGER", dump_folder=log_dir)
-        self.policy2trainer = policy2trainer
-        self._trainer2policies = defaultdict(list)
-        for policy_name, trainer_name in self.policy2trainer.items():
-            self._trainer2policies[trainer_name].append(policy_name)
-        peers = {"trainer": len(set(self.policy2trainer.values()))}
+        peers = {"trainer": [f"TRAINER.{idx}" for idx in range(num_trainers)]}
         self._proxy = Proxy(group, "policy_manager", peers, **proxy_kwargs)
+
+        self._policy2trainer = {}
+        self._trainer2policies = defaultdict(list)
+        for i, policy in enumerate(policies):
+            trainer_id = i % num_trainers
+            self._policy2trainer[policy.name] = f"TRAINER.{trainer_id}"
+            self._trainer2policies[f"TRAINER.{trainer_id}"].append(policy.name)
         for trainer_name, policy_names in self._trainer2policies.items():
             self._proxy.send(
                 SessionMessage(
@@ -193,7 +199,7 @@ class MultiNodePolicyManager(AbsPolicyManager):
     def on_experiences(self, exp_by_policy: Dict[str, ExperienceSet]):
         msg_body_by_dest = defaultdict(dict)
         for policy_name, exp in exp_by_policy.items():
-            trainer_id = self.policy2trainer[policy_name]
+            trainer_id = self._policy2trainer[policy_name]
             if MsgKey.EXPERIENCES not in msg_body_by_dest[trainer_id]:
                 msg_body_by_dest[trainer_id][MsgKey.EXPERIENCES] = {}
             msg_body_by_dest[trainer_id][MsgKey.EXPERIENCES][policy_name] = exp

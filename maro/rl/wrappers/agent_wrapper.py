@@ -1,12 +1,10 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from os import getcwd
 from typing import Dict, List
 
 from maro.rl.exploration import AbsExploration
 from maro.rl.policy import AbsPolicy
-from maro.utils import Logger
 
 
 class AgentWrapper:
@@ -27,8 +25,7 @@ class AgentWrapper:
         policies: List[AbsPolicy],
         agent2policy: Dict[str, str],
         exploration_dict: Dict[str, AbsExploration] = None,
-        agent2exploration: Dict[str, str] = None,
-        log_dir: str = getcwd()
+        agent2exploration: Dict[str, str] = None
     ):
         self.policy_dict = {policy.name: policy for policy in policies}
         self.agent2policy = agent2policy
@@ -39,7 +36,6 @@ class AgentWrapper:
                 agent_id: exploration_dict[exploration_id] for agent_id, exploration_id in agent2exploration.items()
             }
         self.exploring = True  # Flag indicating that exploration is turned on.
-        self._logger = Logger("local_agent_wrapper", dump_folder=log_dir)
 
     def choose_action(self, state: dict) -> dict:
         """Generate an action based on the given state.
@@ -73,9 +69,6 @@ class AgentWrapper:
         """Update policy states."""
         for policy_id, policy_state in policy_state_dict.items():
             self.policy_dict[policy_id].set_state(policy_state)
-
-        if policy_state_dict:
-            self._logger.info(f"updated policies {list(policy_state_dict.keys())}")
 
     def exploration_step(self):
         if self.exploration_dict:

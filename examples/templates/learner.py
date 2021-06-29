@@ -13,7 +13,7 @@ sys.path.insert(0, dqn_path)
 sys.path.insert(0, sync_mode_path)
 from general import config, log_dir
 from policy_manager.policy_manager import get_policy_manager
-from rollout_manager import get_rollout_manager
+from rollout_manager.rollout_manager import get_rollout_manager
 
 
 if __name__ == "__main__":

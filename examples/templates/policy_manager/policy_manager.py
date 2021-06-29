@@ -6,28 +6,30 @@ import sys
 
 from maro.rl import LocalPolicyManager, MultiNodePolicyManager, MultiProcessPolicyManager
 
-dqn_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))  # DQN directory
-sys.path.insert(0, dqn_path)
-from general import AGENT_IDS, NUM_POLICY_TRAINERS, config, log_dir
-from policy import get_independent_policy_for_training
+example_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))  # example directory
+sys.path.insert(0, example_dir)
+from general import config, create_policy_func_index, policy_names_index, log_dir
 
 def get_policy_manager():
-    policies = [get_independent_policy_for_training(i) for i in AGENT_IDS]
-    training_mode = config["policy_manager"]["policy_training_mode"]
+    scenario = config["scenario"]
+    training_mode = config["policy_manager"]["training_mode"]
+    num_trainers = config["policy_manager"]["num_trainers"]
+    policy_names = policy_names_index[scenario]
+    policies = [create_policy_func_index[scenario][name](name) for name in policy_names]
     if training_mode == "single-process":
         return LocalPolicyManager(policies, log_dir=log_dir)
     if training_mode == "multi-process":
         return MultiProcessPolicyManager(
             policies,
-            {id_: f"TRAINER.{id_ % NUM_POLICY_TRAINERS}" for id_ in AGENT_IDS}, # policy-trainer mapping
-            {i: get_independent_policy_for_training for i in AGENT_IDS},
+            num_trainers,
+            create_policy_func_index[scenario],
             log_dir=log_dir
         )
     if training_mode == "multi-node":
         return MultiNodePolicyManager(
-            config["policy_manager"]["group"],
             policies,
-            {id_: f"TRAINER.{id_ % NUM_POLICY_TRAINERS}" for id_ in AGENT_IDS}, # policy-trainer mapping
+            config["policy_manager"]["group"],
+            num_trainers,
             proxy_kwargs={"redis_address": (config["redis"]["host"], config["redis"]["port"])},
             log_dir=log_dir
         )

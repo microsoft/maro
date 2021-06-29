@@ -1,5 +1,0 @@
-services:
-  redis:
-    container_name: localhost
-    image: redis:6
-version: '3.9'

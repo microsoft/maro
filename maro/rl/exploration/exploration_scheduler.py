@@ -104,8 +104,8 @@ class MultiPhaseLinearExplorationScheduler(AbsExplorationScheduler):
         initial_value: float = None
     ):
         # validate splits
-        splits.append([1, initial_value])
-        splits.append([last_ep, final_value])
+        splits.append((1, initial_value))
+        splits.append((last_ep, final_value))
         splits.sort()
         for (ep, _), (ep2, _) in zip(splits, splits[1:]):
             if ep == ep2:
