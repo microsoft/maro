@@ -67,7 +67,7 @@ tick | source_port_index | dest_port_index | quantity
 The CimRealDataLoader will read from the binary files instead of the csv files if there exists. Users can use the ```maro data build``` command to convert csv files to binary files which are smaller and also could be read faster. Examples:
 
 ```sh
-maro data build --meta ~\.maro\data\cim\meta\cim.orders.meta.yml --file ~\.maro\data\cim\test.new_schema\orders.csv --output ~\.maro\data\cim\test.new_schema\orders.bin
+maro data build --meta ~\.maro\data\cim\meta\cim.stops.meta.yml --file ~\.maro\data\cim\test.new_schema\stops.csv --output ~\.maro\data\cim\test.new_schema\stops.bin
 
 maro data build --meta ~\.maro\data\cim\meta\cim.orders.meta.yml --file .~\.maro\data\cim\test.new_schema\orders.csv --output ~\.maro\data\cim\test.new_schema\orders.bin
 ```
