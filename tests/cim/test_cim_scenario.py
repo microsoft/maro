@@ -53,6 +53,8 @@ def mock_cim_init_func(self, event_buffer, topology_path, max_tick):
 
     self._load_departure_events()
 
+    self._init_vessel_plans()
+
 
 class TestCimScenarios(unittest.TestCase):
     def setUp(self):
