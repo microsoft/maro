@@ -25,15 +25,15 @@ class VesselPastStopsWrapper:
 
         vessel_idx = key[0]
         last_loc_idx = key[1]
-        next_loc_idx = key[2]
+        loc_idx = key[2]
 
         # ignore current port if parking
-        start = next_loc_idx + (1 if last_loc_idx == next_loc_idx else 0)
+        last_stop_idx = loc_idx + (0 if last_loc_idx == loc_idx else -1)
 
         # avoid negative index
-        start = max(next_loc_idx - self._stop_number, 0)
+        start = max(last_stop_idx - self._stop_number + 1, 0)
 
-        past_stop_list = self._stops[vessel_idx][start: next_loc_idx]
+        past_stop_list = self._stops[vessel_idx][start: loc_idx]
 
         # padding with None
         for _ in range(self._stop_number - len(past_stop_list)):
