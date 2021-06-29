@@ -50,7 +50,7 @@ index | name | port_name | distance_to_next_port
 ### vessels.csv
 
 index | name | capacity | route_name | start_port_name | sailing_speed | sailing_speed_noise | parking_duration | parking_noise | empty
----|---|---|---|---|---|---|---|---|---|---
+---|---|---|---|---|---|---|---|---|---
 
 ### stops.csv
 
