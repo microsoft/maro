@@ -6,11 +6,11 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 from multiprocessing import Pipe, Process
 from os import getcwd
-from typing import Callable, Dict, List
+from typing import Callable, Dict
 
 from maro.communication import Proxy, SessionMessage, SessionType
 from maro.rl.experience import ExperienceSet
-from maro.rl.policy import AbsCorePolicy, AbsPolicy
+from maro.rl.policy import AbsCorePolicy
 from maro.utils import Logger
 
 from ..message_enums import MsgKey, MsgTag
