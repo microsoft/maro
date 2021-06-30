@@ -1,11 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-experiment_name: cim-dqn 
-scenario: cim
+experiment_name: sc 
+scenario: sc
 mode: sync
 num_episodes: 10
-eval_schedule: 2
+eval_schedule: 5
 num_steps: 50
 rollout:
   group: rollout

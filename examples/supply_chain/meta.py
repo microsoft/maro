@@ -4,10 +4,22 @@
 import os
 import sys
 
+from maro.rl import NullPolicy
+
 cim_path = os.path.dirname(__file__)
 sys.path.insert(0, cim_path)
 from dqn import get_dqn_policy_for_rollout, get_dqn_policy_for_training
-from env_wrapper import CIM_AGENT_IDS
+from or_policies import (
+    get_consumer_baseline_policy, get_consumer_eoq_policy, get_consumer_minmax_policy, get_producer_baseline_policy
+)
 
-SC_POLICY_NAMES = ["consumer", "consumer_store", "producer"]  # use agent IDs as policy names since each agent uses a separate policy
-SC_CREATE_POLICY_FUNC = {name: get_dqn_policy_for_training for name in CIM_POLICY_NAMES}
+SC_CREATE_ROLLOUT_POLICY_FUNC = {
+    "consumer": get_consumer_minmax_policy,
+    "consumerstore": get_dqn_policy_for_rollout, 
+    "producer": get_producer_baseline_policy,
+    "facility": lambda: NullPolicy(),
+    "product": lambda: NullPolicy(),
+    "productstore": lambda: NullPolicy()
+}
+
+SC_CREATE_TRAIN_POLICY_FUNC = {"consumerstore": get_dqn_policy_for_training}

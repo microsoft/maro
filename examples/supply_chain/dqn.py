@@ -6,7 +6,7 @@ import torch
 
 from maro.rl import DQN, DQNConfig, FullyConnectedBlock, OptimOption, DiscreteQNet, ExperienceManager
 
-config = {
+dqn_config = {
     "model": {   # Edit the get_dqn_agent() code in examples\supply_chain\agent.py if you need to customize the model.
         "device": "cpu",
         "network": {
@@ -62,24 +62,24 @@ class QNet(DiscreteQNet):
 
 
 def get_dqn_policy_for_rollout():
-    qnet = QNet(FullyConnectedBlock(**config["model"]["network"]))
+    qnet = QNet(FullyConnectedBlock(**dqn_config["model"]["network"]))
     return DQN(
         qnet,
-        ExperienceManager(**config["experience_manager"]["rollout"]),
-        DQNConfig(**config["algorithm"]),
+        ExperienceManager(**dqn_config["experience_manager"]["rollout"]),
+        DQNConfig(**dqn_config["algorithm"]),
         update_trigger=1e8  # set to a large number to ensure that the roll-out workers don't update policies
     )
 
 
 def get_dqn_policy_for_training():
     qnet = QNet(
-        FullyConnectedBlock(**config["model"]["network"]),
-        optim_option=OptimOption(**config["model"]["optimization"])
+        FullyConnectedBlock(**dqn_config["model"]["network"]),
+        optim_option=OptimOption(**dqn_config["model"]["optimization"])
     )
     return DQN(
         qnet,
-        ExperienceManager(**config["experience_manager"]["training"]),
-        DQNConfig(**config["algorithm"]),
-        update_trigger=config["update_trigger"],
-        warmup=config["warmup"]
+        ExperienceManager(**dqn_config["experience_manager"]["training"]),
+        DQNConfig(**dqn_config["algorithm"]),
+        update_trigger=dqn_config["update_trigger"],
+        warmup=dqn_config["warmup"]
     )

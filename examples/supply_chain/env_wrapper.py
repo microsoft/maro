@@ -9,10 +9,8 @@ import numpy as np
 
 from maro.rl import AbsEnvWrapper
 from maro.simulator import Env
-from maro.simulator.scenarios.supply_chain.actions import ConsumerAction, ManufactureAction
+from maro.simulator.scenarios.supply_chain.actions import ConsumerAction, ManufactureAction 
 
-# from exploration import exploration_dict, agent2exploration
-# from learner import SCLearner
 
 def stock_constraint(f_state):
     return 0 < f_state['inventory_in_stock'] <= (f_state['max_vlt'] + 7) * f_state['sale_mean']
@@ -1156,6 +1154,28 @@ class BalanceSheetCalculator:
         # For vehicles.
 
         return result
+
+
+env_config = {
+    "scenario": "supply_chain",
+    # Currently available topologies are "sample1" or "random". New topologies must consist of a single folder
+    # that contains a single config.yml and should be placed under examples/supply_chain/envs/
+    "topology": "test",
+    "durations": 64  # number of ticks per episode
+}
+
+def get_sc_env_wrapper():
+    env = Env(**env_config)
+    return SCEnvWrapper(
+        env,
+        replay_agent_ids=[
+            f"{info.agent_type}.{info.id}" for info in env.agent_idx_list if info.agent_type == "consumerstore"
+        ]
+    )
+
+tmp_env_wrapper = get_sc_env_wrapper()
+SC_AGENT_IDS = [f"{info.agent_type}.{info.id}" for info in tmp_env_wrapper.agent_idx_list]
+del tmp_env_wrapper
 
 
 if __name__ == "__main__":
