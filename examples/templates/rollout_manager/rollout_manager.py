@@ -8,22 +8,22 @@ from maro.rl import LocalRolloutManager, MultiNodeRolloutManager, MultiProcessRo
 
 example_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))  # example directory
 sys.path.insert(0, example_dir)
-from general import config, get_agent_wrapper_func_index, get_env_wrapper_func_index, log_dir
+from general import config, get_agent_wrapper, get_env_wrapper, log_dir
 
 
 def get_rollout_manager():
     rollout_mode = config["rollout"]["mode"]
     if rollout_mode == "single-process":
         return LocalRolloutManager(
-            get_env_wrapper_func_index[config["scenario"]](),
+            get_env_wrapper(),
             num_steps=config["num_steps"],
             log_dir=log_dir
         )
     if rollout_mode == "multi-process":
         return MultiProcessRolloutManager(
             config["rollout"]["num_workers"],
-            get_env_wrapper_func_index[config["scenario"]],
-            get_agent_wrapper_func_index[config["scenario"]],
+            get_env_wrapper,
+            get_agent_wrapper,
             num_steps=config["num_steps"],
             log_dir=log_dir,
         )

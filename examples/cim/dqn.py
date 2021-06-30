@@ -9,14 +9,15 @@ import torch
 import torch.nn as nn
 from maro.rl import DQN, DQNConfig, DiscreteQNet, ExperienceManager, FullyConnectedBlock, OptimOption
 
-cim_path = os.path.dirname(os.path.dirname(__file__))
-sys.path.insert(0, cim_path)
-from env_wrapper import CIM_STATE_DIM, env_config
+cim_path = os.path.dirname(os.path.realpath(__file__))
+if cim_path not in sys.path:
+    sys.path.insert(0, cim_path)
+from env_wrapper import STATE_DIM, env_config
 
 config = {
     "model": {
         "network": {
-            "input_dim": CIM_STATE_DIM,
+            "input_dim": STATE_DIM,
             "hidden_dims": [256, 128, 64, 32],
             "output_dim": env_config["wrapper"]["num_actions"],
             "activation": "leaky_relu",

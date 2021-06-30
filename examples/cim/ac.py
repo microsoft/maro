@@ -11,13 +11,13 @@ from maro.rl import ActorCritic, ActorCriticConfig, DiscreteACNet, ExperienceMan
 
 cim_path = os.path.dirname(os.path.dirname(__file__))
 sys.path.insert(0, cim_path)
-from env_wrapper import CIM_STATE_DIM, env_config
+from env_wrapper import STATE_DIM, env_config
 
 config = {
     "model": {
         "network": {
             "actor": {
-                "input_dim": CIM_STATE_DIM,
+                "input_dim": STATE_DIM,
                 "hidden_dims": [256, 128, 64],
                 "output_dim": env_config["wrapper"]["num_actions"],
                 "activation": "tanh",
@@ -26,7 +26,7 @@ config = {
                 "head": True
             },
             "critic": {
-                "input_dim": CIM_STATE_DIM,
+                "input_dim": STATE_DIM,
                 "hidden_dims": [256, 128, 64],
                 "output_dim": env_config["wrapper"]["num_actions"],
                 "activation": "leaky_relu",

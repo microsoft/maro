@@ -8,20 +8,19 @@ from maro.rl import LocalPolicyManager, MultiNodePolicyManager, MultiProcessPoli
 
 example_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))  # example directory
 sys.path.insert(0, example_dir)
-from general import config, create_train_policy_func_index, log_dir
+from general import config, create_train_policy_func, log_dir
 
 def get_policy_manager():
-    scenario = config["scenario"]
     training_mode = config["policy_manager"]["training_mode"]
     num_trainers = config["policy_manager"]["num_trainers"]
-    policy_dict = {name: func() for name, func in create_train_policy_func_index[config["scenario"]].items()}
+    policy_dict = {name: func() for name, func in create_train_policy_func.items()}
     if training_mode == "single-process":
         return LocalPolicyManager(policy_dict, log_dir=log_dir)
     if training_mode == "multi-process":
         return MultiProcessPolicyManager(
             policy_dict,
             num_trainers,
-            create_train_policy_func_index[scenario],
+            create_train_policy_func,
             log_dir=log_dir
         )
     if training_mode == "multi-node":

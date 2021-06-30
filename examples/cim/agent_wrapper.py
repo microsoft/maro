@@ -6,10 +6,10 @@ import sys
 
 from maro.rl import AgentWrapper, EpsilonGreedyExploration, MultiPhaseLinearExplorationScheduler
 
-cim_path = os.path.dirname(__file__)
+cim_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, cim_path)
-from env_wrapper import env_config
-from meta import CIM_AGENT_IDS, CIM_CREATE_ROLLOUT_POLICY_FUNC
+from env_wrapper import AGENT_IDS, env_config
+from meta import create_rollout_policy_func
 
 
 exploration_config = {
@@ -19,7 +19,7 @@ exploration_config = {
     "splits": [(5, 0.32)]
 }
 
-def get_cim_agent_wrapper():
+def get_agent_wrapper():
     epsilon_greedy = EpsilonGreedyExploration(num_actions=env_config["wrapper"]["num_actions"])
     epsilon_greedy.register_schedule(
         scheduler_cls=MultiPhaseLinearExplorationScheduler,
@@ -27,8 +27,8 @@ def get_cim_agent_wrapper():
         **exploration_config
     )
     return AgentWrapper(
-        {name: func() for name, func in CIM_CREATE_ROLLOUT_POLICY_FUNC.items()},
-        {name: name for name in CIM_AGENT_IDS},
+        {name: func() for name, func in create_rollout_policy_func.items()},
+        {name: name for name in AGENT_IDS},
         exploration_dict={f"EpsilonGreedy": epsilon_greedy},
-        agent2exploration={name: "EpsilonGreedy" for name in CIM_AGENT_IDS}
+        agent2exploration={name: "EpsilonGreedy" for name in AGENT_IDS}
     )
