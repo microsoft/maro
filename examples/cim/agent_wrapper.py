@@ -19,7 +19,7 @@ exploration_config = {
     "splits": [(5, 0.32)]
 }
 
-def get_agent_wrapper():
+def get_cim_agent_wrapper():
     epsilon_greedy = EpsilonGreedyExploration(num_actions=env_config["wrapper"]["num_actions"])
     epsilon_greedy.register_schedule(
         scheduler_cls=MultiPhaseLinearExplorationScheduler,
