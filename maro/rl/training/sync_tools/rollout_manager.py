@@ -369,7 +369,6 @@ class MultiNodeRolloutManager(AbsRolloutManager):
         peers = {"rollout_worker": num_workers}
         self._proxy = Proxy(group, "rollout_manager", peers, **proxy_kwargs)
         self._workers = self._proxy.peers["rollout_worker"]  # remote roll-out worker ID's
-        print(self._workers)
         self._num_steps = num_steps
 
         if max_receive_attempts is None:

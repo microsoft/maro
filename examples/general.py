@@ -14,11 +14,14 @@ with open(config_path, "r") as config_file:
 
 log_dir = os.path.join(example_dir, "logs", config["experiment_name"])
 
-if config["scenario"] == "cim":
+scenario = config["scenario"]
+if scenario == "cim":
     from cim.env_wrapper import get_env_wrapper
     from cim.agent_wrapper import get_agent_wrapper
     from cim.meta import create_rollout_policy_func, create_train_policy_func
-elif config["scenario"] == "sc":
+elif scenario == "sc":
     from supply_chain.env_wrapper import get_env_wrapper
     from supply_chain.agent_wrapper import get_agent_wrapper
     from supply_chain.meta import create_rollout_policy_func, create_train_policy_func
+else:
+    raise ValueError(f"Unsupported scenario: {scenario}. Supported scenarios: 'cim'")
