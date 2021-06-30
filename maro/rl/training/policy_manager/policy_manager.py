@@ -14,7 +14,6 @@ from maro.rl.policy import AbsCorePolicy, AbsPolicy
 from maro.utils import Logger
 
 from ..message_enums import MsgKey, MsgTag
-
 from .trainer import trainer_process
 
 
