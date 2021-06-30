@@ -14,7 +14,8 @@ from maro.rl.policy import AbsCorePolicy, AbsPolicy
 from maro.utils import Logger
 
 from ..message_enums import MsgKey, MsgTag
-from .trainer import trainer_process    
+
+from .trainer import trainer_process
 
 
 class AbsPolicyManager(ABC):
@@ -162,7 +163,7 @@ class MultiNodePolicyManager(AbsPolicyManager):
         group (str): Group name for the training cluster, which includes all trainers and a training manager that
             manages them.
         num_trainers (int): Number of trainers. The trainers will be identified by "TRAINER.i", where
-            0 <= i < num_trainers. 
+            0 <= i < num_trainers.
         proxy_kwargs: Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
             for details. Defaults to the empty dictionary.
         log_dir (str): Directory to store logs in. A ``Logger`` with tag "LOCAL_ROLLOUT_MANAGER" will be created at
