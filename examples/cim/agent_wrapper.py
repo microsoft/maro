@@ -8,9 +8,8 @@ from maro.rl import AgentWrapper, EpsilonGreedyExploration, MultiPhaseLinearExpl
 
 cim_path = os.path.dirname(__file__)
 sys.path.insert(0, cim_path)
-from dqn import get_dqn_policy_for_rollout
 from env_wrapper import env_config
-from meta import CIM_POLICY_NAMES
+from meta import CIM_AGENT_IDS, CIM_CREATE_ROLLOUT_POLICY_FUNC
 
 
 exploration_config = {
@@ -28,8 +27,8 @@ def get_agent_wrapper():
         **exploration_config
     )
     return AgentWrapper(
-        {name: get_dqn_policy_for_rollout() for name in CIM_POLICY_NAMES},
-        {name: name for name in CIM_POLICY_NAMES},
+        {name: func() for name, func in CIM_CREATE_ROLLOUT_POLICY_FUNC.items()},
+        {name: name for name in CIM_AGENT_IDS},
         exploration_dict={f"EpsilonGreedy": epsilon_greedy},
-        agent2exploration={name: "EpsilonGreedy" for name in CIM_POLICY_NAMES}
+        agent2exploration={name: "EpsilonGreedy" for name in CIM_AGENT_IDS}
     )
