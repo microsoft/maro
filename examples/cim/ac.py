@@ -10,36 +10,25 @@ import torch
 from maro.rl import ActorCritic, ActorCriticConfig, DiscreteACNet, ExperienceManager, FullyConnectedBlock, OptimOption
 
 cim_path = os.path.dirname(os.path.dirname(__file__))
-sys.path.insert(cim_path)
-from env_wrapper import config as env_config
-
-"""
-experience_manager:
-    capacity: 400
-    overwrite_type: "rolling"
-    batch_size: -1
-    replace: False
-  update_trigger:
-    min_new_experiences: 1
-    num_warmup_experiences: 1
-    
-
-"""
-
-
+sys.path.insert(0, cim_path)
+from env_wrapper import CIM_STATE_DIM, env_config
 
 config = {
     "model": {
         "network": {
             "actor": {
+                "input_dim": CIM_STATE_DIM,
                 "hidden_dims": [256, 128, 64],
+                "output_dim": env_config["wrapper"]["num_actions"],
                 "activation": "tanh",
                 "softmax": True,
                 "batch_norm": False,
                 "head": True
             },
             "critic": {
+                "input_dim": CIM_STATE_DIM,
                 "hidden_dims": [256, 128, 64],
+                "output_dim": env_config["wrapper"]["num_actions"],
                 "activation": "leaky_relu",
                 "softmax": False,
                 "batch_norm": True,
@@ -84,13 +73,6 @@ config = {
     "warmup": 1        
 }
 
-config["model"]["network"]["input_dim"] = (
-    (env_config["wrapper"]["look_back"] + 1)
-    * (env_config["wrapper"]["max_ports_downstream"] + 1)
-    * len(env_config["wrapper"]["port_attributes"])
-    + len(env_config["wrapper"]["vessel_attributes"])
-)
-config["model"]["network"]["output_dim"] = env_config["wrapper"]["num_actions"]
 
 def get_ac_policy(name):
     class MyACNET(DiscreteACNet):
@@ -108,8 +90,8 @@ def get_ac_policy(name):
     cfg = config["policy"]
     ac_net = MyACNET(
         component={
-            "actor": FullyConnectedBlock(input_dim=IN_DIM, output_dim=OUT_DIM, **cfg["model"]["network"]["actor"]),
-            "critic": FullyConnectedBlock(input_dim=IN_DIM, output_dim=1, **cfg["model"]["network"]["critic"])
+            "actor": FullyConnectedBlock(**cfg["model"]["network"]["actor"]),
+            "critic": FullyConnectedBlock(**cfg["model"]["network"]["critic"])
         },
         optim_option={
             "actor":  OptimOption(**cfg["model"]["optimization"]["actor"]),

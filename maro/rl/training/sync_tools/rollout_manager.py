@@ -119,7 +119,7 @@ class LocalRolloutManager(AbsRolloutManager):
             self.env.start()  # get initial state
             self.agent.exploration_step()
 
-        # load policies
+        # set policy states
         self.agent.set_policy_states(policy_state_dict)
         # update exploration parameters
         self.agent.explore()

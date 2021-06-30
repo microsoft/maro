@@ -28,8 +28,8 @@ def get_agent_wrapper():
         **exploration_config
     )
     return AgentWrapper(
-        policies=[get_dqn_policy_for_rollout(name) for name in CIM_POLICY_NAMES],
-        agent2policy={name: name for name in CIM_POLICY_NAMES},
+        {name: get_dqn_policy_for_rollout() for name in CIM_POLICY_NAMES},
+        {name: name for name in CIM_POLICY_NAMES},
         exploration_dict={f"EpsilonGreedy": epsilon_greedy},
         agent2exploration={name: "EpsilonGreedy" for name in CIM_POLICY_NAMES}
     )

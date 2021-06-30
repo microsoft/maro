@@ -29,7 +29,7 @@ def trainer_process(
             instance.
         log_dir (str): Directory to store logs in. Defaults to the current working directory.
     """
-    policy_dict = {policy_name: func(policy_name) for policy_name, func in create_policy_func_dict.items()}
+    policy_dict = {policy_name: func() for policy_name, func in create_policy_func_dict.items()}
     logger = Logger("TRAINER", dump_folder=log_dir)
     for name, state in initial_policy_states.items():
         policy_dict[name].set_state(state)
@@ -84,7 +84,7 @@ def trainer_node(
 
         if msg.tag == MsgTag.INIT_POLICY_STATE:
             for name, state in msg.body[MsgKey.POLICY_STATE].items():
-                policy_dict[name] = create_policy_func_dict[name](name)
+                policy_dict[name] = create_policy_func_dict[name]()
                 policy_dict[name].set_state(state)
                 logger.info(f"{proxy.name} initialized policy {name}")
             proxy.reply(msg, tag=MsgTag.INIT_POLICY_STATE_DONE)

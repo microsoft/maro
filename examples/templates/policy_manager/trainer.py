@@ -3,11 +3,12 @@
 
 import os
 import sys
+from os.path import dirname, realpath
 
 from maro.rl import trainer_node
 
-dqn_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))  # DQN async mode directory
-sys.path.insert(0, dqn_path)
+example_path = dirname(dirname(dirname(realpath(__file__))))  # DQN async mode directory
+sys.path.insert(0, example_path)
 from general import config, create_policy_func_index, log_dir
 
 

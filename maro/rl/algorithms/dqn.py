@@ -51,7 +51,6 @@ class DQN(AbsCorePolicy):
     See https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf for details.
 
     Args:
-        name (str): Policy name.
         q_net (DiscreteQNet): Q-value model.
         experience_manager (ExperienceManager): An experience manager for storing and retrieving experiences
             for training.
@@ -62,7 +61,6 @@ class DQN(AbsCorePolicy):
     """
     def __init__(
         self,
-        name: str,
         q_net: DiscreteQNet,
         experience_manager: ExperienceManager,
         config: DQNConfig,
@@ -72,7 +70,7 @@ class DQN(AbsCorePolicy):
         if not isinstance(q_net, DiscreteQNet):
             raise TypeError("model must be an instance of 'DiscreteQNet'")
 
-        super().__init__(name, experience_manager, update_trigger=update_trigger, warmup=warmup)
+        super().__init__(experience_manager, update_trigger=update_trigger, warmup=warmup)
         self.q_net = q_net
         if self.q_net.trainable:
             self.target_q_net = q_net.copy()

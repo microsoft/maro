@@ -60,37 +60,35 @@ config = {
 
 
 class QNet(DiscreteQNet):
-    def __init__(self, component: nn.Module, optim_option: OptimOption=None, device=None):
-        super().__init__(component, optim_option=optim_option, device=device)
+        def __init__(self, component: nn.Module, optim_option: OptimOption=None, device=None):
+            super().__init__(component, optim_option=optim_option, device=device)
 
-    def forward(self, states):
-        states = torch.from_numpy(np.asarray(states)).to(self.device)
-        if len(states.shape) == 1:
-            states = states.unsqueeze(dim=0)
-        return self.component(states)
+        def forward(self, states):
+            states = torch.from_numpy(np.asarray(states)).to(self.device)
+            if len(states.shape) == 1:
+                states = states.unsqueeze(dim=0)
+            return self.component(states)
 
 
-def get_dqn_policy_for_training(name):
+def get_dqn_policy_for_training():
     qnet = QNet(
         FullyConnectedBlock(**config["model"]["network"]),
         optim_option=OptimOption(**config["model"]["optimization"])
     )
     return DQN(
-        name=name,
-        q_net=qnet,
-        experience_manager=ExperienceManager(**config["experience_manager"]["training"]),
-        config=DQNConfig(**config["algorithm"]),
+        qnet,
+        ExperienceManager(**config["experience_manager"]["training"]),
+        DQNConfig(**config["algorithm"]),
         update_trigger=config["update_trigger"],
         warmup=config["warmup"]
     )
 
 
-def get_dqn_policy_for_rollout(name):
+def get_dqn_policy_for_rollout():
     qnet = QNet(FullyConnectedBlock(**config["model"]["network"]))
     return DQN(
-        name=name,
-        q_net=qnet,
-        experience_manager=ExperienceManager(**config["experience_manager"]["rollout"]),
-        config=DQNConfig(**config["algorithm"]),
+        qnet,
+        ExperienceManager(**config["experience_manager"]["rollout"]),
+        DQNConfig(**config["algorithm"]),
         update_trigger=1e8  # set to a large number to ensure that the roll-out workers don't update policies
     )

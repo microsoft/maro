@@ -15,19 +15,19 @@ def get_policy_manager():
     training_mode = config["policy_manager"]["training_mode"]
     num_trainers = config["policy_manager"]["num_trainers"]
     policy_names = policy_names_index[scenario]
-    policies = [create_policy_func_index[scenario][name](name) for name in policy_names]
+    policy_dict = {name: create_policy_func_index[scenario][name]() for name in policy_names}
     if training_mode == "single-process":
-        return LocalPolicyManager(policies, log_dir=log_dir)
+        return LocalPolicyManager(policy_dict, log_dir=log_dir)
     if training_mode == "multi-process":
         return MultiProcessPolicyManager(
-            policies,
+            policy_dict,
             num_trainers,
             create_policy_func_index[scenario],
             log_dir=log_dir
         )
     if training_mode == "multi-node":
         return MultiNodePolicyManager(
-            policies,
+            policy_dict,
             config["policy_manager"]["group"],
             num_trainers,
             proxy_kwargs={"redis_address": (config["redis"]["host"], config["redis"]["port"])},

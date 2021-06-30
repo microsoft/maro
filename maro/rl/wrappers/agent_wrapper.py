@@ -11,7 +11,7 @@ class AgentWrapper:
     """Multi-agent wrapper that interacts with an ``EnvWrapper`` with a unified inferface.
 
     Args:
-        policies (List[AbsPolicy]): A list of policies for inference.
+        policy_dict (Dict[str, AbsPolicy]): Policies for inference.
         agent2policy (Dict[str, str]): Mapping from agent ID's to policy ID's. This is used to direct an agent's
             queries to the correct policy.
         exploration_dict (Dict[str, AbsExploration]): A dictionary of named ``AbsExploration`` instances. Defaults
@@ -22,12 +22,12 @@ class AgentWrapper:
     """
     def __init__(
         self,
-        policies: List[AbsPolicy],
+        policy_dict: Dict[str, AbsPolicy],
         agent2policy: Dict[str, str],
         exploration_dict: Dict[str, AbsExploration] = None,
         agent2exploration: Dict[str, str] = None
     ):
-        self.policy_dict = {policy.name: policy for policy in policies}
+        self.policy_dict = policy_dict
         self.agent2policy = agent2policy
         self.policy = {agent_id: self.policy_dict[policy_id] for agent_id, policy_id in self.agent2policy.items()}
         self.exploration_dict = exploration_dict

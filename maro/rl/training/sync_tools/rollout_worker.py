@@ -42,7 +42,7 @@ def rollout_worker_process(
 
     def collect(msg):
         ep, segment = msg["episode"], msg["segment"]
-        # load policies
+        # set policy states
         agent_wrapper.set_policy_states(msg["policy"])
 
         # update exploration parameters
@@ -137,7 +137,7 @@ def rollout_worker_node(
     def collect(msg):
         ep, segment = msg.body[MsgKey.EPISODE], msg.body[MsgKey.SEGMENT]
 
-        # load policies
+        # set policy states
         agent_wrapper.set_policy_states(msg.body[MsgKey.POLICY_STATE])
 
         # set exploration parameters

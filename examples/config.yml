@@ -15,7 +15,7 @@ rollout:
   # receive_timeout: 100  # in milli-seconds
 policy_manager:
   group: policy-manager
-  training_mode: multi-process # single-process, multi-process, multi-node
+  training_mode: multi-node # single-process, multi-process, multi-node
   num_trainers: 2
 redis:
   host: maro-redis
