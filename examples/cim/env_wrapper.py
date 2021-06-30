@@ -132,11 +132,11 @@ env_config = {
     }
 }
 
-def get_cim_env_wrapper():
+def get_env_wrapper():
     return CIMEnvWrapper(Env(**env_config["basic"]), **env_config["wrapper"]) 
 
 
-tmp_env_wrapper = get_cim_env_wrapper()
-CIM_AGENT_IDS = tmp_env_wrapper.agent_idx_list
-CIM_STATE_DIM = tmp_env_wrapper.state_dim
+tmp_env_wrapper = get_env_wrapper()
+AGENT_IDS = tmp_env_wrapper.agent_idx_list
+STATE_DIM = tmp_env_wrapper.state_dim
 del tmp_env_wrapper

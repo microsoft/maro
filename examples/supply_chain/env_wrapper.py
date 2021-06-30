@@ -1164,17 +1164,19 @@ env_config = {
     "durations": 64  # number of ticks per episode
 }
 
-def get_sc_env_wrapper():
+def get_env_wrapper():
     env = Env(**env_config)
-    return SCEnvWrapper(
-        env,
-        replay_agent_ids=[
-            f"{info.agent_type}.{info.id}" for info in env.agent_idx_list if info.agent_type == "consumerstore"
-        ]
-    )
+    replay_agent_ids = [
+        f"{info.agent_type}.{info.id}" for info in env.agent_idx_list if info.agent_type == "consumerstore"
+    ]
+    return SCEnvWrapper(env, replay_agent_ids=replay_agent_ids)
 
-tmp_env_wrapper = get_sc_env_wrapper()
-SC_AGENT_IDS = [f"{info.agent_type}.{info.id}" for info in tmp_env_wrapper.agent_idx_list]
+
+tmp_env_wrapper = get_env_wrapper()
+AGENT_IDS = [f"{info.agent_type}.{info.id}" for info in tmp_env_wrapper.agent_idx_list]
+STATE_DIM = tmp_env_wrapper.dim
+NUM_ACTIONS = 10
+
 del tmp_env_wrapper
 
 

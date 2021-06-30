@@ -22,7 +22,7 @@ with open(config_path, "r") as fp:
 docker_compose_manifest = {"version": "3.9", "services": {"redis": {"image": "redis:6", "container_name": redis_host}}}
 common_spec = {
     "build": {"context": root_dir, "dockerfile": dockerfile_path},
-    "image": "maro-cim",
+    "image": "maro",
     "volumes": [
         f"{example_dir}:/maro/examples",
         f"{maro_rl_dir}:/maro/maro/rl",

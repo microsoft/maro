@@ -22,6 +22,7 @@ RUN pip install --no-cache-dir numpy==1.19.1
 RUN pip install --no-cache-dir torch==1.6.0
 RUN pip install --no-cache-dir scipy
 RUN pip install --no-cache-dir redis
+RUN pip install --no-cache-dir networkx
 
 COPY maro /maro/maro
 COPY scripts /maro/scripts/

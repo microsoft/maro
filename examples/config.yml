@@ -1,8 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-experiment_name: sc 
-scenario: sc
+experiment_name: cim 
+scenario: cim
 mode: sync
 num_episodes: 10
 eval_schedule: 5

@@ -1,17 +1,26 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import os
+import sys
+
 import numpy as np
 import torch
 
 from maro.rl import DQN, DQNConfig, FullyConnectedBlock, OptimOption, DiscreteQNet, ExperienceManager
 
+sc_path = os.path.dirname(os.path.realpath(__file__))
+if sc_path not in sys.path:
+    sys.path.insert(0, sc_path)
+from env_wrapper import NUM_ACTIONS, STATE_DIM
+
 dqn_config = {
     "model": {   # Edit the get_dqn_agent() code in examples\supply_chain\agent.py if you need to customize the model.
         "device": "cpu",
         "network": {
+            "input_dim": STATE_DIM,
             "hidden_dims": [256, 128, 32],
-            "output_dim": 10,
+            "output_dim": NUM_ACTIONS,
             "activation": "leaky_relu",  # refer to maro/maro/rl/utils/torch_cls_index.py for the mapping of strings to torch activation classes.
             "softmax": True,
             "batch_norm": False,
