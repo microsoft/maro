@@ -87,8 +87,8 @@ setup(
     description="MARO Python Package",
     long_description=readme,
     long_description_content_type="text/x-rst",
-    author="Arthur Jiang",
-    author_email="shujia.jiang@microsoft.com",
+    author="MARO Team",
+    author_email="maro-team@microsoft.com",
     url="https://github.com/microsoft/maro",
     project_urls={
         "Code": "https://github.com/microsoft/maro",
