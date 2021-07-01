@@ -14,6 +14,7 @@ from ..message_enums import MsgKey, MsgTag
 
 def actor(
     group: str,
+    actor_idx: int,
     env_wrapper: AbsEnvWrapper,
     agent_wrapper: AgentWrapper,
     num_episodes: int,
@@ -28,6 +29,7 @@ def actor(
 
     Args:
         group (str): Group name for the cluster that includes the server and all actors.
+        actor_idx (int): Integer actor index. The actor's ID in the cluster will be "ACTOR.{actor_idx}".
         env_wrapper (AbsEnvWrapper): Environment wrapper for training data collection.
         agent_wrapper (AgentWrapper): Agent wrapper to interact with the environment wrapper.
         num_episodes (int): Number of training episodes. Each training episode may contain one or more
@@ -54,7 +56,7 @@ def actor(
 
     eval_env_wrapper = env_wrapper if not eval_env_wrapper else eval_env_wrapper
     peers = {"policy_server": 1}
-    proxy = Proxy(group, "actor", peers, **proxy_kwargs)
+    proxy = Proxy(group, "actor", peers, component_name=f"ACTOR.{actor_idx}", **proxy_kwargs)
     policy_server_address = proxy.peers["policy_server"][0]
     logger = Logger(proxy.name, dump_folder=log_dir)
     policy_version = None

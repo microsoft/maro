@@ -35,8 +35,9 @@ def policy_server(
         log_dir (str): Directory to store logs in. Defaults to the current working directory.
     """
     peers = {"actor": num_actors}
-    proxy = Proxy(group, "policy_server", peers, **proxy_kwargs)
-    logger = Logger("POLICY_SERVER", dump_folder=log_dir)
+    name = "POLICY_SERVER"
+    proxy = Proxy(group, "policy_server", peers, component_name=name, **proxy_kwargs)
+    logger = Logger(name, dump_folder=log_dir)
 
     num_active_actors = num_actors
     for msg in proxy.receive():

@@ -7,12 +7,16 @@ mode: sync
 num_episodes: 10
 eval_schedule: 2
 num_steps: 50
+max_lag: 0
 sync:
   rollout_group: rollout
   rollout_mode: multi-node # single-process, multi-process, multi-node
   num_rollout_workers: 3
   # max_receive_attempts: 2
   # receive_timeout: 100  # in milli-seconds
+async:
+  group: async
+  num_actors: 3
 policy_manager:
   train_group: policy-manager
   train_mode: multi-node # single-process, multi-process, multi-node
