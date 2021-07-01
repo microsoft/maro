@@ -1,18 +1,22 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import os
 import sys
 import yaml
+from os.path import dirname, join, realpath
 
-example_dir = os.path.dirname(os.path.realpath(__file__))
-sys.path.insert(0, example_dir)
+template_dir = dirname(dirname(realpath(__file__))) 
+example_dir = dirname(template_dir)
+if template_dir not in sys.path:
+    sys.path.insert(0, template_dir)
+if example_dir not in sys.path:
+    sys.path.insert(0, example_dir)
 
-config_path = os.path.join(example_dir, "config.yml")
+config_path = join(template_dir, "config.yml")
 with open(config_path, "r") as config_file:
     config = yaml.safe_load(config_file)
 
-log_dir = os.path.join(example_dir, "logs", config["experiment_name"])
+log_dir = join(example_dir, "logs", config["job_name"])
 
 scenario = config["scenario"]
 if scenario == "cim":

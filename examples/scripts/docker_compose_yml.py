@@ -9,9 +9,10 @@ path = realpath(__file__)
 script_dir = dirname(path)
 example_dir = dirname(script_dir)
 root_dir = dirname(example_dir)
+template_dir = join(example_dir, "templates")
 maro_rl_dir = join(root_dir, "maro", "rl")
 maro_comm_dir = join(root_dir, "maro", "communication")
-config_path = join(example_dir, "config.yml")
+config_path = join(template_dir, "config.yml")
 dockerfile_path = join(root_dir, "docker_files", "dev.df")
 
 with open(config_path, "r") as fp:
@@ -31,7 +32,7 @@ common_spec = {
 }
 
 # trainer spec
-if config["policy_manager"]["training_mode"] == "multi-node":
+if config["policy_manager"]["train_mode"] == "multi-node":
     for trainer_id in range(num_trainers):
         str_id = f"trainer.{trainer_id}"
         trainer_spec = deepcopy(common_spec)
@@ -41,22 +42,25 @@ if config["policy_manager"]["training_mode"] == "multi-node":
         trainer_spec["environment"] = [f"TRAINERID={trainer_id}"]
         docker_compose_manifest["services"][str_id] = trainer_spec
 
-# learner_spec
-docker_compose_manifest["services"]["learner"] = {
-    **common_spec, 
-    **{"container_name": "learner", "command": "python3 /maro/examples/templates/learner.py"}
-}
+if config["mode"] == "sync":
+    # learner_spec
+    docker_compose_manifest["services"]["learner"] = {
+        **common_spec, 
+        **{"container_name": "learner", "command": "python3 /maro/examples/templates/sync_mode/learner.py"}
+    }
+    # rollout worker spec
+    if config["sync"]["rollout_mode"] == "multi-node":
+        for worker_id in range(config["sync"]["num_rollout_workers"]):
+            str_id = f"rollout_worker.{worker_id}"
+            worker_spec = deepcopy(common_spec)
+            del worker_spec["build"]
+            worker_spec["command"] = "python3 /maro/examples/templates/sync_mode/rollout_worker.py"
+            worker_spec["container_name"] = str_id
+            worker_spec["environment"] = [f"WORKERID={worker_id}"]
+            docker_compose_manifest["services"][str_id] = worker_spec
+else:
+    raise ValueError("Only sync mode is supported in this version")
 
-# rollout worker spec
-if config["rollout"]["mode"] == "multi-node":
-    for worker_id in range(config["rollout"]["num_workers"]):
-        str_id = f"rollout_worker.{worker_id}"
-        worker_spec = deepcopy(common_spec)
-        del worker_spec["build"]
-        worker_spec["command"] = "python3 /maro/examples/templates/rollout_manager/rollout_worker.py"
-        worker_spec["container_name"] = str_id
-        worker_spec["environment"] = [f"WORKERID={worker_id}"]
-        docker_compose_manifest["services"][str_id] = worker_spec
 
 with open(join(example_dir, "docker-compose.yml"), "w") as fp:
     yaml.safe_dump(docker_compose_manifest, fp)

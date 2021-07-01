@@ -1,21 +1,21 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-experiment_name: cim-dqn 
+job_name: cim-dqn 
 scenario: cim
 mode: sync
 num_episodes: 10
 eval_schedule: 2
 num_steps: 50
-rollout:
-  group: rollout
-  mode: multi-node # single-process, multi-process, multi-node
-  num_workers: 3
+sync:
+  rollout_group: rollout
+  rollout_mode: multi-node # single-process, multi-process, multi-node
+  num_rollout_workers: 3
   # max_receive_attempts: 2
   # receive_timeout: 100  # in milli-seconds
 policy_manager:
-  group: policy-manager
-  training_mode: multi-node # single-process, multi-process, multi-node
+  train_group: policy-manager
+  train_mode: multi-node # single-process, multi-process, multi-node
   num_trainers: 2
 redis:
   host: maro-redis
