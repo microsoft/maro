@@ -35,6 +35,7 @@ def get_rollout_manager():
         return MultiNodeRolloutManager(
             config["sync"]["rollout_group"],
             config["sync"]["num_rollout_workers"],
+            max_lag=config["max_lag"],
             proxy_kwargs={"redis_address": (config["redis"]["host"], config["redis"]["port"])}
         )
 
