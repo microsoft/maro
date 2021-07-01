@@ -57,6 +57,7 @@ class AbsCoreModel(nn.Module):
         else:
             if isinstance(optim_option, dict):
                 self.optimizer = {}
+                self.scheduler = {}
                 for name, opt in optim_option.items():
                     self.optimizer[name] = opt.optim_cls(self._component[name].parameters(), **opt.optim_params)
                     if opt.scheduler_cls:
