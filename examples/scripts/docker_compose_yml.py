@@ -42,11 +42,15 @@ if config["policy_manager"]["train_mode"] == "multi-node":
         trainer_spec["environment"] = [f"TRAINERID={trainer_id}"]
         docker_compose_manifest["services"][str_id] = trainer_spec
 
-if config["mode"] == "sync":
+mode = config["mode"]
+if mode == "sync":
     # learner_spec
     docker_compose_manifest["services"]["learner"] = {
         **common_spec, 
-        **{"container_name": "learner", "command": "python3 /maro/examples/templates/sync_mode/learner.py"}
+        **{
+            "container_name": "learner",
+            "command": "python3 /maro/examples/templates/sync_mode/learner.py"
+        }
     }
     # rollout worker spec
     if config["sync"]["rollout_mode"] == "multi-node":
