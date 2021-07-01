@@ -8,7 +8,7 @@ from typing import List, Union
 from maro.rl.wrappers import AbsEnvWrapper, AgentWrapper
 from maro.utils import Logger
 
-from .early_stopper import AbsEarlyStopper
+from early_stopper import AbsEarlyStopper
 
 
 class LocalLearner:
