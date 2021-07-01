@@ -1,58 +1,66 @@
-Agent
+Algorithms
 ================================================================================
 
-maro.rl.agent.abs\_agent
+maro.rl.algorithms.ac
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.agent.abs_policy
+.. automodule:: maro.rl.algorithms.ac
    :members:
    :undoc-members:
    :show-inheritance:
 
-maro.rl.agent.dqn
+maro.rl.algorithms.dqn
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.agent.dqn
+.. automodule:: maro.rl.algorithms.dqn
    :members:
    :undoc-members:
    :show-inheritance:
 
-maro.rl.agent.ddpg
+maro.rl.algorithms.ddpg
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.agent.ddpg
+.. automodule:: maro.rl.algorithms.ddpg
    :members:
    :undoc-members:
    :show-inheritance:
 
-maro.rl.agent.policy\_optimization
+maro.rl.algorithms.pg
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.agent.policy_optimization
+.. automodule:: maro.rl.agent.pg
    :members:
    :undoc-members:
    :show-inheritance:
 
 
-Agent Manager
+Environment Wrapper
 ================================================================================
 
-maro.rl.agent.abs\_agent\_manager
+maro.rl.env_wrapper.env_wrapper
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.agent.abs_policy_manager
+.. automodule:: maro.rl.env_wrapper.env_wrapper
    :members:
    :undoc-members:
    :show-inheritance:
 
 
-Model
+Experience
 ================================================================================
 
-maro.rl.model.learning\_model
+maro.rl.experience.experience_manager
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.model.torch.learning_model
+.. automodule:: maro.rl.experience.experience_manager
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.rl.experience.sampler
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.rl.experience.sampler
    :members:
    :undoc-members:
    :show-inheritance:
@@ -61,7 +69,7 @@ maro.rl.model.learning\_model
 Exploration
 ================================================================================
 
-maro.rl.exploration.abs\_exploration
+maro.rl.exploration.abs_exploration
 --------------------------------------------------------------------------------
 
 .. automodule:: maro.rl.exploration.abs_exploration
@@ -69,7 +77,7 @@ maro.rl.exploration.abs\_exploration
    :undoc-members:
    :show-inheritance:
 
-maro.rl.exploration.epsilon\_greedy\_exploration
+maro.rl.exploration.epsilon_greedy_exploration
 --------------------------------------------------------------------------------
 
 .. automodule:: maro.rl.exploration.epsilon_greedy_exploration
@@ -77,7 +85,7 @@ maro.rl.exploration.epsilon\_greedy\_exploration
    :undoc-members:
    :show-inheritance:
 
-maro.rl.exploration.noise\_exploration
+maro.rl.exploration.noise_exploration
 --------------------------------------------------------------------------------
 
 .. automodule:: maro.rl.exploration.noise_exploration
@@ -85,114 +93,118 @@ maro.rl.exploration.noise\_exploration
    :undoc-members:
    :show-inheritance:
 
+maro.rl.exploration.exploration_scheduler
+--------------------------------------------------------------------------------
 
-Scheduler
+.. automodule:: maro.rl.exploration.exploration_scheduler
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Model
 ================================================================================
 
-maro.rl.scheduling.scheduler
+maro.rl.model.abs_block
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.scheduling.scheduler
+.. automodule:: maro.rl.model.abs_block
    :members:
    :undoc-members:
    :show-inheritance:
 
-maro.rl.scheduling.simple\_parameter\_scheduler
+maro.rl.model.core_model
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.scheduling.simple_parameter_scheduler
+.. automodule:: maro.rl.model.core_model
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.rl.model.fc_block
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.rl.model.fc_block
    :members:
    :undoc-members:
    :show-inheritance:
 
 
-Shaping
+Policy
 ================================================================================
 
-maro.rl.shaping.abs\_shaper
+maro.rl.policy.policy
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.shaping.abs_shaper
+.. automodule:: maro.rl.policy.policy
    :members:
    :undoc-members:
    :show-inheritance:
 
 
-Storage
+Training
 ================================================================================
 
-maro.rl.experience.abs\_store
+maro.rl.training.agent_wrapper
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.experience.abs_store
+.. automodule:: maro.rl.training.agent_wrapper
    :members:
    :undoc-members:
    :show-inheritance:
 
-maro.rl.experience.simple\_store
+maro.rl.training.early_stopper
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.experience.experience_manager
+.. automodule:: maro.rl.training.early_stopper
    :members:
    :undoc-members:
    :show-inheritance:
 
-
-Actor
-================================================================================
-
-maro.rl.actor.abs\_actor
+maro.rl.training.learner
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.actor.abs_actor
+.. automodule:: maro.rl.training.learner
    :members:
    :undoc-members:
    :show-inheritance:
 
-maro.rl.actor.simple\_actor
+maro.rl.training.local_learner
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.actor.simple_actor
+.. automodule:: maro.rl.training.local_learner
    :members:
    :undoc-members:
    :show-inheritance:
 
-
-Learner
-================================================================================
-
-maro.rl.learner.abs\_learner
+maro.rl.training.trainer
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.learner.abs_learner
+.. automodule:: maro.rl.training.trainer
    :members:
    :undoc-members:
    :show-inheritance:
 
-maro.rl.learner.simple\_learner
+maro.rl.training.rollout_manager
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.learner.simple_learner
+.. automodule:: maro.rl.training.rollout_manager
    :members:
    :undoc-members:
    :show-inheritance:
 
-
-Distributed Topologies
-================================================================================
-
-maro.rl.dist\_topologies.common
+maro.rl.training.rollout_worker
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.dist_topologies.common
+.. automodule:: maro.rl.training.rollout_worker
    :members:
    :undoc-members:
    :show-inheritance:
 
-maro.rl.dist\_topologies.single\_learner\_multi\_actor\_sync\_mode
+maro.rl.training.policy_manager
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.dist_topologies.single_learner_multi_actor_sync_mode
+.. automodule:: maro.rl.training.policy_manager
    :members:
    :undoc-members:
    :show-inheritance:

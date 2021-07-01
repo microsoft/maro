@@ -32,15 +32,12 @@ class VesselFutureStopsPrediction:
 
         vessel_idx = key[0]
         last_loc_idx = key[1]
-        next_loc_idx = key[2]
+        loc_idx = key[2]
 
         # ignore current port if parking
-        start = next_loc_idx + (1 if last_loc_idx == next_loc_idx else 0)
+        last_stop_idx = loc_idx + (0 if last_loc_idx == loc_idx else -1)
 
-        if last_loc_idx != next_loc_idx:
-            start = start - 1
-
-        last_stop = self._stops[vessel_idx][start]
+        last_stop = self._stops[vessel_idx][last_stop_idx]
         last_port_idx = last_stop.port_idx
         last_port_arrive_tick = last_stop.arrive_tick
 
@@ -80,12 +77,13 @@ class VesselFutureStopsPrediction:
             arrive_tick += duration + ceil(distance / speed)
 
             predicted_future_stops.append(
-                Stop(-1,  # predict stop do not have valid index
-                     arrive_tick,
-                     arrive_tick + duration,
-                     port_idx,
-                     vessel_idx
-                     )
+                Stop(
+                    -1,  # predict stop do not have valid index
+                    arrive_tick,
+                    arrive_tick + duration,
+                    port_idx,
+                    vessel_idx
+                )
             )
 
         return predicted_future_stops

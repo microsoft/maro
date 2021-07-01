@@ -188,7 +188,6 @@ class Proxy:
 
         self._join()
 
-
     def _signal_handler(self, signum, frame):
         self._redis_connection.hdel(self._redis_hash_name, self._name)
         self._logger.critical(f"{self._name} received Signal: {signum} at frame: {frame}")

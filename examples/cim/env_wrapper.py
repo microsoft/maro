@@ -4,6 +4,7 @@
 import numpy as np
 
 from maro.rl import AbsEnvWrapper
+from maro.simulator import Env
 from maro.simulator.scenarios.cim.common import Action, ActionType
 
 
@@ -25,6 +26,14 @@ class CIMEnvWrapper(AbsEnvWrapper):
         self.finite_vessel_space = finite_vessel_space
         self.has_early_discharge = has_early_discharge
         self._last_action_tick = None
+        self._state_dim = (
+            (self.look_back + 1) * (self.max_ports_downstream + 1) * len(self.port_attributes)
+            + len(self.vessel_attributes)
+        )
+
+    @property
+    def state_dim(self):
+        return self._state_dim
 
     def get_state(self, tick=None):
         if tick is None:
@@ -97,3 +106,37 @@ class CIMEnvWrapper(AbsEnvWrapper):
             - self.shortage_factor * np.dot(future_shortage.T, decay_list)
         )
         return {agent_id: reward for agent_id, reward in zip(ports, rewards)}
+
+
+env_config = {
+    "basic": {
+        "scenario": "cim",
+        "topology": "toy.4p_ssdd_l0.0",
+        "durations": 560
+    },
+    "wrapper": {
+        "port_attributes": ["empty", "full", "on_shipper", "on_consignee", "booking", "shortage", "fulfillment"],
+        "vessel_attributes": ["empty", "full", "remaining_space"],
+        "num_actions": 21,
+        # Parameters for computing states
+        "look_back": 7,
+        "max_ports_downstream": 2,
+        # Parameters for computing actions
+        "finite_vessel_space": True,
+        "has_early_discharge": True,
+        # Parameters for computing rewards
+        "reward_eval_delay": 99,
+        "fulfillment_factor": 1.0,
+        "shortage_factor": 1.0,
+        "time_decay": 0.97
+    }
+}
+
+def get_env_wrapper():
+    return CIMEnvWrapper(Env(**env_config["basic"]), **env_config["wrapper"]) 
+
+
+tmp_env_wrapper = get_env_wrapper()
+AGENT_IDS = tmp_env_wrapper.agent_idx_list
+STATE_DIM = tmp_env_wrapper.state_dim
+del tmp_env_wrapper

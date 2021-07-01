@@ -57,7 +57,6 @@ class ActorCritic(AbsCorePolicy):
         https://towardsdatascience.com/understanding-actor-critic-methods-931b97b6df3f
 
     Args:
-        name (str): Policy name.
         ac_net (DiscreteACNet): Multi-task model that computes action distributions and state values.
         experience_manager (ExperienceManager): An experience manager for storing and retrieving experiences
             for training.
@@ -69,7 +68,6 @@ class ActorCritic(AbsCorePolicy):
 
     def __init__(
         self,
-        name: str,
         ac_net: DiscreteACNet,
         experience_manager: ExperienceManager,
         config: ActorCriticConfig,
@@ -79,7 +77,7 @@ class ActorCritic(AbsCorePolicy):
         if not isinstance(ac_net, DiscreteACNet):
             raise TypeError("model must be an instance of 'DiscreteACNet'")
 
-        super().__init__(name, experience_manager, update_trigger=update_trigger, warmup=warmup)
+        super().__init__(experience_manager, update_trigger=update_trigger, warmup=warmup)
         self.ac_net = ac_net
         self.config = config
         self.device = self.ac_net.device

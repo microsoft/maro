@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import time
 from abc import ABC, abstractmethod
 
 from maro.rl.experience import ExperienceManager, ExperienceSet
@@ -8,13 +9,8 @@ from maro.rl.experience import ExperienceManager, ExperienceSet
 
 class AbsPolicy(ABC):
     """Abstract policy class."""
-    def __init__(self, name: str):
-        self._name = name
+    def __init__(self):
         super().__init__()
-
-    @property
-    def name(self):
-        return self._name
 
     @abstractmethod
     def choose_action(self, state):
@@ -36,7 +32,6 @@ class AbsCorePolicy(AbsPolicy):
     Reinforcement learning (RL) policies should inherit from this.
 
     Args:
-        name (str): Policy name.
         experience_manager (ExperienceManager): An experience manager for storing and retrieving experiences
             for training.
         update_trigger (int): Minimum number of new experiences required to trigger an ``update`` call. Defaults to 1.
@@ -45,12 +40,11 @@ class AbsCorePolicy(AbsPolicy):
     """
     def __init__(
         self,
-        name: str,
         experience_manager: ExperienceManager,
         update_trigger: int = 1,
         warmup: int = 1
     ):
-        super().__init__(name)
+        super().__init__()
         self.experience_manager = experience_manager
         self.update_trigger = update_trigger
         self.warmup = warmup
@@ -90,13 +84,18 @@ class AbsCorePolicy(AbsPolicy):
         pass
 
     def on_experiences(self, exp: ExperienceSet) -> bool:
+        """
+        Store incoming experiences and update if necessary.
+        """
         self.experience_manager.put(exp)
         self._new_exp_counter += exp.size
         print(
-            f"Policy {self._name}: exp mem size = {self.experience_manager.size}, incoming: {exp.size}, new exp = {self._new_exp_counter}"
+            f"exp mem size = {self.experience_manager.size}, incoming: {exp.size}, new exp = {self._new_exp_counter}"
         )
         if self.experience_manager.size >= self.warmup and self._new_exp_counter >= self.update_trigger:
+            t0 = time.time()
             self.update()
+            print(f"policy update time: {time.time() - t0}")
             self._new_exp_counter = 0
             return True
 

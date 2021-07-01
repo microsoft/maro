@@ -74,13 +74,13 @@ class ExperienceManager:
         batch_size: int = 32,
         replace: bool = True,
         sampler_cls=None,
-        sampler_params: dict = None,
+        **sampler_params
     ):
         super().__init__()
         if overwrite_type not in {"rolling", "random"}:
             raise ValueError(f"overwrite_type must be 'rolling' or 'random', got {overwrite_type}")
         if batch_size <= 0 and batch_size != -1:
-            raise ValueError(f"batch_size must be -1 or a positive integer")
+            raise ValueError("batch_size must be -1 or a positive integer")
         self._capacity = capacity
         self._overwrite_type = overwrite_type
         self._keys = ExperienceSet.__slots__
@@ -141,6 +141,8 @@ class ExperienceManager:
                 self.data[key][idx] = val
 
         self._size = min(self._capacity, num_experiences)
+        if self.sampler:
+            self.sampler.on_put(experience_set, indexes)
 
     def get(self):
         """Retrieve an experience set from the memory.
@@ -149,7 +151,7 @@ class ExperienceManager:
         in the form of an ``ExperienceSet`` and the memory will be cleared. Otherwise, a sample from the
         memory will be returned according to the sampling logic defined by the registered sampler.
         """
-        batch_size = self._size if self.batch_size == -1 else self.batch_size 
+        batch_size = self._size if self.batch_size == -1 else self.batch_size
         if not self.sampler:
             indexes = np.random.choice(self._size, size=batch_size, replace=self.replace)
             return ExperienceSet(*[[self.data[key][idx] for idx in indexes] for key in self._keys])
