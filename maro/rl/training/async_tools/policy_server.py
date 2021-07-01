@@ -64,4 +64,5 @@ def policy_server(
         elif msg.tag == MsgTag.DONE:
             num_active_actors -= 1
             if num_active_actors == 0:
+                proxy.close()
                 return

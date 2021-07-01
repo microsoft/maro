@@ -146,3 +146,4 @@ def actor(
 
     # tell the policy server I'm all done.
     proxy.isend(SessionMessage(MsgTag.DONE, proxy.name, policy_server_address, session_type=SessionType.NOTIFICATION))
+    proxy.close()
