@@ -51,7 +51,6 @@ class AbsEnv(ABC):
         self._topology = topology
         self._start_tick = start_tick
         self._durations = durations
-        self._max_tick = self._start_tick + self._durations 
         self._snapshot_resolution = snapshot_resolution
         self._max_snapshots = max_snapshots
         self._decision_mode = decision_mode
@@ -112,10 +111,6 @@ class AbsEnv(ABC):
         """int: Frame index in snapshot list for current tick, USE this for snapshot querying."""
         pass
 
-    @property
-    def max_tick(self):
-        return self._max_tick
-    
     @property
     @abstractmethod
     def summary(self) -> dict:
