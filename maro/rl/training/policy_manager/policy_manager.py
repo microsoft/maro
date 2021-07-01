@@ -178,9 +178,9 @@ class MultiNodePolicyManager(AbsPolicyManager):
         log_dir: str = getcwd()
     ):
         super().__init__(policy_dict)
-        self._logger = Logger("POLICY_MANAGER", dump_folder=log_dir)
         peers = {"trainer": num_trainers}
-        self._proxy = Proxy(group, "policy_manager", peers, **proxy_kwargs)
+        self._proxy = Proxy(group, "policy_manager", peers, component_name="POLICY_MANAGER", **proxy_kwargs)
+        self._logger = Logger(self._proxy.name, dump_folder=log_dir)
 
         self._policy2trainer = {}
         self._trainer2policies = defaultdict(list)
