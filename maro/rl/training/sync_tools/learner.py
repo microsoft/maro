@@ -7,9 +7,9 @@ from typing import List, Union
 
 from maro.utils import Logger
 
+from ..early_stopper import AbsEarlyStopper
 from ..policy_manager.policy_manager import AbsPolicyManager
-from .early_stopper import AbsEarlyStopper
-from .rollout_manager import AbsRolloutManager
+from rollout_manager import AbsRolloutManager
 
 
 class Learner:

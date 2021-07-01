@@ -1,13 +1,15 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from .early_stopper import AbsEarlyStopper
+from .local_learner import LocalLearner
 from .policy_manager import (
     AbsPolicyManager, LocalPolicyManager, MultiNodePolicyManager, MultiProcessPolicyManager, trainer_node,
     trainer_process
 )
 from .sync_tools import (
-    AbsEarlyStopper, AbsRolloutManager, Learner, LocalLearner, LocalRolloutManager, MultiNodeRolloutManager,
-    MultiProcessRolloutManager, rollout_worker_node, rollout_worker_process
+    AbsRolloutManager, Learner, LocalRolloutManager, MultiNodeRolloutManager, MultiProcessRolloutManager,
+    rollout_worker_node, rollout_worker_process
 )
 
 __all__ = [
