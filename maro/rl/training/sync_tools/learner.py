@@ -96,8 +96,8 @@ class Learner:
             self.policy_manager.exit()
 
     def _train(self, ep: int):
-        collect_time = policy_update_time = 0
-        num_experiences_collected = segment = 0
+        collect_time = policy_update_time = num_experiences_collected = 0
+        segment = 0
         self.rollout_manager.reset()
         while not self.rollout_manager.episode_complete:
             segment += 1
