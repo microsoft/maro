@@ -77,13 +77,13 @@ def start_geo_vis(start: str, experiment_name: str, front_end_port: int, **kwarg
 
         # Start front-end docker container.
         exec_path = os.path.dirname(inspect.getfile(inspect.currentframe()))
-        os.system("docker pull meroychen/geo_front_service")
+        os.system("docker pull maro2020/geo_front_service")
         os.system("docker stop geo-vis")
         os.system("docker rm geo-vis")
         if front_end_port is not None:
-            os.system(f"docker run -d -p {front_end_port}:8080 --name geo-vis meroychen/geo_front_service")
+            os.system(f"docker run -d -p {front_end_port}:8080 --name geo-vis maro2020/geo_front_service")
         else:
-            os.system("docker run -d -p 8080:8080 --name geo-vis meroychen/geo_front_service")
+            os.system("docker run -d -p 8080:8080 --name geo-vis maro2020/geo_front_service")
         back_end_path = f"{exec_path}/back_end/vis_app/app.py"
         os.system(f"python {back_end_path}")
 
