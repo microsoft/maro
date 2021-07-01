@@ -55,15 +55,15 @@ class Learner:
 
         # evaluation schedule
         if eval_schedule is None:
-            eval_schedule = []
+            self._eval_schedule = []
         elif isinstance(eval_schedule, int):
             num_eval_schedule = num_episodes // eval_schedule
-            eval_schedule = [eval_schedule * i for i in range(1, num_eval_schedule + 1)]
-
-        self._eval_schedule = eval_schedule
-        self._eval_schedule.sort()
-        if not self._eval_schedule or num_episodes != self._eval_schedule[-1]:
-            self._eval_schedule.append(num_episodes)
+            self._eval_schedule = [eval_schedule * i for i in range(1, num_eval_schedule + 1)]
+        else:
+            self._eval_schedule = eval_schedule
+            self._eval_schedule.sort()
+            if not self._eval_schedule or num_episodes != self._eval_schedule[-1]:
+                self._eval_schedule.append(num_episodes)
 
         self.logger.info(f"Policy will be evaluated at the end of episodes {self._eval_schedule}")
         self._eval_point_index = 0
@@ -96,8 +96,8 @@ class Learner:
             self.policy_manager.exit()
 
     def _train(self, ep: int):
-        total_policy_update_time = 0
-        num_experiences_collected = segment = 0
+        collect_time = policy_update_time = num_experiences_collected = 0
+        segment = 0
         self.rollout_manager.reset()
         while not self.rollout_manager.episode_complete:
             segment += 1
@@ -105,17 +105,20 @@ class Learner:
             policy_state_dict = self.policy_manager.get_state()
             self.policy_manager.reset_update_status()
             policy_version = self.policy_manager.version
+            tc0 = time.time()
             exp_by_policy = self.rollout_manager.collect(ep, segment, policy_state_dict, policy_version)
-            t0 = time.time()
+            collect_time += time.time() - tc0
+            tu0 = time.time()
             self.policy_manager.on_experiences(exp_by_policy)
-            total_policy_update_time += time.time() - t0
+            policy_update_time += time.time() - tu0
             num_experiences_collected += sum(exp.size for exp in exp_by_policy.values())
 
         # performance details
-        self.logger.debug(
+        self.logger.info(
             f"ep {ep} summary - "
             f"experiences collected: {num_experiences_collected} "
-            f"total policy update time: {total_policy_update_time}"
+            f"experience collection time: {collect_time} "
+            f"policy update time: {policy_update_time}"
         )
 
         self.end_of_episode(ep, **self._end_of_episode_kwargs)

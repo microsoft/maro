@@ -7,12 +7,10 @@ from collections import defaultdict
 from multiprocessing import Pipe, Process
 from os import getcwd
 from random import choices
-from typing import Callable, Dict, List
+from typing import Callable
 
 from maro.communication import Proxy, SessionType
 from maro.rl.experience import ExperienceSet
-from maro.rl.exploration import AbsExploration
-from maro.rl.policy import AbsPolicy
 from maro.rl.wrappers import AbsEnvWrapper, AgentWrapper
 from maro.utils import Logger
 
@@ -62,18 +60,13 @@ class LocalRolloutManager(AbsRolloutManager):
     """Local roll-out controller.
 
     Args:
-        env (AbsEnvWrapper): An ``AbsEnvWrapper`` instance to interact with a set of agents and collect experiences
-            for policy training / update.
-        policies (List[AbsPolicy]): A set of named policies for inference.
-        agent2policy (Dict[str, str]): Mapping from agent ID's to policy ID's. This is used to direct an agent's
-            queries to the correct policy.
-        exploration_dict (Dict[str, AbsExploration]): A set of named exploration schemes. Defaults to None.
-        agent2exploration (Dict[str, str]): Mapping from agent ID's to exploration scheme ID's. This is used to direct
-            an agent's query to the correct exploration scheme. Defaults to None.
+        env_wrapper (AbsEnvWrapper): An ``AbsEnvWrapper`` instance to interact with a set of agents and collect
+            experiences for policy training / update.
+        agent_wrapper (AgentWrapper): Agent wrapper to interact with the environment wrapper.
         num_steps (int): Number of environment steps to roll out in each call to ``collect``. Defaults to -1, in which
             case the roll-out will be executed until the end of the environment.
-        eval_env (AbsEnvWrapper): An ``AbsEnvWrapper`` instance for policy evaluation. If None, ``env`` will be used
-            as the evaluation environment. Defaults to None.
+        eval_env_wrapper (AbsEnvWrapper): An ``AbsEnvWrapper`` instance for policy evaluation. If None, ``env`` will be
+            used as the evaluation environment. Defaults to None.
         log_env_summary (bool): If True, the ``summary`` property of the environment wrapper will be logged at the end
             of each episode. Defaults to True.
         log_dir (str): Directory to store logs in. A ``Logger`` with tag "LOCAL_ROLLOUT_MANAGER" will be created at
@@ -83,13 +76,10 @@ class LocalRolloutManager(AbsRolloutManager):
 
     def __init__(
         self,
-        env: AbsEnvWrapper,
-        policies: List[AbsPolicy],
-        agent2policy: Dict[str, str],
-        exploration_dict: Dict[str, AbsExploration] = None,
-        agent2exploration: Dict[str, str] = None,
+        env_wrapper: AbsEnvWrapper,
+        agent_wrapper: AgentWrapper,
         num_steps: int = -1,
-        eval_env: AbsEnvWrapper = None,
+        eval_env_wrapper: AbsEnvWrapper = None,
         log_env_summary: bool = True,
         log_dir: str = getcwd(),
     ):
@@ -99,30 +89,9 @@ class LocalRolloutManager(AbsRolloutManager):
         super().__init__()
         self._logger = Logger("LOCAL_ROLLOUT_MANAGER", dump_folder=log_dir)
 
-        self.env = env
-        self.eval_env = eval_env if eval_env else self.env
-
-        # mappings between agents and policies
-        self.policy_dict = {policy.name: policy for policy in policies}
-        self._agent2policy = agent2policy
-        self._policy = {
-            agent_id: self.policy_dict[policy_name] for agent_id, policy_name in self._agent2policy.items()
-        }
-        self._agent_groups_by_policy = defaultdict(list)
-        for agent_id, policy_name in agent2policy.items():
-            self._agent_groups_by_policy[policy_name].append(agent_id)
-
-        # mappings between exploration schemes and agents
-        self.exploration_dict = exploration_dict
-        self._agent_groups_by_exploration = defaultdict(list)
-        if exploration_dict:
-            self._agent2exploration = agent2exploration
-            self._exploration = {
-                agent_id: self.exploration_dict[exploration_id]
-                for agent_id, exploration_id in self._agent2exploration.items()
-            }
-            for agent_id, exploration_id in self._agent2exploration.items():
-                self._agent_groups_by_exploration[exploration_id].append(agent_id)
+        self.env = env_wrapper
+        self.eval_env = eval_env_wrapper if eval_env_wrapper else self.env
+        self.agent = agent_wrapper
 
         self._num_steps = num_steps if num_steps > 0 else float("inf")
         self._log_env_summary = log_env_summary
@@ -139,45 +108,26 @@ class LocalRolloutManager(AbsRolloutManager):
         Returns:
             Experiences for policy training.
         """
+        self._logger.info(f"Collecting simulation data (episode {ep}, segment {segment}, policy version {version})")
         t0 = time.time()
         learning_time = 0
         num_experiences_collected = 0
 
-        if self.exploration_dict:
-            exploration_params = {
-                tuple(agent_ids): self.exploration_dict[exploration_id].parameters
-                for exploration_id, agent_ids in self._agent_groups_by_exploration.items()
-            }
-            self._logger.debug(f"Exploration parameters: {exploration_params}")
-
+        # start of new episode
         if self.env.state is None:
-            self._logger.info(f"Collecting data from episode {ep}, segment {segment}")
-            if self.exploration_dict:
-                exploration_params = {
-                    tuple(agent_ids): self.exploration_dict[exploration_id].parameters
-                    for exploration_id, agent_ids in self._agent_groups_by_exploration.items()
-                }
-                self._logger.debug(f"Exploration parameters: {exploration_params}")
-
             self.env.reset()
             self.env.start()  # get initial state
+            self.agent.exploration_step()
 
-        # load policies
-        self._load_policy_states(policy_state_dict)
+        # set policy states
+        self.agent.set_policy_states(policy_state_dict)
+        # update exploration parameters
+        self.agent.explore()
 
         start_step_index = self.env.step_index + 1
         steps_to_go = self._num_steps
         while self.env.state and steps_to_go > 0:
-            if self.exploration_dict:
-                action = {
-                    id_:
-                        self._exploration[id_](self._policy[id_].choose_action(st))
-                        if id_ in self._exploration else self._policy[id_].choose_action(st)
-                    for id_, st in self.env.state.items()
-                }
-            else:
-                action = {id_: self._policy[id_].choose_action(st) for id_, st in self.env.state.items()}
-
+            action = self.agent.choose_action(self.env.state)
             self.env.step(action)
             steps_to_go -= 1
 
@@ -189,10 +139,6 @@ class LocalRolloutManager(AbsRolloutManager):
         # update the exploration parameters if an episode is finished
         if not self.env.state:
             self.episode_complete = True
-            if self.exploration_dict:
-                for exploration in self.exploration_dict.values():
-                    exploration.step()
-
             # performance details
             if self._log_env_summary:
                 self._logger.info(f"ep {ep}: {self.env.summary}")
@@ -218,24 +164,18 @@ class LocalRolloutManager(AbsRolloutManager):
             Environment summary.
         """
         self._logger.info("Evaluating...")
-        self._load_policy_states(policy_state_dict)
+        self.agent.set_policy_states(policy_state_dict)
+        self.agent.exploit()
         self.eval_env.reset()
         self.eval_env.start()  # get initial state
         while self.eval_env.state:
-            action = {id_: self._policy[id_].choose_action(st) for id_, st in self.eval_env.state.items()}
+            action = self.agent.choose_action(self.eval_env.state)
             self.eval_env.step(action)
 
         if self._log_env_summary:
             self._logger.info(f"Evaluation result: {self.eval_env.summary}")
 
         return self.eval_env.summary
-
-    def _load_policy_states(self, policy_state_dict: dict):
-        for policy_name, policy_state in policy_state_dict.items():
-            self.policy_dict[policy_name].set_state(policy_state)
-
-        if policy_state_dict:
-            self._logger.info(f"updated policies {list(policy_state_dict.keys())}")
 
 
 class MultiProcessRolloutManager(AbsRolloutManager):
@@ -385,9 +325,9 @@ class MultiNodeRolloutManager(AbsRolloutManager):
     """Controller for a set of remote roll-out workers, possibly distributed on different computation nodes.
 
     Args:
-        num_workers (int): Number of remote roll-out workers.
         group (str): Group name for the roll-out cluster, which includes all roll-out workers and a roll-out manager
             that manages them.
+        num_workers (int): Number of remote roll-out workers.
         num_steps (int): Number of environment steps to roll out in each call to ``collect``. Defaults to -1, in which
             case the roll-out will be executed until the end of the environment.
         max_receive_attempts (int): Maximum number of attempts to receive  results in ``collect``. Defaults to
@@ -409,8 +349,8 @@ class MultiNodeRolloutManager(AbsRolloutManager):
     """
     def __init__(
         self,
-        num_workers: int,
         group: str,
+        num_workers: int,
         num_steps: int = -1,
         max_receive_attempts: int = None,
         receive_timeout: int = None,
@@ -429,7 +369,6 @@ class MultiNodeRolloutManager(AbsRolloutManager):
         peers = {"rollout_worker": num_workers}
         self._proxy = Proxy(group, "rollout_manager", peers, **proxy_kwargs)
         self._workers = self._proxy.peers["rollout_worker"]  # remote roll-out worker ID's
-
         self._num_steps = num_steps
 
         if max_receive_attempts is None:
@@ -460,9 +399,6 @@ class MultiNodeRolloutManager(AbsRolloutManager):
         Returns:
             Experiences for policy training.
         """
-        if self._log_env_summary:
-            self._logger.info(f"EPISODE-{ep}, SEGMENT-{segment}: ")
-
         msg_body = {
             MsgKey.EPISODE: ep,
             MsgKey.SEGMENT: segment,

@@ -42,7 +42,7 @@ def rollout_worker_process(
 
     def collect(msg):
         ep, segment = msg["episode"], msg["segment"]
-        # load policies
+        # set policy states
         agent_wrapper.set_policy_states(msg["policy"])
 
         # update exploration parameters
@@ -82,11 +82,10 @@ def rollout_worker_process(
 
     def evaluate(msg):
         logger.info("Evaluating...")
+        agent_wrapper.set_policy_states(msg["policy"])
         agent_wrapper.exploit()
         eval_env_wrapper.reset()
         eval_env_wrapper.start()  # get initial state
-        if hasattr(agent_wrapper, "update"):
-            agent_wrapper.set_policy_states(msg["policy"])
         while eval_env_wrapper.state:
             action = agent_wrapper.choose_action(eval_env_wrapper.state)
             eval_env_wrapper.step(action)
@@ -104,42 +103,42 @@ def rollout_worker_process(
 
 
 def rollout_worker_node(
-    create_env_wrapper_func: Callable[[], AbsEnvWrapper],
-    create_agent_wrapper_func: Callable[[], AgentWrapper],
     group: str,
-    create_eval_env_wrapper_func: Callable[[], AbsEnvWrapper] = None,
+    worker_id: int,
+    env_wrapper: AbsEnvWrapper,
+    agent_wrapper: AgentWrapper,
+    eval_env_wrapper: AbsEnvWrapper = None,
     proxy_kwargs: dict = {},
     log_dir: str = getcwd()
 ):
     """Roll-out worker process that can be launched on separate computation nodes.
 
     Args:
-        create_env_wrapper_func (Callable): Function to create an environment wrapper for roll-out. The function
-            should take no parameters and return an environment wrapper instance.
-        create_agent_wrapper_func (Callable): Function to create a decision generator for interacting with
-            the environment. The function should take no parameters and return a ``AgentWrapper`` instance.
         group (str): Group name for the roll-out cluster, which includes all roll-out workers and a roll-out manager
             that manages them.
-        create_env_wrapper_func (Callable): Function to create an environment wrapper for evaluation. The function
-            should take no parameters and return an environment wrapper instance. If this is None, the training
-            environment wrapper will be used for evaluation.
+        worker_idx (int): Worker index. The worker's ID in the cluster will be "ROLLOUT_WORKER.{worker_idx}".
+            This is used for bookkeeping by the parent manager.
+        env_wrapper (AbsEnvWrapper): Environment wrapper for training data collection.
+        agent_wrapper (AgentWrapper): Agent wrapper to interact with the environment wrapper.
+        eval_env_wrapper (AbsEnvWrapper): Environment wrapper for evaluation. If this is None, the training
+            environment wrapper will be used for evaluation. Defaults to None.
         proxy_kwargs: Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
             for details. Defaults to the empty dictionary.
         log_dir (str): Directory to store logs in. Defaults to the current working directory.
     """
-    env_wrapper = create_env_wrapper_func()
-    eval_env_wrapper = env_wrapper if not create_eval_env_wrapper_func else create_eval_env_wrapper_func()
-    agent_wrapper = create_agent_wrapper_func()
+    eval_env_wrapper = env_wrapper if not eval_env_wrapper else eval_env_wrapper
 
-    proxy = Proxy(group, "rollout_worker", {"rollout_manager": 1}, **proxy_kwargs)
+    proxy = Proxy(
+        group, "rollout_worker", {"rollout_manager": 1},
+        component_name=f"ROLLOUT_WORKER.{int(worker_id)}", **proxy_kwargs
+    )
     logger = Logger(proxy.name, dump_folder=log_dir)
 
     def collect(msg):
         ep, segment = msg.body[MsgKey.EPISODE], msg.body[MsgKey.SEGMENT]
 
-        # load policies
-        if msg.body[MsgKey.POLICY_STATE]:
-            agent_wrapper.set_policy_states(msg.body[MsgKey.POLICY_STATE])
+        # set policy states
+        agent_wrapper.set_policy_states(msg.body[MsgKey.POLICY_STATE])
 
         # set exploration parameters
         agent_wrapper.explore()
@@ -180,11 +179,10 @@ def rollout_worker_node(
 
     def evaluate(msg):
         logger.info("Evaluating...")
+        agent_wrapper.set_policy_states(msg.body[MsgKey.POLICY_STATE])
+        agent_wrapper.exploit()
         eval_env_wrapper.reset()
         eval_env_wrapper.start()  # get initial state
-        agent_wrapper.exploit()
-        if hasattr(agent_wrapper, "update"):
-            agent_wrapper.set_policy_states(msg.body[MsgKey.POLICY_STATE])
         while eval_env_wrapper.state:
             action = agent_wrapper.choose_action(eval_env_wrapper.state)
             eval_env_wrapper.step(action)

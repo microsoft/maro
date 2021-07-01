@@ -53,7 +53,7 @@ class LocalLearner:
         if num_steps == 0 or num_steps < -1:
             raise ValueError("num_steps must be a positive integer or -1")
 
-        self._logger = Logger("LOCAL_LEARNER", dump_folder=log_dir)
+        self.logger = Logger("LOCAL_LEARNER", dump_folder=log_dir)
         self.env = env_wrapper
         self.eval_env = eval_env if eval_env else self.env
         self.agent = agent_wrapper
@@ -63,15 +63,17 @@ class LocalLearner:
 
         # evaluation schedule
         if eval_schedule is None:
-            eval_schedule = []
+            self._eval_schedule = []
         elif isinstance(eval_schedule, int):
             num_eval_schedule = num_episodes // eval_schedule
-            eval_schedule = [eval_schedule * i for i in range(1, num_eval_schedule + 1)]
+            self._eval_schedule = [eval_schedule * i for i in range(1, num_eval_schedule + 1)]
+        else:
+            self._eval_schedule = eval_schedule
+            self._eval_schedule.sort()
+            if not self._eval_schedule or num_episodes != self._eval_schedule[-1]:
+                self._eval_schedule.append(num_episodes)
 
-        self._eval_schedule = eval_schedule
-        self._eval_schedule.sort()
-        if not self._eval_schedule or num_episodes != self._eval_schedule[-1]:
-            self._eval_schedule.append(num_episodes)
+        self.logger.info(f"Policy will be evaluated at the end of episodes {self._eval_schedule}")
         self._eval_point_index = 0
 
         self.early_stopper = early_stopper
@@ -110,9 +112,9 @@ class LocalLearner:
 
         # performance details
         if self._log_env_summary:
-            self._logger.info(f"ep {ep}: {self.env.summary}")
+            self.logger.info(f"ep {ep}: {self.env.summary}")
 
-        self._logger.info(
+        self.logger.info(
             f"ep {ep} summary - "
             f"running time: {time.time() - t0} "
             f"env steps: {self.env.step_index} "
@@ -121,7 +123,7 @@ class LocalLearner:
 
     def _evaluate(self):
         """Policy evaluation."""
-        self._logger.info("Evaluating...")
+        self.logger.info("Evaluating...")
         self.agent.exploit()
         self.eval_env.reset()
         self.eval_env.start()  # get initial state
@@ -129,7 +131,7 @@ class LocalLearner:
             self.eval_env.step(self.agent.choose_action(self.eval_env.state))
 
         # performance details
-        self._logger.info(f"Evaluation result: {self.eval_env.summary}")
+        self.logger.info(f"Evaluation result: {self.eval_env.summary}")
 
     def _collect(self, ep, segment):
         start_step_index = self.env.step_index + 1
@@ -138,7 +140,7 @@ class LocalLearner:
             self.env.step(self.agent.choose_action(self.env.state))
             steps_to_go -= 1
 
-        self._logger.info(
+        self.logger.info(
             f"Roll-out finished for ep {ep}, segment {segment}"
             f"(steps {start_step_index} - {self.env.step_index})"
         )

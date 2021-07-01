@@ -30,7 +30,6 @@ class PolicyGradient(AbsCorePolicy):
     Reference: https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch.
 
     Args:
-        name (str): Policy name.
         policy_net (DiscretePolicyNet): Multi-task model that computes action distributions and state values.
             It may or may not have a shared bottom stack.
         experience_manager (ExperienceManager): An experience manager for storing and retrieving experiences
@@ -42,7 +41,6 @@ class PolicyGradient(AbsCorePolicy):
     """
     def __init__(
         self,
-        name: str,
         policy_net: DiscretePolicyNet,
         experience_manager: ExperienceManager,
         config: PolicyGradientConfig,
@@ -51,7 +49,7 @@ class PolicyGradient(AbsCorePolicy):
     ):
         if not isinstance(policy_net, DiscretePolicyNet):
             raise TypeError("model must be an instance of 'DiscretePolicyNet'")
-        super().__init__(name, experience_manager, update_trigger=update_trigger, warmup=warmup)
+        super().__init__(experience_manager, update_trigger=update_trigger, warmup=warmup)
         self.policy_net = policy_net
         self.config = config
         self.device = self.policy_net.device
