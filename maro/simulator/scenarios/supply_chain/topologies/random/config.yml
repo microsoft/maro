@@ -4,11 +4,11 @@ facility_definitions:
       products:
         class: StoreProductUnit
         config:
-          agent_type: product
+          agent_type: productstore
           consumer:
             class: ConsumerUnit
-            config:
-              agent_type: consumer
+            config: 
+              agent_type: consumerstore
           seller:
             class: SellerUnit
             config:
@@ -32,7 +32,7 @@ facility_definitions:
             config:
               agent_type: consumer
           manufacture:
-            class: ManufactureUnit
+            class: SimpleManufactureUnit
             config:
               agent_type: producer
         is_template: true

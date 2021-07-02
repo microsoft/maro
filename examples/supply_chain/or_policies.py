@@ -109,7 +109,7 @@ class ConsumerMinMaxPolicy(AbsPolicy):
         sale_mean, sale_std = state['sale_mean'], state['sale_std']
         service_level = state['service_level']
         r = (vlt*sale_mean + np.sqrt(vlt)*sale_std*st.norm.ppf(service_level))
-        print(booked_inventory, most_needed_product_id, r)
+        # print(booked_inventory, most_needed_product_id, r)
         if booked_inventory[most_needed_product_id] > r:
             return 0
         R = 3*r

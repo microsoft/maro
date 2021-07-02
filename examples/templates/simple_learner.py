@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 import sys
-import time
 from os.path import dirname, realpath
 
 from maro.rl.learning import SimpleLearner
@@ -12,7 +11,6 @@ if template_dir not in sys.path:
     sys.path.insert(0, template_dir)
 
 from general import config, get_agent_wrapper, get_env_wrapper, log_dir
-from policy_manager.policy_manager import get_policy_manager
 
 
 if __name__ == "__main__":
