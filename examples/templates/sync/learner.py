@@ -22,6 +22,7 @@ def get_rollout_manager():
             get_env_wrapper(),
             get_agent_wrapper(),
             num_steps=config["num_steps"],
+            log_env_summary=config["log_env_summary"],
             log_dir=log_dir
         )
     if rollout_mode == "multi-process":
@@ -30,13 +31,16 @@ def get_rollout_manager():
             get_env_wrapper,
             get_agent_wrapper,
             num_steps=config["num_steps"],
+            log_env_summary=config["log_env_summary"],
             log_dir=log_dir,
         )
     if rollout_mode == "multi-node":
         return MultiNodeRolloutManager(
             config["sync"]["rollout_group"],
             config["sync"]["num_rollout_workers"],
+            num_steps=config["num_steps"],
             max_lag=config["max_lag"],
+            log_env_summary=config["log_env_summary"],
             proxy_kwargs={"redis_address": (config["redis"]["host"], config["redis"]["port"])}
         )
 

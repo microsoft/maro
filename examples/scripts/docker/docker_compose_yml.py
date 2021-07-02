@@ -7,11 +7,10 @@ from os.path import dirname, join, realpath
 
 path = realpath(__file__)
 script_dir = dirname(path)
-example_dir = dirname(script_dir)
+example_dir = dirname(dirname(script_dir))
 root_dir = dirname(example_dir)
 template_dir = join(example_dir, "templates")
 maro_rl_dir = join(root_dir, "maro", "rl")
-maro_comm_dir = join(root_dir, "maro", "communication")
 config_path = join(template_dir, "config.yml")
 dockerfile_path = join(root_dir, "docker_files", "dev.df")
 
@@ -24,11 +23,7 @@ docker_compose_manifest = {"version": "3.9", "services": {"redis": {"image": "re
 common_spec = {
     "build": {"context": root_dir, "dockerfile": dockerfile_path},
     "image": "maro",
-    "volumes": [
-        f"{example_dir}:/maro/examples",
-        f"{maro_rl_dir}:/maro/maro/rl",
-        f"{maro_comm_dir}:/maro/maro/communication"
-    ]
+    "volumes": [f"{example_dir}:/maro/examples", f"{maro_rl_dir}:/maro/maro/rl"]
 }
 
 # trainer spec
@@ -65,6 +60,5 @@ if mode == "sync":
 else:
     raise ValueError("Only sync mode is supported in this version")
 
-
-with open(join(example_dir, "docker-compose.yml"), "w") as fp:
+with open(join(script_dir, "docker-compose.yml"), "w") as fp:
     yaml.safe_dump(docker_compose_manifest, fp)
