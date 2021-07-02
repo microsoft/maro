@@ -1,14 +1,14 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-job_name: cim-dqn 
-scenario: cim
+job_name: sc 
+scenario: sc
 mode: sync
-num_episodes: 10
-eval_schedule: 5
-num_steps: 100
+num_episodes: 1
+eval_schedule: 1
+num_steps: -1
 max_lag: 0
-log_env_summary: true
+log_env_summary: false
 sync:
   rollout_group: rollout
   rollout_mode: multi-node # single-process, multi-process, multi-node

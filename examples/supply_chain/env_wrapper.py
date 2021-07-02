@@ -1160,8 +1160,8 @@ env_config = {
     "scenario": "supply_chain",
     # Currently available topologies are "sample1" or "random". New topologies must consist of a single folder
     # that contains a single config.yml and should be placed under examples/supply_chain/envs/
-    "topology": "test",
-    "durations": 64  # number of ticks per episode
+    "topology": "random",
+    "durations": 5  # number of ticks per episode
 }
 
 def get_env_wrapper():
