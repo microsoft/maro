@@ -5,12 +5,13 @@ import time
 from os import getcwd
 from typing import List, Union
 
-from maro.rl.early_stopping import AbsEarlyStopper
 from maro.rl.wrappers import AbsEnvWrapper, AgentWrapper
 from maro.utils import Logger
 
+from .early_stopper import AbsEarlyStopper
 
-class LocalLearner:
+
+class SimpleLearner:
     """Controller for single-threaded learning workflows.
 
     Args:
