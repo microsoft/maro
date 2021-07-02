@@ -25,6 +25,12 @@ def gen_vessel_definition(stop_nums: tuple):
         # Discharged empty container number for loading laden containers.
         early_discharge = NodeAttribute("i")
 
+        # Is parking or not, 1 means parking, 0 means sailing.
+        is_parking = NodeAttribute("i2")
+
+        # The port index the vessel is parking at.
+        loc_port_idx = NodeAttribute("i")
+
         # Which route current vessel belongs to.
         route_idx = NodeAttribute("i")
 
@@ -92,8 +98,11 @@ def gen_vessel_definition(stop_nums: tuple):
                 future_stop_list (list): List of future stop list tuple.
             """
             # update past and future stop info
-            features = [(past_stop_list, self.past_stop_list, self.past_stop_tick_list),
-                        (future_stop_list, self.future_stop_list, self.future_stop_tick_list)]
+            features = []
+            if past_stop_list:
+                features.append((past_stop_list, self.past_stop_list, self.past_stop_tick_list))
+            if future_stop_list:
+                features.append((future_stop_list, self.future_stop_list, self.future_stop_tick_list))
 
             for feature in features:
                 for i, stop in enumerate(feature[0]):
