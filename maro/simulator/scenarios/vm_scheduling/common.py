@@ -109,8 +109,17 @@ class DecisionPayload:
     def __repr__(self):
         return "%s {frame_index: %r, valid_pms: %r, vm_id: %r, vm_cpu_cores_requirement: %r, \
             vm_memory_requirement: %r, vm_sub_id: %r, vm_category: %r, remaining_buffer_time: %r}" % \
-            (self.__class__.__name__, self.frame_index, self.valid_pms, self.vm_id, self.vm_cpu_cores_requirement,
-            self.vm_memory_requirement, self.vm_sub_id, self.vm_category, self.remaining_buffer_time)
+            (
+                self.__class__.__name__,
+                self.frame_index,
+                self.valid_pms,
+                self.vm_id,
+                self.vm_cpu_cores_requirement,
+                self.vm_memory_requirement,
+                self.vm_sub_id,
+                self.vm_category,
+                self.remaining_buffer_time
+            )
 
 
 class Latency:
