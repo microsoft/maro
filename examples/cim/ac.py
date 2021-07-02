@@ -7,7 +7,9 @@ import sys
 import numpy as np
 import torch
 
-from maro.rl import ActorCritic, ActorCriticConfig, DiscreteACNet, ExperienceManager, FullyConnectedBlock, OptimOption
+from maro.rl.algorithms import ActorCritic, ActorCriticConfig
+from maro.rl.experience import ExperienceManager
+from maro.rl.model import DiscreteACNet, FullyConnectedBlock, OptimOption
 
 cim_path = os.path.dirname(os.path.dirname(__file__))
 sys.path.insert(0, cim_path)

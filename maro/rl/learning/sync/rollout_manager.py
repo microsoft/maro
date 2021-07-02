@@ -11,10 +11,11 @@ from typing import Callable
 
 from maro.communication import Proxy, SessionType
 from maro.rl.experience import ExperienceSet
-from maro.rl.wrappers import AbsEnvWrapper, AgentWrapper
+from maro.rl.utils import MsgKey, MsgTag
 from maro.utils import Logger
 
-from ..message_enums import MsgKey, MsgTag
+from ..agent_wrapper import AgentWrapper
+from ..env_wrapper import AbsEnvWrapper
 from .rollout_worker import rollout_worker_process
 
 
@@ -364,11 +365,12 @@ class MultiNodeRolloutManager(AbsRolloutManager):
             raise ValueError("num_eval_workers cannot exceed the number of available workers")
 
         super().__init__()
-        self._logger = Logger("ROLLOUT_MANAGER", dump_folder=log_dir)
         self.num_workers = num_workers
         peers = {"rollout_worker": num_workers}
-        self._proxy = Proxy(group, "rollout_manager", peers, **proxy_kwargs)
+        self._proxy = Proxy(group, "rollout_manager", peers, component_name="ROLLOUT_MANAGER", **proxy_kwargs)
         self._workers = self._proxy.peers["rollout_worker"]  # remote roll-out worker ID's
+        self._logger = Logger(self._proxy.name, dump_folder=log_dir)
+
         self._num_steps = num_steps
 
         if max_receive_attempts is None:

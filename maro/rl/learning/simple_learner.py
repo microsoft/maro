@@ -5,13 +5,14 @@ import time
 from os import getcwd
 from typing import List, Union
 
-from maro.rl.wrappers import AbsEnvWrapper, AgentWrapper
 from maro.utils import Logger
 
+from .agent_wrapper import AgentWrapper
 from .early_stopper import AbsEarlyStopper
+from .env_wrapper import AbsEnvWrapper
 
 
-class LocalLearner:
+class SimpleLearner:
     """Controller for single-threaded learning workflows.
 
     Args:
@@ -70,8 +71,10 @@ class LocalLearner:
         else:
             self._eval_schedule = eval_schedule
             self._eval_schedule.sort()
-            if not self._eval_schedule or num_episodes != self._eval_schedule[-1]:
-                self._eval_schedule.append(num_episodes)
+
+        # always evaluate after the last episode
+        if not self._eval_schedule or num_episodes != self._eval_schedule[-1]:
+            self._eval_schedule.append(num_episodes)
 
         self.logger.info(f"Policy will be evaluated at the end of episodes {self._eval_schedule}")
         self._eval_point_index = 0

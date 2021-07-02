@@ -4,13 +4,14 @@
 import os
 import sys
 
-from maro.rl import AgentWrapper, EpsilonGreedyExploration, LinearExplorationScheduler
+from maro.rl.exploration import EpsilonGreedyExploration, LinearExplorationScheduler
+from maro.rl.learning import AgentWrapper
 
 sc_path = os.path.dirname(os.path.realpath(__file__))
 if sc_path not in sys.path:
     sys.path.insert(0, sc_path)
 from env_wrapper import NUM_ACTIONS, AGENT_IDS
-from meta import create_rollout_policy_func
+from policy_index import create_rollout_policy_func
 
 exploration_config = {
     "last_ep": 800,

@@ -17,6 +17,7 @@ class MsgTag(Enum):
     ABORT_ROLLOUT = "abort_rollout"
     EVAL_DONE = "eval_done"
     COLLECT_DONE = "collect_done"
+    DONE = "done"
     EXIT = "exit"
 
 

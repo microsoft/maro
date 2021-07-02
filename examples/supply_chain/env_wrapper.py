@@ -7,7 +7,7 @@ from typing import List
 import scipy.stats as st
 import numpy as np
 
-from maro.rl import AbsEnvWrapper
+from maro.rl.learning import AbsEnvWrapper
 from maro.simulator import Env
 from maro.simulator.scenarios.supply_chain.actions import ConsumerAction, ManufactureAction 
 

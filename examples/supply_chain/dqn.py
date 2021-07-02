@@ -7,7 +7,9 @@ import sys
 import numpy as np
 import torch
 
-from maro.rl import DQN, DQNConfig, FullyConnectedBlock, OptimOption, DiscreteQNet, ExperienceManager
+from maro.rl.algorithms import DQN, DQNConfig
+from maro.rl.experience import ExperienceManager
+from maro.rl.model import FullyConnectedBlock, OptimOption, DiscreteQNet
 
 sc_path = os.path.dirname(os.path.realpath(__file__))
 if sc_path not in sys.path:

@@ -7,9 +7,8 @@ from os import getcwd
 from typing import Callable, Dict
 
 from maro.communication import Proxy
+from maro.rl.utils import MsgKey, MsgTag
 from maro.utils import Logger
-
-from ..message_enums import MsgKey, MsgTag
 
 
 def trainer_process(
@@ -54,7 +53,7 @@ def trainer_process(
 
 def trainer_node(
     group: str,
-    trainer_id: int,
+    trainer_idx: int,
     create_policy_func_dict: Dict[str, Callable],
     proxy_kwargs: dict = {},
     log_dir: str = getcwd()
@@ -64,7 +63,7 @@ def trainer_node(
     Args:
         group (str): Group name for the training cluster, which includes all trainers and a training manager that
             manages them.
-        trainer_id (int): Integer trainer ID.
+        trainer_idx (int): Integer trainer index. The trainer's ID in the cluster will be "TRAINER.{trainer_idx}".
         create_policy_func_dict (dict): A dictionary mapping policy names to functions that create them. The policy
             creation function should have exactly one parameter which is the policy name and return an ``AbsPolicy``
             instance.
@@ -73,7 +72,7 @@ def trainer_node(
         log_dir (str): Directory to store logs in. Defaults to the current working directory.
     """
     policy_dict = {}
-    proxy = Proxy(group, "trainer", {"policy_manager": 1}, component_name=f"TRAINER.{trainer_id}", **proxy_kwargs)
+    proxy = Proxy(group, "trainer", {"policy_manager": 1}, component_name=f"TRAINER.{trainer_idx}", **proxy_kwargs)
     logger = Logger(proxy.name, dump_folder=log_dir)
 
     for msg in proxy.receive():
