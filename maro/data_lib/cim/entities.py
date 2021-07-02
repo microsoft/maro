@@ -108,4 +108,3 @@ class Order:
     def __repr__(self):
         return "%s {tick: %r, src_port_idx: %r, dest_port_idx: %r, quantity: %r}" % \
             (self.__class__.__name__, self.tick, self.src_port_idx, self.dest_port_idx, self.quantity)
-

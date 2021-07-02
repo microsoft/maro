@@ -12,6 +12,7 @@ class Action:
     Args:
         vm_id (int): The VM id.
     """
+
     def __init__(self, vm_id: int):
         self.vm_id = vm_id
 
@@ -26,6 +27,7 @@ class PostponeAction(Action):
         vm_id (int): The VM id.
         postpone_step (int): The number of times be postponed.
     """
+
     def __init__(self, vm_id: int, postpone_step: int):
         super().__init__(vm_id)
         self.postpone_step = postpone_step
@@ -41,6 +43,7 @@ class AllocateAction(Action):
         vm_id (int): The VM id.
         pm_id (int): The id of the physical machine where the VM will be allocated.
     """
+
     def __init__(self, vm_id: int, pm_id: int):
         super().__init__(vm_id)
         self.pm_id = pm_id
@@ -104,8 +107,10 @@ class DecisionPayload:
         self.remaining_buffer_time = remaining_buffer_time
 
     def __repr__(self):
-        return "%s {frame_index: %r, valid_pms: %r, vm_id: %r, vm_cpu_cores_requirement: %r, vm_memory_requirement: %r, vm_sub_id: %r, vm_category: %r, remaining_buffer_time: %r}" % \
-            (self.__class__.__name__, self.frame_index, self.valid_pms, self.vm_id, self.vm_cpu_cores_requirement, self.vm_memory_requirement, self.vm_sub_id, self.vm_category, self.remaining_buffer_time)
+        return "%s {frame_index: %r, valid_pms: %r, vm_id: %r, vm_cpu_cores_requirement: %r, \
+            vm_memory_requirement: %r, vm_sub_id: %r, vm_category: %r, remaining_buffer_time: %r}" % \
+            (self.__class__.__name__, self.frame_index, self.valid_pms, self.vm_id, self.vm_cpu_cores_requirement,
+             self.vm_memory_requirement, self.vm_sub_id, self.vm_category, self.remaining_buffer_time)
 
 
 class Latency:
@@ -115,6 +120,7 @@ class Latency:
     1. The accumulative latency triggered by the algorithm inaccurate predictions.
     2. The accumulative latency triggered by the resource exhaustion.
     """
+
     def __init__(self):
         self.due_to_agent: int = 0
         self.due_to_resource: int = 0

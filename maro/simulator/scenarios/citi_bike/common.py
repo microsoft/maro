@@ -46,7 +46,6 @@ class BikeReturnPayload:
             (self.__class__.__name__, self.from_station_idx, self.to_station_idx, self.number)
 
 
-
 class DecisionType(Enum):
     """Station decision type."""
     # current cell has too more bikes, need transfer to others
