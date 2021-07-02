@@ -4,4 +4,5 @@ BASEDIR=$(dirname "$0")
 
 # script to kill a previously launched training job.
 docker-compose -f $BASEDIR/docker-compose.yml down
-rm $BASEDIR/docker_compose.yml
+
+rm $BASEDIR/docker-compose.yml
