@@ -49,7 +49,7 @@ if mode == "sync":
         **common_spec, 
         **{
             "container_name": "learner",
-            "command": "python3 /maro/examples/templates/sync_mode/learner.py"
+            "command": "python3 /maro/examples/templates/sync/learner.py"
         }
     }
     # rollout worker spec
@@ -58,7 +58,7 @@ if mode == "sync":
             str_id = f"rollout_worker.{worker_id}"
             worker_spec = deepcopy(common_spec)
             del worker_spec["build"]
-            worker_spec["command"] = "python3 /maro/examples/templates/sync_mode/rollout_worker.py"
+            worker_spec["command"] = "python3 /maro/examples/templates/sync/rollout_worker.py"
             worker_spec["container_name"] = str_id
             worker_spec["environment"] = [f"WORKERID={worker_id}"]
             docker_compose_manifest["services"][str_id] = worker_spec

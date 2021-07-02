@@ -5,10 +5,11 @@ import time
 from os import getcwd
 from typing import List, Union
 
-from maro.rl.wrappers import AbsEnvWrapper, AgentWrapper
 from maro.utils import Logger
 
+from .agent_wrapper import AgentWrapper
 from .early_stopper import AbsEarlyStopper
+from .env_wrapper import AbsEnvWrapper
 
 
 class SimpleLearner:

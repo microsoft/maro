@@ -12,9 +12,10 @@ from typing import Callable
 from maro.communication import Proxy, SessionType
 from maro.rl.experience import ExperienceSet
 from maro.rl.utils import MsgKey, MsgTag
-from maro.rl.wrappers import AbsEnvWrapper, AgentWrapper
 from maro.utils import Logger
 
+from ..agent_wrapper import AgentWrapper
+from ..env_wrapper import AbsEnvWrapper
 from .rollout_worker import rollout_worker_process
 
 

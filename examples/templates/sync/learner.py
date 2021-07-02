@@ -5,7 +5,7 @@ import sys
 import time
 from os.path import dirname, realpath
 
-from maro.rl import Learner, LocalRolloutManager, MultiNodeRolloutManager, MultiProcessRolloutManager
+from maro.rl.learning.sync import Learner, LocalRolloutManager, MultiNodeRolloutManager, MultiProcessRolloutManager
 
 template_dir = dirname(dirname((realpath(__file__))))
 if template_dir not in sys.path:
@@ -20,6 +20,7 @@ def get_rollout_manager():
     if rollout_mode == "single-process":
         return LocalRolloutManager(
             get_env_wrapper(),
+            get_agent_wrapper(),
             num_steps=config["num_steps"],
             log_dir=log_dir
         )
