@@ -7,9 +7,8 @@ from os import getcwd
 from typing import Callable, Dict
 
 from maro.communication import Proxy
+from maro.rl.utils import MsgKey, MsgTag
 from maro.utils import Logger
-
-from ..message_enums import MsgKey, MsgTag
 
 
 def trainer_process(

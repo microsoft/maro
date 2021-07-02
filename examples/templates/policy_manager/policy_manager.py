@@ -4,7 +4,7 @@
 import sys
 from os.path import dirname, realpath
 
-from maro.rl import LocalPolicyManager, MultiNodePolicyManager, MultiProcessPolicyManager
+from maro.rl.policy import LocalPolicyManager, MultiNodePolicyManager, MultiProcessPolicyManager
 
 template_dir = dirname(dirname(realpath(__file__)))  # template directory
 if template_dir not in sys.path:

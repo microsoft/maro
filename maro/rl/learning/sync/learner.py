@@ -5,11 +5,11 @@ import time
 from os import getcwd
 from typing import List, Union
 
+from maro.rl.policy import AbsPolicyManager
 from maro.utils import Logger
 
 from ..early_stopper import AbsEarlyStopper
-from ..policy_manager.policy_manager import AbsPolicyManager
-from rollout_manager import AbsRolloutManager
+from .rollout_manager import AbsRolloutManager
 
 
 class Learner:
@@ -17,7 +17,7 @@ class Learner:
 
     This should be used in multi-process or distributed settings where either the policy manager or the roll-out
     manager has a distributed architecture. For pure local learning workflows, using this may cause pitfalls such
-    as duplicate experience storage. Use ``LocalLearner`` instead.
+    as duplicate experience storage. Use ``SimpleLearner`` instead.
 
     Args:
         policy_manager (AbsPolicyManager): An ``AbsPolicyManager`` instance that controls policy updates.

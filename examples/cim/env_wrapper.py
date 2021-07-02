@@ -3,7 +3,7 @@
 
 import numpy as np
 
-from maro.rl import AbsEnvWrapper
+from maro.rl.learning import AbsEnvWrapper
 from maro.simulator import Env
 from maro.simulator.scenarios.cim.common import Action, ActionType
 

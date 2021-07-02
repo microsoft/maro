@@ -7,7 +7,9 @@ import sys
 import numpy as np
 import torch
 import torch.nn as nn
-from maro.rl import DQN, DQNConfig, DiscreteQNet, ExperienceManager, FullyConnectedBlock, OptimOption
+from maro.rl.algorithms import DQN, DQNConfig
+from maro.rl.experience import ExperienceManager
+from maro.rl.model import DiscreteQNet, FullyConnectedBlock, OptimOption
 
 cim_path = os.path.dirname(os.path.realpath(__file__))
 if cim_path not in sys.path:

@@ -5,7 +5,7 @@ import sys
 from os import environ
 from os.path import dirname, realpath
 
-from maro.rl import trainer_node
+from maro.rl.policy import trainer_node
 
 template_dir = dirname(dirname(realpath(__file__)))  # template directory
 if template_dir not in sys.path:

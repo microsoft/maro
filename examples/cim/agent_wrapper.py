@@ -4,12 +4,13 @@
 import os
 import sys
 
-from maro.rl import AgentWrapper, EpsilonGreedyExploration, MultiPhaseLinearExplorationScheduler
+from maro.rl.exploration import EpsilonGreedyExploration, MultiPhaseLinearExplorationScheduler
+from maro.rl.learning import AgentWrapper
 
 cim_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, cim_path)
 from env_wrapper import AGENT_IDS, env_config
-from meta import create_rollout_policy_func
+from policy_index import create_rollout_policy_func
 
 
 exploration_config = {

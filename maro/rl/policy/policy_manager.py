@@ -11,9 +11,9 @@ from typing import Callable, Dict
 from maro.communication import Proxy, SessionMessage, SessionType
 from maro.rl.experience import ExperienceSet
 from maro.rl.policy import AbsCorePolicy
+from maro.rl.utils import MsgKey, MsgTag
 from maro.utils import Logger
 
-from ..message_enums import MsgKey, MsgTag
 from .trainer import trainer_process
 
 
