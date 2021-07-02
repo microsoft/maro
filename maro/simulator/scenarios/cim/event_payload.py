@@ -38,7 +38,7 @@ class VesselDischargePayload:
         self.quantity = int(quantity)
 
     def __repr__(self):
-        return "%s {port_idx: %r, vessel_idx: %r, qty: %r, from_port_idx: %r}" % \
+        return "%s {port_idx: %r, vessel_idx: %r, quantity: %r, from_port_idx: %r}" % \
             (self.__class__.__name__, self.port_idx, self.vessel_idx, self.quantity, self.from_port_idx)
 
 
@@ -58,7 +58,7 @@ class LadenReturnPayload:
         self.quantity = int(quantity)
 
     def __repr__(self):
-        return "%s {source_port_idx: %r, dest_port_idx: %r, quantity:%r}" % \
+        return "%s {src_port_idx: %r, dest_port_idx: %r, quantity:%r}" % \
             (self.__class__.__name__, self.src_port_idx, self.dest_port_idx, self.quantity)
 
 

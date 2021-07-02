@@ -241,6 +241,10 @@ class EventBuffer:
                     if self._recorder_ep is None:
                         self._recorder_ep = 0
 
-                    self._recorder.record({"episode": self._recorder_ep, "tick": next_events.tick, "type": str(next_events.event_type), "payload": next_events.payload})
+                    self._recorder.record({
+                        "episode": self._recorder_ep,
+                        "tick": next_events.tick,
+                        "type": str(next_events.event_type),
+                        "payload": next_events.payload})
 
         return []
