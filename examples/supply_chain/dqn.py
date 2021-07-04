@@ -44,7 +44,7 @@ dqn_config = {
     },
     "experience_manager": {
         "rollout": {      # for experience managers in actor processes
-            "capacity": 1000,
+            "capacity": 10000,
             # This determines how existing experiences are replaced when adding new experiences to a full experience
             # memory. Must be one of "rolling" or "random". If "rolling", experiences will be replaced sequentially,
             # with the oldest one being the first to be replaced. If "random", experiences will be replaced randomly.
@@ -53,9 +53,9 @@ dqn_config = {
             "replace": False
         },
         "training": {      # for experience managers in the learner process
-            "capacity": 128000,
+            "capacity": 100000,
             "overwrite_type": "rolling",
-            "batch_size": 2560,
+            "batch_size": 256,
             "replace": True
         }
     },

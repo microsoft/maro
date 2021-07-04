@@ -1,7 +1,7 @@
 #!/bin/bash
 
 BASEDIR=$(dirname "$0")
-ROOTDIR=$BASEDIR/../../../../
+ROOTDIR=$BASEDIR/../../../
 
 # script to build the docker image for running the CIM scenario.
 docker pull redis:6

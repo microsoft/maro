@@ -237,8 +237,8 @@ class SCEnvWrapper(AbsEnvWrapper):
 
         self.order_to_distribute_status[agent_info.id] = state['distributor_in_transit_orders_qty']
 
-        self.reward_status = {f_id: np.float32(reward[1]) for f_id, reward in self.cur_balance_sheet_reward.items()}
-        self.balance_status = {f_id: np.float32(reward[0]) for f_id, reward in self.cur_balance_sheet_reward.items()}
+        #self.reward_status = {f_id: np.float32(reward[1]) for f_id, reward in self.cur_balance_sheet_reward.items()}
+        #self.balance_status = {f_id: np.float32(reward[0]) for f_id, reward in self.cur_balance_sheet_reward.items()}
 
         np_state = self._serialize_state(state)
         return np_state
@@ -1161,7 +1161,7 @@ env_config = {
     # Currently available topologies are "sample1" or "random". New topologies must consist of a single folder
     # that contains a single config.yml and should be placed under examples/supply_chain/envs/
     "topology": "random",
-    "durations": 5  # number of ticks per episode
+    "durations": 200  # number of ticks per episode
 }
 
 def get_env_wrapper():
