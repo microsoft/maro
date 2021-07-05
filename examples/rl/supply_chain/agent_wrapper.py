@@ -11,7 +11,7 @@ sc_path = os.path.dirname(os.path.realpath(__file__))
 if sc_path not in sys.path:
     sys.path.insert(0, sc_path)
 from env_wrapper import NUM_ACTIONS, AGENT_IDS
-from policy_index import NUM_RL_POLICIES, create_rollout_policy_func
+from policy_index import NUM_RL_POLICIES, rollout_policy_func_index
 
 exploration_config = {
     "last_ep": 10,
@@ -34,7 +34,7 @@ def get_agent_wrapper():
         agent2policy[agent_id] = f"consumerstore-{i % NUM_RL_POLICIES}"
 
     return AgentWrapper(
-        {name: func() for name, func in create_rollout_policy_func.items()},
+        {name: func() for name, func in rollout_policy_func_index.items()},
         agent2policy,
         exploration_dict={"consumerstore": epsilon_greedy},
         agent2exploration = {

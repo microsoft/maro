@@ -4,7 +4,7 @@
 job_name: sc 
 scenario: sc
 mode: sync
-num_episodes: 5
+num_episodes: 3
 eval_schedule: 3 
 num_steps: -1
 max_lag: 0
@@ -12,15 +12,16 @@ log_env_summary: false
 sync:
   rollout_group: rollout
   rollout_mode: multi-node # single-process, multi-process, multi-node
-  num_rollout_workers: 2
-  # max_receive_attempts: 2
-  # receive_timeout: 100  # in milli-seconds
+  num_rollout_workers: 5
+  # min_finished_workers: 4
+  # max_extra_recv_tries: 3
+  # extra_recv_timeout: 100
 async:
   group: async
   num_actors: 3
 policy_manager:
   train_group: policy-manager
-  train_mode: multi-node # single-process, multi-process, multi-node
+  train_mode: single-process # single-process, multi-process, multi-node
   num_trainers: 4
 redis:
   host: maro-redis

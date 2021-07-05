@@ -10,7 +10,7 @@ from maro.rl.learning.asynchronous import actor
 template_dir = dirname(dirname(realpath(__file__)))  # DQN directory  
 if template_dir not in sys.path:
     sys.path.insert(0, template_dir)
-from general import config, get_agent_wrapper, get_env_wrapper, log_dir
+from scenario_index import config, get_agent_wrapper, get_env_wrapper, log_dir
 
 
 if __name__ == "__main__":

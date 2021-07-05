@@ -167,14 +167,15 @@ def rollout_worker_node(
         ret_exp = agent_wrapper.get_experiences_by_policy(policy_names)
 
         return_info = {
-            MsgKey.EPISODE_END: not env_wrapper.state,
             MsgKey.EPISODE: ep,
             MsgKey.SEGMENT: segment,
             MsgKey.VERSION: msg.body[MsgKey.VERSION],
             MsgKey.EXPERIENCES: ret_exp,
-            MsgKey.ENV_SUMMARY: env_wrapper.summary,
             MsgKey.NUM_STEPS: env_wrapper.step_index - starting_step_index + 1
         }
+
+        if not env_wrapper.state:
+            return_info[MsgKey.ENV_SUMMARY] = env_wrapper.summary
 
         proxy.reply(msg, tag=MsgTag.COLLECT_DONE, body=return_info)
 

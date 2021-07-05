@@ -64,8 +64,8 @@ class Learner:
             self._eval_schedule.sort()
 
         # always evaluate after the last episode
-        if not self._eval_schedule or num_episodes != self._eval_schedule[-1]:
-            self._eval_schedule.append(num_episodes)
+        # if not self._eval_schedule or num_episodes != self._eval_schedule[-1]:
+        #     self._eval_schedule.append(num_episodes)
 
         self.logger.info(f"Policy will be evaluated at the end of episodes {self._eval_schedule}")
         self._eval_point_index = 0
