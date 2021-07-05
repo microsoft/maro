@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 import sys
-import time
 from os.path import dirname, realpath
 
 from maro.rl.learning.synchronous import (
@@ -59,5 +58,4 @@ if __name__ == "__main__":
         eval_schedule=config["eval_schedule"],
         log_dir=log_dir
     )
-    time.sleep(10)
     learner.run()

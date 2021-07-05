@@ -410,7 +410,7 @@ class MultiNodeRolloutManager(AbsRolloutManager):
             MsgKey.EXPLORATION_STEP: self._exploration_step
         }
 
-        self._proxy.ibroadcast("rollout_worker", MsgTag.COLLECT, SessionType.TASK, body=msg_body)
+        self._proxy.iscatter(MsgTag.COLLECT, SessionType.TASK, [(worker_id, msg_body) for worker_id in self._workers])
         self._logger.info(f"Collecting simulation data (episode {ep}, segment {segment}, policy version {version})")
 
         if self._exploration_step:
