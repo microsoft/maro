@@ -80,6 +80,7 @@ class LocalPolicyManager(AbsPolicyManager):
                 self.updated.add(policy_name)
 
         if self.updated:
+            self._version += 1
             self._logger.info(f"Updated policies {self.updated}")
 
         self._logger.debug(f"policy update time: {time.time() - t0}")
@@ -147,6 +148,7 @@ class MultiProcessPolicyManager(AbsPolicyManager):
 
         if self.updated:
             self._version += 1
+            self._logger.info(f"Updated policies {self.updated}")
 
     def exit(self):
         """Tell the trainer processes to exit."""
@@ -211,6 +213,7 @@ class MultiNodePolicyManager(AbsPolicyManager):
 
         if self.updated:
             self._version += 1
+            self._logger.info(f"Updated policies {self.updated}")
 
     def exit(self):
         """Tell the remote trainers to exit."""
