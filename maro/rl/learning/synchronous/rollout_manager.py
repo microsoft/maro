@@ -415,10 +415,10 @@ class MultiNodeRolloutManager(AbsRolloutManager):
                 break
 
         # Keep trying to receive from workers, but with timeout
-        for _ in range(self._max_extra_recv_tries):
+        for i in range(self._max_extra_recv_tries):
             msg = self._proxy.receive_once(timeout=self._extra_recv_timeout)
             if not msg:
-                self._logger.info("No message received")
+                self._logger.info(f"Receive timeout, {self._max_extra_recv_tries - i - 1} attempts left")
             else:
                 num_finishes += self._handle_worker_result(msg, ep, segment, version, combined_exp_by_policy)
                 if num_finishes == self._num_workers:

@@ -9,7 +9,7 @@ from maro.rl.policy import LocalPolicyManager, MultiNodePolicyManager, MultiProc
 template_dir = dirname(dirname(realpath(__file__)))  # template directory
 if template_dir not in sys.path:
     sys.path.insert(0, template_dir)
-from general import config, train_policy_func_index, log_dir
+from scenario_index import config, train_policy_func_index, log_dir
 
 def get_policy_manager():
     train_mode = config["policy_manager"]["train_mode"]

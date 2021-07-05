@@ -12,8 +12,8 @@ template_dir = dirname(dirname((realpath(__file__))))
 if template_dir not in sys.path:
     sys.path.insert(0, template_dir)
 
-from general import config, get_agent_wrapper, get_env_wrapper, log_dir
 from policy_manager.policy_manager import get_policy_manager
+from scenario_index import config, get_agent_wrapper, get_env_wrapper, log_dir
 
 
 def get_rollout_manager():
@@ -41,6 +41,9 @@ def get_rollout_manager():
             config["sync"]["num_rollout_workers"],
             num_steps=config["num_steps"],
             max_lag=config["max_lag"],
+            min_finished_workers=config["sync"]["min_finished_workers"],
+            # max_extra_recv_tries=config["sync"]["max_extra_recv_tries"],
+            extra_recv_timeout=config["sync"]["extra_recv_timeout"],
             log_env_summary=config["log_env_summary"],
             proxy_kwargs={"redis_address": (config["redis"]["host"], config["redis"]["port"])}
         )

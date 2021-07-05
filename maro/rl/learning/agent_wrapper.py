@@ -74,7 +74,6 @@ class AgentWrapper:
         if self.exploration_dict:
             for exploration in self.exploration_dict.values():
                 exploration.step()
-                # print(f"epsilon: {exploration.epsilon}")
 
     def exploit(self):
         self.exploring = False
