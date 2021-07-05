@@ -3,7 +3,7 @@
 
 job_name: cim-dqn 
 scenario: cim
-mode: sync
+mode: async
 num_episodes: 10
 eval_schedule: 5
 num_steps: 100
@@ -15,6 +15,9 @@ sync:
   num_rollout_workers: 3
   # max_receive_attempts: 2
   # receive_timeout: 100  # in milli-seconds
+async:
+  group: async
+  num_actors: 3
 policy_manager:
   train_group: policy-manager
   train_mode: multi-node # single-process, multi-process, multi-node

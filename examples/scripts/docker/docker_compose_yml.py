@@ -57,8 +57,26 @@ if mode == "sync":
             worker_spec["container_name"] = str_id
             worker_spec["environment"] = [f"WORKERID={worker_id}"]
             docker_compose_manifest["services"][str_id] = worker_spec
-else:
-    raise ValueError("Only sync mode is supported in this version")
+elif mode == "async":
+    # policy server spec
+    docker_compose_manifest["services"]["policy_server"] = {
+        **common_spec, 
+        **{
+            "container_name": "policy_server",
+            "command": "python3 /maro/examples/templates/async/policy_server.py"
+        }
+    }
+    # actor spec
+    for actor_id in range(config["async"]["num_actors"]):
+        str_id = f"actor.{actor_id}"
+        actor_spec = deepcopy(common_spec)
+        del actor_spec["build"]
+        actor_spec["command"] = "python3 /maro/examples/templates/async/actor.py"
+        actor_spec["container_name"] = str_id
+        actor_spec["environment"] = [f"ACTORID={actor_id}"]
+        docker_compose_manifest["services"][str_id] = actor_spec
+else: 
+    raise ValueError(f"mode must be 'sync' or 'async', got {mode}")
 
 with open(join(script_dir, "docker-compose.yml"), "w") as fp:
     yaml.safe_dump(docker_compose_manifest, fp)
