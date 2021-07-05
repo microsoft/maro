@@ -10,7 +10,7 @@ from maro.rl.learning import AgentWrapper
 cim_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, cim_path)
 from env_wrapper import AGENT_IDS, env_config
-from policy_index import create_rollout_policy_func
+from policy_index import rollout_policy_func_index
 
 
 exploration_config = {
@@ -28,7 +28,7 @@ def get_agent_wrapper():
         **exploration_config
     )
     return AgentWrapper(
-        {name: func() for name, func in create_rollout_policy_func.items()},
+        {name: func() for name, func in rollout_policy_func_index.items()},
         {name: name for name in AGENT_IDS},
         exploration_dict={f"EpsilonGreedy": epsilon_greedy},
         agent2exploration={name: "EpsilonGreedy" for name in AGENT_IDS}

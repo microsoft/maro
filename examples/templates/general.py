@@ -22,10 +22,10 @@ scenario = config["scenario"]
 if scenario == "cim":
     from cim.env_wrapper import get_env_wrapper
     from cim.agent_wrapper import get_agent_wrapper
-    from cim.policy_index import create_rollout_policy_func, create_train_policy_func
+    from cim.policy_index import rollout_policy_func_index, train_policy_func_index
 if scenario == "sc":
     from supply_chain.env_wrapper import get_env_wrapper
     from supply_chain.agent_wrapper import get_agent_wrapper
-    from supply_chain.policy_index import create_rollout_policy_func, create_train_policy_func
+    from supply_chain.policy_index import rollout_policy_func_index, train_policy_func_index
 else:
-    raise ValueError(f"Unsupported scenario: {scenario}. Supported scenarios: 'cim'")
+    raise ValueError(f"Unsupported scenario: {scenario}. Supported scenarios: 'cim', 'sc'")

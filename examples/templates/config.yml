@@ -15,6 +15,9 @@ sync:
   num_rollout_workers: 2
   # max_receive_attempts: 2
   # receive_timeout: 100  # in milli-seconds
+async:
+  group: async
+  num_actors: 3
 policy_manager:
   train_group: policy-manager
   train_mode: multi-node # single-process, multi-process, multi-node

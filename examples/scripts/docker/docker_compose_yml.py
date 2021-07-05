@@ -44,7 +44,7 @@ if mode == "sync":
         **common_spec, 
         **{
             "container_name": "learner",
-            "command": "python3 /maro/examples/templates/sync/learner.py"
+            "command": "python3 /maro/examples/templates/synchronous/learner.py"
         }
     }
     # rollout worker spec
@@ -53,12 +53,30 @@ if mode == "sync":
             str_id = f"rollout_worker.{worker_id}"
             worker_spec = deepcopy(common_spec)
             del worker_spec["build"]
-            worker_spec["command"] = "python3 /maro/examples/templates/sync/rollout_worker.py"
+            worker_spec["command"] = "python3 /maro/examples/templates/synchronous/rollout_worker.py"
             worker_spec["container_name"] = str_id
             worker_spec["environment"] = [f"WORKERID={worker_id}"]
             docker_compose_manifest["services"][str_id] = worker_spec
-else:
-    raise ValueError("Only sync mode is supported in this version")
+elif mode == "async":
+    # policy server spec
+    docker_compose_manifest["services"]["policy_server"] = {
+        **common_spec, 
+        **{
+            "container_name": "policy_server",
+            "command": "python3 /maro/examples/templates/asynchronous/policy_server.py"
+        }
+    }
+    # actor spec
+    for actor_id in range(config["async"]["num_actors"]):
+        str_id = f"actor.{actor_id}"
+        actor_spec = deepcopy(common_spec)
+        del actor_spec["build"]
+        actor_spec["command"] = "python3 /maro/examples/templates/asynchronous/actor.py"
+        actor_spec["container_name"] = str_id
+        actor_spec["environment"] = [f"ACTORID={actor_id}"]
+        docker_compose_manifest["services"][str_id] = actor_spec
+else: 
+    raise ValueError(f"mode must be 'sync' or 'async', got {mode}")
 
 with open(join(script_dir, "docker-compose.yml"), "w") as fp:
     yaml.safe_dump(docker_compose_manifest, fp)

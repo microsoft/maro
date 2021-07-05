@@ -11,5 +11,5 @@ from dqn import get_dqn_policy_for_rollout, get_dqn_policy_for_training
 from env_wrapper import AGENT_IDS
 
 # use agent IDs as policy names since each agent uses a separate policy
-create_train_policy_func = {name: get_dqn_policy_for_training for name in AGENT_IDS}
-create_rollout_policy_func = {name: get_dqn_policy_for_rollout for name in AGENT_IDS}
+train_policy_func_index = {name: get_dqn_policy_for_training for name in AGENT_IDS}
+rollout_policy_func_index = {name: get_dqn_policy_for_rollout for name in AGENT_IDS}

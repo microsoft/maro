@@ -15,7 +15,7 @@ from or_policies import (
 
 NUM_RL_POLICIES = 100
 
-create_rollout_policy_func = {
+rollout_policy_func_index = {
     "consumer": get_consumer_minmax_policy,
     "producer": get_producer_baseline_policy,
     "facility": lambda: NullPolicy(),
@@ -25,4 +25,4 @@ create_rollout_policy_func = {
     **{f"consumerstore-{i}": get_dqn_policy_for_rollout for i in range(NUM_RL_POLICIES)}, 
 }
 
-create_train_policy_func = {f"consumerstore-{i}": get_dqn_policy_for_training for i in range(NUM_RL_POLICIES)}
+train_policy_func_index = {f"consumerstore-{i}": get_dqn_policy_for_training for i in range(NUM_RL_POLICIES)}

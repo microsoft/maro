@@ -10,14 +10,14 @@ from maro.rl.policy import trainer_node
 template_dir = dirname(dirname(realpath(__file__)))  # template directory
 if template_dir not in sys.path:
     sys.path.insert(0, template_dir)
-from general import config, create_train_policy_func, log_dir
+from general import config, train_policy_func_index, log_dir
 
 
 if __name__ == "__main__":
     trainer_node(
         config["policy_manager"]["train_group"],
         int(environ["TRAINERID"]),
-        create_train_policy_func,
+        train_policy_func_index,
         proxy_kwargs={"redis_address": (config["redis"]["host"], config["redis"]["port"])},
         log_dir=log_dir
     )
