@@ -4,7 +4,7 @@
 import sys
 from os.path import dirname, realpath
 
-from maro.rl.learning.async import policy_server
+from maro.rl.learning.asynchronous import policy_server
 
 template_dir = dirname(dirname(realpath(__file__)))  # DQN directory
 if template_dir not in sys.path:

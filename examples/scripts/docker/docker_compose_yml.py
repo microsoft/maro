@@ -44,7 +44,7 @@ if mode == "sync":
         **common_spec, 
         **{
             "container_name": "learner",
-            "command": "python3 /maro/examples/templates/sync/learner.py"
+            "command": "python3 /maro/examples/templates/synchronous/learner.py"
         }
     }
     # rollout worker spec
@@ -53,7 +53,7 @@ if mode == "sync":
             str_id = f"rollout_worker.{worker_id}"
             worker_spec = deepcopy(common_spec)
             del worker_spec["build"]
-            worker_spec["command"] = "python3 /maro/examples/templates/sync/rollout_worker.py"
+            worker_spec["command"] = "python3 /maro/examples/templates/synchronous/rollout_worker.py"
             worker_spec["container_name"] = str_id
             worker_spec["environment"] = [f"WORKERID={worker_id}"]
             docker_compose_manifest["services"][str_id] = worker_spec
@@ -63,7 +63,7 @@ elif mode == "async":
         **common_spec, 
         **{
             "container_name": "policy_server",
-            "command": "python3 /maro/examples/templates/async/policy_server.py"
+            "command": "python3 /maro/examples/templates/asynchronous/policy_server.py"
         }
     }
     # actor spec
@@ -71,7 +71,7 @@ elif mode == "async":
         str_id = f"actor.{actor_id}"
         actor_spec = deepcopy(common_spec)
         del actor_spec["build"]
-        actor_spec["command"] = "python3 /maro/examples/templates/async/actor.py"
+        actor_spec["command"] = "python3 /maro/examples/templates/asynchronous/actor.py"
         actor_spec["container_name"] = str_id
         actor_spec["environment"] = [f"ACTORID={actor_id}"]
         docker_compose_manifest["services"][str_id] = actor_spec

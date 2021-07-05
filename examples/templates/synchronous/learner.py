@@ -5,7 +5,9 @@ import sys
 import time
 from os.path import dirname, realpath
 
-from maro.rl.learning.sync import Learner, LocalRolloutManager, MultiNodeRolloutManager, MultiProcessRolloutManager
+from maro.rl.learning.synchronous import (
+    Learner, LocalRolloutManager, MultiNodeRolloutManager, MultiProcessRolloutManager
+)
 
 template_dir = dirname(dirname((realpath(__file__))))
 if template_dir not in sys.path:

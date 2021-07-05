@@ -9,19 +9,19 @@ from maro.rl.policy import LocalPolicyManager, MultiNodePolicyManager, MultiProc
 template_dir = dirname(dirname(realpath(__file__)))  # template directory
 if template_dir not in sys.path:
     sys.path.insert(0, template_dir)
-from general import config, create_train_policy_func, log_dir
+from general import config, train_policy_func_index, log_dir
 
 def get_policy_manager():
     train_mode = config["policy_manager"]["train_mode"]
     num_trainers = config["policy_manager"]["num_trainers"]
-    policy_dict = {name: func() for name, func in create_train_policy_func.items()}
+    policy_dict = {name: func() for name, func in train_policy_func_index.items()}
     if train_mode == "single-process":
         return LocalPolicyManager(policy_dict, log_dir=log_dir)
     if train_mode == "multi-process":
         return MultiProcessPolicyManager(
             policy_dict,
             num_trainers,
-            create_train_policy_func,
+            train_policy_func_index,
             log_dir=log_dir
         )
     if train_mode == "multi-node":
