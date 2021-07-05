@@ -35,4 +35,3 @@ class MsgKey(Enum):
     EXPLORATION_STEP = "exploration_step"
     VERSION = "version"
     NUM_STEPS = "num_steps"
-    EPISODE_END = "episode_end"

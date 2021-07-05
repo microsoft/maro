@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import time
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from multiprocessing import Pipe, Process
@@ -110,9 +109,6 @@ class LocalRolloutManager(AbsRolloutManager):
             Experiences for policy training.
         """
         self._logger.info(f"Collecting simulation data (episode {ep}, segment {segment}, policy version {version})")
-        t0 = time.time()
-        learning_time = 0
-        num_experiences_collected = 0
 
         # start of new episode
         if self.env.state is None:
@@ -143,14 +139,6 @@ class LocalRolloutManager(AbsRolloutManager):
             # performance details
             if self._log_env_summary:
                 self._logger.info(f"ep {ep}: {self.env.summary}")
-
-            self._logger.debug(
-                f"ep {ep} summary - "
-                f"running time: {time.time() - t0} "
-                f"env steps: {self.env.step_index} "
-                f"learning time: {learning_time} "
-                f"experiences collected: {num_experiences_collected}"
-            )
 
         return self.env.get_experiences()
 
@@ -220,8 +208,6 @@ class MultiProcessRolloutManager(AbsRolloutManager):
         self._num_steps = num_steps
         self._log_env_summary = log_env_summary
         self._num_eval_workers = num_eval_workers
-        self.total_experiences_collected = 0
-        self.total_env_steps = 0
         self._exploration_step = False
 
         self._worker_processes = []
@@ -278,8 +264,6 @@ class MultiProcessRolloutManager(AbsRolloutManager):
         for conn in self._manager_ends:
             result = conn.recv()
             exp_by_policy = result["experiences"]
-            self.total_experiences_collected += sum(exp.size for exp in exp_by_policy.values())
-            self.total_env_steps += result["num_steps"]
 
             for policy_name, exp in exp_by_policy.items():
                 combined_exp_by_policy[policy_name].extend(exp)
@@ -331,11 +315,13 @@ class MultiNodeRolloutManager(AbsRolloutManager):
         num_workers (int): Number of remote roll-out workers.
         num_steps (int): Number of environment steps to roll out in each call to ``collect``. Defaults to -1, in which
             case the roll-out will be executed until the end of the environment.
-        max_receive_attempts (int): Maximum number of attempts to receive  results in ``collect``. Defaults to
-            None, in which case the number is set to ``num_workers``.
-        receive_timeout (int): Maximum wait time (in milliseconds) for each attempt to receive from the workers. This
-            This multiplied by ``max_receive_attempts`` give the upperbound for the amount of time to receive the
-            desired amount of data from workers. Defaults to None, in which case each receive attempt is blocking.
+        min_finished_workers (int): Minimum number of finished workers required for a ``collect`` call. Defaults to
+            None, in which case it will be set to ``num_workers``.
+        max_extra_recv_tries (int): Maximum number of attempts to receive worker results after ``min_finished_workers``
+            have been received in ``collect``. Defaults to None, in which case it is set to ``num_workers`` -
+            ``min_finished_workers``.
+        extra_recv_timeout (int): Timeout (in milliseconds) for each attempt to receive from a worker after
+            ``min_finished_workers`` have been received in ``collect``. Defaults to 100 (milliseconds).
         max_lag (int): Maximum policy version lag allowed for experiences collected from remote roll-out workers.
             Experiences collected using policy versions older than (current_version - max_lag) will be discarded.
             Defaults to 0, in which case only experiences collected using the latest policy version will be returned.
@@ -353,8 +339,9 @@ class MultiNodeRolloutManager(AbsRolloutManager):
         group: str,
         num_workers: int,
         num_steps: int = -1,
-        max_receive_attempts: int = None,
-        receive_timeout: int = None,
+        min_finished_workers: int = None,
+        max_extra_recv_tries: int = None,
+        extra_recv_timeout: int = None,
         max_lag: int = 0,
         num_eval_workers: int = 1,
         log_env_summary: bool = True,
@@ -365,28 +352,29 @@ class MultiNodeRolloutManager(AbsRolloutManager):
             raise ValueError("num_eval_workers cannot exceed the number of available workers")
 
         super().__init__()
-        self.num_workers = num_workers
+        self._num_workers = num_workers
         peers = {"rollout_worker": num_workers}
         self._proxy = Proxy(group, "rollout_manager", peers, component_name="ROLLOUT_MANAGER", **proxy_kwargs)
         self._workers = self._proxy.peers["rollout_worker"]  # remote roll-out worker ID's
         self._logger = Logger(self._proxy.name, dump_folder=log_dir)
 
         self._num_steps = num_steps
+        if min_finished_workers is None:
+            min_finished_workers = self._num_workers
+            self._logger.info(f"Minimum number of finished workers is set to {min_finished_workers}")
 
-        if max_receive_attempts is None:
-            max_receive_attempts = self.num_workers
-            self._logger.info(f"Maximum receive attempts is set to {max_receive_attempts}")
+        self._min_finished_workers = min_finished_workers
 
-        self.max_receive_attempts = max_receive_attempts
-        self.receive_timeout = receive_timeout
+        if max_extra_recv_tries is None:
+            max_extra_recv_tries = self._num_workers - self._min_finished_workers
+            self._logger.info(f"Maximum number of extra receive tries is set to {max_extra_recv_tries}")
+
+        self._max_extra_recv_tries = max_extra_recv_tries
+        self._extra_recv_timeout = extra_recv_timeout
 
         self._max_lag = max_lag
-        self.total_experiences_collected = 0
-        self.total_env_steps = 0
         self._log_env_summary = log_env_summary
-
         self._num_eval_workers = num_eval_workers
-
         self._exploration_step = False
 
     def collect(self, ep: int, segment: int, policy_state_dict: dict, version: int):
@@ -419,43 +407,56 @@ class MultiNodeRolloutManager(AbsRolloutManager):
         # Receive roll-out results from remote workers
         combined_exp_by_policy = defaultdict(ExperienceSet)
         num_finishes = 0
-        for _ in range(self.max_receive_attempts):
-            msg = self._proxy.receive_once(timeout=self.receive_timeout)
-            if msg.tag != MsgTag.COLLECT_DONE:
-                self._logger.info(
-                    f"Ignored a message of type {msg.tag} (expected message type {MsgTag.COLLECT_DONE})"
-                )
-                continue
 
-            if version - msg.body[MsgKey.VERSION] > self._max_lag:
-                self._logger.info(
-                    f"Ignored a message because it contains experiences generated using a stale policy version. "
-                    f"Expected experiences generated using policy versions no earlier than {version - self._max_lag} "
-                    f"got {msg.body[MsgKey.VERSION]}"
-                )
-                continue
+        # Ensure the minimum number of worker results are received.
+        for msg in self._proxy.receive():
+            num_finishes += self._handle_worker_result(msg, ep, segment, version, combined_exp_by_policy)
+            if num_finishes == self._min_finished_workers:
+                break
 
-            exp_by_policy = msg.body[MsgKey.EXPERIENCES]
-            self.total_experiences_collected += sum(exp.size for exp in exp_by_policy.values())
-            self.total_env_steps += msg.body[MsgKey.NUM_STEPS]
-
-            for policy_name, exp in exp_by_policy.items():
-                combined_exp_by_policy[policy_name].extend(exp)
-
-            if msg.body[MsgKey.SEGMENT] == segment:
-                self.episode_complete = msg.body[MsgKey.EPISODE_END]
-                if self.episode_complete:
-                    # log roll-out summary
-                    if self._log_env_summary:
-                        self._logger.info(f"env summary: {msg.body[MsgKey.ENV_SUMMARY]}")
-                num_finishes += 1
-                if num_finishes == self.num_workers:
+        # Keep trying to receive from workers, but with timeout
+        for _ in range(self._max_extra_recv_tries):
+            msg = self._proxy.receive_once(timeout=self._extra_recv_timeout)
+            if not msg:
+                self._logger.info("No message received")
+            else:
+                num_finishes += self._handle_worker_result(msg, ep, segment, version, combined_exp_by_policy)
+                if num_finishes == self._num_workers:
                     break
 
         if self.episode_complete:
             self._exploration_step = True
 
         return combined_exp_by_policy
+
+    def _handle_worker_result(self, msg, ep, segment, version, combined_exp):
+        if msg.tag != MsgTag.COLLECT_DONE:
+            self._logger.info(
+                f"Ignored a message of type {msg.tag} (expected message type {MsgTag.COLLECT_DONE})"
+            )
+            return 0
+
+        if version - msg.body[MsgKey.VERSION] > self._max_lag:
+            self._logger.info(
+                f"Ignored a message because it contains experiences generated using a stale policy version. "
+                f"Expected experiences generated using policy versions no earlier than {version - self._max_lag} "
+                f"got {msg.body[MsgKey.VERSION]}"
+            )
+            return 0
+
+        for policy_name, exp in msg.body[MsgKey.EXPERIENCES].items():
+            combined_exp[policy_name].extend(exp)
+
+        # The message is what we expect
+        if msg.body[MsgKey.EPISODE] == ep and msg.body[MsgKey.SEGMENT] == segment:
+            if MsgKey.ENV_SUMMARY in msg.body:
+                # log roll-out summary
+                if self._log_env_summary:
+                    self._logger.info(f"env summary: {msg.body[MsgKey.ENV_SUMMARY]}")
+                self.episode_complete = True
+            return 1
+
+        return 0
 
     def evaluate(self, ep: int, policy_state_dict: dict):
         """Evaluate the performance of ``policy_state_dict``.
