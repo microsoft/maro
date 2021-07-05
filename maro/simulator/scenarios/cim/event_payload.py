@@ -17,7 +17,7 @@ class VesselStatePayload:
         self.vessel_idx = vessel_idx
 
     def __repr__(self):
-        return f"VesselStatePayload {{ port: {self.port_idx}, vessel: {self.vessel_idx} }}"
+        return "%s {port_idx: %r, vessel_idx:%r}" % (self.__class__.__name__, self.port_idx, self.vessel_idx)
 
 
 class VesselDischargePayload:
@@ -35,11 +35,11 @@ class VesselDischargePayload:
         self.vessel_idx = vessel_idx
         self.from_port_idx = from_port_idx
         self.port_idx = port_idx
-        self.quantity = quantity
+        self.quantity = int(quantity)
 
     def __repr__(self):
-        return f"VesselDischargePayload {{ vessel: {self.vessel_idx}, port: {self.port_idx}, \
-                qty: {self.quantity}, from_port_idx: {self.from_port_idx} }}"
+        return "%s {port_idx: %r, vessel_idx: %r, quantity: %r, from_port_idx: %r}" % \
+            (self.__class__.__name__, self.port_idx, self.vessel_idx, self.quantity, self.from_port_idx)
 
 
 class LadenReturnPayload:
@@ -55,13 +55,11 @@ class LadenReturnPayload:
     def __init__(self, src_port_idx: int, dest_port_idx: int, quantity: int):
         self.src_port_idx = src_port_idx
         self.dest_port_idx = dest_port_idx
-        self.quantity = quantity
+        self.quantity = int(quantity)
 
     def __repr__(self):
-        return (
-            f"LadenReturnPayload {{ source port: {self.src_port_idx}, destination port: {self.dest_port_idx}, "
-            f"quantity: {self.quantity}}}"
-        )
+        return "%s {src_port_idx: %r, dest_port_idx: %r, quantity:%r}" % \
+            (self.__class__.__name__, self.src_port_idx, self.dest_port_idx, self.quantity)
 
 
 class EmptyReturnPayload:
@@ -75,7 +73,8 @@ class EmptyReturnPayload:
 
     def __init__(self, port_idx: int, quantity: int):
         self.port_idx = port_idx
-        self.quantity = quantity
+        self.quantity = int(quantity)
 
     def __repr__(self):
-        return f"EmptyReturnPayload {{ port idx: {self.port_idx}, quantity: {self.quantity}}}"
+        return "%s {port_idx: %r, quantity: %r}" % \
+            (self.__class__.__name__, self.port_idx, self.quantity)

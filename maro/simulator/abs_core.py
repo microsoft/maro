@@ -60,6 +60,10 @@ class AbsEnv(ABC):
         self._business_engine: AbsBusinessEngine = None
         self._event_buffer: EventBuffer = None
 
+    @property
+    def business_engine(self):
+        return self._business_engine
+
     @abstractmethod
     def step(self, action):
         """Push the environment to next step with action.
