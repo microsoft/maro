@@ -3,6 +3,7 @@
 
 import argparse
 import sys
+import time
 from multiprocessing import Process
 from os import getenv, makedirs
 from os.path import dirname, join, realpath
@@ -48,6 +49,7 @@ def sc_learner():
         log_env_metrics=config["log_env_metrics"],
         log_dir=log_dir
     )
+
     learner.run()
 
 
@@ -61,7 +63,7 @@ def sc_actor(name: str):
         redis_address=(REDIS_HOST, REDIS_PORT),
         log_dir=log_dir
     )
-
+    time.sleep(10)
     actor.run()
 
 
