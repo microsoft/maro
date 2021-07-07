@@ -25,10 +25,11 @@ class Action:
     Args:
         vessel_idx (int): Which vessel will take action.
         port_idx (int): Which port will take action.
-        quantity (int): How many containers can be moved from vessel to port (negative in reverse).
+        action_type (ActinType): Whether the action is a Load or a Discharge.
+        quantity (int): How many containers are loaded/discharged in this Action.
     """
 
-    summary_key = ["port_idx", "vessel_idx", "quantity"]
+    summary_key = ["port_idx", "vessel_idx", "action_type", "quantity"]
 
     def __init__(self, vessel_idx: int, port_idx: int, quantity: int, action_type: ActionType):
         self.vessel_idx = vessel_idx

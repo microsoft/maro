@@ -192,7 +192,7 @@ maro inspector dashboard --source_path ./dump_data/YOUR_SNAPSHOT_DUMP_FOLDER
   # Redis commander (GUI for redis) -> http://127.0.0.1:40009
   # Local host docs -> http://127.0.0.1:40010
   # Jupyter lab with maro -> http://127.0.0.1:40011
-  docker run -p 40009:40009 -p 40010:40010 -p 40011:40011 maro2020/playground:cpu
+  docker run -p 40009:40009 -p 40010:40010 -p 40011:40011 maro2020/playground
   ```
 
 - Build from source
@@ -206,7 +206,7 @@ maro inspector dashboard --source_path ./dump_data/YOUR_SNAPSHOT_DUMP_FOLDER
     # Redis commander (GUI for redis) -> http://127.0.0.1:40009
     # Local host docs -> http://127.0.0.1:40010
     # Jupyter lab with maro -> http://127.0.0.1:40011
-    docker run -p 40009:40009 -p 40010:40010 -p 40011:40011 maro2020/playground:cpu
+    docker run -p 40009:40009 -p 40010:40010 -p 40011:40011 maro2020/playground
     ```
 
   - Windows
@@ -219,7 +219,7 @@ maro inspector dashboard --source_path ./dump_data/YOUR_SNAPSHOT_DUMP_FOLDER
     # Redis commander (GUI for redis) -> http://127.0.0.1:40009
     # Local host docs -> http://127.0.0.1:40010
     # Jupyter lab with maro -> http://127.0.0.1:40011
-    docker run -p 40009:40009 -p 40010:40010 -p 40011:40011 maro2020/playground:cpu
+    docker run -p 40009:40009 -p 40010:40010 -p 40011:40011 maro2020/playground
     ```
 
 ## Contributing

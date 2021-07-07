@@ -182,7 +182,7 @@ Run Playground
 *
   Pull from `Docker Hub <https://hub.docker.com/r/maro2020/playground>`_
   .. code-block:: sh
-     docker pull maro2020/playground:cpu
+     docker pull maro2020/playground
 
   .. code-block:: sh
 
@@ -190,7 +190,7 @@ Run Playground
      # Redis commander (GUI for redis) -> http://127.0.0.1:40009
      # Local host docs -> http://127.0.0.1:40010
      # Jupyter lab with maro -> http://127.0.0.1:40011
-     docker run -p 40009:40009 -p 40010:40010 -p 40011:40011 maro2020/playground:cpu
+     docker run -p 40009:40009 -p 40010:40010 -p 40011:40011 maro2020/playground
 
 *
   Build from source
@@ -208,7 +208,7 @@ Run Playground
        # Redis commander (GUI for redis) -> http://127.0.0.1:40009
        # Local host docs -> http://127.0.0.1:40010
        # Jupyter lab with maro -> http://127.0.0.1:40011
-       docker run -p 40009:40009 -p 40010:40010 -p 40011:40011 maro2020/playground:cpu
+       docker run -p 40009:40009 -p 40010:40010 -p 40011:40011 maro2020/playground
 
   *
     Windows
@@ -222,7 +222,7 @@ Run Playground
        # Redis commander (GUI for redis) -> http://127.0.0.1:40009
        # Local host docs -> http://127.0.0.1:40010
        # Jupyter lab with maro -> http://127.0.0.1:40011
-       docker run -p 40009:40009 -p 40010:40010 -p 40011:40011 maro2020/playground:cpu
+       docker run -p 40009:40009 -p 40010:40010 -p 40011:40011 maro2020/playground
 
 Contributing
 ------------
