@@ -8,12 +8,12 @@ from maro.rl.learning.synchronous import (
     Learner, LocalRolloutManager, MultiNodeRolloutManager, MultiProcessRolloutManager
 )
 
-template_dir = dirname(dirname((realpath(__file__))))
-if template_dir not in sys.path:
-    sys.path.insert(0, template_dir)
+workflow_dir = dirname(dirname((realpath(__file__))))
+if workflow_dir not in sys.path:
+    sys.path.insert(0, workflow_dir)
 
 from policy_manager.policy_manager import get_policy_manager
-from scenario_index import config, get_agent_wrapper, get_env_wrapper, log_dir
+from general import config, get_agent_wrapper, get_env_wrapper, log_dir
 
 
 def get_rollout_manager():

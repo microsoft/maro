@@ -26,8 +26,8 @@ def policy_server(
         policy_manager (AbsPolicyManager): An ``AbsPolicyManager`` instance that hosts all policies and updates
             them using experiences collected by the actors.
         num_actors (int): Number of remote actors to collect simulation experiences.
-        max_lag (int): Maximum policy version lag allowed for experiences collected from remote roll-out workers.
-            Experiences collected using policy versions older than (current_version - max_lag) will be discarded.
+        max_lag (int): Maximum policy version lag allowed for experiences collected from remote actors. Experiences
+            collected using policy versions older than (current_version - max_lag) will be discarded.
             Defaults to 0, in which case only experiences collected using the latest policy version will be returned.
         proxy_kwargs: Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
             for details. Defaults to the empty dictionary.

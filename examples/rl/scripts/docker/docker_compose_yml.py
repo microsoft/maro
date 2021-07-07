@@ -9,9 +9,9 @@ path = realpath(__file__)
 script_dir = dirname(path)
 rl_example_dir = dirname(dirname(script_dir))
 root_dir = dirname(dirname(rl_example_dir))
-template_dir = join(rl_example_dir, "templates")
+workflow_dir = join(rl_example_dir, "templates")
 maro_rl_dir = join(root_dir, "maro", "rl")
-config_path = join(template_dir, "config.yml")
+config_path = join(workflow_dir, "config.yml")
 dockerfile_path = join(root_dir, "docker_files", "dev.df")
 
 with open(config_path, "r") as fp:

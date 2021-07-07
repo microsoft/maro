@@ -73,25 +73,18 @@ class QNet(DiscreteQNet):
         return self.component(states)
 
 
-def get_dqn_policy_for_training():
+def get_dqn_policy(training: bool = True):
     qnet = QNet(
         FullyConnectedBlock(**config["model"]["network"]),
-        optim_option=OptimOption(**config["model"]["optimization"])
+        optim_option=OptimOption(**config["model"]["optimization"]) if training else None
     )
+    if training:
+        exp_manager = ExperienceManager(**config["experience_manager"]["training"])
+    else:
+        exp_manager = ExperienceManager(**config["experience_manager"]["rollout"])
     return DQN(
-        qnet,
-        ExperienceManager(**config["experience_manager"]["training"]),
-        DQNConfig(**config["algorithm"]),
-        update_trigger=config["update_trigger"],
-        warmup=config["warmup"]
-    )
-
-
-def get_dqn_policy_for_rollout():
-    qnet = QNet(FullyConnectedBlock(**config["model"]["network"]))
-    return DQN(
-        qnet,
-        ExperienceManager(**config["experience_manager"]["rollout"]),
-        DQNConfig(**config["algorithm"]),
-        update_trigger=1e8  # set to a large number to ensure that the roll-out workers don't update policies
+        qnet, exp_manager, DQNConfig(**config["algorithm"]),
+        # set these to a large number to ensure that the roll-out workers don't update policies
+        update_trigger=config["update_trigger"] if training else 1e8,
+        warmup=config["warmup"] if training else 1e8
     )
