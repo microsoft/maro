@@ -9,6 +9,7 @@ from maro.rl.learning.asynchronous import policy_server
 workflow_dir = dirname(dirname(realpath(__file__)))  # DQN directory
 if workflow_dir not in sys.path:
     sys.path.insert(0, workflow_dir)
+
 from policy_manager.policy_manager import get_policy_manager
 from general import config, log_dir
 
