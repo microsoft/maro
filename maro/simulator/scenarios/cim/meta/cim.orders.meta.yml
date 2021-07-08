@@ -1,0 +1,13 @@
+entity:
+    timestamp:
+        column: 'tick'
+        dtype: 'i8'
+    src_port_index:
+        column: 'source_port_index'
+        dtype: 'i'
+    dest_port_index:
+        column: 'dest_port_index'
+        dtype: 'i'
+    quantity:
+        column: 'quantity'
+        dtype: 'i'

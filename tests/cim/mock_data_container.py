@@ -5,7 +5,7 @@ import csv
 import os
 from collections import defaultdict
 
-from maro.data_lib.cim.entities import Order, PortSetting, Stop, VesselSetting
+from maro.data_lib.cim.entities import Order, SyntheticPortSetting, Stop, VesselSetting
 
 PORT_NUM = 3
 VESSEL_NUM = 2
@@ -78,7 +78,7 @@ class MockReachableStopsWrapper:
         route_idx = key[1]
         next_loc_idx = key[2]
 
-        return [(stop.port_idx, stop.arrive_tick) for stop in
+        return [(stop.port_idx, stop.arrival_tick) for stop in
                     self._stops[vessel_idx][next_loc_idx + 1:next_loc_idx + 1 + self._route_length[route_idx]]]
 
 class MockDataContainer:
@@ -214,7 +214,7 @@ class MockDataContainer:
                     if port_id not in self.ports_dict:
                         self.ports_dict[port_id] = {}
 
-                    port = PortSetting(port_id, f"p{port_id}", cap, cntr, None, None, None, None)
+                    port = SyntheticPortSetting(port_id, f"p{port_id}", cap, cntr, None, None, None, None)
 
                     self._ports.append(port)
 

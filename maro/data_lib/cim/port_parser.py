@@ -3,14 +3,14 @@
 
 from typing import Dict, List
 
-from .entities import NoisedItem, PortSetting
+from .entities import NoisedItem, SyntheticPortSetting
 
 
 class PortsParser:
     """Parser used to parse port information from configurations
     """
 
-    def parse(self, conf: dict, total_container: int) -> (Dict[str, int], List[PortSetting]):
+    def parse(self, conf: dict, total_container: int) -> (Dict[str, int], List[SyntheticPortSetting]):
         """Parse specified port configurations.
 
         Args:
@@ -18,7 +18,7 @@ class PortsParser:
             total_container (int): Total container in current environment, used to calculate initial empty.
 
         Returns:
-            (Dict[str, int], List[PortSetting]): Port mapping (name to index), list of port settings.
+            (Dict[str, int], List[SyntheticPortSetting]): Port mapping (name to index), list of port settings.
         """
         # sum of ratio cannot large than 1
         total_ratio = sum([p["initial_container_proportion"] for p in conf.values()])
@@ -34,7 +34,7 @@ class PortsParser:
             ports_mapping[port_name] = index
             index += 1
 
-        ports_settings: List[PortSetting] = []
+        ports_settings: List[SyntheticPortSetting] = []
 
         for port_idx, port in enumerate(conf.items()):
             port_name, port_info = port
@@ -61,16 +61,11 @@ class PortsParser:
 
                     targets_dist.append(dist)
 
-            port_setting = PortSetting(
+            port_setting = SyntheticPortSetting(
                 port_idx,
                 port_name,
                 port_info["capacity"],
                 int(empty_ratio * total_container),
-                NoisedItem(
-                    port_idx,
-                    source_dist_conf["proportion"],
-                    source_dist_conf["noise"]),
-                targets_dist,
                 NoisedItem(
                     port_idx,
                     empty_return_conf["buffer_ticks"],
@@ -78,7 +73,12 @@ class PortsParser:
                 NoisedItem(
                     port_idx,
                     full_return_conf["buffer_ticks"],
-                    full_return_conf["noise"]))
+                    full_return_conf["noise"]),
+                NoisedItem(
+                    port_idx,
+                    source_dist_conf["proportion"],
+                    source_dist_conf["noise"]),
+                targets_dist)
 
             ports_settings.append(port_setting)
 
