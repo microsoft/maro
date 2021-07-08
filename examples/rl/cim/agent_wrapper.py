@@ -28,7 +28,7 @@ def get_agent_wrapper():
         **exploration_config
     )
     return AgentWrapper(
-        {name: func(training=False) for name, func in policy_func_index.items()},
+        {name: func(learning=False) for name, func in policy_func_index.items()},
         {name: name for name in AGENT_IDS},
         exploration_dict={f"EpsilonGreedy": epsilon_greedy},
         agent2exploration={name: "EpsilonGreedy" for name in AGENT_IDS}

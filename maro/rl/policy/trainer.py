@@ -83,7 +83,7 @@ def trainer_node(
                 policy_dict[name].set_state(state)
                 logger.info(f"{proxy.name} initialized policy {name}")
             proxy.reply(msg, tag=MsgTag.INIT_POLICY_STATE_DONE)
-        elif msg.tag == MsgTag.TRAIN:
+        elif msg.tag == MsgTag.LEARN:
             t0 = time.time()
             for name, exp in msg.body[MsgKey.EXPERIENCES].items():
                 policy_dict[name].store(exp)

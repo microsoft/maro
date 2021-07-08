@@ -55,7 +55,7 @@ class AgentWrapper:
         """Get experiences by policy names."""
         names = set()
         for agent_id, exp in env.get_experiences().items():
-            if hasattr(self.policy[agent_id], "update"):
+            if hasattr(self.policy[agent_id], "store"):
                 self.policy[agent_id].store(exp)
             names.add(self.agent2policy[agent_id])
 

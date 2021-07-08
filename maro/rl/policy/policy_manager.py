@@ -288,7 +288,7 @@ class MultiNodePolicyManager(AbsPolicyManager):
                 msg_body_by_dest[trainer_id][MsgKey.EXPERIENCES] = {}
             msg_body_by_dest[trainer_id][MsgKey.EXPERIENCES][policy_name] = exp
 
-        for reply in self._proxy.scatter(MsgTag.TRAIN, SessionType.TASK, list(msg_body_by_dest.items())):
+        for reply in self._proxy.scatter(MsgTag.LEARN, SessionType.TASK, list(msg_body_by_dest.items())):
             for policy_name, policy_state in reply.body[MsgKey.POLICY_STATE].items():
                 self.policy_dict[policy_name].set_state(policy_state)
 
