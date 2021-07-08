@@ -6,11 +6,12 @@ from os.path import dirname, realpath
 
 from maro.rl.learning.asynchronous import policy_server
 
-template_dir = dirname(dirname(realpath(__file__)))  # DQN directory
-if template_dir not in sys.path:
-    sys.path.insert(0, template_dir)
-from general import config, log_dir
+workflow_dir = dirname(dirname(realpath(__file__)))  # DQN directory
+if workflow_dir not in sys.path:
+    sys.path.insert(0, workflow_dir)
+
 from policy_manager.policy_manager import get_policy_manager
+from general import config, log_dir
 
 
 if __name__ == "__main__":

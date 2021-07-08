@@ -35,21 +35,16 @@ class PolicyGradient(AbsCorePolicy):
         experience_manager (ExperienceManager): An experience manager for storing and retrieving experiences
             for training.
         config (PolicyGradientConfig): Configuration for the PG algorithm.
-        update_trigger (int): Minimum number of new experiences required to trigger an ``update`` call. Defaults to 1.
-        warmup (int): Minimum number of experiences in the experience memory required to trigger an ``update`` call.
-            Defaults to 1.
     """
     def __init__(
         self,
         policy_net: DiscretePolicyNet,
         experience_manager: ExperienceManager,
         config: PolicyGradientConfig,
-        update_trigger: int = 1,
-        warmup: int = 1
     ):
         if not isinstance(policy_net, DiscretePolicyNet):
             raise TypeError("model must be an instance of 'DiscretePolicyNet'")
-        super().__init__(experience_manager, update_trigger=update_trigger, warmup=warmup)
+        super().__init__(experience_manager)
         self.policy_net = policy_net
         self.config = config
         self.device = self.policy_net.device
@@ -61,7 +56,7 @@ class PolicyGradient(AbsCorePolicy):
         actions, log_p = actions.cpu().numpy(), log_p.cpu().numpy()
         return (actions[0], log_p[0]) if len(actions) == 1 else actions, log_p
 
-    def update(self):
+    def learn(self):
         """
         This should be called at the end of a simulation episode and the experiences obtained from
         the experience manager's ``get`` method should be a sequential set, i.e., in the order in

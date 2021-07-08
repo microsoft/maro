@@ -13,7 +13,7 @@ class MsgTag(Enum):
     POLICY_STATE = "policy_state"
     CHOOSE_ACTION = "choose_action"
     ACTION = "action"
-    TRAIN = "train"
+    LEARN = "LEARN"
     ABORT_ROLLOUT = "abort_rollout"
     EVAL_DONE = "eval_done"
     COLLECT_DONE = "collect_done"

@@ -61,23 +61,13 @@ class ActorCritic(AbsCorePolicy):
         experience_manager (ExperienceManager): An experience manager for storing and retrieving experiences
             for training.
         config: Configuration for the AC algorithm.
-        update_trigger (int): Minimum number of new experiences required to trigger an ``update`` call. Defaults to 1.
-        warmup (int): Minimum number of experiences in the experience memory required to trigger an ``update`` call.
-            Defaults to 1.
     """
 
-    def __init__(
-        self,
-        ac_net: DiscreteACNet,
-        experience_manager: ExperienceManager,
-        config: ActorCriticConfig,
-        update_trigger: int = 1,
-        warmup: int = 1
-    ):
+    def __init__(self, ac_net: DiscreteACNet, experience_manager: ExperienceManager, config: ActorCriticConfig):
         if not isinstance(ac_net, DiscreteACNet):
             raise TypeError("model must be an instance of 'DiscreteACNet'")
 
-        super().__init__(experience_manager, update_trigger=update_trigger, warmup=warmup)
+        super().__init__(experience_manager)
         self.ac_net = ac_net
         self.config = config
         self.device = self.ac_net.device
@@ -89,7 +79,7 @@ class ActorCritic(AbsCorePolicy):
         actions, log_p = actions.cpu().numpy(), log_p.cpu().numpy()
         return (actions[0], log_p[0]) if len(actions) == 1 else (actions, log_p)
 
-    def update(self):
+    def learn(self):
         self.ac_net.train()
         for _ in range(self.config.train_epochs):
             experience_set = self.experience_manager.get()

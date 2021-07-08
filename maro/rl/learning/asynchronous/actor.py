@@ -86,7 +86,7 @@ def actor(
     # main loop
     for ep in range(1, num_episodes + 1):
         t0 = time.time()
-        num_experiences_collected = 0
+        num_training_experiences = 0
         agent_wrapper.explore()
         env_wrapper.reset()
         env_wrapper.start()  # get initial state
@@ -107,10 +107,8 @@ def actor(
                 f"steps {start_step_index} - {env_wrapper.step_index})"
             )
 
-            exp_by_agent = env_wrapper.get_experiences()
-            policies_with_new_exp = agent_wrapper.on_experiences(exp_by_agent)
-            num_experiences_collected += sum(exp.size for exp in exp_by_agent.values())
-            exp_by_policy = agent_wrapper.get_experiences_by_policy(policies_with_new_exp)
+            exp_by_policy = agent_wrapper.get_batch(env_wrapper)
+            num_training_experiences += sum(exp.size for exp in exp_by_policy.values())
             reply = proxy.send(
                 SessionMessage(
                     MsgTag.COLLECT_DONE, proxy.name, policy_server_address,
@@ -131,7 +129,7 @@ def actor(
             f"ep {ep} summary - "
             f"running time: {time.time() - t0} "
             f"env steps: {env_wrapper.step_index} "
-            f"experiences collected: {num_experiences_collected}"
+            f"experiences collected: {num_training_experiences}"
         )
         if ep == eval_schedule[eval_point_index]:
             # evaluation

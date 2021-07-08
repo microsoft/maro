@@ -34,18 +34,6 @@ maro.rl.algorithms.pg
    :show-inheritance:
 
 
-Environment Wrapper
-================================================================================
-
-maro.rl.env_wrapper.env_wrapper
---------------------------------------------------------------------------------
-
-.. automodule:: maro.rl.env_wrapper.env_wrapper
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-
 Experience
 ================================================================================
 
@@ -141,70 +129,94 @@ maro.rl.policy.policy
    :undoc-members:
    :show-inheritance:
 
+maro.rl.policy.policy_manager
+--------------------------------------------------------------------------------
 
-Training
+.. automodule:: maro.rl.policy.policy_manager
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.rl.policy.trainer
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.rl.policy.trainer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Learning
 ================================================================================
 
-maro.rl.training.agent_wrapper
+maro.rl.learning.env_wrapper
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.training.agent_wrapper
+.. automodule:: maro.rl.learning.env_wrapper
    :members:
    :undoc-members:
    :show-inheritance:
 
-maro.rl.training.early_stopper
+maro.rl.learning.agent_wrapper
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.training.early_stopper
+.. automodule:: maro.rl.learning.agent_wrapper
    :members:
    :undoc-members:
    :show-inheritance:
 
-maro.rl.training.learner
+maro.rl.learning.early_stopper
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.training.learner
+.. automodule:: maro.rl.learning.early_stopper
    :members:
    :undoc-members:
    :show-inheritance:
 
-maro.rl.training.local_learner
+maro.rl.learning.simple_learner
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.training.local_learner
+.. automodule:: maro.rl.learning.simple_learner
    :members:
    :undoc-members:
    :show-inheritance:
 
-maro.rl.training.trainer
+maro.rl.learning.synchronous.learner
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.training.trainer
+.. automodule:: maro.rl.learning.synchronous.learner
    :members:
    :undoc-members:
    :show-inheritance:
 
-maro.rl.training.rollout_manager
+maro.rl.learning.synchronous.rollout_manager
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.training.rollout_manager
+.. automodule:: maro.rl.learning.synchronous.rollout_manager
    :members:
    :undoc-members:
    :show-inheritance:
 
-maro.rl.training.rollout_worker
+maro.rl.learning.synchronous.rollout_worker
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.training.rollout_worker
+.. automodule:: maro.rl.learning.synchronous.rollout_worker
    :members:
    :undoc-members:
    :show-inheritance:
 
-maro.rl.training.policy_manager
+maro.rl.learning.asynchronous.actor
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.training.policy_manager
+.. automodule:: maro.rl.learning.asynchronous.actor
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+maro.rl.learning.asynchronous.policy_server
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.rl.learning.asynchronous.policy_server
    :members:
    :undoc-members:
    :show-inheritance:

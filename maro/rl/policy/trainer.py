@@ -38,15 +38,11 @@ def trainer_process(
         msg = conn.recv()
         if msg["type"] == "train":
             t0 = time.time()
-            updated = {
-                name: policy_dict[name].get_state() for name, exp in msg["experiences"].items()
-                if policy_dict[name].on_experiences(exp)
-            }
+            for name, exp in msg["experiences"].items():
+                policy_dict[name].store(exp)
+                policy_dict[name].learn()
             logger.debug(f"total policy update time: {time.time() - t0}")
-            conn.send({"policy": updated})
-        elif msg["type"] == "get_policy_state":
-            policy_state_dict = {name: policy.get_state() for name, policy in policy_dict.items()}
-            conn.send({"policy": policy_state_dict})
+            conn.send({"policy": {name: policy_dict[name].get_state() for name in msg["experiences"]}})
         elif msg["type"] == "quit":
             break
 
@@ -87,13 +83,14 @@ def trainer_node(
                 policy_dict[name].set_state(state)
                 logger.info(f"{proxy.name} initialized policy {name}")
             proxy.reply(msg, tag=MsgTag.INIT_POLICY_STATE_DONE)
-        elif msg.tag == MsgTag.TRAIN:
+        elif msg.tag == MsgTag.LEARN:
             t0 = time.time()
+            for name, exp in msg.body[MsgKey.EXPERIENCES].items():
+                policy_dict[name].store(exp)
+                policy_dict[name].learn()
+
             msg_body = {
-                MsgKey.POLICY_STATE: {
-                    name: policy_dict[name].get_state() for name, exp in msg.body[MsgKey.EXPERIENCES].items()
-                    if policy_dict[name].on_experiences(exp)
-                }
+                MsgKey.POLICY_STATE: {name: policy_dict[name].get_state() for name in msg.body[MsgKey.EXPERIENCES]}
             }
             logger.debug(f"total policy update time: {time.time() - t0}")
             proxy.reply(msg, body=msg_body)

@@ -7,9 +7,9 @@ import sys
 import numpy as np
 import torch
 import torch.nn as nn
-from maro.rl.algorithms import DQN, DQNConfig
 from maro.rl.experience import ExperienceManager
 from maro.rl.model import DiscreteQNet, FullyConnectedBlock, OptimOption
+from maro.rl.policy.algorithms import DQN, DQNConfig
 
 cim_path = os.path.dirname(os.path.realpath(__file__))
 if cim_path not in sys.path:
@@ -48,7 +48,7 @@ config = {
             "batch_size": -1,
             "replace": False
         },
-        "training": {      # for experience managers in the learner process
+        "learning": {      # for experience managers in the learner process
             "capacity": 100000,
             "overwrite_type": "rolling",
             "batch_size": 128,
@@ -56,9 +56,7 @@ config = {
             "beta": 0.4,
             "beta_step": 0.001
         }
-    },
-    "update_trigger": 16,
-    "warmup": 1        
+    }    
 }
 
 
@@ -73,25 +71,13 @@ class QNet(DiscreteQNet):
         return self.component(states)
 
 
-def get_dqn_policy_for_training():
+def get_dqn_policy(learning: bool = True):
     qnet = QNet(
         FullyConnectedBlock(**config["model"]["network"]),
-        optim_option=OptimOption(**config["model"]["optimization"])
+        optim_option=OptimOption(**config["model"]["optimization"]) if learning else None
     )
-    return DQN(
-        qnet,
-        ExperienceManager(**config["experience_manager"]["training"]),
-        DQNConfig(**config["algorithm"]),
-        update_trigger=config["update_trigger"],
-        warmup=config["warmup"]
-    )
-
-
-def get_dqn_policy_for_rollout():
-    qnet = QNet(FullyConnectedBlock(**config["model"]["network"]))
-    return DQN(
-        qnet,
-        ExperienceManager(**config["experience_manager"]["rollout"]),
-        DQNConfig(**config["algorithm"]),
-        update_trigger=1e8  # set to a large number to ensure that the roll-out workers don't update policies
-    )
+    if learning:
+        exp_manager = ExperienceManager(**config["experience_manager"]["learning"])
+    else:
+        exp_manager = ExperienceManager(**config["experience_manager"]["rollout"])
+    return DQN(qnet, exp_manager, DQNConfig(**config["algorithm"]))

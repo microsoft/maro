@@ -55,22 +55,12 @@ class DQN(AbsCorePolicy):
         experience_manager (ExperienceManager): An experience manager for storing and retrieving experiences
             for training.
         config (DQNConfig): Configuration for DQN algorithm.
-        update_trigger (int): Minimum number of new experiences required to trigger an ``update`` call. Defaults to 1.
-        warmup (int): Minimum number of experiences in the experience memory required to trigger an ``update`` call.
-            Defaults to 1.
     """
-    def __init__(
-        self,
-        q_net: DiscreteQNet,
-        experience_manager: ExperienceManager,
-        config: DQNConfig,
-        update_trigger: int = 1,
-        warmup: int = 1,
-    ):
+    def __init__(self, q_net: DiscreteQNet, experience_manager: ExperienceManager, config: DQNConfig):
         if not isinstance(q_net, DiscreteQNet):
             raise TypeError("model must be an instance of 'DiscreteQNet'")
 
-        super().__init__(experience_manager, update_trigger=update_trigger, warmup=warmup)
+        super().__init__(experience_manager)
         self.q_net = q_net
         if self.q_net.trainable:
             self.target_q_net = q_net.copy()
@@ -92,7 +82,7 @@ class DQN(AbsCorePolicy):
         actions = actions.cpu().numpy()
         return actions[0] if len(actions) == 1 else actions
 
-    def update(self):
+    def learn(self):
         assert self.q_net.trainable, "q_net needs to have at least one optimizer registered."
         self.q_net.train()
         for _ in range(self.config.train_epochs):
