@@ -96,18 +96,18 @@ ports:
           proportion: 0.5
 routes:
   route_001:
-  - distance: 60
+  - distance_to_next_port: 60
     port_name: transfer_port_001
-  - distance: 60
+  - distance_to_next_port: 60
     port_name: supply_port_001
-  - distance: 60
+  - distance_to_next_port: 60
     port_name: supply_port_002
   route_002:
-  - distance: 60
+  - distance_to_next_port: 60
     port_name: transfer_port_001
-  - distance: 60
+  - distance_to_next_port: 60
     port_name: demand_port_001
-  - distance: 60
+  - distance_to_next_port: 60
     port_name: demand_port_002
 stop_number:
 - 4

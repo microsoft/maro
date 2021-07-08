@@ -3,7 +3,7 @@
 
 from math import ceil
 
-from .entities import CimDataCollection, Stop
+from .entities import CimBaseDataCollection, Stop
 
 
 class VesselFutureStopsPrediction:
@@ -17,7 +17,7 @@ class VesselFutureStopsPrediction:
             stops = data_cntr.vessel_future_stops[0]
     """
 
-    def __init__(self, data: CimDataCollection):
+    def __init__(self, data: CimBaseDataCollection):
         self._vessels = data.vessels_settings
         self._stops = data.vessels_stops
         self._routes = data.routes
@@ -39,11 +39,11 @@ class VesselFutureStopsPrediction:
 
         last_stop = self._stops[vessel_idx][last_stop_idx]
         last_port_idx = last_stop.port_idx
-        last_port_arrive_tick = last_stop.arrive_tick
+        last_port_arrival_tick = last_stop.arrival_tick
 
-        return self._predict_future_stops(vessel_idx, last_port_idx, last_port_arrive_tick, self._stop_number)
+        return self._predict_future_stops(vessel_idx, last_port_idx, last_port_arrival_tick, self._stop_number)
 
-    def _predict_future_stops(self, vessel_idx: int, last_port_idx: int, last_port_arrive_tick: int, stop_number: int):
+    def _predict_future_stops(self, vessel_idx: int, last_port_idx: int, last_port_arrival_tick: int, stop_number: int):
         """Do predict future stops.
         """
         vessel = self._vessels[vessel_idx]
@@ -66,21 +66,21 @@ class VesselFutureStopsPrediction:
             return []
 
         predicted_future_stops = []
-        arrive_tick = last_port_arrive_tick
+        arrival_tick = last_port_arrival_tick
 
         # predict from configured sailing plan, not from stops
         for loc_idx in range(last_loc_idx + 1, last_loc_idx + stop_number + 1):
             route_info = route_points[loc_idx % route_length]
-            port_idx, distance = self._port_mapping[route_info.port_name], route_info.distance
+            port_idx, distance_to_next_port = self._port_mapping[route_info.port_name], route_info.distance_to_next_port
 
             # NO noise for speed
-            arrive_tick += duration + ceil(distance / speed)
+            arrival_tick += duration + ceil(distance_to_next_port / speed)
 
             predicted_future_stops.append(
                 Stop(
                     -1,  # predict stop do not have valid index
-                    arrive_tick,
-                    arrive_tick + duration,
+                    arrival_tick,
+                    arrival_tick + duration,
                     port_idx,
                     vessel_idx
                 )

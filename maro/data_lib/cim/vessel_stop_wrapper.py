@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from .entities import CimDataCollection
+from .entities import CimBaseDataCollection
 
 
 class VesselStopsWrapper:
@@ -21,7 +21,7 @@ class VesselStopsWrapper:
             stops = data_cntr.vessel_stops[:]
     """
 
-    def __init__(self, data: CimDataCollection):
+    def __init__(self, data: CimBaseDataCollection):
         self._stops = data.vessels_stops
 
     def __getitem__(self, key):
