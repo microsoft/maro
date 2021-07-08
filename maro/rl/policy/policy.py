@@ -34,28 +34,17 @@ class AbsCorePolicy(AbsPolicy):
     Args:
         experience_manager (ExperienceManager): An experience manager for storing and retrieving experiences
             for training.
-        update_trigger (int): Minimum number of new experiences required to trigger an ``update`` call. Defaults to 1.
-        warmup (int): Minimum number of experiences in the experience memory required to trigger an ``update`` call.
-            Defaults to 1.
     """
-    def __init__(
-        self,
-        experience_manager: ExperienceManager,
-        update_trigger: int = 1,
-        warmup: int = 1
-    ):
+    def __init__(self, experience_manager: ExperienceManager):
         super().__init__()
         self.experience_manager = experience_manager
-        self.update_trigger = update_trigger
-        self.warmup = warmup
-        self._new_exp_counter = 0
 
     @abstractmethod
     def choose_action(self, state):
         raise NotImplementedError
 
     @abstractmethod
-    def update(self):
+    def learn(self):
         """Policy update logic is implemented here.
 
         This usually includes retrieving experiences as training samples from the experience manager and
@@ -83,23 +72,22 @@ class AbsCorePolicy(AbsPolicy):
         """
         pass
 
-    def on_experiences(self, exp: ExperienceSet) -> bool:
+    def freeze(self):
+        """Freeze the policy instance so that incoming experiences will not trigger calls to ``learn``."""
+        self.learning = False
+
+    def unfreeze(self):
+        """Unfreeze the policy to allow incoming experiences to trigger calls to ``learn``."""
+        self.learning = True
+
+    def store_experiences(self, exp: ExperienceSet) -> bool:
         """
         Store incoming experiences and update if necessary.
         """
         self.experience_manager.put(exp)
-        self._new_exp_counter += exp.size
-        print(
-            f"exp mem size = {self.experience_manager.size}, incoming: {exp.size}, new exp = {self._new_exp_counter}"
-        )
-        if self.experience_manager.size >= self.warmup and self._new_exp_counter >= self.update_trigger:
-            t0 = time.time()
-            self.update()
-            print(f"policy update time: {time.time() - t0}")
-            self._new_exp_counter = 0
-            return True
-
-        return False
+        # print(
+        #     f"exp mem size = {self.experience_manager.size}, incoming: {exp.size}, new exp = {self._new_exp_counter}"
+        # )
 
     def load(self, path: str):
         """Load the policy state from disk."""

@@ -7,9 +7,9 @@ import sys
 import numpy as np
 import torch
 import torch.nn as nn
-from maro.rl.algorithms import DQN, DQNConfig
 from maro.rl.experience import ExperienceManager
 from maro.rl.model import DiscreteQNet, FullyConnectedBlock, OptimOption
+from maro.rl.policy.algorithms import DQN, DQNConfig
 
 cim_path = os.path.dirname(os.path.realpath(__file__))
 if cim_path not in sys.path:
@@ -73,18 +73,18 @@ class QNet(DiscreteQNet):
         return self.component(states)
 
 
-def get_dqn_policy(training: bool = True):
+def get_dqn_policy(learning: bool = True):
     qnet = QNet(
         FullyConnectedBlock(**config["model"]["network"]),
-        optim_option=OptimOption(**config["model"]["optimization"]) if training else None
+        optim_option=OptimOption(**config["model"]["optimization"]) if learning else None
     )
-    if training:
+    if learning:
         exp_manager = ExperienceManager(**config["experience_manager"]["training"])
     else:
         exp_manager = ExperienceManager(**config["experience_manager"]["rollout"])
     return DQN(
         qnet, exp_manager, DQNConfig(**config["algorithm"]),
         # set these to a large number to ensure that the roll-out workers don't update policies
-        update_trigger=config["update_trigger"] if training else 1e8,
-        warmup=config["warmup"] if training else 1e8
+        update_trigger=config["update_trigger"] if learning else float("inf"),
+        warmup=config["warmup"] if learning else float("inf")
     )

@@ -86,7 +86,7 @@ class SimpleLearner:
     def run(self):
         """Entry point for executing a learning workflow."""
         for ep in range(1, self.num_episodes + 1):
-            self._train(ep)
+            self._collect_and_update(ep)
             if ep == self._eval_schedule[self._eval_point_index]:
                 self._eval_point_index += 1
                 self._evaluate()
@@ -96,7 +96,7 @@ class SimpleLearner:
                     if self.early_stopper.stop():
                         return
 
-    def _train(self, ep: int):
+    def _collect_and_update(self, ep: int):
         """Collect simulation data for training."""
         t0 = time.time()
         num_experiences_collected = 0
@@ -108,7 +108,7 @@ class SimpleLearner:
         while self.env.state:
             segment += 1
             exp_by_agent = self._collect(ep, segment)
-            self.agent.on_experiences(exp_by_agent)
+            self.agent.update(exp_by_agent)
             num_experiences_collected += sum(exp.size for exp in exp_by_agent.values())
         # update the exploration parameters if an episode is finished
         self.agent.exploration_step()

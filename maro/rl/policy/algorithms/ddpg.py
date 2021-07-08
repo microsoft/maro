@@ -64,22 +64,12 @@ class DDPG(AbsCorePolicy):
         experience_manager (ExperienceManager): An experience manager for storing and retrieving experiences
             for training.
         config (DDPGConfig): Configuration for DDPG algorithm.
-        update_trigger (int): Minimum number of new experiences required to trigger an ``update`` call. Defaults to 1.
-        warmup (int): Minimum number of experiences in the experience memory required to trigger an ``update`` call.
-            Defaults to 1.
     """
-    def __init__(
-        self,
-        ac_net: ContinuousACNet,
-        experience_manager: ExperienceManager,
-        config: DDPGConfig,
-        update_trigger: int = 1,
-        warmup: int = 1,
-    ):
+    def __init__(self, ac_net: ContinuousACNet, experience_manager: ExperienceManager, config: DDPGConfig):
         if not isinstance(ac_net, ContinuousACNet):
             raise TypeError("model must be an instance of 'ContinuousACNet'")
 
-        super().__init__(experience_manager, update_trigger=update_trigger, warmup=warmup)
+        super().__init__(experience_manager)
         self.ac_net = ac_net
         if self.ac_net.trainable:
             self.target_ac_net = ac_net.copy()
@@ -96,7 +86,7 @@ class DDPG(AbsCorePolicy):
 
         return actions[0] if len(actions) == 1 else actions
 
-    def update(self):
+    def learn(self):
         self.ac_net.train()
         for _ in range(self.config.train_epochs):
             experience_set = self.experience_manager.get()

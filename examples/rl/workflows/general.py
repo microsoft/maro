@@ -16,7 +16,7 @@ config_path = join(workflow_dir, "config.yml")
 with open(config_path, "r") as config_file:
     config = yaml.safe_load(config_file)
 
-log_dir = join(rl_example_dir, "logs", config["job_name"])
+log_dir = join(rl_example_dir, "log", config["job_name"])
 
 module = importlib.import_module(f"{config['scenario']}")
 

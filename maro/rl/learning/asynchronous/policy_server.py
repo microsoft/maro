@@ -45,7 +45,6 @@ def policy_server(
                 msg, tag=MsgTag.POLICY_STATE,
                 body={MsgKey.POLICY_STATE: policy_manager.get_state(), MsgKey.VERSION: policy_manager.version}
             )
-            policy_manager.reset_update_status()
         elif msg.tag == MsgTag.COLLECT_DONE:
             if policy_manager.version - msg.body[MsgKey.VERSION] > max_lag:
                 logger.info(
@@ -54,12 +53,14 @@ def policy_server(
                     f"{policy_manager.version - max_lag}, got {msg.body[MsgKey.VERSION]}"
                 )
             else:
-                policy_manager.on_experiences(msg.body[MsgKey.EXPERIENCES])
+                policy_manager.update(msg.body[MsgKey.EXPERIENCES])
             proxy.reply(
                 msg, tag=MsgTag.POLICY_STATE,
-                body={MsgKey.POLICY_STATE: policy_manager.get_state(), MsgKey.VERSION: policy_manager.version}
+                body={
+                    MsgKey.POLICY_STATE: policy_manager.get_state(version=msg.body[MsgKey.VERSION]),
+                    MsgKey.VERSION: policy_manager.version
+                }
             )
-            policy_manager.reset_update_status()
         elif msg.tag == MsgTag.DONE:
             num_active_actors -= 1
             if num_active_actors == 0:

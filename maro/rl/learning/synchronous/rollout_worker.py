@@ -68,7 +68,7 @@ def rollout_worker_process(
             f"steps {starting_step_index} - {env_wrapper.step_index})"
         )
 
-        policies_with_new_exp = agent_wrapper.on_experiences(env_wrapper.get_experiences())
+        policies_with_new_exp = agent_wrapper.store_experiences(env_wrapper.get_experiences())
         ret_exp = agent_wrapper.get_experiences_by_policy(policies_with_new_exp)
 
         return_info = {
@@ -163,7 +163,7 @@ def rollout_worker_node(
             f"steps {starting_step_index} - {env_wrapper.step_index})"
         )
 
-        policy_names = agent_wrapper.on_experiences(env_wrapper.get_experiences())
+        policy_names = agent_wrapper.store_experiences(env_wrapper.get_experiences())
         ret_exp = agent_wrapper.get_experiences_by_policy(policy_names)
 
         return_info = {

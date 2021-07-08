@@ -108,7 +108,7 @@ def actor(
             )
 
             exp_by_agent = env_wrapper.get_experiences()
-            policies_with_new_exp = agent_wrapper.on_experiences(exp_by_agent)
+            policies_with_new_exp = agent_wrapper.store_experiences(exp_by_agent)
             num_experiences_collected += sum(exp.size for exp in exp_by_agent.values())
             exp_by_policy = agent_wrapper.get_experiences_by_policy(policies_with_new_exp)
             reply = proxy.send(

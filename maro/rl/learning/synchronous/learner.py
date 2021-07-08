@@ -73,12 +73,12 @@ class Learner:
         self.early_stopper = early_stopper
 
         self._end_of_episode_kwargs = end_of_episode_kwargs
-        self._last_step_set = {}
+        self._last_policy_version = 0
 
     def run(self):
         """Entry point for executing a learning workflow."""
         for ep in range(1, self.num_episodes + 1):
-            self._train(ep)
+            self._collect_and_update(ep)
             if ep == self._eval_schedule[self._eval_point_index]:
                 self._eval_point_index += 1
                 env_metric_dict = self.rollout_manager.evaluate(ep, self.policy_manager.get_state())
@@ -97,7 +97,7 @@ class Learner:
         if hasattr(self.policy_manager, "exit"):
             self.policy_manager.exit()
 
-    def _train(self, ep: int):
+    def _collect_and_update(self, ep: int):
         collect_time = policy_update_time = num_experiences_collected = 0
         segment = 0
         self.rollout_manager.reset()
@@ -105,13 +105,12 @@ class Learner:
             segment += 1
             # experience collection
             policy_state_dict = self.policy_manager.get_state()
-            self.policy_manager.reset_update_status()
             policy_version = self.policy_manager.version
             tc0 = time.time()
             exp_by_policy = self.rollout_manager.collect(ep, segment, policy_state_dict, policy_version)
             collect_time += time.time() - tc0
             tu0 = time.time()
-            self.policy_manager.on_experiences(exp_by_policy)
+            self.policy_manager.update(exp_by_policy)
             policy_update_time += time.time() - tu0
             num_experiences_collected += sum(exp.size for exp in exp_by_policy.values())
 
