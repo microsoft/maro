@@ -39,7 +39,7 @@ def trainer_process(
         if msg["type"] == "train":
             t0 = time.time()
             for name, exp in msg["experiences"].items():
-                policy_dict[name].store_experiences(exp)
+                policy_dict[name].store(exp)
                 policy_dict[name].learn()
             logger.debug(f"total policy update time: {time.time() - t0}")
             conn.send({"policy": {name: policy_dict[name].get_state() for name in msg["experiences"]}})
@@ -86,7 +86,7 @@ def trainer_node(
         elif msg.tag == MsgTag.TRAIN:
             t0 = time.time()
             for name, exp in msg.body[MsgKey.EXPERIENCES].items():
-                policy_dict[name].store_experiences(exp)
+                policy_dict[name].store(exp)
                 policy_dict[name].learn()
 
             msg_body = {

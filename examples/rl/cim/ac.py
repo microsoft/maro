@@ -70,9 +70,7 @@ config = {
             "beta": 0.4,
             "beta_step": 0.001
         }
-    },
-    "update_trigger": 1,
-    "warmup": 1        
+    }    
 }
 
 

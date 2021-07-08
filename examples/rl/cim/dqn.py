@@ -48,7 +48,7 @@ config = {
             "batch_size": -1,
             "replace": False
         },
-        "training": {      # for experience managers in the learner process
+        "learning": {      # for experience managers in the learner process
             "capacity": 100000,
             "overwrite_type": "rolling",
             "batch_size": 128,
@@ -56,9 +56,7 @@ config = {
             "beta": 0.4,
             "beta_step": 0.001
         }
-    },
-    "update_trigger": 16,
-    "warmup": 1        
+    }    
 }
 
 
@@ -79,12 +77,7 @@ def get_dqn_policy(learning: bool = True):
         optim_option=OptimOption(**config["model"]["optimization"]) if learning else None
     )
     if learning:
-        exp_manager = ExperienceManager(**config["experience_manager"]["training"])
+        exp_manager = ExperienceManager(**config["experience_manager"]["learning"])
     else:
         exp_manager = ExperienceManager(**config["experience_manager"]["rollout"])
-    return DQN(
-        qnet, exp_manager, DQNConfig(**config["algorithm"]),
-        # set these to a large number to ensure that the roll-out workers don't update policies
-        update_trigger=config["update_trigger"] if learning else float("inf"),
-        warmup=config["warmup"] if learning else float("inf")
-    )
+    return DQN(qnet, exp_manager, DQNConfig(**config["algorithm"]))

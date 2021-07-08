@@ -1,10 +1,12 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import Dict, List
+from typing import Dict
 
 from maro.rl.exploration import AbsExploration
 from maro.rl.policy import AbsPolicy
+
+from .env_wrapper import AbsEnvWrapper
 
 
 class AgentWrapper:
@@ -49,19 +51,15 @@ class AgentWrapper:
 
         return action_by_agent
 
-    def store_experiences(self, exp_by_agent: dict) -> set:
-        """Store agent experiences in the policies' experience managers."""
-        policies_with_new_exp = set()
-        for agent_id, exp in exp_by_agent.items():
-            if hasattr(self.policy[agent_id], "update"):
-                self.policy[agent_id].update(exp)
-            policies_with_new_exp.add(self.agent2policy[agent_id])
-
-        return policies_with_new_exp
-
-    def get_experiences_by_policy(self, policy_names: List[str]):
+    def get_batch(self, env: AbsEnvWrapper):
         """Get experiences by policy names."""
-        return {name: self.policy_dict[name].experience_manager.get() for name in policy_names}
+        names = set()
+        for agent_id, exp in env.get_experiences().items():
+            if hasattr(self.policy[agent_id], "update"):
+                self.policy[agent_id].store(exp)
+            names.add(self.agent2policy[agent_id])
+
+        return {name: self.policy_dict[name].experience_manager.get() for name in names}
 
     def set_policy_states(self, policy_state_dict: dict):
         """Update policy states."""

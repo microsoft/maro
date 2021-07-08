@@ -68,13 +68,10 @@ def rollout_worker_process(
             f"steps {starting_step_index} - {env_wrapper.step_index})"
         )
 
-        policies_with_new_exp = agent_wrapper.store_experiences(env_wrapper.get_experiences())
-        ret_exp = agent_wrapper.get_experiences_by_policy(policies_with_new_exp)
-
         return_info = {
             "worker_index": index,
             "episode_end": not env_wrapper.state,
-            "experiences": ret_exp,
+            "experiences": agent_wrapper.get_batch(env_wrapper),
             "env_summary": env_wrapper.summary,
             "num_steps": env_wrapper.step_index - starting_step_index + 1
         }
@@ -163,14 +160,11 @@ def rollout_worker_node(
             f"steps {starting_step_index} - {env_wrapper.step_index})"
         )
 
-        policy_names = agent_wrapper.store_experiences(env_wrapper.get_experiences())
-        ret_exp = agent_wrapper.get_experiences_by_policy(policy_names)
-
         return_info = {
             MsgKey.EPISODE: ep,
             MsgKey.SEGMENT: segment,
             MsgKey.VERSION: msg.body[MsgKey.VERSION],
-            MsgKey.EXPERIENCES: ret_exp,
+            MsgKey.EXPERIENCES: agent_wrapper.get_batch(env_wrapper),
             MsgKey.NUM_STEPS: env_wrapper.step_index - starting_step_index + 1
         }
 

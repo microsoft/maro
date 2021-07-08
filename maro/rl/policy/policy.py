@@ -72,15 +72,7 @@ class AbsCorePolicy(AbsPolicy):
         """
         pass
 
-    def freeze(self):
-        """Freeze the policy instance so that incoming experiences will not trigger calls to ``learn``."""
-        self.learning = False
-
-    def unfreeze(self):
-        """Unfreeze the policy to allow incoming experiences to trigger calls to ``learn``."""
-        self.learning = True
-
-    def store_experiences(self, exp: ExperienceSet) -> bool:
+    def store(self, exp: ExperienceSet) -> bool:
         """
         Store incoming experiences and update if necessary.
         """

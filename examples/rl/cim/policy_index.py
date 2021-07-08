@@ -11,4 +11,6 @@ from dqn import get_dqn_policy
 from env_wrapper import AGENT_IDS
 
 # use agent IDs as policy names since each agent uses a separate policy
+update_trigger = {name: 16 for name in AGENT_IDS}
+warmup = {name: 1 for name in AGENT_IDS}
 policy_func_index = {name: get_dqn_policy for name in AGENT_IDS}
