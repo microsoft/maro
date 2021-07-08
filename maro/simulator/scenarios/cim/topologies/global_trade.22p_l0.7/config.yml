@@ -1015,153 +1015,153 @@ ports:
           proportion: 0.14697441091807414
 routes:
   a3s:
-  - distance: 320
+  - distance_to_next_port: 320
     port_name: yantian_chn
-  - distance: 240
+  - distance_to_next_port: 240
     port_name: sydney_aus
-  - distance: 80
+  - distance_to_next_port: 80
     port_name: melbourne_aus
   asa:
-  - distance: 320
+  - distance_to_next_port: 320
     port_name: singapore_sgp
-  - distance: 260
+  - distance_to_next_port: 260
     port_name: sydney_aus
-  - distance: 60
+  - distance_to_next_port: 60
     port_name: melbourne_aus
   ate1:
-  - distance: 160
+  - distance_to_next_port: 160
     port_name: newYork_usa
-  - distance: 240
+  - distance_to_next_port: 240
     port_name: bremerhaven_ger
-  - distance: 40
+  - distance_to_next_port: 40
     port_name: leHavre_fra
   gex1:
-  - distance: 220
+  - distance_to_next_port: 220
     port_name: montreal_can
-  - distance: 220
+  - distance_to_next_port: 220
     port_name: bremerhaven_ger
-  - distance: 40
+  - distance_to_next_port: 40
     port_name: leHavre_fra
   ktx5:
-  - distance: 240
+  - distance_to_next_port: 240
     port_name: singapore_sgp
-  - distance: 80
+  - distance_to_next_port: 80
     port_name: yantian_chn
-  - distance: 140
+  - distance_to_next_port: 140
     port_name: yokohama_jpn
   ll4:
-  - distance: 80
+  - distance_to_next_port: 80
     port_name: shanghai_chn
-  - distance: 60
+  - distance_to_next_port: 60
     port_name: yantian_chn
-  - distance: 80
+  - distance_to_next_port: 80
     port_name: singapore_sgp
-  - distance: 380
+  - distance_to_next_port: 380
     port_name: leHavre_fra
-  - distance: 80
+  - distance_to_next_port: 80
     port_name: bremerhaven_ger
-  - distance: 420
+  - distance_to_next_port: 420
     port_name: singapore_sgp
-  - distance: 200
+  - distance_to_next_port: 200
     port_name: qingdao_chn
-  - distance: 80
+  - distance_to_next_port: 80
     port_name: pusan_kor
   pcc1:
-  - distance: 240
+  - distance_to_next_port: 240
     port_name: qingdao_chn
-  - distance: 40
+  - distance_to_next_port: 40
     port_name: shanghai_chn
-  - distance: 240
+  - distance_to_next_port: 240
     port_name: princeRupert_can
-  - distance: 120
+  - distance_to_next_port: 120
     port_name: losAngeles_usa
-  - distance: 100
+  - distance_to_next_port: 100
     port_name: oakland_usa
   pcc2:
-  - distance: 80
+  - distance_to_next_port: 80
     port_name: shanghai_chn
-  - distance: 280
+  - distance_to_next_port: 280
     port_name: losAngeles_usa
-  - distance: 160
+  - distance_to_next_port: 160
     port_name: seattle_usa
-  - distance: 280
+  - distance_to_next_port: 280
     port_name: qingdao_chn
   pnw1:
-  - distance: 80
+  - distance_to_next_port: 80
     port_name: yantian_chn
-  - distance: 260
+  - distance_to_next_port: 260
     port_name: vancouver_can
-  - distance: 80
+  - distance_to_next_port: 80
     port_name: seattle_usa
-  - distance: 320
+  - distance_to_next_port: 320
     port_name: pusan_kor
   pnw2:
-  - distance: 200
+  - distance_to_next_port: 200
     port_name: singapore_sgp
-  - distance: 120
+  - distance_to_next_port: 120
     port_name: yantian_chn
-  - distance: 80
+  - distance_to_next_port: 80
     port_name: shanghai_chn
-  - distance: 60
+  - distance_to_next_port: 60
     port_name: pusan_kor
-  - distance: 200
+  - distance_to_next_port: 200
     port_name: seattle_usa
-  - distance: 40
+  - distance_to_next_port: 40
     port_name: vancouver_can
-  - distance: 520
+  - distance_to_next_port: 520
     port_name: qingdao_chn
-  - distance: 60
+  - distance_to_next_port: 60
     port_name: shanghai_chn
   saf3:
-  - distance: 80
+  - distance_to_next_port: 80
     port_name: qingdao_chn
-  - distance: 40
+  - distance_to_next_port: 40
     port_name: shanghai_chn
-  - distance: 60
+  - distance_to_next_port: 60
     port_name: yantian_chn
-  - distance: 80
+  - distance_to_next_port: 80
     port_name: singapore_sgp
-  - distance: 260
+  - distance_to_next_port: 260
     port_name: durban_sau
-  - distance: 360
+  - distance_to_next_port: 360
     port_name: yantian_chn
   tla2:
-  - distance: 60
+  - distance_to_next_port: 60
     port_name: qingdao_chn
-  - distance: 60
+  - distance_to_next_port: 60
     port_name: shanghai_chn
-  - distance: 80
+  - distance_to_next_port: 80
     port_name: yantian_chn
-  - distance: 100
+  - distance_to_next_port: 100
     port_name: singapore_sgp
-  - distance: 460
+  - distance_to_next_port: 460
     port_name: itagual_bra
-  - distance: 20
+  - distance_to_next_port: 20
     port_name: santos_bra
-  - distance: 580
+  - distance_to_next_port: 580
     port_name: singapore_sgp
-  - distance: 140
+  - distance_to_next_port: 140
     port_name: yantian_chn
-  - distance: 80
+  - distance_to_next_port: 80
     port_name: shanghai_chn
   tlp1:
-  - distance: 100
+  - distance_to_next_port: 100
     port_name: yantian_chn
-  - distance: 60
+  - distance_to_next_port: 60
     port_name: shanghai_chn
-  - distance: 60
+  - distance_to_next_port: 60
     port_name: qingdao_chn
-  - distance: 40
+  - distance_to_next_port: 40
     port_name: pusan_kor
-  - distance: 260
+  - distance_to_next_port: 260
     port_name: manzanillo_mex
-  - distance: 140
+  - distance_to_next_port: 140
     port_name: sanAntonio_par
-  - distance: 180
+  - distance_to_next_port: 180
     port_name: manzanillo_mex
-  - distance: 260
+  - distance_to_next_port: 260
     port_name: yokohama_jpn
-  - distance: 60
+  - distance_to_next_port: 60
     port_name: shanghai_chn
 stop_number:
 - 4

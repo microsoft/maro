@@ -9,7 +9,7 @@ from yaml import safe_load
 from maro.simulator.utils import seed
 from maro.utils.exception.data_lib_exeption import CimGeneratorInvalidParkingDuration
 
-from .entities import CimDataCollection, OrderGenerateMode, Stop
+from .entities import CimSyntheticDataCollection, OrderGenerateMode, Stop
 from .global_order_proportion import GlobalOrderProportion
 from .port_parser import PortsParser
 from .route_parser import RoutesParser
@@ -29,7 +29,7 @@ class CimDataGenerator:
         self._routes_parser = RoutesParser()
         self._global_order_proportion = GlobalOrderProportion()
 
-    def gen_data(self, config_file: str, max_tick: int, start_tick: int = 0) -> CimDataCollection:
+    def gen_data(self, config_file: str, max_tick: int, start_tick: int = 0) -> CimSyntheticDataCollection:
         """Generate data with specified configurations.
 
         Args:
@@ -38,7 +38,7 @@ class CimDataGenerator:
             start_tick(int): Start tick to generate.
 
         Returns:
-            CimDataCollection: Data collection contains all cim data.
+            CimSyntheticDataCollection: Data collection contains all cim data.
         """
 
         # read config
@@ -53,7 +53,7 @@ class CimDataGenerator:
         # misc configurations
         total_containers = conf["total_containers"]
         past_stop_number, future_stop_number = conf["stop_number"]
-        cntr_volumes = conf["container_volumes"]
+        container_volumes = conf["container_volumes"]
         order_mode = OrderGenerateMode(conf["order_generate_mode"])
 
         # parse configurations
@@ -65,36 +65,47 @@ class CimDataGenerator:
             total_containers, start_tick=start_tick, max_tick=max_tick)
 
         # extend routes with specified tick range
-        vessels_stops, vessel_period_no_noise = self._extend_route(
+        vessels_stops, vessel_period_without_noise = self._extend_route(
             future_stop_number, max_tick, vessels_setting, ports_setting, port_mapping, routes, route_mapping)
 
-        return CimDataCollection(
-            total_containers,
-            past_stop_number,
-            future_stop_number,
-            cntr_volumes[0],
-            order_mode,
+        return CimSyntheticDataCollection(
+            # Port
             ports_setting,
             port_mapping,
+            # Vessel
             vessels_setting,
             vessel_mapping,
+            # Stop
             vessels_stops,
-            global_order_proportion,
+            # Route
             routes,
             route_mapping,
-            vessel_period_no_noise,
+            # Vessel Period
+            vessel_period_without_noise,
+            # Volume/Container
+            container_volumes[0],
+            # Visible Voyage Window
+            past_stop_number,
+            future_stop_number,
+            # Time Length of the Data Collection
             max_tick,
+            # Random Seed for Data Generation
             topology_seed,
+            # For Order Generation
+            total_containers,
+            order_mode,
+            global_order_proportion,
+            # Data Generator Version
             CIM_GENERATOR_VERSION)
 
     def _extend_route(
         self, future_stop_number: int, max_tick: int,
         vessels_setting, ports_setting, port_mapping, routes, route_mapping
-    ):
+    ) -> (List[List[Stop]], List[int]):
         """Extend route with specified tick range."""
 
         vessels_stops: List[List[Stop]] = []
-        vessel_period_no_noise: list = []
+        vessel_period_without_noise: List[int] = []
 
         # fill the result stops with empty list
         # NOTE: not using [[]] * N
@@ -147,18 +158,18 @@ class CimDataGenerator:
                 # append to current vessels stops list
                 vessels_stops[vessel_setting.index].append(stop)
 
-                # use distance and speed (all with noise) to calculate tick of arrival and departure
-                distance = cur_route_point.distance
+                # use distance_to_next_port and speed (all with noise) to calculate tick of arrival and departure
+                distance_to_next_port = cur_route_point.distance_to_next_port
 
                 # apply noise to speed
                 noised_speed = apply_noise(speed, speed_noise, route_init_rand)
-                sailing_duration = ceil(distance / noised_speed)
+                sailing_duration = ceil(distance_to_next_port / noised_speed)
 
                 # next tick
                 tick += parking_duration + sailing_duration
 
                 # sailing durations without noise
-                whole_duration_no_noise = duration + ceil(distance / speed)
+                whole_duration_no_noise = duration + ceil(distance_to_next_port / speed)
 
                 # only add period at 1st route circle
                 period_no_noise += (whole_duration_no_noise if len(
@@ -172,6 +183,6 @@ class CimDataGenerator:
 
                 stop_index += 1
 
-            vessel_period_no_noise.append(period_no_noise)
+            vessel_period_without_noise.append(period_no_noise)
 
-        return vessels_stops, vessel_period_no_noise
+        return vessels_stops, vessel_period_without_noise

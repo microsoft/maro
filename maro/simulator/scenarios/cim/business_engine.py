@@ -142,7 +142,7 @@ class CimBusinessEngine(AbsBusinessEngine):
             # At the beginning the vessel is parking at port, will not invoke arrive event.
             if loc_idx > 0:
                 # Check if there is any arrive event.
-                if stop.arrive_tick == tick:
+                if stop.arrival_tick == tick:
                     arrival_payload = VesselStatePayload(port_idx, vessel_idx)
 
                     # This vessel will arrive at current tick.
@@ -165,8 +165,8 @@ class CimBusinessEngine(AbsBusinessEngine):
 
                     decision_evt_list.append(decision_event)
 
-            if loc_idx > 0 and stop.arrive_tick == tick:
-                self._vessel_plans[vessel_idx, port_idx] = stop.arrive_tick
+            if loc_idx > 0 and stop.arrival_tick == tick:
+                self._vessel_plans[vessel_idx, port_idx] = stop.arrival_tick
 
         # Insert the cascade events at the end.
         for event in decision_evt_list:
@@ -384,7 +384,7 @@ class CimBusinessEngine(AbsBusinessEngine):
         self._init_nodes()
 
     def _get_reachable_ports(self, vessel_idx: int):
-        """Get ports that specified vessel can reach (for order), return a list of tuple (port_id, arrive_tick).
+        """Get ports that specified vessel can reach (for order), return a list of tuple (port_id, arrival_tick).
 
         Args:
             vessel_idx (int): Index of specified vessel.
@@ -505,7 +505,7 @@ class CimBusinessEngine(AbsBusinessEngine):
         acceptable_number = floor(remaining_space / container_volume)
         total_load_qty = 0
 
-        for next_port_idx, arrive_tick in self._get_reachable_ports(vessel_idx):
+        for next_port_idx, arrival_tick in self._get_reachable_ports(vessel_idx):
             full_number_to_next_port = self._get_pending_full(
                 port_idx, next_port_idx)
 
@@ -528,7 +528,7 @@ class CimBusinessEngine(AbsBusinessEngine):
 
                 # Generate a discharge event, as we know when the vessel will arrive at destination.
                 payload = VesselDischargePayload(vessel_idx, port_idx, next_port_idx, loaded_qty)
-                dsch_event = self._event_buffer.gen_cascade_event(arrive_tick, Events.DISCHARGE_FULL, payload)
+                dsch_event = self._event_buffer.gen_cascade_event(arrival_tick, Events.DISCHARGE_FULL, payload)
 
                 self._event_buffer.insert_event(dsch_event)
 
