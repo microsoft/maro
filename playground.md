@@ -7,8 +7,7 @@ The playground provides a standalone MARO running environment, it also includes 
 | Service           | Description                                                | Host                       |
 |-------------------|------------------------------------------------------------|----------------------------|
 | `Redis Commander` | Redis Web GUI.                                             | http://127.0.0.1:40009     |
-| `Read the Docs`   | Local host docs.                                           | http://127.0.0.1:40010     |
-| `Jupyter Lab`     | Jupyter lab with MARO environment, examples, notebooks.    | http://127.0.0.1:40011     |
+| `Jupyter Lab`     | Jupyter lab with MARO environment, examples, notebooks.    | http://127.0.0.1:40010     |
 
 *(Remember to change ports, if you use different ports mapping.)*
 

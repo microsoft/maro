@@ -1,17 +1,8 @@
 FROM python:3.7
 
-# Setup notebook
-ADD ./notebooks ./notebooks
-RUN /usr/local/bin/python -m pip install --upgrade pip
-RUN pip install -r ./notebooks/requirements.nb.txt
-RUN jupyter contrib nbextension install --system
-RUN jt -t onedork -fs 95 -altp -tfs 11 -nfs 115 -cellw 88% -T
+WORKDIR /maro_playground
 
-# Install redis
-RUN wget http://download.redis.io/releases/redis-6.0.6.tar.gz; tar xzf redis-6.0.6.tar.gz; cd redis-6.0.6; make
-RUN rm redis-6.0.6.tar.gz
-
-# Install others
+# Install zsh and other packages for the terminal usage
 RUN apt-get -o Acquire::Check-Valid-Until=false -o Acquire::Check-Date=false update
 RUN apt-get install -y zsh
 RUN apt-get install -y htop
@@ -20,47 +11,36 @@ RUN wget https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh -
 RUN chsh -s `which zsh` && wget https://raw.githubusercontent.com/ArthurJiang/config/master/.zshrc -O ~/.zshrc
 RUN apt-get install -y npm
 RUN rm -rf /var/lib/apt/lists/*
+
+# Install redis
+RUN wget http://download.redis.io/releases/redis-6.0.6.tar.gz; tar xzf redis-6.0.6.tar.gz; cd redis-6.0.6; make
+RUN rm redis-6.0.6.tar.gz
 RUN npm install -g redis-commander
+
+# Setup notebook
+ADD ./notebooks ./notebooks
+RUN /usr/local/bin/python -m pip install --upgrade pip
+RUN pip install -r ./notebooks/requirements.nb.txt
+RUN jupyter contrib nbextension install --system
+RUN jt -t onedork -fs 95 -altp -tfs 11 -nfs 115 -cellw 88% -T
+RUN rm ./notebooks/*.txt
+RUN rm ./notebooks/*.sh
 
 # Add examples
 ADD ./examples ./examples
-
-# Add local docs
-ADD ./docs ./docs
-RUN pip install -U -r ./docs/requirements.docs.txt
-WORKDIR ./docs
-RUN make clean
-RUN make html
+ADD ./examples/requirements.ex.txt ./examples/requirements.ex.txt
+RUN pip install -r ./examples/requirements.ex.txt
+RUN rm ./examples/requirements.ex.txt
 
 # Install MARO
-WORKDIR /
-ADD ./maro ./maro
-ADD setup.py setup.py
-ADD ./scripts ./scripts
-RUN bash scripts/install_maro.sh
-RUN rm -rf ./maro
-RUN rm setup.py
-RUN rm -rf ./scripts
+RUN pip install pymaro
+ENV PYTHONPATH ./
 
 # Add run cmd
 ADD ./scripts/run_playground.sh ./run.sh
 
-# Add readme
+# Add README
 ADD ./playground.md ./README.md
-
-# Clean
-RUN rm ./notebooks/*.txt
-RUN rm ./notebooks/*.sh
-RUN rm -r ./docs/source
-RUN rm ./docs/make.bat
-RUN rm ./docs/Makefile
-RUN rm ./docs/README.md
-RUN rm ./docs/requirements.docs.txt
-RUN rm -rf ./build
-RUN rm -rf ./pymaro.egg-info
-
-# Install maro
-RUN pip install pymaro
 
 # Start service
 CMD ["/bin/bash", "./run.sh"]

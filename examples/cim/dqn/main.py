@@ -23,7 +23,7 @@ sys.path.insert(0, cim_example_path)
 from common import CIMTrajectory, common_config
 from dqn.config import agent_config, training_config
 
-log_dir = join(cim_dqn_path, "logs")
+log_dir = join(cim_dqn_path, "log")
 makedirs(log_dir, exist_ok=True)
 
 
@@ -74,7 +74,7 @@ if __name__ == "__main__":
         "-w", "--whoami", type=int, choices=[0, 1, 2], default=0,
         help="Identity of this process: 0 - multi-process mode, 1 - learner, 2 - actor"
     )
-    
+
     args = parser.parse_args()
     if args.whoami == 0:
         actor_processes = [Process(target=cim_dqn_actor) for _ in range(training_config["num_actors"])]
