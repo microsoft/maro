@@ -58,6 +58,8 @@ of user-defined functions for message auto-handling, cluster provision, and job 
 | `examples`  | Showcase of MARO.                                                                                 |
 | `notebooks` | MARO quick-start notebooks.                                                                       |
 
+*Try [MARO playground](#run-playground) to have a quick experiences.*
+
 ## Install MARO from [PyPI](https://pypi.org/project/pymaro/#files)
 
 *Notes: The CLI commands (including the visualization tool) are not included in pymaro package. To enable these support, you need to install from source.*
