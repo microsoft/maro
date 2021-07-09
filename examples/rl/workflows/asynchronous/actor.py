@@ -11,7 +11,8 @@ workflow_dir = dirname(dirname(realpath(__file__)))  # DQN directory
 if workflow_dir not in sys.path:
     sys.path.insert(0, workflow_dir)
 
-from general import config, get_agent_wrapper, get_env_wrapper, log_dir
+from agent_wrapper import get_agent_wrapper
+from general import config, get_env_wrapper, log_dir
 
 
 if __name__ == "__main__":

@@ -20,8 +20,10 @@ log_dir = join(rl_example_dir, "log", config["job_name"])
 
 module = importlib.import_module(f"{config['scenario']}")
 
+agent2exploration = getattr(module, "agent2exploration", None)
+agent2policy = getattr(module, "agent2policy")
+exploration_func_index = getattr(module, "exploration_func_index", None)
 get_env_wrapper = getattr(module, "get_env_wrapper")
-get_agent_wrapper = getattr(module, "get_agent_wrapper")
 policy_func_index = getattr(module, "policy_func_index")
 update_trigger = getattr(module, "update_trigger")
 warmup = getattr(module, "warmup")
