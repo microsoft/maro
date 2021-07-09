@@ -11,7 +11,7 @@ from maro.rl.experience import ExperienceManager
 from maro.rl.model import DiscreteACNet, FullyConnectedBlock, OptimOption
 from maro.rl.policy.algorithms import ActorCritic, ActorCriticConfig
 
-cim_path = os.path.dirname(os.path.dirname(__file__))
+cim_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, cim_path)
 from env_wrapper import STATE_DIM, env_config
 
