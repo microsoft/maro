@@ -56,7 +56,7 @@ Major Services in Playground
      - http://127.0.0.1:40010
 
 
-*(Remember to change ports, if you use different ports mapping.)*
+*(Remember to change ports if you use different ports mapping.)*
 
 Major Materials in Root Folder
 ------------------------------
