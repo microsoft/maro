@@ -190,6 +190,9 @@ maro inspector dashboard --source_path ./dump_data/YOUR_SNAPSHOT_DUMP_FOLDER
 - Pull from [Docker Hub](https://hub.docker.com/r/maro2020/playground)
 
   ```sh
+  # Pull the docker image from docker hub
+  docker pull maro2020/playground
+
   # Run playground container.
   # Redis commander (GUI for redis) -> http://127.0.0.1:40009
   # Jupyter lab with maro -> http://127.0.0.1:40010
