@@ -32,14 +32,13 @@ class VMEnvWrapper(AbsEnvWrapper):
         self._static_vm_states = np.load(vm_state_path)
         self._vm_window_size = vm_window_size
         self._pm_window_size = pm_window_size
-
-        self._alpha, self._beta = alpha, beta # adjust the ratio of the success allocation and the total income when computing the reward
+        # adjust the ratio of the success allocation and the total income when computing the reward
+        self._alpha = alpha
+        self._beta = beta
         self._gamma = gamma # reward discount
         self._pm_num = pm_num # the number of pms
         self._durations = durations # the duration of the whole environment
-
         self._pm_state_history = np.zeros((pm_window_size - 1, self._pm_num, 2))
-
         self._state_dim = 2 * pm_num * pm_window_size + 5 * vm_window_size
     
     @property
@@ -55,7 +54,6 @@ class VMEnvWrapper(AbsEnvWrapper):
             legal_pm_mask[self._pm_num] = 1
         else:
             legal_pm_mask[self._pm_num] = 1
-
             remain_cpu_dict = dict()
             for pm in self._event.valid_pms:
                 # if two pm has same remaining cpu, only choose the one which has smaller id
@@ -88,11 +86,8 @@ class VMEnvWrapper(AbsEnvWrapper):
                 reward = 0.0 * self._alpha + 0.0 * self._beta
         else:
             reward = (
-                1.0 * self._alpha
-                + (
-                    self._event.vm_unit_price
-                    * min(self._durations - self._event.frame_index, self._event.vm_lifetime)
-                ) * self._beta
+                1.0 * self._alpha + self._beta * self._event.vm_unit_price *
+                min(self._durations - self._event.frame_index, self._event.vm_lifetime)
             )
         return {"AGENT": reward}
 
@@ -117,7 +112,7 @@ class VMEnvWrapper(AbsEnvWrapper):
         self._pm_state_history = np.concatenate((self._pm_state_history, total_pm_info), axis=0)
         return self._pm_state_history[-self._pm_window_size:, :, :].copy() # (win_size, pm_num, 2)
 
-    def _update_vm_state(self):
+    def _get_vm_state(self):
         if self._vm_window_size == 1:
             # get the vm's infomation
             vm_info = np.array([
@@ -132,8 +127,7 @@ class VMEnvWrapper(AbsEnvWrapper):
             return vm_info
         else:
             # get the sequence vms' information
-            total_vm_info = np.zeros((self._vm_window_size, len(self._vm_attributes))))
-
+            total_vm_info = np.zeros((self._vm_window_size, len(self._vm_attributes)))
             for idx in range(self._st, self._st + self._vm_window_size):
                 if idx < self._static_vm_states.shape[0]:
                     vm_info = self._static_vm_states[idx].copy()
@@ -174,12 +168,10 @@ env_config = {
     "seed": 666
 }
 
-
 def get_env_wrapper():
     env = Env(**env_config["basic"])
     env.set_seed(env_config["seed"])
     return VMEnvWrapper(env, **env_config["wrapper"]) 
-
 
 tmp_env_wrapper = get_env_wrapper()
 AGENT_IDS = tmp_env_wrapper.agent_idx_list
