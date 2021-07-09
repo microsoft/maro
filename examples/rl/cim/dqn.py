@@ -56,7 +56,7 @@ config = {
             "beta": 0.4,
             "beta_step": 0.001
         }
-    }    
+    }
 }
 
 

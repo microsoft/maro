@@ -62,12 +62,8 @@ class VMEnvWrapper(AbsEnvWrapper):
                     legal_pm_mask[pm] = 1
                 else:
                     legal_pm_mask[pm] = 0
-        return {
-            "AGENT": {
-                "model": np.concatenate((pm_state.flatten(), vm_state.flatten())),
-                "legal_pm_mask": legal_pm_mask
-            }
-        }
+
+        return {"AGENT": {"model": np.concatenate((pm_state.flatten(), vm_state.flatten())), "mask": legal_pm_mask}}
 
     def to_env_action(self, action_info):
         model_action = action_info[0] if isinstance(action_info, tuple) else action_info
