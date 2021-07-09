@@ -76,4 +76,4 @@ This environment is driven by `real trip history data <https://s3.amazonaws.com/
 
 .. note::
 
-  All related code snippets are supported in `maro playground <https://hub.docker.com/r/arthursjiang/maro>`_.
+  All related code snippets are supported in `maro playground <https://hub.docker.com/r/maro2020/playground>`_.

@@ -1,0 +1,46 @@
+FROM python:3.7
+
+WORKDIR /maro_playground
+
+# Install zsh and other packages for the terminal usage
+RUN apt-get -o Acquire::Check-Valid-Until=false -o Acquire::Check-Date=false update
+RUN apt-get install -y zsh
+RUN apt-get install -y htop
+RUN apt-get install -y jq
+RUN wget https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh -O - | zsh || echo hi
+RUN chsh -s `which zsh` && wget https://raw.githubusercontent.com/ArthurJiang/config/master/.zshrc -O ~/.zshrc
+RUN apt-get install -y npm
+RUN rm -rf /var/lib/apt/lists/*
+
+# Install redis
+RUN wget http://download.redis.io/releases/redis-6.0.6.tar.gz; tar xzf redis-6.0.6.tar.gz; cd redis-6.0.6; make
+RUN rm redis-6.0.6.tar.gz
+RUN npm install -g redis-commander
+
+# Setup notebook
+ADD ./notebooks ./notebooks
+RUN /usr/local/bin/python -m pip install --upgrade pip
+RUN pip install -r ./notebooks/requirements.nb.txt
+RUN jupyter contrib nbextension install --system
+RUN jt -t onedork -fs 95 -altp -tfs 11 -nfs 115 -cellw 88% -T
+RUN rm ./notebooks/*.txt
+RUN rm ./notebooks/*.sh
+
+# Add examples
+ADD ./examples ./examples
+ADD ./examples/requirements.ex.txt ./examples/requirements.ex.txt
+RUN pip install -r ./examples/requirements.ex.txt
+RUN rm ./examples/requirements.ex.txt
+
+# Install MARO
+RUN pip install pymaro
+ENV PYTHONPATH ./
+
+# Add run cmd
+ADD ./scripts/run_playground.sh ./run.sh
+
+# Add README
+ADD ./playground.md ./README.md
+
+# Start service
+CMD ["/bin/bash", "./run.sh"]

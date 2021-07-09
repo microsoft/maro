@@ -11,7 +11,7 @@
 
 
 .. image:: https://github.com/microsoft/maro/workflows/docker/badge.svg
-   :target: https://hub.docker.com/repository/docker/arthursjiang/maro
+   :target: https://hub.docker.com/repository/docker/maro2020/maro
    :alt: docker
 
 
@@ -84,14 +84,14 @@ Install MARO from `PyPI <https://pypi.org/project/pymaro/#files>`_
 ----------------------------------------------------------------------
 
 
-* 
+*
   Max OS / Linux
 
   .. code-block:: sh
 
      pip install pymaro
 
-* 
+*
   Windows
 
   .. code-block:: powershell
@@ -105,20 +105,20 @@ Install MARO from Source (\ `Editable Mode <https://pip.pypa.io/en/stable/refere
 ------------------------------------------------------------------------------------------------------------------------
 
 
-* 
+*
   Prerequisites
 
 
   * C++ Compiler
 
     * Linux or Mac OS X: ``gcc``
-    * Windows: `Build Tools for Visual Studio 2017 <https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=15>`_ 
+    * Windows: `Build Tools for Visual Studio 2017 <https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=15>`_
 
-* 
+*
   Enable Virtual Environment
 
 
-  * 
+  *
     Mac OS / Linux
 
     .. code-block:: sh
@@ -127,7 +127,7 @@ Install MARO from Source (\ `Editable Mode <https://pip.pypa.io/en/stable/refere
        python -m venv maro_venv
        source ./maro_venv/bin/activate
 
-  * 
+  *
     Windows
 
     .. code-block:: powershell
@@ -139,11 +139,11 @@ Install MARO from Source (\ `Editable Mode <https://pip.pypa.io/en/stable/refere
        # You may need this for SecurityError in PowerShell.
        Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy Unrestricted
 
-* 
+*
   Install MARO
 
 
-  * 
+  *
     Mac OS / Linux
 
     .. code-block:: sh
@@ -151,7 +151,7 @@ Install MARO from Source (\ `Editable Mode <https://pip.pypa.io/en/stable/refere
        # Install MARO from source.
        bash scripts/install_maro.sh
 
-  * 
+  *
     Windows
 
     .. code-block:: powershell
@@ -179,22 +179,23 @@ Run Playground
 --------------
 
 
-* 
-  Pull from `Docker Hub <https://hub.docker.com/repository/registry-1.docker.io/arthursjiang/maro/tags?page=1>`_
+*
+  Pull from `Docker Hub <https://hub.docker.com/r/maro2020/playground>`_
+  .. code-block:: sh
+     docker pull maro2020/playground
 
   .. code-block:: sh
 
      # Run playground container.
      # Redis commander (GUI for redis) -> http://127.0.0.1:40009
-     # Local host docs -> http://127.0.0.1:40010
-     # Jupyter lab with maro -> http://127.0.0.1:40011
-     docker run -p 40009:40009 -p 40010:40010 -p 40011:40011 arthursjiang/maro:cpu
+     # Jupyter lab with maro -> http://127.0.0.1:40010
+     docker run -p 40009:40009 -p 40010:40010 maro2020/playground
 
-* 
+*
   Build from source
 
 
-  * 
+  *
     Mac OS / Linux
 
     .. code-block:: sh
@@ -204,11 +205,10 @@ Run Playground
 
        # Run playground container.
        # Redis commander (GUI for redis) -> http://127.0.0.1:40009
-       # Local host docs -> http://127.0.0.1:40010
-       # Jupyter lab with maro -> http://127.0.0.1:40011
-       docker run -p 40009:40009 -p 40010:40010 -p 40011:40011 maro/playground:cpu
+       # Jupyter lab with maro -> http://127.0.0.1:40010
+       docker run -p 40009:40009 -p 40010:40010 maro2020/playground
 
-  * 
+  *
     Windows
 
     .. code-block:: powershell
@@ -218,9 +218,8 @@ Run Playground
 
        # Run playground container.
        # Redis commander (GUI for redis) -> http://127.0.0.1:40009
-       # Local host docs -> http://127.0.0.1:40010
-       # Jupyter lab with maro -> http://127.0.0.1:40011
-       docker run -p 40009:40009 -p 40010:40010 -p 40011:40011 maro/playground:cpu
+       # Jupyter lab with maro -> http://127.0.0.1:40010
+       docker run -p 40009:40009 -p 40010:40010 maro2020/playground
 
 Contributing
 ------------

@@ -10,4 +10,4 @@ fi
 
 bash ./scripts/compile_cython.sh
 
-docker build -f ./docker_files/cpu.play.df . -t maro/playground:cpu
+docker build -f ./docker_files/cpu.playground.df . -t maro2020/playground
