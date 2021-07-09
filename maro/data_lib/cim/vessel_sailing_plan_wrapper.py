@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from .entities import CimDataCollection, Stop
+from .entities import CimBaseDataCollection, Stop
 from .vessel_future_stops_prediction import VesselFutureStopsPrediction
 
 
@@ -17,7 +17,7 @@ class VesselSailingPlanWrapper(VesselFutureStopsPrediction):
             stops = data_cntr.vessel_planned_stops[0]
     """
 
-    def __init__(self, data: CimDataCollection):
+    def __init__(self, data: CimBaseDataCollection):
         super().__init__(data)
 
     def __getitem__(self, key):
@@ -32,9 +32,9 @@ class VesselSailingPlanWrapper(VesselFutureStopsPrediction):
 
         last_stop: Stop = self._stops[vessel_idx][next_loc_idx]
         last_port_idx = last_stop.port_idx
-        last_port_arrive_tick = last_stop.arrive_tick
+        last_port_arrival_tick = last_stop.arrival_tick
 
         stops = self._predict_future_stops(
-            vessel_idx, last_port_idx, last_port_arrive_tick, route_length)
+            vessel_idx, last_port_idx, last_port_arrival_tick, route_length)
 
-        return [(stop.port_idx, stop.arrive_tick) for stop in stops]
+        return [(stop.port_idx, stop.arrival_tick) for stop in stops]

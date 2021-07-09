@@ -20,6 +20,10 @@ class BikeTransferPayload:
         self.to_station_idx = to_station_idx
         self.number = number
 
+    def __repr__(self):
+        return "%s {from_station_idx: %r, to_station_idx: %r, number:%r}" % \
+            (self.__class__.__name__, self.from_station_idx, self.to_station_idx, self.number)
+
 
 class BikeReturnPayload:
     """Payload for bike return event.
@@ -36,6 +40,10 @@ class BikeReturnPayload:
         self.from_station_idx = from_station_idx
         self.to_station_idx = to_station_idx
         self.number = number
+
+    def __repr__(self):
+        return "%s {from_station_idx: %r, to_station_idx: %r, number:%r}" % \
+            (self.__class__.__name__, self.from_station_idx, self.to_station_idx, self.number)
 
 
 class DecisionType(Enum):
@@ -96,11 +104,8 @@ class DecisionEvent:
         self._action_scope = state["action_scope"]
 
     def __repr__(self):
-        return self.__str__()
-
-    def __str__(self):
-        return f'DecisionEvent(tick={self.tick}, station_idx={self.station_idx}, \
-            type={self.type}, action_scope={self.action_scope})'
+        return "%s {station_idx: %r, type: %r, action_scope:%r}" % \
+            (self.__class__.__name__, self.station_idx, str(self.type), self.action_scope)
 
 
 class Action:
@@ -118,11 +123,8 @@ class Action:
         self.number = number
 
     def __repr__(self):
-        return self.__str__()
-
-    def __str__(self):
-        return f'Action(from_station_idx={self.from_station_idx}, \
-            to_station_idx={self.to_station_idx}, number={self.number})'
+        return "%s {from_station_idx: %r, to_station_idx: %r, number:%r}" % \
+            (self.__class__.__name__, self.from_station_idx, str(self.to_station_idx), self.number)
 
 
 class ExtraCostMode(Enum):

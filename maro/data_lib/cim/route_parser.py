@@ -19,7 +19,7 @@ class RoutesParser:
 
         Returns:
             (Dict[str, int], List[List[RoutePoint]]): Route mapping (name to index),
-                 and list of route point list (index is route index).
+                and list of route point list (index is route index).
         """
         routes: List[List[RoutePoint]] = []
         route_mapping: Dict[str, int] = {}  # name->idx
@@ -29,7 +29,7 @@ class RoutesParser:
         for name, node in conf.items():
             route_mapping[name] = idx
 
-            routes.append([RoutePoint(idx, n["port_name"], n["distance"]) for n in node])
+            routes.append([RoutePoint(idx, n["port_name"], n["distance_to_next_port"]) for n in node])
 
             idx += 1
 

@@ -106,7 +106,7 @@ def gen_vessel_definition(stop_nums: tuple):
 
             for feature in features:
                 for i, stop in enumerate(feature[0]):
-                    tick = stop.arrive_tick if stop is not None else -1
+                    tick = stop.arrival_tick if stop is not None else -1
                     port_idx = stop.port_idx if stop is not None else -1
 
                     feature[1][i] = port_idx
