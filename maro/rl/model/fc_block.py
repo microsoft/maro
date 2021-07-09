@@ -9,10 +9,8 @@ import torch.nn as nn
 
 from maro.rl.utils import get_torch_activation_cls
 
-from .abs_block import AbsBlock
 
-
-class FullyConnectedBlock(AbsBlock):
+class FullyConnectedBlock(nn.Module):
     """Fully connected network with optional batch normalization, activation and dropout components.
 
     Args:

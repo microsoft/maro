@@ -244,15 +244,20 @@ class DiscretePolicyNet(AbsCoreModel):
         """
         raise NotImplementedError
 
-    def get_action(self, states):
+    def get_action(self, states, max_prob: bool = False):
         """
         Given a batch of states, return actions selected based on the probabilities computed by ``forward``
         and the corresponding log probabilities.
         """
-        action_prob = Categorical(self.forward(states))  # (batch_size, num_actions)
-        action = action_prob.sample()
-        log_p = action_prob.log_prob(action)
-        return action, log_p
+        action_prob = self.forward(states)   # (batch_size, num_actions)
+        if max_prob:
+            prob, action = action_prob.max(dim=1)
+            return action, torch.log(prob)
+        else:
+            action_prob = Categorical(action_prob)  # (batch_size, action_space_size)
+            action = action_prob.sample()
+            log_p = action_prob.log_prob(action)
+            return action, log_p
 
 
 class DiscreteACNet(AbsCoreModel):
@@ -294,15 +299,20 @@ class DiscreteACNet(AbsCoreModel):
         """
         raise NotImplementedError
 
-    def get_action(self, states):
+    def get_action(self, states, max_prob: bool = False):
         """
         Given Q-values for a batch of states, return the action index and the corresponding maximum Q-value
         for each state.
         """
-        action_prob = Categorical(self.forward(states, critic=False)[0])  # (batch_size, action_space_size)
-        action = action_prob.sample()
-        log_p = action_prob.log_prob(action)
-        return action, log_p
+        action_prob = self.forward(states, critic=False)[0]
+        if max_prob:
+            prob, action = action_prob.max(dim=1)
+            return action, torch.log(prob)
+        else:
+            action_prob = Categorical(action_prob)  # (batch_size, action_space_size)
+            action = action_prob.sample()
+            log_p = action_prob.log_prob(action)
+            return action, log_p
 
 
 class ContinuousACNet(AbsCoreModel):

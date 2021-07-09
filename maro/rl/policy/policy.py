@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import time
 from abc import ABC, abstractmethod
 
 from maro.rl.experience import ExperienceManager, ExperienceSet
