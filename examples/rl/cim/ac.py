@@ -74,7 +74,7 @@ config = {
 }
 
 
-def get_ac_policy(name):
+def get_ac_policy(learning: bool = True):
     class MyACNET(DiscreteACNet):
         def forward(self, states, actor: bool = True, critic: bool = True):
             states = torch.from_numpy(np.asarray(states))
@@ -96,7 +96,12 @@ def get_ac_policy(name):
         optim_option={
             "actor":  OptimOption(**cfg["model"]["optimization"]["actor"]),
             "critic": OptimOption(**cfg["model"]["optimization"]["critic"])
-        }
+        } if learning else None
     )
-    experience_manager = ExperienceManager(**cfg["experience_manager"])
-    return ActorCritic(name, ac_net, experience_manager, ActorCriticConfig(**cfg["algorithm_config"]))
+
+    if learning:
+        exp_manager = ExperienceManager(**config["experience_manager"]["learning"])
+    else:
+        exp_manager = ExperienceManager(**config["experience_manager"]["rollout"])
+
+    return ActorCritic(ac_net, exp_manager, ActorCriticConfig(**cfg["algorithm_config"]))
