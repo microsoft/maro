@@ -25,7 +25,7 @@ class Action:
     Args:
         vessel_idx (int): Which vessel will take action.
         port_idx (int): Which port will take action.
-        action_type (ActinType): Whether the action is a Load or a Discharge.
+        action_type (ActionType): Whether the action is a Load or a Discharge.
         quantity (int): How many containers are loaded/discharged in this Action.
     """
 

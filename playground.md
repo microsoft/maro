@@ -1,6 +1,6 @@
 # Playground
 
-The playground provides a standalone MARO running environment, it also includes examples of some predefined scenarios and quick-start tutorials.
+The playground provides a standalone MARO environment along with several predefined scenario examples and quick-start tutorials.
 
 ## Main service in the playground
 

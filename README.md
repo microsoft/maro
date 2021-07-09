@@ -58,7 +58,7 @@ of user-defined functions for message auto-handling, cluster provision, and job 
 | `examples`  | Showcase of MARO.                                                                                 |
 | `notebooks` | MARO quick-start notebooks.                                                                       |
 
-*Try [MARO playground](#run-playground) to have a quick experiences.*
+*Try [MARO playground](#run-playground) to have a quick experience.*
 
 ## Install MARO from [PyPI](https://pypi.org/project/pymaro/#files)
 
