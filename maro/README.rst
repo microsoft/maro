@@ -136,7 +136,7 @@
 
 
 
-.. image:: ./docs/source/images/logo.svg
+.. image:: https://github.com/microsoft/maro/blob/master/docs/source/images/logo.svg
    :target: https://maro.readthedocs.io/en/latest/
    :alt: MARO LOGO
 
@@ -163,8 +163,8 @@ Key Components of MARO:
   of user-defined functions for message auto-handling, cluster provision, and job orchestration.
 
 
-.. image:: ./docs/source/images/maro_overview.svg
-   :target: ./docs/source/images/maro_overview.svg
+.. image:: https://github.com/microsoft/maro/blob/master/docs/source/images/maro_overview.svg
+   :target: https://github.com/microsoft/maro/blob/master/docs/source/images/maro_overview.svg
    :alt: MARO Key Components
 
 
@@ -333,26 +333,26 @@ Show Cases
 *
   Case I - Container Inventory Management
 
-  .. image:: ./docs/source/images/visualization/dashboard/cim_inter_epoch.gif
-     :target: ./docs/source/images/visualization/dashboard/cim_inter_epoch.gif
+  .. image:: https://github.com/microsoft/maro/blob/master/docs/source/images/visualization/dashboard/cim_inter_epoch.gif
+     :target: https://github.com/microsoft/maro/blob/master/docs/source/images/visualization/dashboard/cim_inter_epoch.gif
      :alt: CIM Inter Epoch
 
 
-  .. image:: ./docs/source/images/visualization/dashboard/cim_intra_epoch_by_ports.gif
-     :target: ./docs/source/images/visualization/dashboard/cim_intra_epoch_by_ports.gif
+  .. image:: https://github.com/microsoft/maro/blob/master/docs/source/images/visualization/dashboard/cim_intra_epoch_by_ports.gif
+     :target: https://github.com/microsoft/maro/blob/master/docs/source/images/visualization/dashboard/cim_intra_epoch_by_ports.gif
      :alt: CIM Intra Epoch
 
 
 *
   Case II - Citi Bike
 
-  .. image:: ./docs/source/images/visualization/dashboard/citi_bike_inter_epoch.gif
-     :target: ./docs/source/images/visualization/dashboard/citi_bike_inter_epoch.gif
+  .. image:: https://github.com/microsoft/maro/blob/master/docs/source/images/visualization/dashboard/citi_bike_inter_epoch.gif
+     :target: https://github.com/microsoft/maro/blob/master/docs/source/images/visualization/dashboard/citi_bike_inter_epoch.gif
      :alt: Citi Bike Inter Epoch
 
 
-  .. image:: ./docs/source/images/visualization/dashboard/citi_bike_intra_epoch_by_station.gif
-     :target: ./docs/source/images/visualization/dashboard/citi_bike_intra_epoch_by_station.gif
+  .. image:: https://github.com/microsoft/maro/blob/master/docs/source/images/visualization/dashboard/citi_bike_intra_epoch_by_station.gif
+     :target: https://github.com/microsoft/maro/blob/master/docs/source/images/visualization/dashboard/citi_bike_intra_epoch_by_station.gif
      :alt: Citi Bike Intra Epoch
 
 
@@ -430,8 +430,8 @@ Related Papers
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
-.. image:: ./docs/source/images/scenario/cim_vis.gif
-   :target: ./docs/source/images/scenario/cim_vis.gif
+.. image:: https://github.com/microsoft/maro/blob/master/docs/source/images/scenario/cim_vis.gif
+   :target: https://github.com/microsoft/maro/blob/master/docs/source/images/scenario/cim_vis.gif
    :alt: CIM Vis
 
 
@@ -448,7 +448,7 @@ Related News
 
 `AI from "Point" to "Surface" <https://mp.weixin.qq.com/s/PggO49wwmS7grTO0nEMgVQ>`_
 
-`Cite Us <./CITATION>`_
+`Cite Us <https://github.com/microsoft/maro/blob/master/CITATION>`_
 ---------------------------
 
 License
@@ -456,4 +456,4 @@ License
 
 Copyright (c) Microsoft Corporation. All rights reserved.
 
-Licensed under the `MIT <./LICENSE>`_ License.
+Licensed under the `MIT <https://github.com/microsoft/maro/blob/master/LICENSE>`_ License.
