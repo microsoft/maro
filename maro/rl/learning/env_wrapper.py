@@ -23,7 +23,6 @@ class AbsEnvWrapper(ABC):
     """
     def __init__(self, env: Env, reward_eval_delay: int = 0, save_replay: bool = True, replay_agent_ids: list = None):
         self.env = env
-        self.state_info = None  # context for converting model output to actions that can be executed by the env
         self.reward_eval_delay = reward_eval_delay
         self.action_history = defaultdict(dict)
         self.save_replay = save_replay
@@ -176,7 +175,6 @@ class AbsEnvWrapper(ABC):
 
     def reset(self):
         self.env.reset()
-        self.state_info = None
         self._total_reward.clear()
         self._state = None
         self._pending_reward_cache.clear()
