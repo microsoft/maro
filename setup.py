@@ -128,6 +128,7 @@ setup(
         "holidays>=0.10.3",
         "pyaml>=20.4.0",
         "redis>=3.5.3",
+        "redis-server>=6.0.6"
         "pyzmq<22.1.0",
         "requests<=2.26.0",
         "psutil<5.9.0",

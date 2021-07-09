@@ -27,6 +27,7 @@ urllib3==1.26.5
 geopy==2.0.0
 pandas==0.25.3
 redis==3.5.3
+redis-server==6.0.9
 requests==2.25.1
 holidays==0.10.3
 sphinx
