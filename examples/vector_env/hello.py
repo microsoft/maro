@@ -6,15 +6,17 @@ from maro.simulator.scenarios.cim.common import Action, ActionType, DecisionEven
 from maro.vector_env import VectorEnv
 
 class VectorEnvUsage(Enum):
-    PUSH_ONE_FORWARD = "push_one_forward_and_others_behind"
-    PUSH_ALL_FORWARD = "push_all_forward"
+    PUSH_ONE_FORWARD = "push the first environment forward and left others behind"
+    PUSH_ALL_FORWARD = "push all environments forward together"
 
-USAGE = VectorEnvUsage.PUSH_ALL_FORWARD
+USAGE = VectorEnvUsage.PUSH_ONE_FORWARD
 
 if __name__ == "__main__":
     with VectorEnv(batch_num=4, scenario="cim", topology="toy.5p_ssddd_l0.0", durations=100) as env:
-        for ep in range(2):
-            print("current episode:", ep)
+        for USAGE in [VectorEnvUsage.PUSH_ONE_FORWARD, VectorEnvUsage.PUSH_ALL_FORWARD]:
+            print(f"******************************************************")
+            print(f"Mode: {USAGE} ({USAGE.value})")
+            intermediate_status_reported = False
 
             metrics, decision_event, is_done = (None, None, False)
 
@@ -54,7 +56,11 @@ if __name__ == "__main__":
 
                 metrics, decision_event, is_done = env.step(action)
 
-            print("Final tick for each environment:", env.tick)
-            print("Final frame index for each environment:", env.frame_index)
+                if not intermediate_status_reported and env.tick[0] >= 99:
+                    print(f"When env 0 reach tick {env.tick[0]}, ticks for each environment: {env.tick}")
+                    intermediate_status_reported = True
+
+            print(f"Final tick for each environment: {env.tick}")
+            print(f"Final frame index for each environment: {env.frame_index}")
 
             env.reset()
