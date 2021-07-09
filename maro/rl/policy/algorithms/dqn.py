@@ -7,6 +7,7 @@ import numpy as np
 import torch
 
 from maro.rl.experience import ExperienceManager, PrioritizedSampler
+from maro.rl.exploration import DiscreteSpaceExploration, EpsilonGreedyExploration
 from maro.rl.model import DiscreteQNet
 from maro.rl.policy import AbsCorePolicy
 
@@ -55,12 +56,20 @@ class DQN(AbsCorePolicy):
         experience_manager (ExperienceManager): An experience manager for storing and retrieving experiences
             for training.
         config (DQNConfig): Configuration for DQN algorithm.
+        exploration (DiscreteSpaceExploration): Exploration strategy for generating exploratory actions. Defaults to
+            an ``EpsilonGreedyExploration`` instance.
     """
-    def __init__(self, q_net: DiscreteQNet, experience_manager: ExperienceManager, config: DQNConfig):
+    def __init__(
+        self,
+        q_net: DiscreteQNet,
+        experience_manager: ExperienceManager,
+        config: DQNConfig,
+        exploration: DiscreteSpaceExploration = EpsilonGreedyExploration()
+    ):
         if not isinstance(q_net, DiscreteQNet):
             raise TypeError("model must be an instance of 'DiscreteQNet'")
 
-        super().__init__(experience_manager)
+        super().__init__(experience_manager, exploration=exploration)
         self.q_net = q_net
         if self.q_net.trainable:
             self.target_q_net = q_net.copy()
@@ -77,9 +86,12 @@ class DQN(AbsCorePolicy):
     def choose_action(self, states) -> Union[int, np.ndarray]:
         with torch.no_grad():
             self.q_net.eval()
-            actions, _ = self.q_net.get_action(states)
+            actions, _, num_actions = self.q_net.get_action(states)
 
         actions = actions.cpu().numpy()
+        self.exploration.set_action_space(np.arange(num_actions))
+        if self.exploring:
+            actions = self.exploration(actions)
         return actions[0] if len(actions) == 1 else actions
 
     def learn(self):

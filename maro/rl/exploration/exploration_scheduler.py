@@ -104,8 +104,7 @@ class MultiPhaseLinearExplorationScheduler(AbsExplorationScheduler):
         initial_value: float = None
     ):
         # validate splits
-        splits.append((1, initial_value))
-        splits.append((last_ep, final_value))
+        splits = [(1, initial_value)] + splits + [(last_ep, final_value)]
         splits.sort()
         for (ep, _), (ep2, _) in zip(splits, splits[1:]):
             if ep == ep2:
@@ -134,7 +133,7 @@ class MultiPhaseLinearExplorationScheduler(AbsExplorationScheduler):
 
 
 if __name__ == "__main__":
-    from maro.rl.exploration.epsilon_greedy_exploration import EpsilonGreedyExploration
+    from maro.rl.exploration.discrete_space_exploration import EpsilonGreedyExploration
     exploration = EpsilonGreedyExploration(5, epsilon=0.6)
     scheduler = MultiPhaseLinearExplorationScheduler(
         exploration, "epsilon", 20, [(12, 0.25), (6, 0.5), (16, 0.15), (9, 0.4)], .0

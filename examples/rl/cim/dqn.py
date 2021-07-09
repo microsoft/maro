@@ -8,6 +8,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from maro.rl.experience import ExperienceManager
+from maro.rl.exploration import EpsilonGreedyExploration, MultiPhaseLinearExplorationScheduler
 from maro.rl.model import DiscreteQNet, FullyConnectedBlock, OptimOption
 from maro.rl.policy.algorithms import DQN, DQNConfig
 
@@ -56,7 +57,13 @@ config = {
             "beta": 0.4,
             "beta_step": 0.001
         }
-    }    
+    },
+    "exploration": {
+        "last_ep": 10,
+        "initial_value": 0.4,
+        "final_value": 0.0,
+        "splits": [(5, 0.32)]
+    }
 }
 
 
@@ -78,6 +85,15 @@ def get_dqn_policy(learning: bool = True):
     )
     if learning:
         exp_manager = ExperienceManager(**config["experience_manager"]["learning"])
+        exploration = None
     else:
         exp_manager = ExperienceManager(**config["experience_manager"]["rollout"])
-    return DQN(qnet, exp_manager, DQNConfig(**config["algorithm"]))
+        exploration = EpsilonGreedyExploration()
+        print("expl ID: ", id(exploration))
+        exploration.register_schedule(
+            scheduler_cls=MultiPhaseLinearExplorationScheduler,
+            param_name="epsilon",
+            **config["exploration"]
+        )
+
+    return DQN(qnet, exp_manager, DQNConfig(**config["algorithm"]), exploration=exploration)
