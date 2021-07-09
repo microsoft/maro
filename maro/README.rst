@@ -449,7 +449,7 @@ Related News
 `AI from "Point" to "Surface" <https://mp.weixin.qq.com/s/PggO49wwmS7grTO0nEMgVQ>`_
 
 `Cite Us <https://github.com/microsoft/maro/blob/master/CITATION>`_
----------------------------
+---------------------------------------------------------------------
 
 License
 -------
