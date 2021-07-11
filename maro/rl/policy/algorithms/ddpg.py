@@ -65,7 +65,12 @@ class DDPG(AbsCorePolicy):
             for training.
         config (DDPGConfig): Configuration for DDPG algorithm.
     """
-    def __init__(self, ac_net: ContinuousACNet, experience_manager: ExperienceManager, config: DDPGConfig):
+    def __init__(
+        self,
+        ac_net: ContinuousACNet,
+        experience_manager: ExperienceManager,
+        config: DDPGConfig
+    ):
         if not isinstance(ac_net, ContinuousACNet):
             raise TypeError("model must be an instance of 'ContinuousACNet'")
 

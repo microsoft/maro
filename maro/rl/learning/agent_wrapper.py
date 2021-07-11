@@ -3,7 +3,6 @@
 
 from typing import Dict
 
-from maro.rl.exploration import AbsExploration
 from maro.rl.policy import AbsPolicy
 
 from .env_wrapper import AbsEnvWrapper
@@ -16,26 +15,11 @@ class AgentWrapper:
         policy_dict (Dict[str, AbsPolicy]): Policies for inference.
         agent2policy (Dict[str, str]): Mapping from agent ID's to policy ID's. This is used to direct an agent's
             queries to the correct policy.
-        exploration_dict (Dict[str, AbsExploration]): A dictionary of named ``AbsExploration`` instances. Defaults
-            to None.
-        agent2exploration (Dict[str, str]): Mapping from agent names to exploration instance names. Defaults to None.
     """
-    def __init__(
-        self,
-        policy_dict: Dict[str, AbsPolicy],
-        agent2policy: Dict[str, str],
-        exploration_dict: Dict[str, AbsExploration] = None,
-        agent2exploration: Dict[str, str] = None
-    ):
+    def __init__(self, policy_dict: Dict[str, AbsPolicy], agent2policy: Dict[str, str]):
         self.policy_dict = policy_dict
         self.agent2policy = agent2policy
         self.policy = {agent_id: self.policy_dict[policy_id] for agent_id, policy_id in self.agent2policy.items()}
-        self.exploration_dict = exploration_dict
-        if self.exploration_dict:
-            self.exploration_by_agent = {
-                agent_id: exploration_dict[exploration_id] for agent_id, exploration_id in agent2exploration.items()
-            }
-        self.exploring = True  # Flag indicating that exploration is turned on.
 
     def choose_action(self, state: dict) -> dict:
         """Generate an action based on the given state.
@@ -43,13 +27,7 @@ class AgentWrapper:
         Args:
             state (dict): Dicitionary of agents' states based on which action decisions will be made.
         """
-        action_by_agent = {agent_id: self.policy[agent_id].choose_action(st) for agent_id, st in state.items()}
-        if self.exploring and self.exploration_dict:
-            for agent_id in action_by_agent:
-                if agent_id in self.exploration_by_agent:
-                    action_by_agent[agent_id] = self.exploration_by_agent[agent_id](action_by_agent[agent_id])
-
-        return action_by_agent
+        return {agent_id: self.policy[agent_id].choose_action(st) for agent_id, st in state.items()}
 
     def get_batch(self, env: AbsEnvWrapper):
         """Get experiences by policy names."""
@@ -67,12 +45,16 @@ class AgentWrapper:
             self.policy_dict[policy_id].set_state(policy_state)
 
     def exploration_step(self):
-        if self.exploration_dict:
-            for exploration in self.exploration_dict.values():
-                exploration.step()
+        for policy in self.policy_dict.values():
+            if hasattr(policy, "exploration_step"):
+                policy.exploration_step()
 
     def exploit(self):
-        self.exploring = False
+        for policy in self.policy_dict.values():
+            if hasattr(policy, "exploit"):
+                policy.exploit()
 
     def explore(self):
-        self.exploring = True
+        for policy in self.policy_dict.values():
+            if hasattr(policy, "explore"):
+                policy.explore()

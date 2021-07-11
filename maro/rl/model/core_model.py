@@ -199,7 +199,7 @@ class DiscreteQNet(AbsCoreModel):
         """
         q_for_all_actions = self.forward(states)  # (batch_size, num_actions)
         greedy_q, actions = q_for_all_actions.max(dim=1)
-        return actions.detach(), greedy_q.detach()
+        return actions.detach(), greedy_q.detach(), q_for_all_actions.shape[1]
 
     def q_values(self, states, actions: torch.tensor):
         """Return the Q-values for a batch of states and actions."""

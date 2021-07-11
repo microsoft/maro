@@ -12,8 +12,8 @@ log_env_summary: true
 sync:
   rollout_group: rollout
   rollout_mode: multi-node # single-process, multi-process, multi-node
-  num_rollout_workers: 6
-  min_finished_workers: 4
+  num_rollout_workers: 3
+  min_finished_workers: 2
   # max_extra_recv_tries: 3
   extra_recv_timeout: 100
 async:
