@@ -15,5 +15,5 @@ update_trigger = {name: 128 for name in AGENT_IDS}
 warmup = {name: 1 for name in AGENT_IDS}
 
 # use agent IDs as policy names since each agent uses a separate policy
-policy_func_index = {name: get_dqn_policy for name in AGENT_IDS}
+rl_policy_func_index = {name: get_dqn_policy for name in AGENT_IDS}
 agent2policy = {name: name for name in AGENT_IDS}
