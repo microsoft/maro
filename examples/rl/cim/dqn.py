@@ -89,7 +89,6 @@ def get_dqn_policy(learning: bool = True):
     else:
         exp_manager = ExperienceManager(**config["experience_manager"]["rollout"])
         exploration = EpsilonGreedyExploration()
-        print("expl ID: ", id(exploration))
         exploration.register_schedule(
             scheduler_cls=MultiPhaseLinearExplorationScheduler,
             param_name="epsilon",

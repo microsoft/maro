@@ -86,12 +86,14 @@ class DQN(AbsCorePolicy):
     def choose_action(self, states) -> Union[int, np.ndarray]:
         with torch.no_grad():
             self.q_net.eval()
-            actions, _, num_actions = self.q_net.get_action(states)
+            q_for_all_actions = self.q_net(states)  # (batch_size, num_actions)
+            _, actions = q_for_all_actions.max(dim=1)
 
         actions = actions.cpu().numpy()
-        self.exploration.set_action_space(np.arange(num_actions))
+        if self.exploration.action_space is None:
+            self.exploration.set_action_space(np.arange(q_for_all_actions.shape[1]))
         if self.exploring:
-            actions = self.exploration(actions)
+            actions = self.exploration(actions, state=states)
         return actions[0] if len(actions) == 1 else actions
 
     def learn(self):
