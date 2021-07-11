@@ -10,12 +10,12 @@ workflow_dir = dirname(dirname(realpath(__file__)))  # template directory
 if workflow_dir not in sys.path:
     sys.path.insert(0, workflow_dir)
 
-from general import config, log_dir, policy_func_index, update_trigger, warmup
+from general import config, log_dir, rl_policy_func_index, update_trigger, warmup
 
 def get_policy_manager():
     train_mode = config["policy_manager"]["train_mode"]
     num_trainers = config["policy_manager"]["num_trainers"]
-    policy_dict = {name: func() for name, func in policy_func_index.items()}
+    policy_dict = {name: func() for name, func in rl_policy_func_index.items()}
     if train_mode == "single-process":
         return LocalPolicyManager(
             policy_dict,
@@ -27,7 +27,7 @@ def get_policy_manager():
         return MultiProcessPolicyManager(
             policy_dict,
             num_trainers,
-            policy_func_index,
+            rl_policy_func_index,
             update_trigger=update_trigger,
             warmup=warmup,
             log_dir=log_dir

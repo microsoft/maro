@@ -22,6 +22,7 @@ module = importlib.import_module(f"{config['scenario']}")
 
 agent2policy = getattr(module, "agent2policy")
 get_env_wrapper = getattr(module, "get_env_wrapper")
-policy_func_index = getattr(module, "policy_func_index")
+non_rl_policy_func_index = getattr(module, "non_rl_policy_func_index", {})
+rl_policy_func_index = getattr(module, "rl_policy_func_index")
 update_trigger = getattr(module, "update_trigger")
 warmup = getattr(module, "warmup")
