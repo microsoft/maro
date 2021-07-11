@@ -11,16 +11,16 @@ from maro.data_lib.cim.route_parser import RoutesParser
 conf_str = """
 routes:
   route_001:
-  - distance: 60
+  - distance_to_next_port: 60
     port_name: supply_port_001
-  - distance: 70
+  - distance_to_next_port: 70
     port_name: demand_port_001
   route_002:
-  - distance: 60
+  - distance_to_next_port: 60
     port_name: supply_port_001
-  - distance: 70
+  - distance_to_next_port: 70
     port_name: supply_port_002
-  - distance: 80
+  - distance_to_next_port: 80
     port_name: demand_port_002
 """
 
@@ -40,8 +40,8 @@ class TestRoutePoint(unittest.TestCase):
         self.assertEqual(1, route_mapping['route_002'])
 
         # check distance
-        self.assertListEqual([60, 70], [r.distance for r in routes[0]])
-        self.assertListEqual([60, 70, 80], [r.distance for r in routes[1]])
+        self.assertListEqual([60, 70], [r.distance_to_next_port for r in routes[0]])
+        self.assertListEqual([60, 70, 80], [r.distance_to_next_port for r in routes[1]])
 
 
 if __name__=="__main__":

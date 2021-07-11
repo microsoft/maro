@@ -2,10 +2,14 @@
 # Licensed under the MIT license.
 
 import warnings
+from abc import ABC, abstractmethod
 from math import ceil
 from typing import Dict, List
 
-from .entities import CimDataCollection, NoisedItem, Order, OrderGenerateMode, PortSetting, VesselSetting
+from .entities import (
+    CimBaseDataCollection, CimRealDataCollection, CimSyntheticDataCollection, NoisedItem, Order, OrderGenerateMode,
+    PortSetting, VesselSetting
+)
 from .port_buffer_tick_wrapper import PortBufferTickWrapper
 from .utils import (
     apply_noise, buffer_tick_rand, get_buffer_tick_seed, get_order_num_seed, list_sum_normalize, order_num_rand
@@ -17,33 +21,40 @@ from .vessel_sailing_plan_wrapper import VesselSailingPlanWrapper
 from .vessel_stop_wrapper import VesselStopsWrapper
 
 
-class CimDataContainer:
+class CimBaseDataContainer(ABC):
     """Data container for cim scenario, used to provide interfaces for business engine,
-    and hide the details about data source, currently we support data from generator and dump files.
+    and hide the details about data source, currently we support data from generator, dump files,
+    and input following specific schema.
 
     Example:
 
         .. code-block:: python
 
             # Get data from generator.
-            data_cntr = data_from_generator(config_file, max_tick)
+            data_container = data_from_generator(config_file, max_tick)
 
             # Get data from dumps folder (which contains several dumped files).
-            data_cntr = data_from_dumps(dump_folder)
+            data_container = data_from_dumps(dump_folder)
+
+            # Get data from input files, the data is organized following specific schema.
+            data_container = data_from_files(data_folder)
 
     Args:
-        data_collection (CimDataCollection): Data collection from data source.
+        data_collection (CimBaseDataCollection): Corresponding data collection.
     """
-
-    def __init__(self, data_collection: CimDataCollection):
+    def __init__(self, data_collection: CimBaseDataCollection):
         self._data_collection = data_collection
 
         # wrapper for interfaces, to make it easy to use
         self._stops_wrapper = VesselStopsWrapper(self._data_collection)
-        self._full_return_buffer_wrapper = \
-            PortBufferTickWrapper(self._data_collection, lambda p: p.full_return_buffer)
-        self._empty_return_buffer_wrapper = \
-            PortBufferTickWrapper(self._data_collection, lambda p: p.empty_return_buffer)
+        self._full_return_buffer_wrapper = PortBufferTickWrapper(
+            self._data_collection,
+            lambda p: p.full_return_buffer
+        )
+        self._empty_return_buffer_wrapper = PortBufferTickWrapper(
+            self._data_collection,
+            lambda p: p.empty_return_buffer
+        )
         self._future_stop_prediction = VesselFutureStopsPrediction(self._data_collection)
         self._past_stop_wrapper = VesselPastStopsWrapper(self._data_collection)
         self._vessel_plan_wrapper = VesselSailingPlanWrapper(self._data_collection)
@@ -51,7 +62,6 @@ class CimDataContainer:
 
         # keep the seed so we can reproduce the sequence after reset
         self._buffer_tick_seed: int = get_buffer_tick_seed()
-        self._order_num_seed: int = get_order_num_seed()
 
         # flag to tell if we need to reset seed, we need this flag as outside may set the seed after env.reset
         self._is_need_reset_seed = False
@@ -91,7 +101,7 @@ class CimDataContainer:
         """int: Volume of a container.
         """
         # NOTE: we only support 1 type container
-        return self._data_collection.cntr_volume
+        return self._data_collection.container_volume
 
     @property
     def vessel_stops(self) -> VesselStopsWrapper:
@@ -202,7 +212,7 @@ class CimDataContainer:
                 # Get planed sailing for vessel 0.
                 period = data_cntr.vessel_period[0]
         """
-        return self._data_collection.vessel_period_no_noise
+        return self._data_collection.vessel_period_without_noise
 
     @property
     def route_mapping(self) -> Dict[str, int]:
@@ -218,6 +228,42 @@ class CimDataContainer:
     def port_mapping(self) -> Dict[str, int]:
         """Dict[str, int]: Name to index mapping for ports."""
         return self._data_collection.port_mapping
+
+    def reset(self):
+        """Reset data container internal state."""
+        self._is_need_reset_seed = True
+
+    def _reset_seed(self):
+        """Reset internal seed for generate reproduceable data"""
+        buffer_tick_rand.seed(self._buffer_tick_seed)
+
+    @abstractmethod
+    def get_orders(self, tick: int, total_empty_container: int) -> List[Order]:
+        pass
+
+
+class CimSyntheticDataContainer(CimBaseDataContainer):
+    """Data container for synthetic data from generator and dump files for cim scenario.
+
+    Example:
+
+        .. code-block:: python
+
+            # Get data from generator.
+            data_container = data_from_generator(config_file, max_tick)
+
+            # Get data from dumps folder (which contains several dumped files).
+            data_container = data_from_dumps(dump_folder)
+
+    Args:
+        data_collection (CimSyntheticDataCollection): Data collection for synthetic data.
+    """
+
+    def __init__(self, data_collection: CimSyntheticDataCollection):
+        super().__init__(data_collection)
+
+        # keep the seed so we can reproduce the sequence after reset
+        self._order_num_seed: int = get_order_num_seed()
 
     # TODO: get_events which composed with arrive, departure and order
 
@@ -244,13 +290,9 @@ class CimDataContainer:
 
         return self._gen_orders(tick, total_empty_container)
 
-    def reset(self):
-        """Reset data container internal state."""
-        self._is_need_reset_seed = True
-
     def _reset_seed(self):
         """Reset internal seed for generate reproduceable data"""
-        buffer_tick_rand.seed(self._buffer_tick_seed)
+        super()._reset_seed()
         order_num_rand.seed(self._order_num_seed)
 
     def _gen_orders(self, tick: int, total_empty_container: int) -> List[Order]:
@@ -329,7 +371,7 @@ class CimDataContainer:
 
                     # insert into result list
                     if cur_num > 0:
-                        order = Order(tick, port_idx, target[0], cur_num)
+                        order = Order(tick, port_idx, target.index, cur_num)
 
                         order_list.append(order)
 
@@ -337,3 +379,50 @@ class CimDataContainer:
         assert sum([o.quantity for o in order_list]) == orders_to_gen
 
         return order_list
+
+
+class CimRealDataContainer(CimBaseDataContainer):
+    """Data container for input data files following a specific data schema as introduced in
+    maro\\data_lib\\cim\\README.md.
+
+    Example:
+
+        .. code-block:: python
+
+            # Get data from input files, the data is organized following specific schema.
+            data_container = data_from_files(data_folder)
+    Args:
+        data_collection (CimRealDataCollection): Data collection from source data files.
+    """
+
+    def __init__(self, data_collection: CimRealDataCollection):
+        super().__init__(data_collection)
+
+        # orders
+        self._orders: Dict[int, List[Order]] = self._data_collection.orders
+
+    def get_orders(self, tick: int, total_empty_container: int) -> List[Order]:
+        """Get order list by specified tick.
+
+        Args:
+            tick (int): Tick of order.
+            total_empty_container (int): Empty container at tick.
+
+        Returns:
+            List[Order]: A list of order.
+        """
+
+        # reset seed if needed
+        if self._is_need_reset_seed:
+            self._reset_seed()
+
+            self._is_need_reset_seed = False
+
+        if tick >= self._data_collection.max_tick:
+            warnings.warn(f"{tick} out of max tick {self._data_collection.max_tick}")
+            return []
+
+        if tick not in self._orders:
+            return []
+
+        return self._orders[tick]

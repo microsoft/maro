@@ -7,16 +7,17 @@ import sys
 import numpy as np
 import torch
 
-from maro.rl.algorithms import DQN, DQNConfig
 from maro.rl.experience import ExperienceManager
+from maro.rl.exploration import EpsilonGreedyExploration, LinearExplorationScheduler
 from maro.rl.model import FullyConnectedBlock, OptimOption, DiscreteQNet
+from maro.rl.policy.algorithms import DQN, DQNConfig
 
 sc_path = os.path.dirname(os.path.realpath(__file__))
 if sc_path not in sys.path:
     sys.path.insert(0, sc_path)
 from env_wrapper import NUM_ACTIONS, STATE_DIM
 
-dqn_config = {
+config = {
     "model": {   # Edit the get_dqn_agent() code in examples\supply_chain\agent.py if you need to customize the model.
         "device": "cpu",
         "network": {
@@ -59,8 +60,11 @@ dqn_config = {
             "replace": True
         }
     },
-    "update_trigger": 16,
-    "warmup": 1  
+    "exploration_config": {
+        "last_ep": 10,
+        "initial_value": 0.8,   # Here (start: 0.4, end: 0.0) means: the exploration rate will start at 0.4 and decrease linearly to 0.0 in the last episode.
+        "final_value": 0.0
+    }
 }
 
 
@@ -72,25 +76,21 @@ class QNet(DiscreteQNet):
         return self.component(states)
 
 
-def get_dqn_policy_for_rollout():
-    qnet = QNet(FullyConnectedBlock(**dqn_config["model"]["network"]))
-    return DQN(
-        qnet,
-        ExperienceManager(**dqn_config["experience_manager"]["rollout"]),
-        DQNConfig(**dqn_config["algorithm"]),
-        update_trigger=1e8  # set to a large number to ensure that the roll-out workers don't update policies
-    )
-
-
-def get_dqn_policy_for_training():
+def get_dqn_policy(learning=True):
     qnet = QNet(
-        FullyConnectedBlock(**dqn_config["model"]["network"]),
-        optim_option=OptimOption(**dqn_config["model"]["optimization"])
+        FullyConnectedBlock(**config["model"]["network"]),
+        optim_option=OptimOption(**config["model"]["optimization"]) if learning else None
     )
-    return DQN(
-        qnet,
-        ExperienceManager(**dqn_config["experience_manager"]["training"]),
-        DQNConfig(**dqn_config["algorithm"]),
-        update_trigger=dqn_config["update_trigger"],
-        warmup=dqn_config["warmup"]
-    )
+    if learning:
+        exp_manager = ExperienceManager(**config["experience_manager"]["learning"])
+        exploration = None
+    else:
+        exp_manager = ExperienceManager(**config["experience_manager"]["rollout"])
+        exploration = EpsilonGreedyExploration()
+        exploration.register_schedule(
+            scheduler_cls=LinearExplorationScheduler,
+            param_name="epsilon",
+            **config["exploration"]
+        )
+
+    return DQN(qnet, exp_manager, DQNConfig(**config["algorithm"]), exploration=exploration)

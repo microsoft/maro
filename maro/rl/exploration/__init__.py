@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 from .abs_exploration import AbsExploration, NullExploration
-from .epsilon_greedy_exploration import EpsilonGreedyExploration
+from .discrete_space_exploration import DiscreteSpaceExploration, EpsilonGreedyExploration
 from .exploration_scheduler import (
     AbsExplorationScheduler, LinearExplorationScheduler, MultiPhaseLinearExplorationScheduler
 )
@@ -10,7 +10,7 @@ from .noise_exploration import GaussianNoiseExploration, NoiseExploration, Unifo
 
 __all__ = [
     "AbsExploration", "NullExploration",
-    "EpsilonGreedyExploration",
+    "DiscreteSpaceExploration", "EpsilonGreedyExploration",
     "AbsExplorationScheduler", "LinearExplorationScheduler", "MultiPhaseLinearExplorationScheduler",
     "GaussianNoiseExploration", "NoiseExploration", "UniformNoiseExploration"
 ]

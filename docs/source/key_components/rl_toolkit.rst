@@ -117,12 +117,9 @@ In the deep reinforcement learning (DRL) world, a core policy usually includes o
 which may be used to compute action preferences or estimate state / action values. The core model abstraction is designed
 to decouple the the inner workings of these models from the algorithmic aspects of the policy that uses them. For example,
 the actor-critic algorithm does not need to concern itself with the structures and optimizing schemes of the actor and
-critic models. The abstraction consists of ``AbsBlock`` and ``AbsCoreModel``, both of which subclass torch's nn.Module.
-The ``AbsBlock`` represents the smallest structural unit of an NN-based model. For instance, the ``FullyConnectedBlock``
-is a stack of fully connected layers with features like batch normalization, drop-out and skip connection. The ``AbsCoreModel``
-is a collection of network components with embedded optimizers. Subclasses of ``AbsCoreModel`` provided for use with specific
-RL algorithms include ``DiscreteQNet`` for DQN, ``DiscretePolicyNet`` for Policy Gradient, ``DiscreteACNet`` for Actor-Critic
-and ``ContinuousACNet`` for DDPG.
+critic models. The ``AbsCoreModel`` abstraction represents a collection of network components with embedded optimizers.
+Subclasses of ``AbsCoreModel`` provided for use with specific RL algorithms include ``DiscreteQNet`` for DQN, ``DiscretePolicyNet``
+for Policy Gradient, ``DiscreteACNet`` for Actor-Critic and ``ContinuousACNet`` for DDPG.
 
 The code snippet below shows how to create a model for the actor-critic algorithm with a shared bottom stack:
 

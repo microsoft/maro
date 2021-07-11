@@ -1,10 +1,10 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import time
 from abc import ABC, abstractmethod
 
 from maro.rl.experience import ExperienceManager, ExperienceSet
+from maro.rl.exploration import AbsExploration
 
 
 class AbsPolicy(ABC):
@@ -34,10 +34,13 @@ class AbsCorePolicy(AbsPolicy):
     Args:
         experience_manager (ExperienceManager): An experience manager for storing and retrieving experiences
             for training.
+        exploration (AbsExploration): Exploration strategy for generating exploratory actions. Defaults to None.
     """
-    def __init__(self, experience_manager: ExperienceManager):
+    def __init__(self, experience_manager: ExperienceManager, exploration: AbsExploration = None):
         super().__init__()
         self.experience_manager = experience_manager
+        self.exploration = exploration
+        self.exploring = True
 
     @abstractmethod
     def choose_action(self, state):
@@ -80,6 +83,16 @@ class AbsCorePolicy(AbsPolicy):
         # print(
         #     f"exp mem size = {self.experience_manager.size}, incoming: {exp.size}, new exp = {self._new_exp_counter}"
         # )
+
+    def exploit(self):
+        self.exploring = False
+
+    def explore(self):
+        self.exploring = True
+
+    def exploration_step(self):
+        if self.exploration:
+            self.exploration.step()
 
     def load(self, path: str):
         """Load the policy state from disk."""

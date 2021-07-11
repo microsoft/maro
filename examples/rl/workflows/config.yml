@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 job_name: sc 
-scenario: sc
+scenario: supply_chain
 mode: sync
 num_episodes: 3
 eval_schedule: 3 

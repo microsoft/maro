@@ -30,6 +30,7 @@ class CIMEnvWrapper(AbsEnvWrapper):
             (self.look_back + 1) * (self.max_ports_downstream + 1) * len(self.port_attributes)
             + len(self.vessel_attributes)
         )
+        self._state_info = None
 
     @property
     def state_dim(self):
@@ -44,7 +45,7 @@ class CIMEnvWrapper(AbsEnvWrapper):
         future_port_idx_list = vessel_snapshots[tick: vessel_idx: 'future_stop_list'].astype('int')
         port_features = port_snapshots[ticks: [port_idx] + list(future_port_idx_list): self.port_attributes]
         vessel_features = vessel_snapshots[tick: vessel_idx: self.vessel_attributes]
-        self.state_info = {
+        self._state_info = {
             port_idx: {
                 "tick": tick,
                 "action_scope": self.event.action_scope,
@@ -59,7 +60,7 @@ class CIMEnvWrapper(AbsEnvWrapper):
     def to_env_action(self, action_by_agent: dict):
         env_action = {}
         for agent_id, action_info in action_by_agent.items():
-            state_info = self.state_info[agent_id]
+            state_info = self._state_info[agent_id]
             tick, port, vessel, action_scope = (
                 state_info["tick"], state_info["port_idx"], state_info["vessel_idx"], state_info["action_scope"]
             )

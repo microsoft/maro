@@ -87,10 +87,10 @@ def process_vessel_data(db_vessel_data: json, start_tick: str) -> json:
         route_distance = cim_information["routes"][item]
         route_distance_length = len(route_distance)
         prev = 0
-        route_distance[0]["distance"] = 0
+        route_distance[0]["distance_to_next_port"] = 0
         for index in range(1, route_distance_length):
-            route_distance[index]["distance"] = route_distance[index]["distance"] + prev
-            prev = route_distance[index]["distance"]
+            route_distance[index]["distance_to_next_port"] = route_distance[index]["distance_to_next_port"] + prev
+            prev = route_distance[index]["distance_to_next_port"]
     original_vessel_data = get_data_in_format(db_vessel_data)
 
     frame_index_num = len(original_vessel_data["tick"].unique())
@@ -165,7 +165,7 @@ def get_single_snapshot_vessel_data(
                 route_distance_info = cim_information["routes"][item]
                 for dis in route_distance_info:
                     if dis["port_name"] == start_port:
-                        vessel["start"] = dis["distance"]
+                        vessel["start"] = dis["distance_to_next_port"]
                 vessel_in_output.append(vessel)
         output.append({"name": item, "vessel": vessel_in_output})
 

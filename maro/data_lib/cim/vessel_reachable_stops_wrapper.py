@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from .entities import CimDataCollection
+from .entities import CimBaseDataCollection
 
 
 class VesselReachableStopsWrapper:
@@ -15,7 +15,7 @@ class VesselReachableStopsWrapper:
             stop_list = data_cntr.reachable_stops[0]
     """
 
-    def __init__(self, data: CimDataCollection):
+    def __init__(self, data: CimBaseDataCollection):
         self._routes = data.routes
         self._stops = data.vessels_stops
 
@@ -31,4 +31,4 @@ class VesselReachableStopsWrapper:
         stops = self._stops[vessel_idx][
             next_loc_idx + 1: next_loc_idx + 1 + route_length]
 
-        return [(stop.port_idx, stop.arrive_tick) for stop in stops]
+        return [(stop.port_idx, stop.arrival_tick) for stop in stops]
