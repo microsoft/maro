@@ -6,7 +6,7 @@ from collections import defaultdict, namedtuple
 import scipy.stats as st
 import numpy as np
 
-from maro.rl import AbsEnvWrapper
+from maro.rl.learning import AbsEnvWrapper
 from maro.simulator import Env
 from maro.simulator.scenarios.supply_chain.actions import ConsumerAction, ManufactureAction
 
@@ -238,8 +238,8 @@ class SCEnvWrapper(AbsEnvWrapper):
 
         self.order_to_distribute_status[agent_info.id] = state['distributor_in_transit_orders_qty']
 
-        self.reward_status = {f_id: np.float32(reward[1]) for f_id, reward in self.cur_balance_sheet_reward.items()}
-        self.balance_status = {f_id: np.float32(reward[0]) for f_id, reward in self.cur_balance_sheet_reward.items()}
+        #self.reward_status = {f_id: np.float32(reward[1]) for f_id, reward in self.cur_balance_sheet_reward.items()}
+        #self.balance_status = {f_id: np.float32(reward[0]) for f_id, reward in self.cur_balance_sheet_reward.items()}
 
         np_state = self._serialize_state(state)
         return np_state

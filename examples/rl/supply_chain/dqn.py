@@ -53,14 +53,14 @@ config = {
             "batch_size": 128,
             "replace": False
         },
-        "training": {      # for experience managers in the learner process
+        "learning": {      # for experience managers in the learner process
             "capacity": 100000,
             "overwrite_type": "rolling",
             "batch_size": 256,
             "replace": True
         }
     },
-    "exploration_config": {
+    "exploration": {
         "last_ep": 10,
         "initial_value": 0.8,   # Here (start: 0.4, end: 0.0) means: the exploration rate will start at 0.4 and decrease linearly to 0.0 in the last episode.
         "final_value": 0.0
