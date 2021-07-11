@@ -18,6 +18,8 @@ class VMEnvWrapper(AbsEnvWrapper):
         beta: float,
         pm_num: int,
         durations: int,
+        normalize_durations: int,
+        peeking: bool,
         vm_state_path: str,
         vm_window_size: int = 1,
         pm_window_size: int = 1,
@@ -41,7 +43,10 @@ class VMEnvWrapper(AbsEnvWrapper):
 
         self._legal_pm = None
         self.action_class = VMAction(pm_num) # convert the action info to the environment action
-        self.state_class = VMState(pm_num, durations, vm_state_path, vm_window_size, pm_window_size) # get the state information
+        self.state_class = VMState(
+            pm_num, durations, normalize_durations, 
+            peeking, vm_state_path, vm_window_size, pm_window_size
+        ) # get the state information
 
         self._alpha, self._beta = alpha, beta # adjust the ratio of the success allocation and the total income when computing the reward
         self._gamma = gamma # reward discount

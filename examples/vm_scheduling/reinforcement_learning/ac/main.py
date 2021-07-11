@@ -1,8 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import io
 import os
+import time
 import yaml
+import shutil
 import random
 
 from maro.rl import (
@@ -24,7 +27,7 @@ with io.open(CONFIG_PATH, "r") as in_file:
     raw_config = yaml.safe_load(in_file)
     config = convert_dottable(raw_config)
 
-LOG_PATH = os.path.join(FILE_PATH, "log", training_config["experiment_name"])
+LOG_PATH = os.path.join(FILE_PATH, "log", config["experiment_name"])
 if not os.path.exists(LOG_PATH):
     os.makedirs(LOG_PATH)
 simulation_logger = Logger(tag="simulation", format_=LogFormat.none, dump_folder=LOG_PATH, dump_mode="w", auto_timestamp=False)
@@ -33,11 +36,11 @@ ac_logger = Logger(tag="ac", format_=LogFormat.none, dump_folder=LOG_PATH, dump_
 test_ac_logger = Logger(tag="test_ac", format_=LogFormat.none, dump_folder=LOG_PATH, dump_mode="w", auto_timestamp=False)
 ilp_logger = Logger(tag="ilp", format_=LogFormat.none, dump_folder=LOG_PATH, dump_mode="w", auto_timestamp=False)
 
-MODEL_PATH = os.path.join(FILE_PATH, "log", training_config["experiment_name"], "models")
+MODEL_PATH = os.path.join(FILE_PATH, "log", config["experiment_name"], "models")
 if not os.path.exists(MODEL_PATH):
     os.makedirs(MODEL_PATH)
 
-PICTURE_PATH = os.path.join(FILE_PATH, "log", training_config["experiment_name"], "pictures")
+PICTURE_PATH = os.path.join(FILE_PATH, "log", config["experiment_name"], "pictures")
 if not os.path.exists(PICTURE_PATH):
     os.makedirs(PICTURE_PATH)
 
@@ -51,8 +54,8 @@ input_dim = (
 def get_ac_policy(agent_config):
     ac_net = ACNet(
         component={
-            "actor": agent_config["actor_type"](**agent_config["model"]["network"]["actor"]),
-            "critic": agent_config["critic_type"](**agent_config["model"]["network"]["critic"])
+            "actor": CombineNet(input_dim=input_dim, **agent_config["model"]["network"]["actor"]),
+            "critic": CombineNet(input_dim=input_dim, **agent_config["model"]["network"]["critic"])
         },
         optim_option={
             "actor":  OptimOption(**agent_config["model"]["optimization"]["actor"]),
@@ -75,6 +78,8 @@ def get_ilp_policy(env, agent_config):
         env,
         pm_num=agent_config["pm_num"],
         agent_config=agent_config["algorithm"],
+        env_start_tick=config["env"]["basic"]["start_tick"],
+        env_duration=config["env"]["basic"]["durations"],
         simulation_logger=simulation_logger,
         ilp_logger=ilp_logger,
         log_path=LOG_PATH
@@ -100,7 +105,7 @@ if __name__ == "__main__":
     local_learner = VMLearner(
         env=VMEnvWrapperForAC(env, **config["env"]["wrapper"]),
         policy=get_ac_policy(config["policy"]),
-        auxiliary_policy=get_ilp_policy(env, config["policy"]["ilp_agent"]),
+        auxiliary_policy=get_rule_based_policy(env, config["policy"]["rule_agent"]),
         num_episodes=config["num_episodes"],
         num_steps=config["num_steps"],
         eval_schedule=config["eval_schedule"],

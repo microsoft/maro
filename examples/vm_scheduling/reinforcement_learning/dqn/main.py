@@ -1,9 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import io
 import os
 import time
 import yaml
+import shutil
 import random
 
 from maro.rl import (
@@ -11,7 +13,7 @@ from maro.rl import (
     MultiPhaseLinearExplorationScheduler
 )
 from maro.simulator import Env
-from maro.utils import LogFormat, Logger
+from maro.utils import LogFormat, Logger, convert_dottable
 
 from components import VMEnvWrapperForDQN
 from agent import QNet, VMDQN, VMExploration
@@ -71,6 +73,8 @@ def get_ilp_policy(env, agent_config):
         env,
         pm_num=agent_config["pm_num"],
         agent_config=agent_config["algorithm"],
+        env_start_tick=config["env"]["basic"]["start_tick"],
+        env_duration=config["env"]["basic"]["durations"],
         simulation_logger=simulation_logger,
         ilp_logger=ilp_logger,
         log_path=LOG_PATH
@@ -93,7 +97,7 @@ if __name__ == "__main__":
         eval_env.set_seed(config["seed"])
         random.seed(config["seed"])
 
-    num_actions = config["policy"]["output_dim"]
+    num_actions = config["policy"]["model"]["network"]["output_dim"]
     epsilon_greedy = VMExploration(num_actions=num_actions)
     epsilon_greedy.register_schedule(
         scheduler_cls=MultiPhaseLinearExplorationScheduler,
@@ -103,7 +107,7 @@ if __name__ == "__main__":
     local_learner = VMLearner(
         env=VMEnvWrapperForDQN(env, **config["env"]["wrapper"]),
         policy=get_dqn_policy(config["policy"]),
-        auxiliary_policy=get_ilp_policy(env, config["policy"]["ilp_agent"]),
+        auxiliary_policy=get_rule_based_policy(env, config["policy"]["rule_agent"]),
         num_episodes=config["num_episodes"],
         num_steps=config["num_steps"],
         exploration=epsilon_greedy,

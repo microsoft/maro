@@ -67,8 +67,7 @@ class VMDQN(DQN):
 
     @staticmethod
     def _get_td_errors(
-        q_values, next_q_values,
-        rewards, gamma, loss_func
+        q_values, next_q_values, rewards, gamma, loss_func
     ):
         target_q_values = (rewards + gamma * next_q_values).detach()  # (N,)
         return loss_func(q_values, target_q_values)

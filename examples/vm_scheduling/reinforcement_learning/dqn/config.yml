@@ -18,6 +18,8 @@ env:
     beta: 1.0
     pm_num: 8
     durations: 200
+    normalize_durations: 200
+    peeking: True
     vm_state_path: ../data/train_vm_states.npy
     vm_window_size: 1
     pm_window_size: 1
@@ -36,6 +38,8 @@ eval_env:
     beta: 1.0
     pm_num: 8
     durations: 200
+    normalize_durations: 200
+    peeking: True
     vm_state_path: ../data/test_vm_states.npy
     vm_window_size: 1
     pm_window_size: 1

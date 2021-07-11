@@ -6,6 +6,5 @@ from .vm_ac import VMActorCritic
 
 __all__ = [
     "ACNet",
-    "VMActorCritic",
-    "CombineNet", "SequenceNet"
+    "VMActorCritic"
 ]
