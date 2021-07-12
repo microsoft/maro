@@ -1,8 +1,7 @@
 
 seed: 123
-transfer_cost_factors:
-  load: 0.05
-  dsch: 0.05
+load_cost_factor: 0.05
+dsch_cost_factor: 0.05
 container_usage_proportion:
   period: 112
   sample_nodes:
