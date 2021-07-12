@@ -21,7 +21,7 @@ async:
   num_actors: 3
 policy_manager:
   train_group: policy-manager
-  train_mode: single-process # single-process, multi-process, multi-node
+  train_mode: multi-node # single-process, multi-process, multi-node
   num_trainers: 4
 redis:
   host: maro-redis

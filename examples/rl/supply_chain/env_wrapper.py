@@ -80,8 +80,8 @@ seller_features = ("total_demand", "sold", "demand")
 
 
 class SCEnvWrapper(AbsEnvWrapper):
-    def __init__(self, env: Env, reward_eval_delay: int=0, save_replay: bool=True, replay_agent_ids: list=None):
-        super().__init__(env, reward_eval_delay, save_replay, replay_agent_ids)
+    def __init__(self, env: Env, reward_eval_delay: int=0, replay_agent_ids: list=None):
+        super().__init__(env, reward_eval_delay, replay_agent_ids=replay_agent_ids)
         self.balance_cal = BalanceSheetCalculator(env)
         self.cur_balance_sheet_reward = None
         self.storage_ss = env.snapshot_list["storage"]
@@ -1162,18 +1162,14 @@ env_config = {
     # Currently available topologies are "sample1" or "random". New topologies must consist of a single folder
     # that contains a single config.yml and should be placed under examples/supply_chain/envs/
     "topology": "random",
-    "durations": 200  # number of ticks per episode
+    "durations": 100  # number of ticks per episode
 }
 
-def get_env_wrapper():
-    env = Env(**env_config)
-    replay_agent_ids = [
-        f"{info.agent_type}.{info.id}" for info in env.agent_idx_list if info.agent_type == "consumerstore"
-    ]
-    return SCEnvWrapper(env, replay_agent_ids=replay_agent_ids)
+def get_env_wrapper(replay_agent_ids=None):
+    return SCEnvWrapper(env=Env(**env_config), replay_agent_ids=replay_agent_ids)
 
 
-tmp_env_wrapper = get_env_wrapper()
+tmp_env_wrapper = get_env_wrapper(replay_agent_ids=[])
 AGENT_IDS = [f"{info.agent_type}.{info.id}" for info in tmp_env_wrapper.agent_idx_list]
 STATE_DIM = tmp_env_wrapper.dim
 NUM_ACTIONS = 10

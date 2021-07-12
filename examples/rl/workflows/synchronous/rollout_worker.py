@@ -18,6 +18,7 @@ from general import config, get_env_wrapper, log_dir, replay_agents
 
 if __name__ == "__main__":
     worker_id = int(environ["WORKERID"])
+    print(f"replay agents: {replay_agents[worker_id]}")
     rollout_worker_node(
         config["sync"]["rollout_group"],
         worker_id,

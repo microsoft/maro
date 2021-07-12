@@ -35,7 +35,7 @@ class AbsEnvWrapper(ABC):
         self.action_history = defaultdict(dict)
         self.get_experience_func = get_experience_func
 
-        replay_agent_ids = self.env.agent_idx_list if not replay_agent_ids else replay_agent_ids
+        replay_agent_ids = self.env.agent_idx_list if replay_agent_ids is None else replay_agent_ids
         self._replay_buffer = {agent_id: defaultdict(list) for agent_id in replay_agent_ids}
         self._pending_reward_cache = deque()  # list of (state, action, tick) whose rewards have yet to be evaluated
         self._step_index = None

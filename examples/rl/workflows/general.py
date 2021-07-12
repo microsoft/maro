@@ -30,4 +30,5 @@ warmup = getattr(module, "warmup")
 num_rollouts = config["sync"]["num_rollout_workers"] if config["mode"] == "sync" else config["async"]["num_actors"]
 replay_agents = [[] for _ in range(num_rollouts)]
 for i, agent in enumerate(list(agent2policy.keys())):
-    replay_agents[i % num_rollouts].append(agent)
+    if agent2policy[agent] in rl_policy_func_index:
+        replay_agents[i % num_rollouts].append(agent)
