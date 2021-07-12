@@ -2,34 +2,19 @@
 
 Current the real data input are supported by the **CimRealDataLoader** and **CimRealDataContainer** implemented in *maro/data_lib/cim/cim_data_loader.py* and *maro/data_lib/cim/cim_data_container.py* respectively.
 
-## Configurations in the Topology File *config.yml*
+To build up a topology with real data as input, different to the synthetic mode, no need for any *config.yml* file,
+just put the input data files under the folder of the specific topology.
 
-To build up a topology with real data as input, 2 parts of configurations are required for the config.yml:
-
-- input_setting: describes what type of the input data files and where are the data files.
-- transfer_cost_factors: used by the business engine to calculate the transfer cost automatically.
-
-Here is an example for the *config.yml* file:
-
-```text
-input_setting:
-  from_files: true
-  input_type: real  # real, dumped
-  data_folder: "~\.maro\data\cim\test.new_schema"
-
-transfer_cost_factors:
-  load: 0.05
-  dsch: 0.05
-```
-
-## Input CSV Files
+## Input Data Files
 
 The required input data files includes: *misc.yml, orders.csv, ports.csv, routes.csv, stops.csv, vessels.csv*.
 
-The *misc.yml* file includes 5 settings, they are (for example):
+The *misc.yml* file includes 7 settings, they are (for example):
 ```text
 max_tick: 224
 container_volume: 1
+load_cost_factor: 0.05
+dsch_cost_factor: 0.05
 past_stop_number: 4
 future_stop_number: 3
 seed: 4096

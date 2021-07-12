@@ -28,8 +28,8 @@ It contains following keys:
 
 order_requirements (int): Accumulative orders until now.
 container_shortage (int): Accumulative shortage until now.
-operation_number (int): Total empty transfer (both load and discharge) cost,
-    the cost factors can be configured in configuration file at section "transfer_cost_factors".
+operation_number (int): Total empty operation (both load and discharge) cost,
+    the cost factors can be configured through 'load_cost_factor' and 'dsch_cost_factor' in configuration file.
 """
 
 
@@ -48,15 +48,17 @@ class CimBusinessEngine(AbsBusinessEngine):
         # Update self._config_path with current file path.
         self.update_config_root_path(__file__)
 
-        config_path = os.path.join(self._config_path, "config.yml")
-
         # Load data from wrapper.
         self._data_cntr: CimDataContainerWrapper = CimDataContainerWrapper(
-            config_path, max_tick, self._topology)
+            self._config_path, max_tick, self._topology
+        )
 
         # Create a copy of config object to expose to others, and not affect generator.
-        with open(config_path) as fp:
-            self._config = safe_load(fp)
+        self._config = {}
+        config_path = os.path.join(self._config_path, "config.yml")
+        if os.path.exists(config_path):
+            with open(config_path) as fp:
+                self._config = safe_load(fp)
 
         self._vessels = []
         self._ports = []
@@ -66,11 +68,8 @@ class CimBusinessEngine(AbsBusinessEngine):
         self._vessel_plans: MatrixAttributeAccessor = None
         self._port_orders_exporter = PortOrderExporter("enable-dump-snapshot" in additional_options)
 
-        # Read transfer cost factors.
-        transfer_cost_factors = self._config["transfer_cost_factors"]
-
-        self._load_cost_factor: float = transfer_cost_factors["load"]
-        self._dsch_cost_factor: float = transfer_cost_factors["dsch"]
+        self._load_cost_factor: float = self._data_cntr.load_cost_factor
+        self._dsch_cost_factor: float = self._data_cntr.dsch_cost_factor
 
         # Used to collect total cost to avoid to much snapshot querying.
         self._total_operate_num: float = 0

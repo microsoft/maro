@@ -122,6 +122,9 @@ class CimBaseDataCollection:
     vessel_period_without_noise: List[int]
     # Volume/Container
     container_volume: int
+    # Cost Factors
+    load_cost_factor: float
+    dsch_cost_factor: float
     # Visible Voyage Window
     past_stop_number: int
     future_stop_number: int

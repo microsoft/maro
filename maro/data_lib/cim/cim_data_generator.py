@@ -54,7 +54,6 @@ class CimDataGenerator:
         total_containers = conf["total_containers"]
         past_stop_number, future_stop_number = conf["stop_number"]
         container_volumes = conf["container_volumes"]
-        order_mode = OrderGenerateMode(conf["order_generate_mode"])
 
         # parse configurations
         vessel_mapping, vessels_setting = self._vessels_parser.parse(conf["vessels"])
@@ -70,33 +69,37 @@ class CimDataGenerator:
 
         return CimSyntheticDataCollection(
             # Port
-            ports_setting,
-            port_mapping,
+            ports_settings=ports_setting,
+            port_mapping=port_mapping,
             # Vessel
-            vessels_setting,
-            vessel_mapping,
+            vessels_settings=vessels_setting,
+            vessel_mapping=vessel_mapping,
             # Stop
-            vessels_stops,
+            vessels_stops=vessels_stops,
             # Route
-            routes,
-            route_mapping,
+            routes=routes,
+            route_mapping=route_mapping,
             # Vessel Period
-            vessel_period_without_noise,
+            vessel_period_without_noise=vessel_period_without_noise,
             # Volume/Container
-            container_volumes[0],
+            container_volume=container_volumes[0],
+            # Cost Factors
+            load_cost_factor=conf["load_cost_factor"],
+            dsch_cost_factor=conf["dsch_cost_factor"],
             # Visible Voyage Window
-            past_stop_number,
-            future_stop_number,
+            past_stop_number=past_stop_number,
+            future_stop_number=future_stop_number,
             # Time Length of the Data Collection
-            max_tick,
+            max_tick=max_tick,
             # Random Seed for Data Generation
-            topology_seed,
+            seed=topology_seed,
             # For Order Generation
-            total_containers,
-            order_mode,
-            global_order_proportion,
+            total_containers=total_containers,
+            order_mode=OrderGenerateMode(conf["order_generate_mode"]),
+            order_proportion=global_order_proportion,
             # Data Generator Version
-            CIM_GENERATOR_VERSION)
+            version=CIM_GENERATOR_VERSION
+        )
 
     def _extend_route(
         self, future_stop_number: int, max_tick: int,
