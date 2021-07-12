@@ -108,13 +108,13 @@ class Order:
 @dataclass(frozen=True)
 class CimBaseDataCollection:
     # Port
-    ports_settings: List[PortSetting]
+    port_settings: List[PortSetting]
     port_mapping: Dict[str, int]
     # Vessel
-    vessels_settings: List[VesselSetting]
+    vessel_settings: List[VesselSetting]
     vessel_mapping: Dict[str, int]
     # Stop
-    vessels_stops: List[List[Stop]]
+    vessel_stops: List[List[Stop]]
     # Route
     routes: List[List[RoutePoint]]
     route_mapping: Dict[str, int]

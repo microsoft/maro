@@ -206,9 +206,9 @@ class CimDumpDataLoader(CimBaseDataLoader):
         # construct data collection
         # NOTE: this is a namedtuple, so out-side cannot change it
         data_collection = CimSyntheticDataCollection(
-            ports_settings=ports,
+            port_settings=ports,
             port_mapping=port_mapping,
-            vessels_settings=vessels,
+            vessel_settings=vessels,
             vessel_mapping=vessel_mapping,
             vessel_stops=stops,
             routes=routes,
@@ -328,11 +328,11 @@ class CimRealDataLoader(CimBaseDataLoader):
         # construct data collection
         # NOTE: this is a namedtuple, so out-side cannot change it
         data_collection = CimRealDataCollection(
-            ports_settings=ports,
+            port_settings=ports,
             port_mapping=port_mapping,
-            vessels_settings=vessels,
+            vessel_settings=vessels,
             vessel_mapping=vessel_mapping,
-            vessels_stops=stops,
+            vessel_stops=stops,
             routes=routes,
             route_mapping=route_mapping,
             vessel_period_without_noise=periods_without_noise,

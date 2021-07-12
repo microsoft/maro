@@ -69,13 +69,13 @@ class CimDataGenerator:
 
         return CimSyntheticDataCollection(
             # Port
-            ports_settings=ports_setting,
+            port_settings=ports_setting,
             port_mapping=port_mapping,
             # Vessel
-            vessels_settings=vessels_setting,
+            vessel_settings=vessels_setting,
             vessel_mapping=vessel_mapping,
             # Stop
-            vessels_stops=vessels_stops,
+            vessel_stops=vessels_stops,
             # Route
             routes=routes,
             route_mapping=route_mapping,
