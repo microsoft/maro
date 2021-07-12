@@ -29,6 +29,8 @@ class CimDataContainerWrapper:
         self._init_data_container()
 
     def _init_data_container(self):
+        if not os.path.exists(self._config_path):
+            raise FileNotFoundError
         # Synthetic Data Mode: config.yml must exist.
         config_path = os.path.join(self._config_path, "config.yml")
         if os.path.exists(config_path):
