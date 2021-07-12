@@ -4,8 +4,6 @@
 import os
 import urllib.parse
 
-from yaml import safe_load
-
 from maro.cli.data_pipeline.utils import StaticParameter
 from maro.simulator.utils import seed
 
