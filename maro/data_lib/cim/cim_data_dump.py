@@ -201,6 +201,8 @@ class CimDataDumpUtil:
             "past_stop_number": self._data_collection.past_stop_number,
             "future_stop_number": self._data_collection.future_stop_number,
             "container_volume": self._data_collection.container_volume,
+            "load_cost_factor": self._data_collection.load_cost_factor,
+            "dsch_cost_factor": self._data_collection.dsch_cost_factor,
             "max_tick": self._data_collection.max_tick,
             "seed": self._data_collection.seed,
             "version": self._data_collection.version
