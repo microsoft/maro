@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 
 from collections import defaultdict, namedtuple
+from os.path import dirname, join, realpath
 from typing import List
 
 import scipy.stats as st
@@ -1159,8 +1160,8 @@ class BalanceSheetCalculator:
 
 env_config = {
     "scenario": "supply_chain",
-    # Currently available topologies are "sample1" or "random". New topologies must consist of a single folder
-    # that contains a single config.yml and should be placed under examples/supply_chain/envs/
+    # Currently available topologies are "sample" or "random". New topologies must consist of a single folder
+    # that contains a single config.yml and should be placed under /maro/simulator/scenarios/supply_chain/topologies
     "topology": "random",
     "durations": 100  # number of ticks per episode
 }

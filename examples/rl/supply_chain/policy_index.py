@@ -6,8 +6,8 @@ import sys
 
 from maro.rl.policy import NullPolicy
 
-cim_path = os.path.dirname(__file__)
-sys.path.insert(0, cim_path)
+sc_path = os.path.dirname(__file__)
+sys.path.insert(0, sc_path)
 from dqn import get_dqn_policy
 from env_wrapper import AGENT_IDS
 from or_policies import (

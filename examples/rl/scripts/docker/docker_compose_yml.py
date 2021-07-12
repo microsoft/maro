@@ -11,6 +11,7 @@ rl_example_dir = dirname(dirname(docker_script_dir))
 root_dir = dirname(dirname(rl_example_dir))
 workflow_dir = join(rl_example_dir, "workflows")
 maro_rl_dir = join(root_dir, "maro", "rl")
+maro_sc_dir = join(root_dir, "maro", "simulator", "scenarios", "supply_chain")
 config_path = join(workflow_dir, "config.yml")
 dockerfile_path = join(root_dir, "docker_files", "dev.df")
 
@@ -23,7 +24,11 @@ docker_compose_manifest = {"version": "3.9", "services": {"redis": {"image": "re
 common_spec = {
     "build": {"context": root_dir, "dockerfile": dockerfile_path},
     "image": "maro",
-    "volumes": [f"{rl_example_dir}:/maro/rl_examples", f"{maro_rl_dir}:/maro/maro/rl"]
+    "volumes": [
+        f"{rl_example_dir}:/maro/rl_examples",
+        f"{maro_rl_dir}:/maro/maro/rl",
+        f"{maro_sc_dir}:/maro/maro/simulator/scenarios/supply_chain"    
+    ]
 }
 
 # trainer spec
