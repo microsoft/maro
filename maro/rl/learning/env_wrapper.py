@@ -3,6 +3,7 @@
 
 from abc import ABC, abstractmethod
 from collections import defaultdict, deque
+from typing import Callable
 
 from maro.rl.experience import ExperienceSet
 from maro.simulator import Env
@@ -16,18 +17,26 @@ class AbsEnvWrapper(ABC):
         reward_eval_delay (int): Number of ticks required after a decision event to evaluate the reward
             for the action taken for that event. Defaults to 0, which means rewards are evaluated immediately
             after executing an action.
-        save_replay (bool): If True, transitions for some or all agents will in stored in internal replay buffers.
         replay_agent_ids (list): List of agent IDs whose transitions will be stored in internal replay buffers.
-            If ``save_replay`` is False, this is ignored. Otherwise, if it is None, it will be set to all agents in
-            Defaults to None.
+            If it is None, it will be set to all agents in the environment (i.e., env.agent_idx_list). Defaults
+            to None.
+        get_experience_func (Callable): Custom function to convert the replay buffer to training experiences. Defaults
+            to None, in which case the replay buffer will be converted directly to SARS experiences for each agent.
     """
-    def __init__(self, env: Env, reward_eval_delay: int = 0, save_replay: bool = True, replay_agent_ids: list = None):
+    def __init__(
+        self,
+        env: Env,
+        reward_eval_delay: int = 0,
+        replay_agent_ids: list = None,
+        get_experience_func: Callable = None
+    ):
         self.env = env
         self.reward_eval_delay = reward_eval_delay
         self.action_history = defaultdict(dict)
-        self.save_replay = save_replay
-        self.replay_agent_ids = self.env.agent_idx_list if not replay_agent_ids else replay_agent_ids
-        self._replay_buffer = {agent_id: defaultdict(list) for agent_id in self.replay_agent_ids}
+        self.get_experience_func = get_experience_func
+
+        replay_agent_ids = self.env.agent_idx_list if not replay_agent_ids else replay_agent_ids
+        self._replay_buffer = {agent_id: defaultdict(list) for agent_id in replay_agent_ids}
         self._pending_reward_cache = deque()  # list of (state, action, tick) whose rewards have yet to be evaluated
         self._step_index = None
         self._total_reward = defaultdict(int)
@@ -138,16 +147,14 @@ class AbsEnvWrapper(ABC):
         ):
             state, action, info, tick = self._pending_reward_cache.popleft()
             reward = self.get_reward(tick=tick)
-            # assign rewards to the agents that took action at that tick
-            if self.save_replay:
-                for agent_id, st in state.items():
-                    self._total_reward[agent_id] += reward[agent_id]
-                    if agent_id in self._replay_buffer:
-                        buf = self._replay_buffer[agent_id]
-                        buf["states"].append(st)
-                        buf["actions"].append(action[agent_id])
-                        buf["rewards"].append(reward[agent_id])
-                        buf["info"].append(info[agent_id] if info else None)
+            for agent_id, st in state.items():
+                self._total_reward[agent_id] += reward[agent_id]
+                if agent_id in self._replay_buffer:
+                    buf = self._replay_buffer[agent_id]
+                    buf["states"].append(st)
+                    buf["actions"].append(action[agent_id])
+                    buf["rewards"].append(reward[agent_id])
+                    buf["info"].append(info[agent_id] if info else None)
 
     def end_of_episode(self):
         """Custom processing logic at the end of an episode."""
@@ -155,23 +162,25 @@ class AbsEnvWrapper(ABC):
 
     def get_experiences(self):
         """Get per-agent experiences from the replay buffer."""
-        exp_by_agent = {}
-        for agent_id in self.replay_agent_ids:
-            buf = self._replay_buffer[agent_id]
-            exp_set = ExperienceSet(
-                buf["states"][:-1],
-                buf["actions"][:-1],
-                buf["rewards"][:-1],
-                buf["states"][1:],
-                buf["info"][:-1],
-            )
-            del buf["states"][:-1]
-            del buf["actions"][:-1]
-            del buf["rewards"][:-1]
-            del buf["info"][:-1]
-            exp_by_agent[agent_id] = exp_set
+        if not self.get_experience_func:
+            exp_by_agent = {}
+            for agent_id, buf in self._replay_buffer.items():
+                exp_set = ExperienceSet(
+                    buf["states"][:-1],
+                    buf["actions"][:-1],
+                    buf["rewards"][:-1],
+                    buf["states"][1:],
+                    buf["info"][:-1],
+                )
+                del buf["states"][:-1]
+                del buf["actions"][:-1]
+                del buf["rewards"][:-1]
+                del buf["info"][:-1]
+                exp_by_agent[agent_id] = exp_set
 
-        return exp_by_agent
+            return exp_by_agent
+        else:
+            return self.get_experience_func(self._replay_buffer)
 
     def reset(self):
         self.env.reset()
