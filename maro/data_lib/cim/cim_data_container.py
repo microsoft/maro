@@ -77,24 +77,34 @@ class CimBaseDataContainer(ABC):
         return self._data_collection.future_stop_number
 
     @property
+    def load_cost_factor(self) -> float:
+        """float: Factor of the cost for each empty load."""
+        return self._data_collection.load_cost_factor
+
+    @property
+    def dsch_cost_factor(self) -> float:
+        """float: Factor of the cost for each empty discharge."""
+        return self._data_collection.dsch_cost_factor
+
+    @property
     def ports(self) -> List[PortSetting]:
         """List[PortSetting]: List of port initial settings."""
-        return self._data_collection.ports_settings
+        return self._data_collection.port_settings
 
     @property
     def port_number(self) -> int:
         """int: Number of ports."""
-        return len(self._data_collection.ports_settings)
+        return len(self._data_collection.port_settings)
 
     @property
     def vessels(self) -> List[VesselSetting]:
         """List[VesselSetting]: List of vessel initial settings."""
-        return self._data_collection.vessels_settings
+        return self._data_collection.vessel_settings
 
     @property
     def vessel_number(self) -> int:
         """int: Number of vessels."""
-        return len(self._data_collection.vessels_settings)
+        return len(self._data_collection.vessel_settings)
 
     @property
     def container_volume(self) -> int:

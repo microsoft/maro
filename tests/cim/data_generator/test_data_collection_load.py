@@ -74,8 +74,8 @@ class TestDumpsLoad(unittest.TestCase):
                 self.assertTrue(p1.distance_to_next_port, p2.distance_to_next_port)
 
     def _compare_ports(self, dc1: CimSyntheticDataCollection, dc2: CimSyntheticDataCollection):
-        ports_1 = dc1.ports_settings
-        ports_2 = dc2.ports_settings
+        ports_1 = dc1.port_settings
+        ports_2 = dc2.port_settings
 
         self.assertTrue(len(ports_1) == len(ports_2))
 
@@ -104,8 +104,8 @@ class TestDumpsLoad(unittest.TestCase):
 
 
     def _compare_vessels(self, dc1: CimSyntheticDataCollection, dc2: CimSyntheticDataCollection):
-        vessels_1: List[VesselSetting] = dc1.vessels_settings
-        vessels_2: List[VesselSetting] = dc2.vessels_settings
+        vessels_1: List[VesselSetting] = dc1.vessel_settings
+        vessels_2: List[VesselSetting] = dc2.vessel_settings
 
         self.assertTrue(len(vessels_1) == len(vessels_2))
 
@@ -125,8 +125,8 @@ class TestDumpsLoad(unittest.TestCase):
 
 
     def _compare_stops(self, dc1: CimSyntheticDataCollection, dc2: CimSyntheticDataCollection):
-        stops_1: List[List[Stop]] = dc1.vessels_stops
-        stops_2: List[List[Stop]] = dc2.vessels_stops
+        stops_1: List[List[Stop]] = dc1.vessel_stops
+        stops_2: List[List[Stop]] = dc2.vessel_stops
 
         self.assertTrue(len(stops_1) == len(stops_2))
 

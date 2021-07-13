@@ -18,8 +18,8 @@ class VesselFutureStopsPrediction:
     """
 
     def __init__(self, data: CimBaseDataCollection):
-        self._vessels = data.vessels_settings
-        self._stops = data.vessels_stops
+        self._vessels = data.vessel_settings
+        self._stops = data.vessel_stops
         self._routes = data.routes
         self._route_mapping = data.route_mapping
         self._port_mapping = data.port_mapping

@@ -206,23 +206,25 @@ class CimDumpDataLoader(CimBaseDataLoader):
         # construct data collection
         # NOTE: this is a namedtuple, so out-side cannot change it
         data_collection = CimSyntheticDataCollection(
-            ports,
-            port_mapping,
-            vessels,
-            vessel_mapping,
-            stops,
-            routes,
-            route_mapping,
-            periods_without_noise,
-            misc_items["container_volume"],
-            misc_items["past_stop_number"],
-            misc_items["future_stop_number"],
-            misc_items["max_tick"],
-            misc_items["seed"],
-            misc_items["total_container"],
-            OrderGenerateMode(misc_items["order_mode"]),
-            global_order_proportions,
-            misc_items["version"]
+            port_settings=ports,
+            port_mapping=port_mapping,
+            vessel_settings=vessels,
+            vessel_mapping=vessel_mapping,
+            vessel_stops=stops,
+            routes=routes,
+            route_mapping=route_mapping,
+            vessel_period_without_noise=periods_without_noise,
+            container_volume=misc_items["container_volume"],
+            load_cost_factor=misc_items["load_cost_factor"],
+            dsch_cost_factor=misc_items["dsch_cost_factor"],
+            past_stop_number=misc_items["past_stop_number"],
+            future_stop_number=misc_items["future_stop_number"],
+            max_tick=misc_items["max_tick"],
+            seed=misc_items["seed"],
+            total_containers=misc_items["total_container"],
+            order_mode=OrderGenerateMode(misc_items["order_mode"]),
+            order_proportion=global_order_proportions,
+            version=misc_items["version"]
         )
 
         return data_collection
@@ -326,20 +328,22 @@ class CimRealDataLoader(CimBaseDataLoader):
         # construct data collection
         # NOTE: this is a namedtuple, so out-side cannot change it
         data_collection = CimRealDataCollection(
-            ports,
-            port_mapping,
-            vessels,
-            vessel_mapping,
-            stops,
-            routes,
-            route_mapping,
-            periods_without_noise,
-            misc_items["container_volume"],
-            misc_items["past_stop_number"],
-            misc_items["future_stop_number"],
-            misc_items["max_tick"],
-            misc_items["seed"],
-            orders
+            port_settings=ports,
+            port_mapping=port_mapping,
+            vessel_settings=vessels,
+            vessel_mapping=vessel_mapping,
+            vessel_stops=stops,
+            routes=routes,
+            route_mapping=route_mapping,
+            vessel_period_without_noise=periods_without_noise,
+            container_volume=misc_items["container_volume"],
+            load_cost_factor=misc_items["load_cost_factor"],
+            dsch_cost_factor=misc_items["dsch_cost_factor"],
+            past_stop_number=misc_items["past_stop_number"],
+            future_stop_number=misc_items["future_stop_number"],
+            max_tick=misc_items["max_tick"],
+            seed=misc_items["seed"],
+            orders=orders
         )
 
         return data_collection

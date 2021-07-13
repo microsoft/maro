@@ -4,8 +4,6 @@
 import os
 import urllib.parse
 
-from yaml import safe_load
-
 from maro.cli.data_pipeline.utils import StaticParameter
 from maro.simulator.utils import seed
 
@@ -31,18 +29,17 @@ class CimDataContainerWrapper:
         self._init_data_container()
 
     def _init_data_container(self):
-        # read config
-        with open(self._config_path, "r") as fp:
-            conf: dict = safe_load(fp)
-        if "input_setting" in conf and conf["input_setting"]["from_files"]:
-            if conf["input_setting"]["input_type"] == "real":
-                self._data_cntr = data_from_files(data_folder=conf["input_setting"]["data_folder"])
-            else:
-                self._data_cntr = data_from_dumps(dumps_folder=conf["input_setting"]["data_folder"])
-        else:
+        if not os.path.exists(self._config_path):
+            raise FileNotFoundError
+        # Synthetic Data Mode: config.yml must exist.
+        config_path = os.path.join(self._config_path, "config.yml")
+        if os.path.exists(config_path):
             self._data_cntr = data_from_generator(
-                config_path=self._config_path, max_tick=self._max_tick, start_tick=self._start_tick
+                config_path=config_path, max_tick=self._max_tick, start_tick=self._start_tick
             )
+        else:
+            # Real Data Mode: read data from input data files, no need for any config.yml.
+            self._data_cntr = data_from_files(data_folder=self._config_path)
 
     def reset(self):
         """Reset data container internal state"""

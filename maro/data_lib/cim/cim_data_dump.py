@@ -59,7 +59,7 @@ class CimDataDumpUtil:
         headers = ["vessel_name", "vessel_index", "port_name", "port_index", "arrival_tick", "departure_tick"]
 
         def stop_generator():
-            for vessel_stops in self._data_collection.vessels_stops:
+            for vessel_stops in self._data_collection.vessel_stops:
                 for stop in vessel_stops:
                     yield [
                         vessel_idx2name_dict[stop.vessel_idx],
@@ -85,7 +85,7 @@ class CimDataDumpUtil:
         ]
 
         def port_generator():
-            for port in self._data_collection.ports_settings:
+            for port in self._data_collection.port_settings:
                 yield [
                     port.index,
                     port.name,
@@ -116,7 +116,7 @@ class CimDataDumpUtil:
 
         route_mapping = self._data_collection.route_mapping
         port_mapping = self._data_collection.port_mapping
-        vessels = self._data_collection.vessels_settings
+        vessels = self._data_collection.vessel_settings
         vessel_period = self._data_collection.vessel_period_without_noise
 
         def vessel_generator():
@@ -175,7 +175,7 @@ class CimDataDumpUtil:
             "dest_port_index", "proportion", "proportion_noise"
         ]
 
-        ports = self._data_collection.ports_settings
+        ports = self._data_collection.port_settings
 
         def order_prop_generator():
             for port in ports:
@@ -201,6 +201,8 @@ class CimDataDumpUtil:
             "past_stop_number": self._data_collection.past_stop_number,
             "future_stop_number": self._data_collection.future_stop_number,
             "container_volume": self._data_collection.container_volume,
+            "load_cost_factor": self._data_collection.load_cost_factor,
+            "dsch_cost_factor": self._data_collection.dsch_cost_factor,
             "max_tick": self._data_collection.max_tick,
             "seed": self._data_collection.seed,
             "version": self._data_collection.version
