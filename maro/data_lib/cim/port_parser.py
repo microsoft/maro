@@ -34,7 +34,7 @@ class PortsParser:
             ports_mapping[port_name] = index
             index += 1
 
-        ports_settings: List[SyntheticPortSetting] = []
+        port_settings: List[SyntheticPortSetting] = []
 
         for port_idx, port in enumerate(conf.items()):
             port_name, port_info = port
@@ -80,6 +80,6 @@ class PortsParser:
                     source_dist_conf["noise"]),
                 targets_dist)
 
-            ports_settings.append(port_setting)
+            port_settings.append(port_setting)
 
-        return ports_mapping, ports_settings
+        return ports_mapping, port_settings

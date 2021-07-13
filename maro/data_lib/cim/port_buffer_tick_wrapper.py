@@ -20,7 +20,7 @@ class PortBufferTickWrapper:
     """
 
     def __init__(self, data: CimBaseDataCollection, attribute_func: callable):
-        self._ports = data.ports_settings
+        self._ports = data.port_settings
         self._attribute_func = attribute_func
 
     def __getitem__(self, key):

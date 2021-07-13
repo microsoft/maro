@@ -17,7 +17,7 @@ class VesselReachableStopsWrapper:
 
     def __init__(self, data: CimBaseDataCollection):
         self._routes = data.routes
-        self._stops = data.vessels_stops
+        self._stops = data.vessel_stops
 
     def __getitem__(self, key):
         assert type(key) == tuple or type(key) == list

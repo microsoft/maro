@@ -64,7 +64,7 @@ class CimDataGenerator:
             total_containers, start_tick=start_tick, max_tick=max_tick)
 
         # extend routes with specified tick range
-        vessels_stops, vessel_period_without_noise = self._extend_route(
+        vessel_stops, vessel_period_without_noise = self._extend_route(
             future_stop_number, max_tick, vessels_setting, ports_setting, port_mapping, routes, route_mapping)
 
         return CimSyntheticDataCollection(
@@ -75,7 +75,7 @@ class CimDataGenerator:
             vessel_settings=vessels_setting,
             vessel_mapping=vessel_mapping,
             # Stop
-            vessel_stops=vessels_stops,
+            vessel_stops=vessel_stops,
             # Route
             routes=routes,
             route_mapping=route_mapping,
@@ -107,13 +107,13 @@ class CimDataGenerator:
     ) -> (List[List[Stop]], List[int]):
         """Extend route with specified tick range."""
 
-        vessels_stops: List[List[Stop]] = []
+        vessel_stops: List[List[Stop]] = []
         vessel_period_without_noise: List[int] = []
 
         # fill the result stops with empty list
         # NOTE: not using [[]] * N
         for _ in range(len(vessels_setting)):
-            vessels_stops.append([])
+            vessel_stops.append([])
 
         # extend for each vessel
         for vessel_setting in vessels_setting:
@@ -159,7 +159,7 @@ class CimDataGenerator:
                             vessel_setting.index)
 
                 # append to current vessels stops list
-                vessels_stops[vessel_setting.index].append(stop)
+                vessel_stops[vessel_setting.index].append(stop)
 
                 # use distance_to_next_port and speed (all with noise) to calculate tick of arrival and departure
                 distance_to_next_port = cur_route_point.distance_to_next_port
@@ -176,7 +176,7 @@ class CimDataGenerator:
 
                 # only add period at 1st route circle
                 period_no_noise += (whole_duration_no_noise if len(
-                    vessels_stops[vessel_setting.index]) <= route_length else 0)
+                    vessel_stops[vessel_setting.index]) <= route_length else 0)
 
                 # next location index
                 loc_idx_in_route = (loc_idx_in_route + 1) % route_length
@@ -188,4 +188,4 @@ class CimDataGenerator:
 
             vessel_period_without_noise.append(period_no_noise)
 
-        return vessels_stops, vessel_period_without_noise
+        return vessel_stops, vessel_period_without_noise

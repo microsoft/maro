@@ -26,24 +26,24 @@ class TestDataGenerator(unittest.TestCase):
         self.assertListEqual([0.02 * dc.total_containers] * MAX_TICK, list(dc.order_proportion))
 
         # there should be 4 ports
-        self.assertEqual(4, len(dc.ports_settings))
+        self.assertEqual(4, len(dc.port_settings))
 
         # and 5 vessels
-        self.assertEqual(5, len(dc.vessels_settings))
+        self.assertEqual(5, len(dc.vessel_settings))
 
         # check vessel capacity
-        self.assertListEqual([92400, 92400, 187600, 187600, 187600], [v.capacity for v in dc.vessels_settings])
-        self.assertListEqual([10] * 5, [v.sailing_speed for v in dc.vessels_settings])
-        self.assertListEqual([0] * 5, [v.sailing_noise for v in dc.vessels_settings])
-        self.assertListEqual([1] * 5, [v.parking_duration for v in dc.vessels_settings])
-        self.assertListEqual([0] * 5, [v.parking_noise for v in dc.vessels_settings])
+        self.assertListEqual([92400, 92400, 187600, 187600, 187600], [v.capacity for v in dc.vessel_settings])
+        self.assertListEqual([10] * 5, [v.sailing_speed for v in dc.vessel_settings])
+        self.assertListEqual([0] * 5, [v.sailing_noise for v in dc.vessel_settings])
+        self.assertListEqual([1] * 5, [v.parking_duration for v in dc.vessel_settings])
+        self.assertListEqual([0] * 5, [v.parking_noise for v in dc.vessel_settings])
 
         # empty of vessel should be 0 by default from configuration
-        self.assertListEqual([0] * 5, [v.empty for v in dc.vessels_settings])
+        self.assertListEqual([0] * 5, [v.empty for v in dc.vessel_settings])
 
         # port
-        self.assertListEqual([100000,100000, 1000000, 100000], [p.capacity for p in dc.ports_settings])
-        self.assertListEqual([0.25 * dc.total_containers] * 4, [p.empty for p in dc.ports_settings])
+        self.assertListEqual([100000,100000, 1000000, 100000], [p.capacity for p in dc.port_settings])
+        self.assertListEqual([0.25 * dc.total_containers] * 4, [p.empty for p in dc.port_settings])
 
         # TODO: more
 

@@ -89,22 +89,22 @@ class CimBaseDataContainer(ABC):
     @property
     def ports(self) -> List[PortSetting]:
         """List[PortSetting]: List of port initial settings."""
-        return self._data_collection.ports_settings
+        return self._data_collection.port_settings
 
     @property
     def port_number(self) -> int:
         """int: Number of ports."""
-        return len(self._data_collection.ports_settings)
+        return len(self._data_collection.port_settings)
 
     @property
     def vessels(self) -> List[VesselSetting]:
         """List[VesselSetting]: List of vessel initial settings."""
-        return self._data_collection.vessels_settings
+        return self._data_collection.vessel_settings
 
     @property
     def vessel_number(self) -> int:
         """int: Number of vessels."""
-        return len(self._data_collection.vessels_settings)
+        return len(self._data_collection.vessel_settings)
 
     @property
     def container_volume(self) -> int:
