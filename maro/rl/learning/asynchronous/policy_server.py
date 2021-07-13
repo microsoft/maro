@@ -57,7 +57,7 @@ def policy_server(
             proxy.reply(
                 msg, tag=MsgTag.POLICY_STATE,
                 body={
-                    MsgKey.POLICY_STATE: policy_manager.get_state(version=msg.body[MsgKey.VERSION]),
+                    MsgKey.POLICY_STATE: policy_manager.get_state(cur_version=msg.body[MsgKey.VERSION]),
                     MsgKey.VERSION: policy_manager.version
                 }
             )

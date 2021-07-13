@@ -12,14 +12,15 @@ if workflow_dir not in sys.path:
     sys.path.insert(0, workflow_dir)
 
 from agent_wrapper import get_agent_wrapper
-from general import config, get_env_wrapper, log_dir
+from general import config, get_env_wrapper, log_dir, replay_agents
 
 
 if __name__ == "__main__":
+    actor_id = int(environ["ACTORID"])
     actor(
         config["async"]["group"],
-        environ["ACTORID"],
-        get_env_wrapper(),
+        actor_id,
+        get_env_wrapper(replay_agent_ids=replay_agents[actor_id]),
         get_agent_wrapper(),
         config["num_episodes"],
         num_steps=config["num_steps"],

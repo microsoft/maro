@@ -32,7 +32,8 @@ class AgentWrapper:
     def get_batch(self, env: AbsEnvWrapper):
         """Get experiences by policy names."""
         names = set()
-        for agent_id, exp in env.get_experiences().items():
+        exp_by_agent = env.get_experiences()
+        for agent_id, exp in exp_by_agent.items():
             if hasattr(self.policy[agent_id], "store"):
                 self.policy[agent_id].store(exp)
             names.add(self.agent2policy[agent_id])
