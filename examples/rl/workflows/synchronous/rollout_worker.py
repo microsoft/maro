@@ -22,7 +22,7 @@ if __name__ == "__main__":
         config["sync"]["rollout_group"],
         worker_id,
         get_env_wrapper(replay_agent_ids=replay_agents[worker_id]),
-        get_agent_wrapper(),
+        get_agent_wrapper(mode="inference"),
         proxy_kwargs={"redis_address": (config["redis"]["host"], config["redis"]["port"])},
         log_dir=log_dir
     )

@@ -37,10 +37,10 @@ maro.rl.algorithms.pg
 Experience
 ================================================================================
 
-maro.rl.experience.experience_manager
+maro.rl.experience.experience_store
 --------------------------------------------------------------------------------
 
-.. automodule:: maro.rl.experience.experience_manager
+.. automodule:: maro.rl.experience.experience_store
    :members:
    :undoc-members:
    :show-inheritance:

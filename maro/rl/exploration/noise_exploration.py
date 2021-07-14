@@ -23,10 +23,6 @@ class NoiseExploration(AbsExploration):
         self.max_action = max_action
 
     @abstractmethod
-    def set_params(self, **parameters):
-        raise NotImplementedError
-
-    @abstractmethod
     def __call__(self, action) -> np.ndarray:
         raise NotImplementedError
 

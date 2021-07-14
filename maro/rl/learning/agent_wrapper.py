@@ -3,7 +3,7 @@
 
 from typing import Dict
 
-from maro.rl.policy import AbsPolicy
+from maro.rl.policy import LocalPolicyManager
 
 from .env_wrapper import AbsEnvWrapper
 
@@ -12,14 +12,16 @@ class AgentWrapper:
     """Multi-agent wrapper that interacts with an ``EnvWrapper`` with a unified inferface.
 
     Args:
-        policy_dict (Dict[str, AbsPolicy]): Policies for inference.
+        policy_manager (LocalPolicyManager): ``LocalPolicyManager`` instance.
         agent2policy (Dict[str, str]): Mapping from agent ID's to policy ID's. This is used to direct an agent's
             queries to the correct policy.
     """
-    def __init__(self, policy_dict: Dict[str, AbsPolicy], agent2policy: Dict[str, str]):
-        self.policy_dict = policy_dict
+    def __init__(self, policy_manager: LocalPolicyManager, agent2policy: Dict[str, str]):
+        self.policy_manager = policy_manager
         self.agent2policy = agent2policy
-        self.policy = {agent_id: self.policy_dict[policy_id] for agent_id, policy_id in self.agent2policy.items()}
+        self.policy = {
+            agent_id: self.policy_manager.policy_dict[policy_id] for agent_id, policy_id in self.agent2policy.items()
+        }
 
     def choose_action(self, state: dict) -> dict:
         """Generate an action based on the given state.
@@ -38,24 +40,24 @@ class AgentWrapper:
                 self.policy[agent_id].store(exp)
             names.add(self.agent2policy[agent_id])
 
-        return {name: self.policy_dict[name].experience_manager.get() for name in names}
+        return {name: self.policy_manager.policy_dict[name].sampler.get() for name in names}
 
     def set_policy_states(self, policy_state_dict: dict):
         """Update policy states."""
         for policy_id, policy_state in policy_state_dict.items():
-            self.policy_dict[policy_id].set_state(policy_state)
+            self.policy_manager.policy_dict[policy_id].set_state(policy_state)
 
     def exploration_step(self):
-        for policy in self.policy_dict.values():
+        for policy in self.policy_manager.policy_dict.values():
             if hasattr(policy, "exploration_step"):
                 policy.exploration_step()
 
     def exploit(self):
-        for policy in self.policy_dict.values():
+        for policy in self.policy_manager.policy_dict.values():
             if hasattr(policy, "exploit"):
                 policy.exploit()
 
     def explore(self):
-        for policy in self.policy_dict.values():
+        for policy in self.policy_manager.policy_dict.values():
             if hasattr(policy, "explore"):
                 policy.explore()
