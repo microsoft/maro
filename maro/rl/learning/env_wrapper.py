@@ -14,7 +14,7 @@ class Transition:
 
     Args:
         state: Output of the environment wrapper's ``get_state``.
-        action: Output of the ``AgentWrapper`` that interacts with environment wrapper. 
+        action: Output of the ``AgentWrapper`` that interacts with environment wrapper.
         env_action: Output of the environment wrapper's ``to_env_action``.
         reward: Output of the environmet wrapper's ``get_reward``.
         next_state: The state immediately following ``state``.
@@ -46,12 +46,12 @@ class AbsEnvWrapper(ABC):
         get_experience_func (Callable): Custom function to convert the replay buffer to training experiences. Defaults
             to None, in which case the replay buffer will be converted directly to SARS experiences for each agent.
         get_experience_func_kwargs (dict): Keyword arguments for the user-defined ``get_experience_func``. Defaults to
-            an empty dictionary. 
+            an empty dictionary.
         step_callback (Callable): Custom function to gather information about a transition and the evolvement of the
             environment. The function signature should be (env, tracker, transition) -> None, where env is the ``Env``
             instance in the wrapper, tracker is a dictionary where the gathered information is stored and transition
             is a ``Transition`` object. For example, this callback can be used to collect various statistics on the
-            simulation. Defaults to None.  
+            simulation. Defaults to None.
     """
     def __init__(
         self,
@@ -106,7 +106,7 @@ class AbsEnvWrapper(ABC):
 
     def evaluate(self):
         self._replay = False
-    
+
     def start(self):
         """Generate the initial environmental state at the beginning of a simulation episode."""
         self._step_index = 0
@@ -169,7 +169,7 @@ class AbsEnvWrapper(ABC):
         """
         self._step_index += 1
         env_action = self.to_env_action(action_by_agent)
- 
+
         self._transition_cache.append((
             self._state,
             action_by_agent,
@@ -220,12 +220,12 @@ class AbsEnvWrapper(ABC):
                     buf["rewards"][:-1],
                     buf["states"][1:],
                     buf["info"][:-1],
-                ) for agent_id, buf in self._replay_buffer.items()  
+                ) for agent_id, buf in self._replay_buffer.items()
             }
         else:
             exp_by_agent = self._get_experience_func(self._replay_buffer, **self._get_experience_func_kwargs)
 
-        # clear the replay buffer of transitions that have already been converted to experiences. 
+        # clear the replay buffer of transitions that have already been converted to experiences.
         for buf in self._replay_buffer.values():
             del buf["states"][:-1]
             del buf["actions"][:-1]

@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 from abc import ABC, abstractmethod
-from typing import Callable
 
 from maro.rl.experience import ExperienceSet, ExperienceStore, UniformSampler
 from maro.rl.exploration import AbsExploration

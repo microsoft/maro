@@ -548,7 +548,7 @@ class MultiNodeRolloutManager(AbsRolloutManager):
                 num_finishes += 1
                 if num_finishes == self._num_eval_workers:
                     break
-        
+
         if self._post_evaluate:
             self._post_evaluate(trackers)
 
