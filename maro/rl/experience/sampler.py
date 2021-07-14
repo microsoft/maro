@@ -6,7 +6,7 @@ from typing import List
 
 import numpy as np
 
-from .experience_store import ExperienceStore, ExperienceSet
+from .experience_store import ExperienceSet, ExperienceStore
 
 
 class AbsSampler(ABC):
