@@ -77,8 +77,6 @@ class Learner:
             if ep == self._eval_schedule[self._eval_point_index]:
                 self._eval_point_index += 1
                 env_metric_dict = self.rollout_manager.evaluate(ep, self.policy_manager.get_state())
-                # performance details
-                self.logger.info(f"Evaluation result: {env_metric_dict}")
                 # early stopping check
                 if self.early_stopper:
                     for env_metric in env_metric_dict.values():

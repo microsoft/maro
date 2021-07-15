@@ -44,10 +44,11 @@ def get_rollout_manager():
             config["sync"]["num_rollout_workers"],
             num_steps=config["num_steps"],
             max_lag=config["max_lag"],
-            # min_finished_workers=config["sync"]["min_finished_workers"],
-            # max_extra_recv_tries=config["sync"]["max_extra_recv_tries"],
+            min_finished_workers=config["sync"]["min_finished_workers"],
+            max_extra_recv_tries=config["sync"]["max_extra_recv_tries"],
             extra_recv_timeout=config["sync"]["extra_recv_timeout"],
             post_collect=post_collect,
+            post_evaluate=post_evaluate,
             proxy_kwargs={"redis_address": (config["redis"]["host"], config["redis"]["port"])}
         )
 
