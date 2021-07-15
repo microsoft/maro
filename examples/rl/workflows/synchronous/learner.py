@@ -14,7 +14,7 @@ if workflow_dir not in sys.path:
 
 from agent_wrapper import get_agent_wrapper
 from policy_manager.policy_manager import get_policy_manager
-from general import config, get_env_wrapper, log_dir
+from general import config, post_collect, post_evaluate, get_env_wrapper, log_dir
 
 
 def get_rollout_manager():
@@ -24,7 +24,8 @@ def get_rollout_manager():
             get_env_wrapper(),
             get_agent_wrapper(),
             num_steps=config["num_steps"],
-            log_env_summary=config["log_env_summary"],
+            post_collect=post_collect,
+            post_evaluate=post_evaluate,
             log_dir=log_dir
         )
     if rollout_mode == "multi-process":
@@ -33,7 +34,8 @@ def get_rollout_manager():
             get_env_wrapper,
             get_agent_wrapper,
             num_steps=config["num_steps"],
-            log_env_summary=config["log_env_summary"],
+            post_collect=post_collect,
+            post_evaluate=post_evaluate,
             log_dir=log_dir,
         )
     if rollout_mode == "multi-node":
@@ -45,7 +47,7 @@ def get_rollout_manager():
             min_finished_workers=config["sync"]["min_finished_workers"],
             # max_extra_recv_tries=config["sync"]["max_extra_recv_tries"],
             extra_recv_timeout=config["sync"]["extra_recv_timeout"],
-            log_env_summary=config["log_env_summary"],
+            post_collect=post_collect,
             proxy_kwargs={"redis_address": (config["redis"]["host"], config["redis"]["port"])}
         )
 

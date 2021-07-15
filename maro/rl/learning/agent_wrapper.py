@@ -12,14 +12,17 @@ class AgentWrapper:
     """Multi-agent wrapper that interacts with an ``EnvWrapper`` with a unified inferface.
 
     Args:
-        policy_dict (Dict[str, AbsPolicy]): Policies for inference.
+        policy_dict (Dict[str, AbsPolicy]): Policies used by the agents to make decision when interacting with
+            the environment.
         agent2policy (Dict[str, str]): Mapping from agent ID's to policy ID's. This is used to direct an agent's
             queries to the correct policy.
     """
     def __init__(self, policy_dict: Dict[str, AbsPolicy], agent2policy: Dict[str, str]):
         self.policy_dict = policy_dict
         self.agent2policy = agent2policy
-        self.policy = {agent_id: self.policy_dict[policy_id] for agent_id, policy_id in self.agent2policy.items()}
+        self.policy = {
+            agent_id: self.policy_dict[policy_id] for agent_id, policy_id in self.agent2policy.items()
+        }
 
     def choose_action(self, state: dict) -> dict:
         """Generate an action based on the given state.
@@ -38,7 +41,7 @@ class AgentWrapper:
                 self.policy[agent_id].store(exp)
             names.add(self.agent2policy[agent_id])
 
-        return {name: self.policy_dict[name].experience_manager.get() for name in names}
+        return {name: self.policy_dict[name].sampler.get() for name in names}
 
     def set_policy_states(self, policy_state_dict: dict):
         """Update policy states."""

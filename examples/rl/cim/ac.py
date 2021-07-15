@@ -7,7 +7,7 @@ import sys
 import numpy as np
 import torch
 
-from maro.rl.experience import ExperienceManager
+from maro.rl.experience import ExperienceStore, UniformSampler
 from maro.rl.model import DiscreteACNet, FullyConnectedBlock, OptimOption
 from maro.rl.policy.algorithms import ActorCritic, ActorCriticConfig
 
@@ -30,7 +30,7 @@ config = {
             "critic": {
                 "input_dim": STATE_DIM,
                 "hidden_dims": [256, 128, 64],
-                "output_dim": env_config["wrapper"]["num_actions"],
+                "output_dim": 1,
                 "activation": "leaky_relu",
                 "softmax": False,
                 "batch_norm": True,
@@ -55,26 +55,19 @@ config = {
         "actor_loss_coefficient": 0.1,
         # "clip_ratio": 0.8   # for PPO
     },
-    "experience_manager": {
-        "rollout": {      # for experience managers in actor processes
-            "capacity": 1000,
-            "overwrite_type": "rolling",
-            "batch_size": -1,
-            "replace": False
-        },
-        "training": {      # for experience managers in the learner process
-            "capacity": 100000,
-            "overwrite_type": "rolling",
-            "batch_size": 128,
-            "alpha": 0.6,
-            "beta": 0.4,
-            "beta_step": 0.001
-        }
-    }    
+    "experience_store": {
+        "rollout": {"capacity": 1000, "overwrite_type": "rolling"},
+        "update": {"capacity": 100000, "overwrite_type": "rolling"}
+    },
+    "sampler": {
+        "rollout": {"batch_size": -1, "replace": False},
+        "update": {"batch_size": 128, "replace": True}
+    }
 }
 
 
-def get_ac_policy(learning: bool = True):
+def get_ac_policy(mode="update"):
+    assert mode in {"inference", "update", "inference-update"}
     class MyACNET(DiscreteACNet):
         def forward(self, states, actor: bool = True, critic: bool = True):
             states = torch.from_numpy(np.asarray(states))
@@ -87,21 +80,26 @@ def get_ac_policy(learning: bool = True):
                 self.component["critic"](states) if critic else None
             )
 
-    cfg = config["policy"]
     ac_net = MyACNET(
         component={
-            "actor": FullyConnectedBlock(**cfg["model"]["network"]["actor"]),
-            "critic": FullyConnectedBlock(**cfg["model"]["network"]["critic"])
+            "actor": FullyConnectedBlock(**config["model"]["network"]["actor"]),
+            "critic": FullyConnectedBlock(**config["model"]["network"]["critic"])
         },
         optim_option={
-            "actor":  OptimOption(**cfg["model"]["optimization"]["actor"]),
-            "critic": OptimOption(**cfg["model"]["optimization"]["critic"])
-        } if learning else None
+            "actor":  OptimOption(**config["model"]["optimization"]["actor"]),
+            "critic": OptimOption(**config["model"]["optimization"]["critic"])
+        } if mode != "inference" else None
     )
 
-    if learning:
-        exp_manager = ExperienceManager(**config["experience_manager"]["learning"])
+    if mode == "update":
+        exp_store = ExperienceStore(**config["experience_store"]["update"])
+        experience_sampler_kwargs = config["sampler"]["update"]
     else:
-        exp_manager = ExperienceManager(**config["experience_manager"]["rollout"])
+        exp_store = ExperienceStore(**config["experience_store"]["rollout" if mode == "inference" else "update"])
+        experience_sampler_kwargs = config["sampler"]["rollout" if mode == "inference" else "update"]
 
-    return ActorCritic(ac_net, exp_manager, ActorCriticConfig(**cfg["algorithm_config"]))
+    return ActorCritic(
+        ac_net, ActorCriticConfig(**config["algorithm"]), exp_store,
+        experience_sampler_cls=UniformSampler,
+        experience_sampler_kwargs=experience_sampler_kwargs
+    )

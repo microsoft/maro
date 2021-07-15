@@ -13,11 +13,12 @@ if workflow_dir not in sys.path:
 from general import agent2policy, non_rl_policy_func_index, rl_policy_func_index
 
 
-def get_agent_wrapper():
+def get_agent_wrapper(local_update: bool = False):
+    policy_mode = "inference-update" if local_update else "inference"
     return AgentWrapper(
         {
             **{name: func() for name, func in non_rl_policy_func_index.items()},
-            **{name: func(learning=False) for name, func in rl_policy_func_index.items()}
+            **{name: func(mode=policy_mode) for name, func in rl_policy_func_index.items()}
         },
         agent2policy
     )
