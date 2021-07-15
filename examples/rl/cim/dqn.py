@@ -86,7 +86,7 @@ def get_dqn_policy(mode="update"):
     if mode == "update":
         exp_store = ExperienceStore(**config["experience_store"]["update"])
         exploration = None
-        experience_sampler_kwargs = config["sampler"]["update"]
+        exp_sampler_kwargs = config["sampler"]["update"]
     else:
         exploration = EpsilonGreedyExploration()
         exploration.register_schedule(
@@ -95,11 +95,11 @@ def get_dqn_policy(mode="update"):
             **config["exploration"]
         )
         exp_store = ExperienceStore(**config["experience_store"]["rollout" if mode == "inference" else "update"])
-        experience_sampler_kwargs = config["sampler"]["rollout" if mode == "inference" else "update"]
+        exp_sampler_kwargs = config["sampler"]["rollout" if mode == "inference" else "update"]
 
     return DQN(
         qnet, DQNConfig(**config["algorithm"]), exp_store,
         experience_sampler_cls=UniformSampler,
-        experience_sampler_kwargs=experience_sampler_kwargs,
+        experience_sampler_kwargs=exp_sampler_kwargs,
         exploration=exploration
     )
