@@ -3,9 +3,19 @@
 
 import numpy as np
 
-from maro.rl.learning import AbsEnvWrapper
+from maro.rl.learning import AbsEnvWrapper, Transition
 from maro.simulator import Env
 from maro.simulator.scenarios.vm_scheduling import AllocateAction, PostponeAction
+
+def post_step(env: Env, tracker: dict, transition: Transition):
+    tracker["env_metric"] = env.metrics
+    if "vm_cpu_cores_requirement" not in tracker:
+        tracker["vm_cpu_cores_requirement"] = []
+    if "action_sequence" not in tracker:
+        tracker["action_sequence"] = []
+
+    tracker["vm_cpu_cores_requirement"].append([transition.action, transition.state["mask"]])
+    tracker["action_sequence"].append(transition.action)
 
 
 class VMEnvWrapper(AbsEnvWrapper):
