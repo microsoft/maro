@@ -84,7 +84,7 @@ def get_dqn_policy(mode="update"):
         optim_option=OptimOption(**config["model"]["optimization"]) if mode != "inference" else None
     )
     if mode == "update":
-        exp_manager = ExperienceStore(**config["experience_store"]["update"])
+        exp_store = ExperienceStore(**config["experience_store"]["update"])
         exploration = None
         experience_sampler_kwargs = config["sampler"]["update"]
     else:
@@ -94,11 +94,11 @@ def get_dqn_policy(mode="update"):
             param_name="epsilon",
             **config["exploration"]
         )
-        exp_manager = ExperienceStore(**config["experience_store"]["rollout" if mode == "inference" else "update"])
+        exp_store = ExperienceStore(**config["experience_store"]["rollout" if mode == "inference" else "update"])
         experience_sampler_kwargs = config["sampler"]["rollout" if mode == "inference" else "update"]
 
     return DQN(
-        qnet, DQNConfig(**config["algorithm"]), exp_manager,
+        qnet, DQNConfig(**config["algorithm"]), exp_store,
         experience_sampler_cls=UniformSampler,
         experience_sampler_kwargs=experience_sampler_kwargs,
         exploration=exploration

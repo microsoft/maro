@@ -92,7 +92,7 @@ class AbsCorePolicy(AbsPolicy):
         """
         self.experience_store.put(exp)
         # print(
-        #     f"exp mem size = {self.experience_manager.size}, incoming: {exp.size}, new exp = {self._new_exp_counter}"
+        #     f"exp mem size = {self.experience_store.size}, incoming: {exp.size}, new exp = {self._new_exp_counter}"
         # )
 
     def exploit(self):

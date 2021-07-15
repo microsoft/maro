@@ -92,14 +92,14 @@ def get_ac_policy(mode="update"):
     )
 
     if mode == "update":
-        exp_manager = ExperienceStore(**config["experience_store"]["update"])
+        exp_store = ExperienceStore(**config["experience_store"]["update"])
         experience_sampler_kwargs = config["sampler"]["update"]
     else:
-        exp_manager = ExperienceStore(**config["experience_store"]["rollout" if mode == "inference" else "update"])
+        exp_store = ExperienceStore(**config["experience_store"]["rollout" if mode == "inference" else "update"])
         experience_sampler_kwargs = config["sampler"]["rollout" if mode == "inference" else "update"]
 
     return ActorCritic(
-        ac_net, ActorCriticConfig(**config["algorithm"]), exp_manager,
+        ac_net, ActorCriticConfig(**config["algorithm"]), exp_store,
         experience_sampler_cls=UniformSampler,
         experience_sampler_kwargs=experience_sampler_kwargs
     )
