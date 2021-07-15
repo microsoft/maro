@@ -309,7 +309,7 @@ class SCEnvWrapper(AbsEnvWrapper):
 
         return final_state
 
-    def get_reward(self, tick=None):
+    def get_reward(self, actions, tick=None):
         # get related product, seller, consumer, manufacture unit id
         # NOTE: this mapping does not contain facility id, so if id is not exist, then means it is a facility
         # product_unit_id, facility_id, seller_id, consumer_id, producer_id = self._unit2product_mapping[id]
