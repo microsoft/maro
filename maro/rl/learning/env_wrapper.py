@@ -45,8 +45,6 @@ class AbsEnvWrapper(ABC):
             to None.
         get_experience_func (Callable): Custom function to convert the replay buffer to training experiences. Defaults
             to None, in which case the replay buffer will be converted directly to SARS experiences for each agent.
-        get_experience_func_kwargs (dict): Keyword arguments for the user-defined ``get_experience_func``. Defaults to
-            an empty dictionary.
         step_callback (Callable): Custom function to gather information about a transition and the evolvement of the
             environment. The function signature should be (env, tracker, transition) -> None, where env is the ``Env``
             instance in the wrapper, tracker is a dictionary where the gathered information is stored and transition
@@ -59,14 +57,12 @@ class AbsEnvWrapper(ABC):
         reward_eval_delay: int = 0,
         replay_agent_ids: list = None,
         get_experience_func: Callable = None,
-        get_experience_func_kwargs: dict = {},
         step_callback: Callable = None
     ):
         self.env = env
         self.reward_eval_delay = reward_eval_delay
 
         self._get_experience_func = get_experience_func
-        self._get_experience_func_kwargs = get_experience_func_kwargs
         self._step_callback = step_callback
 
         replay_agent_ids = self.env.agent_idx_list if not replay_agent_ids else replay_agent_ids
@@ -223,7 +219,7 @@ class AbsEnvWrapper(ABC):
                 ) for agent_id, buf in self._replay_buffer.items()
             }
         else:
-            exp_by_agent = self._get_experience_func(self._replay_buffer, **self._get_experience_func_kwargs)
+            exp_by_agent = self._get_experience_func(self._replay_buffer)
 
         # clear the replay buffer of transitions that have already been converted to experiences.
         for buf in self._replay_buffer.values():
