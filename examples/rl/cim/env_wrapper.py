@@ -8,7 +8,7 @@ from maro.simulator import Env
 from maro.simulator.scenarios.cim.common import Action, ActionType
 
 
-def step_callback(env, tracker, transition):
+def post_step(env, tracker, transition):
     tracker["env_metric"] = env.metrics
 
 
@@ -22,7 +22,7 @@ class CIMEnvWrapper(AbsEnvWrapper):
             env,
             replay_agent_ids=replay_agent_ids,
             reward_eval_delay=reward_eval_delay,
-            step_callback=step_callback
+            post_step=post_step
         )
         self.port_attributes = port_attributes
         self.vessel_attributes = vessel_attributes
