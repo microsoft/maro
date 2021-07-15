@@ -142,9 +142,6 @@ def actor(
                 action = agent_wrapper.choose_action(eval_env_wrapper.state)
                 eval_env_wrapper.step(action)
 
-            # performance details
-            logger.info(f"Evaluation result: {eval_env_wrapper.summary}")
-
     # tell the policy server I'm all done.
     proxy.isend(SessionMessage(MsgTag.DONE, proxy.name, policy_server_address, session_type=SessionType.NOTIFICATION))
     proxy.close()

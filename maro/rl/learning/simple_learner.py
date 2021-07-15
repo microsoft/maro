@@ -119,7 +119,7 @@ class SimpleLearner:
             self._collect_and_update(ep)
             if ep == self._eval_schedule[self._eval_point_index]:
                 self._eval_point_index += 1
-                self._evaluate()
+                self._evaluate(self._eval_point_index)
                 # early stopping check
                 if self.early_stopper:
                     self.early_stopper.push(self.eval_env.summary)
@@ -151,18 +151,6 @@ class SimpleLearner:
             f"experiences collected: {num_experiences_collected}"
         )
 
-    def _evaluate(self):
-        """Policy evaluation."""
-        self._logger.info("Evaluating...")
-        self.agent.exploit()
-        self.eval_env.reset()
-        self.eval_env.start()  # get initial state
-        while self.eval_env.state:
-            self.eval_env.step(self.agent.choose_action(self.eval_env.state))
-
-        if self._post_evaluate:
-            self._post_evaluate([self.env.tracker])
-
     def _collect(self, ep, segment):
         start_step_index = self.env.step_index + 1
         steps_to_go = self._num_steps
@@ -176,4 +164,16 @@ class SimpleLearner:
         )
 
         if self._post_collect:
-            self._post_collect([self.env.tracker])
+            self._post_collect([self.env.tracker], ep, segment)
+
+    def _evaluate(self, ep: int):
+        """Policy evaluation."""
+        self._logger.info("Evaluating...")
+        self.agent.exploit()
+        self.eval_env.reset()
+        self.eval_env.start()  # get initial state
+        while self.eval_env.state:
+            self.eval_env.step(self.agent.choose_action(self.eval_env.state))
+
+        if self._post_evaluate:
+            self._post_evaluate([self.env.tracker], ep)

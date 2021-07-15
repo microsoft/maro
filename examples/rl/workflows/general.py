@@ -20,18 +20,23 @@ log_dir = join(rl_example_dir, "log", config["job_name"])
 
 module = importlib.import_module(f"{config['scenario']}")
 
-agent2policy = getattr(module, "agent2policy")
 get_env_wrapper = getattr(module, "get_env_wrapper")
 get_eval_env_wrapper = getattr(module, "get_eval_env_wrapper", lambda: None)
 non_rl_policy_func_index = getattr(module, "non_rl_policy_func_index", {})
 rl_policy_func_index = getattr(module, "rl_policy_func_index")
+agent2policy = getattr(module, "agent2policy")
+rl_agents = [agent_id for agent_id, policy_id in agent2policy.items() if policy_id in rl_policy_func_index]
 update_trigger = getattr(module, "update_trigger")
 warmup = getattr(module, "warmup")
 post_collect = getattr(module, "post_collect", None)
-post_evaluate = getattr(module, "end_of_evaluate", None)
+post_evaluate = getattr(module, "post_evaluate", None)
 post_update = getattr(module, "post_update", None)
 
+# roll-out experience distribution amongst workers
 num_rollouts = config["sync"]["num_rollout_workers"] if config["mode"] == "sync" else config["async"]["num_actors"]
-replay_agents = [[] for _ in range(num_rollouts)]
-for i, agent in enumerate(list(agent2policy.keys())):
-    replay_agents[i % num_rollouts].append(agent)
+if config["rollout_experience_distribution"]:
+    replay_agents = [[] for _ in range(num_rollouts)]
+    for i, agent in enumerate(rl_agents):
+        replay_agents[i % num_rollouts].append(agent)
+else:
+    replay_agents = [rl_agents] * num_rollouts
