@@ -69,19 +69,18 @@ config = {
 }
 
 
-class MyACNet(DiscreteACNet):
-    def forward(self, states, actor: bool = True, critic: bool = True):
-        inputs = torch.from_numpy(np.asarray([st["model"] for st in states])).to(self.device)
-        masks = torch.from_numpy(np.asarray([st["mask"] for st in states])).to(self.device)
-        if len(inputs.shape) == 1:
-            inputs = inputs.unsqueeze(dim=0)
-        return (
-            self.component["actor"](inputs) * masks if actor else None,
-            self.component["critic"](inputs) if critic else None
-        )
-
-
 def get_ac_policy(mode="update"):
+    class MyACNet(DiscreteACNet):
+        def forward(self, states, actor: bool = True, critic: bool = True):
+            inputs = torch.from_numpy(np.asarray([st["model"] for st in states])).to(self.device)
+            masks = torch.from_numpy(np.asarray([st["mask"] for st in states])).to(self.device)
+            if len(inputs.shape) == 1:
+                inputs = inputs.unsqueeze(dim=0)
+            return (
+                self.component["actor"](inputs) * masks if actor else None,
+                self.component["critic"](inputs) if critic else None
+            )
+
     ac_net = MyACNet(
         component={
             "actor": FullyConnectedBlock(**config["model"]["network"]["actor"]),
@@ -94,15 +93,15 @@ def get_ac_policy(mode="update"):
     )
     if mode == "update":
         exp_store = ExperienceStore(**config["experience_store"]["update"])
-        experience_sampler_kwargs = config["sampler"]["update"]
+        exp_sampler_kwargs = config["sampler"]["update"]
     else:
         exp_store = ExperienceStore(**config["experience_store"]["rollout" if mode == "inference" else "update"])
-        experience_sampler_kwargs = config["sampler"]["rollout" if mode == "inference" else "update"]
+        exp_sampler_kwargs = config["sampler"]["rollout" if mode == "inference" else "update"]
 
     return ActorCritic(
         ac_net, ActorCriticConfig(**config["algorithm"]), exp_store,
         experience_sampler_cls=UniformSampler,
-        experience_sampler_kwargs=experience_sampler_kwargs
+        experience_sampler_kwargs=exp_sampler_kwargs
     )
 
 

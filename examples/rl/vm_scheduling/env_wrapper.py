@@ -10,11 +10,11 @@ from maro.simulator.scenarios.vm_scheduling import AllocateAction, PostponeActio
 def post_step(env: Env, tracker: dict, transition: Transition):
     tracker["env_metric"] = env.metrics
     if "vm_cpu_cores_requirement" not in tracker:
-        tracker["vm_cpu_cores_requirement"] = []
+        tracker["vm_core_requirement"] = []
     if "action_sequence" not in tracker:
         tracker["action_sequence"] = []
 
-    tracker["vm_cpu_cores_requirement"].append([transition.action, transition.state["mask"]])
+    tracker["vm_core_requirement"].append([transition.action, transition.state["mask"]])
     tracker["action_sequence"].append(transition.action)
 
 
@@ -32,10 +32,9 @@ class VMEnvWrapper(AbsEnvWrapper):
         vm_window_size: int = 1,
         pm_window_size: int = 1,
         gamma: float = 0.0,
-        reward_eval_delay: int = 0,
-        save_replay: bool = True
+        reward_eval_delay: int = 0
     ):
-        super().__init__(env, reward_eval_delay=reward_eval_delay, save_replay=save_replay, replay_agent_ids=["AGENT"])
+        super().__init__(env, reward_eval_delay=reward_eval_delay, replay_agent_ids=["AGENT"], post_step=post_step)
         self._pm_attributes = pm_attributes
         self._vm_attributes = vm_attributes
         self._st = 0
@@ -50,7 +49,7 @@ class VMEnvWrapper(AbsEnvWrapper):
         self._durations = durations # the duration of the whole environment
         self._pm_state_history = np.zeros((pm_window_size - 1, self._pm_num, 2))
         self._state_dim = 2 * pm_num * pm_window_size + 5 * vm_window_size
-    
+
     @property
     def state_dim(self):
         return self._state_dim
