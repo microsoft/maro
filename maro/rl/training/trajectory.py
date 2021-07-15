@@ -18,7 +18,7 @@ class Trajectory(object):
     def get_reward(self) -> float:
         pass
 
-    def on_env_feedback(self):
+    def on_env_feedback(self, event, state_by_agent, action_by_agent, reward):
         pass
 
     def on_finish(self):
