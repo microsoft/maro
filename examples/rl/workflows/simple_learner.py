@@ -13,7 +13,8 @@ if workflow_dir not in sys.path:
 
 from agent_wrapper import get_agent_wrapper
 from general import (
-    config, get_env_wrapper, log_dir, post_collect, post_evaluate, post_update, update_trigger, warmup
+    config, get_env_wrapper, get_eval_env_wrapper, log_dir, post_collect, post_evaluate, post_update, update_trigger,
+    warmup
 )
 
 
@@ -23,6 +24,7 @@ if __name__ == "__main__":
         get_agent_wrapper(local_update=True),
         num_episodes=config["num_episodes"],
         num_steps=config["num_steps"],
+        eval_env=get_eval_env_wrapper(),
         eval_schedule=config["eval_schedule"],
         update_trigger=update_trigger,
         warmup=warmup,

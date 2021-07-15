@@ -12,7 +12,7 @@ if workflow_dir not in sys.path:
     sys.path.insert(0, workflow_dir)
 
 from agent_wrapper import get_agent_wrapper
-from general import config, get_env_wrapper, log_dir, replay_agents
+from general import config, get_env_wrapper, get_eval_env_wrapper, log_dir, replay_agents
 
 
 if __name__ == "__main__":
@@ -24,6 +24,8 @@ if __name__ == "__main__":
         get_agent_wrapper(),
         config["num_episodes"],
         num_steps=config["num_steps"],
+        eval_env_wrapper=get_eval_env_wrapper(),
+        eval_schedule=config["eval_schedule"],
         proxy_kwargs={"redis_address": (config["redis"]["host"], config["redis"]["port"])},
         log_dir=log_dir,
     )
