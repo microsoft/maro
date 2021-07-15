@@ -7,7 +7,7 @@ import sys
 import numpy as np
 import torch
 
-from maro.rl.experience import ExperienceManager
+from maro.rl.experience import ExperienceStore, UniformSampler
 from maro.rl.exploration import EpsilonGreedyExploration, LinearExplorationScheduler
 from maro.rl.model import FullyConnectedBlock, OptimOption, DiscreteQNet
 from maro.rl.policy.algorithms import DQN, DQNConfig
@@ -39,26 +39,23 @@ config = {
     "algorithm": {
         "reward_discount": .99,
         "train_epochs": 10,
-        "target_update_freq": 4,   # How many training iteration, to update DQN target model
+        "update_target_every": 4,   # How many training iteration, to update DQN target model
         "soft_update_coefficient": 0.01,
         "double": True   # whether to enable double DQN
     },
-    "experience_manager": {
-        "rollout": {      # for experience managers in actor processes
+    "experience_store": {
+        "rollout": {
             "capacity": 10000,
             # This determines how existing experiences are replaced when adding new experiences to a full experience
             # memory. Must be one of "rolling" or "random". If "rolling", experiences will be replaced sequentially,
             # with the oldest one being the first to be replaced. If "random", experiences will be replaced randomly.
-            "overwrite_type": "rolling",  
-            "batch_size": 128,
-            "replace": False
+            "overwrite_type": "rolling"
         },
-        "learning": {      # for experience managers in the learner process
-            "capacity": 100000,
-            "overwrite_type": "rolling",
-            "batch_size": 256,
-            "replace": True
-        }
+        "update": {"capacity": 100000, "overwrite_type": "rolling"}
+    },
+    "sampler": {
+        "rollout": {"batch_size": 2560, "replace": True},
+        "update": {"batch_size": 256, "replace": True}
     },
     "exploration": {
         "last_ep": 10,
@@ -76,21 +73,29 @@ class QNet(DiscreteQNet):
         return self.component(states)
 
 
-def get_dqn_policy(learning=True):
+def get_dqn_policy(mode="update"):
+    assert mode in {"inference", "update", "inference-update"}
     qnet = QNet(
         FullyConnectedBlock(**config["model"]["network"]),
-        optim_option=OptimOption(**config["model"]["optimization"]) if learning else None
+        optim_option=OptimOption(**config["model"]["optimization"]) if mode != "inference" else None
     )
-    if learning:
-        exp_manager = ExperienceManager(**config["experience_manager"]["learning"])
+    if mode == "update":
+        exp_store = ExperienceStore(**config["experience_store"]["update"])
         exploration = None
+        experience_sampler_kwargs = config["sampler"]["update"]
     else:
-        exp_manager = ExperienceManager(**config["experience_manager"]["rollout"])
         exploration = EpsilonGreedyExploration()
         exploration.register_schedule(
             scheduler_cls=LinearExplorationScheduler,
             param_name="epsilon",
             **config["exploration"]
         )
+        exp_store = ExperienceStore(**config["experience_store"]["rollout" if mode == "inference" else "update"])
+        experience_sampler_kwargs = config["sampler"]["rollout" if mode == "inference" else "update"]
 
-    return DQN(qnet, exp_manager, DQNConfig(**config["algorithm"]), exploration=exploration)
+    return DQN(        
+        qnet, DQNConfig(**config["algorithm"]), exp_store,
+        experience_sampler_cls=UniformSampler,
+        experience_sampler_kwargs=experience_sampler_kwargs,
+        exploration=exploration
+    )

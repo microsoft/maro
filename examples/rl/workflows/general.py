@@ -26,6 +26,9 @@ non_rl_policy_func_index = getattr(module, "non_rl_policy_func_index", {})
 rl_policy_func_index = getattr(module, "rl_policy_func_index")
 update_trigger = getattr(module, "update_trigger")
 warmup = getattr(module, "warmup")
+post_collect = getattr(module, "post_collect", None)
+post_evaluate = getattr(module, "end_of_evaluate", None)
+post_update = getattr(module, "post_update", None)
 
 num_rollouts = config["sync"]["num_rollout_workers"] if config["mode"] == "sync" else config["async"]["num_actors"]
 replay_agents = [[] for _ in range(num_rollouts)]

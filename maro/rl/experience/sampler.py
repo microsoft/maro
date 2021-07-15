@@ -6,18 +6,18 @@ from typing import List
 
 import numpy as np
 
-from .experience_manager import ExperienceManager, ExperienceSet
+from .experience_store import ExperienceSet, ExperienceStore
 
 
 class AbsSampler(ABC):
     """Sampler class.
 
     Args:
-        experience_manager (ExperienceManager): experience manager the sampler is associated with.
+        experience_store (ExperienceStore): experience manager the sampler is associated with.
     """
-    def __init__(self, experience_manager: ExperienceManager):
+    def __init__(self, experience_store: ExperienceStore):
         super().__init__()
-        self.experience_manager = experience_manager
+        self.experience_store = experience_store
 
     @abstractmethod
     def get(self) -> ExperienceSet:
@@ -25,8 +25,35 @@ class AbsSampler(ABC):
         raise NotImplementedError
 
     def on_put(self, experience_set: ExperienceSet, indexes: List[int]):
-        """Callback to be executed after calling experience_manager.put()."""
+        """Callback to be executed after calling experience_store.put()."""
         pass
+
+
+class UniformSampler(ABC):
+    """Uniform sampler class.
+
+    Args:
+        experience_store (ExperienceStore): experience manager the sampler is associated with.
+        batch_size (int): Batch size for the default uniform sampling. This can be set to -1 if the required
+            batch size is the number of items stored. To get the whole data, set this to -1 and ``replace`` to
+            False. Defaults to 32.
+        replace (bool): A flag indicating whether the default uniform sampling is with replacement or without.
+            Defaults to True.
+    """
+    def __init__(self, experience_store: ExperienceStore, batch_size: int = 32, replace: bool = True):
+        if batch_size <= 0 and batch_size != -1:
+            raise ValueError("batch_size must be -1 or a positive integer")
+        super().__init__()
+        self.experience_store = experience_store
+        self.batch_size = batch_size
+        self.replace = replace
+
+    def get(self) -> ExperienceSet:
+        batch_size = self.experience_store.size if self.batch_size == -1 else self.batch_size
+        indexes = np.random.choice(self.experience_store.size, size=batch_size, replace=self.replace)
+        return ExperienceSet(
+            *[[self.experience_store.data[key][idx] for idx in indexes] for key in self.experience_store.keys]
+        )
 
 
 class PrioritizedSampler(AbsSampler):
@@ -40,7 +67,7 @@ class PrioritizedSampler(AbsSampler):
     The rank-based variant is not implemented here.
 
     Args:
-        experience_manager (ExperienceManager): experience manager the sampler is associated with.
+        experience_store (ExperienceStore): experience manager the sampler is associated with.
         batch_size (int): mini-batch size. Defaults to 32.
         alpha (float): Prioritization strength. Sampling probabilities are calculated according to
             P = p_i^alpha / sum(p_k^alpha). Defaults to 0.6.
@@ -52,7 +79,7 @@ class PrioritizedSampler(AbsSampler):
     """
     def __init__(
         self,
-        experience_manager: ExperienceManager,
+        experience_store: ExperienceStore,
         batch_size: int = 32,
         alpha: float = 0.6,
         beta: float = 0.4,
@@ -60,8 +87,8 @@ class PrioritizedSampler(AbsSampler):
     ):
         if beta > 1.0:
             raise ValueError("beta should be between 0.0 and 1.0")
-        super().__init__(experience_manager)
-        self._sum_tree = np.zeros(2 * self.experience_manager.capacity - 1)
+        super().__init__(experience_store)
+        self._sum_tree = np.zeros(2 * self.experience_store.capacity - 1)
         self.batch_size = batch_size
         self.alpha = alpha
         self.beta = beta
@@ -81,7 +108,7 @@ class PrioritizedSampler(AbsSampler):
         """Update priority values at given indexes."""
         for idx, err in zip(indexes, td_errors):
             priority = self._get_priority(err)
-            tree_idx = idx + self.experience_manager.capacity - 1
+            tree_idx = idx + self.experience_store.capacity - 1
             delta = priority - self._sum_tree[tree_idx]
             self._sum_tree[tree_idx] = priority
             self._update(tree_idx, delta)
@@ -94,20 +121,20 @@ class PrioritizedSampler(AbsSampler):
             low, high = segment_len * i, segment_len * (i + 1)
             sampled_val = np.random.uniform(low=low, high=high)
             idx = self._get(0, sampled_val)
-            data_idx = idx - self.experience_manager.capacity + 1
+            data_idx = idx - self.experience_store.capacity + 1
             indexes.append(data_idx)
             priorities.append(self._sum_tree[idx])
 
         self.beta = min(1., self.beta + self.beta_step)
         sampling_probabilities = priorities / self.total()
-        is_weights = np.power(self.experience_manager.size * sampling_probabilities, -self.beta)
+        is_weights = np.power(self.experience_store.size * sampling_probabilities, -self.beta)
         is_weights /= is_weights.max()
 
         return ExperienceSet(
-            states=[self.experience_manager.data["states"][idx] for idx in indexes],
-            actions=[self.experience_manager.data["actions"][idx] for idx in indexes],
-            rewards=[self.experience_manager.data["rewards"][idx] for idx in indexes],
-            next_states=[self.experience_manager.data["next_states"][idx] for idx in indexes],
+            states=[self.experience_store.data["states"][idx] for idx in indexes],
+            actions=[self.experience_store.data["actions"][idx] for idx in indexes],
+            rewards=[self.experience_store.data["rewards"][idx] for idx in indexes],
+            next_states=[self.experience_store.data["next_states"][idx] for idx in indexes],
             info=[{"index": idx, "is_weight": wt} for idx, wt in zip(indexes, is_weights)]
         )
 

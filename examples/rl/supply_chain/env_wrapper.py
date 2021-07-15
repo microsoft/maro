@@ -341,7 +341,7 @@ class SCEnvWrapper(AbsEnvWrapper):
                         self.consumer2source[consumer_id] = consumer["sources"]
                         self.consumer2product[consumer_id] = product_id
 
-        env_action = {}
+        env_action = []
         for agent_id, action in action_by_agent.items():
             unit_id = int(agent_id.split(".")[1])
 
@@ -368,14 +368,14 @@ class SCEnvWrapper(AbsEnvWrapper):
 
                     reward_discount = 1
 
-                    env_action[unit_id] = ConsumerAction(
+                    env_action.append(ConsumerAction(
                         unit_id,
                         product_id,
                         source_id,
                         action_number,
                         sku.vlt,
                         reward_discount
-                    )
+                    ))
 
                     self.consumer_orders[product_unit_id] = action_number
                     self.orders_from_downstreams[self.facility_levels[source_id][product_id]["skuproduct"].id] = action_number
@@ -389,7 +389,7 @@ class SCEnvWrapper(AbsEnvWrapper):
                 if action is None or action == 0:
                     continue
 
-                env_action[unit_id] = ManufactureAction(unit_id, action)
+                env_action.append(ManufactureAction(unit_id, action))
 
         return env_action
 
