@@ -45,7 +45,7 @@ class AbsEnvWrapper(ABC):
             to None.
         get_experience_func (Callable): Custom function to convert the replay buffer to training experiences. Defaults
             to None, in which case the replay buffer will be converted directly to SARS experiences for each agent.
-        step_callback (Callable): Custom function to gather information about a transition and the evolvement of the
+        post_step (Callable): Custom function to gather information about a transition and the evolvement of the
             environment. The function signature should be (env, tracker, transition) -> None, where env is the ``Env``
             instance in the wrapper, tracker is a dictionary where the gathered information is stored and transition
             is a ``Transition`` object. For example, this callback can be used to collect various statistics on the
@@ -57,13 +57,13 @@ class AbsEnvWrapper(ABC):
         reward_eval_delay: int = 0,
         replay_agent_ids: list = None,
         get_experience_func: Callable = None,
-        step_callback: Callable = None
+        post_step: Callable = None
     ):
         self.env = env
         self.reward_eval_delay = reward_eval_delay
 
         self._get_experience_func = get_experience_func
-        self._step_callback = step_callback
+        self._post_step = post_step
 
         replay_agent_ids = self.env.agent_idx_list if replay_agent_ids is None else replay_agent_ids
         self._replay_buffer = {agent_id: defaultdict(list) for agent_id in replay_agent_ids}
@@ -191,11 +191,11 @@ class AbsEnvWrapper(ABC):
         ):
             state, action, env_action, info, tick = self._transition_cache.popleft()
             reward = self.get_reward(env_action, tick=tick)
-            if self._step_callback:
+            if self._post_step:
                 next_state = self._transition_cache[0][0] if self._transition_cache else None
                 transition = Transition(state, action, env_action, reward, next_state, info)
                 # put things you want to track in the tracker attribute
-                self._step_callback(self.env, self.tracker, transition)
+                self._post_step(self.env, self.tracker, transition)
 
             if self._replay:
                 for agent_id, agent_state in state.items():

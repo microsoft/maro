@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 import time
-
 from os import makedirs
 from os.path import dirname, join, realpath
 
@@ -13,7 +12,7 @@ makedirs(log_dir, exist_ok=True)
 
 simulation_logger = Logger("SIMUALTION", dump_folder=log_dir)
 
-def post_episode_callback(trackers):
+def post_episode(trackers):
     # print the env metric from each rollout worker
     for tracker in trackers:
         simulation_logger.info(f"env metric: {tracker['env_metric']}")
@@ -25,5 +24,5 @@ def post_episode_callback(trackers):
         simulation_logger.info(f"average env metric: {avg_metric}")
 
 
-post_collect = post_episode_callback
-post_evaluate = post_episode_callback
+post_collect = post_episode
+post_evaluate = post_episode
