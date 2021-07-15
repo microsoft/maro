@@ -48,6 +48,7 @@ def get_rollout_manager():
             # max_extra_recv_tries=config["sync"]["max_extra_recv_tries"],
             extra_recv_timeout=config["sync"]["extra_recv_timeout"],
             post_collect=post_collect,
+            post_evaluate=post_evaluate,
             proxy_kwargs={"redis_address": (config["redis"]["host"], config["redis"]["port"])}
         )
 
