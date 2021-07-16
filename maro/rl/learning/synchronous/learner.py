@@ -45,7 +45,7 @@ class Learner:
         early_stopper: AbsEarlyStopper = None,
         log_dir: str = getcwd()
     ):
-        self.logger = Logger("LEARNER", dump_folder=log_dir)
+        self._logger = Logger("LEARNER", dump_folder=log_dir)
         self.policy_manager = policy_manager
         self.rollout_manager = rollout_manager
 
@@ -65,7 +65,7 @@ class Learner:
         # if not self._eval_schedule or num_episodes != self._eval_schedule[-1]:
         #     self._eval_schedule.append(num_episodes)
 
-        self.logger.info(f"Policy will be evaluated at the end of episodes {self._eval_schedule}")
+        self._logger.info(f"Policy will be evaluated at the end of episodes {self._eval_schedule}")
         self._eval_point_index = 0
 
         self.early_stopper = early_stopper
@@ -108,7 +108,7 @@ class Learner:
             num_experiences_collected += sum(exp.size for exp in exp_by_policy.values())
 
         # performance details
-        self.logger.info(
+        self._logger.info(
             f"ep {ep} summary - "
             f"experiences collected: {num_experiences_collected} "
             f"experience collection time: {collect_time} "
