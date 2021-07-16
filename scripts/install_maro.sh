@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Script to install maro in editable mode on linux/darwin, 
+# Script to install maro in editable mode on linux/darwin,
 # usually for development.
 
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then

@@ -141,7 +141,7 @@ from the learner.
 .. code-block:: python
     def cim_dqn_actor():
         env = Env(**training_config["env"])
-        agent = MultiAgentWrapper({name: get_dqn_agent() for name in env.agent_idx_list})
+        agent = AgentManager({name: get_dqn_agent() for name in env.agent_idx_list})
         actor = Actor(env, agent, CIMTrajectoryForDQN, trajectory_kwargs=common_config)
         actor.worker(training_config["group"])
 
@@ -154,7 +154,7 @@ latest policies.
 .. code-block:: python
     def cim_dqn_learner():
         env = Env(**training_config["env"])
-        agent = MultiAgentWrapper({name: get_dqn_agent() for name in env.agent_idx_list})
+        agent = AgentManager({name: get_dqn_agent() for name in env.agent_idx_list})
         scheduler = TwoPhaseLinearParameterScheduler(training_config["max_episode"], **training_config["exploration"])
         actor = ActorProxy(
             training_config["group"], training_config["num_actors"],
