@@ -66,7 +66,8 @@ class VehicleUnit(UnitBase):
             raise Exception(f"Destination {destination} is unreachable")
 
         # Steps to destination.
-        self.steps = len(self.path) // vlt
+        # self.steps = len(self.path) // vlt
+        self.steps = vlt
 
         # We are waiting for product loading.
         self.location = 0
@@ -160,15 +161,15 @@ class VehicleUnit(UnitBase):
                     self.location = len(self.path) - 1
         else:
             # Avoid update under idle state.
-            if self.location > 0:
-                # Try to unload.///////////////////////////////////////////////////////////////////
-                if self.payload > 0:
-                    self.try_unload()
+            # if self.location > 0:
+            # Try to unload.///////////////////////////////////////////////////////////////////
+            if self.payload > 0:
+                self.try_unload()
 
-                # Back to source if we unload all.
-                if self.payload == 0:
-                    self._reset_internal_states()
-                    self._reset_data_model()
+            # Back to source if we unload all.
+            # if self.payload == 0:
+            self._reset_internal_states()
+            self._reset_data_model()
 
         self.cost = self.payload * self.unit_transport_cost
 

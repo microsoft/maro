@@ -27,8 +27,10 @@ from .utils import default_parameters
 _PEER_INFO = namedtuple("PEER_INFO", ["hash_table_name", "expected_number"])
 HOST = default_parameters.proxy.redis.host
 PORT = default_parameters.proxy.redis.port
-MAX_RETRIES = default_parameters.proxy.redis.max_retries
-BASE_RETRY_INTERVAL = default_parameters.proxy.redis.base_retry_interval
+INITIAL_REDIS_CONNECT_RETRY_INTERVAL = default_parameters.proxy.redis.initial_retry_interval
+MAX_REDIS_CONNECT_RETRIES = default_parameters.proxy.redis.max_retries
+INITIAL_PEER_DISCOVERY_RETRY_INTERVAL = default_parameters.proxy.peer_discovery.initial_retry_interval
+MAX_PEER_DISCOVERY_RETRIES = default_parameters.proxy.peer_discovery.max_retries
 DELAY_FOR_SLOW_JOINER = default_parameters.proxy.delay_for_slow_joiner
 ENABLE_REJOIN = default_parameters.proxy.peer_rejoin.enable  # Only enable at real k8s cluster or grass cluster
 PEERS_CATCH_LIFETIME = default_parameters.proxy.peer_rejoin.peers_catch_lifetime
@@ -55,8 +57,12 @@ class Proxy:
             Defaults to ``DriverType.ZMQ``.
         driver_parameters (Dict): The arguments for communication driver class initial. Defaults to None.
         redis_address (Tuple): Hostname and port of the Redis server. Defaults to ("localhost", 6379).
-        max_retries (int): Maximum number of retries before raising an exception. Defaults to 5.
-        retry_interval_base_value (float): The time interval between attempts. Defaults to 0.1.
+        initial_redis_connect_retry_interval: Base value for the wait time between retries to connect to Redis.
+            Retries follow the exponential backoff algorithm. Defaults to 0.1.
+        max_redis_connect_retries: Maximum number of retries to connect to Redis. Defaults to 5.
+        initial_peer_discovery_retry_interval: Base value for the wait time between retries to find peers.
+            Retries follow the exponential backoff algorithm. Defaults to 0.1.
+        max_peer_discovery_retries: Maximum number of retries to find peers. Defaults to 5.
         log_enable (bool): Open internal logger or not. Defaults to True.
         enable_rejoin (bool): Allow peers rejoin or not. Defaults to False, and must use with maro cli.
         minimal_peers Union[int, dict]: The minimal number of peers for each peer type.
@@ -77,8 +83,10 @@ class Proxy:
         driver_type: DriverType = DriverType.ZMQ,
         driver_parameters: dict = None,
         redis_address: Tuple = (HOST, PORT),
-        max_retries: int = MAX_RETRIES,
-        retry_interval_base_value: float = BASE_RETRY_INTERVAL,
+        initial_redis_connect_retry_interval: int = INITIAL_REDIS_CONNECT_RETRY_INTERVAL,
+        max_redis_connect_retries: int = MAX_REDIS_CONNECT_RETRIES,
+        initial_peer_discovery_retry_interval: int = INITIAL_PEER_DISCOVERY_RETRY_INTERVAL,
+        max_peer_discovery_retries: int = MAX_PEER_DISCOVERY_RETRIES,
         log_enable: bool = True,
         enable_rejoin: bool = ENABLE_REJOIN,
         minimal_peers: Union[int, dict] = MINIMAL_PEERS,
@@ -97,8 +105,10 @@ class Proxy:
         else:
             unique_id = str(uuid.uuid1()).replace("-", "")
             self._name = f"{self._component_type}_{unique_id}"
-        self._max_retries = max_retries
-        self._retry_interval_base_value = retry_interval_base_value
+        self._initial_redis_connect_retry_interval = initial_redis_connect_retry_interval
+        self._max_redis_connect_retries = max_redis_connect_retries
+        self._initial_peer_discovery_retry_interval = initial_peer_discovery_retry_interval
+        self._max_peer_discovery_retries = max_peer_discovery_retries
         self._log_enable = log_enable
         self._logger = InternalLogger(component_name=self._name + "_proxy") if self._log_enable else DummyLogger()
 
@@ -115,27 +125,27 @@ class Proxy:
 
         # Initialize connection to the redis server.
         self._redis_connection = redis.Redis(host=redis_address[0], port=redis_address[1], socket_keepalive=True)
-        num_tries = 0
-        while num_tries < self._max_retries:
+        next_retry, success = self._initial_redis_connect_retry_interval, False
+        for _ in range(self._max_redis_connect_retries):
             try:
                 self._redis_connection.ping()
+                success = True
                 break
             except Exception as e:
-                retry_time = self._retry_interval_base_value * (2 ** num_tries)
                 self._logger.error(
-                    f"{self._name} failed to connect to the redis server due to {e}. Retrying in {retry_time} seconds."
+                    f"{self._name} failed to connect to Redis due to {e}. Retrying in {next_retry} seconds."
                 )
-                num_tries += 1
-                time.sleep(retry_time)
+                time.sleep(next_retry)
+                next_retry *= 2
 
-        if num_tries == self._max_retries:
-            self._logger.error(f"{self._name} failed to connect to the redis server.")
-            sys.exit(NON_RESTART_EXIT_CODE)
-        else:
+        if success:
             self._logger.info(
                 f"{self._name} is successfully connected to the redis server "
                 f"at {redis_address[0]}:{redis_address[1]}."
             )
+        else:
+            self._logger.error(f"{self._name} failed to connect to the redis server.")
+            sys.exit(NON_RESTART_EXIT_CODE)
 
         # Record the peer's redis information.
         self._peers_info_dict = {}
@@ -177,6 +187,7 @@ class Proxy:
                 sys.exit(NON_RESTART_EXIT_CODE)
 
         self._join()
+
 
     def _signal_handler(self, signum, frame):
         self._redis_connection.hdel(self._redis_hash_name, self._name)
@@ -243,44 +254,37 @@ class Proxy:
         if not self._peers_info_dict:
             raise PeersMissError(f"Cannot get {self._name}\'s peers.")
 
-        for peer_type in self._peers_info_dict.keys():
-            peer_hash_name, peer_number = self._peers_info_dict[peer_type]
-            retry_number = 0
-            expected_peers_name = []
-            while retry_number < self._max_retries:
-                if self._redis_connection.hlen(peer_hash_name) >= peer_number:
-                    expected_peers_name = self._redis_connection.hkeys(peer_hash_name)
-                    expected_peers_name = [peer.decode() for peer in expected_peers_name]
-                    if len(expected_peers_name) > peer_number:
-                        expected_peers_name = expected_peers_name[:peer_number]
-                    self._logger.info(f"{self._name} successfully get all {peer_type}\'s name.")
+        for peer_type, (peer_hash_name, num_expected) in self._peers_info_dict.items():
+            registered_peers, next_retry = [], self._initial_peer_discovery_retry_interval
+            for _ in range(self._max_peer_discovery_retries):
+                if self._redis_connection.hlen(peer_hash_name) >= num_expected:
+                    registered_peers = [peer.decode() for peer in self._redis_connection.hkeys(peer_hash_name)]
+                    if len(registered_peers) > num_expected:
+                        del registered_peers[num_expected:]
+                    self._logger.info(f"{self._name} successfully get all {peer_type}\'s names.")
                     break
                 else:
                     self._logger.warn(
-                        f"{self._name} failed to get {peer_type}\'s name. Retrying in "
-                        f"{self._retry_interval_base_value * (2 ** retry_number)} seconds."
+                        f"{self._name} failed to get {peer_type}\'s name. Retrying in {next_retry} seconds."
                     )
-                    time.sleep(self._retry_interval_base_value * (2 ** retry_number))
-                    retry_number += 1
+                    time.sleep(next_retry)
+                    next_retry *= 2
 
-            if not expected_peers_name:
+            if not registered_peers:
                 raise InformationUncompletedError(
-                    f"{self._name} failure to get enough number of {peer_type} from redis."
+                    f"{self._name} failed to get the required number of {peer_type}s from redis."
                 )
 
-            self._onboard_peer_dict[peer_type] = {peer_name: None for peer_name in expected_peers_name}
+            self._onboard_peer_dict[peer_type] = {peer_name: None for peer_name in registered_peers}
 
         self._onboard_peers_start_time = time.time()
 
     def _build_connection(self):
         """Grabbing all peers' address from Redis, and connect all peers in driver."""
-        for peer_type in self._peers_info_dict.keys():
+        for peer_type, info in self._peers_info_dict.items():
             name_list = list(self._onboard_peer_dict[peer_type].keys())
             try:
-                peers_socket_value = self._redis_connection.hmget(
-                    self._peers_info_dict[peer_type].hash_table_name,
-                    name_list
-                )
+                peers_socket_value = self._redis_connection.hmget(info.hash_table_name, name_list)
                 for idx, peer_name in enumerate(name_list):
                     self._onboard_peer_dict[peer_type][peer_name] = json.loads(peers_socket_value[idx])
                     self._logger.info(f"{self._name} successfully get {peer_name}\'s socket address")
@@ -311,13 +315,21 @@ class Proxy:
             peer_type: list(self._onboard_peer_dict[peer_type].keys()) for peer_type in self._peers_info_dict.keys()
         }
 
-    def receive(self, is_continuous: bool = True, timeout: int = None):
-        """Receive messages from communication driver.
+    def receive(self, timeout: int = None):
+        """Enter an infinite loop of receiving messages from the communication driver.
 
         Args:
-            is_continuous (bool): Continuously receive message or not. Defaults to True.
+            timeout (int): Timeout for each receive attempt. If the first attempt times out, the function returns None.
         """
-        return self._driver.receive(is_continuous, timeout=timeout)
+        return self._driver.receive(timeout=timeout)
+
+    def receive_once(self, timeout: int = None):
+        """Receive a single message from the communication driver.
+
+        Args:
+            timeout (int): Timeout for receive attempt.
+        """
+        return self._driver.receive_once(timeout=timeout)
 
     def receive_by_id(self, targets: List[str], timeout: int = None) -> List[Message]:
         """Receive target messages from communication driver.
@@ -351,7 +363,7 @@ class Proxy:
             return received_messages
 
         # Wait for incoming messages.
-        for msg in self._driver.receive(is_continuous=True, timeout=timeout):
+        for msg in self._driver.receive(timeout=timeout):
             if not msg:
                 return received_messages
 
@@ -441,7 +453,7 @@ class Proxy:
         body=None
     ) -> List[str]:
         """Broadcast message to all peers, and return list of session id."""
-        if component_type not in list(self._onboard_peer_dict.keys()):
+        if component_type not in self._onboard_peer_dict:
             self._logger.error(
                 f"peer_type: {component_type} cannot be recognized. Please check the input of proxy.broadcast."
             )
@@ -526,8 +538,8 @@ class Proxy:
             # Check message cache.
             if (
                 self._enable_message_cache
-                and message.destination in list(self._onboard_peer_dict[peer_type].keys())
-                and message.destination in list(self._message_cache_for_exited_peers.keys())
+                and message.destination in self._onboard_peer_dict[peer_type]
+                and message.destination in self._message_cache_for_exited_peers
             ):
                 self._logger.info(f"Sending pending message to {message.destination}.")
                 for pending_message in self._message_cache_for_exited_peers[message.destination]:
@@ -733,3 +745,7 @@ class Proxy:
 
         self._message_cache_for_exited_peers[peer_name].append(message)
         self._logger.info(f"Temporarily save message {message.session_id} to message cache.")
+
+    def close(self):
+        self._redis_connection.hdel(self._redis_hash_name, self._name)
+        self._driver.close()

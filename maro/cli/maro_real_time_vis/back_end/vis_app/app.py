@@ -5,7 +5,7 @@ import json
 
 from data_process.request.request_attention import get_attention_data
 from data_process.request.request_decision import get_acc_decision_data, get_decision_data
-from data_process.request.request_exp_info import get_experiment_info
+from data_process.request.request_exp_info import add_pending_experiment, get_experiment_info, get_experiments
 from data_process.request.request_order import get_acc_order_data, get_order_data
 from data_process.request.request_port import get_acc_port_data, get_new_port_number, get_port_data
 from data_process.request.request_vessel import get_acc_vessel_data, get_vessel_data
@@ -17,11 +17,11 @@ CORS(app_backend, supports_credentials=True)
 
 
 @app_backend.route('/get_latest_epoch', methods=['GET', 'POST'])
-def get_new_epoch() -> json:
+def get_new_epoch() -> str:
     """Get the latest epoch number.
 
     Returns:
-        json: Epoch number.
+        str: Epoch number.
 
     """
     data = request.get_json(silent=True)
@@ -29,23 +29,47 @@ def get_new_epoch() -> json:
     return get_new_port_number(cur_experiment_name)
 
 
+@app_backend.route('/experiments', methods=['GET', 'POST'])
+def get_existing_experiments() -> str:
+    """Get a list of existing experiments.
+
+    Returns:
+        str: Experiments information.
+
+    """
+    return get_experiments()
+
+
+@app_backend.route('/pending_experiment', methods=['GET', 'POST'])
+def add_experiment() -> str:
+    """Add a pending experiment.
+
+    Returns:
+        str: Experiment information.
+
+    """
+    data = request.get_json(silent=True)
+    cur_experiment_name = data["experiment_name"]
+    return add_pending_experiment(cur_experiment_name)
+
+
 @app_backend.route('/experiment_info', methods=['GET', 'POST'])
-def get_basic_experiment_info() -> json:
+def get_basic_experiment_info() -> str:
     """Get basic experiment information.
 
     Returns:
-        json: Experiment information.
+        str: Experiment information.
 
     """
     return get_experiment_info()
 
 
 @app_backend.route('/get_snapshot_vessel', methods=['GET', 'POST'])
-def get_basic_vessel_info() -> json:
+def get_basic_vessel_info() -> str:
     """Get vessel information within one tick.
 
     Returns:
-        json: Vessel information.
+        str: Vessel information.
 
     """
     data = request.get_json(silent=True)
@@ -59,11 +83,11 @@ def get_basic_vessel_info() -> json:
 
 
 @app_backend.route('/get_acc_snapshot_vessel', methods=['GET', 'POST'])
-def get_acc_vessel_info() -> json:
+def get_acc_vessel_info() -> str:
     """Get vessel information within a range.
 
     Returns:
-        json: Vessel information.
+        str: Vessel information.
 
     """
     data = request.get_json(silent=True)
@@ -78,11 +102,11 @@ def get_acc_vessel_info() -> json:
 
 
 @app_backend.route('/get_snapshot_port', methods=['GET', 'POST'])
-def get_basic_port_info() -> json:
+def get_basic_port_info() -> str:
     """Get port information within one tick.
 
     Returns:
-        json: Port information.
+        str: Port information.
 
     """
     data = request.get_json(silent=True)
@@ -94,11 +118,11 @@ def get_basic_port_info() -> json:
 
 
 @app_backend.route('/get_acc_snapshot_port', methods=['GET', 'POST'])
-def get_acc_port_info() -> json:
+def get_acc_port_info() -> str:
     """Get vessel information within a range.
 
     Returns:
-        json: Port information.
+        str: Port information.
 
     """
     data = request.get_json(silent=True)
@@ -113,11 +137,11 @@ def get_acc_port_info() -> json:
 
 
 @app_backend.route('/get_snapshot_order', methods=['GET', 'POST'])
-def get_basic_order_info() -> json:
+def get_basic_order_info() -> str:
     """Get order information within one tick.
 
     Returns:
-        json: Order information.
+        str: Order information.
 
     """
     data = request.get_json(silent=True)
@@ -129,11 +153,11 @@ def get_basic_order_info() -> json:
 
 
 @app_backend.route('/get_acc_snapshot_order', methods=['GET', 'POST'])
-def get_acc_order_info() -> json:
+def get_acc_order_info() -> str:
     """Get order information within a range.
 
     Returns:
-        json: Order information.
+        str: Order information.
 
     """
     data = request.get_json(silent=True)
@@ -146,11 +170,11 @@ def get_acc_order_info() -> json:
 
 
 @app_backend.route('/get_snapshot_attention', methods=['GET', 'POST'])
-def get_basic_attention_info() -> json:
+def get_basic_attention_info() -> str:
     """Get attention information within one tick.
 
     Returns:
-        json: Attention information.
+        str: Attention information.
 
     """
     data = request.get_json(silent=True)
@@ -162,11 +186,11 @@ def get_basic_attention_info() -> json:
 
 
 @app_backend.route('/get_snapshot_decision', methods=['GET', 'POST'])
-def get_basic_decision_info() -> json:
+def get_basic_decision_info() -> str:
     """Get decision information within one tick.
 
     Returns:
-        json: Decision information.
+        str: Decision information.
 
     """
     data = request.get_json(silent=True)
@@ -178,11 +202,11 @@ def get_basic_decision_info() -> json:
 
 
 @app_backend.route('/get_acc_snapshot_decision', methods=['GET', 'POST'])
-def get_acc_decision_info() -> json:
+def get_acc_decision_info() -> str:
     """Get vessel information within a range.
 
     Returns:
-        json: Decision information.
+        str: Decision information.
 
     """
     data = request.get_json(silent=True)
@@ -201,7 +225,7 @@ def get_acc_attrs():
     """Get decision and order information within a range.
 
     Returns:
-        json: Decision and order information.
+        str: Decision and order information.
 
     """
     data = request.get_json(silent=True)

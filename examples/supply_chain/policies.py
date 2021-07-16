@@ -3,59 +3,65 @@
 
 import sys
 from os.path import dirname, realpath
+from typing import List
 
 import numpy as np
-
 import torch
 
 from maro.rl import (
-    DQN, DQNConfig, EpisodeBasedSchedule, FullyConnectedBlock, NullPolicy, OptimOption, QNetForDiscreteActionSpace,
-    StepBasedSchedule, UniformSampler
+    DQN, DQNConfig, FullyConnectedBlock, NullPolicy, OptimOption, DiscreteQNet, ExperienceManager
 )
 
-sc_code_dir = dirname(realpath(__file__))
-sys.path.insert(0, sc_code_dir)
-from config import config
-
-agent_ids = config["agent_ids"]
-policy_ids = ["consumer", "producer", "facility", "product"]
+from examples.supply_chain.or_policy.minmax_policy import ConsumerMinMaxPolicy
+from examples.supply_chain.or_policy.eoq_policy import ConsumerEOQPolicy
+from examples.supply_chain.or_policy.base_policy import ProducerBaselinePolicy
 
 
-class SimpleQNet(QNetForDiscreteActionSpace):
+class SimpleQNet(DiscreteQNet):
     def forward(self, states):
         states = torch.from_numpy(np.asarray(states)).to(self.device)
         if len(states.shape) == 1:
             states = states.unsqueeze(dim=0)
-        return self.component.forward(states)
+        return self.component(states)
 
 
-def get_dqn_policy(cfg):
+def get_dqn_policy(name: str, cfg):
     q_net = SimpleQNet(
         FullyConnectedBlock(**cfg["model"]["network"]),
         optim_option=OptimOption(**cfg["model"]["optimization"]),
         device=cfg["model"]["device"]
     )
-    experience_manager = UniformSampler(**cfg["experience_manager"])
-    return DQN(q_net, experience_manager, DQNConfig(**cfg["algorithm_config"]))
+    dqn_policy = DQN(
+        name=name,
+        q_net=q_net,
+        experience_manager=ExperienceManager(**cfg["experience_manager"], sampler_cls=None),
+        config=DQNConfig(**cfg["algorithm_config"])
+    )
+    return dqn_policy
 
+def get_base_consumer_policy(name: str, config: dict):
+    return ConsumerMinMaxPolicy(name, config)
 
-null_policy = NullPolicy()
-policy_dict = {
-    policy_id: get_dqn_policy(config["policy"][policy_id]) if policy_id in config["policy"] else null_policy
-    for policy_id in policy_ids
-}
+def get_eoq_consumer_policy(name: str, config: dict):
+    return ConsumerEOQPolicy(name, config)
 
-agent2policy = {agent_id: agent_id.split(".")[0] for agent_id in agent_ids}
+def get_base_producer_policy(name: str, config: dict):
+    return ProducerBaselinePolicy(name, config)
 
-# update schedules
-schedule_type = {"step": StepBasedSchedule, "episode": EpisodeBasedSchedule}
+def get_policy_mapping(config) -> (list, dict):
+    # policy_ids = ["consumerstore", "consumer", "producer", "facility", "product", "productstore"]
+    policies = [
+        get_base_consumer_policy("consumer", config["policy"]["consumer"]),
+        get_base_producer_policy("producer", config["policy"]["producer"]),
+        get_dqn_policy("consumerstore", config["policy"]["consumerstore"]),
+        NullPolicy(name="facility"),
+        NullPolicy(name="product"),
+        NullPolicy(name="productstore")
+    ]
 
-def get_policy_update_schedule(cfg):
-    return schedule_type[cfg["type"]](**cfg["args"])
+    agent2policy = {agent_id: agent_id.split(".")[0] for agent_id in config["agent_id_list"]}
+    return policies, agent2policy
 
-# policy update schedule can be a dict or single EpisodeBasedSchedule or StepBasedSchedule.
-# The latter indicates that all policies shared the same update schedule 
-policy_update_schedule = {
-    policy_id: get_policy_update_schedule(config["policy"][policy_id]["update_schedule"])
-    for policy_id in policy_ids if policy_id in config["policy"]
-}
+def get_replay_agent_ids(agent_id_list) -> List[str]:
+    replay_agent_ids = [agent_id for agent_id in agent_id_list if agent_id.startswith("consumerstore")]
+    return replay_agent_ids

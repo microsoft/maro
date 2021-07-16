@@ -1,20 +1,55 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from abc import ABC, abstractmethod
-
 import numpy as np
 
-from .experience import ExperienceSet
+from maro.utils.exception.rl_toolkit_exception import InvalidExperience
 
 
-class AbsExperienceManager(ABC):
-    """Experience memory that stores RL experiences in the form of "state", "action", "reward", "next_state".
+class ExperienceSet:
+    """Wrapper for a set of experiences.
+
+    An experience consists of state, action, reward, next state and auxillary information.
+    """
+    __slots__ = ["states", "actions", "rewards", "next_states", "info"]
+
+    def __init__(
+        self,
+        states: list = None,
+        actions: list = None,
+        rewards: list = None,
+        next_states: list = None,
+        info: list = None
+    ):
+        if states is None:
+            states, actions, rewards, next_states, info = [], [], [], [], []
+
+        if not len(states) == len(actions) == len(rewards) == len(next_states) == len(info):
+            raise InvalidExperience("values of contents should consist of lists of the same length")
+        self.states = states
+        self.actions = actions
+        self.rewards = rewards
+        self.next_states = next_states
+        self.info = info
+
+    @property
+    def size(self):
+        return len(self.states)
+
+    def extend(self, other):
+        """Concatenate the set with another experience set."""
+        self.states += other.states
+        self.actions += other.actions
+        self.rewards += other.rewards
+        self.next_states += other.next_states
+        self.info += other.info
+
+
+class ExperienceManager:
+    """Storage facility for simulation experiences.
 
     This implementation uses a dictionary of lists as the internal data structure. The objects for each key
-    are stored in a list. To be useful for experience storage in RL, uniformity checks are performed during
-    put operations to ensure that the list lengths stay the same for all keys at all times. Both unlimited
-    and limited storage are supported.
+    are stored in a list.
 
     Args:
         capacity (int): Maximum number of experiences that can be stored.
@@ -22,45 +57,69 @@ class AbsExperienceManager(ABC):
             are overwritten when the capacity is exceeded. Two types of overwrite behavior are supported:
             - "rolling", where overwrite occurs sequentially with wrap-around.
             - "random", where overwrite occurs randomly among filled positions.
-            Alternatively, the user may also specify overwrite positions (see ``put``).
+        batch_size (int): Batch size for the default uniform sampling. This can be set to -1 if the required
+            batch size is the number of items stored. To get the whole data, set this to -1 and ``replace`` to
+            False. If a sampler is registered, this is ignored, and the batch size will be determined by the
+            sampler. Defaults to 32.
+        replace (bool): A flag indicating whether the default uniform sampling is with replacement or without.
+            Ignored if a sampler is registered. Defaults to True.
+        sampler_cls: Type of sampler to be registered. Must be a subclass of ``AbsSampler``.
+            Defaults to UnifromSampler.
+        sampler_params (dict): Keyword parameters for ``sampler_cls``.
     """
-    def __init__(self, capacity: int, overwrite_type: str = "rolling"):
+    def __init__(
+        self,
+        capacity: int,
+        overwrite_type: str = "rolling",
+        batch_size: int = 32,
+        replace: bool = True,
+        sampler_cls=None,
+        sampler_params: dict = None,
+    ):
         super().__init__()
         if overwrite_type not in {"rolling", "random"}:
             raise ValueError(f"overwrite_type must be 'rolling' or 'random', got {overwrite_type}")
+        if batch_size <= 0 and batch_size != -1:
+            raise ValueError(f"batch_size must be -1 or a positive integer")
         self._capacity = capacity
         self._overwrite_type = overwrite_type
-        self.keys = ExperienceSet.__slots__
-        self.data = {key: [None] * self._capacity for key in self.keys}
+        self._keys = ExperienceSet.__slots__
+        self.data = {key: [None] * self._capacity for key in self._keys}
+        self.batch_size = batch_size
+        self.replace = replace
+        self.sampler = None if sampler_cls is None else sampler_cls(self, **sampler_params)
         self._size = 0
-
-    @property
-    def size(self):
-        return self._size
+        self._index = 0
 
     @property
     def capacity(self):
+        """Capacity of the memory."""
         return self._capacity
 
     @property
     def overwrite_type(self):
+        """Overwrite method after the memory has reached capacity."""
         return self._overwrite_type
 
-    @abstractmethod
-    def get(self) -> ExperienceSet:
-        raise NotImplementedError
+    @property
+    def size(self):
+        """Current number of experiences stored."""
+        return self._size
+
+    @property
+    def keys(self):
+        """Keys as specified by ``ExperienceSet``."""
+        return self._keys
 
     def put(self, experience_set: ExperienceSet):
-        """Put new contents in the store.
+        """Put a experience set in the store.
 
         Args:
-            contents (dict): Dictionary of items to add to the store. If the store is not empty, this must have the
-                same keys as the store itself. Otherwise an ``StoreMisalignment`` will be raised.
+            experience_set (ExperienceSet): Experience set to be put in the store. If the store is full,
+                existing items will be overwritten according to the ``overwrite_type`` property.
 
-        Returns:
-            The indexes where the newly added entries reside in the store.
         """
-        added_size = len(experience_set)
+        added_size = experience_set.size
         if added_size > self._capacity:
             raise ValueError("size of added items should not exceed the capacity.")
 
@@ -83,40 +142,21 @@ class AbsExperienceManager(ABC):
 
         self._size = min(self._capacity, num_experiences)
 
+    def get(self):
+        """Retrieve an experience set from the memory.
+
+        If not sampler has been registered, a uniformly random sample of the stored data will be returned
+        in the form of an ``ExperienceSet`` and the memory will be cleared. Otherwise, a sample from the
+        memory will be returned according to the sampling logic defined by the registered sampler.
+        """
+        batch_size = self._size if self.batch_size == -1 else self.batch_size
+        if not self.sampler:
+            indexes = np.random.choice(self._size, size=batch_size, replace=self.replace)
+            return ExperienceSet(*[[self.data[key][idx] for idx in indexes] for key in self._keys])
+        else:
+            return self.sampler.get()
+
     def clear(self):
-        """Empty the store."""
-        self.data = {key: [None] * self._capacity for key in self.keys}
+        """Empty the memory."""
+        self.data = {key: [None] * self._capacity for key in self._keys}
         self._size = 0
-
-
-class UniformSampler(AbsExperienceManager):
-    """Experience memory that stores RL experiences in the form of "state", "action", "reward", "next_state".
-
-    This implementation uses a dictionary of lists as the internal data structure. The objects for each key
-    are stored in a list. To be useful for experience storage in RL, uniformity checks are performed during
-    put operations to ensure that the list lengths stay the same for all keys at all times. Both unlimited
-    and limited storage are supported.
-
-    Args:
-        capacity (int): If negative, the store is of unlimited capacity. Defaults to -1.
-        overwrite_type (str): If storage capacity is bounded, this specifies how existing entries
-            are overwritten when the capacity is exceeded. Two types of overwrite behavior are supported:
-            - "rolling", where overwrite occurs sequentially with wrap-around.
-            - "random", where overwrite occurs randomly among filled positions.
-            Alternatively, the user may also specify overwrite positions (see ``put``).
-    """
-    def __init__(self, capacity: int, batch_size: int, overwrite_type: str = None, replace: bool = True):
-        super().__init__(capacity, overwrite_type=overwrite_type)
-        self.batch_size = batch_size
-        self.replace = replace
-
-    def get(self) -> ExperienceSet:
-        indexes = np.random.choice(self._size, size=self.batch_size, replace=self.replace)
-        return ExperienceSet(*[[self.data[key][idx] for idx in indexes] for key in self.keys])
-
-
-class UseAndDispose(AbsExperienceManager):
-    def get(self) -> ExperienceSet:
-        exp_set = ExperienceSet(*[self.data[key] for key in self.keys])
-        self.clear()
-        return exp_set

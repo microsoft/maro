@@ -1,14 +1,13 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from collections import namedtuple
 from typing import Union
 
 import numpy as np
 import torch
 
-from maro.rl.experience import AbsExperienceManager
-from maro.rl.model import PolicyValueNetForContinuousActionSpace
+from maro.rl.experience import ExperienceManager
+from maro.rl.model import ContinuousACNet
 from maro.rl.policy import AbsCorePolicy
 from maro.rl.utils import get_torch_loss_cls
 
@@ -61,26 +60,41 @@ class DDPG(AbsCorePolicy):
         https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch/ddpg
 
     Args:
-        ac_net (PolicyValueNetForContinuousActionSpace): DDPG policy and q-value models.
+        name (str): Policy name.
+        ac_net (ContinuousACNet): DDPG policy and q-value models.
+        experience_manager (ExperienceManager): An experience manager for storing and retrieving experiences
+            for training.
         config (DDPGConfig): Configuration for DDPG algorithm.
+        update_trigger (int): Minimum number of new experiences required to trigger an ``update`` call. Defaults to 1.
+        warmup (int): Minimum number of experiences in the experience memory required to trigger an ``update`` call.
+            Defaults to 1.
     """
     def __init__(
         self,
-        ac_net: PolicyValueNetForContinuousActionSpace,
-        experience_manager: AbsExperienceManager,
-        config: DDPGConfig
+        name: str,
+        ac_net: ContinuousACNet,
+        experience_manager: ExperienceManager,
+        config: DDPGConfig,
+        update_trigger: int = 1,
+        warmup: int = 1,
     ):
-        if not isinstance(ac_net, PolicyValueNetForContinuousActionSpace):
-            raise TypeError("model must be an instance of 'PolicyValueNetForContinuousActionSpace'")
+        if not isinstance(ac_net, ContinuousACNet):
+            raise TypeError("model must be an instance of 'ContinuousACNet'")
 
-        super().__init__(experience_manager, config)
+        super().__init__(name, experience_manager, update_trigger=update_trigger, warmup=warmup)
         self.ac_net = ac_net
-        self.target_ac_net = ac_net.copy() if self.ac_net.trainable else None
+        if self.ac_net.trainable:
+            self.target_ac_net = ac_net.copy()
+            self.target_ac_net.eval()
+        else:
+            self.target_ac_net = None
+        self.config = config
+        self.device = self.ac_net.device
         self._train_cnt = 0
 
     def choose_action(self, states) -> Union[float, np.ndarray]:
         with torch.no_grad():
-            actions = self.ac_net.choose_action(states).cpu().numpy()
+            actions = self.ac_net.get_action(states).cpu().numpy()
 
         return actions[0] if len(actions) == 1 else actions
 
@@ -89,11 +103,11 @@ class DDPG(AbsCorePolicy):
         for _ in range(self.config.train_epochs):
             experience_set = self.experience_manager.get()
             states, next_states = experience_set.states, experience_set.next_states
-            actual_actions = torch.from_numpy(experience_set.actions).to(self.ac_net.device)
-            rewards = torch.from_numpy(experience_set.rewards).to(self.ac_net.device)
+            actual_actions = torch.from_numpy(experience_set.actions).to(self.device)
+            rewards = torch.from_numpy(experience_set.rewards).to(self.device)
             if len(actual_actions.shape) == 1:
                 actual_actions = actual_actions.unsqueeze(dim=1)  # (N, 1)
-            
+
             with torch.no_grad():
                 next_q_values = self.target_ac_net.value(next_states)
             target_q_values = (rewards + self.config.reward_discount * next_q_values).detach()  # (N,)

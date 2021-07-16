@@ -2,14 +2,14 @@ version: '3.6'
 
 services:
 
-  # vis_app:
-  #   container_name: vis_app
-  #   restart: always
-  #   build: ./back_end/vis_app
-  #   ports:
-  #     - "5000:5000"
-  #   image: maro_vis_back_end_service
-  #   command: gunicorn -w 1 -b 0.0.0.0:5000 app:app_backend
+  vis_app:
+    container_name: vis_app
+    restart: always
+    build: ./back_end/vis_app
+    ports:
+      - "5000:5000"
+    image: maro_vis_back_end_service
+    command: gunicorn -w 1 -b 0.0.0.0:5000 app:app_backend
 
 
   # nginx:
@@ -22,12 +22,12 @@ services:
   #   depends_on:
   #     - vis_app
 
-  maro_vis_front_end:
-    build: ./front_end
-    ports:
-      - "${FRONT_END_PORT}:${FRONT_END_PORT}"
-    image: maro_vis_front_end
-    container_name: maro_vis_front_end
+  # maro_vis_front_end:
+  #   build: ./front_end
+  #   ports:
+  #     - "${FRONT_END_PORT}:${FRONT_END_PORT}"
+  #   image: maro_vis_front_end
+  #   container_name: maro_vis_front_end
 
   # database:
   #   image: "questdb/questdb"

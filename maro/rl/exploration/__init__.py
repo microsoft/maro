@@ -3,14 +3,14 @@
 
 from .abs_exploration import AbsExploration, NullExploration
 from .epsilon_greedy_exploration import EpsilonGreedyExploration
-from .noise_exploration import GaussianNoiseExploration, NoiseExploration, UniformNoiseExploration
 from .exploration_scheduler import (
     AbsExplorationScheduler, LinearExplorationScheduler, MultiPhaseLinearExplorationScheduler
 )
+from .noise_exploration import GaussianNoiseExploration, NoiseExploration, UniformNoiseExploration
 
 __all__ = [
     "AbsExploration", "NullExploration",
     "EpsilonGreedyExploration",
-    "GaussianNoiseExploration", "NoiseExploration", "UniformNoiseExploration",
-    "AbsExplorationScheduler", "LinearExplorationScheduler", "MultiPhaseLinearExplorationScheduler"
+    "AbsExplorationScheduler", "LinearExplorationScheduler", "MultiPhaseLinearExplorationScheduler",
+    "GaussianNoiseExploration", "NoiseExploration", "UniformNoiseExploration"
 ]

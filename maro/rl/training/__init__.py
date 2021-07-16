@@ -2,15 +2,17 @@
 # Licensed under the MIT license.
 
 from .actor import Actor
-from .actor_manager import ActorManager
-from .distributed_learner import DistributedLearner
+from .early_stopper import AbsEarlyStopper
+from .learner import Learner
 from .local_learner import LocalLearner
-from .policy_update_schedule import EpisodeBasedSchedule, MultiPolicyUpdateSchedule, StepBasedSchedule
+from .policy_manager import AbsPolicyManager, LocalPolicyManager
+from .rollout_manager import AbsRolloutManager, LocalRolloutManager, ParallelRolloutManager
 
 __all__ = [
     "Actor",
-    "ActorManager",
-    "DistributedLearner",
+    "AbsEarlyStopper",
+    "Learner",
     "LocalLearner",
-    "EpisodeBasedSchedule", "MultiPolicyUpdateSchedule", "StepBasedSchedule"
+    "AbsPolicyManager", "LocalPolicyManager",
+    "AbsRolloutManager", "LocalRolloutManager", "ParallelRolloutManager"
 ]

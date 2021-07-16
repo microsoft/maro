@@ -29,7 +29,7 @@ class ActorManager(object):
         self,
         num_actors: int,
         group_name: str,
-        required_finishes: int = None, 
+        required_finishes: int = None,
         log_env_metrics: bool = False,
         log_dir: str = getcwd(),
         **proxy_kwargs

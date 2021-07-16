@@ -5,9 +5,9 @@ from typing import Tuple
 
 import numpy as np
 import torch
-from torch.distributions import Categorical
 
-from maro.rl.model import PolicyNetForDiscreteActionSpace
+from maro.rl.experience.experience_manager import ExperienceManager
+from maro.rl.model import DiscretePolicyNet
 from maro.rl.policy import AbsCorePolicy
 from maro.rl.utils import get_truncated_cumulative_reward
 
@@ -30,68 +30,56 @@ class PolicyGradient(AbsCorePolicy):
     Reference: https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch.
 
     Args:
-        model (ParameterizedPolicy): Multi-task model that computes action distributions and state values.
+        name (str): Policy name.
+        policy_net (DiscretePolicyNet): Multi-task model that computes action distributions and state values.
             It may or may not have a shared bottom stack.
+        experience_manager (ExperienceManager): An experience manager for storing and retrieving experiences
+            for training.
         config (PolicyGradientConfig): Configuration for the PG algorithm.
-        experience_memory_size (int): Size of the experience memory. If it is -1, the experience memory is of
-            unlimited size.
-        experience_memory_overwrite_type (str): A string indicating how experiences in the experience memory are
-            to be overwritten after its capacity has been reached. Must be "rolling" or "random".
-        empty_experience_memory_after_step (bool): If True, the experience memory will be emptied  after each call
-            to ``step``. Defaults to True.
-        new_experience_trigger (int): Minimum number of new experiences required to trigger learning.
+        update_trigger (int): Minimum number of new experiences required to trigger an ``update`` call. Defaults to 1.
+        warmup (int): Minimum number of experiences in the experience memory required to trigger an ``update`` call.
             Defaults to 1.
-        min_experiences_to_trigger_training (int): Minimum number of experiences in the experience memory required for
-            training. Defaults to 1.
     """
     def __init__(
         self,
-        model: PolicyNetForDiscreteActionSpace,
+        name: str,
+        policy_net: DiscretePolicyNet,
+        experience_manager: ExperienceManager,
         config: PolicyGradientConfig,
-        experience_memory_size: int,
-        experience_memory_overwrite_type: str,
-        empty_experience_memory_after_step: bool = True,
-        new_experience_trigger: int = 1,
-        min_experiences_to_trigger_training: int = 1
-    ):  
-        if not isinstance(model, PolicyNetForDiscreteActionSpace):
-            raise TypeError("model must be an instance of 'PolicyNetForDiscreteActionSpace'")
-        super().__init__(
-            model, config, experience_memory_size, experience_memory_overwrite_type,
-            empty_experience_memory_after_step,
-            new_experience_trigger=new_experience_trigger,
-            min_experiences_to_trigger_training=min_experiences_to_trigger_training
-        )
+        update_trigger: int = 1,
+        warmup: int = 1
+    ):
+        if not isinstance(policy_net, DiscretePolicyNet):
+            raise TypeError("model must be an instance of 'DiscretePolicyNet'")
+        super().__init__(name, experience_manager, update_trigger=update_trigger, warmup=warmup)
+        self.policy_net = policy_net
+        self.config = config
+        self.device = self.policy_net.device
 
-    def choose_action(self, state: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
-        """Use the actor (policy) model to generate stochastic actions.
+    def choose_action(self, states: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+        """Return actions and log probabilities for given states."""
+        with torch.no_grad():
+            actions, log_p = self.policy_net.get_action(states)
+        actions, log_p = actions.cpu().numpy(), log_p.cpu().numpy()
+        return (actions[0], log_p[0]) if len(actions) == 1 else actions, log_p
 
-        Args:
-            state: Input to the actor model.
-
-        Returns:
-            Actions and corresponding log probabilities.
+    def update(self):
         """
-        state = torch.from_numpy(state).to(self.device)
-        is_single = len(state.shape) == 1
-        if is_single:
-            state = state.unsqueeze(dim=0)
-
-        action_prob = Categorical(self.model(state, training=False))
-        action = action_prob.sample()
-        log_p = action_prob.log_prob(action)
-        action, log_p = action.cpu().numpy(), log_p.cpu().numpy()
-        return (action[0], log_p[0]) if is_single else (action, log_p)
-
-    def step(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray):
-        if not isinstance(experience_set, ExperienceSet):
-            raise TypeError(f"Expected experience object of type ExperienceSet, got {type(experience_set)}")
-
-        states = experience_set.states
-        actions = torch.from_numpy(np.asarray([act[0] for act in experience_set.actions]))
-        log_p = torch.from_numpy(np.asarray([act[1] for act in experience_set.actions]))
-        rewards = torch.from_numpy(np.asarray(experience_set.rewards))
-        returns = get_truncated_cumulative_reward(rewards, self.special_config.reward_discount)
+        This should be called at the end of a simulation episode and the experiences obtained from
+        the experience manager's ``get`` method should be a sequential set, i.e., in the order in
+        which they are generated during the simulation. Otherwise, the return values may be meaningless.
+        """
+        self.policy_net.train()
+        experience_set = self.experience_manager.get()
+        log_p = torch.from_numpy(np.asarray([act[1] for act in experience_set.actions])).to(self.device)
+        rewards = torch.from_numpy(np.asarray(experience_set.rewards)).to(self.device)
+        returns = get_truncated_cumulative_reward(rewards, self.config.reward_discount)
         returns = torch.from_numpy(returns).to(self.device)
         loss = -(log_p * returns).mean()
-        self.model.step(loss)
+        self.policy_net.step(loss)
+
+    def set_state(self, policy_state):
+        self.policy_net.load_state_dict(policy_state)
+
+    def get_state(self):
+        return self.policy_net.state_dict()

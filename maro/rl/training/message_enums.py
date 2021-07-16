@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 from enum import Enum
 
 
@@ -21,13 +24,11 @@ class MsgKey(Enum):
     EPISODE_INDEX = "episode_index"
     SEGMENT_INDEX = "segment_index"
     TIME_STEP = "time_step"
-    METRICS = "metrics"
+    ENV_SUMMARY = "env_summary"
     EXPERIENCES = "experiences"
     NUM_EXPERIENCES = "num_experiences"
     STATE = "state"
     POLICY = "policy"
     VERSION = "version"
     NUM_STEPS = "num_steps"
-    RETURN_ENV_METRICS = "return_env_metrics"
-    TOTAL_REWARD = "total_reward"
-    ENV_END = "env_end"
+    EPISODE_END = "episode_end"

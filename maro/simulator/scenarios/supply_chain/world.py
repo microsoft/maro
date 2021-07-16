@@ -275,7 +275,7 @@ class World:
             if agent_type is not None:
                 self.agent_list.append(AgentInfo(facility.id, agent_type, True, None, facility.id, None))
 
-                self.agent_type_dict[agent_type] = type(facility).__name__
+                self.agent_type_dict[type(facility).__name__] = agent_type
 
                 for sku in facility.skus.values():
                     self.max_price = max(self.max_price, sku.price)
@@ -297,7 +297,7 @@ class World:
                     )
                 )
 
-                self.agent_type_dict[agent_type] = type(unit).__name__
+                self.agent_type_dict[type(unit).__name__] = agent_type
 
     def build_unit_by_type(self, unit_def: UnitDef, parent: Union[FacilityBase, UnitBase], facility: FacilityBase):
         """Build an unit by its type.
