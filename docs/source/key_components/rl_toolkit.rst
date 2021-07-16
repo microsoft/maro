@@ -142,24 +142,24 @@ The code snippet below shows how to create a model for the actor-critic algorith
       optim_option={
         "representation": OptimizerOption(cls="adam", params={"lr": 0.0001}),
         "actor": OptimizerOption(cls="adam", params={"lr": 0.001}),
-        "critic": OptimizerOption(cls="rmsprop", params={"lr": 0.0001})
+        "critic": OptimizerOption(cls="rmsprop", params={"lr": 0.0001})  
       }
   )
 
-To generate stochastic actions given a batch of states, call ``get_action`` on the model instance:
+To generate stochastic actions given a batch of states, call ``get_action`` on the model instance: 
 
 .. code-block:: python
 
   action, log_p = ac_model.get_action(state)
 
-To performing a single gradient step on the model, call the ``step`` function:
+To performing a single gradient step on the model, call the ``step`` function: 
 
 .. code-block:: python
 
   ac_model.step(critic_loss + actor_loss)
 
 Here it is assumed that the losses have been computed using the same model instance and the gradients have
-been generated for the internal components.
+been generated for the internal components.  
 
 
 Experience
@@ -168,15 +168,9 @@ Experience
 An ``ExperienceSet`` is a synonym for training data for RL policies. The data originate from the simulator and
 get processed and organized into a set of transitions in the form of (state, action, reward, next_state, info),
 where ''info'' contains information about the transition that is not encoded in the state but may be necessary
-<<<<<<< HEAD
 for sampling purposes. An ``ExperienceStore`` is a storage facility for experience sets and is maintained by
 a policy for storing and retrieving training data. Sampling from the experience memory can be customized by 
 registering a user-defined sampler to it.  
-=======
-for sampling purposes. An ``ExperienceManager`` is a storage facility for experience sets and is maintained by
-a policy for storing and retrieving training data. Sampling from the experience memory can be customized by
-registering a user-defined sampler to it.
->>>>>>> v0.2_sc
 
 
 Exploration
