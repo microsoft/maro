@@ -173,10 +173,39 @@ env_config = {
     "seed": 666
 }
 
-def get_env_wrapper():
+
+eval_env_config = {
+    "basic": {
+        "scenario": "vm_scheduling",
+        "topology": "azure.2019.10k.short.test",
+        "start_tick": 0,
+        "durations": 300,
+        "snapshot_resolution": 1
+    },
+    "wrapper": {
+        "alpha": 0.0,
+        "beta": 1.0,
+        "pm_num": 8,
+        "durations": 200,
+        "vm_state_path": "../data/test_vm_states.npy",
+        "vm_window_size": 1,
+        "pm_window_size": 1,
+        "gamma": 0.9
+    }
+}
+
+
+def get_env_wrapper(replay_agent_ids=None):
     env = Env(**env_config["basic"])
     env.set_seed(env_config["seed"])
-    return VMEnvWrapper(env, **env_config["wrapper"]) 
+    return VMEnvWrapper(env, **env_config["wrapper"])
+
+
+def get_eval_env_wrapper():
+    eval_env = Env(**eval_env_config["basic"])
+    eval_env.set_seed(eval_env_config["seed"])
+    return VMEnvWrapper(eval_env, **eval_env_config["wrapper"])
+
 
 tmp_env_wrapper = get_env_wrapper()
 AGENT_IDS = tmp_env_wrapper.agent_idx_list
