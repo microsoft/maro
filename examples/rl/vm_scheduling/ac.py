@@ -5,10 +5,9 @@ import os
 import sys
 
 import numpy as np
-import scipy
 import torch
 
-from maro.rl.experience import ExperienceSet, ExperienceStore, UniformSampler
+from maro.rl.experience import ExperienceStore, UniformSampler
 from maro.rl.model import DiscreteACNet, FullyConnectedBlock, OptimOption
 from maro.rl.policy.algorithms import ActorCritic, ActorCriticConfig
 
@@ -103,25 +102,3 @@ def get_ac_policy(mode="update"):
         experience_sampler_cls=UniformSampler,
         experience_sampler_kwargs=exp_sampler_kwargs
     )
-
-
-def get_ac_experiences(replay_buffer):
-    def discount_cumsum(x, discount):
-        """
-        magic from rllab for computing discounted cumulative sums of vectors.
-        
-        Reference: https://github.com/openai/spinningup/blob/master/spinup/algos/pytorch/ppo/core.py
-        """
-        return scipy.signal.lfilter([1], [1, float(-discount)], x[::-1], axis=0)[::-1]
-
-    rewards = np.array(replay_buffer["rewards"])
-    cumsum_rewards = discount_cumsum(rewards, config["algorithm"]["reward_discount"])
-
-    exp_set = ExperienceSet(
-        replay_buffer["states"][:-1],
-        replay_buffer["actions"][:-1],
-        cumsum_rewards[:-1],
-        replay_buffer["states"][1:],
-        replay_buffer["info"][1:],
-    )
-    return exp_set
