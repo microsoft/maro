@@ -68,6 +68,7 @@ class PolicyGradient(AbsCorePolicy):
 
     def choose_action(self, states: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """Return actions and log probabilities for given states."""
+        self.policy_net.eval()
         with torch.no_grad():
             actions, log_p = self.policy_net.get_action(states)
         actions, log_p = actions.cpu().numpy(), log_p.cpu().numpy()
@@ -79,6 +80,7 @@ class PolicyGradient(AbsCorePolicy):
         the experience store's ``get`` method should be a sequential set, i.e., in the order in
         which they are generated during the simulation. Otherwise, the return values may be meaningless.
         """
+        assert self.policy_net.trainable, "policy_net needs to have at least one optimizer registered."
         self.policy_net.train()
         experience_set = self.sampler.get()
         log_p = torch.from_numpy(np.asarray([act[1] for act in experience_set.actions])).to(self.device)

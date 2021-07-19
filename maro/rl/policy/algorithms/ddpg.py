@@ -99,12 +99,14 @@ class DDPG(AbsCorePolicy):
         self._num_steps = 0
 
     def choose_action(self, states) -> Union[float, np.ndarray]:
+        self.ac_net.eval()
         with torch.no_grad():
             actions = self.ac_net.get_action(states).cpu().numpy()
 
         return actions[0] if len(actions) == 1 else actions
 
     def learn(self):
+        assert self.ac_net.trainable, "ac_net needs to have at least one optimizer registered."
         self.ac_net.train()
         for _ in range(self.config.train_epochs):
             experience_set = self.sampler.get()
