@@ -140,7 +140,7 @@ class ActorCritic(AbsCorePolicy):
             # total loss
             loss = actor_loss + self.config.critic_loss_coeff * critic_loss
             if self.config.entropy_coeff is not None:
-                loss -= self.config.entropy_coeff * Categorical(action_probs).entropy()
+                loss -= self.config.entropy_coeff * Categorical(action_probs).entropy().mean()
             self.ac_net.step(loss)
 
             if self._post_step:

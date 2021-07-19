@@ -53,6 +53,7 @@ config = {
         "critic_loss_cls": "smooth_l1",
         "train_epochs": 10,
         "critic_loss_coeff": 0.1,
+        "entropy_coeff": 0.01,
         # "clip_ratio": 0.8   # for PPO
     },
     "experience_store": {
