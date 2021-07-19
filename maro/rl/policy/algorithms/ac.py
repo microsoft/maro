@@ -24,7 +24,8 @@ class ActorCriticConfig:
         min_logp (float): Lower bound for clamping logP values during learning. This is to prevent logP from becoming
             very large in magnitude and cuasing stability issues. Defaults to None, which means no lower bound.
         critic_loss_coeff (float): Coefficient for critic loss in total loss. Defaults to 1.0.
-        entropy_coeff (float): Coefficient for the entropy term in total loss. Defaults to 0.001.
+        entropy_coeff (float): Coefficient for the entropy term in total loss. Defaults to None, in which case the
+            total loss will not include an entropy term.
         clip_ratio (float): Clip ratio in the PPO algorithm (https://arxiv.org/pdf/1707.06347.pdf). Defaults to None,
             in which case the actor loss is calculated using the usual policy gradient theorem.
         clear_experience_memory_every (int): Number of ``ActorCritic.learn`` calls between experience memory clearances.
@@ -42,7 +43,7 @@ class ActorCriticConfig:
         critic_loss_cls="mse",
         min_logp: float = None,
         critic_loss_coeff: float = 1.0,
-        entropy_coeff: float = 0.001,
+        entropy_coeff: float = None,
         clip_ratio: float = None,
         clear_experience_memory_every: int = 1
     ):
@@ -125,7 +126,7 @@ class ActorCritic(AbsCorePolicy):
 
             # actor loss
             log_p_new = torch.log(action_probs.gather(1, actions.unsqueeze(1)).squeeze())  # (N,)
-            log_p_new = torch.clamp(log_p_new, min=self.config.min_logp)
+            log_p_new = torch.clamp(log_p_new, min=self.config.min_logp, max=.0)
             if self.config.clip_ratio is not None:
                 ratio = torch.exp(log_p_new - log_p)
                 clip_ratio = torch.clamp(ratio, 1 - self.config.clip_ratio, 1 + self.config.clip_ratio)
@@ -135,11 +136,11 @@ class ActorCritic(AbsCorePolicy):
 
             # critic_loss
             critic_loss = self.config.critic_loss_func(state_values, return_est)
-            # entropy loss (with negative sign to encourange exploration)
-            entropy_loss = -Categorical(action_probs).entropy()
 
             # total loss
-            loss = actor_loss + self.config.critic_loss_coeff * critic_loss + self.config.entropy_coeff * entropy_loss
+            loss = actor_loss + self.config.critic_loss_coeff * critic_loss
+            if self.config.entropy_coeff is not None:
+                loss -= self.config.entropy_coeff * Categorical(action_probs).entropy()
             self.ac_net.step(loss)
 
             if self._post_step:
