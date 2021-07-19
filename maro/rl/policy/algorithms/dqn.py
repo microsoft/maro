@@ -96,8 +96,8 @@ class DQN(AbsCorePolicy):
             self._loss_func = torch.nn.MSELoss()
 
     def choose_action(self, states) -> Union[int, np.ndarray]:
+        self.q_net.eval()
         with torch.no_grad():
-            self.q_net.eval()
             q_for_all_actions = self.q_net(states)  # (batch_size, num_actions)
             _, actions = q_for_all_actions.max(dim=1)
 
