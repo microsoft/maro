@@ -54,7 +54,7 @@ config = {
         "train_epochs": 100,
         "gradient_iters": 1,
         "critic_loss_cls": "mse",
-        "actor_loss_coefficient": 0.1
+        "critic_loss_coeff": 0.1
     },
     "experience_store": {
         "capacity": 10000,
