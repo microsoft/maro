@@ -1,6 +1,6 @@
-# Container Inventory Management
+# Virtual Machine Scheduling
 
-Container inventory management (CIM) is a scenario where reinforcement learning (RL) can potentially prove useful. In this folder you can find:
+Virtual Machine (VM) scheduling is a scenario where reinforcement learning (RL) can help the virtual machine allocator allocate compute resources intelligently. In this folder you can find:
 * ``env_wrapper.py``, which contains a function to generate an environment wrapper to interact
 with our "agent" (see below);
 * ``agent_wrapper.py``, which contains a function to generate an agent wrapper to interact
