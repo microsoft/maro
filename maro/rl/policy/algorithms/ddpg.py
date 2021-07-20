@@ -22,15 +22,14 @@ class DDPGConfig:
         train_epochs (int): Number of training epochs per call to ``update()``. Defaults to 1.
         q_value_loss_cls: A string indicating a loss class provided by torch.nn or a custom loss class for
             the Q-value loss. If it is a string, it must be a key in ``TORCH_LOSS``. Defaults to "mse".
-        policy_loss_coefficient (float): The coefficient for policy loss in the total loss function, e.g.,
-            loss = q_value_loss + ``policy_loss_coefficient`` * policy_loss. Defaults to 1.0.
-        soft_update_coefficient (float): Soft update coefficient, e.g.,
-            target_model = (soft_update_coefficient) * eval_model + (1-soft_update_coefficient) * target_model.
-            Defaults to 1.0.
+        q_value_loss_coeff (float): Coefficient for policy loss in the total loss function, e.g.,
+            loss = policy_loss + ``q_value_loss_coeff`` * q_value_loss. Defaults to 1.0.
+        soft_update_coeff (float): Soft update coefficient, e.g., target_model = (soft_update_coeff) * eval_model +
+            (1-soft_update_coeff) * target_model. Defaults to 1.0.
     """
     __slots__ = [
-        "reward_discount", "target_update_freq", "train_epochs", "q_value_loss_func", "policy_loss_coefficient",
-        "soft_update_coefficient"
+        "reward_discount", "target_update_freq", "train_epochs", "q_value_loss_func", "q_value_loss_coeff",
+        "soft_update_coeff"
     ]
 
     def __init__(
@@ -39,15 +38,15 @@ class DDPGConfig:
         target_update_freq: int,
         train_epochs: int = 1,
         q_value_loss_cls="mse",
-        policy_loss_coefficient: float = 1.0,
-        soft_update_coefficient: float = 1.0,
+        policy_loss_coeff: float = 1.0,
+        soft_update_coeff: float = 1.0,
     ):
         self.reward_discount = reward_discount
         self.target_update_freq = target_update_freq
         self.train_epochs = train_epochs
         self.q_value_loss_func = get_torch_loss_cls(q_value_loss_cls)()
-        self.policy_loss_coefficient = policy_loss_coefficient
-        self.soft_update_coefficient = soft_update_coefficient
+        self.policy_loss_coeff = policy_loss_coeff
+        self.soft_update_coeff = soft_update_coeff
 
 
 class DDPG(AbsCorePolicy):
@@ -99,12 +98,14 @@ class DDPG(AbsCorePolicy):
         self._num_steps = 0
 
     def choose_action(self, states) -> Union[float, np.ndarray]:
+        self.ac_net.eval()
         with torch.no_grad():
             actions = self.ac_net.get_action(states).cpu().numpy()
 
         return actions[0] if len(actions) == 1 else actions
 
     def learn(self):
+        assert self.ac_net.trainable, "ac_net needs to have at least one optimizer registered."
         self.ac_net.train()
         for _ in range(self.config.train_epochs):
             experience_set = self.sampler.get()
@@ -121,14 +122,14 @@ class DDPG(AbsCorePolicy):
             q_values = self.ac_net(states, actions=actual_actions).squeeze(dim=1)  # (N,)
             q_value_loss = self.config.q_value_loss_func(q_values, target_q_values)
             policy_loss = -self.ac_net.value(states).mean()
-            loss = q_value_loss + self.config.policy_loss_coefficient * policy_loss
+            loss = policy_loss + self.config.q_value_loss_coeff * q_value_loss
             self.ac_net.step(loss)
             if self._post_step:
                 self._post_step(loss.detach().cpu().numpy(), self.tracker)
 
             self._num_steps += 1
             if self._num_steps % self.config.target_update_freq == 0:
-                self.target_ac_net.soft_update(self.ac_net, self.config.soft_update_coefficient)
+                self.target_ac_net.soft_update(self.ac_net, self.config.soft_update_coeff)
 
     def set_state(self, policy_state):
         self.ac_net.load_state_dict(policy_state)

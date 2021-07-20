@@ -5,6 +5,7 @@ from typing import Callable, Tuple
 
 import numpy as np
 import torch
+from torch.distributions import Categorical
 
 from maro.rl.experience import ExperienceStore, UniformSampler
 from maro.rl.model import DiscreteACNet
@@ -20,16 +21,19 @@ class ActorCriticConfig:
         train_epochs (int): Number of training epochs per call to ``update()``. Defaults to 1.
         critic_loss_cls: A string indicating a loss class provided by torch.nn or a custom loss class for computing
             the critic loss. If it is a string, it must be a key in ``TORCH_LOSS``. Defaults to "mse".
-        actor_loss_coefficient (float): The coefficient for actor loss in the total loss function, e.g.,
-            loss = critic_loss + ``actor_loss_coefficient`` * actor_loss. Defaults to 1.0.
+        min_logp (float): Lower bound for clamping logP values during learning. This is to prevent logP from becoming
+            very large in magnitude and cuasing stability issues. Defaults to None, which means no lower bound.
+        critic_loss_coeff (float): Coefficient for critic loss in total loss. Defaults to 1.0.
+        entropy_coeff (float): Coefficient for the entropy term in total loss. Defaults to None, in which case the
+            total loss will not include an entropy term.
         clip_ratio (float): Clip ratio in the PPO algorithm (https://arxiv.org/pdf/1707.06347.pdf). Defaults to None,
             in which case the actor loss is calculated using the usual policy gradient theorem.
         clear_experience_memory_every (int): Number of ``ActorCritic.learn`` calls between experience memory clearances.
             Defaults to 1.
     """
     __slots__ = [
-        "reward_discount", "train_epochs", "critic_loss_func", "actor_loss_coefficient", "clip_ratio",
-        "clear_experience_memory_every"
+        "reward_discount", "train_epochs", "critic_loss_func", "min_logp", "critic_loss_coeff", "entropy_coeff",
+        "clip_ratio", "clear_experience_memory_every"
     ]
 
     def __init__(
@@ -37,14 +41,18 @@ class ActorCriticConfig:
         reward_discount: float,
         train_epochs: int = 1,
         critic_loss_cls="mse",
-        actor_loss_coefficient: float = 1.0,
+        min_logp: float = None,
+        critic_loss_coeff: float = 1.0,
+        entropy_coeff: float = None,
         clip_ratio: float = None,
         clear_experience_memory_every: int = 1
     ):
         self.reward_discount = reward_discount
         self.train_epochs = train_epochs
         self.critic_loss_func = get_torch_loss_cls(critic_loss_cls)()
-        self.actor_loss_coefficient = actor_loss_coefficient
+        self.min_logp = min_logp
+        self.critic_loss_coeff = critic_loss_coeff
+        self.entropy_coeff = entropy_coeff
         self.clip_ratio = clip_ratio
         self.clear_experience_memory_every = clear_experience_memory_every
 
@@ -93,12 +101,14 @@ class ActorCritic(AbsCorePolicy):
 
     def choose_action(self, states) -> Tuple[np.ndarray, np.ndarray]:
         """Return actions and log probabilities for given states."""
+        self.ac_net.eval()
         with torch.no_grad():
             actions, log_p = self.ac_net.get_action(states)
         actions, log_p = actions.cpu().numpy(), log_p.cpu().numpy()
         return (actions[0], log_p[0]) if len(actions) == 1 else (actions, log_p)
 
     def learn(self):
+        assert self.ac_net.trainable, "ac_net needs to have at least one optimizer registered."
         self.ac_net.train()
         for _ in range(self.config.train_epochs):
             experience_set = self.sampler.get()
@@ -116,6 +126,7 @@ class ActorCritic(AbsCorePolicy):
 
             # actor loss
             log_p_new = torch.log(action_probs.gather(1, actions.unsqueeze(1)).squeeze())  # (N,)
+            log_p_new = torch.clamp(log_p_new, min=self.config.min_logp, max=.0)
             if self.config.clip_ratio is not None:
                 ratio = torch.exp(log_p_new - log_p)
                 clip_ratio = torch.clamp(ratio, 1 - self.config.clip_ratio, 1 + self.config.clip_ratio)
@@ -125,8 +136,11 @@ class ActorCritic(AbsCorePolicy):
 
             # critic_loss
             critic_loss = self.config.critic_loss_func(state_values, return_est)
-            loss = critic_loss + self.config.actor_loss_coefficient * actor_loss
 
+            # total loss
+            loss = actor_loss + self.config.critic_loss_coeff * critic_loss
+            if self.config.entropy_coeff is not None:
+                loss -= self.config.entropy_coeff * Categorical(action_probs).entropy().mean()
             self.ac_net.step(loss)
 
             if self._post_step:

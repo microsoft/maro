@@ -19,27 +19,27 @@ class DQNConfig:
         reward_discount (float): Reward decay as defined in standard RL terminology.
         update_target_every (int): Number of gradient steps between target model updates.
         train_epochs (int): Number of training epochs per call to ``update()``. Defaults to 1.
-        soft_update_coefficient (float): Soft update coefficient, e.g.,
-            target_model = (soft_update_coefficient) * eval_model + (1-soft_update_coefficient) * target_model.
+        soft_update_coeff (float): Soft update coefficient, e.g.,
+            target_model = (soft_update_coeff) * eval_model + (1-soft_update_coeff) * target_model.
             Defaults to 1.0.
         double (bool): If True, the next Q values will be computed according to the double DQN algorithm,
             i.e., q_next = Q_target(s, argmax(Q_eval(s, a))). Otherwise, q_next = max(Q_target(s, a)).
             See https://arxiv.org/pdf/1509.06461.pdf for details. Defaults to False.
     """
-    __slots__ = ["reward_discount", "update_target_every", "train_epochs", "soft_update_coefficient", "double"]
+    __slots__ = ["reward_discount", "update_target_every", "train_epochs", "soft_update_coeff", "double"]
 
     def __init__(
         self,
         reward_discount: float,
         update_target_every: int,
         train_epochs: int = 1,
-        soft_update_coefficient: float = 0.1,
+        soft_update_coeff: float = 0.1,
         double: bool = True
     ):
         self.reward_discount = reward_discount
         self.update_target_every = update_target_every
         self.train_epochs = train_epochs
-        self.soft_update_coefficient = soft_update_coefficient
+        self.soft_update_coeff = soft_update_coeff
         self.double = double
 
 
@@ -96,8 +96,8 @@ class DQN(AbsCorePolicy):
             self._loss_func = torch.nn.MSELoss()
 
     def choose_action(self, states) -> Union[int, np.ndarray]:
+        self.q_net.eval()
         with torch.no_grad():
-            self.q_net.eval()
             q_for_all_actions = self.q_net(states)  # (batch_size, num_actions)
             _, actions = q_for_all_actions.max(dim=1)
 
@@ -147,7 +147,7 @@ class DQN(AbsCorePolicy):
             # soft-update target network
             self._num_steps += 1
             if self._num_steps % self.config.update_target_every == 0:
-                self.target_q_net.soft_update(self.q_net, self.config.soft_update_coefficient)
+                self.target_q_net.soft_update(self.q_net, self.config.soft_update_coeff)
 
     def set_state(self, policy_state):
         self.q_net.load_state_dict(policy_state)

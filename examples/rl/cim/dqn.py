@@ -40,7 +40,7 @@ config = {
         "reward_discount": .0,
         "update_target_every": 5,
         "train_epochs": 10,
-        "soft_update_coefficient": 0.1,
+        "soft_update_coeff": 0.1,
         "double": False
     },
     "experience_store": {

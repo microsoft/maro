@@ -8,6 +8,7 @@ import sys
 cim_path = os.path.dirname(os.path.realpath(__file__))
 if cim_path not in sys.path:
     sys.path.insert(0, cim_path)
+from ac import get_ac_policy
 from dqn import get_dqn_policy
 from env_wrapper import AGENT_IDS
 
