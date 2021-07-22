@@ -78,6 +78,9 @@ extensions.append(
         extra_compile_args=[compile_flag])
 )
 
+specific_requires = []
+if sys.version.startswith("3.6"):
+    specific_requires.append("dataclasses>=0.5")
 
 readme = io.open("./maro/README.rst", encoding="utf-8").read()
 
@@ -141,7 +144,7 @@ setup(
         "kubernetes>=12.0.1",
         "prompt_toolkit<3.1.0",
         "stringcase>=1.2.0",
-    ],
+    ] + specific_requires,
     entry_points={
         "console_scripts": [
             "maro=maro.cli.maro:main",
