@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-job_name: cim-dqn 
+job_name: cim
 scenario: cim
 mode: sync
 num_episodes: 5
