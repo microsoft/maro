@@ -1,8 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-job_name: cim-dqn 
-scenario: cim
+job_name: cim
+scenario: cim   # cim, vm_scheduling
 mode: sync
 num_episodes: 5
 eval_schedule: 5

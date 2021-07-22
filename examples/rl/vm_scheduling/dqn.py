@@ -15,14 +15,14 @@ from maro.rl.policy.algorithms import DQN, DQNConfig
 
 vm_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, vm_path)
-from env_wrapper import STATE_DIM
+from env_wrapper import NUM_PMS, STATE_DIM
 
 config = {
     "model": {
         "network": {
             "input_dim": STATE_DIM,
             "hidden_dims": [64, 128, 256],
-            "output_dim": 9,
+            "output_dim": NUM_PMS + 1,  # action could be any PM or postponement, hence the plus 1
             "activation": "leaky_relu",
             "softmax": False,
             "batch_norm": False,
@@ -39,14 +39,14 @@ config = {
     },
     "algorithm": {
         "reward_discount": 0.9,
-        "target_update_freq": 5,
+        "update_target_every": 5,
         "train_epochs": 100,
         "soft_update_coeff": 0.1,
         "double": False
     },
     "experience_store": {
-        "rollout": {"capacity": 1000, "overwrite_type": "rolling"},
-        "update": {"capacity": 10000, "overwrite_type": "rolling"}
+        "rollout": {"capacity": 10000, "overwrite_type": "rolling"},
+        "update": {"capacity": 50000, "overwrite_type": "rolling"}
     },
     "sampler": {
         "rollout": {"batch_size": -1, "replace": False},
@@ -69,6 +69,8 @@ class MyQNet(DiscreteQNet):
                 torch.nn.init.xavier_uniform_(mdl.weight, gain=torch.nn.init.calculate_gain('leaky_relu'))
 
     def forward(self, states):
+        if isinstance(states, dict):
+            states = [states]
         inputs = torch.from_numpy(np.asarray([st["model"] for st in states])).to(self.device)
         masks = torch.from_numpy(np.asarray([st["mask"] for st in states])).to(self.device)
         if len(inputs.shape) == 1:
@@ -83,10 +85,13 @@ class MaskedEpsilonGreedy(DiscreteSpaceExploration):
         self.epsilon = epsilon
 
     def __call__(self, action, state):
+        if isinstance(state, dict):
+            state = [state]
         mask = [st["mask"] for st in state]
-        return np.array(
-            [act if np.random.random() > self.epsilon else np.random.choice(np.where(mask == 1)[0]) for act in action]
-        )
+        return np.array([
+            act if np.random.random() > self.epsilon else np.random.choice(np.where(mk == 1)[0])
+            for act, mk in zip(action, mask)
+        ])
 
 
 def get_dqn_policy(mode="update"):

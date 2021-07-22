@@ -13,14 +13,14 @@ from maro.rl.policy.algorithms import ActorCritic, ActorCriticConfig
 
 vm_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, vm_path)
-from env_wrapper import STATE_DIM
+from env_wrapper import NUM_PMS, STATE_DIM
 
 config = {
     "model": {
         "network": {
             "actor": {
                 "input_dim": STATE_DIM,
-                "output_dim": 9,
+                "output_dim": NUM_PMS + 1,  # action could be any PM or postponement, hence the plus 1
                 "hidden_dims": [64, 32, 32],
                 "activation": "leaky_relu",
                 "softmax": True,
@@ -51,15 +51,12 @@ config = {
     "algorithm": {
         "reward_discount": 0.9,
         "train_epochs": 100,
-        "gradient_iters": 1,
         "critic_loss_cls": "mse",
         "critic_loss_coeff": 0.1
     },
     "experience_store": {
-        "capacity": 10000,
-        "overwrite_type": "rolling",
-        "batch_size": -1,
-        "replace": False
+        "rollout": {"capacity": 10000, "overwrite_type": "rolling"},
+        "update": {"capacity": 50000, "overwrite_type": "rolling"}
     },
     "sampler": {
         "rollout": {"batch_size": -1, "replace": False},
@@ -71,6 +68,8 @@ config = {
 def get_ac_policy(mode="update"):
     class MyACNet(DiscreteACNet):
         def forward(self, states, actor: bool = True, critic: bool = True):
+            if isinstance(states, dict):
+                states = [states]
             inputs = torch.from_numpy(np.asarray([st["model"] for st in states])).to(self.device)
             masks = torch.from_numpy(np.asarray([st["mask"] for st in states])).to(self.device)
             if len(inputs.shape) == 1:
