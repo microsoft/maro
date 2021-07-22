@@ -1,5 +1,4 @@
 FROM ubuntu:18.04
-
 WORKDIR /maro
 
 # Install Apt packages
@@ -15,7 +14,6 @@ RUN rm -rf /var/lib/apt/lists/*
 
 # Install Python packages
 RUN pip3 install --upgrade pip
-RUN pip install --no-cache-dir dataclasses
 RUN pip install --no-cache-dir Cython==0.29.14
 RUN pip install --no-cache-dir pyaml==20.4.0
 RUN pip install --no-cache-dir pyzmq==19.0.2
