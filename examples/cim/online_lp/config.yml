@@ -1,0 +1,17 @@
+experiment_name: test
+
+env:
+  scenario: cim
+  topology: toy.5p_ssddd_l0.8
+  start_tick: 0
+  durations: 224
+  seed: 1024
+
+online_lp:
+  time_decay: 0.999999999
+  window_size: 112
+  apply_buffer_length: 1
+  moving_average_length: 112
+  order_gain_factor: 1000
+  transit_cost_factor: 0
+  load_discharge_cost_factor: 1
