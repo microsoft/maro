@@ -34,16 +34,22 @@ class LPAgent:
 
         return vessel_arrival, orders, return_empty, vessel_full_delta
 
-    def _action_shaping(self, scope: ActionScope, model_action: int) -> int:
+    def _action_shaping(self, decision_event: DecisionEvent, model_action: int) -> int:
         # model action: num from vessel to port
-        execute_action = model_action
+        if model_action < 0:
+            action_type = ActionType.LOAD
+            quantity = min(decision_event.action_scope.load, -model_action)
+        else:
+            action_type = ActionType.DISCHARGE
+            quantity = min(decision_event.action_scope.discharge, model_action)
 
-        execute_action = min(execute_action, scope.discharge)
-        execute_action = max(execute_action, -scope.load)
-        execute_action = int(execute_action)
-
-        # execute_action: num from vessel to port
-        return execute_action
+        env_action = Action(
+            vessel_idx=decision_event.vessel_idx,
+            port_idx=decision_event.port_idx,
+            quantity=int(quantity),
+            action_type=action_type
+        )
+        return env_action
 
     def choose_action(
         self,
@@ -54,23 +60,14 @@ class LPAgent:
         initial_vessel_empty: dict = None,
         initial_vessel_full: dict = None,
     ) -> Action:
-        """Choose the loading/unloading action to
-        perform at each port.
-        """
-        tick = decision_event.tick
-        port_idx = decision_event.port_idx
-        vessel_idx = decision_event.vessel_idx
-        vessel_name = self._vessel_idx2name[decision_event.vessel_idx]
 
         vessel_arrival, orders, return_empty, vessel_full_delta = self._forecast_data(
-            finished_events,
-            snapshot_list,
-            tick
+            finished_events, snapshot_list, decision_event.tick
         )
 
         model_action = self._algorithm.choose_action(
-            current_tick=tick,
-            vessel_code=vessel_name,
+            current_tick=decision_event.tick,
+            vessel_code=self._vessel_idx2name[decision_event.vessel_idx],
             finished_events=finished_events,
             snapshot_list=snapshot_list,
             initial_port_empty=initial_port_empty,
@@ -82,15 +79,7 @@ class LPAgent:
             vessel_full_delta_prediction=vessel_full_delta,
         )
 
-        actual_action = self._action_shaping(
-            scope=decision_event.action_scope,
-            model_action=model_action
-        )
-        action_type = (
-            ActionType.LOAD if actual_action < 0 else ActionType.DISCHARGE
-        )
-
-        env_action = Action(vessel_idx, port_idx, actual_action, action_type)
+        env_action = self._action_shaping(decision_event, model_action)
 
         return env_action
 

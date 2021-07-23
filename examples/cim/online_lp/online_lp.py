@@ -1,7 +1,7 @@
 import math
 
 import numpy as np
-from pulp import LpProblem, LpVariable, LpMaximize, lpSum, GLPK  # , LpStatus
+from pulp import LpProblem, LpVariable, LpMaximize, lpSum, GLPK, LpStatus
 
 from maro.utils import DottableDict
 
@@ -58,8 +58,6 @@ class OnlineLP:
         self._vessel_arrival: dict = {}
 
         self._decision_step_list = None
-
-        self._initialize = True
 
     def _get_on_port_vessels(self, step: int, port_list: list):
         on_port_vessel_list: list = []
@@ -277,8 +275,6 @@ class OnlineLP:
 
         problem.solve(GLPK(msg=0))
 
-        # print("STATUS", LpStatus[problem.status])
-
         # reset buffer
         self._vessel_applied_buffer_times = {
             vessel_name: 0 for vessel_name in self._vessel_name_list
@@ -307,24 +303,8 @@ class OnlineLP:
         return_empty_prediction: dict = None,
         vessel_full_delta_prediction: dict = None,
     ):
-        """Choose Agent's loading/un-loading action"""
-        if self._initialize:
-            self._formulate_and_solve(
-                finished_events,
-                snapshot_list,
-                current_tick,
-                initial_port_empty,
-                initial_vessel_empty,
-                initial_vessel_full,
-                vessel_arrival_prediction,
-                order_prediction,
-                return_empty_prediction,
-                vessel_full_delta_prediction
-            )
-            self._initialize = False
-
         decision_step = self._find_next_decision_step(vessel_code)
-        if decision_step >= self._apply_buffer_length:
+        if not decision_step or decision_step >= self._apply_buffer_length:
             self._formulate_and_solve(
                 finished_events,
                 snapshot_list,
@@ -346,15 +326,15 @@ class OnlineLP:
 
     def _find_next_decision_step(self, vessel_code):
         """Get next decision step"""
-        if self._vessel_applied_buffer_times[vessel_code] < len(
-            self._decision_step_list[vessel_code]
-        ):
-            next_decision_step = self._decision_step_list[vessel_code][
-                self._vessel_applied_buffer_times[vessel_code]
-            ]
+        if not self._decision_step_list:
+            return None
+
+        if self._vessel_applied_buffer_times[vessel_code] < len(self._decision_step_list[vessel_code]):
+            next_decision_step = self._decision_step_list[vessel_code][self._vessel_applied_buffer_times[vessel_code]]
         else:
             next_decision_step = self._apply_buffer_length
         self._vessel_applied_buffer_times[vessel_code] += 1
+
         return next_decision_step
 
     def reset(self):

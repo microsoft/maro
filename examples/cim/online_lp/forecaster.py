@@ -210,7 +210,7 @@ class Forecaster:
         for step in range(forecast_length):
             forecast_orders.setdefault(step, dict())
             for port_name in self._port_name_list:
-                forecast_orders[step][port_name] = forecast_port_orders[port_name] * 1.1
+                forecast_orders[step][port_name] = int(forecast_port_orders[port_name] * 1.1)
 
         forecast_orders.setdefault(-1, dict())
         for port_name in self._port_name_list:
@@ -242,7 +242,7 @@ class Forecaster:
         for step in range(forecast_length):
             forecast_return_empty.setdefault(step, dict())
             for port_name in self._port_name_list:
-                forecast_return_empty[step][port_name] = forecast_port_return_empty[port_name]
+                forecast_return_empty[step][port_name] = int(forecast_port_return_empty[port_name])
 
         forecast_return_empty.setdefault(-1, dict())
         for port_name in self._port_name_list:
@@ -267,7 +267,7 @@ class Forecaster:
                             history_full_delta_for_forecast.append(
                                 self._full_delta_history[vessel_name][port_name][tick]
                             )
-                    forecast_full_delta[vessel_name][port_name] = (
+                    forecast_full_delta[vessel_name][port_name] = int(
                         round(np.average(history_full_delta_for_forecast))
                         if len(history_full_delta_for_forecast) > 0
                         else 0
