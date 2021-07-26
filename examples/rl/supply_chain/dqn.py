@@ -40,7 +40,7 @@ config = {
         "reward_discount": .99,
         "train_epochs": 10,
         "update_target_every": 4,   # How many training iteration, to update DQN target model
-        "soft_update_coefficient": 0.01,
+        "soft_update_coeff": 0.01,
         "double": True   # whether to enable double DQN
     },
     "experience_store": {

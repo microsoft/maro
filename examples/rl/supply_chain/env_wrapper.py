@@ -82,7 +82,7 @@ seller_features = ("total_demand", "sold", "demand")
 
 class SCEnvWrapper(AbsEnvWrapper):
     def __init__(self, env: Env, reward_eval_delay: int=0, replay_agent_ids: list=None):
-        super().__init__(env, reward_eval_delay, replay_agent_ids=replay_agent_ids)
+        super().__init__(env, reward_eval_delay=reward_eval_delay, replay_agent_ids=replay_agent_ids)
         self.balance_cal = BalanceSheetCalculator(env)
         self.cur_balance_sheet_reward = None
         self.storage_ss = env.snapshot_list["storage"]
