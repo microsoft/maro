@@ -384,23 +384,58 @@ class MultiNodeDistPolicyManager(AbsPolicyManager):
         self._trainer2policies = defaultdict(list)
         self._exp_cache = defaultdict(ExperienceSet)
         self._num_experiences_by_policy = defaultdict(int)
+        self.num_trainers = num_trainers
 
         self._logger = Logger("MULTINODE_POLICY_MANAGER", dump_folder=log_dir)
 
-        # naive implementation of trainer allocation.
-        if len(self.policy_dict) >= num_trainers:
-            for i, name in enumerate(self.policy_dict):
-                trainer_id = i % num_trainers
-                self._policy2trainer[name].append(f"TRAINER.{trainer_id}")
-                self._trainer2policies[f"TRAINER.{trainer_id}"].append(name)
-        else:
-            trainer_id_list = list(range(num_trainers))
-            for i, name in enumerate(self.policy_dict):
-                for trainer_id in trainer_id_list[i::len(self.policy_dict)]:
-                    self._policy2trainer[name].append(f"TRAINER.{trainer_id}")
-                    self._trainer2policies[f"TRAINER.{trainer_id}"].append(name)            
+        self.allocate_trainers()
 
-        self._logger.info("Initializing policy states on trainers...")
+    def allocate_trainers(self):
+        self._policy2trainer = defaultdict(list)
+        self._trainer2policies = defaultdict(list)
+
+        # initialize
+        if len(self._num_experiences_by_policy) == 0:
+            if len(self.policy_dict) >= self.num_trainers:
+                for i, name in enumerate(self.policy_dict):
+                    trainer_id = i % self.num_trainers
+                    self._policy2trainer[name].append(f"TRAINER.{trainer_id}")
+                    self._trainer2policies[f"TRAINER.{trainer_id}"].append(name)
+            else:
+                trainer_id_list = list(range(self.num_trainers))
+                for i, name in enumerate(self.policy_dict):
+                    for trainer_id in trainer_id_list[i::len(self.policy_dict)]:
+                        self._policy2trainer[name].append(f"TRAINER.{trainer_id}")
+                        self._trainer2policies[f"TRAINER.{trainer_id}"].append(name)
+
+        # allocate trainers according to historical experience numbers.
+        else:
+            total_num_policy = sum(self._num_experiences_by_policy.values())
+            average_payload = total_num_policy / self.num_trainers
+
+            offset = 0
+            policy_quota = dict()
+            for name, num_exp in self._num_experiences_by_policy.items():
+                quota = num_exp / average_payload
+                quota = max(1, int(round(quota)))
+                policy_quota[name] = quota
+
+            # adjust quota if any redundancy occurs.
+            redundancy = self.num_trainers - sum(policy_quota.values())
+            if redundancy > 0:
+                busiest_policy = max(policy_quota, key=lambda name: policy_quota[name])
+                policy_quota[busiest_policy] += redundancy
+
+            for name, quota in policy_quota.items():
+                self._logger.info(f"policy {name} payload: {self._num_experiences_by_policy[name]},  quota: {quota} node(s)")
+                for i in range(quota):
+                    trainer_id = (i + offset) % self.num_trainers
+                    self._policy2trainer[name].append(f"TRAINER.{trainer_id}")
+                    self._trainer2policies[f"TRAINER.{trainer_id}"].append(name)
+                offset = (offset + quota) % self.num_trainers
+
+        # re-allocation
+        self._logger.info("Re-allocating policy states on trainers...")
         for trainer_name, policy_names in self._trainer2policies.items():
             self._proxy.send(
                 SessionMessage(
@@ -425,20 +460,19 @@ class MultiNodeDistPolicyManager(AbsPolicyManager):
         msg_body_by_dest = defaultdict(dict)
         for policy_name, exp in exp_to_send.items():
             trainer_id_list = self._policy2trainer[policy_name]
-            if len(trainer_id_list) == 1: # single node
+            if len(trainer_id_list) == 1:  # single node
                 trainer_id = trainer_id_list[0]
                 if MsgKey.EXPERIENCES not in msg_body_by_dest[trainer_id]:
                     msg_body_by_dest[trainer_id][MsgKey.EXPERIENCES] = {}
                 msg_body_by_dest[trainer_id][MsgKey.EXPERIENCES][policy_name] = exp
-                print('>>>> policy ', policy_name, ' exp.size = ', exp.size)
+                self._logger.info(f'policy {policy_name}, exp.size = {exp.size}')
             else:
                 for i, trainer_id in enumerate(trainer_id_list):
                     if MsgKey.EXPERIENCES not in msg_body_by_dest[trainer_id]:
                         msg_body_by_dest[trainer_id][MsgKey.EXPERIENCES] = {}
                     sub_exp = exp[i::len(trainer_id_list)]
                     msg_body_by_dest[trainer_id][MsgKey.EXPERIENCES][policy_name] = sub_exp
-                    print('>>>> policy ', policy_name, ' sub_exp.size = ', sub_exp.size)
-                    
+                    self._logger.info(f'policy {policy_name}, sub_exp.size = {sub_exp.size}')
 
         # 2. scatter data and receive reply of each trainer node
         trackers = []
@@ -448,7 +482,7 @@ class MultiNodeDistPolicyManager(AbsPolicyManager):
             # 3. aggregate loss
             for policy_name, loss in reply.body[MsgKey.LOSS].items():
                 trainer_id_list = self._policy2trainer[policy_name]
-                if len(trainer_id_list) == 1: # single node
+                if len(trainer_id_list) == 1:  # single node
                     trainer_id = trainer_id_list[0]
                     if MsgKey.LOSS not in msg_body_loss[trainer_id]:
                         msg_body_loss[trainer_id][MsgKey.LOSS] = {}
@@ -476,6 +510,9 @@ class MultiNodeDistPolicyManager(AbsPolicyManager):
 
         if self._post_update:
             self._post_update(trackers)
+
+        # re-allocate
+        self.allocate_trainers()
 
     def exit(self):
         """Tell the remote trainers to exit."""
