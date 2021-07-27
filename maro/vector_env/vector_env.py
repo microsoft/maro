@@ -27,7 +27,7 @@ class VectorEnv:
 
         Args:
             env (VectorEnv): VectorEnv instance to send query command.
-            node_name (str): Name of node bind to this wrapper, used for furthur querying.
+            node_name (str): Name of node bind to this wrapper, used for further querying.
         """
         def __init__(self, env, node_name: str):
             self.node_name = node_name

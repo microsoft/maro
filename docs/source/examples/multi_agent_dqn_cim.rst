@@ -4,7 +4,7 @@ Multi Agent DQN for CIM
 This example demonstrates how to use MARO's reinforcement learning (RL) toolkit to solve the container
 inventory management (CIM) problem. It is formalized as a multi-agent reinforcement learning problem,
 where each port acts as a decision agent. When a vessel arrives at a port, these agents must take actions
-by transfering a certain amount of containers to / from the vessel. The objective is for the agents to
+by transferring a certain amount of containers to / from the vessel. The objective is for the agents to
 learn policies that minimize the overall container shortage.
 
 Trajectory
