@@ -19,6 +19,8 @@ class MsgTag(Enum):
     COLLECT_DONE = "collect_done"
     DONE = "done"
     EXIT = "exit"
+    GET_LOSS = "get_loss"
+    BACKWARD_LOSS = "backward_loss"
 
 
 class MsgKey(Enum):
@@ -35,3 +37,4 @@ class MsgKey(Enum):
     VERSION = "version"
     NUM_STEPS = "num_steps"
     END_OF_EPISODE = "end_of_episode"
+    LOSS = "loss"

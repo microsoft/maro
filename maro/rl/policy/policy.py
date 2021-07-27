@@ -67,6 +67,16 @@ class AbsCorePolicy(AbsPolicy):
         raise NotImplementedError
 
     @abstractmethod
+    def get_loss(self):
+        """Compute loss of experience. A part of self.learn() method."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def step(self, loss):
+        """Backward and post step. A part of self.learn() method."""
+        raise NotImplementedError
+
+    @abstractmethod
     def get_state(self):
         """Return the current state of the policy.
 

@@ -98,3 +98,33 @@ def trainer_node(
             }
             logger.debug(f"total policy update time: {time.time() - t0}")
             proxy.reply(msg, body=msg_body)
+        elif msg.tag == MsgTag.GET_LOSS:
+            t0 = time.time()
+            # message: loss of each trainer node
+            msg_body = {
+                MsgKey.LOSS: {},
+                MsgKey.TRACKER: {}
+            }
+
+            for name, exp in msg.body[MsgKey.EXPERIENCES].items():
+                policy_dict[name].store(exp)
+                # TODO: add for-loop of train_epochs
+                # for _ in range(policy_dict[name].config.train_epochs):
+                loss = policy_dict[name].get_loss()
+
+                msg_body[MsgKey.LOSS][name] = loss
+                msg_body[MsgKey.TRACKER][name] = policy_dict[name].tracker
+
+            logger.debug(f"total policy get_loss time: {time.time() - t0}")
+            proxy.reply(msg, body=msg_body)
+        elif msg.tag == MsgTag.BACKWARD_LOSS:
+            t0 = time.time()
+            for name, loss in msg.body[MsgKey.LOSS].items():
+                policy_dict[name].step(loss)
+
+            msg_body = {
+                MsgKey.POLICY_STATE: {name: policy_dict[name].get_state() for name in msg.body[MsgKey.LOSS]},
+                MsgKey.TRACKER: {name: policy_dict[name].tracker for name in msg.body[MsgKey.LOSS]}
+            }
+            logger.debug(f"total policy backward time: {time.time() - t0}")
+            proxy.reply(msg, body=msg_body)

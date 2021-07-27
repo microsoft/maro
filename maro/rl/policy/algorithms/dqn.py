@@ -149,6 +149,53 @@ class DQN(AbsCorePolicy):
             if self._num_steps % self.config.update_target_every == 0:
                 self.target_q_net.soft_update(self.q_net, self.config.soft_update_coeff)
 
+    def get_loss(self):
+        '''Sample data and return loss.
+        '''
+        assert self.q_net.trainable, "q_net needs to have at least one optimizer registered."
+        self.q_net.train()
+        # TODO: for _ in range(self.config.train_epochs):
+        # sample from the replay memory
+        experience_set = self.sampler.get()
+        states, next_states = experience_set.states, experience_set.next_states
+        actions = torch.from_numpy(np.asarray(experience_set.actions)).to(self.device)
+        rewards = torch.from_numpy(np.asarray(experience_set.rewards)).to(self.device)
+        if self.prioritized_experience_replay:
+            indexes = [info["index"] for info in experience_set.info]
+            is_weights = torch.tensor([info["is_weight"] for info in experience_set.info]).to(self.device)
+
+        # get target Q values
+        with torch.no_grad():
+            if self.config.double:
+                actions_by_eval_q_net = self.q_net.get_action(next_states)[0]
+                next_q_values = self.target_q_net.q_values(next_states, actions_by_eval_q_net)
+            else:
+                next_q_values = self.target_q_net.get_action(next_states)[1]  # (N,)
+
+        target_q_values = (rewards + self.config.reward_discount * next_q_values).detach()  # (N,)
+
+        # gradient step
+        q_values = self.q_net.q_values(states, actions)
+        if self.prioritized_experience_replay:
+            td_errors = target_q_values - q_values
+            loss = (td_errors * is_weights).mean()
+            self.sampler.update(indexes, td_errors.detach().cpu().numpy())
+        else:
+            loss = self._loss_func(q_values, target_q_values)
+        return loss
+
+    def step(self, loss):
+        '''Backward step.'''
+        self.q_net.step(loss)
+
+        if self._post_step:
+            self._post_step(loss.detach().cpu().numpy(), self.tracker)
+
+        # soft-update target network
+        self._num_steps += 1
+        if self._num_steps % self.config.update_target_every == 0:
+            self.target_q_net.soft_update(self.q_net, self.config.soft_update_coeff)
+
     def set_state(self, policy_state):
         self.q_net.load_state_dict(policy_state)
         self.target_q_net = self.q_net.copy() if self.q_net.trainable else None

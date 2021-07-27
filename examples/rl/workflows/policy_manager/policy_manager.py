@@ -4,7 +4,7 @@
 import sys
 from os.path import dirname, realpath
 
-from maro.rl.policy import LocalPolicyManager, MultiNodePolicyManager, MultiProcessPolicyManager
+from maro.rl.policy import LocalPolicyManager, MultiNodePolicyManager, MultiNodeDistPolicyManager, MultiProcessPolicyManager
 
 workflow_dir = dirname(dirname(realpath(__file__)))  # template directory
 if workflow_dir not in sys.path:
@@ -34,6 +34,16 @@ def get_policy_manager():
         )
     if train_mode == "multi-node":
         return MultiNodePolicyManager(
+            policy_dict,
+            config["policy_manager"]["train_group"],
+            num_trainers,
+            update_trigger=update_trigger,
+            warmup=warmup,
+            proxy_kwargs={"redis_address": (config["redis"]["host"], config["redis"]["port"])},
+            log_dir=log_dir
+        )
+    if train_mode == "multi-node-dist":
+        return MultiNodeDistPolicyManager(
             policy_dict,
             config["policy_manager"]["train_group"],
             num_trainers,

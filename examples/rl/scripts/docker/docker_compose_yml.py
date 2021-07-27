@@ -27,7 +27,7 @@ common_spec = {
 }
 
 # trainer spec
-if config["policy_manager"]["train_mode"] == "multi-node":
+if config["policy_manager"]["train_mode"] in ["multi-node", "multi-node-dist"]:
     for trainer_id in range(num_trainers):
         str_id = f"trainer.{trainer_id}"
         trainer_spec = deepcopy(common_spec)
@@ -48,7 +48,7 @@ if mode == "sync":
         }
     }
     # rollout worker spec
-    if config["sync"]["rollout_mode"] == "multi-node":
+    if config["sync"]["rollout_mode"] in ["multi-node", "multi-node-dist"]:
         for worker_id in range(config["sync"]["num_rollout_workers"]):
             str_id = f"rollout_worker.{worker_id}"
             worker_spec = deepcopy(common_spec)
