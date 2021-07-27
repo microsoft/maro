@@ -217,7 +217,7 @@ class EventBuffer:
 
                 # Only decision event is a list (even only one item).
                 # NOTE: decision event do not have handlers, and simulator will set its state
-                # to finished after recieved an action.
+                # to finished after received an action.
                 if type(next_events) == list:
                     return next_events
                 else:

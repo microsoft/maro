@@ -6,7 +6,7 @@ The VM scheduling problem is one of the quintessential use cases of the data cen
 
 ## Algorithms
 
-We offer some rule-based algorithms for VM scheduling problem, inlcuding:
+We offer some rule-based algorithms for VM scheduling problem, includings:
 
 - **Random Pick**: When a VM request is coming, randomly choose an available PM with enough resources to place the VM.
 - **First Fit**: When a VM request is coming, choose the available PM with enough resources whose index is smallest to place the VM.
@@ -16,11 +16,11 @@ We offer some rule-based algorithms for VM scheduling problem, inlcuding:
   - Remaining Memory: Choose the available PM with minimal memory.
   - Remaining CPU Cores and Energy Consumption: Choose the available PM with minimal CPU cores and maximum energy consumption.
 - **Bin Packing**: Divide the PMs into several bins based on their remaining CPU cores. When a VM request is coming, allocate it to the bin, which can make the variance of the PM number in each bin as small as possible. If there are more than one PM in the chosen bin, randomly choose an available PM with enough resources.
-- **Round Robin**: If the algorithm pick the PM $i$ at time $t−1$, then the algorithm will pick PM $i+1$ at current time $t$ for the comming VM request if PM $i+1$ is available, otherwise the algorithm will pick PM $i+2$ ... until the PM $i+k$ is available. 
+- **Round Robin**: If the algorithm pick the PM $i$ at time $t−1$, then the algorithm will pick PM $i+1$ at current time $t$ for the coming VM request if PM $i+1$ is available, otherwise the algorithm will pick PM $i+2$ ... until the PM $i+k$ is available. 
 
 ## Metrics
 
-We offer some metrics for evaluating the performance of each rule based algorithms, inlcuding:
+We offer some metrics for evaluating the performance of each rule based algorithms, including:
 
 - **Failed Allocation**: The number of the failed allocation VMs. 
 - **Energy Consumption**: The total energy consumption of PMs. 

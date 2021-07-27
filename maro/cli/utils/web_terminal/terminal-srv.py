@@ -104,7 +104,7 @@ def connect():
         cmd = " ".join(shlex.quote(c) for c in app.config["cmd"])
         print("child pid is", child_pid)
         print(
-            f"starting background task with command `{cmd}` to continously read "
+            f"starting background task with command `{cmd}` to continuously read "
             "and forward pty output to client"
         )
         socketio.start_background_task(target=read_and_forward_pty_output)

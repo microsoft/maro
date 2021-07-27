@@ -209,7 +209,7 @@ class ContainerTrackingAgent(multiprocessing.Process):
 class ContainerRuntimeAgent(multiprocessing.Process):
     """Container runtime agent.
 
-    Auto-restart the container if it matchs the constraint of fault recovery.
+    Auto-restart the container if it matches the constraint of fault recovery.
     """
 
     def __init__(self, local_cluster_details: dict, local_master_details: dict, check_interval: int = 5):

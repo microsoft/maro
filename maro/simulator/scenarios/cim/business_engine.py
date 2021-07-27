@@ -433,7 +433,7 @@ class CimBusinessEngine(AbsBusinessEngine):
 
         # Update port state.
         src_port.empty -= execute_qty
-        # Full contianers that pending to return.
+        # Full containers that pending to return.
         src_port.on_shipper += execute_qty
 
         buffer_ticks = self._data_cntr.full_return_buffers[src_port.idx]
@@ -669,7 +669,7 @@ class CimBusinessEngine(AbsBusinessEngine):
 
                 action_type: ActionType = getattr(action, "action_type", None)
 
-                # Make it compatiable with previous action.
+                # Make it compatible with previous action.
                 if action_type is None:
                     action_type = ActionType.DISCHARGE if move_num > 0 else ActionType.LOAD
 

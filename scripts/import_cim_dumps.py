@@ -208,7 +208,7 @@ if __name__ == "__main__":
     parser = ArgumentParser()
 
     parser.add_argument("--name", required=True,
-                        help="Experiment name show in databas")
+                        help="Experiment name show in database")
     parser.add_argument("--scenario", required=True,
                         help="Scenario name of import experiment")
     parser.add_argument("--topology", required=True,
