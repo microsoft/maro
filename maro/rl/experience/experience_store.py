@@ -47,21 +47,19 @@ class ExperienceSet:
     def __getitem__(self, index):
         """Return a copy of ExperienceSet by index."""
         if isinstance(index, int):
-            copy = ExperienceSet(
-                    states=self.states[index:index+1],
-                    actions=self.actions[index:index+1],
-                    rewards=self.rewards[index:index+1],
-                    next_states=self.next_states[index:index+1],
-                    info=self.info[index:index+1])
+            copy = ExperienceSet(states=self.states[index:index + 1],
+                                actions=self.actions[index:index + 1],
+                                rewards=self.rewards[index:index + 1],
+                                next_states=self.next_states[index:index + 1],
+                                info=self.info[index:index + 1])
             return copy
         elif isinstance(index, slice):
             start, stop, step = index.start, index.stop, index.step
-            copy = ExperienceSet(
-                    states=self.states[start:stop:step],
-                    actions=self.actions[start:stop:step],
-                    rewards=self.rewards[start:stop:step],
-                    next_states=self.next_states[start:stop:step],
-                    info=self.info[start:stop:step])
+            copy = ExperienceSet(states=self.states[start:stop:step],
+                                actions=self.actions[start:stop:step],
+                                rewards=self.rewards[start:stop:step],
+                                next_states=self.next_states[start:stop:step],
+                                info=self.info[start:stop:step])
             return copy
         else:
             raise NotImplementedError

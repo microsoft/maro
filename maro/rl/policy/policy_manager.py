@@ -427,7 +427,8 @@ class MultiNodeDistPolicyManager(AbsPolicyManager):
                 policy_quota[busiest_policy] += redundancy
 
             for name, quota in policy_quota.items():
-                self._logger.info(f"policy {name} payload: {self._num_experiences_by_policy[name]},  quota: {quota} node(s)")
+                self._logger.info(
+                    f"policy {name} payload: {self._num_experiences_by_policy[name]},  quota: {quota} node(s)")
                 for i in range(quota):
                     trainer_id = (i + offset) % self.num_trainers
                     self._policy2trainer[name].append(f"TRAINER.{trainer_id}")
