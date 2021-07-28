@@ -7,7 +7,7 @@ import numpy as np
 import torch
 from torch.distributions import Categorical
 
-from maro.rl.experience import ExperienceStore, UniformSampler
+from maro.rl.experience import ExperienceSet, ExperienceStore, UniformSampler
 from maro.rl.model import DiscreteACNet
 from maro.rl.policy import AbsCorePolicy
 from maro.rl.utils import get_torch_loss_cls
@@ -107,42 +107,46 @@ class ActorCritic(AbsCorePolicy):
         actions, log_p = actions.cpu().numpy(), log_p.cpu().numpy()
         return (actions[0], log_p[0]) if len(actions) == 1 else (actions, log_p)
 
+    def get_loss(self, batch: ExperienceSet):
+        self.ac_net.train()
+        states, next_states = batch.states, batch.next_states
+        actions = torch.from_numpy(np.asarray([act[0] for act in batch.actions])).to(self.device)
+        log_p = torch.from_numpy(np.asarray([act[1] for act in batch.actions])).to(self.device)
+        rewards = torch.from_numpy(np.asarray(batch.rewards)).to(self.device)
+
+        action_probs, state_values = self.ac_net(states)
+        state_values = state_values.squeeze()
+        with torch.no_grad():
+            next_state_values = self.ac_net(next_states, actor=False)[1].detach().squeeze()
+        return_est = rewards + self.config.reward_discount * next_state_values
+        advantages = return_est - state_values
+
+        # actor loss
+        log_p_new = torch.log(action_probs.gather(1, actions.unsqueeze(1)).squeeze())  # (N,)
+        log_p_new = torch.clamp(log_p_new, min=self.config.min_logp, max=.0)
+        if self.config.clip_ratio is not None:
+            ratio = torch.exp(log_p_new - log_p)
+            clip_ratio = torch.clamp(ratio, 1 - self.config.clip_ratio, 1 + self.config.clip_ratio)
+            actor_loss = -(torch.min(ratio * advantages, clip_ratio * advantages)).mean()
+        else:
+            actor_loss = -(log_p_new * advantages).mean()
+
+        # critic_loss
+        critic_loss = self.config.critic_loss_func(state_values, return_est)
+
+        # total loss
+        loss = actor_loss + self.config.critic_loss_coeff * critic_loss
+        if self.config.entropy_coeff is not None:
+            loss -= self.config.entropy_coeff * Categorical(action_probs).entropy().mean()
+
+        return loss
+
     def learn(self):
         assert self.ac_net.trainable, "ac_net needs to have at least one optimizer registered."
         self.ac_net.train()
         for _ in range(self.config.train_epochs):
-            experience_set = self.sampler.get()
-            states, next_states = experience_set.states, experience_set.next_states
-            actions = torch.from_numpy(np.asarray([act[0] for act in experience_set.actions])).to(self.device)
-            log_p = torch.from_numpy(np.asarray([act[1] for act in experience_set.actions])).to(self.device)
-            rewards = torch.from_numpy(np.asarray(experience_set.rewards)).to(self.device)
-
-            action_probs, state_values = self.ac_net(states)
-            state_values = state_values.squeeze()
-            with torch.no_grad():
-                next_state_values = self.ac_net(next_states, actor=False)[1].detach().squeeze()
-            return_est = rewards + self.config.reward_discount * next_state_values
-            advantages = return_est - state_values
-
-            # actor loss
-            log_p_new = torch.log(action_probs.gather(1, actions.unsqueeze(1)).squeeze())  # (N,)
-            log_p_new = torch.clamp(log_p_new, min=self.config.min_logp, max=.0)
-            if self.config.clip_ratio is not None:
-                ratio = torch.exp(log_p_new - log_p)
-                clip_ratio = torch.clamp(ratio, 1 - self.config.clip_ratio, 1 + self.config.clip_ratio)
-                actor_loss = -(torch.min(ratio * advantages, clip_ratio * advantages)).mean()
-            else:
-                actor_loss = -(log_p_new * advantages).mean()
-
-            # critic_loss
-            critic_loss = self.config.critic_loss_func(state_values, return_est)
-
-            # total loss
-            loss = actor_loss + self.config.critic_loss_coeff * critic_loss
-            if self.config.entropy_coeff is not None:
-                loss -= self.config.entropy_coeff * Categorical(action_probs).entropy().mean()
+            loss = self.get_loss(self.sampler.get())
             self.ac_net.step(loss)
-
             if self._post_step:
                 self._post_step(loss.detach().cpu().numpy(), self.tracker)
 

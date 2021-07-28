@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 
 import sys
+from os import getenv
 from os.path import dirname, realpath
 
 from maro.rl.learning.synchronous import (
@@ -14,42 +15,62 @@ if workflow_dir not in sys.path:
 
 from agent_wrapper import get_agent_wrapper
 from policy_manager.policy_manager import get_policy_manager
-from general import config, post_collect, post_evaluate, get_env_wrapper, log_dir
+from general import post_collect, post_evaluate, get_env_wrapper, log_dir
 
 
 def get_rollout_manager():
-    rollout_mode = config["sync"]["rollout_mode"]
+    rollout_mode = getenv("ROLLOUTMODE", default="single-process")
+    num_steps = int(getenv("NUMSTEPS", default=-1))
     if rollout_mode == "single-process":
         return LocalRolloutManager(
             get_env_wrapper(),
             get_agent_wrapper(),
-            num_steps=config["num_steps"],
+            num_steps=num_steps,
             post_collect=post_collect,
             post_evaluate=post_evaluate,
             log_dir=log_dir
         )
+
+    num_workers = int(getenv("NUMWORKERS", default=5))
     if rollout_mode == "multi-process":
         return MultiProcessRolloutManager(
-            config["sync"]["num_rollout_workers"],
+            num_workers,
             get_env_wrapper,
             get_agent_wrapper,
-            num_steps=config["num_steps"],
+            num_steps=num_steps,
             post_collect=post_collect,
             post_evaluate=post_evaluate,
             log_dir=log_dir,
         )
+
+    max_lag = int(getenv("MAXLAG", default=0))
+    min_finished_workers = getenv("MINFINISH")
+    if min_finished_workers is not None:
+        min_finished_workers = int(min_finished_workers)
+
+    max_extra_recv_tries = getenv("MAXEXRECV")
+    if max_extra_recv_tries is not None:
+        max_extra_recv_tries = int(max_extra_recv_tries)
+
+    extra_recv_timeout = getenv("MAXRECVTIMEO")
+    if extra_recv_timeout is not None:
+        extra_recv_timeout = int(extra_recv_timeout)
+
     if rollout_mode == "multi-node":
         return MultiNodeRolloutManager(
-            config["sync"]["rollout_group"],
-            config["sync"]["num_rollout_workers"],
-            num_steps=config["num_steps"],
-            max_lag=config["max_lag"],
-            min_finished_workers=config["sync"]["min_finished_workers"],
-            # max_extra_recv_tries=config["sync"]["max_extra_recv_tries"],
-            extra_recv_timeout=config["sync"]["extra_recv_timeout"],
+            getenv("ROLLOUTGROUP", default="ROLLOUT"),
+            num_workers,
+            num_steps=num_steps,
+            max_lag=max_lag,
+            min_finished_workers=min_finished_workers,
+            max_extra_recv_tries=max_extra_recv_tries,
+            extra_recv_timeout=extra_recv_timeout,
             post_collect=post_collect,
             post_evaluate=post_evaluate,
-            proxy_kwargs={"redis_address": (config["redis"]["host"], config["redis"]["port"])}
+            proxy_kwargs={
+                "redis_address": (getenv("REDISHOST", default="maro-redis"), int(getenv("REDISPORT", default=6379))),
+                "max_peer_discovery_retries": 50
+            },
         )
 
     raise ValueError(
@@ -58,11 +79,15 @@ def get_rollout_manager():
 
 
 if __name__ == "__main__":
+    num_episodes = getenv("NUMEPISODES")
+    if num_episodes is None:
+        raise ValueError("Missing envrionment variable: NUMEPISODES")
+
     learner = Learner(
-        policy_manager=get_policy_manager(),
-        rollout_manager=get_rollout_manager(),
-        num_episodes=config["num_episodes"],
-        eval_schedule=config["eval_schedule"],
+        get_policy_manager(),
+        get_rollout_manager(),
+        int(num_episodes),
+        eval_schedule=int(getenv("EVALSCH")),
         log_dir=log_dir
     )
     learner.run()

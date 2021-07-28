@@ -6,7 +6,7 @@ from typing import Union
 import numpy as np
 import torch
 
-from maro.rl.experience import ExperienceStore, UniformSampler
+from maro.rl.experience import ExperienceSet, ExperienceStore, UniformSampler
 from maro.rl.exploration import GaussianNoiseExploration
 from maro.rl.model import ContinuousACNet
 from maro.rl.policy import AbsCorePolicy
@@ -104,25 +104,28 @@ class DDPG(AbsCorePolicy):
 
         return actions[0] if len(actions) == 1 else actions
 
+    def get_loss(self, batch: ExperienceSet):
+        self.ac_net.train()
+        states, next_states = batch.states, batch.next_states
+        actual_actions = torch.from_numpy(batch.actions).to(self.device)
+        rewards = torch.from_numpy(batch.rewards).to(self.device)
+        if len(actual_actions.shape) == 1:
+            actual_actions = actual_actions.unsqueeze(dim=1)  # (N, 1)
+
+        with torch.no_grad():
+            next_q_values = self.target_ac_net.value(next_states)
+        target_q_values = (rewards + self.config.reward_discount * next_q_values).detach()  # (N,)
+
+        q_values = self.ac_net(states, actions=actual_actions).squeeze(dim=1)  # (N,)
+        q_value_loss = self.config.q_value_loss_func(q_values, target_q_values)
+        policy_loss = -self.ac_net.value(states).mean()
+        return policy_loss + self.config.q_value_loss_coeff * q_value_loss
+
     def learn(self):
         assert self.ac_net.trainable, "ac_net needs to have at least one optimizer registered."
         self.ac_net.train()
         for _ in range(self.config.train_epochs):
-            experience_set = self.sampler.get()
-            states, next_states = experience_set.states, experience_set.next_states
-            actual_actions = torch.from_numpy(experience_set.actions).to(self.device)
-            rewards = torch.from_numpy(experience_set.rewards).to(self.device)
-            if len(actual_actions.shape) == 1:
-                actual_actions = actual_actions.unsqueeze(dim=1)  # (N, 1)
-
-            with torch.no_grad():
-                next_q_values = self.target_ac_net.value(next_states)
-            target_q_values = (rewards + self.config.reward_discount * next_q_values).detach()  # (N,)
-
-            q_values = self.ac_net(states, actions=actual_actions).squeeze(dim=1)  # (N,)
-            q_value_loss = self.config.q_value_loss_func(q_values, target_q_values)
-            policy_loss = -self.ac_net.value(states).mean()
-            loss = policy_loss + self.config.q_value_loss_coeff * q_value_loss
+            loss = self.get_loss(self.sampler.get())
             self.ac_net.step(loss)
             if self._post_step:
                 self._post_step(loss.detach().cpu().numpy(), self.tracker)
