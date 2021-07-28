@@ -71,9 +71,12 @@ def get_acc_port_data(experiment_name: str, episode: str, start_tick: str, end_t
 
     """
     input_range = get_input_range(start_tick, end_tick)
+    query = f"select {request_column.port_header.value}  from {experiment_name}.port_details"\
+        f" where episode='{episode}'"
+    if input_range != "()":
+        query += f" and tick in {input_range}"
     params = {
-        "query": f"select {request_column.port_header.value}  from {experiment_name}.port_details"
-        f" where episode='{episode}' and tick in {input_range}",
+        "query": query,
         "count": "true"
     }
     db_port_data = requests.get(

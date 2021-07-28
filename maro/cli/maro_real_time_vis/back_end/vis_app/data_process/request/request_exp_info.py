@@ -66,7 +66,7 @@ def get_experiment_info():
     data_in_format["start_episode"] = start_episode_num
     data_in_format['start_snapshot'] = start_snapshot_num
     total_params = {
-        "query": f"select count(episode), count(tick) from {experiment_name}.port_details",
+        "query": f"select count_distinct(episode), count_distinct(tick) from {experiment_name}.port_details",
         "count": "true"
     }
     total_episode = requests.get(
