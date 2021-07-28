@@ -13,4 +13,4 @@ mountOptions:
   - actimeo=30
 parameters:
   skuName: Standard_LRS
-  storageAccount: marostorageaccount
+  storageAccount: maro

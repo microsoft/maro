@@ -1,30 +1,22 @@
 apiVersion: batch/v1
 kind: Job
-metadata:
-  name: maro-learner
 spec:
-  completions: 1
   template:
     spec:
-      nodeSelector:
-        agentpool: marotest
       containers:
-      - name: maro-learner
-        image: maroacr.azurecr.cn/maro-dev
+      - command: python3 /rltest/workflows/synchronous/learner.py
+        image: maroacr.azurecr.cn/marorl
         imagePullPolicy: Always
-        command: ["python", "/mnt/maro_test/examples/supply_chain/dqn/distributed_launcher.py", "-w", "1"]
-        env:
-        - name: GROUP
-          value: maro12200408
-        - name: NUMWORKERS
-          value: "2"
+        name: learner
         volumeMounts:
-        - name: maro-data
-          mountPath: /mnt/maro_test
-      restartPolicy: Never          
+        - mountPath: /rltest
+          name: maro
+      nodeSelector:
+        agentpool: sc
+      restartPolicy: Never
       volumes:
-      - name: maro-data
-        azureFile:
-          secretName: azure-secret
-          shareName: marosf
+      - azureFile:
           readOnly: false
+          secretName: azure-secret
+          shareName: rltest
+        name: maro
