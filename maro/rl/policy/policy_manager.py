@@ -500,11 +500,13 @@ class MultiNodeDistPolicyManager(AbsPolicyManager):
                                 msg_body_loss[trainer_id][MsgKey.GRAD] = {}
                             if policy_name in msg_body_loss[trainer_id][MsgKey.GRAD]:
                                 for param_name in msg_body_loss[trainer_id][MsgKey.GRAD][policy_name]:
-                                    msg_body_loss[trainer_id][MsgKey.GRAD][policy_name][param_name] += grad_dict[param_name] / len(trainer_id_list)
+                                    msg_body_loss[trainer_id][MsgKey.GRAD][policy_name][param_name] += (
+                                        grad_dict[param_name] / len(trainer_id_list))
                             else:
                                 msg_body_loss[trainer_id][MsgKey.GRAD][policy_name] = {}
                                 for param_name in grad_dict:
-                                    msg_body_loss[trainer_id][MsgKey.GRAD][policy_name][param_name] = grad_dict[param_name] / len(trainer_id_list)
+                                    msg_body_loss[trainer_id][MsgKey.GRAD][policy_name][param_name] = (
+                                        grad_dict[param_name] / len(trainer_id_list))
 
             # 4. send aggregated loss and update state
             for reply in self._proxy.scatter(MsgTag.BACKWARD_GRAD, SessionType.TASK, list(msg_body_loss.items())):
