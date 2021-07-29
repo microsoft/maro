@@ -182,14 +182,17 @@ class DQN(AbsCorePolicy):
             self.sampler.update(indexes, td_errors.detach().cpu().numpy())
         else:
             loss = self._loss_func(q_values, target_q_values)
-        return loss
-
-    def step(self, loss):
-        '''Backward step.'''
-        self.q_net.step(loss)
 
         if self._post_step:
             self._post_step(loss.detach().cpu().numpy(), self.tracker)
+        return loss
+
+    def step(self, grad_dict):
+        '''Backward step.'''
+        # set gradient & optimize
+        for name, param in self.q_net.named_parameters():
+            param.grad = grad_dict[name]
+        self.q_net.optimizer.step()
 
         # soft-update target network
         self._num_steps += 1

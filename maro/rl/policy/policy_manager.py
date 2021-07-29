@@ -477,33 +477,40 @@ class MultiNodeDistPolicyManager(AbsPolicyManager):
 
         # 2. scatter data and receive reply of each trainer node
         trackers = []
-        msg_body_loss = defaultdict(dict)
-        for reply in self._proxy.scatter(MsgTag.GET_LOSS, SessionType.TASK, list(msg_body_by_dest.items())):
+        for reply in self._proxy.scatter(MsgTag.SCATTER_EXP, SessionType.TASK, list(msg_body_by_dest.items())):
             trackers.append(reply.body[MsgKey.TRACKER])
-            # 3. aggregate loss
-            for policy_name, loss in reply.body[MsgKey.LOSS].items():
-                trainer_id_list = self._policy2trainer[policy_name]
-                if len(trainer_id_list) == 1:  # single node
-                    trainer_id = trainer_id_list[0]
-                    if MsgKey.LOSS not in msg_body_loss[trainer_id]:
-                        msg_body_loss[trainer_id][MsgKey.LOSS] = {}
-                    msg_body_loss[trainer_id][MsgKey.LOSS][policy_name] = loss
-                else:
-                    # loss of subset
-                    sub_loss = loss / len(trainer_id_list)
-                    for trainer_id in trainer_id_list:
-                        if MsgKey.LOSS not in msg_body_loss[trainer_id]:
-                            msg_body_loss[trainer_id][MsgKey.LOSS] = {}
-                        if policy_name in msg_body_loss[trainer_id][MsgKey.LOSS]:
-                            msg_body_loss[trainer_id][MsgKey.LOSS][policy_name] += sub_loss
-                        else:
-                            msg_body_loss[trainer_id][MsgKey.LOSS][policy_name] = sub_loss
 
-        # 4. send aggregated loss and update state
-        for reply in self._proxy.scatter(MsgTag.BACKWARD_LOSS, SessionType.TASK, list(msg_body_loss.items())):
-            trackers.append(reply.body[MsgKey.TRACKER])
-            for policy_name, policy_state in reply.body[MsgKey.POLICY_STATE].items():
-                self.policy_dict[policy_name].set_state(policy_state)
+        # get gradient and update
+        # TODO: handle various config.train_epochs among policies.
+        name = list(self.policy_dict.keys())[0]
+        for _ in range(self.policy_dict[name].config.train_epochs):
+            msg_body_loss = defaultdict(dict)
+            for reply in self._proxy.scatter(MsgTag.GET_GRAD, SessionType.TASK, list(msg_body_by_dest.items())):
+                # 3. aggregate gradient
+                for policy_name, grad_dict in reply.body[MsgKey.GRAD].items():
+                    trainer_id_list = self._policy2trainer[policy_name]
+                    if len(trainer_id_list) == 1:  # single node
+                        trainer_id = trainer_id_list[0]
+                        if MsgKey.GRAD not in msg_body_loss[trainer_id]:
+                            msg_body_loss[trainer_id][MsgKey.GRAD] = {}
+                        msg_body_loss[trainer_id][MsgKey.GRAD][policy_name] = grad_dict
+                    else:
+                        for trainer_id in trainer_id_list:
+                            if MsgKey.GRAD not in msg_body_loss[trainer_id]:
+                                msg_body_loss[trainer_id][MsgKey.GRAD] = {}
+                            if policy_name in msg_body_loss[trainer_id][MsgKey.GRAD]:
+                                for param_name in msg_body_loss[trainer_id][MsgKey.GRAD][policy_name]:
+                                    msg_body_loss[trainer_id][MsgKey.GRAD][policy_name][param_name] += grad_dict[param_name] / len(trainer_id_list)
+                            else:
+                                msg_body_loss[trainer_id][MsgKey.GRAD][policy_name] = {}
+                                for param_name in grad_dict:
+                                    msg_body_loss[trainer_id][MsgKey.GRAD][policy_name][param_name] = grad_dict[param_name] / len(trainer_id_list)
+
+            # 4. send aggregated loss and update state
+            for reply in self._proxy.scatter(MsgTag.BACKWARD_GRAD, SessionType.TASK, list(msg_body_loss.items())):
+                trackers.append(reply.body[MsgKey.TRACKER])
+                for policy_name, policy_state in reply.body[MsgKey.POLICY_STATE].items():
+                    self.policy_dict[policy_name].set_state(policy_state)
 
         if updated:
             self._update_history.append(updated)

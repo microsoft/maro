@@ -98,33 +98,50 @@ def trainer_node(
             }
             logger.debug(f"total policy update time: {time.time() - t0}")
             proxy.reply(msg, body=msg_body)
-        elif msg.tag == MsgTag.GET_LOSS:
+        elif msg.tag == MsgTag.SCATTER_EXP:
             t0 = time.time()
-            # message: loss of each trainer node
             msg_body = {
-                MsgKey.LOSS: {},
                 MsgKey.TRACKER: {}
             }
 
             for name, exp in msg.body[MsgKey.EXPERIENCES].items():
                 policy_dict[name].store(exp)
+                msg_body[MsgKey.TRACKER][name] = policy_dict[name].tracker
+
+            logger.debug(f"total scatter experience time: {time.time() - t0}")
+            proxy.reply(msg, body=msg_body)
+        elif msg.tag == MsgTag.GET_GRAD:
+            t0 = time.time()
+            # message: loss of each trainer node
+            msg_body = {
+                MsgKey.GRAD: {},
+                MsgKey.TRACKER: {}
+            }
+
+            for name, _ in msg.body[MsgKey.EXPERIENCES].items():
                 # TODO: add for-loop of train_epochs
                 # for _ in range(policy_dict[name].config.train_epochs):
                 loss = policy_dict[name].get_loss()
 
-                msg_body[MsgKey.LOSS][name] = loss
+                # Collect gradient
+                loss.backward()
+                grad_dict = {}
+                for param_name, param in policy_dict[name].q_net.named_parameters():
+                    grad_dict[param_name] = param.grad
+
+                msg_body[MsgKey.GRAD][name] = grad_dict
                 msg_body[MsgKey.TRACKER][name] = policy_dict[name].tracker
 
-            logger.debug(f"total policy get_loss time: {time.time() - t0}")
+            logger.debug(f"single step of get_loss time: {time.time() - t0}")
             proxy.reply(msg, body=msg_body)
-        elif msg.tag == MsgTag.BACKWARD_LOSS:
+        elif msg.tag == MsgTag.BACKWARD_GRAD:
             t0 = time.time()
-            for name, loss in msg.body[MsgKey.LOSS].items():
-                policy_dict[name].step(loss)
+            for name, grad_dict in msg.body[MsgKey.GRAD].items():
+                policy_dict[name].step(grad_dict)
 
             msg_body = {
-                MsgKey.POLICY_STATE: {name: policy_dict[name].get_state() for name in msg.body[MsgKey.LOSS]},
-                MsgKey.TRACKER: {name: policy_dict[name].tracker for name in msg.body[MsgKey.LOSS]}
+                MsgKey.POLICY_STATE: {name: policy_dict[name].get_state() for name in msg.body[MsgKey.GRAD]},
+                MsgKey.TRACKER: {name: policy_dict[name].tracker for name in msg.body[MsgKey.GRAD]}
             }
-            logger.debug(f"total policy backward time: {time.time() - t0}")
+            logger.debug(f"single step of policy backward time: {time.time() - t0}")
             proxy.reply(msg, body=msg_body)
