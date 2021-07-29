@@ -6,7 +6,7 @@ from typing import Callable, Union
 import numpy as np
 import torch
 
-from maro.rl.experience import ExperienceStore, PrioritizedSampler, UniformSampler
+from maro.rl.experience import ExperienceSet, ExperienceStore, PrioritizedSampler, UniformSampler
 from maro.rl.exploration import DiscreteSpaceExploration, EpsilonGreedyExploration
 from maro.rl.model import DiscreteQNet
 from maro.rl.policy import AbsCorePolicy
@@ -108,37 +108,39 @@ class DQN(AbsCorePolicy):
             actions = self.exploration(actions, state=states)
         return actions[0] if len(actions) == 1 else actions
 
+    def get_loss(self, batch: ExperienceSet):
+        self.q_net.train()
+        states, next_states = batch.states, batch.next_states
+        actions = torch.from_numpy(np.asarray(batch.actions)).to(self.device)
+        rewards = torch.from_numpy(np.asarray(batch.rewards)).to(self.device)
+        if self.prioritized_experience_replay:
+            indexes = [info["index"] for info in batch.info]
+            is_weights = torch.tensor([info["is_weight"] for info in batch.info]).to(self.device)
+
+        # get target Q values
+        with torch.no_grad():
+            if self.config.double:
+                actions_by_eval_q_net = self.q_net.get_action(next_states)[0]
+                next_q_values = self.target_q_net.q_values(next_states, actions_by_eval_q_net)
+            else:
+                next_q_values = self.target_q_net.get_action(next_states)[1]  # (N,)
+
+        target_q_values = (rewards + self.config.reward_discount * next_q_values).detach()  # (N,)
+
+        # gradient step
+        q_values = self.q_net.q_values(states, actions)
+        if self.prioritized_experience_replay:
+            td_errors = target_q_values - q_values
+            self.sampler.update(indexes, td_errors.detach().cpu().numpy())
+            return (td_errors * is_weights).mean()
+        else:
+            return self._loss_func(q_values, target_q_values)
+
     def learn(self):
         assert self.q_net.trainable, "q_net needs to have at least one optimizer registered."
         self.q_net.train()
         for _ in range(self.config.train_epochs):
-            # sample from the replay memory
-            experience_set = self.sampler.get()
-            states, next_states = experience_set.states, experience_set.next_states
-            actions = torch.from_numpy(np.asarray(experience_set.actions)).to(self.device)
-            rewards = torch.from_numpy(np.asarray(experience_set.rewards)).to(self.device)
-            if self.prioritized_experience_replay:
-                indexes = [info["index"] for info in experience_set.info]
-                is_weights = torch.tensor([info["is_weight"] for info in experience_set.info]).to(self.device)
-
-            # get target Q values
-            with torch.no_grad():
-                if self.config.double:
-                    actions_by_eval_q_net = self.q_net.get_action(next_states)[0]
-                    next_q_values = self.target_q_net.q_values(next_states, actions_by_eval_q_net)
-                else:
-                    next_q_values = self.target_q_net.get_action(next_states)[1]  # (N,)
-
-            target_q_values = (rewards + self.config.reward_discount * next_q_values).detach()  # (N,)
-
-            # gradient step
-            q_values = self.q_net.q_values(states, actions)
-            if self.prioritized_experience_replay:
-                td_errors = target_q_values - q_values
-                loss = (td_errors * is_weights).mean()
-                self.sampler.update(indexes, td_errors.detach().cpu().numpy())
-            else:
-                loss = self._loss_func(q_values, target_q_values)
+            loss = self.get_loss(self.sampler.get())
             self.q_net.step(loss)
 
             if self._post_step:

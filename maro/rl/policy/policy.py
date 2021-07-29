@@ -66,6 +66,10 @@ class AbsCorePolicy(AbsPolicy):
         """
         raise NotImplementedError
 
+    def get_loss(self, batch: ExperienceSet):
+        """Compute the loss for a sample experience batch."""
+        pass 
+
     @abstractmethod
     def get_state(self):
         """Return the current state of the policy.

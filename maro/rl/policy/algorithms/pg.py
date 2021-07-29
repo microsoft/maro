@@ -6,7 +6,7 @@ from typing import Callable, Tuple
 import numpy as np
 import torch
 
-from maro.rl.experience import ExperienceStore, UniformSampler
+from maro.rl.experience import ExperienceSet, ExperienceStore, UniformSampler
 from maro.rl.model import DiscretePolicyNet
 from maro.rl.policy import AbsCorePolicy
 from maro.rl.utils import get_truncated_cumulative_reward
@@ -74,6 +74,14 @@ class PolicyGradient(AbsCorePolicy):
         actions, log_p = actions.cpu().numpy(), log_p.cpu().numpy()
         return (actions[0], log_p[0]) if len(actions) == 1 else actions, log_p
 
+    def get_loss(self, batch: ExperienceSet):
+        self.policy_net.train()
+        log_p = torch.from_numpy(np.asarray([act[1] for act in batch.actions])).to(self.device)
+        rewards = torch.from_numpy(np.asarray(batch.rewards)).to(self.device)
+        returns = get_truncated_cumulative_reward(rewards, self.config.reward_discount)
+        returns = torch.from_numpy(returns).to(self.device)
+        return -(log_p * returns).mean()
+
     def learn(self):
         """
         This should be called at the end of a simulation episode and the experiences obtained from
@@ -82,12 +90,7 @@ class PolicyGradient(AbsCorePolicy):
         """
         assert self.policy_net.trainable, "policy_net needs to have at least one optimizer registered."
         self.policy_net.train()
-        experience_set = self.sampler.get()
-        log_p = torch.from_numpy(np.asarray([act[1] for act in experience_set.actions])).to(self.device)
-        rewards = torch.from_numpy(np.asarray(experience_set.rewards)).to(self.device)
-        returns = get_truncated_cumulative_reward(rewards, self.config.reward_discount)
-        returns = torch.from_numpy(returns).to(self.device)
-        loss = -(log_p * returns).mean()
+        loss = self.get_loss(self.sampler.get())
         self.policy_net.step(loss)
 
         if self._post_step:
