@@ -213,13 +213,13 @@ class CimBaseDataContainer(ABC):
 
     @property
     def vessel_period(self) -> int:
-        """Wrapper to get vessel's planed sailing period (without noise to complete a whole route).
+        """Wrapper to get vessel's planned sailing period (without noise to complete a whole route).
 
         Examples:
 
             .. code-block:: python
 
-                # Get planed sailing for vessel 0.
+                # Get planned sailing for vessel 0.
                 period = data_cntr.vessel_period[0]
         """
         return self._data_collection.vessel_period_without_noise

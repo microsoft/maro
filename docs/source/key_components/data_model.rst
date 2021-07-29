@@ -8,7 +8,7 @@ the backend language for improving the execution reference. What's more,
 the backend store is a pluggable design, user can choose different backend
 implementation based on their real performance requirement and device limitation.
 
-Currenty there are two data model backend implementation: static and dynamic.
+Currently there are two data model backend implementation: static and dynamic.
 Static implementation used Numpy as its data store, do not support dynamic
 attribute length, the advance of this version is that its memory size is same as its
 declaration.

@@ -17,7 +17,7 @@ def start_geo_vis(start: str, experiment_name: str, front_end_port: int, **kwarg
     grader_path = os.path.dirname(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
     if start == 'database':
 
-        # Start the databse container.
+        # Start the database container.
         database_start_path = f"{grader_path}/streamit/server"
         subprocess.check_call(
             'sh run_docker.sh',

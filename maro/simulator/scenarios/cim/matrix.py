@@ -23,7 +23,7 @@ def gen_matrix(port_num: int, vessel_num: int):
         full_on_ports = NodeAttribute("i", slot_num=port_num * port_num)
         # distribution of full from vessel to port
         full_on_vessels = NodeAttribute("i", slot_num=vessel_num * port_num)
-        # planed route info for vessels
+        # planned route info for vessels
         vessel_plans = NodeAttribute("i", slot_num=vessel_num * port_num)
 
         def __init__(self):

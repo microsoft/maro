@@ -147,7 +147,7 @@ class TestFrame(unittest.TestCase):
             self.assertListEqual(list(states[0].astype("i")), [100 * i + 1 for i in range(
                 len(frame.static_nodes))], msg="a2 at tick 1 for all nodes should be correct")
 
-            # 2nd row should be lastest one
+            # 2nd row should be latest one
             self.assertEqual(
                 1000, states[1][0], msg="a2 for 1st static node for 2nd row should be 1000")
 
