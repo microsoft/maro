@@ -45,11 +45,11 @@ class TestEventBuffer(unittest.TestCase):
         def cb(evt):
             # test event tick
             self.assertEqual(
-                1, evt.tick, msg="recieved event tick should be 1")
+                1, evt.tick, msg="received event tick should be 1")
 
             # test event payload
             self.assertTupleEqual(
-                (1, 3), evt.payload, msg="recieved event's payload should be (1, 3)")
+                (1, 3), evt.payload, msg="received event's payload should be (1, 3)")
 
         evt = self.eb.gen_atom_event(1, 1, (1, 3))
 
@@ -142,7 +142,7 @@ class TestEventBuffer(unittest.TestCase):
         self.assertEqual(1, len(decision_events))
         self.assertEqual(evt1, decision_events[0])
 
-        # mark decision event as executing to make it process folloing events
+        # mark decision event as executing to make it process following events
         decision_events[0].state = EventState.FINISHED
 
         # then there will be 2 additional decision event from sub events
