@@ -321,11 +321,16 @@ class MultiNodePolicyManager(AbsPolicyManager):
                 msg_body_by_dest[trainer_id][MsgKey.EXPERIENCES] = {}
             msg_body_by_dest[trainer_id][MsgKey.EXPERIENCES][policy_name] = exp
 
-        trackers = []
-        for reply in self._proxy.scatter(MsgTag.LEARN, SessionType.TASK, list(msg_body_by_dest.items())):
-            trackers.append(reply.body[MsgKey.TRACKER])
-            for policy_name, policy_state in reply.body[MsgKey.POLICY_STATE].items():
-                self.policy_dict[policy_name].set_state(policy_state)
+        trackers, dones = [], 0
+        self._proxy.iscatter(MsgTag.LEARN, SessionType.TASK, list(msg_body_by_dest.items()))
+        for msg in self._proxy.receive():
+            if msg.tag == MsgTag.TRAIN_DONE:
+                trackers.append(msg.body[MsgKey.TRACKER])
+                for policy_name, policy_state in msg.body[MsgKey.POLICY_STATE].items():
+                    self.policy_dict[policy_name].set_state(policy_state)
+                dones += 1
+                if dones == len(msg_body_by_dest):
+                    break
 
         if updated:
             self._update_history.append(updated)
