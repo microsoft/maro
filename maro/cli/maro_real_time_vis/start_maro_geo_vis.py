@@ -9,6 +9,7 @@ import time
 import requests
 
 from maro.utils.exception.cli_exception import CliError
+
 from .back_end.vis_app.data_process.request.request_params import request_settings
 
 GEO_FRONT_SERVICE_DOCKER_IMAGE = "maro2020/geo_front_service"
