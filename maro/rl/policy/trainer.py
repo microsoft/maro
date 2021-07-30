@@ -96,5 +96,7 @@ def trainer_node(
                 MsgKey.POLICY_STATE: {name: policy_dict[name].get_state() for name in msg.body[MsgKey.EXPERIENCES]},
                 MsgKey.TRACKER: {name: policy_dict[name].tracker for name in msg.body[MsgKey.EXPERIENCES]}
             }
-            logger.debug(f"total policy update time: {time.time() - t0}")
-            proxy.reply(msg, body=msg_body)
+            logger.info(f"total policy update time: {time.time() - t0}")
+            t0 = time.time()
+            proxy.reply(msg, tag=MsgTag.TRAIN_DONE, body=msg_body)
+            logger.info(f"total reply time: {time.time() - t0}")

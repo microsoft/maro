@@ -14,9 +14,9 @@ In synchronous mode, a central controler executes learning cycles that consist o
 policy update. In a strictly synchronous learning process, the coordinator would wait for all data collectors,
 a.k.a. "roll-out workers", to return their results before moving on to the policy update phase. So what if a slow
 worker drags the whole process down? We provide users the flexibility to loosen the restriction by specifying the
-minimum number of workers required to report back before proceeding to the next phase. If one is concerned about
+minimum number of workers required to receive from before proceeding to the next phase. If one is concerned about
 losing precious data in the case of all workers reporting back at roughly the same time, we also provide the option
-to continue to receive after receiving the minimum number of results, but with timeouts to keep the wait time
+to continue to receive after receiving the minimum number of results, but with a timeout to keep the wait time
 upperbounded. Note that the transition from the policy update phase to the data collection phase is still strictly
 synchronous. This means that in the case of the policy instances distributed amongst a set of trainer nodes, the
 central controller waits until all trainers report back with the latest policy states before starting the next
@@ -26,10 +26,9 @@ cycle.
 The components required for synchronous learning include:
 
 * Learner, which is the central coordinator for a learning process. The learner consists of a roll-out manager and
-a training manager and executes learning cycles that alternate between data collection and policy update.
+  a training manager and executes learning cycles that alternate between data collection and policy update.
 * Rollout manager, which is responsible for collecting simulation data, in local or distributed fashion.
-* Policy manager, which manages a set of policies and controls their updates. The policy instances may
-  reside with the manager or be distributed amongst a set of processes or remote nodes for parallelized training.
+* Policy manager, which controls the policy update phase of a learning cycle. See "Policy Manager" below for details.
 
 
 .. image:: ../images/rl/learner.svg
@@ -40,11 +39,6 @@ a training manager and executes learning cycles that alternate between data coll
 .. image:: ../images/rl/rollout_manager.svg
    :target: ../images/rl/rollout_manager.svg
    :alt: Overview
-
-
-.. image:: ../images/rl/policy_manager.svg
-   :target: ../images/rl/policy_manager.svg
-   :alt: RL Overview
 
 
 Asynchronous Learning
@@ -59,7 +53,7 @@ but always sends the latest policy states to every single actor.
 The components required for asynchronous learning include:
 
 * actor, which alternates between sending collected simulation data to the policy server and receiving updated 
-policy states from it.
+  policy states from it.
 * policy server, which receives data from the actors and update the policy states when necessary.
 
 
@@ -108,6 +102,27 @@ based on which updates can be made.
       @abstractmethod
       def update(self):
           raise NotImplementedError
+
+
+Policy Manager
+--------------
+
+A policy manager is an abstraction that controls policy update. It houses the latest policy states.
+In synchrounous learning, the policy manager controls the policy update phase of a learning cycle.
+In asynchrounous learning, the policy manager is the centerpiece of the policy server process. 
+Individual policy updates, however, may or may not occur within the policy manager itself depending
+on the policy manager type used. The provided policy manager classes include:
+
+* ``LocalPolicyManager``, where the policies are updated within the manager itself;
+* ``MultiProcessPolicyManager``, which distributes policies amongst a set of trainer processes to parallelize
+  policy update;
+* ``MultiNodePolicyManager``, which distributes policies amongst a set of remote compute nodes to parallelize
+  policy update;
+
+
+.. image:: ../images/rl/policy_manager.svg
+    :target: ../images/rl/policy_manager.svg
+    :alt: RL Overview
 
 
 Core Model

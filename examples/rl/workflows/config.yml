@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-job: sc 
+job: supply_chain
 scenario: supply_chain
 mode: sync
 num_episodes: 5
@@ -16,8 +16,8 @@ sync:
   rollout_group: rollout
   rollout_mode: multi-node # single-process, multi-process, multi-node
   num_rollout_workers: 10
-  min_finished_workers: 7
-  max_extra_recv_tries: 3
+  min_finished_workers: 8
+  max_extra_recv_tries: 4
   extra_recv_timeout: 200
 async:
   group: async
