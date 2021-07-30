@@ -9,9 +9,7 @@ import time
 import requests
 
 from maro.utils.exception.cli_exception import CliError
-
 from .back_end.vis_app.data_process.request.request_params import request_settings
-
 
 GEO_FRONT_SERVICE_DOCKER_IMAGE = "maro2020/geo_front_service"
 DEFAULT_FRONT_END_PORT = 8080
@@ -84,8 +82,10 @@ def start_geo_vis(start: str, experiment_name: str, front_end_port: int, **kwarg
         os.system(f"docker pull {GEO_FRONT_SERVICE_DOCKER_IMAGE}")
         os.system("docker stop geo-vis")
         os.system("docker rm geo-vis")
-        os.system(f"docker run -d -p {front_end_port if front_end_port is not None else DEFAULT_FRONT_END_PORT}:8080 "
-                  f"--name geo-vis {GEO_FRONT_SERVICE_DOCKER_IMAGE}")
+        os.system(
+            f"docker run -d -p {front_end_port if front_end_port is not None else DEFAULT_FRONT_END_PORT}:8080 "
+            f"--name geo-vis {GEO_FRONT_SERVICE_DOCKER_IMAGE}"
+        )
         back_end_path = f"{exec_path}/back_end/vis_app/app.py"
         os.system(f"python {back_end_path}")
     else:
