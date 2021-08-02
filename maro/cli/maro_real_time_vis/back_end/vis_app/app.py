@@ -244,5 +244,5 @@ def get_acc_attrs():
 # Use Only For Local Debug
 # ************************************
 if __name__ == '__main__':
-    app_backend.run(debug=True, port=5000)
+    app_backend.run(debug=False, port=5000, host="0.0.0.0")
 # ************************************
