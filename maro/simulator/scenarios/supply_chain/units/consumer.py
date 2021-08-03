@@ -104,9 +104,6 @@ class ConsumerUnit(ExtendUnitBase):
 
         self.purchased = self.action.quantity
 
-        if order.vlt < len(self.pending_order_daily):
-            self.pending_order_daily[order.vlt - 1] += order.quantity
-
     def flush_states(self):
         if self.received > 0:
             self.data_model.received = self.received

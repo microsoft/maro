@@ -107,7 +107,7 @@ class MyTestCase(unittest.TestCase):
         # pass an action to start manufacturing for this tick.
         action = ManufactureAction(sku3_manufacture_id, 1)
 
-        env.step({action.id: action})
+        env.step([action])
 
         states = manufacture_nodes[env.frame_index:sku3_data_model_index:manufacture_features].flatten().astype(np.int)
 
@@ -140,7 +140,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(80 + 1, product_dict[SKU3_ID])
 
         # let is generate 20, but actually it can only procedure 19 because the storage will reach the limitation
-        env.step({sku3_manufacture_id: ManufactureAction(sku3_manufacture_id, 20)})
+        env.step([ManufactureAction(sku3_manufacture_id, 20)])
 
         states = manufacture_nodes[env.frame_index:sku3_data_model_index:manufacture_features].flatten().astype(np.int)
 
@@ -227,7 +227,7 @@ class MyTestCase(unittest.TestCase):
 
         while not is_done:
             # push to the end, the storage should not changed, no matter what production rate we give it.
-            _, _, is_done = env.step({sku4_manufacture_id: ManufactureAction(sku4_manufacture_id, 10)})
+            _, _, is_done = env.step([ManufactureAction(sku4_manufacture_id, 10)])
 
         manufature_states = manufacture_nodes[
                             env.frame_index:sku4_data_model_index:manufacture_features].flatten().astype(
@@ -285,7 +285,7 @@ class MyTestCase(unittest.TestCase):
         ############################### TICK: 1 ######################################
 
         # ask sku1 manufacture start manufacturing, rate is 10.
-        env.step({sku1_manufacture_id: ManufactureAction(sku1_storage_index, 10)})
+        env.step([ManufactureAction(sku1_manufacture_id, 10)])
 
         storage_states = storage_nodes[env.frame_index:sku1_storage_index:storage_features].flatten().astype(np.int)
         manufacture_states = manufacture_nodes[
@@ -312,7 +312,7 @@ class MyTestCase(unittest.TestCase):
         is_done = False
 
         while not is_done:
-            _, _, is_done = env.step({sku1_manufacture_id: ManufactureAction(sku1_storage_index, 20)})
+            _, _, is_done = env.step([ManufactureAction(sku1_storage_index, 20)])
 
         storage_states = storage_nodes[env.frame_index:sku1_storage_index:storage_features].flatten().astype(np.int)
         manufacture_states = manufacture_nodes[
@@ -741,7 +741,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(SKU3_ID, states[2])
 
         # NOTE: we cannot set_action directly here, as post_step will clear the action before starting next tick
-        env.step({action.id: action})
+        env.step([action])
 
         self.assertEqual(action.quantity, sku3_consumer_unit.purchased)
         self.assertEqual(0, sku3_consumer_unit.received)
@@ -765,7 +765,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(0, states[9])
 
         # same action for next step, so total_XXX will be changed to double
-        env.step({action.id: action})
+        env.step([action])
 
         states = consumer_nodes[env.frame_index:sku3_consumer_data_model_index:features].flatten().astype(np.int)
 
@@ -810,7 +810,7 @@ class MyTestCase(unittest.TestCase):
         # 1st step must none action
         env.step(None)
 
-        env.step({action.id: action})
+        env.step([action])
 
         # simulate purchased product is arrived by vehicle unit
         sku3_consumer_unit.on_order_reception(sku3_supplier_facility_id, SKU3_ID, 10, 10)
@@ -1379,7 +1379,7 @@ class MyTestCase(unittest.TestCase):
         # total sold will keep same after tick 4
         self.assertListEqual([0, 1, 3, 6, 10] + [10] * 95, list(total_sold_states))
 
-    def test_outer_seller(self):
+    def ignore_test_outer_seller(self):
         env = build_env("case_04", 100)
 
         index2unitid_mapping = {}
@@ -1448,7 +1448,7 @@ class MyTestCase(unittest.TestCase):
 
         action = ManufactureAction(man_id, 10)
 
-        env.step({man_id: action})
+        env.step([action])
 
         man_states = env.snapshot_list["manufacture"][env.tick::"manufacturing_number"].flatten().astype(np.int)
 
