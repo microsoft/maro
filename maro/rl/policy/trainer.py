@@ -134,14 +134,7 @@ def trainer_node(
 
             logger.debug(f"single step of get_loss time: {time.time() - t0}")
             proxy.reply(msg, body=msg_body)
-        elif msg.tag == MsgTag.BACKWARD_GRAD:
-            t0 = time.time()
-            for name, grad_dict in msg.body[MsgKey.GRAD].items():
-                policy_dict[name].step(grad_dict)
-
-            msg_body = {
-                MsgKey.POLICY_STATE: {name: policy_dict[name].get_state() for name in msg.body[MsgKey.GRAD]},
-                MsgKey.TRACKER: {name: policy_dict[name].tracker for name in msg.body[MsgKey.GRAD]}
-            }
-            logger.debug(f"single step of policy backward time: {time.time() - t0}")
-            proxy.reply(msg, body=msg_body)
+        elif msg.tag == MsgTag.UPDATE_POLICY_STATE:
+            for name, state in msg.body[MsgKey.POLICY_STATE].items():
+                policy_dict[name].set_state(state)
+            proxy.reply(msg, tag=MsgTag.UPDATE_POLICY_STATE_DONE)

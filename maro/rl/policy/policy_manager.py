@@ -390,50 +390,57 @@ class MultiNodeDistPolicyManager(AbsPolicyManager):
 
         self.allocate_trainers()
 
-    def allocate_trainers(self):
-        self._policy2trainer = defaultdict(list)
-        self._trainer2policies = defaultdict(list)
+    def allocate_strategy(self, num_trainers, num_experiences_by_policy, logger=None):
+        policy2trainer = defaultdict(list)
+        trainer2policies = defaultdict(list)
 
         # initialize
-        if len(self._num_experiences_by_policy) == 0:
-            if len(self.policy_dict) >= self.num_trainers:
-                for i, name in enumerate(self.policy_dict):
-                    trainer_id = i % self.num_trainers
-                    self._policy2trainer[name].append(f"TRAINER.{trainer_id}")
-                    self._trainer2policies[f"TRAINER.{trainer_id}"].append(name)
+        if len(num_experiences_by_policy) == 0:
+            if len(num_experiences_by_policy) >= num_trainers:
+                for i, name in enumerate(num_experiences_by_policy):
+                    trainer_id = i % num_trainers
+                    policy2trainer[name].append(f"TRAINER.{trainer_id}")
+                    trainer2policies[f"TRAINER.{trainer_id}"].append(name)
             else:
-                trainer_id_list = list(range(self.num_trainers))
-                for i, name in enumerate(self.policy_dict):
-                    for trainer_id in trainer_id_list[i::len(self.policy_dict)]:
-                        self._policy2trainer[name].append(f"TRAINER.{trainer_id}")
-                        self._trainer2policies[f"TRAINER.{trainer_id}"].append(name)
+                trainer_id_list = list(range(num_trainers))
+                for i, name in enumerate(num_experiences_by_policy):
+                    for trainer_id in trainer_id_list[i::len(num_experiences_by_policy)]:
+                        policy2trainer[name].append(f"TRAINER.{trainer_id}")
+                        trainer2policies[f"TRAINER.{trainer_id}"].append(name)
 
         # allocate trainers according to historical experience numbers.
         else:
-            total_num_policy = sum(self._num_experiences_by_policy.values())
-            average_payload = total_num_policy / self.num_trainers
+            total_num_policy = sum(num_experiences_by_policy.values())
+            average_payload = total_num_policy / num_trainers
 
             offset = 0
             policy_quota = dict()
-            for name, num_exp in self._num_experiences_by_policy.items():
+            for name, num_exp in num_experiences_by_policy.items():
                 quota = num_exp / average_payload
                 quota = max(1, int(round(quota)))
                 policy_quota[name] = quota
 
             # adjust quota if any redundancy occurs.
-            redundancy = self.num_trainers - sum(policy_quota.values())
+            redundancy = num_trainers - sum(policy_quota.values())
             if redundancy > 0:
                 busiest_policy = max(policy_quota, key=lambda name: policy_quota[name])
                 policy_quota[busiest_policy] += redundancy
 
             for name, quota in policy_quota.items():
-                self._logger.info(
-                    f"policy {name} payload: {self._num_experiences_by_policy[name]},  quota: {quota} node(s)")
+                if logger is not None:
+                    logger.info(
+                        f"policy {name} payload: {num_experiences_by_policy[name]},  quota: {quota} node(s)")
                 for i in range(quota):
-                    trainer_id = (i + offset) % self.num_trainers
-                    self._policy2trainer[name].append(f"TRAINER.{trainer_id}")
-                    self._trainer2policies[f"TRAINER.{trainer_id}"].append(name)
-                offset = (offset + quota) % self.num_trainers
+                    trainer_id = (i + offset) % num_trainers
+                    policy2trainer[name].append(f"TRAINER.{trainer_id}")
+                    trainer2policies[f"TRAINER.{trainer_id}"].append(name)
+                offset = (offset + quota) % num_trainers
+
+        return policy2trainer, trainer2policies
+
+    def allocate_trainers(self):
+        self._policy2trainer, self._trainer2policies = self.allocate_strategy(
+            self.num_trainers, self._num_experiences_by_policy, logger=self._logger)
 
         # re-allocation
         self._logger.info("Re-allocating policy states on trainers...")
@@ -479,40 +486,42 @@ class MultiNodeDistPolicyManager(AbsPolicyManager):
         trackers = []
         for reply in self._proxy.scatter(MsgTag.SCATTER_EXP, SessionType.TASK, list(msg_body_by_dest.items())):
             trackers.append(reply.body[MsgKey.TRACKER])
+        # store experience for manager to perform loss computation.
+        for policy_name, exp in exp_to_send.items():
+            self.policy_dict[policy_name].store(exp)
 
         # get gradient and update
         # TODO: handle various config.train_epochs among policies.
         name = list(self.policy_dict.keys())[0]
         for _ in range(self.policy_dict[name].config.train_epochs):
-            msg_body_loss = defaultdict(dict)
+            manager_grad_dict = defaultdict(dict)
             for reply in self._proxy.scatter(MsgTag.GET_GRAD, SessionType.TASK, list(msg_body_by_dest.items())):
                 # 3. aggregate gradient
                 for policy_name, grad_dict in reply.body[MsgKey.GRAD].items():
                     trainer_id_list = self._policy2trainer[policy_name]
                     if len(trainer_id_list) == 1:  # single node
-                        trainer_id = trainer_id_list[0]
-                        if MsgKey.GRAD not in msg_body_loss[trainer_id]:
-                            msg_body_loss[trainer_id][MsgKey.GRAD] = {}
-                        msg_body_loss[trainer_id][MsgKey.GRAD][policy_name] = grad_dict
+                        manager_grad_dict[policy_name] = grad_dict
                     else:
-                        for trainer_id in trainer_id_list:
-                            if MsgKey.GRAD not in msg_body_loss[trainer_id]:
-                                msg_body_loss[trainer_id][MsgKey.GRAD] = {}
-                            if policy_name in msg_body_loss[trainer_id][MsgKey.GRAD]:
-                                for param_name in msg_body_loss[trainer_id][MsgKey.GRAD][policy_name]:
-                                    msg_body_loss[trainer_id][MsgKey.GRAD][policy_name][param_name] += (
-                                        grad_dict[param_name] / len(trainer_id_list))
-                            else:
-                                msg_body_loss[trainer_id][MsgKey.GRAD][policy_name] = {}
-                                for param_name in grad_dict:
-                                    msg_body_loss[trainer_id][MsgKey.GRAD][policy_name][param_name] = (
-                                        grad_dict[param_name] / len(trainer_id_list))
+                        for param_name in grad_dict:
+                            manager_grad_dict[policy_name][param_name] = manager_grad_dict[policy_name].get(
+                                param_name, 0) + grad_dict[param_name] / len(trainer_id_list)
 
-            # 4. send aggregated loss and update state
-            for reply in self._proxy.scatter(MsgTag.BACKWARD_GRAD, SessionType.TASK, list(msg_body_loss.items())):
-                trackers.append(reply.body[MsgKey.TRACKER])
-                for policy_name, policy_state in reply.body[MsgKey.POLICY_STATE].items():
-                    self.policy_dict[policy_name].set_state(policy_state)
+            # 4. apply gradient
+            for policy_name in manager_grad_dict:
+                """loss.backward() aims to build computaion graph.
+                The real gradients come from `manager_grad_dict`."""
+                loss = self.policy_dict[policy_name].get_loss()
+                loss.backward()
+
+                self.policy_dict[policy_name].step(manager_grad_dict[policy_name])
+
+            for trainer_name, policy_names in self._trainer2policies.items():
+                self._proxy.send(
+                    SessionMessage(
+                        MsgTag.UPDATE_POLICY_STATE, self._proxy.name, trainer_name,
+                        body={MsgKey.POLICY_STATE: {name: self.policy_dict[name].get_state() for name in policy_names}}
+                    )
+                )
 
         if updated:
             self._update_history.append(updated)

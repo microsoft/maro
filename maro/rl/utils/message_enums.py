@@ -21,7 +21,8 @@ class MsgTag(Enum):
     EXIT = "exit"
     SCATTER_EXP = "scatter_exp"
     GET_GRAD = "get_grad"
-    BACKWARD_GRAD = "backward_grad"
+    UPDATE_POLICY_STATE = "update_policy_state"
+    UPDATE_POLICY_STATE_DONE = "update_policy_state_done"
 
 
 class MsgKey(Enum):
