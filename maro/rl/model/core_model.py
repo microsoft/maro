@@ -91,8 +91,36 @@ class AbsCoreModel(nn.Module):
     def forward(self, *args, **kwargs):
         raise NotImplementedError
 
-    def step(self, loss):
+    def get_gradients(self, loss: torch.tensor):
+        """Compute gradients from a loss """
+        if self.optimizer is None:
+            raise MissingOptimizer("No optimizer registered to the model")
+        if isinstance(self.optimizer, dict):
+            for optimizer in self.optimizer.values():
+                optimizer.zero_grad()
+        else:
+            self.optimizer.zero_grad()
+
+        # Obtain gradients through back-propagation
+        loss.backward()
+
+        return {name: param.grad for name, param in self.named_parameters()}
+
+    def apply(self, grad_dict: dict):
+        for name, param in self.named_parameters():
+            param.grad = grad_dict[name]
+
+        # Apply gradients
+        if isinstance(self.optimizer, dict):
+            for optimizer in self.optimizer.values():
+                optimizer.step()
+        else:
+            self.optimizer.step()
+
+    def step(self, loss: torch.tensor):
         """Use the loss to back-propagate gradients and apply them to the underlying parameters.
+
+        This is equivalent to a chained ``get_gradients`` and ``step``. 
 
         Args:
             loss: Result of a computation graph that involves the underlying parameters.

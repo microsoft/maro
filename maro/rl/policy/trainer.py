@@ -16,6 +16,7 @@ def trainer_process(
     conn: Connection,
     create_policy_func_dict: Dict[str, Callable],
     initial_policy_states: dict,
+    num_epochs: Dict[str, int],
     log_dir: str = getcwd()
 ):
     """Policy trainer process which can be spawned by a ``MultiProcessPolicyManager``.
@@ -26,6 +27,10 @@ def trainer_process(
         create_policy_func_dict (dict): A dictionary mapping policy names to functions that create them. The policy
             creation function should have exactly one parameter which is the policy name and return an ``AbsPolicy``
             instance.
+        initial_policy_states (dict): States with which to initialize the policies. 
+        num_epochs (Dict[str, int]): Number of learning epochs for each policy. This determine the number of
+            times ``policy.learn()`` is called in each call to ``update``. Defaults to None, in which case the
+            number of learning epochs will be set to 1 for each policy.
         log_dir (str): Directory to store logs in. Defaults to the current working directory.
     """
     policy_dict = {policy_name: func() for policy_name, func in create_policy_func_dict.items()}
@@ -40,7 +45,8 @@ def trainer_process(
             t0 = time.time()
             for name, exp in msg["experiences"].items():
                 policy_dict[name].store(exp)
-                policy_dict[name].learn()
+                for _ in range(num_epochs[name]):
+                    policy_dict[name].learn()
             logger.debug(f"total policy update time: {time.time() - t0}")
             conn.send({
                 "policy": {name: policy_dict[name].get_state() for name in msg["experiences"]},
@@ -54,6 +60,7 @@ def trainer_node(
     group: str,
     trainer_idx: int,
     create_policy_func_dict: Dict[str, Callable],
+    num_epochs: Dict[str, int],
     proxy_kwargs: dict = {},
     log_dir: str = getcwd()
 ):
@@ -66,6 +73,9 @@ def trainer_node(
         create_policy_func_dict (dict): A dictionary mapping policy names to functions that create them. The policy
             creation function should have exactly one parameter which is the policy name and return an ``AbsPolicy``
             instance.
+        num_epochs (Dict[str, int]): Number of learning epochs for each policy. This determine the number of
+            times ``policy.learn()`` is called in each call to ``update``. Defaults to None, in which case the
+            number of learning epochs will be set to 1 for each policy.
         proxy_kwargs: Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
             for details. Defaults to the empty dictionary.
         log_dir (str): Directory to store logs in. Defaults to the current working directory.
@@ -90,7 +100,8 @@ def trainer_node(
             t0 = time.time()
             for name, exp in msg.body[MsgKey.EXPERIENCES].items():
                 policy_dict[name].store(exp)
-                policy_dict[name].learn()
+                for _ in range(num_epochs[name]):
+                    policy_dict[name].learn()
 
             msg_body = {
                 MsgKey.POLICY_STATE: {name: policy_dict[name].get_state() for name in msg.body[MsgKey.EXPERIENCES]},
@@ -98,3 +109,18 @@ def trainer_node(
             }
             logger.info(f"total policy update time: {time.time() - t0}")
             proxy.reply(msg, tag=MsgTag.TRAIN_DONE, body=msg_body)
+        elif msg.tag == MsgTag.GET_UPDATE_INFO:
+            t0 = time.time()
+            msg_body = {
+                MsgKey.UPDATE_INFO: 
+                    {policy_dict[name].get_update_info(exp) for name, exp in msg.body[MsgKey.EXPERIENCES].items()},
+                MsgKey.TRACKER: 
+                    {name: policy_dict[name].tracker for name in msg.body[MsgKey.EXPERIENCES]}
+            }
+            logger.info(f"total time to get update info: {time.time() - t0}")
+            proxy.reply(msg, tag=MsgTag.UPDATE_INFO, body=msg_body)
+        elif msg.tag == MsgTag.UPDATE_POLICY_STATE:
+            for name, state in msg.body[MsgKey.POLICY_STATE].items():
+                policy_dict[name] = create_policy_func_dict[name]()
+                policy_dict[name].set_state(state)
+                logger.info(f"{proxy.name} updated policy {name}")

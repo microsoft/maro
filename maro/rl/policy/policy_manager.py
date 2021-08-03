@@ -24,6 +24,9 @@ class AbsPolicyManager(ABC):
 
     Args:
         policy_dict (Dict[str, AbsCorePolicy]): A list of policies managed by the manager.
+        num_epochs (Dict[str, int]): Number of learning epochs for each policy. This determine the number of
+            times ``policy.learn()`` is called in each call to ``update``. Defaults to None, in which case the
+            number of learning epochs will be set to 1 for each policy.
         update_trigger (Dict[str, int]): A dictionary of (policy_name, trigger), where "trigger" indicates the
             required number of new experiences to trigger a call to ``learn`` for each policy. Defaults to None,
             all triggers will be set to 1.
@@ -35,28 +38,13 @@ class AbsPolicyManager(ABC):
             ) -> None, where tracker is a list of environment wrappers' ``tracker`` members. Defaults to
             None.
     """
-    def __init__(
-        self,
-        policy_dict: Dict[str, AbsCorePolicy],
-        update_trigger: Dict[str, int] = None,
-        warmup: Dict[str, int] = None,
-        post_update: Callable = None
-    ):
+    def __init__(self, policy_dict: Dict[str, AbsCorePolicy], post_update: Callable = None):
         for policy in policy_dict.values():
             if not isinstance(policy, AbsCorePolicy):
                 raise ValueError("Only 'AbsCorePolicy' instances can be managed by a policy manager.")
 
         super().__init__()
         self.policy_dict = policy_dict
-        if not update_trigger:
-            self.update_trigger = {name: 1 for name in self.policy_dict}
-        else:
-            self.update_trigger = update_trigger
-        if not warmup:
-            self.warmup = {name: 1 for name in self.policy_dict}
-        else:
-            self.warmup = warmup
-
         self._post_update = post_update
 
         self._update_history = [set(policy_dict.keys())]
@@ -85,6 +73,9 @@ class LocalPolicyManager(AbsPolicyManager):
 
     Args:
         policy_dict (Dict[str, AbsCorePolicy]): Policies managed by the manager.
+        num_epochs (Dict[str, int]): Number of learning epochs for each policy. This determine the number of
+            times ``policy.learn()`` is called in each call to ``update``. Defaults to None, in which case the
+            number of learning epochs will be set to 1 for each policy.
         update_trigger (Dict[str, int]): A dictionary of (policy_name, trigger), where "trigger" indicates the
             required number of new experiences to trigger a call to ``learn`` for each policy. Defaults to None,
             all triggers will be set to 1.
@@ -102,12 +93,19 @@ class LocalPolicyManager(AbsPolicyManager):
     def __init__(
         self,
         policy_dict: Dict[str, AbsCorePolicy],
+        num_epochs: Dict[str, int] = None,
         update_trigger: Dict[str, int] = None,
         warmup: Dict[str, int] = None,
         post_update: Callable = None,
         log_dir: str = getcwd()
     ):
-        super().__init__(policy_dict, update_trigger=update_trigger, warmup=warmup, post_update=post_update)
+        super().__init__(
+            policy_dict,
+            num_epochs=num_epochs,
+            update_trigger=update_trigger,
+            warmup=warmup,
+            post_update=post_update
+        )
         self._new_exp_counter = defaultdict(int)
         self._logger = Logger("LOCAL_POLICY_MANAGER", dump_folder=log_dir)
 
@@ -127,7 +125,8 @@ class LocalPolicyManager(AbsPolicyManager):
                 self._new_exp_counter[policy_name] >= self.update_trigger[policy_name] and
                 policy.experience_store.size >= self.warmup[policy_name]
             ):
-                policy.learn()
+                for _ in range(self.num_epochs[policy_name]):
+                    policy.learn()
                 updated.add(policy_name)
                 self._new_exp_counter[policy_name] = 0
 
@@ -150,6 +149,9 @@ class MultiProcessPolicyManager(AbsPolicyManager):
         create_policy_func_dict (dict): A dictionary mapping policy names to functions that create them. The policy
             creation function should have exactly one parameter which is the policy name and return an ``AbsPolicy``
             instance.
+        num_epochs (Dict[str, int]): Number of learning epochs for each policy. This determine the number of
+            times ``policy.learn()`` is called in each call to ``update``. Defaults to None, in which case the
+            number of learning epochs will be set to 1 for each policy.
         update_trigger (Dict[str, int]): A dictionary of (policy_name, trigger), where "trigger" indicates the
             required number of new experiences to trigger a call to ``learn`` for each policy. Defaults to None,
             all triggers will be set to 1.
@@ -168,12 +170,19 @@ class MultiProcessPolicyManager(AbsPolicyManager):
         policy_dict: Dict[str, AbsCorePolicy],
         num_trainers: int,
         create_policy_func_dict: Dict[str, Callable],
+        num_epochs: Dict[str, int] = None,
         update_trigger: Dict[str, int] = None,
         warmup: Dict[str, int] = None,
         post_update: Callable = None,
         log_dir: str = getcwd(),
     ):
-        super().__init__(policy_dict, update_trigger=update_trigger, warmup=warmup, post_update=post_update)
+        super().__init__(
+            policy_dict,
+            num_epochs=num_epochs,    
+            update_trigger=update_trigger,
+            warmup=warmup,
+            post_update=post_update
+        )
         self._policy2trainer = {}
         self._trainer2policies = defaultdict(list)
         self._exp_cache = defaultdict(ExperienceSet)
@@ -197,7 +206,8 @@ class MultiProcessPolicyManager(AbsPolicyManager):
                     trainer_id,
                     trainer_end,
                     {name: create_policy_func_dict[name] for name in policy_names},
-                    {name: self.policy_dict[name].get_state() for name in self._trainer2policies[trainer_id]}
+                    {name: self.policy_dict[name].get_state() for name in policy_names},
+                    {name: self.num_epochs[name] for name in policy_names}
                 ),
                 kwargs={"log_dir": log_dir}
             )
@@ -251,6 +261,9 @@ class MultiNodePolicyManager(AbsPolicyManager):
             manages them.
         num_trainers (int): Number of trainers. The trainers will be identified by "TRAINER.i", where
             0 <= i < num_trainers.
+        num_epochs (Dict[str, int]): Number of learning epochs for each policy. This determine the number of
+            times ``policy.learn()`` is called in each call to ``update``. Defaults to None, in which case the
+            number of learning epochs will be set to 1 for each policy.
         update_trigger (Dict[str, int]): A dictionary of (policy_name, trigger), where "trigger" indicates the
             required number of new experiences to trigger a call to ``learn`` for each policy. Defaults to None,
             all triggers will be set to 1.
@@ -271,13 +284,20 @@ class MultiNodePolicyManager(AbsPolicyManager):
         policy_dict: Dict[str, AbsCorePolicy],
         group: str,
         num_trainers: int,
+        num_epochs: Dict[str, int] = None,
         update_trigger: Dict[str, int] = None,
         warmup: Dict[str, int] = None,
         post_update: Callable = None,
         log_dir: str = getcwd(),
         proxy_kwargs: dict = {}
     ):
-        super().__init__(policy_dict, update_trigger=update_trigger, warmup=warmup, post_update=post_update)
+        super().__init__(
+            policy_dict,
+            num_epochs=num_epochs,
+            update_trigger=update_trigger,
+            warmup=warmup,
+            post_update=post_update
+        )
         peers = {"trainer": num_trainers}
         self._proxy = Proxy(group, "policy_manager", peers, component_name="POLICY_MANAGER", **proxy_kwargs)
 
@@ -298,7 +318,10 @@ class MultiNodePolicyManager(AbsPolicyManager):
             self._proxy.send(
                 SessionMessage(
                     MsgTag.INIT_POLICY_STATE, self._proxy.name, trainer_name,
-                    body={MsgKey.POLICY_STATE: {name: self.policy_dict[name].get_state() for name in policy_names}}
+                    body={
+                        MsgKey.POLICY_STATE: {name: self.policy_dict[name].get_state() for name in policy_names},
+                        MsgKey.NUM_EPOCHS: {name: self.num_epochs[name] for name in policy_names}
+                    }
                 )
             )
 
