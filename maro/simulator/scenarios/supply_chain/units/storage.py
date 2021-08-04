@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import random
 from typing import Dict
 
 from .unitbase import UnitBase
@@ -117,7 +116,7 @@ class StorageUnit(UnitBase):
         self.data_model.initialize(
             capacity=self.capacity,
             remaining_space=self.remaining_space,
-            product_list=[id for id in self.product_level.keys()],
+            product_list=[sku_id for sku_id in self.product_level.keys()],
             product_number=[n for n in self.product_level.values()]
         )
 

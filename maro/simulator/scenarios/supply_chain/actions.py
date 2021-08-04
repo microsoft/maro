@@ -1,9 +1,17 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
+from typing import NamedTuple
 
 
-from collections import namedtuple
+class ConsumerAction(NamedTuple):
+    id: int
+    product_id: int
+    source_id: int
+    quantity: int
+    vlt: int
+    reward_discount: float
 
-ConsumerAction = namedtuple("ConsumerAction", ("id", "product_id", "source_id", "quantity", "vlt", "reward_discount"))
 
-ManufactureAction = namedtuple("ManufactureAction", ("id", "production_rate"))
+class ManufactureAction(NamedTuple):
+    id: int
+    production_rate: float

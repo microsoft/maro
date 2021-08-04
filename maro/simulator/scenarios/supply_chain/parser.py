@@ -109,6 +109,7 @@ class SupplyChainConfiguration:
             alias (str): Alias of this facility.
             class_name (str): Name of this class.
             module_path (str): Full path of the module.
+            data_model_alias (str): Data model alias.
         """
         assert alias not in self.facilities
 

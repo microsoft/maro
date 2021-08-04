@@ -9,6 +9,7 @@ from .manufacture import ManufactureUnit
 from .seller import SellerUnit
 from .extendunitbase import ExtendUnitBase
 from .storage import StorageUnit
+from ..datamodels import ProductDataModel
 
 
 class ProductUnit(ExtendUnitBase):
@@ -39,6 +40,7 @@ class ProductUnit(ExtendUnitBase):
 
         facility_sku = self.facility.skus[self.product_id]
 
+        assert isinstance(self.data_model, ProductDataModel)
         self.data_model.initialize(facility_sku.price)
 
     def step(self, tick: int):

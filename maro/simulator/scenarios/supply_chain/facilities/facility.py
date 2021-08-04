@@ -1,59 +1,69 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
+from __future__ import annotations
 
+import typing
 from abc import ABC
 from collections import defaultdict
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from maro.simulator.scenarios.supply_chain.easy_config import SkuInfo
 from maro.simulator.scenarios.supply_chain.units import DistributionUnit, ProductUnit, StorageUnit
+
+if typing.TYPE_CHECKING:
+    from maro.simulator.scenarios.supply_chain.datamodels.base import DataModelBase
+    from maro.simulator.scenarios.supply_chain.world import World
 
 
 class FacilityBase(ABC):
     """Base of all facilities."""
 
     # Id of this facility.
-    id: int = None
+    id: Optional[int] = None
 
     # Name of this facility.
-    name: str = None
+    name: Optional[str] = None
 
     # World of this facility belongs to.
-    world = None
+    world: Optional[World] = None
 
     # Skus in this facility.
-    skus: Dict[int, SkuInfo] = None
+    skus: Optional[Dict[int, SkuInfo]] = None
 
     # Product units for each sku in this facility.
     # Key is sku(product) id, value is the instance of product unit.
-    products: Dict[int, ProductUnit] = None
+    products: Optional[Dict[int, ProductUnit]] = None
 
     # Storage unit in this facility.
-    storage: StorageUnit = None
+    storage: Optional[StorageUnit] = None
 
     # Distribution unit in this facility.
-    distribution: DistributionUnit = None
+    distribution: Optional[DistributionUnit] = None
 
     # Upstream facilities.
-    # Key is sku id, value is the list of product unit from upstream.
-    upstreams: Dict[int, List[ProductUnit]] = None
+    # Key is sku id, value is the list of facilities from upstream.
+    upstreams: Optional[Dict[int, List[FacilityBase]]] = None
 
     # Down stream facilities, value same as upstreams.
-    downstreams: Dict[int, List[ProductUnit]] = None
+    downstreams: Optional[Dict[int, List[FacilityBase]]] = None
 
     # Configuration of this facility.
-    configs: dict = None
+    configs: Optional[dict] = None
 
     # Name of data model, from configuration.
-    data_model_name: str = None
+    data_model_name: Optional[str] = None
 
     # Index of the data model node.
     data_model_index: int = 0
 
-    data_model: object = None
+    data_model: Optional[DataModelBase] = None
 
     # Children of this facility (valid units).
-    children: list = None
+    children: Optional[list] = None
+
+    # Facility's coordinates
+    x: Optional[int] = None
+    y: Optional[int] = None
 
     def __init__(self):
         self.upstreams = {}
