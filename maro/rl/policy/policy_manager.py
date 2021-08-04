@@ -386,9 +386,7 @@ class MultiNodeDistPolicyManager(AbsPolicyManager):
         self._num_experiences_by_policy = defaultdict(int)
         self.num_trainers = num_trainers
 
-        self._logger = Logger("MULTINODE_POLICY_MANAGER", dump_folder=log_dir)
-
-        self.allocate_trainers()
+        self._logger = Logger("MULTINODE_DIST_POLICY_MANAGER", dump_folder=log_dir)
 
     def allocate_strategy(self, num_trainers, num_experiences_by_policy, logger=None):
         policy2trainer = defaultdict(list)
@@ -410,8 +408,8 @@ class MultiNodeDistPolicyManager(AbsPolicyManager):
 
         # allocate trainers according to historical experience numbers.
         else:
-            total_num_policy = sum(num_experiences_by_policy.values())
-            average_payload = total_num_policy / num_trainers
+            total_num_experiences = sum(num_experiences_by_policy.values())
+            average_payload = total_num_experiences / num_trainers
 
             offset = 0
             policy_quota = dict()
@@ -458,29 +456,24 @@ class MultiNodeDistPolicyManager(AbsPolicyManager):
             self._num_experiences_by_policy[policy_name] += exp.size
             self._exp_cache[policy_name].extend(exp)
             if (
-                self._exp_cache[policy_name].size >= self.update_trigger[policy_name] and
-                self._num_experiences_by_policy[policy_name] >= self.warmup[policy_name]
+                self._exp_cache[policy_name].size >= self.update_trigger[policy_name]
+                and self._num_experiences_by_policy[policy_name] >= self.warmup[policy_name]
             ):
                 exp_to_send[policy_name] = self._exp_cache.pop(policy_name)
                 updated.add(policy_name)
+
+        self.allocate_trainers()
 
         # 1. prepare exp data for each trainer node
         msg_body_by_dest = defaultdict(dict)
         for policy_name, exp in exp_to_send.items():
             trainer_id_list = self._policy2trainer[policy_name]
-            if len(trainer_id_list) == 1:  # single node
-                trainer_id = trainer_id_list[0]
+            for i, trainer_id in enumerate(trainer_id_list):
                 if MsgKey.EXPERIENCES not in msg_body_by_dest[trainer_id]:
                     msg_body_by_dest[trainer_id][MsgKey.EXPERIENCES] = {}
-                msg_body_by_dest[trainer_id][MsgKey.EXPERIENCES][policy_name] = exp
-                self._logger.info(f'policy {policy_name}, exp.size = {exp.size}')
-            else:
-                for i, trainer_id in enumerate(trainer_id_list):
-                    if MsgKey.EXPERIENCES not in msg_body_by_dest[trainer_id]:
-                        msg_body_by_dest[trainer_id][MsgKey.EXPERIENCES] = {}
-                    sub_exp = exp[i::len(trainer_id_list)]
-                    msg_body_by_dest[trainer_id][MsgKey.EXPERIENCES][policy_name] = sub_exp
-                    self._logger.info(f'policy {policy_name}, sub_exp.size = {sub_exp.size}')
+                sub_exp = exp[i::len(trainer_id_list)]
+                msg_body_by_dest[trainer_id][MsgKey.EXPERIENCES][policy_name] = sub_exp
+                self._logger.info(f'policy {policy_name}, exp.size = {sub_exp.size}')
 
         # 2. scatter data and receive reply of each trainer node
         trackers = []
@@ -499,12 +492,9 @@ class MultiNodeDistPolicyManager(AbsPolicyManager):
                 # 3. aggregate gradient
                 for policy_name, grad_dict in reply.body[MsgKey.GRAD].items():
                     trainer_id_list = self._policy2trainer[policy_name]
-                    if len(trainer_id_list) == 1:  # single node
-                        manager_grad_dict[policy_name] = grad_dict
-                    else:
-                        for param_name in grad_dict:
-                            manager_grad_dict[policy_name][param_name] = manager_grad_dict[policy_name].get(
-                                param_name, 0) + grad_dict[param_name] / len(trainer_id_list)
+                    for param_name in grad_dict:
+                        manager_grad_dict[policy_name][param_name] = manager_grad_dict[policy_name].get(
+                            param_name, 0) + grad_dict[param_name] / len(trainer_id_list)
 
             # 4. apply gradient
             for policy_name in manager_grad_dict:
@@ -529,9 +519,6 @@ class MultiNodeDistPolicyManager(AbsPolicyManager):
 
         if self._post_update:
             self._post_update(trackers)
-
-        # re-allocate
-        self.allocate_trainers()
 
     def exit(self):
         """Tell the remote trainers to exit."""

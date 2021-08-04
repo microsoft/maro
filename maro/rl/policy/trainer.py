@@ -80,7 +80,7 @@ def trainer_node(
             proxy.close()
             break
 
-        if msg.tag == MsgTag.INIT_POLICY_STATE:
+        elif msg.tag == MsgTag.INIT_POLICY_STATE:
             for name, state in msg.body[MsgKey.POLICY_STATE].items():
                 policy_dict[name] = create_policy_func_dict[name]()
                 policy_dict[name].set_state(state)
@@ -125,11 +125,7 @@ def trainer_node(
 
                 # Collect gradient
                 loss.backward()
-                grad_dict = {}
-                for param_name, param in policy_dict[name].q_net.named_parameters():
-                    grad_dict[param_name] = param.grad
-
-                msg_body[MsgKey.GRAD][name] = grad_dict
+                msg_body[MsgKey.GRAD][name] = policy_dict[name].get_grad()
                 msg_body[MsgKey.TRACKER][name] = policy_dict[name].tracker
 
             logger.debug(f"single step of get_loss time: {time.time() - t0}")

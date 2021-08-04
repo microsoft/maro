@@ -4,7 +4,8 @@
 import sys
 from os.path import dirname, realpath
 
-from maro.rl.policy import LocalPolicyManager, MultiNodePolicyManager, MultiNodeDistPolicyManager, MultiProcessPolicyManager
+from maro.rl.policy import (LocalPolicyManager, MultiNodeDistPolicyManager,
+                            MultiNodePolicyManager, MultiProcessPolicyManager)
 
 workflow_dir = dirname(dirname(realpath(__file__)))  # template directory
 if workflow_dir not in sys.path:

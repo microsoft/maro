@@ -187,6 +187,12 @@ class DQN(AbsCorePolicy):
             self._post_step(loss.detach().cpu().numpy(), self.tracker)
         return loss
 
+    def get_grad(self):
+        grad_dict = {}
+        for param_name, param in self.q_net.named_parameters():
+            grad_dict[param_name] = param.grad
+        return grad_dict
+
     def step(self, grad_dict):
         '''Backward step.'''
         # set gradient & optimize
