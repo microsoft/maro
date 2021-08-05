@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 from abc import ABC, abstractmethod
-from typing import Union
 
 from maro.rl.experience import ExperienceSet
 from maro.rl.exploration import AbsExploration
@@ -50,7 +49,7 @@ class AbsAlgorithm(ABC):
 
         Args:
             learning (bool): If True, the returned state is for inference purpose only. This parameter
-                may be ignored for some algorithms.  
+                may be ignored for some algorithms.
         """
         pass
 

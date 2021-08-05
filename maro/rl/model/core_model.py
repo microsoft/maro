@@ -120,7 +120,7 @@ class AbsCoreModel(nn.Module):
     def step(self, loss: torch.tensor):
         """Use the loss to back-propagate gradients and apply them to the underlying parameters.
 
-        This is equivalent to a chained ``get_gradients`` and ``step``. 
+        This is equivalent to a chained ``get_gradients`` and ``step``.
 
         Args:
             loss: Result of a computation graph that involves the underlying parameters.

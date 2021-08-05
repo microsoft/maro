@@ -93,12 +93,12 @@ class DDPG(AbsAlgorithm):
 
     def learn(self, data: Union[ExperienceSet, dict]):
         assert self.ac_net.trainable, "ac_net needs to have at least one optimizer registered."
-        # If data is an ExperienceSet, get DQN loss from the batch and backprop it throught the network. 
+        # If data is an ExperienceSet, get DQN loss from the batch and backprop it throught the network.
         if isinstance(data, ExperienceSet):
             self.ac_net.train()
             loss = self._get_loss(data)
             self.ac_net.step(loss)
-        # Otherwise treat the data as a dict of gradients that can be applied directly to the network. 
+        # Otherwise treat the data as a dict of gradients that can be applied directly to the network.
         else:
             self.ac_net.apply(data)
 

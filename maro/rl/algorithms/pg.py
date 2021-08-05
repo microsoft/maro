@@ -57,12 +57,12 @@ class PolicyGradient(AbsAlgorithm):
         which they are generated during the simulation. Otherwise, the return values may be meaningless.
         """
         assert self.policy_net.trainable, "policy_net needs to have at least one optimizer registered."
-        # If data is an ExperienceSet, get DQN loss from the batch and backprop it throught the network. 
+        # If data is an ExperienceSet, get DQN loss from the batch and backprop it throught the network.
         if isinstance(data, ExperienceSet):
             self.policy_net.train()
             loss = self._get_loss(data)
             self.policy_net.step(loss)
-        # Otherwise treat the data as a dict of gradients that can be applied directly to the network. 
+        # Otherwise treat the data as a dict of gradients that can be applied directly to the network.
         else:
             self.policy_net.apply(data)
 

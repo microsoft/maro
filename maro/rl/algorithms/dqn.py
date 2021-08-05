@@ -93,14 +93,14 @@ class DQN(AbsAlgorithm):
 
     def learn(self, data: Union[ExperienceSet, dict]):
         assert self.q_net.trainable, "q_net needs to have at least one optimizer registered."
-        # If data is an ExperienceSet, get DQN loss from the batch and backprop it throught the network. 
+        # If data is an ExperienceSet, get DQN loss from the batch and backprop it throught the network.
         if isinstance(data, ExperienceSet):
             self.q_net.train()
             loss = self._get_loss(data)
             self.q_net.step(loss)
-        # Otherwise treat the data as a dict of gradients that can be applied directly to the network. 
+        # Otherwise treat the data as a dict of gradients that can be applied directly to the network.
         else:
-            self.q_net.apply(data) 
+            self.q_net.apply(data)
 
     def post_update(self, update_index: int):
         # soft-update target network
