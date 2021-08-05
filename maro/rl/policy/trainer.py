@@ -29,7 +29,7 @@ def trainer_process(
         create_policy_func_dict (dict): A dictionary mapping policy names to functions that create them. The policy
             creation function should have exactly one parameter which is the policy name and return an ``AbsPolicy``
             instance.
-        initial_policy_states (dict): States with which to initialize the policies. 
+        initial_policy_states (dict): States with which to initialize the policies.
         num_epochs (Dict[str, int]): Number of learning epochs for each policy. This determine the number of
             times ``policy.learn()`` is called in each call to ``update``. Defaults to None, in which case the
             number of learning epochs will be set to 1 for each policy.
@@ -100,7 +100,7 @@ def trainer_node(
             proxy.close()
             break
 
-        if msg.tag == MsgTag.INIT_POLICY_STATE:
+        elif msg.tag == MsgTag.INIT_POLICY_STATE:
             for name, state in msg.body[MsgKey.POLICY_STATE].items():
                 policy_dict[name] = create_policy_func_dict[name]()
                 policy_dict[name].set_state(state)
@@ -124,7 +124,7 @@ def trainer_node(
         elif msg.tag == MsgTag.GET_UPDATE_INFO:
             t0 = time.time()
             msg_body = {
-                MsgKey.UPDATE_INFO: 
+                MsgKey.UPDATE_INFO:
                     {policy_dict[name].get_update_info(exp) for name, exp in msg.body[MsgKey.EXPERIENCES].items()},
             }
             logger.info(f"total time to get update info: {time.time() - t0}")

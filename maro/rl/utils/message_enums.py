@@ -23,6 +23,10 @@ class MsgTag(Enum):
     TRAIN_DONE = "train_done"
     DONE = "done"
     EXIT = "exit"
+    SCATTER_EXP = "scatter_exp"
+    GET_GRAD = "get_grad"
+    UPDATE_POLICY_STATE = "update_policy_state"
+    UPDATE_POLICY_STATE_DONE = "update_policy_state_done"
 
 
 class MsgKey(Enum):
@@ -41,3 +45,4 @@ class MsgKey(Enum):
     VERSION = "version"
     NUM_STEPS = "num_steps"
     END_OF_EPISODE = "end_of_episode"
+    GRAD = "grad"

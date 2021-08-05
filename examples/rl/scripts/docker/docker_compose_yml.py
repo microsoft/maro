@@ -27,12 +27,12 @@ common_spec = {
     "volumes": [
         f"{rl_example_dir}:/maro/rl_examples",
         f"{maro_rl_dir}:/maro/maro/rl",
-        f"{maro_sc_dir}:/maro/maro/simulator/scenarios/supply_chain"    
+        f"{maro_sc_dir}:/maro/maro/simulator/scenarios/supply_chain"
     ]
 }
 
 # trainer spec
-if config["policy_manager"]["train_mode"] == "multi-node":
+if config["policy_manager"]["train_mode"] in ["multi-node", "multi-node-dist"]:
     for trainer_id in range(num_trainers):
         str_id = f"trainer.{trainer_id}"
         trainer_spec = deepcopy(common_spec)
@@ -51,7 +51,7 @@ mode = config["mode"]
 if mode == "sync":
     # learner_spec
     docker_compose_manifest["services"]["learner"] = {
-        **common_spec, 
+        **common_spec,
         **{
             "container_name": "learner",
             "command": "python3 /maro/rl_examples/workflows/synchronous/learner.py",
@@ -75,7 +75,7 @@ if mode == "sync":
         }
     }
     # rollout worker spec
-    if config["sync"]["rollout_mode"] == "multi-node":
+    if config["sync"]["rollout_mode"] in ["multi-node", "multi-node-dist"]:
         for worker_id in range(config["sync"]["num_rollout_workers"]):
             str_id = f"rollout_worker.{worker_id}"
             worker_spec = deepcopy(common_spec)
@@ -93,7 +93,7 @@ if mode == "sync":
 elif mode == "async":
     # policy server spec
     docker_compose_manifest["services"]["policy_server"] = {
-        **common_spec, 
+        **common_spec,
         **{
             "container_name": "policy_server",
             "command": "python3 /maro/rl_examples/workflows/asynchronous/policy_server.py",
@@ -120,10 +120,10 @@ elif mode == "async":
             f"NUMSTEPS={config['num_steps']}",
             f"EVALSCH={config['eval_schedule']}",
             f"REDISHOST={config['redis']['host']}",
-            f"REDISPORT={config['redis']['port']}"   
+            f"REDISPORT={config['redis']['port']}"
         ]
         docker_compose_manifest["services"][str_id] = actor_spec
-else: 
+else:
     raise ValueError(f"mode must be 'sync' or 'async', got {mode}")
 
 with open(join(docker_script_dir, "docker-compose.yml"), "w") as fp:
