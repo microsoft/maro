@@ -125,12 +125,12 @@ def trainer_node(
             t0 = time.time()
             msg_body = {
                 MsgKey.UPDATE_INFO:
-                    {policy_dict[name].get_update_info(exp) for name, exp in msg.body[MsgKey.EXPERIENCES].items()},
+                    {name: policy_dict[name].get_update_info(exp)
+                        for name, exp in msg.body[MsgKey.EXPERIENCES].items()},
             }
             logger.info(f"total time to get update info: {time.time() - t0}")
             proxy.reply(msg, tag=MsgTag.UPDATE_INFO, body=msg_body)
         elif msg.tag == MsgTag.UPDATE_POLICY_STATE:
             for name, state in msg.body[MsgKey.POLICY_STATE].items():
-                policy_dict[name] = create_policy_func_dict[name]()
                 policy_dict[name].set_state(state)
                 logger.info(f"{proxy.name} updated policy {name}")

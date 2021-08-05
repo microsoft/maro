@@ -495,36 +495,27 @@ class MultiNodeDistPolicyManager(AbsPolicyManager):
             ):
                 exp_to_send[policy_name] = self._exp_cache.pop(policy_name)
                 updated.add(policy_name)
+                self.policy_dict[policy_name].store(exp_to_send[policy_name])
 
         self.allocate_trainers()
-
-        # 1. prepare exp data for each trainer node
-        msg_body_by_dest = defaultdict(dict)
-        for policy_name, exp in exp_to_send.items():
-            trainer_id_list = self._policy2trainer[policy_name]
-            for i, trainer_id in enumerate(trainer_id_list):
-                if MsgKey.EXPERIENCES not in msg_body_by_dest[trainer_id]:
-                    msg_body_by_dest[trainer_id][MsgKey.EXPERIENCES] = {}
-                sub_exp = exp[i::len(trainer_id_list)]
-                msg_body_by_dest[trainer_id][MsgKey.EXPERIENCES][policy_name] = sub_exp
-                self._logger.info(f'policy {policy_name}, exp.size = {sub_exp.size}')
-
-        # 2. scatter data and receive reply of each trainer node
-        trackers = []
-        for reply in self._proxy.scatter(MsgTag.SCATTER_EXP, SessionType.TASK, list(msg_body_by_dest.items())):
-            trackers.append(reply.body[MsgKey.TRACKER])
-        # store experience for manager to perform loss computation.
-        for policy_name, exp in exp_to_send.items():
-            self.policy_dict[policy_name].store(exp)
 
         # get gradient and update
         # TODO: handle various config.train_epochs among policies.
         name = list(self.policy_dict.keys())[0]
-        for _ in range(self.policy_dict[name].config.train_epochs):
+        for _ in range(self.num_epochs[name]):
+            msg_body_by_dest = defaultdict(dict)
             manager_grad_dict = defaultdict(dict)
-            for reply in self._proxy.scatter(MsgTag.GET_GRAD, SessionType.TASK, list(msg_body_by_dest.items())):
+            # 1. sample batches for trainers
+            for trainer_id, policy_names in self._trainer2policies:
+                if MsgKey.EXPERIENCES not in msg_body_by_dest:
+                    msg_body_by_dest[MsgKey.EXPERIENCES] = dict()
+                for policy_name in policy_names:
+                    exp_batch = self.policy_dict[policy_name].sampler.get()
+                    msg_body_by_dest[trainer_id][MsgKey.EXPERIENCES][policy_name] = exp_batch
+            # 2. scatter data and train
+            for reply in self._proxy.scatter(MsgTag.GET_UPDATE_INFO, SessionType.TASK, list(msg_body_by_dest.items())):
                 # 3. aggregate gradient
-                for policy_name, grad_dict in reply.body[MsgKey.GRAD].items():
+                for policy_name, grad_dict in reply.body[MsgKey.UPDATE_INFO].items():
                     trainer_id_list = self._policy2trainer[policy_name]
                     for param_name in grad_dict:
                         manager_grad_dict[policy_name][param_name] = manager_grad_dict[policy_name].get(
@@ -532,13 +523,14 @@ class MultiNodeDistPolicyManager(AbsPolicyManager):
 
             # 4. apply gradient
             for policy_name in manager_grad_dict:
-                """loss.backward() aims to build computaion graph.
-                The real gradients come from `manager_grad_dict`."""
-                loss = self.policy_dict[policy_name].get_loss()
-                loss.backward()
+                """get_gradient() aims to build computaion graph on policy manager.
+                The real gradients come from `manager_grad_dict`, which collects from trainers."""
+                dummy_exp = self.policy_dict[policy_name].sampler.get()[0]  # batch size = 1
+                _ = self.policy_dict[policy_name].get_update_info(dummy_exp)
 
-                self.policy_dict[policy_name].step(manager_grad_dict[policy_name])
+                self.policy_dict[policy_name].learn(manager_grad_dict[policy_name])
 
+            # 5. send updated model to trainers
             for trainer_name, policy_names in self._trainer2policies.items():
                 self._proxy.send(
                     SessionMessage(
@@ -550,9 +542,6 @@ class MultiNodeDistPolicyManager(AbsPolicyManager):
         if updated:
             self._update_history.append(updated)
             self._logger.info(f"Updated policies {updated}")
-
-        if self._post_update:
-            self._post_update(trackers)
 
     def exit(self):
         """Tell the remote trainers to exit."""
