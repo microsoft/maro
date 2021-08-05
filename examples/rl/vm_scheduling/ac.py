@@ -7,13 +7,13 @@ import sys
 import numpy as np
 import torch
 
+from env_wrapper import NUM_PMS, STATE_DIM
 from maro.rl.experience import ExperienceStore, UniformSampler
 from maro.rl.model import DiscreteACNet, FullyConnectedBlock, OptimOption
 from maro.rl.policy.algorithms import ActorCritic, ActorCriticConfig
 
 vm_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, vm_path)
-from env_wrapper import NUM_PMS, STATE_DIM
 
 config = {
     "model": {
@@ -85,7 +85,7 @@ def get_ac_policy(mode="update"):
             "critic": FullyConnectedBlock(**config["model"]["network"]["critic"])
         },
         optim_option={
-            "actor":  OptimOption(**config["model"]["optimization"]["actor"]),
+            "actor": OptimOption(**config["model"]["optimization"]["actor"]),
             "critic": OptimOption(**config["model"]["optimization"]["critic"])
         } if mode != "inference" else None
     )

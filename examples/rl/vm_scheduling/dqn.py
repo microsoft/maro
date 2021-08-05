@@ -1,4 +1,3 @@
-  
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
@@ -8,6 +7,7 @@ import sys
 import numpy as np
 import torch
 
+from env_wrapper import NUM_PMS, STATE_DIM
 from maro.rl.experience import ExperienceStore, UniformSampler
 from maro.rl.exploration import DiscreteSpaceExploration, MultiPhaseLinearExplorationScheduler
 from maro.rl.model import DiscreteQNet, FullyConnectedBlock, OptimOption
@@ -15,7 +15,6 @@ from maro.rl.policy.algorithms import DQN, DQNConfig
 
 vm_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, vm_path)
-from env_wrapper import NUM_PMS, STATE_DIM
 
 config = {
     "model": {

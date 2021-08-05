@@ -7,6 +7,7 @@ from maro.rl.learning import AbsEnvWrapper, Transition
 from maro.simulator import Env
 from maro.simulator.scenarios.vm_scheduling import AllocateAction, PostponeAction
 
+
 def post_step(env: Env, tracker: dict, transition: Transition):
     tracker["env_metric"] = env.metrics
     if "vm_cpu_cores_requirement" not in tracker:
@@ -38,9 +39,9 @@ class VMEnvWrapper(AbsEnvWrapper):
         # adjust the ratio of the success allocation and the total income when computing the reward
         self._alpha = alpha
         self._beta = beta
-        self._gamma = gamma # reward discount
-        self._num_pms = self.env._business_engine._pm_amount # the number of pms
-        self._durations = self.env._business_engine._max_tick
+        self._gamma = gamma  # reward discount
+        self._num_pms = self.env.business_engine._pm_amount # the number of pms
+        self._durations = self.env.business_engine._max_tick
         self._pm_state_history = np.zeros((pm_window_size - 1, self._num_pms, 2))
         self._legal_pm_mask = None
         self._state_dim = 2 * self._num_pms * pm_window_size + 4
@@ -89,7 +90,7 @@ class VMEnvWrapper(AbsEnvWrapper):
             else:
                 reward = 0.0 * self._alpha + 0.0 * self._beta
         elif self._event:
-            vm_unit_price = self.env._business_engine._get_unit_price(
+            vm_unit_price = self.env.business_engine._get_unit_price(
                 self._event.vm_cpu_cores_requirement, self._event.vm_memory_requirement
             )
             reward = (
@@ -126,7 +127,7 @@ class VMEnvWrapper(AbsEnvWrapper):
             self._event.vm_cpu_cores_requirement / self._max_cpu_capacity,
             self._event.vm_memory_requirement / self._max_memory_capacity,
             (self._durations - self.env.tick) * 1.0 / 200,   # TODO: CHANGE 200 TO SOMETHING CONFIGURABLE
-            self.env._business_engine._get_unit_price(
+            self.env.business_engine._get_unit_price(
                 self._event.vm_cpu_cores_requirement, self._event.vm_memory_requirement
             )
         ], dtype=np.float32)

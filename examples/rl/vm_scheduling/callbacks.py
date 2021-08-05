@@ -17,8 +17,8 @@ makedirs(log_dir, exist_ok=True)
 plt_path = join(dirname(realpath(__file__)), "plots", timestamp)
 makedirs(plt_path, exist_ok=True)
 
-
 simulation_logger = Logger("SIMUALTION", dump_folder=log_dir)
+
 
 def post_collect(trackers, ep, segment):
     # print the env metric from each rollout worker
@@ -30,6 +30,7 @@ def post_collect(trackers, ep, segment):
         metric_keys, num_trackers = trackers[0]["env_metric"].keys(), len(trackers)
         avg_metric = {key: sum(tr["env_metric"][key] for tr in trackers) / num_trackers for key in metric_keys}
         simulation_logger.info(f"average env metric (episode {ep}, segment {segment}): {avg_metric}")
+
 
 def post_evaluate(trackers, ep):
     # print the env metric from each rollout worker
