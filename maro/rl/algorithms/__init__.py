@@ -2,17 +2,12 @@
 # Licensed under the MIT license.
 
 from .abs_algorithm import AbsAlgorithm
-from .ac import ActorCritic, ActorCriticConfig
-from .ddpg import DDPG, DDPGConfig
-from .dqn import DQN, DQNConfig
-from .pg import PolicyGradient, PolicyGradientConfig
-from .index import get_algorithm_cls, get_algorithm_config_cls, get_algorithm_model_cls
+from .ac import ActorCritic
+from .ddpg import DDPG
+from .dqn import DQN
+from .pg import PolicyGradient
+from .index import get_algorithm_cls, get_algorithm_model_cls
 
 __all__ = [
-    "AbsAlgorithm",
-    "ActorCritic", "ActorCriticConfig",
-    "DDPG", "DDPGConfig",
-    "DQN", "DQNConfig",
-    "PolicyGradient", "PolicyGradientConfig",
-    "get_algorithm_cls", "get_algorithm_config_cls", "get_algorithm_model_cls"
+    "AbsAlgorithm", "ActorCritic", "DDPG", "DQN", "PolicyGradient", "get_algorithm_cls", "get_algorithm_model_cls"
 ]

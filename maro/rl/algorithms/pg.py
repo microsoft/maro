@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import Callable, Tuple
+from typing import Tuple, Union
 
 import numpy as np
 import torch
@@ -12,21 +12,6 @@ from maro.rl.model import DiscretePolicyNet
 from maro.rl.utils import get_truncated_cumulative_reward
 
 
-class PolicyGradientConfig:
-    """Configuration for the Policy Gradient algorithm.
-
-    Args:
-        reward_discount (float): Reward decay as defined in standard RL terminology.
-        clear_experience_memory_every (int): Number of ``ActorCritic.learn`` calls between experience memory clearances.
-            Defaults to 1.
-    """
-    __slots__ = ["reward_discount", "clear_experience_memory_every"]
-
-    def __init__(self, reward_discount: float, clear_experience_memory_every: int = 1):
-        self.reward_discount = reward_discount
-        self.clear_experience_memory_every = clear_experience_memory_every
-
-
 class PolicyGradient(AbsAlgorithm):
     """The vanilla Policy Gradient (VPG) algorithm, a.k.a., REINFORCE.
 
@@ -35,17 +20,14 @@ class PolicyGradient(AbsAlgorithm):
     Args:
         policy_net (DiscretePolicyNet): Multi-task model that computes action distributions and state values.
             It may or may not have a shared bottom stack.
-        config (PolicyGradientConfig): Configuration for the PG algorithm.
-        post_step (Callable): Custom function to be called after each gradient step. This can be used for tracking
-            the learning progress. The function should have signature (loss, tracker) -> None. Defaults to None.
+        reward_discount (float): Reward decay as defined in standard RL terminology.
     """
-    def __init__(self, policy_net: DiscretePolicyNet, config: PolicyGradientConfig, post_step: Callable = None):
+    def __init__(self, policy_net: DiscretePolicyNet, reward_discount: float):
         if not isinstance(policy_net, DiscretePolicyNet):
             raise TypeError("model must be an instance of 'DiscretePolicyNet'")
         super().__init__()
         self.policy_net = policy_net
-        self.config = config
-        self._post_step = post_step
+        self.reward_discount = reward_discount
         self._num_learn_calls = 0
         self.device = self.policy_net.device
 
@@ -57,43 +39,35 @@ class PolicyGradient(AbsAlgorithm):
         actions, log_p = actions.cpu().numpy(), log_p.cpu().numpy()
         return (actions[0], log_p[0]) if len(actions) == 1 else actions, log_p
 
-    def get_update_info(self, experience_batch: ExperienceSet):
+    def get_update_info(self, experience_batch: ExperienceSet) -> dict:
         return self.policy_net.get_gradients(self._get_loss(experience_batch))
-
-    def apply(self, grad_dict: dict):
-        self.policy_net.apply(grad_dict)
 
     def _get_loss(self, batch: ExperienceSet):
         self.policy_net.train()
         log_p = torch.from_numpy(np.asarray([act[1] for act in batch.actions])).to(self.device)
         rewards = torch.from_numpy(np.asarray(batch.rewards)).to(self.device)
-        returns = get_truncated_cumulative_reward(rewards, self.config.reward_discount)
+        returns = get_truncated_cumulative_reward(rewards, self.reward_discount)
         returns = torch.from_numpy(returns).to(self.device)
         return -(log_p * returns).mean()
 
-    def learn(self, experience_batch: ExperienceSet):
+    def learn(self, data: Union[ExperienceSet, dict]):
         """
         This should be called at the end of a simulation episode and the experiences obtained from
         the experience store's ``get`` method should be a sequential set, i.e., in the order in
         which they are generated during the simulation. Otherwise, the return values may be meaningless.
         """
         assert self.policy_net.trainable, "policy_net needs to have at least one optimizer registered."
-        self.policy_net.train()
-        loss = self._get_loss(experience_batch)
-        self.policy_net.step(loss)
-
-        if self._post_step:
-            self._post_step(loss.detach().cpu().numpy(), self.tracker)
-
-        self._num_learn_calls += 1
-        if self._num_learn_calls % self.config.clear_experience_memory_every == 0:
-            self.experience_store.clear()
+        # If data is an ExperienceSet, get DQN loss from the batch and backprop it throught the network. 
+        if isinstance(data, ExperienceSet):
+            self.policy_net.train()
+            loss = self._get_loss(data)
+            self.policy_net.step(loss)
+        # Otherwise treat the data as a dict of gradients that can be applied directly to the network. 
+        else:
+            self.policy_net.apply(data)
 
     def set_state(self, policy_state):
         self.policy_net.load_state_dict(policy_state)
 
     def get_state(self):
         return self.policy_net.state_dict()
-
-    def post_step(self):
-

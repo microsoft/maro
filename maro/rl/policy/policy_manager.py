@@ -10,7 +10,7 @@ from typing import Callable, Dict
 
 from maro.communication import Proxy, SessionMessage, SessionType
 from maro.rl.experience import ExperienceSet
-from maro.rl.policy import AbsCorePolicy
+from maro.rl.policy import CorePolicy
 from maro.rl.utils import MsgKey, MsgTag
 from maro.utils import Logger
 
@@ -23,32 +23,39 @@ class AbsPolicyManager(ABC):
     The actual policy instances may reside here or be distributed on a set of processes or remote nodes.
 
     Args:
-        policy_dict (Dict[str, AbsCorePolicy]): A list of policies managed by the manager.
+        policy_dict (Dict[str, CorePolicy]): A list of policies managed by the manager.
         num_epochs (Dict[str, int]): Number of learning epochs for each policy. This determine the number of
-            times ``policy.learn()`` is called in each call to ``update``. Defaults to None, in which case the
-            number of learning epochs will be set to 1 for each policy.
+            times ``policy.learn()`` is called in each call to ``update``. Defaults to 1 for each policy.
         update_trigger (Dict[str, int]): A dictionary of (policy_name, trigger), where "trigger" indicates the
-            required number of new experiences to trigger a call to ``learn`` for each policy. Defaults to None,
-            all triggers will be set to 1.
+            required number of new experiences to trigger a call to ``learn`` for each policy. Defaults to 1 for
+            each policy.
         warmup (Dict[str, int]): A dictionary of (policy_name, warmup_size), where "warmup_size" indicates the
             minimum number of experiences in the experience memory required to trigger a call to ``learn`` for
-            each policy. Defaults to None, in which case all warm-up sizes will be set to 1.
-        post_update (Callable): Custom function to process whatever information is collected by each
-            trainer (local or remote) at the end of ``update`` calls. The function signature should be (trackers,
-            ) -> None, where tracker is a list of environment wrappers' ``tracker`` members. Defaults to
-            None.
+            each policy. Defaults to 1 for each policy.
+        reset_memory (Dict[str, bool]): A dictionary of flags indicating whether each policy's experience memory
+            should be reset after it is updated. It may be necessary to set this to True for on-policy algorithms
+            to ensure that the experiences to be learned from stay up to date. Defaults to False for each policy.
     """
-    def __init__(self, policy_dict: Dict[str, AbsCorePolicy], post_update: Callable = None):
+    def __init__(
+        self,
+        policy_dict: Dict[str, CorePolicy],
+        num_epochs: Dict[str, int] = defaultdict(lambda: 1),
+        update_trigger: Dict[str, int] = defaultdict(lambda: 1),
+        warmup: Dict[str, int] = defaultdict(lambda: 1),
+        reset_memory: Dict[str, int] = defaultdict(lambda: False)
+    ):
         for policy in policy_dict.values():
-            if not isinstance(policy, AbsCorePolicy):
-                raise ValueError("Only 'AbsCorePolicy' instances can be managed by a policy manager.")
+            if not isinstance(policy, CorePolicy):
+                raise ValueError("Only 'CorePolicy' instances can be managed by a policy manager.")
 
         super().__init__()
         self.policy_dict = policy_dict
-        self._post_update = post_update
+        self.num_epochs = num_epochs
+        self.update_trigger = update_trigger
+        self.warmup = warmup
+        self.reset_memory = reset_memory
 
         self._update_history = [set(policy_dict.keys())]
-        self.tracker = {}
 
     @property
     def version(self):
@@ -59,20 +66,20 @@ class AbsPolicyManager(ABC):
         """Logic for handling incoming experiences is implemented here."""
         raise NotImplementedError
 
-    def get_state(self, cur_version: int = None):
+    def get_state(self, cur_version: int = None, inference: bool = True):
         if cur_version is None:
             cur_version = self.version - 1
         updated = set()
         for version in range(cur_version + 1, len(self._update_history)):
             updated |= self._update_history[version]
-        return {name: self.policy_dict[name].get_state() for name in updated}
+        return {name: self.policy_dict[name].algorithm.get_state(inference=inference) for name in updated}
 
 
 class LocalPolicyManager(AbsPolicyManager):
     """Policy manager that contains the actual policy instances.
 
     Args:
-        policy_dict (Dict[str, AbsCorePolicy]): Policies managed by the manager.
+        policy_dict (Dict[str, CorePolicy]): Policies managed by the manager.
         num_epochs (Dict[str, int]): Number of learning epochs for each policy. This determine the number of
             times ``policy.learn()`` is called in each call to ``update``. Defaults to None, in which case the
             number of learning epochs will be set to 1 for each policy.
@@ -82,21 +89,20 @@ class LocalPolicyManager(AbsPolicyManager):
         warmup (Dict[str, int]): A dictionary of (policy_name, warmup_size), where "warmup_size" indicates the
             minimum number of experiences in the experience memory required to trigger a call to ``learn`` for
             each policy. Defaults to None, in which case all warm-up sizes will be set to 1.
-        post_update (Callable): Custom function to process whatever information is collected by each
-            trainer (local or remote) at the end of ``update`` calls. The function signature should be (trackers,
-            ) -> None, where tracker is a list of environment wrappers' ``tracker`` members. Defaults to
-            None.
+        reset_memory (Dict[str, bool]): A dictionary of flags indicating whether each policy's experience memory
+            should be reset after it is updated. It may be necessary to set this to True for on-policy algorithms
+            to ensure that the experiences to be learned from stay up to date. Defaults to False for each policy.
         log_dir (str): Directory to store logs in. A ``Logger`` with tag "POLICY_MANAGER" will be created at init
             time and this directory will be used to save the log files generated by it. Defaults to the current
             working directory.
     """
     def __init__(
         self,
-        policy_dict: Dict[str, AbsCorePolicy],
+        policy_dict: Dict[str, CorePolicy],
         num_epochs: Dict[str, int] = None,
         update_trigger: Dict[str, int] = None,
         warmup: Dict[str, int] = None,
-        post_update: Callable = None,
+        reset_memory: Dict[str, int] = defaultdict(lambda: False),
         log_dir: str = getcwd()
     ):
         super().__init__(
@@ -104,7 +110,7 @@ class LocalPolicyManager(AbsPolicyManager):
             num_epochs=num_epochs,
             update_trigger=update_trigger,
             warmup=warmup,
-            post_update=post_update
+            reset_memory=reset_memory
         )
         self._new_exp_counter = defaultdict(int)
         self._logger = Logger("LOCAL_POLICY_MANAGER", dump_folder=log_dir)
@@ -119,23 +125,22 @@ class LocalPolicyManager(AbsPolicyManager):
         updated = set()
         for policy_name, exp in exp_by_policy.items():
             policy = self.policy_dict[policy_name]
-            policy.experience_store.put(exp)
+            policy.experience_memory.put(exp)
             self._new_exp_counter[policy_name] += exp.size
             if (
                 self._new_exp_counter[policy_name] >= self.update_trigger[policy_name] and
-                policy.experience_store.size >= self.warmup[policy_name]
+                policy.experience_memory.size >= self.warmup[policy_name]
             ):
                 for _ in range(self.num_epochs[policy_name]):
-                    policy.learn()
+                    policy.update()
+                if self.reset_memory[policy_name]:
+                    policy.reset_memory()
                 updated.add(policy_name)
                 self._new_exp_counter[policy_name] = 0
 
         if updated:
             self._update_history.append(updated)
             self._logger.info(f"Updated policies {updated}")
-
-        if self._post_update:
-            self._post_update([policy.tracker for policy in self.policy_dict.values()])
 
         self._logger.debug(f"policy update time: {time.time() - t0}")
 
@@ -144,7 +149,7 @@ class MultiProcessPolicyManager(AbsPolicyManager):
     """Policy manager that spawns a set of trainer processes for parallel training.
 
     Args:
-        policy_dict (Dict[str, AbsCorePolicy]): Policies managed by the manager.
+        policy_dict (Dict[str, CorePolicy]): Policies managed by the manager.
         num_trainers (int): Number of trainer processes to be forked.
         create_policy_func_dict (dict): A dictionary mapping policy names to functions that create them. The policy
             creation function should have exactly one parameter which is the policy name and return an ``AbsPolicy``
@@ -158,22 +163,22 @@ class MultiProcessPolicyManager(AbsPolicyManager):
         warmup (Dict[str, int]): A dictionary of (policy_name, warmup_size), where "warmup_size" indicates the
             minimum number of experiences in the experience memory required to trigger a call to ``learn`` for
             each policy. Defaults to None, in which case all warm-up sizes will be set to 1.
-        post_update (Callable): Custom function to process whatever information is collected by each
-            trainer (local or remote) at the end of ``update`` calls. The function signature should be (trackers,)
-            -> None, where tracker is a list of environment wrappers' ``tracker`` members. Defaults to None.
+        reset_memory (Dict[str, bool]): A dictionary of flags indicating whether each policy's experience memory
+            should be reset after it is updated. It may be necessary to set this to True for on-policy algorithms
+            to ensure that the experiences to be learned from stay up to date. Defaults to False for each policy.
         log_dir (str): Directory to store logs in. A ``Logger`` with tag "POLICY_MANAGER" will be created at init
             time and this directory will be used to save the log files generated by it. Defaults to the current
             working directory.
     """
     def __init__(
         self,
-        policy_dict: Dict[str, AbsCorePolicy],
+        policy_dict: Dict[str, CorePolicy],
         num_trainers: int,
         create_policy_func_dict: Dict[str, Callable],
         num_epochs: Dict[str, int] = None,
         update_trigger: Dict[str, int] = None,
         warmup: Dict[str, int] = None,
-        post_update: Callable = None,
+        reset_memory: Dict[str, int] = defaultdict(lambda: False),
         log_dir: str = getcwd(),
     ):
         super().__init__(
@@ -181,7 +186,7 @@ class MultiProcessPolicyManager(AbsPolicyManager):
             num_epochs=num_epochs,    
             update_trigger=update_trigger,
             warmup=warmup,
-            post_update=post_update
+            reset_memory=reset_memory
         )
         self._policy2trainer = {}
         self._trainer2policies = defaultdict(list)
@@ -206,7 +211,7 @@ class MultiProcessPolicyManager(AbsPolicyManager):
                     trainer_id,
                     trainer_end,
                     {name: create_policy_func_dict[name] for name in policy_names},
-                    {name: self.policy_dict[name].get_state() for name in policy_names},
+                    {name: self.policy_dict[name].algorithm.get_state() for name in policy_names},
                     {name: self.num_epochs[name] for name in policy_names}
                 ),
                 kwargs={"log_dir": log_dir}
@@ -232,19 +237,14 @@ class MultiProcessPolicyManager(AbsPolicyManager):
                 "experiences": {name: exp_to_send[name] for name in self._trainer2policies[trainer_id]}
             })
 
-        trackers = []
         for conn in self._manager_end.values():
             result = conn.recv()
-            trackers.append(result["tracker"])
             for policy_name, policy_state in result["policy"].items():
                 self.policy_dict[policy_name].set_state(policy_state)
 
         if updated:
             self._update_history.append(updated)
             self._logger.info(f"Updated policies {updated}")
-
-        if self._post_update:
-            self._post_update(trackers)
 
     def exit(self):
         """Tell the trainer processes to exit."""
@@ -256,7 +256,7 @@ class MultiNodePolicyManager(AbsPolicyManager):
     """Policy manager that communicates with a set of remote nodes for parallel training.
 
     Args:
-        policy_dict (Dict[str, AbsCorePolicy]): Policies managed by the manager.
+        policy_dict (Dict[str, CorePolicy]): Policies managed by the manager.
         group (str): Group name for the training cluster, which includes all trainers and a training manager that
             manages them.
         num_trainers (int): Number of trainers. The trainers will be identified by "TRAINER.i", where
@@ -270,9 +270,9 @@ class MultiNodePolicyManager(AbsPolicyManager):
         warmup (Dict[str, int]): A dictionary of (policy_name, warmup_size), where "warmup_size" indicates the
             minimum number of experiences in the experience memory required to trigger a call to ``learn`` for
             each policy. Defaults to None, in which case all warm-up sizes will be set to 1.
-        post_update (Callable): Custom function to process whatever information is collected by each
-            trainer (local or remote) at the end of ``update`` calls. The function signature should be (trackers,)
-            -> None, where tracker is a list of environment wrappers' ``tracker`` members. Defaults to None.
+        reset_memory (Dict[str, bool]): A dictionary of flags indicating whether each policy's experience memory
+            should be reset after it is updated. It may be necessary to set this to True for on-policy algorithms
+            to ensure that the experiences to be learned from stay up to date. Defaults to False for each policy.
         log_dir (str): Directory to store logs in. A ``Logger`` with tag "POLICY_MANAGER" will be created at init
             time and this directory will be used to save the log files generated by it. Defaults to the current
             working directory.
@@ -281,13 +281,13 @@ class MultiNodePolicyManager(AbsPolicyManager):
     """
     def __init__(
         self,
-        policy_dict: Dict[str, AbsCorePolicy],
+        policy_dict: Dict[str, CorePolicy],
         group: str,
         num_trainers: int,
         num_epochs: Dict[str, int] = None,
         update_trigger: Dict[str, int] = None,
         warmup: Dict[str, int] = None,
-        post_update: Callable = None,
+        reset_memory: Dict[str, int] = defaultdict(lambda: False),
         log_dir: str = getcwd(),
         proxy_kwargs: dict = {}
     ):
@@ -296,7 +296,7 @@ class MultiNodePolicyManager(AbsPolicyManager):
             num_epochs=num_epochs,
             update_trigger=update_trigger,
             warmup=warmup,
-            post_update=post_update
+            reset_memory=reset_memory
         )
         peers = {"trainer": num_trainers}
         self._proxy = Proxy(group, "policy_manager", peers, component_name="POLICY_MANAGER", **proxy_kwargs)
@@ -319,8 +319,10 @@ class MultiNodePolicyManager(AbsPolicyManager):
                 SessionMessage(
                     MsgTag.INIT_POLICY_STATE, self._proxy.name, trainer_name,
                     body={
-                        MsgKey.POLICY_STATE: {name: self.policy_dict[name].get_state() for name in policy_names},
-                        MsgKey.NUM_EPOCHS: {name: self.num_epochs[name] for name in policy_names}
+                        MsgKey.POLICY_STATE:
+                            {name: self.policy_dict[name].algorithm.get_state() for name in policy_names},
+                        MsgKey.NUM_EPOCHS:
+                            {name: self.num_epochs[name] for name in policy_names}
                     }
                 )
             )
@@ -344,11 +346,10 @@ class MultiNodePolicyManager(AbsPolicyManager):
                 msg_body_by_dest[trainer_id][MsgKey.EXPERIENCES] = {}
             msg_body_by_dest[trainer_id][MsgKey.EXPERIENCES][policy_name] = exp
 
-        trackers, dones = [], 0
+        dones = 0
         self._proxy.iscatter(MsgTag.LEARN, SessionType.TASK, list(msg_body_by_dest.items()))
         for msg in self._proxy.receive():
             if msg.tag == MsgTag.TRAIN_DONE:
-                trackers.append(msg.body[MsgKey.TRACKER])
                 for policy_name, policy_state in msg.body[MsgKey.POLICY_STATE].items():
                     self.policy_dict[policy_name].set_state(policy_state)
                 dones += 1
@@ -358,9 +359,6 @@ class MultiNodePolicyManager(AbsPolicyManager):
         if updated:
             self._update_history.append(updated)
             self._logger.info(f"Updated policies {updated}")
-
-        if self._post_update:
-            self._post_update(trackers)
 
     def exit(self):
         """Tell the remote trainers to exit."""

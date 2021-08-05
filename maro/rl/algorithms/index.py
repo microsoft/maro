@@ -1,10 +1,10 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from .ac import ActorCritic, ActorCriticConfig, DiscreteACNet
-from .ddpg import DDPG, ContinuousACNet, DDPGConfig
-from .dqn import DQN, DiscreteQNet, DQNConfig
-from .pg import DiscretePolicyNet, PolicyGradient, PolicyGradientConfig
+from .ac import ActorCritic, DiscreteACNet
+from .ddpg import DDPG, ContinuousACNet
+from .dqn import DQN, DiscreteQNet
+from .pg import DiscretePolicyNet, PolicyGradient
 
 ALGORITHM_INDEX = {
     "ac": ActorCritic,
@@ -13,12 +13,6 @@ ALGORITHM_INDEX = {
     "pg": PolicyGradient
 }
 
-ALGORITHM_CONFIG_INDEX = {
-    "ac": ActorCriticConfig,
-    "dqn": DQNConfig,
-    "ddpg": DDPGConfig,
-    "pg": PolicyGradientConfig
-}
 
 ALGORITHM_MODEL_INDEX = {
     "ac": DiscreteACNet,
@@ -35,15 +29,6 @@ def get_algorithm_cls(algorithm_type):
         return ALGORITHM_INDEX[algorithm_type]
 
     return algorithm_type
-
-
-def get_algorithm_config_cls(algorithm_config_type):
-    if isinstance(algorithm_config_type, str):
-        if algorithm_config_type not in ALGORITHM_CONFIG_INDEX:
-            raise KeyError(f"A string algorithm_config_type must be one of {list(ALGORITHM_CONFIG_INDEX.keys())}.")
-        return ALGORITHM_CONFIG_INDEX[algorithm_config_type]
-
-    return algorithm_config_type
 
 
 def get_algorithm_model_cls(algorithm_model_type):

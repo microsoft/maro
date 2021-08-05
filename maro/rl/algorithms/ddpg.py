@@ -13,42 +13,6 @@ from maro.rl.model import ContinuousACNet
 from maro.rl.utils import get_torch_loss_cls
 
 
-class DDPGConfig:
-    """Configuration for the DDPG algorithm.
-
-    Args:
-        reward_discount (float): Reward decay as defined in standard RL terminology.
-        target_update_freq (int): Number of training rounds between policy target model updates.
-        train_epochs (int): Number of training epochs per call to ``update()``. Defaults to 1.
-        q_value_loss_cls: A string indicating a loss class provided by torch.nn or a custom loss class for
-            the Q-value loss. If it is a string, it must be a key in ``TORCH_LOSS``. Defaults to "mse".
-        q_value_loss_coeff (float): Coefficient for policy loss in the total loss function, e.g.,
-            loss = policy_loss + ``q_value_loss_coeff`` * q_value_loss. Defaults to 1.0.
-        soft_update_coeff (float): Soft update coefficient, e.g., target_model = (soft_update_coeff) * eval_model +
-            (1-soft_update_coeff) * target_model. Defaults to 1.0.
-    """
-    __slots__ = [
-        "reward_discount", "target_update_freq", "train_epochs", "q_value_loss_func", "q_value_loss_coeff",
-        "soft_update_coeff"
-    ]
-
-    def __init__(
-        self,
-        reward_discount: float,
-        target_update_freq: int,
-        train_epochs: int = 1,
-        q_value_loss_cls="mse",
-        policy_loss_coeff: float = 1.0,
-        soft_update_coeff: float = 1.0,
-    ):
-        self.reward_discount = reward_discount
-        self.target_update_freq = target_update_freq
-        self.train_epochs = train_epochs
-        self.q_value_loss_func = get_torch_loss_cls(q_value_loss_cls)()
-        self.policy_loss_coeff = policy_loss_coeff
-        self.soft_update_coeff = soft_update_coeff
-
-
 class DDPG(AbsAlgorithm):
     """The Deep Deterministic Policy Gradient (DDPG) algorithm.
 
@@ -58,16 +22,24 @@ class DDPG(AbsAlgorithm):
 
     Args:
         ac_net (ContinuousACNet): DDPG policy and q-value models.
-        config (DDPGConfig): Configuration for DDPG algorithm.
-        post_step (Callable): Custom function to be called after each gradient step. This can be used for tracking
-            the learning progress. The function should have signature (loss, tracker) -> None. Defaults to None.
+        reward_discount (float): Reward decay as defined in standard RL terminology.
+        update_target_every (int): Number of training rounds between policy target model updates.
+        q_value_loss_cls: A string indicating a loss class provided by torch.nn or a custom loss class for
+            the Q-value loss. If it is a string, it must be a key in ``TORCH_LOSS``. Defaults to "mse".
+        q_value_loss_coeff (float): Coefficient for policy loss in the total loss function, e.g.,
+            loss = policy_loss + ``q_value_loss_coeff`` * q_value_loss. Defaults to 1.0.
+        soft_update_coeff (float): Soft update coefficient, e.g., target_model = (soft_update_coeff) * eval_model +
+            (1-soft_update_coeff) * target_model. Defaults to 1.0.
     """
     def __init__(
         self,
         ac_net: ContinuousACNet,
-        config: DDPGConfig,
+        reward_discount: float,
+        update_target_every: int,
+        q_value_loss_cls="mse",
+        q_value_loss_coeff: float = 1.0,
+        soft_update_coeff: float = 1.0,
         exploration=GaussianNoiseExploration(),
-        post_step=None
     ):
         if not isinstance(ac_net, ContinuousACNet):
             raise TypeError("model must be an instance of 'ContinuousACNet'")
@@ -79,8 +51,11 @@ class DDPG(AbsAlgorithm):
             self.target_ac_net.eval()
         else:
             self.target_ac_net = None
-        self.config = config
-        self._post_step = post_step
+        self.reward_discount = reward_discount
+        self.update_target_every = update_target_every
+        self.q_value_loss_func = get_torch_loss_cls(q_value_loss_cls)()
+        self.q_value_loss_coeff = q_value_loss_coeff
+        self.soft_update_coeff = soft_update_coeff
         self.device = self.ac_net.device
         self._num_steps = 0
 
@@ -93,7 +68,7 @@ class DDPG(AbsAlgorithm):
             actions = self.exploration(actions, state=states)
         return actions[0] if len(actions) == 1 else actions
 
-    def get_update_info(self, experience_batch: ExperienceSet):
+    def get_update_info(self, experience_batch: ExperienceSet) -> dict:
         return self.ac_net.get_gradients(self._get_loss(experience_batch))
 
     def apply(self, grad_dict: dict):
@@ -109,25 +84,28 @@ class DDPG(AbsAlgorithm):
 
         with torch.no_grad():
             next_q_values = self.target_ac_net.value(next_states)
-        target_q_values = (rewards + self.config.reward_discount * next_q_values).detach()  # (N,)
+        target_q_values = (rewards + self.reward_discount * next_q_values).detach()  # (N,)
 
         q_values = self.ac_net(states, actions=actual_actions).squeeze(dim=1)  # (N,)
-        q_value_loss = self.config.q_value_loss_func(q_values, target_q_values)
+        q_value_loss = self.q_value_loss_func(q_values, target_q_values)
         policy_loss = -self.ac_net.value(states).mean()
-        return policy_loss + self.config.q_value_loss_coeff * q_value_loss
+        return policy_loss + self.q_value_loss_coeff * q_value_loss
 
-    def learn(self, experience_batch: ExperienceSet):
+    def learn(self, data: Union[ExperienceSet, dict]):
         assert self.ac_net.trainable, "ac_net needs to have at least one optimizer registered."
-        self.ac_net.train()
-        for _ in range(self.config.train_epochs):
-            loss = self._get_loss(experience_batch)
+        # If data is an ExperienceSet, get DQN loss from the batch and backprop it throught the network. 
+        if isinstance(data, ExperienceSet):
+            self.ac_net.train()
+            loss = self._get_loss(data)
             self.ac_net.step(loss)
-            if self._post_step:
-                self._post_step(loss.detach().cpu().numpy(), self.tracker)
+        # Otherwise treat the data as a dict of gradients that can be applied directly to the network. 
+        else:
+            self.ac_net.apply(data)
 
-            self._num_steps += 1
-            if self._num_steps % self.config.target_update_freq == 0:
-                self.target_ac_net.soft_update(self.ac_net, self.config.soft_update_coeff)
+    def post_update(self, update_index: int):
+        # soft-update target network
+        if update_index % self.update_target_every == 0:
+            self.target_ac_net.soft_update(self.ac_net, self.soft_update_coeff)
 
     def set_state(self, policy_state):
         self.ac_net.load_state_dict(policy_state)

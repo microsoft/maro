@@ -97,7 +97,7 @@ based on which updates can be made.
   class AbsCorePolicy(AbsPolicy):
       def __init__(self, experience_store: ExperienceStore):
           super().__init__()
-          self.experience_store = experience_store
+          self.experience_memory = experience_store
 
       @abstractmethod
       def update(self):

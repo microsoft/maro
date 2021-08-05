@@ -8,13 +8,16 @@ import sys
 cim_path = os.path.dirname(os.path.realpath(__file__))
 if cim_path not in sys.path:
     sys.path.insert(0, cim_path)
-from ac import get_ac_policy
-from dqn import get_dqn_policy
+from algorithms.ac import get_ac
+from algorithms.dqn import get_dqn
 from env_wrapper import AGENT_IDS
 
 update_trigger = {name: 128 for name in AGENT_IDS}
 warmup = {name: 1 for name in AGENT_IDS}
 
+
+
+
 # use agent IDs as policy names since each agent uses a separate policy
-rl_policy_func_index = {name: get_dqn_policy for name in AGENT_IDS}
+rl_policy_func_index = {name: get_policy() for name in AGENT_IDS}
 agent2policy = {name: name for name in AGENT_IDS}
