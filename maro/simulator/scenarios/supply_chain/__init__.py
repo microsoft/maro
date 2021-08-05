@@ -7,5 +7,6 @@ from .datamodels import (
     ConsumerDataModel, DistributionDataModel, ManufactureDataModel, SellerDataModel, StorageDataModel, VehicleDataModel
 )
 from .facilities import FacilityBase, RetailerFacility, SupplierFacility, WarehouseFacility
-from .units import ConsumerUnit, DistributionUnit, ProductUnit, SellerUnit, ExtendUnitBase, StorageUnit, UnitBase, \
-    VehicleUnit
+from .units import (
+    ConsumerUnit, DistributionUnit, ProductUnit, SellerUnit, ExtendUnitBase, StorageUnit, UnitBase, VehicleUnit
+)

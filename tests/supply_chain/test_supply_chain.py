@@ -5,9 +5,9 @@ from typing import Optional
 import numpy as np
 
 from maro.simulator import Env
-from maro.simulator.scenarios.supply_chain import ManufactureAction, ConsumerAction
-from maro.simulator.scenarios.supply_chain import StorageUnit, ConsumerUnit, FacilityBase, VehicleUnit, \
-    DistributionUnit, SellerUnit
+from maro.simulator.scenarios.supply_chain import (
+    ConsumerAction, ConsumerUnit, DistributionUnit, FacilityBase, ManufactureAction, SellerUnit, StorageUnit, VehicleUnit
+)
 from maro.simulator.scenarios.supply_chain.business_engine import SupplyChainBusinessEngine
 from maro.simulator.scenarios.supply_chain.units.order import Order
 
