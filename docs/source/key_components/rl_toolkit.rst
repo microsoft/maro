@@ -128,6 +128,9 @@ on the policy manager type used. The provided policy manager classes include:
     :target: ../images/rl/policy_manager.svg
     :alt: RL Overview
 
+.. image:: ../images/rl/distributed_architecture.svg
+    :target: ../images/rl/distributed_architecture.svg
+    :alt: Distributed architecture
 
 Core Model
 ----------
