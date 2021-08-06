@@ -117,8 +117,12 @@ on the policy manager type used. The provided policy manager classes include:
 * ``MultiProcessPolicyManager``, which distributes policies amongst a set of trainer processes to parallelize
   policy update;
 * ``MultiNodePolicyManager``, which distributes policies amongst a set of remote compute nodes to parallelize
-  policy update;
-
+  policy update, but for each policy, only one node would be assigned to. Thus the node number should be less
+  than or equal to policy number;
+* ``MultiNodeDistPolicyManager``, which distributes policies amongst a set of remote compute nodes to parallelize
+  policy update, while supporting to divide one policy to multiple remote compute nodes. The node number can
+  be greater than the policy number. Moreover, it will perform auto-balance during training, which dynamically
+  adjusts the number of compute nodes for policies according to their experience number.
 
 .. image:: ../images/rl/policy_manager.svg
     :target: ../images/rl/policy_manager.svg
@@ -187,6 +191,23 @@ for sampling purposes. An ``ExperienceStore`` is a storage facility for experien
 a policy for storing and retrieving training data. Sampling from the experience memory can be customized by 
 registering a user-defined sampler to it.  
 
+``ExperienceSet`` offers a list-like usage:
+
+.. code-block:: python
+
+    experience_set = ExperienceSet(states, actions, rewards, next_states, info)
+    # length
+    print(len(experience_set))
+    # or
+    print(experience_set.size)
+    # index
+    experience_batch = experience_set[0]
+    # slice
+    experience_batch = experience_set[0:5]
+    # slice with stride
+    experience_batch = experience_set[0:20:5]
+    # extend
+    experience_set.extend(experience_batch)
 
 Exploration
 -----------
