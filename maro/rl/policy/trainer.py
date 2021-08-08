@@ -8,6 +8,7 @@ from os import getcwd
 from typing import Callable, Dict
 
 from maro.communication import Proxy
+from maro.rl.algorithms import AbsAlgorithm
 from maro.rl.utils import MsgKey, MsgTag
 from maro.utils import Logger
 
@@ -125,12 +126,21 @@ def trainer_node(
             t0 = time.time()
             msg_body = {
                 MsgKey.UPDATE_INFO: 
-                    {policy_dict[name].get_update_info(exp) for name, exp in msg.body[MsgKey.EXPERIENCES].items()},
+                    {name: policy_dict[name].get_update_info(exp) for name, exp in msg.body[MsgKey.EXPERIENCES].items()},
             }
             logger.info(f"total time to get update info: {time.time() - t0}")
             proxy.reply(msg, tag=MsgTag.UPDATE_INFO, body=msg_body)
         elif msg.tag == MsgTag.UPDATE_POLICY_STATE:
             for name, state in msg.body[MsgKey.POLICY_STATE].items():
-                policy_dict[name] = create_policy_func_dict[name]()
                 policy_dict[name].set_state(state)
                 logger.info(f"{proxy.name} updated policy {name}")
+
+
+def gradient_worker_node(
+    group: str,
+    create_algorithm_func: Callable[[], AbsAlgorithm],
+    worker_idx: int,
+    proxy_kwargs: dict = {},
+    log_dir: str = getcwd()
+):
+    pass

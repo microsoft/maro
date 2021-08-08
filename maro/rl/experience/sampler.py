@@ -2,11 +2,14 @@
 # Licensed under the MIT license.
 
 from abc import ABC, abstractmethod
+from collections import namedtuple
 from typing import List
 
 import numpy as np
 
 from .experience_store import ExperienceSet, ExperienceStore
+
+ExperienceBatch = namedtuple("ExperienceBatch", ["indexes", "data"])
 
 
 class AbsSampler(ABC):
@@ -20,12 +23,15 @@ class AbsSampler(ABC):
         self.experience_memory = experience_store
 
     @abstractmethod
-    def get(self) -> ExperienceSet:
+    def get(self) -> ExperienceBatch:
         """Sampling logic is defined here."""
         raise NotImplementedError
 
     def on_put(self, experience_set: ExperienceSet, indexes: List[int]):
         """Callback to be executed after calling experience_store.put()."""
+        pass
+
+    def update(self, indexes: List[int], info: list):
         pass
 
 
@@ -48,11 +54,18 @@ class UniformSampler(ABC):
         self.batch_size = batch_size
         self.replace = replace
 
-    def get(self) -> ExperienceSet:
+    def get(self) -> ExperienceBatch:
+        if self.batch_size > self.experience_memory.size or self.batch_size == -1:
+            batch_size = self.experience_memory.size
+        else:
+            batch_size = self.batch_size
         batch_size = self.experience_memory.size if self.batch_size == -1 else self.batch_size
         indexes = np.random.choice(self.experience_memory.size, size=batch_size, replace=self.replace)
-        return ExperienceSet(
-            *[[self.experience_memory.data[key][idx] for idx in indexes] for key in self.experience_memory.keys]
+        return ExperienceBatch(
+            indexes=indexes,
+            data=ExperienceSet(
+                *[[self.experience_memory.data[key][idx] for idx in indexes] for key in self.experience_memory.keys]
+            )
         )
 
 
@@ -104,7 +117,7 @@ class PrioritizedSampler(AbsSampler):
         """Set the priorities of newly added experiences to the maximum value."""
         self.update(indexes, [self._max_priority] * len(indexes))
 
-    def update(self, indexes, td_errors):
+    def update(self, indexes: List[int], td_errors):
         """Update priority values at given indexes."""
         for idx, err in zip(indexes, td_errors):
             priority = self._get_priority(err)
@@ -113,7 +126,7 @@ class PrioritizedSampler(AbsSampler):
             self._sum_tree[tree_idx] = priority
             self._update(tree_idx, delta)
 
-    def get(self):
+    def get(self) -> ExperienceBatch:
         """Priority-based sampling."""
         indexes, priorities = [], []
         segment_len = self.total() / self.batch_size
@@ -130,12 +143,15 @@ class PrioritizedSampler(AbsSampler):
         is_weights = np.power(self.experience_memory.size * sampling_probabilities, -self.beta)
         is_weights /= is_weights.max()
 
-        return ExperienceSet(
-            states=[self.experience_memory.data["states"][idx] for idx in indexes],
-            actions=[self.experience_memory.data["actions"][idx] for idx in indexes],
-            rewards=[self.experience_memory.data["rewards"][idx] for idx in indexes],
-            next_states=[self.experience_memory.data["next_states"][idx] for idx in indexes],
-            info=[{"index": idx, "is_weight": wt} for idx, wt in zip(indexes, is_weights)]
+        return ExperienceBatch(
+            indexes=indexes,
+            data=ExperienceSet(
+                states=[self.experience_memory.data["states"][idx] for idx in indexes],
+                actions=[self.experience_memory.data["actions"][idx] for idx in indexes],
+                rewards=[self.experience_memory.data["rewards"][idx] for idx in indexes],
+                next_states=[self.experience_memory.data["next_states"][idx] for idx in indexes],
+                info=[{"is_weight": wt} for wt in is_weights]
+            )
         )
 
     def _get_priority(self, error):

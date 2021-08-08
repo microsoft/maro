@@ -53,18 +53,14 @@ class ExperienceStore:
 
     Args:
         capacity (int): Maximum number of experiences that can be stored.
-        overwrite_type (str): If storage capacity is bounded, this specifies how existing entries
-            are overwritten when the capacity is exceeded. Two types of overwrite behavior are supported:
-            - "rolling", where overwrite occurs sequentially with wrap-around.
-            - "random", where overwrite occurs randomly among filled positions.
+        random_overwrite (bool): This specifies overwrite behavior when the capacity is reached. If this is True,
+            overwrite positions will be selected randomly. Otherwise, overwrites will occur sequentially with
+            wrap-around. Defaults to False.
     """
-    def __init__(self, capacity: int, overwrite_type: str = "rolling"):
-        if overwrite_type not in {"rolling", "random"}:
-            raise ValueError(f"overwrite_type must be 'rolling' or 'random', got {overwrite_type}")
-
+    def __init__(self, capacity: int, random_overwrite: bool = False):
         super().__init__()
         self._capacity = capacity
-        self._overwrite_type = overwrite_type
+        self._random_overwrite = random_overwrite
         self._keys = ExperienceSet.__slots__
         self.data = {key: [None] * self._capacity for key in self._keys}
         self._size = 0
@@ -76,9 +72,9 @@ class ExperienceStore:
         return self._capacity
 
     @property
-    def overwrite_type(self):
+    def random_overwrite(self):
         """Overwrite method after the memory has reached capacity."""
-        return self._overwrite_type
+        return self._random_overwrite
 
     @property
     def size(self):
@@ -94,9 +90,7 @@ class ExperienceStore:
         """Put a experience set in the store.
 
         Args:
-            experience_set (ExperienceSet): Experience set to be put in the store. If the store is full,
-                existing items will be overwritten according to the ``overwrite_type`` property.
-
+            experience_set (ExperienceSet): Experience set to be put in the store.
         """
         added_size = experience_set.size
         if added_size > self._capacity:
@@ -107,19 +101,20 @@ class ExperienceStore:
         if num_overwrites <= 0:
             indexes = list(range(self._size, num_experiences))
         # follow the overwrite rule set at init
-        elif self._overwrite_type == "rolling":
-            # using the negative index convention for convenience
-            start_index = self._size - self._capacity
-            indexes = list(range(start_index, start_index + added_size))
-        else:
+        elif self._random_overwrite:
             random_indexes = np.random.choice(self._size, size=num_overwrites, replace=False)
             indexes = list(range(self._size, self._capacity)) + list(random_indexes)
+        else:
+            # using the negative index convention for convenience
+            start_index = self._size - self._capacity
+            indexes = list(range(start_index, start_index + added_size)) 
 
         for key in self.data:
             for idx, val in zip(indexes, getattr(experience_set, key)):
                 self.data[key][idx] = val
 
         self._size = min(self._capacity, num_experiences)
+        return indexes
 
     def clear(self):
         """Empty the memory."""

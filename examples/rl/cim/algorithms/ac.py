@@ -8,9 +8,7 @@ import numpy as np
 import torch
 
 from maro.rl.algorithms import ActorCritic
-from maro.rl.experience import ExperienceStore
 from maro.rl.model import DiscreteACNet, FullyConnectedBlock, OptimOption
-from maro.rl.policy import CorePolicy
 
 
 cim_path = os.path.dirname(os.path.dirname(__file__))
@@ -59,25 +57,7 @@ ac_config = {
 }
 
 
-experience_config = {
-    "memory": {
-        "rollout": {"capacity": 1000, "overwrite_type": "rolling"},
-        "update": {"capacity": 100000, "overwrite_type": "rolling"}
-    },
-    "sampler": {
-        "rollout": {
-            "batch_size": -1,
-            "replace": False
-        },
-        "update": {
-            "batch_size": 128,
-            "replace": True
-        }
-    }
-}
-
-
-def get_ac_policy(learning: bool = True):
+def get_algorithm():
     class MyACNET(DiscreteACNet):
         def forward(self, states, actor: bool = True, critic: bool = True):
             states = torch.from_numpy(np.asarray(states))
@@ -98,10 +78,7 @@ def get_ac_policy(learning: bool = True):
         optim_option={
             "actor":  OptimOption(**ac_net_config["optimization"]["actor"]),
             "critic": OptimOption(**ac_net_config["model"]["optimization"]["critic"])
-        } if learning else None
+        }
     )
 
-    return CorePolicy(
-        ActorCritic(ac_net, ac_config["algorithm"]),
-        ExperienceStore(**experience_config["memory"])
-    )
+    return ActorCritic(ac_net, ac_config["algorithm"])

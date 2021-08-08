@@ -15,7 +15,7 @@ from general import log_dir, rl_policy_func_index, update_trigger, warmup
 
 def get_policy_manager():
     train_mode = getenv("TRAINMODE", default="single-process")
-    policy_dict = {name: func() for name, func in rl_policy_func_index.items()}
+    policy_dict = {name: func(rollout_only=False) for name, func in rl_policy_func_index.items()}
     if train_mode == "single-process":
         return LocalPolicyManager(
             policy_dict,

@@ -3,7 +3,7 @@
 
 import time
 from abc import ABC, abstractmethod
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 from multiprocessing import Pipe, Process
 from os import getcwd
 from typing import Callable, Dict
@@ -15,6 +15,11 @@ from maro.rl.utils import MsgKey, MsgTag
 from maro.utils import Logger
 
 from .trainer import trainer_process
+
+
+PolicyUpdateOptions = namedtuple(
+    "PolicyUpdateOptions", ["update_trigger", "warmup", "num_epochs", "reset_memory", "data_parallel"]
+)
 
 
 class AbsPolicyManager(ABC):
@@ -36,24 +41,14 @@ class AbsPolicyManager(ABC):
             should be reset after it is updated. It may be necessary to set this to True for on-policy algorithms
             to ensure that the experiences to be learned from stay up to date. Defaults to False for each policy.
     """
-    def __init__(
-        self,
-        policy_dict: Dict[str, CorePolicy],
-        num_epochs: Dict[str, int] = defaultdict(lambda: 1),
-        update_trigger: Dict[str, int] = defaultdict(lambda: 1),
-        warmup: Dict[str, int] = defaultdict(lambda: 1),
-        reset_memory: Dict[str, int] = defaultdict(lambda: False)
-    ):
+    def __init__(self, policy_dict: Dict[str, CorePolicy], update_option: Dict[str, PolicyUpdateOptions]):
         for policy in policy_dict.values():
             if not isinstance(policy, CorePolicy):
                 raise ValueError("Only 'CorePolicy' instances can be managed by a policy manager.")
 
         super().__init__()
         self.policy_dict = policy_dict
-        self.num_epochs = num_epochs
-        self.update_trigger = update_trigger
-        self.warmup = warmup
-        self.reset_memory = reset_memory
+        self.update_option = update_option
 
         self._update_history = [set(policy_dict.keys())]
 
@@ -99,19 +94,10 @@ class LocalPolicyManager(AbsPolicyManager):
     def __init__(
         self,
         policy_dict: Dict[str, CorePolicy],
-        num_epochs: Dict[str, int] = None,
-        update_trigger: Dict[str, int] = None,
-        warmup: Dict[str, int] = None,
-        reset_memory: Dict[str, int] = defaultdict(lambda: False),
+        update_option: Dict[str, PolicyUpdateOptions],
         log_dir: str = getcwd()
     ):
-        super().__init__(
-            policy_dict,
-            num_epochs=num_epochs,
-            update_trigger=update_trigger,
-            warmup=warmup,
-            reset_memory=reset_memory
-        )
+        super().__init__(policy_dict, update_option)
         self._new_exp_counter = defaultdict(int)
         self._logger = Logger("LOCAL_POLICY_MANAGER", dump_folder=log_dir)
 
@@ -128,12 +114,12 @@ class LocalPolicyManager(AbsPolicyManager):
             policy.experience_memory.put(exp)
             self._new_exp_counter[policy_name] += exp.size
             if (
-                self._new_exp_counter[policy_name] >= self.update_trigger[policy_name] and
-                policy.experience_memory.size >= self.warmup[policy_name]
+                self._new_exp_counter[policy_name] >= self.update_option[policy_name].update_trigger and
+                policy.experience_memory.size >= self.update_option[policy_name].warmup
             ):
-                for _ in range(self.num_epochs[policy_name]):
+                for _ in range(self.update_option[policy_name].num_epochs):
                     policy.update()
-                if self.reset_memory[policy_name]:
+                if self.update_option[policy_name].reset_memory:
                     policy.reset_memory()
                 updated.add(policy_name)
                 self._new_exp_counter[policy_name] = 0
@@ -173,21 +159,12 @@ class MultiProcessPolicyManager(AbsPolicyManager):
     def __init__(
         self,
         policy_dict: Dict[str, CorePolicy],
+        update_option: Dict[str, PolicyUpdateOptions],
         num_trainers: int,
         create_policy_func_dict: Dict[str, Callable],
-        num_epochs: Dict[str, int] = None,
-        update_trigger: Dict[str, int] = None,
-        warmup: Dict[str, int] = None,
-        reset_memory: Dict[str, int] = defaultdict(lambda: False),
         log_dir: str = getcwd(),
     ):
-        super().__init__(
-            policy_dict,
-            num_epochs=num_epochs,    
-            update_trigger=update_trigger,
-            warmup=warmup,
-            reset_memory=reset_memory
-        )
+        super().__init__(policy_dict, update_option)
         self._policy2trainer = {}
         self._trainer2policies = defaultdict(list)
         self._exp_cache = defaultdict(ExperienceSet)
@@ -212,7 +189,7 @@ class MultiProcessPolicyManager(AbsPolicyManager):
                     trainer_end,
                     {name: create_policy_func_dict[name] for name in policy_names},
                     {name: self.policy_dict[name].algorithm.get_state() for name in policy_names},
-                    {name: self.num_epochs[name] for name in policy_names}
+                    {name: self.update_option[name] for name in policy_names}
                 ),
                 kwargs={"log_dir": log_dir}
             )
@@ -225,8 +202,8 @@ class MultiProcessPolicyManager(AbsPolicyManager):
             self._num_experiences_by_policy[policy_name] += exp.size
             self._exp_cache[policy_name].extend(exp)
             if (
-                self._exp_cache[policy_name].size >= self.update_trigger[policy_name] and
-                self._num_experiences_by_policy[policy_name] >= self.warmup[policy_name]
+                self._exp_cache[policy_name].size >= self.update_option[policy_name].update_trigger and
+                self._num_experiences_by_policy[policy_name] >= self.update_option[policy_name].warmup
             ):
                 exp_to_send[policy_name] = self._exp_cache.pop(policy_name)
                 updated.add(policy_name)
@@ -284,20 +261,11 @@ class MultiNodePolicyManager(AbsPolicyManager):
         policy_dict: Dict[str, CorePolicy],
         group: str,
         num_trainers: int,
-        num_epochs: Dict[str, int] = None,
-        update_trigger: Dict[str, int] = None,
-        warmup: Dict[str, int] = None,
-        reset_memory: Dict[str, int] = defaultdict(lambda: False),
+        update_option: Dict[str, PolicyUpdateOptions],
         log_dir: str = getcwd(),
         proxy_kwargs: dict = {}
     ):
-        super().__init__(
-            policy_dict,
-            num_epochs=num_epochs,
-            update_trigger=update_trigger,
-            warmup=warmup,
-            reset_memory=reset_memory
-        )
+        super().__init__(policy_dict, update_option)
         peers = {"trainer": num_trainers}
         self._proxy = Proxy(group, "policy_manager", peers, component_name="POLICY_MANAGER", **proxy_kwargs)
 
@@ -318,12 +286,7 @@ class MultiNodePolicyManager(AbsPolicyManager):
             self._proxy.send(
                 SessionMessage(
                     MsgTag.INIT_POLICY_STATE, self._proxy.name, trainer_name,
-                    body={
-                        MsgKey.POLICY_STATE:
-                            {name: self.policy_dict[name].algorithm.get_state() for name in policy_names},
-                        MsgKey.NUM_EPOCHS:
-                            {name: self.num_epochs[name] for name in policy_names}
-                    }
+                    body={MsgKey.POLICY_STATE: {name: self.policy_dict[name].get_state() for name in policy_names}}
                 )
             )
 
@@ -333,8 +296,8 @@ class MultiNodePolicyManager(AbsPolicyManager):
             self._num_experiences_by_policy[policy_name] += exp.size
             self._exp_cache[policy_name].extend(exp)
             if (
-                self._exp_cache[policy_name].size >= self.update_trigger[policy_name] and
-                self._num_experiences_by_policy[policy_name] >= self.warmup[policy_name]
+                self._exp_cache[policy_name].size >= self.update_option[policy_name].update_trigger and
+                self._num_experiences_by_policy[policy_name] >= self.update_option[policy_name].warmup
             ):
                 exp_to_send[policy_name] = self._exp_cache.pop(policy_name)
                 updated.add(policy_name)

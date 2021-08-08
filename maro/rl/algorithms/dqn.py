@@ -1,15 +1,18 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import Union
+from collections import namedtuple
+from typing import List, Tuple, Union
 
 import numpy as np
 import torch
 
 from maro.rl.algorithms import AbsAlgorithm
-from maro.rl.experience import ExperienceSet
+from maro.rl.experience import ExperienceBatch, ExperienceStore
 from maro.rl.exploration import DiscreteSpaceExploration, EpsilonGreedyExploration
 from maro.rl.model import DiscreteQNet
+
+DQNLossInfo = namedtuple("DQNLossInfo", ["td_error", "loss", "grad"])
 
 
 class DQN(AbsAlgorithm):
@@ -55,6 +58,10 @@ class DQN(AbsAlgorithm):
         self.double = double
         self.device = self.q_net.device
         self._loss_func = torch.nn.MSELoss()
+        self._experience_memory = None
+
+        self._q_net_version = 0
+        self._target_q_net_version = 0
 
     def choose_action(self, states, explore: bool = True) -> Union[int, np.ndarray]:
         self.q_net.eval()
@@ -69,13 +76,19 @@ class DQN(AbsAlgorithm):
             actions = self.exploration(actions, state=states)
         return actions[0] if len(actions) == 1 else actions
 
-    def get_update_info(self, experience_batch: ExperienceSet) -> dict:
-        return self.q_net.get_gradients(self._get_loss(experience_batch))
+    def apply(self, grad_dict: dict):
+        self.q_net.apply(grad_dict)
+        self._q_net_version += 1
+        if self._q_net_version - self._target_q_net_version == self.update_target_every:
+            self._update_target()
 
-    def _get_loss(self, experience_batch: ExperienceSet):
-        states, next_states = experience_batch.states, experience_batch.next_states
-        actions = torch.from_numpy(np.asarray(experience_batch.actions)).to(self.device)
-        rewards = torch.from_numpy(np.asarray(experience_batch.rewards)).to(self.device)
+    def learn(self, batch: ExperienceBatch, inplace: bool = True):
+        assert self.q_net.trainable, "q_net needs to have at least one optimizer registered."
+        # If data is an ExperienceSet, get DQN loss from the batch and backprop it throught the network. 
+        self.q_net.train()
+        states, next_states = batch.data.states, batch.data.next_states
+        actions = torch.from_numpy(np.asarray(batch.data.actions)).to(self.device)
+        rewards = torch.from_numpy(np.asarray(batch.data.rewards)).to(self.device)
 
         # get target Q values
         with torch.no_grad():
@@ -87,25 +100,26 @@ class DQN(AbsAlgorithm):
 
         target_q_values = (rewards + self.reward_discount * next_q_values).detach()  # (N,)
 
-        # gradient step
+        # loss computation
         q_values = self.q_net.q_values(states, actions)
-        return self._loss_func(q_values, target_q_values)
+        td_errors = target_q_values - q_values
+        loss = self._loss_func(q_values, target_q_values)
 
-    def learn(self, data: Union[ExperienceSet, dict]):
-        assert self.q_net.trainable, "q_net needs to have at least one optimizer registered."
-        # If data is an ExperienceSet, get DQN loss from the batch and backprop it throught the network. 
-        if isinstance(data, ExperienceSet):
-            self.q_net.train()
-            loss = self._get_loss(data)
+        if inplace:
             self.q_net.step(loss)
-        # Otherwise treat the data as a dict of gradients that can be applied directly to the network. 
+            grad = None
+            self._q_net_version += 1
+            if self._q_net_version - self._target_q_net_version == self.update_target_every:
+                self._update_target()
         else:
-            self.q_net.apply(data) 
+            grad = self.q_net.get_gradients(loss)
 
-    def post_update(self, update_index: int):
+        return DQNLossInfo(td_errors, loss, grad), batch.indexes
+
+    def _update_target(self):
         # soft-update target network
-        if update_index % self.update_target_every == 0:
-            self.target_q_net.soft_update(self.q_net, self.soft_update_coeff)
+        self.target_q_net.soft_update(self.q_net, self.soft_update_coeff)
+        self._target_q_net_version = self._q_net_version
 
     def set_state(self, policy_state):
         self.q_net.load_state_dict(policy_state["eval"])

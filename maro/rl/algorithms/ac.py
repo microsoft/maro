@@ -1,16 +1,20 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import Tuple, Union
+from collections import namedtuple
+from operator import index
+from typing import Tuple
 
 import numpy as np
 import torch
 from torch.distributions import Categorical
 
 from maro.rl.algorithms import AbsAlgorithm
-from maro.rl.experience import ExperienceSet
+from maro.rl.experience import ExperienceBatch
 from maro.rl.model import DiscreteACNet
 from maro.rl.utils import get_torch_loss_cls
+
+ACLossInfo = namedtuple("ACLossInfo", ["actor_loss", "critic_loss", "entropy", "total_loss", "grad"])
 
 
 class ActorCritic(AbsAlgorithm):
@@ -66,15 +70,17 @@ class ActorCritic(AbsAlgorithm):
         actions, log_p = actions.cpu().numpy(), log_p.cpu().numpy()
         return (actions[0], log_p[0]) if len(actions) == 1 else (actions, log_p)
 
-    def get_update_info(self, experience_batch: ExperienceSet) -> dict:
-        return self.ac_net.get_gradients(self._get_loss(experience_batch))
+    def apply(self, grad_dict: dict):
+        """Apply gradients to the underlying parameterized model."""
+        self.ac_net.apply(grad_dict)
 
-    def _get_loss(self, batch: ExperienceSet):
+    def learn(self, batch: ExperienceBatch, inplace: bool = True):
+        assert self.ac_net.trainable, "ac_net needs to have at least one optimizer registered."
         self.ac_net.train()
-        states, next_states = batch.states, batch.next_states
-        actions = torch.from_numpy(np.asarray([act[0] for act in batch.actions])).to(self.device)
-        log_p = torch.from_numpy(np.asarray([act[1] for act in batch.actions])).to(self.device)
-        rewards = torch.from_numpy(np.asarray(batch.rewards)).to(self.device)
+        states, next_states = batch.data.states, batch.data.next_states
+        actions = torch.from_numpy(np.asarray([act[0] for act in batch.data.actions])).to(self.device)
+        log_p = torch.from_numpy(np.asarray([act[1] for act in batch.data.actions])).to(self.device)
+        rewards = torch.from_numpy(np.asarray(batch.data.rewards)).to(self.device)
 
         action_probs, state_values = self.ac_net(states)
         state_values = state_values.squeeze()
@@ -96,23 +102,21 @@ class ActorCritic(AbsAlgorithm):
         # critic_loss
         critic_loss = self.critic_loss_func(state_values, return_est)
 
-        # total loss
-        loss = actor_loss + self.critic_loss_coeff * critic_loss
+        # entropy
         if self.entropy_coeff is not None:
-            loss -= self.entropy_coeff * Categorical(action_probs).entropy().mean()
-
-        return loss
-
-    def learn(self, data: Union[ExperienceSet, dict]):
-        assert self.ac_net.trainable, "ac_net needs to have at least one optimizer registered."
-        # If data is an ExperienceSet, get DQN loss from the batch and backprop it throught the network. 
-        if isinstance(data, ExperienceSet):
-            self.ac_net.train() 
-            loss = self._get_loss(data)
-            self.ac_net.step(loss)
-        # Otherwise treat the data as a dict of gradients that can be applied directly to the network. 
+            entropy = -Categorical(action_probs).entropy().mean()
         else:
-            self.ac_net.apply(data)
+            entropy = 0
+
+        total_loss = actor_loss + self.critic_loss_coeff * critic_loss + self.entropy_coeff * entropy
+
+        if inplace:
+            self.ac_net.step(total_loss)
+            grad = None
+        else:
+            grad = self.ac_net.get_gradients(total_loss)
+
+        return ACLossInfo(actor_loss, critic_loss, entropy, total_loss, grad), batch.indexes
 
     def set_state(self, policy_state):
         self.ac_net.load_state_dict(policy_state)

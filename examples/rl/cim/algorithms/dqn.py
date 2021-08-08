@@ -9,10 +9,8 @@ import torch
 import torch.nn as nn
 
 from maro.rl.algorithms import DQN
-from maro.rl.experience import ExperienceStore, UniformSampler
 from maro.rl.exploration import EpsilonGreedyExploration, MultiPhaseLinearExplorationScheduler
 from maro.rl.model import DiscreteQNet, FullyConnectedBlock, OptimOption
-from maro.rl.policy import CorePolicy
 
 
 cim_path = os.path.dirname(os.path.realpath(__file__))
@@ -55,24 +53,6 @@ exploration_config = {
 }
 
 
-experience_config = {
-    "memory": {
-        "rollout": {"capacity": 1000, "overwrite_type": "rolling"},
-        "update": {"capacity": 100000, "overwrite_type": "rolling"}
-    },
-    "sampler": {
-        "rollout": {
-            "batch_size": -1,
-            "replace": False
-        },
-        "update": {
-            "batch_size": 128,
-            "replace": True
-        }
-    }
-}
-
-
 class QNet(DiscreteQNet):
     def __init__(self, component: nn.Module, optim_option: OptimOption=None, device=None):
         super().__init__(component, optim_option=optim_option, device=device)
@@ -84,10 +64,10 @@ class QNet(DiscreteQNet):
         return self.component(states)
 
 
-def get_dqn_policy(learning: bool = True):
+def get_algorithm():
     qnet = QNet(
         FullyConnectedBlock(**q_net_config["network"]),
-        optim_option=OptimOption(**q_net_config["optimization"]) if learning else None
+        optim_option=OptimOption(**q_net_config["optimization"])
     )
     exploration = EpsilonGreedyExploration()
     exploration.register_schedule(
@@ -95,16 +75,4 @@ def get_dqn_policy(learning: bool = True):
         param_name="epsilon",
         **exploration_config
     )
-    return CorePolicy(
-        DQN(qnet, **dqn_config, exploration=exploration),
-        ExperienceStore(**experience_config)
-    )
-    if mode == "update":
-        exp_memory = ExperienceStore(**config["experience_store"]["update"])
-        exp_sampler_kwargs = config["sampler"]["update"]
-    else:
-        exp_memory = ExperienceStore(**config["experience_store"]["rollout" if mode == "inference" else "update"])
-        exp_sampler_kwargs = config["sampler"]["rollout" if mode == "inference" else "update"]
-
-    algorithm = 
-    return CorePolicy(algorithm, exp_memory, exp_sampler_cls=UniformSampler, exp_sampler_kwargs=exp_sampler_kwargs)
+    return DQN(qnet, **dqn_config, exploration=exploration)
