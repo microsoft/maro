@@ -64,9 +64,6 @@ class CorePolicy(AbsPolicy):
         """
         indexes = self.experience_memory.put(exp)
         self.sampler.on_new(exp, indexes)
-        # print(
-        #     f"exp mem size = {self.experience_memory.size}, incoming: {exp.size}, new exp = {self._new_exp_counter}"
-        # )
 
     def get_batch(self):
         self.sampler.get()

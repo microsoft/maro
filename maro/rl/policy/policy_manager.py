@@ -208,20 +208,21 @@ class MultiProcessPolicyManager(AbsPolicyManager):
                 exp_to_send[policy_name] = self._exp_cache.pop(policy_name)
                 updated.add(policy_name)
 
-        for trainer_id, conn in self._manager_end.items():
-            conn.send({
-                "type": "train",
-                "experiences": {name: exp_to_send[name] for name in self._trainer2policies[trainer_id]}
-            })
+        if exp_to_send:
+            for trainer_id, conn in self._manager_end.items():
+                conn.send({
+                    "type": "train",
+                    "experiences": {name: exp_to_send[name] for name in self._trainer2policies[trainer_id]}
+                })
 
-        for conn in self._manager_end.values():
-            result = conn.recv()
-            for policy_name, policy_state in result["policy"].items():
-                self.policy_dict[policy_name].algorithm.set_state(policy_state)
+            for conn in self._manager_end.values():
+                result = conn.recv()
+                for policy_name, policy_state in result["policy"].items():
+                    self.policy_dict[policy_name].algorithm.set_state(policy_state)
 
-        if updated:
-            self._update_history.append(updated)
-            self._logger.info(f"Updated policies {updated}")
+            if updated:
+                self._update_history.append(updated)
+                self._logger.info(f"Updated policies {updated}")
 
     def exit(self):
         """Tell the trainer processes to exit."""
@@ -307,24 +308,24 @@ class MultiNodePolicyManager(AbsPolicyManager):
                 exp_to_send[policy_name] = self._exp_cache.pop(policy_name)
                 updated.add(policy_name)
 
-        msg_body_by_dest = defaultdict(dict)
-        for policy_name, exp in exp_to_send.items():
-            trainer_id = self._policy2trainer[policy_name]
-            if MsgKey.EXPERIENCES not in msg_body_by_dest[trainer_id]:
-                msg_body_by_dest[trainer_id][MsgKey.EXPERIENCES] = {}
-            msg_body_by_dest[trainer_id][MsgKey.EXPERIENCES][policy_name] = exp
+        if exp_to_send:
+            msg_body_by_dest = defaultdict(dict)
+            for policy_name, exp in exp_to_send.items():
+                trainer_id = self._policy2trainer[policy_name]
+                if MsgKey.EXPERIENCES not in msg_body_by_dest[trainer_id]:
+                    msg_body_by_dest[trainer_id][MsgKey.EXPERIENCES] = {}
+                msg_body_by_dest[trainer_id][MsgKey.EXPERIENCES][policy_name] = exp
 
-        dones = 0
-        self._proxy.iscatter(MsgTag.LEARN, SessionType.TASK, list(msg_body_by_dest.items()))
-        for msg in self._proxy.receive():
-            if msg.tag == MsgTag.TRAIN_DONE:
-                for policy_name, policy_state in msg.body[MsgKey.POLICY_STATE].items():
-                    self.policy_dict[policy_name].algorithm.set_state(policy_state)
-                dones += 1
-                if dones == len(msg_body_by_dest):
-                    break
+            dones = 0
+            self._proxy.iscatter(MsgTag.LEARN, SessionType.TASK, list(msg_body_by_dest.items()))
+            for msg in self._proxy.receive():
+                if msg.tag == MsgTag.TRAIN_DONE:
+                    for policy_name, policy_state in msg.body[MsgKey.POLICY_STATE].items():
+                        self.policy_dict[policy_name].algorithm.set_state(policy_state)
+                    dones += 1
+                    if dones == len(msg_body_by_dest):
+                        break
 
-        if updated:
             self._update_history.append(updated)
             self._logger.info(f"Updated policies {updated}")
 

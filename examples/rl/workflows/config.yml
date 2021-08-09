@@ -17,7 +17,7 @@ sync:
   rollout_mode: multi-node # single-process, multi-process, multi-node
   num_rollout_workers: 3
   min_finished_workers: 2
-  max_extra_recv_tries: 2
+  max_extra_recv_tries: 0
   extra_recv_timeout: 200
 async:
   group: async

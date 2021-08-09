@@ -59,7 +59,7 @@ class UniformSampler(AbsSampler):
             batch_size = self.experience_memory.size
         else:
             batch_size = self.batch_size
-        batch_size = self.experience_memory.size if self.batch_size == -1 else self.batch_size
+
         indexes = np.random.choice(self.experience_memory.size, size=batch_size, replace=self.replace)
         return ExperienceBatch(
             indexes=indexes,
