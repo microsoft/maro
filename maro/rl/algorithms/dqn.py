@@ -8,7 +8,7 @@ import numpy as np
 import torch
 
 from maro.rl.algorithms import AbsAlgorithm
-from maro.rl.experience import ExperienceBatch, ExperienceStore
+from maro.rl.experience import ExperienceBatch, ExperienceMemory
 from maro.rl.exploration import DiscreteSpaceExploration, EpsilonGreedyExploration
 from maro.rl.model import DiscreteQNet
 
@@ -70,9 +70,9 @@ class DQN(AbsAlgorithm):
             _, actions = q_for_all_actions.max(dim=1)
 
         actions = actions.cpu().numpy()
-        if self.exploration.action_space is None:
-            self.exploration.set_action_space(np.arange(q_for_all_actions.shape[1]))
         if explore:
+            if self.exploration.action_space is None:
+                self.exploration.set_action_space(np.arange(q_for_all_actions.shape[1]))
             actions = self.exploration(actions, state=states)
         return actions[0] if len(actions) == 1 else actions
 

@@ -217,7 +217,7 @@ class MultiProcessPolicyManager(AbsPolicyManager):
         for conn in self._manager_end.values():
             result = conn.recv()
             for policy_name, policy_state in result["policy"].items():
-                self.policy_dict[policy_name].set_state(policy_state)
+                self.policy_dict[policy_name].algorithm.set_state(policy_state)
 
         if updated:
             self._update_history.append(updated)
@@ -259,9 +259,9 @@ class MultiNodePolicyManager(AbsPolicyManager):
     def __init__(
         self,
         policy_dict: Dict[str, CorePolicy],
+        update_option: Dict[str, PolicyUpdateOptions],
         group: str,
         num_trainers: int,
-        update_option: Dict[str, PolicyUpdateOptions],
         log_dir: str = getcwd(),
         proxy_kwargs: dict = {}
     ):
@@ -286,7 +286,12 @@ class MultiNodePolicyManager(AbsPolicyManager):
             self._proxy.send(
                 SessionMessage(
                     MsgTag.INIT_POLICY_STATE, self._proxy.name, trainer_name,
-                    body={MsgKey.POLICY_STATE: {name: self.policy_dict[name].get_state() for name in policy_names}}
+                    body={
+                        MsgKey.POLICY_STATE: {
+                            name: self.policy_dict[name].algorithm.get_state(inference=False)
+                            for name in policy_names
+                        }
+                    }
                 )
             )
 
@@ -314,7 +319,7 @@ class MultiNodePolicyManager(AbsPolicyManager):
         for msg in self._proxy.receive():
             if msg.tag == MsgTag.TRAIN_DONE:
                 for policy_name, policy_state in msg.body[MsgKey.POLICY_STATE].items():
-                    self.policy_dict[policy_name].set_state(policy_state)
+                    self.policy_dict[policy_name].algorithm.set_state(policy_state)
                 dones += 1
                 if dones == len(msg_body_by_dest):
                     break

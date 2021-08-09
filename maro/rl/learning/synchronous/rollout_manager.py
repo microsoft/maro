@@ -491,7 +491,7 @@ class MultiNodeRolloutManager(AbsRolloutManager):
             return
 
         for policy_name, exp in msg.body[MsgKey.EXPERIENCES].items():
-            combined_exp[policy_name].extend(exp)
+            combined_exp[policy_name].extend(exp.data)
 
         # The message is what we expect
         if msg.body[MsgKey.EPISODE] == ep and msg.body[MsgKey.SEGMENT] == segment:

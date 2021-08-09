@@ -4,7 +4,7 @@
 from abc import ABC, abstractmethod
 
 from maro.rl.algorithms import AbsAlgorithm
-from maro.rl.experience import ExperienceSet, ExperienceStore, UniformSampler
+from maro.rl.experience import ExperienceSet, ExperienceMemory, UniformSampler
 
 
 class AbsPolicy(ABC):
@@ -50,7 +50,7 @@ class CorePolicy(AbsPolicy):
     ):
         super().__init__()
         self.algorithm = algorithm
-        self.experience_memory = ExperienceStore(memory_capacity, random_overwrite=random_overwrite)
+        self.experience_memory = ExperienceMemory(memory_capacity, random_overwrite=random_overwrite)
         self.sampler = sampler_cls(self.experience_memory, **sampler_kwargs)
 
         self.exploring = False
@@ -58,12 +58,12 @@ class CorePolicy(AbsPolicy):
     def choose_action(self, state):
         return self.algorithm.choose_action(state, explore=self.exploring)
 
-    def store_experiences(self, exp: ExperienceSet) -> bool:
+    def memorize(self, exp: ExperienceSet) -> bool:
         """
         Store incoming experiences and update if necessary.
         """
         indexes = self.experience_memory.put(exp)
-        self.sampler.on_put(exp, indexes)
+        self.sampler.on_new(exp, indexes)
         # print(
         #     f"exp mem size = {self.experience_memory.size}, incoming: {exp.size}, new exp = {self._new_exp_counter}"
         # )
@@ -81,10 +81,10 @@ class CorePolicy(AbsPolicy):
         self.sampler.update(indexes, loss_info)
 
     def explore(self):
-        self.exploring = False
+        self.exploring = True
 
     def exploit(self):
-        self.exploring = True
+        self.exploring = False
 
     def exploration_step(self):
         if self.algorithm.exploration:

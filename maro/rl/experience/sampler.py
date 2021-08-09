@@ -7,7 +7,7 @@ from typing import List
 
 import numpy as np
 
-from .experience_store import ExperienceSet, ExperienceStore
+from .memory import ExperienceSet, ExperienceMemory
 
 ExperienceBatch = namedtuple("ExperienceBatch", ["indexes", "data"])
 
@@ -16,41 +16,41 @@ class AbsSampler(ABC):
     """Sampler class.
 
     Args:
-        experience_store (ExperienceStore): experience manager the sampler is associated with.
+        experience_memory (ExperienceMemory): experience manager the sampler is associated with.
     """
-    def __init__(self, experience_store: ExperienceStore):
+    def __init__(self, experience_memory: ExperienceMemory):
         super().__init__()
-        self.experience_memory = experience_store
+        self.experience_memory = experience_memory
 
     @abstractmethod
     def get(self) -> ExperienceBatch:
         """Sampling logic is defined here."""
         raise NotImplementedError
 
-    def on_put(self, experience_set: ExperienceSet, indexes: List[int]):
-        """Callback to be executed after calling experience_store.put()."""
+    def on_new(self, experience_set: ExperienceSet, indexes: List[int]):
+        """Callback to be executed after calling experience_memory.put()."""
         pass
 
     def update(self, indexes: List[int], info: list):
         pass
 
 
-class UniformSampler(ABC):
+class UniformSampler(AbsSampler):
     """Uniform sampler class.
 
     Args:
-        experience_store (ExperienceStore): experience manager the sampler is associated with.
+        experience_memory (ExperienceMemory): experience manager the sampler is associated with.
         batch_size (int): Batch size for the default uniform sampling. This can be set to -1 if the required
             batch size is the number of items stored. To get the whole data, set this to -1 and ``replace`` to
             False. Defaults to 32.
         replace (bool): A flag indicating whether the default uniform sampling is with replacement or without.
             Defaults to True.
     """
-    def __init__(self, experience_store: ExperienceStore, batch_size: int = 32, replace: bool = True):
+    def __init__(self, experience_memory: ExperienceMemory, batch_size: int = 32, replace: bool = True):
         if batch_size <= 0 and batch_size != -1:
             raise ValueError("batch_size must be -1 or a positive integer")
-        super().__init__()
-        self.experience_memory = experience_store
+        super().__init__(experience_memory)
+        self.experience_memory = experience_memory
         self.batch_size = batch_size
         self.replace = replace
 
@@ -80,7 +80,7 @@ class PrioritizedSampler(AbsSampler):
     The rank-based variant is not implemented here.
 
     Args:
-        experience_store (ExperienceStore): experience manager the sampler is associated with.
+        experience_memory (ExperienceMemory): experience manager the sampler is associated with.
         batch_size (int): mini-batch size. Defaults to 32.
         alpha (float): Prioritization strength. Sampling probabilities are calculated according to
             P = p_i^alpha / sum(p_k^alpha). Defaults to 0.6.
@@ -92,7 +92,7 @@ class PrioritizedSampler(AbsSampler):
     """
     def __init__(
         self,
-        experience_store: ExperienceStore,
+        experience_memory: ExperienceMemory,
         batch_size: int = 32,
         alpha: float = 0.6,
         beta: float = 0.4,
@@ -100,7 +100,7 @@ class PrioritizedSampler(AbsSampler):
     ):
         if beta > 1.0:
             raise ValueError("beta should be between 0.0 and 1.0")
-        super().__init__(experience_store)
+        super().__init__(experience_memory)
         self._sum_tree = np.zeros(2 * self.experience_memory.capacity - 1)
         self.batch_size = batch_size
         self.alpha = alpha
@@ -113,7 +113,7 @@ class PrioritizedSampler(AbsSampler):
         """Return the sum of priorities over all experiences."""
         return self._sum_tree[0]
 
-    def on_put(self, experience_set: ExperienceSet, indexes: List[int]):
+    def on_new(self, experience_set: ExperienceSet, indexes: List[int]):
         """Set the priorities of newly added experiences to the maximum value."""
         self.update(indexes, [self._max_priority] * len(indexes))
 

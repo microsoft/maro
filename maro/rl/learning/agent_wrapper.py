@@ -37,8 +37,8 @@ class AgentWrapper:
         names = set()
         exp_by_agent = env.get_experiences()
         for agent_id, exp in exp_by_agent.items():
-            if hasattr(self.policy[agent_id], "store"):
-                self.policy[agent_id].store(exp)
+            if hasattr(self.policy[agent_id], "memorize"):
+                self.policy[agent_id].memorize(exp)
             names.add(self.agent2policy[agent_id])
 
         return {name: self.policy_dict[name].sampler.get() for name in names}
@@ -46,7 +46,7 @@ class AgentWrapper:
     def set_policy_states(self, policy_state_dict: dict):
         """Update policy states."""
         for policy_id, policy_state in policy_state_dict.items():
-            self.policy_dict[policy_id].set_state(policy_state)
+            self.policy_dict[policy_id].algorithm.set_state(policy_state)
 
     def exploration_step(self):
         for policy in self.policy_dict.values():

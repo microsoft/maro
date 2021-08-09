@@ -45,7 +45,7 @@ class ExperienceSet:
         self.info += other.info
 
 
-class ExperienceStore:
+class ExperienceMemory:
     """Storage facility for simulation experiences.
 
     This implementation uses a dictionary of lists as the internal data structure. The objects for each key

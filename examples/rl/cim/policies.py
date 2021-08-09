@@ -17,7 +17,7 @@ if algo_path not in sys.path:
 
 from env_wrapper import AGENT_IDS
 
-update_options = {
+update_option = {
     name: PolicyUpdateOptions(update_trigger=64, warmup=1024, num_epochs=10, reset_memory=False, data_parallel=False)
     for name in AGENT_IDS
 }
