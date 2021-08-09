@@ -4,8 +4,8 @@
 job: cim
 scenario: cim
 mode: sync
-num_episodes: 100
-eval_schedule: 10
+num_episodes: 5
+eval_schedule: 5
 num_steps: -1
 max_lag: 0
 # If true, the roll-out experiences will be distributed amongst roll-out workers / actors
@@ -15,9 +15,9 @@ rollout_experience_distribution: false
 sync:
   rollout_group: rollout
   rollout_mode: multi-node # single-process, multi-process, multi-node
-  num_rollout_workers: 5
-  min_finished_workers: 4
-  max_extra_recv_tries: 2
+  num_rollout_workers: 3
+  min_finished_workers: 2
+  max_extra_recv_tries: 0
   extra_recv_timeout: 200
 async:
   group: async

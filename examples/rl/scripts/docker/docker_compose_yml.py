@@ -31,6 +31,20 @@ common_spec = {
     ]
 }
 
+common_env = [
+    f"REDISHOST={config['redis']['host']}",
+    f"REDISPORT={config['redis']['port']}",
+    f"JOB={config['job']}",
+    f"SCENARIO={config['scenario']}",
+    f"MODE={config['mode']}",
+    f"EXPDIST={'1' if config['rollout_experience_distribution'] else '0'}"
+]
+
+if config["mode"] == "sync":
+    common_env.append(f"NUMWORKERS={config['sync']['num_rollout_workers']}")
+else:
+    common_env.append(f"NUMACTORS={config['async']['num_actors']}")
+
 # trainer spec
 if config["policy_manager"]["train_mode"] in ["multi-node", "multi-node-dist"]:
     for trainer_id in range(num_trainers):
@@ -41,10 +55,8 @@ if config["policy_manager"]["train_mode"] in ["multi-node", "multi-node-dist"]:
         trainer_spec["container_name"] = str_id
         trainer_spec["environment"] = [
             f"TRAINERID={trainer_id}",
-            f"TRAINGROUP={config['policy_manager']['train_group']}",
-            f"REDISHOST={config['redis']['host']}",
-            f"REDISPORT={str(config['redis']['port'])}"
-        ]
+            f"TRAINGROUP={config['policy_manager']['train_group']}"
+        ] + common_env
         docker_compose_manifest["services"][str_id] = trainer_spec
 
 mode = config["mode"]
@@ -58,7 +70,6 @@ if mode == "sync":
             "environment": [
                 f"ROLLOUTMODE={config['sync']['rollout_mode']}",
                 f"NUMSTEPS={config['num_steps']}",
-                f"NUMWORKERS={config['sync']['num_rollout_workers']}",
                 f"MAXLAG={config['max_lag']}",
                 f"MINFINISH={config['sync']['min_finished_workers']}",
                 f"MAXEXRECV={config['sync']['max_extra_recv_tries']}",
@@ -68,10 +79,8 @@ if mode == "sync":
                 f"EVALSCH={config['eval_schedule']}",
                 f"TRAINMODE={config['policy_manager']['train_mode']}",
                 f"TRAINGROUP={config['policy_manager']['train_group']}",
-                f"NUMTRAINERS={config['policy_manager']['num_trainers']}",
-                f"REDISHOST={config['redis']['host']}",
-                f"REDISPORT={config['redis']['port']}"
-            ]
+                f"NUMTRAINERS={config['policy_manager']['num_trainers']}"
+            ] + common_env
         }
     }
     # rollout worker spec
@@ -85,10 +94,8 @@ if mode == "sync":
             worker_spec["environment"] = [
                 f"WORKERID={worker_id}",
                 f"ROLLOUTGROUP={config['sync']['rollout_group']}",
-                f"REDISHOST={config['redis']['host']}",
-                f"REDISPORT={config['redis']['port']}",
-                f"EVALSCH={config['eval_schedule']}",
-            ]
+                f"EVALSCH={config['eval_schedule']}"
+            ] + common_env
             docker_compose_manifest["services"][str_id] = worker_spec
 elif mode == "async":
     # policy server spec
@@ -99,11 +106,8 @@ elif mode == "async":
             "command": "python3 /maro/rl_examples/workflows/asynchronous/policy_server.py",
             "environment": [
                 f"GROUP={config['async']['group']}",
-                f"NUMACTORS={config['async']['num_actors']}",
-                f"MAXLAG={config['max_lag']}",
-                f"REDISHOST={config['redis']['host']}",
-                f"REDISPORT={config['redis']['port']}"
-            ]
+                f"MAXLAG={config['max_lag']}"
+            ] + common_env
         }
     }
     # actor spec
@@ -118,10 +122,8 @@ elif mode == "async":
             f"GROUP={config['async']['group']}",
             f"NUMEPISODES={config['num_episodes']}",
             f"NUMSTEPS={config['num_steps']}",
-            f"EVALSCH={config['eval_schedule']}",
-            f"REDISHOST={config['redis']['host']}",
-            f"REDISPORT={config['redis']['port']}"
-        ]
+            f"EVALSCH={config['eval_schedule']}"
+        ] + common_env
         docker_compose_manifest["services"][str_id] = actor_spec
 else:
     raise ValueError(f"mode must be 'sync' or 'async', got {mode}")

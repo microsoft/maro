@@ -24,20 +24,14 @@ class AbsAlgorithm(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_gradients(self, experience_batch: ExperienceSet):
-        pass
-
-    @abstractmethod
     def apply(self, grad_dict: dict):
+        """Update the underlying parameters (i.e., network weights) with gradients."""
         pass
 
     @abstractmethod
-    def learn(self, experience_batch: ExperienceSet):
+    def learn(self, experience_batch: ExperienceSet, inplace: bool = True) -> tuple:
         """Update logic is implemented here."""
         raise NotImplementedError
-
-    def post_update(self, update_index: int):
-        pass
 
     @abstractmethod
     def get_state(self, inference: bool = True):

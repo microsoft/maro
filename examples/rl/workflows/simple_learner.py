@@ -21,7 +21,7 @@ from general import (
 if __name__ == "__main__":
     SimpleLearner(
         get_env_wrapper(),
-        get_agent_wrapper(local_update=True),
+        get_agent_wrapper(rollout_only=False),
         num_episodes=config["num_episodes"],
         num_steps=config["num_steps"],
         eval_env=get_eval_env_wrapper(),

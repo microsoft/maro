@@ -1,16 +1,19 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from collections import namedtuple
 from typing import Union
 
 import numpy as np
 import torch
 
 from maro.rl.algorithms import AbsAlgorithm
-from maro.rl.experience import ExperienceSet
+from maro.rl.experience import ExperienceBatch
 from maro.rl.exploration import GaussianNoiseExploration
 from maro.rl.model import ContinuousACNet
 from maro.rl.utils import get_torch_loss_cls
+
+DDPGLossInfo = namedtuple("DDPGLossInfo", ["policy_loss", "q_loss", "total_loss", "grad"])
 
 
 class DDPG(AbsAlgorithm):
@@ -57,7 +60,9 @@ class DDPG(AbsAlgorithm):
         self.q_value_loss_coeff = q_value_loss_coeff
         self.soft_update_coeff = soft_update_coeff
         self.device = self.ac_net.device
-        self._num_steps = 0
+
+        self._ac_net_version = 0
+        self._target_ac_net_version = 0
 
     def choose_action(self, states, explore: bool = False) -> Union[float, np.ndarray]:
         self.ac_net.eval()
@@ -68,17 +73,17 @@ class DDPG(AbsAlgorithm):
             actions = self.exploration(actions, state=states)
         return actions[0] if len(actions) == 1 else actions
 
-    def get_update_info(self, experience_batch: ExperienceSet) -> dict:
-        return self.ac_net.get_gradients(self._get_loss(experience_batch))
-
     def apply(self, grad_dict: dict):
         self.ac_net.apply(grad_dict)
+        if self._ac_net_version - self._target_ac_net_version == self.update_target_every:
+            self._update_target()
 
-    def _get_loss(self, batch: ExperienceSet):
+    def learn(self, batch: ExperienceBatch, inplace: bool = True):
+        assert self.ac_net.trainable, "ac_net needs to have at least one optimizer registered."
         self.ac_net.train()
-        states, next_states = batch.states, batch.next_states
-        actual_actions = torch.from_numpy(batch.actions).to(self.device)
-        rewards = torch.from_numpy(batch.rewards).to(self.device)
+        states, next_states = batch.data.states, batch.data.next_states
+        actual_actions = torch.from_numpy(batch.data.actions).to(self.device)
+        rewards = torch.from_numpy(batch.data.rewards).to(self.device)
         if len(actual_actions.shape) == 1:
             actual_actions = actual_actions.unsqueeze(dim=1)  # (N, 1)
 
@@ -87,25 +92,26 @@ class DDPG(AbsAlgorithm):
         target_q_values = (rewards + self.reward_discount * next_q_values).detach()  # (N,)
 
         q_values = self.ac_net(states, actions=actual_actions).squeeze(dim=1)  # (N,)
-        q_value_loss = self.q_value_loss_func(q_values, target_q_values)
+        q_loss = self.q_value_loss_func(q_values, target_q_values)
         policy_loss = -self.ac_net.value(states).mean()
-        return policy_loss + self.q_value_loss_coeff * q_value_loss
 
-    def learn(self, data: Union[ExperienceSet, dict]):
-        assert self.ac_net.trainable, "ac_net needs to have at least one optimizer registered."
-        # If data is an ExperienceSet, get DQN loss from the batch and backprop it throught the network.
-        if isinstance(data, ExperienceSet):
-            self.ac_net.train()
-            loss = self._get_loss(data)
-            self.ac_net.step(loss)
-        # Otherwise treat the data as a dict of gradients that can be applied directly to the network.
+        total_loss = policy_loss + self.q_value_loss_coeff * q_loss
+
+        if inplace:
+            self.ac_net.step(total_loss)
+            grad = None
+            self._ac_net_version += 1
+            if self._ac_net_version - self._target_ac_net_version == self.update_target_every:
+                self._update_target()
         else:
-            self.ac_net.apply(data)
+            grad = self.ac_net.get_gradients(total_loss)
 
-    def post_update(self, update_index: int):
+        return DDPGLossInfo(policy_loss, q_loss, total_loss, grad), batch.indexes
+
+    def _update_target(self):
         # soft-update target network
-        if update_index % self.update_target_every == 0:
-            self.target_ac_net.soft_update(self.ac_net, self.soft_update_coeff)
+        self.target_ac_net.soft_update(self.ac_net, self.soft_update_coeff)
+        self._target_ac_net_version = self._ac_net_version
 
     def set_state(self, policy_state):
         self.ac_net.load_state_dict(policy_state)

@@ -8,6 +8,7 @@ from os import getcwd
 from typing import Callable, Dict
 
 from maro.communication import Proxy
+from maro.rl.algorithms import AbsAlgorithm
 from maro.rl.utils import MsgKey, MsgTag
 from maro.utils import Logger
 
@@ -41,7 +42,7 @@ def trainer_process(
     policy_dict = {policy_name: func() for policy_name, func in create_policy_func_dict.items()}
     logger = Logger("TRAINER", dump_folder=log_dir)
     for name, state in initial_policy_states.items():
-        policy_dict[name].set_state(state)
+        policy_dict[name].algorithm.set_state(state)
         logger.info(f"{trainer_id} initialized policy {name}")
 
     while True:
@@ -49,7 +50,7 @@ def trainer_process(
         if msg["type"] == "train":
             t0 = time.time()
             for name, exp in msg["experiences"].items():
-                policy_dict[name].store(exp)
+                policy_dict[name].memorize(exp)
                 for _ in range(num_epochs[name]):
                     policy_dict[name].update()
                 if reset_memory[name]:
@@ -103,13 +104,13 @@ def trainer_node(
         elif msg.tag == MsgTag.INIT_POLICY_STATE:
             for name, state in msg.body[MsgKey.POLICY_STATE].items():
                 policy_dict[name] = create_policy_func_dict[name]()
-                policy_dict[name].set_state(state)
+                policy_dict[name].algorithm.set_state(state)
                 logger.info(f"{proxy.name} initialized policy {name}")
             proxy.reply(msg, tag=MsgTag.INIT_POLICY_STATE_DONE)
         elif msg.tag == MsgTag.LEARN:
             t0 = time.time()
             for name, exp in msg.body[MsgKey.EXPERIENCES].items():
-                policy_dict[name].store(exp)
+                policy_dict[name].memorize(exp)
                 for _ in range(num_epochs[name]):
                     policy_dict[name].update()
                 if reset_memory[name]:
@@ -132,5 +133,15 @@ def trainer_node(
             proxy.reply(msg, tag=MsgTag.UPDATE_INFO, body=msg_body)
         elif msg.tag == MsgTag.UPDATE_POLICY_STATE:
             for name, state in msg.body[MsgKey.POLICY_STATE].items():
-                policy_dict[name].set_state(state)
+                policy_dict[name].algorithm.set_state(state)
                 logger.info(f"{proxy.name} updated policy {name}")
+
+
+def gradient_worker_node(
+    group: str,
+    create_algorithm_func: Callable[[], AbsAlgorithm],
+    worker_idx: int,
+    proxy_kwargs: dict = {},
+    log_dir: str = getcwd()
+):
+    pass

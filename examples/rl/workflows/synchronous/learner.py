@@ -24,7 +24,7 @@ def get_rollout_manager():
     if rollout_mode == "single-process":
         return LocalRolloutManager(
             get_env_wrapper(),
-            get_agent_wrapper(),
+            get_agent_wrapper(rollout_only=True),
             num_steps=num_steps,
             post_collect=post_collect,
             post_evaluate=post_evaluate,
