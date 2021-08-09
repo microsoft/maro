@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 from __future__ import annotations
 
+import math
 import typing
 from typing import Optional
 
@@ -72,7 +73,7 @@ class VehicleUnit(UnitBase):
             raise Exception(f"Destination {destination} is unreachable")
 
         # Steps to destination.
-        self.steps = (len(self.path) - 2) // vlt + 1
+        self.steps = int(math.ceil(float(len(self.path) - 1) / float(vlt)))
         dest_consumer = destination.products[product_id].consumer
         if self.steps < len(dest_consumer.pending_order_daily):
             dest_consumer.pending_order_daily[self.steps] += quantity
