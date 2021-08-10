@@ -2,13 +2,13 @@
 # Licensed under the MIT license.
 
 from collections import namedtuple
-from typing import List, Tuple, Union
+from typing import Union
 
 import numpy as np
 import torch
 
 from maro.rl.algorithms import AbsAlgorithm
-from maro.rl.experience import ExperienceBatch, ExperienceMemory
+from maro.rl.experience import ExperienceBatch
 from maro.rl.exploration import DiscreteSpaceExploration, EpsilonGreedyExploration
 from maro.rl.model import DiscreteQNet
 
@@ -84,7 +84,7 @@ class DQN(AbsAlgorithm):
 
     def learn(self, batch: ExperienceBatch, inplace: bool = True):
         assert self.q_net.trainable, "q_net needs to have at least one optimizer registered."
-        # If data is an ExperienceSet, get DQN loss from the batch and backprop it throught the network. 
+        # If data is an ExperienceSet, get DQN loss from the batch and backprop it throught the network.
         self.q_net.train()
         states, next_states = batch.data.states, batch.data.next_states
         actions = torch.from_numpy(np.asarray(batch.data.actions)).to(self.device)

@@ -122,19 +122,20 @@ def trainer_node(
             }
             logger.info(f"total policy update time: {time.time() - t0}")
             proxy.reply(msg, tag=MsgTag.TRAIN_DONE, body=msg_body)
-        elif msg.tag == MsgTag.GET_UPDATE_INFO:
+        elif msg.tag == MsgTag.GET_LOSS_INFO:
             t0 = time.time()
             msg_body = {
-                MsgKey.UPDATE_INFO:
-                    {name: policy_dict[name].get_update_info(exp)
+                MsgKey.LOSS_INFO:
+                    {name: policy_dict[name].algorithm.learn(exp, inplace=False)
                         for name, exp in msg.body[MsgKey.EXPERIENCES].items()},
             }
             logger.info(f"total time to get update info: {time.time() - t0}")
-            proxy.reply(msg, tag=MsgTag.UPDATE_INFO, body=msg_body)
+            proxy.reply(msg, tag=MsgTag.LOSS_INFO, body=msg_body)
         elif msg.tag == MsgTag.UPDATE_POLICY_STATE:
             for name, state in msg.body[MsgKey.POLICY_STATE].items():
                 policy_dict[name].algorithm.set_state(state)
                 logger.info(f"{proxy.name} updated policy {name}")
+            proxy.reply(msg, tag=MsgTag.UPDATE_POLICY_STATE_DONE)
 
 
 def gradient_worker_node(

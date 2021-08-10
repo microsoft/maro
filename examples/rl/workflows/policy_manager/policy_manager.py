@@ -45,10 +45,9 @@ def get_policy_manager():
     if train_mode == "multi-node-dist":
         return MultiNodeDistPolicyManager(
             policy_dict,
+            update_option,
             getenv("TRAINGROUP", default="TRAIN"),
             num_trainers,
-            update_trigger=update_trigger,
-            warmup=warmup,
             proxy_kwargs={
                 "redis_address": (getenv("REDISHOST", default="maro-redis"), int(getenv("REDISPORT", default=6379))),
                 "max_peer_discovery_retries": 50

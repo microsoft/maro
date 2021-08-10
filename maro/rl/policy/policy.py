@@ -4,7 +4,7 @@
 from abc import ABC, abstractmethod
 
 from maro.rl.algorithms import AbsAlgorithm
-from maro.rl.experience import ExperienceSet, ExperienceMemory, UniformSampler
+from maro.rl.experience import ExperienceMemory, ExperienceSet, UniformSampler
 
 
 class AbsPolicy(ABC):

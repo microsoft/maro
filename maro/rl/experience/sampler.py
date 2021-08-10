@@ -7,7 +7,7 @@ from typing import List
 
 import numpy as np
 
-from .memory import ExperienceSet, ExperienceMemory
+from .memory import ExperienceMemory, ExperienceSet
 
 ExperienceBatch = namedtuple("ExperienceBatch", ["indexes", "data"])
 
@@ -54,8 +54,10 @@ class UniformSampler(AbsSampler):
         self.batch_size = batch_size
         self.replace = replace
 
-    def get(self) -> ExperienceBatch:
-        if self.batch_size > self.experience_memory.size or self.batch_size == -1:
+    def get(self, batch_size=None) -> ExperienceBatch:
+        if batch_size is not None:
+            batch_size = batch_size
+        elif self.batch_size > self.experience_memory.size or self.batch_size == -1:
             batch_size = self.experience_memory.size
         else:
             batch_size = self.batch_size
@@ -126,11 +128,14 @@ class PrioritizedSampler(AbsSampler):
             self._sum_tree[tree_idx] = priority
             self._update(tree_idx, delta)
 
-    def get(self) -> ExperienceBatch:
+    def get(self, batch_size=None) -> ExperienceBatch:
         """Priority-based sampling."""
+        if batch_size is None:
+            batch_size = self.batch_size
+
         indexes, priorities = [], []
-        segment_len = self.total() / self.batch_size
-        for i in range(self.batch_size):
+        segment_len = self.total() / batch_size
+        for i in range(batch_size):
             low, high = segment_len * i, segment_len * (i + 1)
             sampled_val = np.random.uniform(low=low, high=high)
             idx = self._get(0, sampled_val)

@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 from collections import namedtuple
-from operator import index
 from typing import Tuple
 
 import numpy as np
