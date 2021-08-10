@@ -4,12 +4,12 @@
 
 from .consumer import ConsumerUnit
 from .distribution import DistributionUnit
+from .extendunitbase import ExtendUnitBase
 from .manufacture import ManufactureUnit
 from .outerseller import DataFileDemandSampler, OuterSellerUnit, SellerDemandSampler
 from .product import ProductUnit
 from .seller import SellerUnit
 from .simplemanufacture import SimpleManufactureUnit
-from .extendunitbase import ExtendUnitBase
 from .storage import StorageUnit
 from .storeproduct import StoreProductUnit
 from .unitbase import UnitBase
