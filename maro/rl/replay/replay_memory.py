@@ -45,7 +45,7 @@ class ExperienceSet:
         self.info += other.info
 
 
-class ExperienceMemory:
+class ReplayMemory:
     """Storage facility for simulation experiences.
 
     This implementation uses a dictionary of lists as the internal data structure. The objects for each key
@@ -88,7 +88,6 @@ class ExperienceMemory:
 
     def put(self, experience_set: ExperienceSet):
         """Put a experience set in the store.
-
         Args:
             experience_set (ExperienceSet): Experience set to be put in the store.
         """

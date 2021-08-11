@@ -462,8 +462,8 @@ class MultiNodeRolloutManager(AbsRolloutManager):
             else:
                 tracker = self._handle_worker_result(msg, ep, segment, version, combined_exp_by_policy)
                 if tracker is not None:
+                    num_finishes += 1
                     trackers.append(tracker)
-                num_finishes += 1
                 if num_finishes == self._num_workers:
                     break
 
@@ -491,7 +491,7 @@ class MultiNodeRolloutManager(AbsRolloutManager):
             return
 
         for policy_name, exp in msg.body[MsgKey.EXPERIENCES].items():
-            combined_exp[policy_name].extend(exp.data)
+            combined_exp[policy_name].extend(exp)
 
         # The message is what we expect
         if msg.body[MsgKey.EPISODE] == ep and msg.body[MsgKey.SEGMENT] == segment:
