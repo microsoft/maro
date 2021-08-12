@@ -79,6 +79,7 @@ if mode == "sync":
                 f"EVALSCH={config['eval_schedule']}",
                 f"TRAINMODE={config['policy_manager']['train_mode']}",
                 f"TRAINGROUP={config['policy_manager']['train_group']}",
+                f"ALLOCATIONMODE={config['policy_manager']['allocation_mode']}",
                 f"NUMTRAINERS={config['policy_manager']['num_trainers']}"
             ] + common_env
         }

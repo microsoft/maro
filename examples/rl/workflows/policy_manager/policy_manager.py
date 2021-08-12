@@ -6,17 +6,18 @@ from os import getenv
 from os.path import dirname, realpath
 
 from maro.rl.policy import (LocalPolicyManager, MultiNodeDistPolicyManager,
-                            MultiNodePolicyManager, MultiProcessPolicyManager)
+                            MultiNodePolicyManager, MultiProcessPolicyManager, TrainerAllocator)
 
 workflow_dir = dirname(dirname(realpath(__file__)))  # template directory
 if workflow_dir not in sys.path:
     sys.path.insert(0, workflow_dir)
 
-from general import log_dir, rl_policy_func_index, update_option
+from general import agent2policy, log_dir, rl_policy_func_index, update_option
 
 
 def get_policy_manager():
     train_mode = getenv("TRAINMODE", default="single-process")
+    allocation_mode = getenv("ALLOCATIONMODE", default="by-policy")
     policy_dict = {name: func(rollout_only=False) for name, func in rl_policy_func_index.items()}
     if train_mode == "single-process":
         return LocalPolicyManager(policy_dict, update_option, log_dir=log_dir)
@@ -43,6 +44,7 @@ def get_policy_manager():
             log_dir=log_dir
         )
     if train_mode == "multi-node-dist":
+        allocator = TrainerAllocator(allocation_mode, num_trainers, list(policy_dict.keys()), agent2policy)
         return MultiNodeDistPolicyManager(
             policy_dict,
             update_option,
@@ -52,6 +54,7 @@ def get_policy_manager():
                 "redis_address": (getenv("REDISHOST", default="maro-redis"), int(getenv("REDISPORT", default=6379))),
                 "max_peer_discovery_retries": 50
             },
+            trainer_allocator=allocator,
             log_dir=log_dir
         )
 

@@ -66,6 +66,9 @@ class ExperienceSet:
         else:
             raise NotImplementedError
 
+    def __len__(self):
+        return len(self.states)
+
 
 class ExperienceMemory:
     """Storage facility for simulation experiences.

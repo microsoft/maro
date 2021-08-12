@@ -134,7 +134,7 @@ def trainer_node(
         elif msg.tag == MsgTag.UPDATE_POLICY_STATE:
             for name, state in msg.body[MsgKey.POLICY_STATE].items():
                 policy_dict[name].algorithm.set_state(state)
-                logger.info(f"{proxy.name} updated policy {name}")
+                logger.debug(f"{proxy.name} updated policy {name}")
             proxy.reply(msg, tag=MsgTag.UPDATE_POLICY_STATE_DONE)
 
 

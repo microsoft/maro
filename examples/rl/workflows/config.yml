@@ -26,6 +26,7 @@ policy_manager:
   train_group: policy-manager
   train_mode: multi-node # single-process, multi-process, multi-node
   num_trainers: 2
+  allocation_mode: by-policy # by-policy, by-agent, by-experience
 redis:
   host: maro-redis
   port: 6379
