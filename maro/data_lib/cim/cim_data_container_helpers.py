@@ -41,9 +41,9 @@ class CimDataContainerWrapper:
             # Real Data Mode: read data from input data files, no need for any config.yml.
             self._data_cntr = data_from_files(data_folder=self._config_path)
 
-    def reset(self):
+    def reset(self, keep_seed):
         """Reset data container internal state"""
-        self._data_cntr.reset()
+        self._data_cntr.reset(keep_seed)
 
     def __getattr__(self, name):
         return getattr(self._data_cntr, name)

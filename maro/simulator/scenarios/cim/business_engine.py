@@ -196,7 +196,7 @@ class CimBusinessEngine(AbsBusinessEngine):
 
         return tick + 1 == self._max_tick
 
-    def reset(self):
+    def reset(self, keep_seed):
         """Reset the business engine, it will reset frame value."""
 
         self._snapshots.reset()
@@ -205,7 +205,7 @@ class CimBusinessEngine(AbsBusinessEngine):
 
         self._reset_nodes()
 
-        self._data_cntr.reset()
+        self._data_cntr.reset(keep_seed)
 
         # Insert departure event again.
         self._load_departure_events()

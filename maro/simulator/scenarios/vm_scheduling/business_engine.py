@@ -405,7 +405,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
         return start_pm_id
 
-    def reset(self):
+    def reset(self, keep_seed):
         """Reset internal states for episode."""
         self._init_metrics()
 

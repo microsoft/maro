@@ -239,9 +239,9 @@ class CimBaseDataContainer(ABC):
         """Dict[str, int]: Name to index mapping for ports."""
         return self._data_collection.port_mapping
 
-    def reset(self):
+    def reset(self, keep_seed):
         """Reset data container internal state."""
-        self._is_need_reset_seed = True
+        self._is_need_reset_seed = keep_seed
 
     def _reset_seed(self):
         """Reset internal seed for generate reproduceable data"""
