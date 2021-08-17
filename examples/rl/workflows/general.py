@@ -22,10 +22,8 @@ non_rl_policy_func_index = getattr(module, "non_rl_policy_func_index", {})
 rl_policy_func_index = getattr(module, "rl_policy_func_index")
 agent2policy = getattr(module, "agent2policy")
 rl_agents = [agent_id for agent_id, policy_id in agent2policy.items() if policy_id in rl_policy_func_index]
-update_option = getattr(module, "update_option")
 post_collect = getattr(module, "post_collect", None)
 post_evaluate = getattr(module, "post_evaluate", None)
-post_update = getattr(module, "post_update", None)
 
 # roll-out experience distribution amongst workers
 mode = getenv("MODE")

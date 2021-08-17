@@ -7,68 +7,60 @@ import sys
 import numpy as np
 import torch
 
-from maro.rl.experience import ReplayMemory, UniformSampler
-from maro.rl.model import DiscreteACNet, FullyConnectedBlock, OptimOption
-from maro.rl.policy.algorithms import ActorCritic, ActorCriticConfig
+from maro.rl.model import FullyConnectedBlock, OptimOption
+from maro.rl.policy import ActorCritic, DiscreteACNet
 
 cim_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, cim_path)
 from env_wrapper import STATE_DIM, env_config
 
-config = {
-    "model": {
-        "network": {
-            "actor": {
-                "input_dim": STATE_DIM,
-                "hidden_dims": [256, 128, 64],
-                "output_dim": env_config["wrapper"]["num_actions"],
-                "activation": "tanh",
-                "softmax": True,
-                "batch_norm": False,
-                "head": True
-            },
-            "critic": {
-                "input_dim": STATE_DIM,
-                "hidden_dims": [256, 128, 64],
-                "output_dim": 1,
-                "activation": "leaky_relu",
-                "softmax": False,
-                "batch_norm": True,
-                "head": True
-            }
+model_config = {
+    "network": {
+        "actor": {
+            "input_dim": STATE_DIM,
+            "hidden_dims": [256, 128, 64],
+            "output_dim": env_config["wrapper"]["num_actions"],
+            "activation": "tanh",
+            "softmax": True,
+            "batch_norm": False,
+            "head": True
         },
-        "optimization": {
-            "actor": {
-                "optim_cls": "adam",
-                "optim_params": {"lr": 0.001}
-            },
-            "critic": {
-                "optim_cls": "rmsprop",
-                "optim_params": {"lr": 0.001}
-            }
+        "critic": {
+            "input_dim": STATE_DIM,
+            "hidden_dims": [256, 128, 64],
+            "output_dim": 1,
+            "activation": "leaky_relu",
+            "softmax": False,
+            "batch_norm": True,
+            "head": True
         }
     },
-    "algorithm": {
-        "reward_discount": .0,
-        "critic_loss_cls": "smooth_l1",
-        "train_epochs": 10,
-        "critic_loss_coeff": 0.1,
-        "entropy_coeff": 0.01,
-        # "clip_ratio": 0.8   # for PPO
-    },
-    "replay_memory": {
-        "rollout": {"capacity": 1000, "overwrite_type": "rolling"},
-        "update": {"capacity": 100000, "overwrite_type": "rolling"}
-    },
-    "sampler": {
-        "rollout": {"batch_size": -1, "replace": False},
-        "update": {"batch_size": 128, "replace": True}
+    "optimization": {
+        "actor": {
+            "optim_cls": "adam",
+            "optim_params": {"lr": 0.001}
+        },
+        "critic": {
+            "optim_cls": "rmsprop",
+            "optim_params": {"lr": 0.001}
+        }
     }
 }
 
+ac_config = {
+    "reward_discount": .0,
+    "grad_iters": 10,
+    "critic_loss_cls": "smooth_l1",
+    "min_logp": None,
+    "critic_loss_coeff": 0.1,
+    "entropy_coeff": 0.01,
+    # "clip_ratio": 0.8   # for PPO
+    "lam": 0.9,
+    "get_loss_on_rollout_finish": False
+}
 
-def get_ac_policy(mode="update"):
-    assert mode in {"inference", "update", "inference-update"}
+
+def get_ac_policy(name: str, remote: bool = False):
     class MyACNET(DiscreteACNet):
         def forward(self, states, actor: bool = True, critic: bool = True):
             states = torch.from_numpy(np.asarray(states))
@@ -83,24 +75,13 @@ def get_ac_policy(mode="update"):
 
     ac_net = MyACNET(
         component={
-            "actor": FullyConnectedBlock(**config["model"]["network"]["actor"]),
-            "critic": FullyConnectedBlock(**config["model"]["network"]["critic"])
+            "actor": FullyConnectedBlock(**model_config["network"]["actor"]),
+            "critic": FullyConnectedBlock(**model_config["network"]["critic"])
         },
         optim_option={
-            "actor":  OptimOption(**config["model"]["optimization"]["actor"]),
-            "critic": OptimOption(**config["model"]["optimization"]["critic"])
-        } if mode != "inference" else None
+            "actor":  OptimOption(**model_config["optimization"]["actor"]),
+            "critic": OptimOption(**model_config["optimization"]["critic"])
+        }
     )
 
-    if mode == "update":
-        exp_store = ReplayMemory(**config["replay_memory"]["update"])
-        experience_sampler_kwargs = config["sampler"]["update"]
-    else:
-        exp_store = ReplayMemory(**config["replay_memory"]["rollout" if mode == "inference" else "update"])
-        experience_sampler_kwargs = config["sampler"]["rollout" if mode == "inference" else "update"]
-
-    return ActorCritic(
-        ac_net, ActorCriticConfig(**config["algorithm"]), exp_store,
-        experience_sampler_cls=UniformSampler,
-        experience_sampler_kwargs=experience_sampler_kwargs
-    )
+    return ActorCritic(name, ac_net, **ac_config, remote=remote)

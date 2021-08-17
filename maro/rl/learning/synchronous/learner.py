@@ -5,10 +5,10 @@ import time
 from os import getcwd
 from typing import List, Union
 
-from maro.rl.policy import AbsPolicyManager
 from maro.utils import Logger
 
 from ..early_stopper import AbsEarlyStopper
+from ..policy_manager import AbsPolicyManager
 from .rollout_manager import AbsRolloutManager
 
 
@@ -91,7 +91,7 @@ class Learner:
             self.policy_manager.exit()
 
     def _collect_and_update(self, ep: int):
-        collect_time = policy_update_time = num_experiences_collected = 0
+        collect_time = policy_update_time = 0
         segment = 0
         self.rollout_manager.reset()
         while not self.rollout_manager.episode_complete:
@@ -100,17 +100,16 @@ class Learner:
             policy_state_dict = self.policy_manager.get_state()
             policy_version = self.policy_manager.version
             tc0 = time.time()
-            exp_by_policy = self.rollout_manager.collect(ep, segment, policy_state_dict, policy_version)
+            rollout_info_by_policy = self.rollout_manager.collect(ep, segment, policy_state_dict, policy_version)
             collect_time += time.time() - tc0
+            self._logger.info(f"collect time: {collect_time}")
             tu0 = time.time()
-            self.policy_manager.update(exp_by_policy)
+            self.policy_manager.update(rollout_info_by_policy)
             policy_update_time += time.time() - tu0
-            num_experiences_collected += sum(exp.size for exp in exp_by_policy.values())
 
         # performance details
         self._logger.info(
             f"ep {ep} summary - "
-            f"experiences collected: {num_experiences_collected} "
-            f"experience collection time: {collect_time} "
+            f"collect time: {collect_time} "
             f"policy update time: {policy_update_time}"
         )

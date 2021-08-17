@@ -7,10 +7,8 @@ from typing import Callable
 
 from maro.communication import Proxy
 from maro.rl.utils import MsgKey, MsgTag
+from maro.rl.wrappers import AbsEnvWrapper, AgentWrapper
 from maro.utils import Logger, set_seeds
-
-from ..agent_wrapper import AgentWrapper
-from ..env_wrapper import AbsEnvWrapper
 
 
 def rollout_worker_process(
@@ -167,7 +165,7 @@ def rollout_worker_node(
             MsgKey.EPISODE: ep,
             MsgKey.SEGMENT: segment,
             MsgKey.VERSION: msg.body[MsgKey.VERSION],
-            MsgKey.EXPERIENCES: agent_wrapper.get_batch(env_wrapper),
+            MsgKey.ROLLOUT_INFO: agent_wrapper.get_rollout_info(env_wrapper.get_trajectory()),
             MsgKey.NUM_STEPS: env_wrapper.step_index - starting_step_index + 1,
             MsgKey.TRACKER: env_wrapper.tracker,
             MsgKey.END_OF_EPISODE: not env_wrapper.state

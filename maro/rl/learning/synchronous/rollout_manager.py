@@ -9,12 +9,10 @@ from random import choices
 from typing import Callable
 
 from maro.communication import Proxy, SessionType
-from maro.rl.experience import ExperienceSet
 from maro.rl.utils import MsgKey, MsgTag
+from maro.rl.wrappers import AbsEnvWrapper, AgentWrapper
 from maro.utils import Logger
 
-from ..agent_wrapper import AgentWrapper
-from ..env_wrapper import AbsEnvWrapper
 from .rollout_worker import rollout_worker_process
 
 
@@ -287,14 +285,14 @@ class MultiProcessRolloutManager(AbsRolloutManager):
         if self._exploration_step:
             self._exploration_step = False
 
-        combined_exp_by_policy = defaultdict(ExperienceSet)
+        info_by_policy = defaultdict(list)
         trackers = []
         for conn in self._manager_ends:
             result = conn.recv()
-            exp_by_policy = result["experiences"]
+            training_info = result["experiences"]
             trackers.append(result["tracker"])
-            for policy_name, exp in exp_by_policy.items():
-                combined_exp_by_policy[policy_name].extend(exp)
+            for policy_name, info in training_info.items():
+                info_by_policy[policy_name].append(info)
 
             self.episode_complete = result["episode_end"]
 
@@ -304,7 +302,7 @@ class MultiProcessRolloutManager(AbsRolloutManager):
         if self._post_collect:
             self._post_collect(trackers, ep, segment)
 
-        return combined_exp_by_policy
+        return info_by_policy
 
     def evaluate(self, ep: int, policy_state_dict: dict):
         """Evaluate the performance of ``policy_state_dict``.
@@ -441,15 +439,17 @@ class MultiNodeRolloutManager(AbsRolloutManager):
             self._exploration_step = False
 
         # Receive roll-out results from remote workers
-        combined_exp_by_policy = defaultdict(ExperienceSet)
+        info_list_by_policy = defaultdict(list)
         trackers = []
         num_finishes = 0
 
         # Ensure the minimum number of worker results are received.
         for msg in self._proxy.receive():
-            tracker = self._handle_worker_result(msg, ep, segment, version, combined_exp_by_policy)
-            if tracker is not None:
+            info_by_policy, tracker = self._handle_worker_result(msg, ep, segment, version)
+            if info_by_policy:
                 num_finishes += 1
+                for policy_name, info in info_by_policy.items():
+                    info_list_by_policy[policy_name].append(info)
                 trackers.append(tracker)
             if num_finishes == self._min_finished_workers:
                 break
@@ -460,9 +460,11 @@ class MultiNodeRolloutManager(AbsRolloutManager):
             if not msg:
                 self._logger.info(f"Receive timeout, {self._max_extra_recv_tries - i - 1} attempts left")
             else:
-                tracker = self._handle_worker_result(msg, ep, segment, version, combined_exp_by_policy)
-                if tracker is not None:
+                info_by_policy, tracker = self._handle_worker_result(msg, ep, segment, version)
+                if info_by_policy:
                     num_finishes += 1
+                    for policy_name, info in info_by_policy.items():
+                        info_list_by_policy[policy_name].append(info)
                     trackers.append(tracker)
                 if num_finishes == self._num_workers:
                     break
@@ -473,14 +475,14 @@ class MultiNodeRolloutManager(AbsRolloutManager):
         if self._post_collect:
             self._post_collect(trackers, ep, segment)
 
-        return combined_exp_by_policy
+        return info_list_by_policy
 
-    def _handle_worker_result(self, msg, ep, segment, version, combined_exp):
+    def _handle_worker_result(self, msg, ep, segment, version):
         if msg.tag != MsgTag.COLLECT_DONE:
             self._logger.info(
                 f"Ignored a message of type {msg.tag} (expected message type {MsgTag.COLLECT_DONE})"
             )
-            return
+            return None, None
 
         if version - msg.body[MsgKey.VERSION] > self._max_lag:
             self._logger.info(
@@ -488,15 +490,14 @@ class MultiNodeRolloutManager(AbsRolloutManager):
                 f"Expected experiences generated using policy versions no earlier than {version - self._max_lag} "
                 f"got {msg.body[MsgKey.VERSION]}"
             )
-            return
-
-        for policy_name, exp in msg.body[MsgKey.EXPERIENCES].items():
-            combined_exp[policy_name].extend(exp)
+            return None, None
 
         # The message is what we expect
         if msg.body[MsgKey.EPISODE] == ep and msg.body[MsgKey.SEGMENT] == segment:
             self.episode_complete = msg.body[MsgKey.END_OF_EPISODE]
-            return msg.body[MsgKey.TRACKER]
+            return msg.body[MsgKey.ROLLOUT_INFO], msg.body[MsgKey.TRACKER]
+
+        return None, None
 
     def evaluate(self, ep: int, policy_state_dict: dict):
         """Evaluate the performance of ``policy_state_dict``.

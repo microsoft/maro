@@ -4,7 +4,7 @@
 import sys
 from os.path import dirname, realpath
 
-from maro.rl.learning import AgentWrapper
+from maro.rl.wrappers import AgentWrapper
 
 workflow_dir = dirname(dirname(realpath(__file__)))  # template directory
 if workflow_dir not in sys.path:
@@ -13,11 +13,8 @@ if workflow_dir not in sys.path:
 from general import agent2policy, non_rl_policy_func_index, rl_policy_func_index
 
 
-def get_agent_wrapper(rollout_only: bool = False):
+def get_agent_wrapper():
     return AgentWrapper(
-        {
-            **{name: func() for name, func in non_rl_policy_func_index.items()},
-            **{name: func(rollout_only=rollout_only) for name, func in rl_policy_func_index.items()}
-        },
+        {**non_rl_policy_func_index, **rl_policy_func_index},
         agent2policy
     )

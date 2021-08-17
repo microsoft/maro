@@ -3,7 +3,7 @@
 
 import numpy as np
 
-from maro.rl.learning import AbsEnvWrapper
+from maro.rl.wrappers import AbsEnvWrapper
 from maro.simulator import Env
 from maro.simulator.scenarios.cim.common import Action, ActionType
 
@@ -117,7 +117,7 @@ env_config = {
     "basic": {
         "scenario": "cim",
         "topology": "toy.4p_ssdd_l0.0",
-        "durations": 560
+        "durations": 280
     },
     "wrapper": {
         "port_attributes": ["empty", "full", "on_shipper", "on_consignee", "booking", "shortage", "fulfillment"],

@@ -26,7 +26,7 @@ if __name__ == "__main__":
         getenv("ROLLOUTGROUP", default="ROLLOUT"),
         worker_id,
         get_env_wrapper(replay_agent_ids=replay_agents[worker_id]),
-        get_agent_wrapper(rollout_only=True),
+        get_agent_wrapper(),
         eval_env_wrapper=get_eval_env_wrapper(),
         proxy_kwargs={
             "redis_address": (getenv("REDISHOST", default="maro-redis"), int(getenv("REDISPORT", default=6379))),

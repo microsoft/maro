@@ -5,12 +5,12 @@ import time
 from os import getcwd
 from typing import Callable, Dict, List, Union
 
-from maro.rl.policy import AbsCorePolicy, LocalPolicyManager
+from maro.rl.policy import RLPolicy
+from maro.rl.wrappers import AbsEnvWrapper, AgentWrapper
 from maro.utils import Logger
 
-from .agent_wrapper import AgentWrapper
 from .early_stopper import AbsEarlyStopper
-from .env_wrapper import AbsEnvWrapper
+from .policy_manager import SimplePolicyManager
 
 
 class SimpleLearner:
@@ -81,8 +81,8 @@ class SimpleLearner:
         self.agent = agent_wrapper
 
         # Create a policy manager to manage all trainable policies from the agent wrapper
-        self.policy_manager = LocalPolicyManager(
-            {name: policy for name, policy in self.agent.policy_dict.items() if isinstance(policy, AbsCorePolicy)},
+        self.policy_manager = SimplePolicyManager(
+            {name: policy for name, policy in self.agent.policy_dict.items() if isinstance(policy, RLPolicy)},
             update_trigger=update_trigger,
             warmup=warmup,
             post_update=post_update
