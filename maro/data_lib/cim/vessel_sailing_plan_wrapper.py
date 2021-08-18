@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from .entities import CimBaseDataCollection, Stop
+from .entities import CimBaseDataCollection
 from .vessel_future_stops_prediction import VesselFutureStopsPrediction
 
 
