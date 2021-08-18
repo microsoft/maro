@@ -8,7 +8,6 @@ import torch
 
 from maro.rl.exploration import DiscreteSpaceExploration, EpsilonGreedyExploration
 from maro.rl.types import DiscreteQNet, Trajectory
-from maro.rl.utils.remote_tools import LearnTask
 from maro.utils.exception.rl_toolkit_exception import InvalidExperience
 
 from .policy import Batch, LossInfo, RLPolicy
@@ -47,7 +46,7 @@ class DQNBatch(Batch):
 
 
 class DQNLossInfo(LossInfo):
-    
+
     __slots__ = ["td_errors", "indexes"]
 
     def __init__(self, loss, td_errors, indexes, grad=None):

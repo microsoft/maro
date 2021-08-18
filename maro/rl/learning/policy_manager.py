@@ -9,7 +9,7 @@ from os import getcwd
 from typing import Callable, Dict, List
 
 from maro.communication import Proxy, SessionMessage, SessionType
-from maro.rl.policy import LossInfo, RLPolicy
+from maro.rl.policy import LossInfo
 from maro.rl.types import Trajectory
 from maro.rl.utils import MsgKey, MsgTag
 from maro.utils import Logger

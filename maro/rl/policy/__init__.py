@@ -2,11 +2,11 @@
 # Licensed under the MIT license.
 
 from .ac import ACActionInfo, ACBatch, ACLossInfo, ActorCritic, DiscreteACNet
-from .ddpg import DDPG, DDPGBatch, DDPGLossInfo, ContinuousACNet
-from .dqn import DQN, DQNBatch, DQNLossInfo, DiscreteQNet, PrioritizedSampler
-from .pg import PGActionInfo, PGBatch, PGLossInfo, DiscretePolicyNet, PolicyGradient
-from .policy import AbsPolicy, Batch, LossInfo, NullPolicy, RLPolicy
+from .ddpg import DDPG, ContinuousACNet, DDPGBatch, DDPGLossInfo
+from .dqn import DQN, DiscreteQNet, DQNBatch, DQNLossInfo, PrioritizedSampler
 from .index import get_model_cls, get_policy_cls
+from .pg import DiscretePolicyNet, PGActionInfo, PGBatch, PGLossInfo, PolicyGradient
+from .policy import AbsPolicy, Batch, LossInfo, NullPolicy, RLPolicy
 
 __all__ = [
     "ACActionInfo", "ACBatch", "ACLossInfo", "ActorCritic", "DiscreteACNet",

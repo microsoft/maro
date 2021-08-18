@@ -1,16 +1,14 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from maro.rl.exploration.abs_exploration import AbsExploration
 from typing import List, Union
 
 import numpy as np
 import torch
 
-from maro.rl.exploration import GaussianNoiseExploration
+from maro.rl.exploration import GaussianNoiseExploration, NoiseExploration
 from maro.rl.types import ContinuousACNet, Trajectory
 from maro.rl.utils import get_torch_loss_cls
-from maro.rl.utils.remote_tools import LearnTask
 from maro.utils.exception.rl_toolkit_exception import InvalidExperience
 
 from .policy import Batch, LossInfo, RLPolicy
@@ -39,7 +37,7 @@ class DDPGBatch(Batch):
 
 
 class DDPGLossInfo(LossInfo):
-    
+
     __slots__ = ["policy_loss", "q_loss"]
 
     def __init__(self, loss, policy_loss, q_loss, grad=None):
@@ -84,7 +82,7 @@ class DDPG(RLPolicy):
         q_value_loss_cls="mse",
         q_value_loss_coeff: float = 1.0,
         soft_update_coeff: float = 1.0,
-        exploration: AbsExploration = GaussianNoiseExploration(),
+        exploration: NoiseExploration = GaussianNoiseExploration(),
         replay_memory_capacity: int = 10000,
         random_overwrite: bool = False,
         remote: bool = False

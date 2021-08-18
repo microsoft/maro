@@ -9,10 +9,10 @@ from maro.rl.types import Trajectory
 
 class AbsPolicy(ABC):
     """Abstract policy class.
-    
+
     Args:
         name (str): Unique identifier for the policy.
-    
+
     """
     def __init__(self, name: str):
         super().__init__()
@@ -57,7 +57,6 @@ class RLPolicy(AbsPolicy):
 
     Args:
         name (str): Name of the policy.
-        data_parallel (bool): If true, 
     """
     def __init__(self, name: str, remote: bool = False):
         super().__init__(name)

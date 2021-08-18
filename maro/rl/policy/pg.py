@@ -8,7 +8,6 @@ import torch
 
 from maro.rl.types import DiscretePolicyNet, Trajectory
 from maro.rl.utils import discount_cumsum
-from maro.rl.utils.remote_tools import LearnTask
 
 from .policy import Batch, LossInfo, RLPolicy
 

@@ -58,7 +58,7 @@ class DiscreteACNet(AbsCoreModel):
         action_probs, values = self.forward(states)
         if max_prob:
             probs, actions = action_probs.max(dim=1)
-            return actions, torch.log(probs), values 
+            return actions, torch.log(probs), values
         else:
             action_probs = Categorical(action_probs)  # (batch_size, action_space_size)
             actions = action_probs.sample()

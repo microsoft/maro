@@ -67,7 +67,7 @@ class ReplayMemory:
         else:
             # using the negative index convention for convenience
             start_index = self._size - self._capacity
-            indexes = list(range(start_index, start_index + added_size)) 
+            indexes = list(range(start_index, start_index + added_size))
 
         for key in self.data:
             for idx, val in zip(indexes, getattr(batch, key)):

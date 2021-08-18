@@ -8,8 +8,7 @@ import torch
 from torch.distributions import Categorical
 
 from maro.rl.types import DiscreteACNet, Trajectory
-from maro.rl.utils import get_torch_loss_cls, discount_cumsum
-from maro.rl.utils.remote_tools import LearnTask
+from maro.rl.utils import  discount_cumsum, get_torch_loss_cls
 
 from .policy import Batch, LossInfo, RLPolicy
 
@@ -129,7 +128,7 @@ class ActorCritic(RLPolicy):
         if trajectory.actions[-1]:
             values = np.array([action_info.value for action_info in trajectory.actions])
             rewards = np.append(trajectory.rewards, trajectory.actions[-1].value)
-        else: 
+        else:
             values = np.append([action_info.value for action_info in trajectory.actions[:-1]], .0)
             rewards = np.append(trajectory.rewards, .0)
 
@@ -175,7 +174,7 @@ class ActorCritic(RLPolicy):
 
         # total loss
         loss = actor_loss + self.critic_loss_coeff * critic_loss + self.entropy_coeff * entropy
-        grad=self.ac_net.get_gradients(loss) if explicit_grad else None
+        grad = self.ac_net.get_gradients(loss) if explicit_grad else None
         return ACLossInfo(actor_loss, critic_loss, entropy, loss, grad=grad)
 
     def update_with_multi_loss_info(self, loss_info_list: List[ACLossInfo]):

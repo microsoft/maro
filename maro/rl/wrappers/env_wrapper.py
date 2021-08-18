@@ -5,8 +5,8 @@ from abc import ABC, abstractmethod
 from collections import defaultdict, deque
 from typing import Callable
 
-from maro.simulator import Env
 from maro.rl.types import Trajectory, Transition
+from maro.simulator import Env
 
 
 class AbsEnvWrapper(ABC):
@@ -196,7 +196,7 @@ class AbsEnvWrapper(ABC):
                     del buf["info"]
             else:
                 states = buf["states"][:]
-                actions = buf["actions"][:] 
+                actions = buf["actions"][:]
                 rewards = buf["rewards"][:-1]
                 info = buf["info"][:-1]
                 if clear_buffer:
@@ -205,7 +205,7 @@ class AbsEnvWrapper(ABC):
                     del buf["rewards"][:-1]
                     del buf["info"][:-1]
 
-            trajectory[agent_id] = Trajectory(states, actions, rewards, info)            
+            trajectory[agent_id] = Trajectory(states, actions, rewards, info)
 
         return trajectory
 

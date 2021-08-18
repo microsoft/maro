@@ -3,12 +3,12 @@
 
 from .early_stopper import AbsEarlyStopper
 from .policy_host import policy_host
-from .policy_manager import AbsPolicyManager, SimplePolicyManager, DistributedPolicyManager
+from .policy_manager import AbsPolicyManager, DistributedPolicyManager, SimplePolicyManager
 from .simple_learner import SimpleLearner
 
 __all__ = [
     "AbsEarlyStopper",
     "policy_host",
-    "AbsPolicyManager", "SimplePolicyManager", "DistributedPolicyManager",
+    "AbsPolicyManager", "DistributedPolicyManager", "SimplePolicyManager",
     "SimpleLearner"
 ]
