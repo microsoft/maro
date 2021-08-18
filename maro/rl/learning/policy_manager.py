@@ -80,7 +80,7 @@ class SimplePolicyManager(AbsPolicyManager):
                         if isinstance(info_list[0], Trajectory):
                             policy.learn_from_multi_trajectories(info_list)
                         elif isinstance(info_list[0], LossInfo):
-                            policy.apply(info_list)
+                            policy.update_with_multi_loss_info(info_list)
                         else:
                             raise TypeError(
                                 f"Roll-out information must be of type 'Trajectory' or 'LossInfo', "
@@ -126,7 +126,7 @@ class SimplePolicyManager(AbsPolicyManager):
                 if isinstance(info_list[0], Trajectory):
                     self._policy_dict[policy_name].learn_from_multi_trajectories(info_list)
                 elif isinstance(info_list[0], LossInfo):
-                    self._policy_dict[policy_name].apply(info_list)
+                    self._policy_dict[policy_name].update_with_multi_loss_info(info_list)
 
         self._logger.info(f"Updated policies {list(rollout_info.keys())}")
         self.update_count += 1
@@ -186,19 +186,22 @@ class DistributedPolicyManager(AbsPolicyManager):
             self._policy2host[name] = f"POLICY_HOST.{host_id}"
             self._host2policies[f"POLICY_HOST.{host_id}"].append(name)
 
+        self._logger.info(f"Policy assignment: {self._policy2host}")
+
         # ask the hosts to initialize the assigned policies
         for host_name, policy_names in self._host2policies.items():
-            self._proxy.send(SessionMessage(
+            self._proxy.isend(SessionMessage(
                 MsgTag.INIT_POLICIES, self._proxy.name, host_name, body={MsgKey.POLICY_NAMES: policy_names}
             ))
 
         # cache the initial policy states
         self._state_cache, dones = {}, 0
         for msg in self._proxy.receive():
+            self._logger.info(f"received a msg of tag {msg.tag}")
             if msg.tag == MsgTag.INIT_POLICIES_DONE:
                 for policy_name, policy_state in msg.body[MsgKey.POLICY_STATE].items():
                     self._state_cache[policy_name] = policy_state
-                    self._logger.info(f"Policy {policy_name} initialized")
+                    self._logger.info(f"Cached state for policy {policy_name}")
                 dones += 1
                 if dones == num_hosts:
                     break

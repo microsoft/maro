@@ -267,7 +267,7 @@ class DQN(RLPolicy):
             is_weights=is_weights
         )
 
-    def get_batch_loss(self, batch: DQNBatch, with_grad: bool = False):
+    def get_batch_loss(self, batch: DQNBatch, explicit_grad: bool = False):
         assert self.q_net.trainable, "q_net needs to have at least one optimizer registered."
         self.q_net.train()
         states, next_states = batch.states, batch.next_states
@@ -293,10 +293,10 @@ class DQN(RLPolicy):
         else:
             loss = self._loss_func(q_values, target_q_values)
 
-        grad = self.q_net.get_gradients(loss) if with_grad else None
+        grad = self.q_net.get_gradients(loss) if explicit_grad else None
         return DQNLossInfo(loss, td_errors, batch.indexes, grad=grad)
 
-    def apply(self, loss_info_list: List[DQNLossInfo]):
+    def update_with_multi_loss_info(self, loss_info_list: List[DQNLossInfo]):
         if self.prioritized_replay:
             for loss_info in loss_info_list:
                 self._sampler.update(loss_info.indexes, loss_info.td_errors)

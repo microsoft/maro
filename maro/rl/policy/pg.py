@@ -90,7 +90,7 @@ class PolicyGradient(RLPolicy):
         rewards = np.append(trajectory.rewards, trajectory.actions[-1].value if trajectory.actions[-1] else .0)
         return PGBatch(trajectory.states[:-1], discount_cumsum(rewards, self.reward_discount)[:-1])
 
-    def get_batch_loss(self, batch: PGBatch, with_grad: bool = False):
+    def get_batch_loss(self, batch: PGBatch, explicit_grad: bool = False):
         """
         This should be called at the end of a simulation episode and the experiences obtained from
         the experience store's ``get`` method should be a sequential set, i.e., in the order in
@@ -104,10 +104,10 @@ class PolicyGradient(RLPolicy):
 
         _, logp = self.policy_net(states)
         loss = -(logp * returns).mean()
-        grad = self.policy_net.get_gradients(loss) if with_grad else None
+        grad = self.policy_net.get_gradients(loss) if explicit_grad else None
         return PGLossInfo(loss, grad=grad)
 
-    def apply(self, loss_info_list: List[PGLossInfo]):
+    def update_with_multi_loss_info(self, loss_info_list: List[PGLossInfo]):
         """Apply gradients to the underlying parameterized model."""
         self.policy_net.apply_gradients([loss_info.grad for loss_info in loss_info_list])
 
@@ -118,7 +118,7 @@ class PolicyGradient(RLPolicy):
         else:
             batches = [self._preprocess(traj) for traj in trajectories]
             for _ in range(self.grad_iters):
-                self.apply([self.get_batch_loss(batch, with_grad=True) for batch in batches])
+                self.update_with_multi_loss_info([self.get_batch_loss(batch, explicit_grad=True) for batch in batches])
 
     def set_state(self, policy_state):
         self.policy_net.load_state_dict(policy_state)

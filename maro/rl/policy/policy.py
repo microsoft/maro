@@ -71,11 +71,11 @@ class RLPolicy(AbsPolicy):
         return trajectory
 
     @abstractmethod
-    def get_batch_loss(self, batch: Batch, with_grad: bool = False):
+    def get_batch_loss(self, batch: Batch, explicit_grad: bool = False):
         raise NotImplementedError
 
     @abstractmethod
-    def apply(self, loss_info_list: List[LossInfo]):
+    def update_with_multi_loss_info(self, loss_info_list: List[LossInfo]):
         pass
 
     @abstractmethod

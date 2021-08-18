@@ -150,7 +150,7 @@ class DDPG(RLPolicy):
             [self._replay_memory.data["next_states"][idx] for idx in indexes]
         )
 
-    def get_batch_loss(self, batch: DDPGBatch, with_grad: bool = False) -> DDPGLossInfo:
+    def get_batch_loss(self, batch: DDPGBatch, explicit_grad: bool = False) -> DDPGLossInfo:
         assert self.ac_net.trainable, "ac_net needs to have at least one optimizer registered."
         self.ac_net.train()
         states, next_states = batch.states, batch.next_states
@@ -169,10 +169,10 @@ class DDPG(RLPolicy):
 
         # total loss
         loss = policy_loss + self.q_value_loss_coeff * q_loss
-        grad = self.ac_net.get_gradients(loss) if with_grad else None
+        grad = self.ac_net.get_gradients(loss) if explicit_grad else None
         return DDPGLossInfo(policy_loss, q_loss, loss, grad=grad)
 
-    def apply(self, loss_info_list: List[DDPGLossInfo]):
+    def update_with_multi_loss_info(self, loss_info_list: List[DDPGLossInfo]):
         self.ac_net.apply_gradients([loss_info.grad for loss_info in loss_info_list])
         if self._ac_net_version - self._target_ac_net_version == self.update_target_every:
             self._update_target()
@@ -186,7 +186,7 @@ class DDPG(RLPolicy):
             pass
         else:
             for _ in range(self.num_epochs):
-                loss_info = self.get_batch_loss(self._get_batch(), with_grad=False)
+                loss_info = self.get_batch_loss(self._get_batch(), explicit_grad=False)
                 self.ac_net.step(loss_info.loss)
                 self._ac_net_version += 1
                 if self._ac_net_version - self._target_ac_net_version == self.update_target_every:

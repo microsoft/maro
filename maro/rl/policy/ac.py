@@ -121,7 +121,7 @@ class ActorCritic(RLPolicy):
 
     def get_rollout_info(self, trajectory: Trajectory):
         if self._get_loss_on_rollout_finish:
-            return self.get_batch_loss(self._preprocess(trajectory))
+            return self.get_batch_loss(self._preprocess(trajectory), explicit_grad=True)
         else:
             return trajectory
 
@@ -143,7 +143,7 @@ class ActorCritic(RLPolicy):
         returns = discount_cumsum(rewards, self.reward_discount)[:-1]
         return ACBatch(trajectory.states[:-1], actions, returns, advantages, logps)
 
-    def get_batch_loss(self, batch: ACBatch, with_grad: bool = False) -> ACLossInfo:
+    def get_batch_loss(self, batch: ACBatch, explicit_grad: bool = False) -> ACLossInfo:
         assert self.ac_net.trainable, "ac_net needs to have at least one optimizer registered."
         self.ac_net.train()
         actions = torch.from_numpy(batch.actions).to(self.device)
@@ -175,10 +175,10 @@ class ActorCritic(RLPolicy):
 
         # total loss
         loss = actor_loss + self.critic_loss_coeff * critic_loss + self.entropy_coeff * entropy
-        grad=self.ac_net.get_gradients(loss) if with_grad else None
+        grad=self.ac_net.get_gradients(loss) if explicit_grad else None
         return ACLossInfo(actor_loss, critic_loss, entropy, loss, grad=grad)
 
-    def apply(self, loss_info_list: List[ACLossInfo]):
+    def update_with_multi_loss_info(self, loss_info_list: List[ACLossInfo]):
         """Apply gradients to the underlying parameterized model."""
         self.ac_net.apply_gradients([loss_info.grad for loss_info in loss_info_list])
 
@@ -189,7 +189,7 @@ class ActorCritic(RLPolicy):
         else:
             batches = [self._preprocess(traj) for traj in trajectories]
             for _ in range(self.grad_iters):
-                self.apply([self.get_batch_loss(batch, with_grad=True) for batch in batches])
+                self.update_with_multi_loss_info([self.get_batch_loss(batch, explicit_grad=True) for batch in batches])
 
     def set_state(self, policy_state):
         self.ac_net.load_state_dict(policy_state)
