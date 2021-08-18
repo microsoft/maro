@@ -7,10 +7,8 @@ from typing import List, Union
 
 from maro.communication import Proxy, SessionMessage, SessionType
 from maro.rl.utils import MsgKey, MsgTag
+from maro.rl.wrappers import AbsEnvWrapper, AgentWrapper
 from maro.utils import Logger
-
-from ..agent_wrapper import AgentWrapper
-from ..env_wrapper import AbsEnvWrapper
 
 
 def actor(
@@ -112,7 +110,7 @@ def actor(
             reply = proxy.send(
                 SessionMessage(
                     MsgTag.COLLECT_DONE, proxy.name, policy_server_address,
-                    body={MsgKey.EXPERIENCES: exp_by_policy, MsgKey.VERSION: policy_version}
+                    body={MsgKey.ROLLOUT_INFO: exp_by_policy, MsgKey.VERSION: policy_version}
                 )
             )[0]
             policy_version = reply.body[MsgKey.VERSION]

@@ -5,38 +5,27 @@ import sys
 from os import getenv
 from os.path import dirname, realpath
 
-from maro.rl.policy import (LocalPolicyManager, MultiNodeDistPolicyManager,
-                            MultiNodePolicyManager, MultiProcessPolicyManager, TrainerAllocator)
+from maro.rl.learning import DistributedPolicyManager, SimplePolicyManager
 
 workflow_dir = dirname(dirname(realpath(__file__)))  # template directory
 if workflow_dir not in sys.path:
     sys.path.insert(0, workflow_dir)
 
-from general import agent2policy, log_dir, rl_policy_func_index, update_option
-
+from general import log_dir, rl_policy_func_index
 
 def get_policy_manager():
-    train_mode = getenv("TRAINMODE", default="single-process")
-    allocation_mode = getenv("ALLOCATIONMODE", default="by-policy")
-    policy_dict = {name: func(rollout_only=False) for name, func in rl_policy_func_index.items()}
-    if train_mode == "single-process":
-        return LocalPolicyManager(policy_dict, update_option, log_dir=log_dir)
+    manager_type = getenv("POLICYMANAGERTYPE", default="simple")
+    parallel = getenv("PARALLEL", default=False)
+    print("parallel: ", parallel)
+    if manager_type == "simple":
+        return SimplePolicyManager(rl_policy_func_index, parallel=parallel, log_dir=log_dir)
 
-    num_trainers = int(getenv("NUMTRAINERS", default=5))
-    if train_mode == "multi-process":
-        return MultiProcessPolicyManager(
-            policy_dict,
-            update_option,
-            num_trainers,
-            rl_policy_func_index,
-            log_dir=log_dir
-        )
-    if train_mode == "multi-node":
-        return MultiNodePolicyManager(
-            policy_dict,
-            update_option,
-            getenv("TRAINGROUP", default="TRAIN"),
-            num_trainers,
+    num_hosts = int(getenv("NUMHOSTS", default=5))
+    if manager_type == "distributed":
+        return DistributedPolicyManager(
+            list(rl_policy_func_index.keys()),
+            getenv("NODEGROUP", default="TRAIN"),
+            num_hosts,
             proxy_kwargs={
                 "redis_address": (getenv("REDISHOST", default="maro-redis"), int(getenv("REDISPORT", default=6379))),
                 "max_peer_discovery_retries": 50
@@ -58,6 +47,4 @@ def get_policy_manager():
             log_dir=log_dir
         )
 
-    raise ValueError(
-        f"Unsupported policy training mode: {train_mode}. Supported modes: single-process, multi-process, multi-node"
-    )
+    raise ValueError(f"Unsupported policy manager type: {manager_type}. Supported modes: simple, distributed")

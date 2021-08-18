@@ -4,9 +4,10 @@
 from os import getcwd
 
 from maro.communication import Proxy
-from maro.rl.policy import AbsPolicyManager
 from maro.rl.utils import MsgKey, MsgTag
 from maro.utils import Logger
+
+from ..policy_manager import AbsPolicyManager
 
 
 def policy_server(
@@ -53,7 +54,7 @@ def policy_server(
                     f"{policy_manager.version - max_lag}, got {msg.body[MsgKey.VERSION]}"
                 )
             else:
-                policy_manager.update(msg.body[MsgKey.EXPERIENCES])
+                policy_manager.update(msg.body[MsgKey.ROLLOUT_INFO])
             proxy.reply(
                 msg, tag=MsgTag.POLICY_STATE,
                 body={

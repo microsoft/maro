@@ -2,15 +2,25 @@
 # Licensed under the MIT license.
 
 from abc import ABC, abstractmethod
+from typing import List
 
-from maro.rl.algorithms import AbsAlgorithm
-from maro.rl.experience import ExperienceMemory, ExperienceSet, UniformSampler
+from maro.rl.typing import Trajectory
 
 
 class AbsPolicy(ABC):
-    """Abstract policy class."""
-    def __init__(self):
+    """Abstract policy class.
+
+    Args:
+        name (str): Unique identifier for the policy.
+
+    """
+    def __init__(self, name: str):
         super().__init__()
+        self._name = name
+
+    @property
+    def name(self):
+        return self._name
 
     @abstractmethod
     def choose_action(self, state):
@@ -26,63 +36,86 @@ class NullPolicy(AbsPolicy):
         return None
 
 
-class CorePolicy(AbsPolicy):
+class Batch:
+    def __init__(self):
+        pass
+
+
+class LossInfo:
+
+    __slots__ = ["loss", "grad"]
+
+    def __init__(self, loss, grad):
+        self.loss = loss
+        self.grad = grad
+
+
+class RLPolicy(AbsPolicy):
     """Policy that can update itself using simulation experiences.
 
     Reinforcement learning (RL) policies should inherit from this.
 
     Args:
-        algorithm (AbsAlgorithm): Algorithm instance.
-        memory_capacity (int): Capacity for the internal experience memory.
-        random_overwrite (bool): This specifies overwrite behavior when the capacity is reached. If this is True,
-            overwrite positions will be selected randomly. Otherwise, overwrites will occur sequentially with
-            wrap-around. Defaults to False.
-        sampler_cls: Type of experience sampler. Must be a subclass of ``AbsSampler``. Defaults to ``UnifromSampler``.
-        sampler_kwargs (dict): Keyword arguments for ``sampler_cls``.
+        name (str): Name of the policy.
+        data_parallel (bool): If true,
     """
-    def __init__(
-        self,
-        algorithm: AbsAlgorithm,
-        memory_capacity: int,
-        random_overwrite: bool = False,
-        sampler_cls=UniformSampler,
-        sampler_kwargs: dict = {}
-    ):
-        super().__init__()
-        self.algorithm = algorithm
-        self.experience_memory = ExperienceMemory(memory_capacity, random_overwrite=random_overwrite)
-        self.sampler = sampler_cls(self.experience_memory, **sampler_kwargs)
+    def __init__(self, name: str, remote: bool = False):
+        super().__init__(name)
+        self.remote = remote
 
-        self.exploring = False
-
+    @abstractmethod
     def choose_action(self, state):
-        return self.algorithm.choose_action(state, explore=self.exploring)
+        raise NotImplementedError
 
-    def memorize(self, exp: ExperienceSet) -> bool:
-        """
-        Store incoming experiences and update if necessary.
-        """
-        indexes = self.experience_memory.put(exp)
-        self.sampler.on_new(exp, indexes)
+    def get_rollout_info(self, trajectory: Trajectory):
+        return trajectory
 
-    def get_batch(self):
-        self.sampler.get()
+    @abstractmethod
+    def get_batch_loss(self, batch: Batch, with_grad: bool = False):
+        raise NotImplementedError
 
-    def reset_memory(self):
-        """Clear the experience store."""
-        self.experience_memory.clear()
+    @abstractmethod
+    def apply(self, loss_info_list: List[LossInfo]):
+        pass
 
-    def update(self):
-        batch = self.sampler.get()
-        loss_info, indexes = self.algorithm.learn(batch, inplace=True)
-        self.sampler.update(indexes, loss_info)
-
-    def explore(self):
-        self.exploring = True
+    @abstractmethod
+    def learn_from_multi_trajectories(self, trajectories: List[Trajectory]):
+        """Perform policy improvement based on a list of trajectories obtained from parallel rollouts."""
+        raise NotImplementedError
 
     def exploit(self):
-        self.exploring = False
+        pass
+
+    def explore(self):
+        pass
 
     def exploration_step(self):
-        if self.algorithm.exploration:
-            self.algorithm.exploration.step()
+        pass
+
+    @abstractmethod
+    def get_state(self):
+        """Return the current state of the policy.
+
+        The implementation must be in correspondence with that of ``set_state``. For example, if a torch model
+        is contained in the policy, ``get_state`` may include a call to ``state_dict()`` on the model, while
+        ``set_state`` should accordingly include ``load_state_dict()``.
+        """
+        pass
+
+    @abstractmethod
+    def set_state(self, policy_state):
+        """Set the policy state to ``policy_state``.
+
+        The implementation must be in correspondence with that of ``get_state``. For example, if a torch model
+        is contained in the policy, ``set_state`` may include a call to ``load_state_dict()`` on the model, while
+        ``get_state`` should accordingly include ``state_dict()``.
+        """
+        pass
+
+    def load(self, path: str):
+        """Load the policy state from disk."""
+        pass
+
+    def save(self, path: str):
+        """Save the policy state to disk."""
+        pass

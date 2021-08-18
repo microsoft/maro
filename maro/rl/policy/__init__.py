@@ -1,16 +1,19 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from .ac import ACActionInfo, ACBatch, ACLossInfo, ActorCritic, DiscreteACNet
 from .allocation_strategy import TrainerAllocator
-from .policy import AbsPolicy, CorePolicy, NullPolicy
-from .policy_manager import (
-    AbsPolicyManager, LocalPolicyManager, MultiNodeDistPolicyManager, MultiNodePolicyManager, MultiProcessPolicyManager,
-    PolicyUpdateOptions
-)
-from .trainer import trainer_node, trainer_process
+from .ddpg import DDPG, DDPGBatch, DDPGLossInfo, ContinuousACNet
+from .dqn import DQN, DQNBatch, DQNLossInfo, DiscreteQNet, PrioritizedSampler
+from .pg import PGActionInfo, PGBatch, PGLossInfo, DiscretePolicyNet, PolicyGradient
+from .policy import AbsPolicy, Batch, LossInfo, NullPolicy, RLPolicy
+from .index import get_model_cls, get_policy_cls
 
 __all__ = [
-    "AbsPolicy", "AbsPolicyManager", "CorePolicy", "LocalPolicyManager", "MultiNodeDistPolicyManager",
-    "MultiNodePolicyManager", "MultiProcessPolicyManager", "PolicyUpdateOptions", "NullPolicy",
-    "trainer_node", "trainer_process", "TrainerAllocator"
+    "ACActionInfo", "ACBatch", "ACLossInfo", "ActorCritic", "DiscreteACNet",
+    "TrainerAllocator", "DDPG", "DDPGBatch", "DDPGLossInfo", "ContinuousACNet",
+    "DQN", "DQNBatch", "DQNLossInfo", "DiscreteQNet", "PrioritizedSampler",
+    "PGActionInfo", "PGBatch", "PGLossInfo", "DiscretePolicyNet", "PolicyGradient",
+    "AbsPolicy", "Batch", "LossInfo", "NullPolicy", "RLPolicy",
+    "get_model_cls", "get_policy_cls"
 ]

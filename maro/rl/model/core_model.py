@@ -2,11 +2,11 @@
 # Licensed under the MIT license.
 
 from abc import abstractmethod
+from statistics import mean
 from typing import Dict, List, Union
 
 import torch
 import torch.nn as nn
-from torch.distributions import Categorical
 
 from maro.rl.utils import get_torch_lr_scheduler_cls, get_torch_optim_cls
 from maro.utils import clone
@@ -106,9 +106,12 @@ class AbsCoreModel(nn.Module):
 
         return {name: param.grad for name, param in self.named_parameters()}
 
-    def apply(self, grad_dict: dict):
+    def apply_gradients(self, grad_dict_list: List[Dict[str, float]]):
+        avg_grad_dict = {
+            param_name: mean(grad_dict[param_name] for grad_dict in grad_dict_list) for param_name in grad_dict_list[0]
+        }
         for name, param in self.named_parameters():
-            param.grad = grad_dict[name]
+            param.grad = avg_grad_dict[name]
 
         # Apply gradients
         if isinstance(self.optimizer, dict):
@@ -117,10 +120,8 @@ class AbsCoreModel(nn.Module):
         else:
             self.optimizer.step()
 
-    def step(self, loss: torch.tensor):
+    def step(self, loss):
         """Use the loss to back-propagate gradients and apply them to the underlying parameters.
-
-        This is equivalent to a chained ``get_gradients`` and ``step``.
 
         Args:
             loss: Result of a computation graph that involves the underlying parameters.
@@ -159,18 +160,6 @@ class AbsCoreModel(nn.Module):
             for sch in self.scheduler.values():
                 sch.step()
 
-    def soft_update(self, other_model: nn.Module, tau: float):
-        """Soft-update model parameters using another model.
-
-        The update formulae is: param = (1 - tau) * param + tau * pther_param.
-
-        Args:
-            other_model: The model to update the current model with.
-            tau (float): Soft-update coefficient.
-        """
-        for params, other_params in zip(self.parameters(), other_model.parameters()):
-            params.data = (1 - tau) * params.data + tau * other_params.data
-
     def copy(self, with_optimizer: bool = False, device: str = None):
         """Return a deep copy of the instance;
 
@@ -189,200 +178,3 @@ class AbsCoreModel(nn.Module):
         model_copy.to(device)
 
         return model_copy
-
-
-class DiscreteQNet(AbsCoreModel):
-    """Q-value model for finite and discrete action spaces.
-
-    Args:
-        component (Union[nn.Module, Dict[str, nn.Module]]): Network component(s) comprising the model.
-        optim_option (Union[OptimOption, Dict[str, OptimOption]]): Optimizer options for the components.
-            If none, no optimizer will be created for the model which means the model is not trainable.
-            If it is a OptimOption instance, a single optimizer will be created to jointly optimize all
-            parameters of the model. If it is a dictionary of OptimOptions, the keys will be matched against
-            the component names and optimizers created for them. Note that it is possible to freeze certain
-            components while optimizing others by providing a subset of the keys in ``component``.
-            Defaults toNone.
-        device (str): Identifier for the torch device. The model instance will be moved to the specified
-            device. If it is None, the device will be set to "cpu" if cuda is unavailable and "cuda" otherwise.
-            Defaults to None.
-    """
-    def __init__(
-        self,
-        component: Union[nn.Module, Dict[str, nn.Module]],
-        optim_option: Union[OptimOption, Dict[str, OptimOption]] = None,
-        device: str = None
-    ):
-        super().__init__(component, optim_option=optim_option, device=device)
-
-    @abstractmethod
-    def forward(self, states) -> torch.tensor:
-        """Compute the Q-values for all actions as a tensor of shape (batch_size, action_space_size)."""
-        raise NotImplementedError
-
-    def get_action(self, states):
-        """
-        Given Q-values for a batch of states and all actions, return the action index and the corresponding
-        Q-values for each state.
-        """
-        q_for_all_actions = self.forward(states)  # (batch_size, num_actions)
-        greedy_q, actions = q_for_all_actions.max(dim=1)
-        return actions.detach(), greedy_q.detach(), q_for_all_actions.shape[1]
-
-    def q_values(self, states, actions: torch.tensor):
-        """Return the Q-values for a batch of states and actions."""
-        if len(actions.shape) == 1:
-            actions = actions.unsqueeze(dim=1)
-        q_for_all_actions = self.forward(states)  # (batch_size, num_actions)
-        return q_for_all_actions.gather(1, actions).squeeze(dim=1)
-
-
-class DiscretePolicyNet(AbsCoreModel):
-    """Parameterized policy for finite and discrete action spaces.
-
-    Args:
-        component (Union[nn.Module, Dict[str, nn.Module]]): Network component(s) comprising the model.
-        optim_option (Union[OptimOption, Dict[str, OptimOption]]): Optimizer options for the components.
-            If none, no optimizer will be created for the model which means the model is not trainable.
-            If it is a OptimOption instance, a single optimizer will be created to jointly optimize all
-            parameters of the model. If it is a dictionary of OptimOptions, the keys will be matched against
-            the component names and optimizers created for them. Note that it is possible to freeze certain
-            components while optimizing others by providing a subset of the keys in ``component``.
-            Defaults toNone.
-        device (str): Identifier for the torch device. The model instance will be moved to the specified
-            device. If it is None, the device will be set to "cpu" if cuda is unavailable and "cuda" otherwise.
-            Defaults to None.
-    """
-    def __init__(
-        self,
-        component: Union[nn.Module, Dict[str, nn.Module]],
-        optim_option: Union[OptimOption, Dict[str, OptimOption]] = None,
-        device: str = None
-    ):
-        super().__init__(component, optim_option=optim_option, device=device)
-
-    @abstractmethod
-    def forward(self, states) -> torch.tensor:
-        """Compute action probabilities corresponding to each state in ``states``.
-
-        The output must be a torch tensor with shape (batch_size, action_space_size).
-
-        Args:
-            states: State batch to compute action probabilities for.
-        """
-        raise NotImplementedError
-
-    def get_action(self, states, max_prob: bool = False):
-        """
-        Given a batch of states, return actions selected based on the probabilities computed by ``forward``
-        and the corresponding log probabilities.
-        """
-        action_prob = self.forward(states)   # (batch_size, num_actions)
-        if max_prob:
-            prob, action = action_prob.max(dim=1)
-            return action, torch.log(prob)
-        else:
-            action_prob = Categorical(action_prob)  # (batch_size, action_space_size)
-            action = action_prob.sample()
-            log_p = action_prob.log_prob(action)
-            return action, log_p
-
-
-class DiscreteACNet(AbsCoreModel):
-    """Model container for the actor-critic architecture for finite and discrete action spaces.
-
-    Args:
-        component (Union[nn.Module, Dict[str, nn.Module]]): Network component(s) comprising the model.
-        optim_option (Union[OptimOption, Dict[str, OptimOption]]): Optimizer options for the components.
-            If none, no optimizer will be created for the model which means the model is not trainable.
-            If it is a OptimOption instance, a single optimizer will be created to jointly optimize all
-            parameters of the model. If it is a dictionary of OptimOptions, the keys will be matched against
-            the component names and optimizers created for them. Note that it is possible to freeze certain
-            components while optimizing others by providing a subset of the keys in ``component``.
-            Defaults toNone.
-        device (str): Identifier for the torch device. The model instance will be moved to the specified
-            device. If it is None, the device will be set to "cpu" if cuda is unavailable and "cuda" otherwise.
-            Defaults to None.
-    """
-    def __init__(
-        self,
-        component: Union[nn.Module, Dict[str, nn.Module]],
-        optim_option: Union[OptimOption, Dict[str, OptimOption]] = None,
-        device: str = None
-    ):
-        super().__init__(component, optim_option=optim_option, device=device)
-
-    @abstractmethod
-    def forward(self, states, actor: bool = True, critic: bool = True) -> tuple:
-        """Compute action probabilities and values for a state batch.
-
-        The output is a tuple of (action_probs, values), where action probs is a tensor of shape
-        (batch_size, action_space_size) and values is a tensor of shape (batch_size,). If only one
-        of these two is needed, the return value for the other one can be set to None.
-
-        Args:
-            states: State batch to compute action probabilities and values for.
-            actor (bool): If True, the first element of the output will be actin probabilities. Defaults to True.
-            critic (bool): If True, the second element of the output will be state values. Defaults to True.
-        """
-        raise NotImplementedError
-
-    def get_action(self, states, max_prob: bool = False):
-        """
-        Given Q-values for a batch of states, return the action index and the corresponding maximum Q-value
-        for each state.
-        """
-        action_prob = self.forward(states, critic=False)[0]
-        if max_prob:
-            prob, action = action_prob.max(dim=1)
-            return action, torch.log(prob)
-        else:
-            action_prob = Categorical(action_prob)  # (batch_size, action_space_size)
-            action = action_prob.sample()
-            log_p = action_prob.log_prob(action)
-            return action, log_p
-
-
-class ContinuousACNet(AbsCoreModel):
-    """Model container for the actor-critic architecture for continuous action spaces.
-
-    Args:
-        component (Union[nn.Module, Dict[str, nn.Module]]): Network component(s) comprising the model.
-        optim_option (Union[OptimOption, Dict[str, OptimOption]]): Optimizer options for the components.
-            If none, no optimizer will be created for the model which means the model is not trainable.
-            If it is a OptimOption instance, a single optimizer will be created to jointly optimize all
-            parameters of the model. If it is a dictionary of OptimOptions, the keys will be matched against
-            the component names and optimizers created for them. Note that it is possible to freeze certain
-            components while optimizing others by providing a subset of the keys in ``component``.
-            Defaults toNone.
-        device (str): Identifier for the torch device. The model instance will be moved to the specified
-            device. If it is None, the device will be set to "cpu" if cuda is unavailable and "cuda" otherwise.
-            Defaults to None.
-    """
-    def __init__(
-        self,
-        component: Union[nn.Module, Dict[str, nn.Module]],
-        optim_option: Union[OptimOption, Dict[str, OptimOption]] = None,
-        device: str = None
-    ):
-        super().__init__(component, optim_option=optim_option, device=device)
-
-    @abstractmethod
-    def forward(self, states, actions=None):
-        """Compute actions for a batch of states or Q-values for a batch of states and actions.
-
-        Args:
-            states: State batch to compute the Q-values for.
-            actions: Action batch. If None, the output should be a batch of actions corresponding to
-                the state batch. Otherwise, the output should be the Q-values for the given states and
-                actions. Defaults to None.
-        """
-        raise NotImplementedError
-
-    def get_action(self, states):
-        """Compute actions given a batch of states."""
-        return self.forward(states)
-
-    def value(self, states):
-        """Compute the Q-values for a batch of states using the actions computed from them."""
-        return self.forward(states, actions=self.get_action(states))

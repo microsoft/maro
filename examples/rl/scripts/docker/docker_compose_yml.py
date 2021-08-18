@@ -17,7 +17,6 @@ dockerfile_path = join(root_dir, "docker_files", "dev.df")
 
 with open(config_path, "r") as fp:
     config = yaml.safe_load(fp)
-    num_trainers = config["policy_manager"]["num_trainers"]
     redis_host = config["redis"]["host"]
 
 docker_compose_manifest = {"version": "3.9", "services": {"redis": {"image": "redis:6", "container_name": redis_host}}}
@@ -45,19 +44,19 @@ if config["mode"] == "sync":
 else:
     common_env.append(f"NUMACTORS={config['async']['num_actors']}")
 
-# trainer spec
-if config["policy_manager"]["train_mode"] in ["multi-node", "multi-node-dist"]:
-    for trainer_id in range(num_trainers):
-        str_id = f"trainer.{trainer_id}"
-        trainer_spec = deepcopy(common_spec)
-        del trainer_spec["build"]
-        trainer_spec["command"] = "python3 /maro/rl_examples/workflows/policy_manager/trainer.py"
-        trainer_spec["container_name"] = str_id
-        trainer_spec["environment"] = [
-            f"TRAINERID={trainer_id}",
-            f"TRAINGROUP={config['policy_manager']['train_group']}"
+# host spec
+if config["policy_manager"]["type"] == "distributed":
+    for host_id in range(config["policy_manager"]["distributed"]["num_hosts"]):
+        str_id = f"host.{host_id}"
+        host_spec = deepcopy(common_spec)
+        del host_spec["build"]
+        host_spec["command"] = "python3 /maro/rl_examples/workflows/policy_manager/host.py"
+        host_spec["container_name"] = str_id
+        host_spec["environment"] = [
+            f"HOSTID={host_id}",
+            f"LEARNGROUP={config['policy_manager']['distributed']['learn_group']}"
         ] + common_env
-        docker_compose_manifest["services"][str_id] = trainer_spec
+        docker_compose_manifest["services"][str_id] = host_spec
 
 mode = config["mode"]
 if mode == "sync":
@@ -77,10 +76,11 @@ if mode == "sync":
                 f"ROLLOUTGROUP={config['sync']['rollout_group']}",
                 f"NUMEPISODES={config['num_episodes']}",
                 f"EVALSCH={config['eval_schedule']}",
-                f"TRAINMODE={config['policy_manager']['train_mode']}",
-                f"TRAINGROUP={config['policy_manager']['train_group']}",
-                f"ALLOCATIONMODE={config['policy_manager']['allocation_mode']}",
-                f"NUMTRAINERS={config['policy_manager']['num_trainers']}"
+                f"POLICYMANAGERTYPE={config['policy_manager']['type']}",
+                f"PARALLEL={config['policy_manager']['simple']['parallel']}",
+                f"LEARNGROUP={config['policy_manager']['distributed']['learn_group']}",
+                f"ALLOCATIONMODE={config['policy_manager']['distributed']['allocation_mode']}",
+                f"NUMHOSTS={config['policy_manager']['distributed']['num_hosts']}"
             ] + common_env
         }
     }
