@@ -6,7 +6,7 @@ from collections import defaultdict, deque
 from typing import Callable
 
 from maro.simulator import Env
-from maro.rl.typing import Trajectory, Transition
+from maro.rl.types import Trajectory, Transition
 
 
 class AbsEnvWrapper(ABC):

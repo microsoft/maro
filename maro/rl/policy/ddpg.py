@@ -1,13 +1,14 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from maro.rl.exploration.abs_exploration import AbsExploration
 from typing import List, Union
 
 import numpy as np
 import torch
 
 from maro.rl.exploration import GaussianNoiseExploration
-from maro.rl.typing import ContinuousACNet, Trajectory
+from maro.rl.types import ContinuousACNet, Trajectory
 from maro.rl.utils import get_torch_loss_cls
 from maro.rl.utils.remote_tools import LearnTask
 from maro.utils.exception.rl_toolkit_exception import InvalidExperience
@@ -83,7 +84,7 @@ class DDPG(RLPolicy):
         q_value_loss_cls="mse",
         q_value_loss_coeff: float = 1.0,
         soft_update_coeff: float = 1.0,
-        exploration=GaussianNoiseExploration(),
+        exploration: AbsExploration = GaussianNoiseExploration(),
         replay_memory_capacity: int = 10000,
         random_overwrite: bool = False,
         remote: bool = False
@@ -195,6 +196,10 @@ class DDPG(RLPolicy):
         # soft-update target network
         self.target_ac_net.soft_update(self.ac_net, self.soft_update_coeff)
         self._target_ac_net_version = self._ac_net_version
+
+    @property
+    def exploration_params(self):
+        return self.exploration.parameters
 
     def exploit(self):
         self.exploring = False

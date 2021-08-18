@@ -15,8 +15,7 @@ from general import log_dir, rl_policy_func_index
 
 def get_policy_manager():
     manager_type = getenv("POLICYMANAGERTYPE", default="simple")
-    parallel = getenv("PARALLEL", default=False)
-    print("parallel: ", parallel)
+    parallel = int(getenv("PARALLEL", default=0))
     if manager_type == "simple":
         return SimplePolicyManager(rl_policy_func_index, parallel=parallel, log_dir=log_dir)
 
@@ -24,7 +23,7 @@ def get_policy_manager():
     if manager_type == "distributed":
         return DistributedPolicyManager(
             list(rl_policy_func_index.keys()),
-            getenv("NODEGROUP", default="TRAIN"),
+            getenv("LEARNGROUP", default="learn"),
             num_hosts,
             proxy_kwargs={
                 "redis_address": (getenv("REDISHOST", default="maro-redis"), int(getenv("REDISPORT", default=6379))),

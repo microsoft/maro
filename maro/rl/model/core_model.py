@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 from abc import abstractmethod
-from statistics import mean
 from typing import Dict, List, Union
 
 import torch
@@ -108,7 +107,8 @@ class AbsCoreModel(nn.Module):
 
     def apply_gradients(self, grad_dict_list: List[Dict[str, float]]):
         avg_grad_dict = {
-            param_name: mean(grad_dict[param_name] for grad_dict in grad_dict_list) for param_name in grad_dict_list[0]
+            param_name: torch.mean(torch.stack([grad_dict[param_name] for grad_dict in grad_dict_list]), dim=0)
+            for param_name in grad_dict_list[0]
         }
         for name, param in self.named_parameters():
             param.grad = avg_grad_dict[name]

@@ -7,7 +7,7 @@ from typing import Callable, Dict
 
 from maro.communication import Proxy
 from maro.rl.policy import LossInfo, RLPolicy
-from maro.rl.typing import Trajectory
+from maro.rl.types import Trajectory
 from maro.rl.utils import MsgKey, MsgTag
 from maro.utils import Logger
 
@@ -42,6 +42,7 @@ def policy_host(
             break
 
         if msg.tag == MsgTag.INIT_POLICIES:
+            logger.info(f"Received an INIT_POLICIES msg")
             for name in msg.body[MsgKey.POLICY_NAMES]:
                 policy_dict[name] = create_policy_func_dict[name](name)
 

@@ -1,7 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import scipy
+import numpy as np
+import scipy.signal
 
 
 def discount_cumsum(x, discount):
@@ -25,4 +26,4 @@ def discount_cumsum(x, discount):
          x1 + discount * x2,
          x2]
     """
-    return scipy.signal.lfilter([1], [1, float(-discount)], x[::-1], axis=0)[::-1]
+    return np.array(scipy.signal.lfilter([1], [1, float(-discount)], x[::-1], axis=0)[::-1], dtype=np.float32)

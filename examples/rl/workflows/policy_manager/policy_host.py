@@ -22,7 +22,7 @@ if __name__ == "__main__":
     policy_host(
         rl_policy_func_index,
         int(host_id),
-        getenv("LEARNGROUP", default="LEARN"),
+        getenv("LEARNGROUP", default="learn"),
         proxy_kwargs={
             "redis_address": (getenv("REDISHOST", default="maro-redis"), int(getenv("REDISPORT", default=6379))),
             "max_peer_discovery_retries": 50

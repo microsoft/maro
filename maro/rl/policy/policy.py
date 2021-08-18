@@ -4,7 +4,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-from maro.rl.typing import Trajectory
+from maro.rl.types import Trajectory
 
 
 class AbsPolicy(ABC):
@@ -91,6 +91,10 @@ class RLPolicy(AbsPolicy):
 
     def exploration_step(self):
         pass
+
+    @property
+    def exploration_params(self):
+        return None
 
     @abstractmethod
     def get_state(self):

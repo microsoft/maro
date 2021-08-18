@@ -55,7 +55,7 @@ class DiscreteACNet(AbsCoreModel):
         Given Q-values for a batch of states, return the action index and the corresponding maximum Q-value
         for each state.
         """
-        action_probs, values = self.forward(states)[0]
+        action_probs, values = self.forward(states)
         if max_prob:
             probs, actions = action_probs.max(dim=1)
             return actions, torch.log(probs), values 

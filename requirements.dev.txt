@@ -20,7 +20,7 @@ torchsummary==1.5.1
 wrapt==1.11.2
 zmq==0.0.0
 numpy<1.20.0
-scipy
+scipy==1.7.0
 tabulate==0.8.5
 networkx==2.4
 palettable==3.3.0

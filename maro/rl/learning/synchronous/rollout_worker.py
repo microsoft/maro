@@ -143,6 +143,7 @@ def rollout_worker_node(
         if msg.body[MsgKey.EXPLORATION_STEP]:
             agent_wrapper.exploration_step()
 
+        logger.info(f"Exploring with parameters: {agent_wrapper.exploration_params}")
         if env_wrapper.state is None:
             logger.info(f"Rollout episode {msg.body[MsgKey.EPISODE]}")
             env_wrapper.reset()

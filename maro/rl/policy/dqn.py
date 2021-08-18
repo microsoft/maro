@@ -7,7 +7,7 @@ import numpy as np
 import torch
 
 from maro.rl.exploration import DiscreteSpaceExploration, EpsilonGreedyExploration
-from maro.rl.typing import DiscreteQNet, Trajectory
+from maro.rl.types import DiscreteQNet, Trajectory
 from maro.rl.utils.remote_tools import LearnTask
 from maro.utils.exception.rl_toolkit_exception import InvalidExperience
 
@@ -20,7 +20,7 @@ class DQNBatch(Batch):
 
     An experience consists of state, action, reward, next state.
     """
-    __slots__ = ["states", "actions", "rewards", "next_states", "indexes", "is_weights"]
+    __slots__ = ["states", "actions", "rewards", "next_states"]
 
     def __init__(
         self,
@@ -28,10 +28,10 @@ class DQNBatch(Batch):
         actions: list,
         rewards: list,
         next_states: list,
-        indexes: list,
+        indexes: list = None,
         is_weights: list = None
     ):
-        if not len(states) == len(actions) == len(rewards) == len(next_states) == len(is_weights) == len(indexes):
+        if not len(states) == len(actions) == len(rewards) == len(next_states):
             raise InvalidExperience("values of contents should consist of lists of the same length")
         super().__init__()
         self.states = states
@@ -263,7 +263,7 @@ class DQN(RLPolicy):
             [self._replay_memory.data["actions"][idx] for idx in indexes],
             [self._replay_memory.data["rewards"][idx] for idx in indexes],
             [self._replay_memory.data["next_states"][idx] for idx in indexes],
-            indexes,
+            indexes=indexes,
             is_weights=is_weights
         )
 
@@ -325,6 +325,10 @@ class DQN(RLPolicy):
         # soft-update target network
         self.target_q_net.soft_update(self.q_net, self.soft_update_coeff)
         self._target_q_net_version = self._q_net_version
+
+    @property
+    def exploration_params(self):
+        return self.exploration.parameters
 
     def exploit(self):
         self.exploring = False

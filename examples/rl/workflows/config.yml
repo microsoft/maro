@@ -23,11 +23,11 @@ async:
   group: async
   num_actors: 3
 policy_manager:
-  type: simple # simple, distributed
+  type: distributed # simple, distributed
   simple:
     parallel: false
   distributed:
-    learn_group: policy-manager
+    learn_group: learn
     num_hosts: 2
 redis:
   host: maro-redis

@@ -6,7 +6,7 @@ from typing import List, Tuple
 import numpy as np
 import torch
 
-from maro.rl.typing import DiscretePolicyNet, Trajectory
+from maro.rl.types import DiscretePolicyNet, Trajectory
 from maro.rl.utils import discount_cumsum
 from maro.rl.utils.remote_tools import LearnTask
 
@@ -25,15 +25,12 @@ class PGActionInfo:
 
 class PGBatch(Batch):
 
-    __slots__ = ["states", "actions", "rewards", "returns", "logps"]
+    __slots__ = ["states", "actions", "returns", "logps"]
 
-    def __init__(self, states, actions, rewards, returns, logps):
+    def __init__(self, states, returns: np.array):
         super().__init__()
         self.states = states
-        self.actions = actions
-        self.rewards = rewards
         self.returns = returns
-        self.logps = logps
 
     @property
     def size(self):
@@ -90,18 +87,8 @@ class PolicyGradient(RLPolicy):
             return trajectory
 
     def _preprocess(self, trajectory: Trajectory) -> PGBatch:
-        if trajectory.actions[-1]:
-            rewards = np.append(trajectory.rewards, trajectory.actions[-1].value)
-        else:
-            rewards = np.append(trajectory.rewards, .0)
-
-        return PGBatch(
-            states=trajectory.states,
-            actions=[action_info.action for action_info in trajectory.actions],
-            rewards=trajectory.rewards,
-            returns=discount_cumsum(rewards, self.reward_discount)[:-1],
-            logps=[action_info.logp for action_info in trajectory.actions]
-        )
+        rewards = np.append(trajectory.rewards, trajectory.actions[-1].value if trajectory.actions[-1] else .0)
+        return PGBatch(trajectory.states[:-1], discount_cumsum(rewards, self.reward_discount)[:-1])
 
     def get_batch_loss(self, batch: PGBatch, with_grad: bool = False):
         """
