@@ -247,7 +247,7 @@ def dump_from_config(config_file: str, output_folder: str, max_tick: int):
 
     generator = CimDataGenerator()
 
-    data_collection = generator.gen_data(config_file, max_tick=max_tick, start_tick=0)
+    data_collection = generator.gen_data(config_file, max_tick=max_tick, start_tick=0, topology_seed=None)
 
     dump_util = CimDataDumpUtil(data_collection)
 

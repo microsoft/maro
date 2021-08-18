@@ -10,6 +10,7 @@ from maro.simulator.utils import seed
 from .cim_data_container import CimBaseDataContainer, CimRealDataContainer, CimSyntheticDataContainer
 from .cim_data_generator import CimDataGenerator
 from .cim_data_loader import load_from_folder, load_real_data_from_folder
+from .utils import route_init_rand
 
 
 class CimDataContainerWrapper:
@@ -28,14 +29,14 @@ class CimDataContainerWrapper:
 
         self._init_data_container()
 
-    def _init_data_container(self):
+    def _init_data_container(self, topology_seed: int = None):
         if not os.path.exists(self._config_path):
             raise FileNotFoundError
         # Synthetic Data Mode: config.yml must exist.
         config_path = os.path.join(self._config_path, "config.yml")
         if os.path.exists(config_path):
             self._data_cntr = data_from_generator(
-                config_path=config_path, max_tick=self._max_tick, start_tick=self._start_tick
+                config_path=config_path, max_tick=self._max_tick, start_tick=self._start_tick, topology_seed=topology_seed
             )
         else:
             # Real Data Mode: read data from input data files, no need for any config.yml.
@@ -43,7 +44,10 @@ class CimDataContainerWrapper:
 
     def reset(self, keep_seed):
         """Reset data container internal state"""
-        self._data_cntr.reset(keep_seed)
+        if not keep_seed:
+            self._init_data_container(route_init_rand.randint(0, 4096 - 1))
+        else:
+            self._data_cntr.reset()
 
     def __getattr__(self, name):
         return getattr(self._data_cntr, name)
@@ -68,20 +72,21 @@ def data_from_dumps(dumps_folder: str) -> CimSyntheticDataContainer:
     return CimSyntheticDataContainer(data_collection)
 
 
-def data_from_generator(config_path: str, max_tick: int, start_tick: int = 0) -> CimSyntheticDataContainer:
+def data_from_generator(config_path: str, max_tick: int, start_tick: int = 0, topology_seed: int = None) -> CimSyntheticDataContainer:
     """Collect data from data generator with configurations.
 
     Args:
         config_path(str): Path of configuration file (yaml).
         max_tick (int): Max tick to generate data.
         start_tick(int): Start tick to generate data.
+        topology_seed(int): Random seed for generating routes. 'None' means using the seed in the configuration file.
 
     Returns:
         CimSyntheticDataContainer: Data container used to provide cim data related interfaces.
     """
     edg = CimDataGenerator()
 
-    data_collection = edg.gen_data(config_path, start_tick=start_tick, max_tick=max_tick)
+    data_collection = edg.gen_data(config_path, start_tick=start_tick, max_tick=max_tick, topology_seed=topology_seed)
 
     return CimSyntheticDataContainer(data_collection)
 

@@ -29,13 +29,14 @@ class CimDataGenerator:
         self._routes_parser = RoutesParser()
         self._global_order_proportion = GlobalOrderProportion()
 
-    def gen_data(self, config_file: str, max_tick: int, start_tick: int = 0) -> CimSyntheticDataCollection:
+    def gen_data(self, config_file: str, max_tick: int, start_tick: int = 0, topology_seed: int = None) -> CimSyntheticDataCollection:
         """Generate data with specified configurations.
 
         Args:
             config_file(str): File of configuration (yaml).
             max_tick(int): Max tick to generate.
             start_tick(int): Start tick to generate.
+            topology_seed(int): Random seed for generating routes. 'None' means using the seed in the configuration file.
 
         Returns:
             CimSyntheticDataCollection: Data collection contains all cim data.
@@ -45,7 +46,8 @@ class CimDataGenerator:
         with open(config_file, "r") as fp:
             conf: dict = safe_load(fp)
 
-        topology_seed = conf["seed"]
+        if topology_seed is None:
+            topology_seed = conf["seed"]
 
         # set seed to generate data
         seed(topology_seed)
