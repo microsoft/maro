@@ -8,7 +8,7 @@ import torch
 from torch.distributions import Categorical
 
 from maro.rl.types import DiscreteACNet, Trajectory
-from maro.rl.utils import  discount_cumsum, get_torch_loss_cls
+from maro.rl.utils import discount_cumsum, get_torch_loss_cls
 
 from .policy import Batch, LossInfo, RLPolicy
 
