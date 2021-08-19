@@ -6,14 +6,13 @@ from typing import List
 
 from yaml import safe_load
 
-from maro.simulator.utils import seed
+from maro.simulator.utils import seed, random
 from maro.utils.exception.data_lib_exception import CimGeneratorInvalidParkingDuration
-
 from .entities import CimSyntheticDataCollection, OrderGenerateMode, Stop
 from .global_order_proportion import GlobalOrderProportion
 from .port_parser import PortsParser
 from .route_parser import RoutesParser
-from .utils import apply_noise, route_init_rand
+from .utils import apply_noise, ROUTE_INIT_RAND_KEY
 from .vessel_parser import VesselsParser
 
 CIM_GENERATOR_VERSION = 0x000001
@@ -148,7 +147,7 @@ class CimDataGenerator:
                 port_idx = port_mapping[cur_route_point.port_name]
 
                 # apply noise to parking duration
-                parking_duration = ceil(apply_noise(duration, duration_noise, route_init_rand))
+                parking_duration = ceil(apply_noise(duration, duration_noise, random[ROUTE_INIT_RAND_KEY]))
 
                 if parking_duration <= 0:
                     raise CimGeneratorInvalidParkingDuration()
@@ -167,7 +166,7 @@ class CimDataGenerator:
                 distance_to_next_port = cur_route_point.distance_to_next_port
 
                 # apply noise to speed
-                noised_speed = apply_noise(speed, speed_noise, route_init_rand)
+                noised_speed = apply_noise(speed, speed_noise, random[ROUTE_INIT_RAND_KEY])
                 sailing_duration = ceil(distance_to_next_port / noised_speed)
 
                 # next tick

@@ -31,7 +31,6 @@ class SimRandom:
         self._rand_instances: Dict[str, Random] = OrderedDict()
         self._seed_dict: Dict[str, int] = {}
         self._seed = int(time.time())
-        self._index = 0
 
     def seed(self, seed_num: int):
         """Set seed for simulator random objects.
@@ -46,27 +45,28 @@ class SimRandom:
 
         self._seed = seed_num
 
-        self._index = 0
-        for key, rand in self._rand_instances.items():
+        for index, (key, rand) in enumerate(self._rand_instances.items()):
             # we set seed for each random instance with 1 offset
-            seed = seed_num + self._index
+            seed = seed_num + index
 
             rand.seed(seed)
 
             self._seed_dict[key] = seed
 
-            self._index += 1
+    def _create_instance(self, key: str) -> None:
+        assert type(key) is str
+
+        if key not in self._rand_instances:
+            self._seed_dict[key] = self._seed + len(self._rand_instances)
+            r = Random()
+            r.seed(self._seed_dict[key])
+            self._rand_instances[key] = r
 
     def __getitem__(self, key):
         assert type(key) is str
 
         if key not in self._rand_instances:
-            r = Random()
-            r.seed(self._seed + self._index)
-
-            self._index += 1
-
-            self._rand_instances[key] = r
+            self._create_instance(key)
 
         return self._rand_instances[key]
 
@@ -87,6 +87,27 @@ class SimRandom:
             return self._seed_dict.get(key, None)
 
         return self._seed
+
+    def reset_seed(self, key: str = None) -> None:
+        """Reset seed of current random generator.
+
+        NOTE:
+            This will reset the seed to the value that specified by user (or default).
+
+        Args:
+            key(str): Key of item to get.
+        """
+        if key is not None:
+            if key not in self._seed_dict:
+                self._create_instance(key)
+            rand = self._rand_instances[key]
+            rand.seed(self._seed_dict[key])
+
+    def reset_all_seeds(self) -> None:
+        """Reset seed of all random generators
+        """
+        for key in self._rand_instances:
+            self.reset_seed(key)
 
 
 random = SimRandom()

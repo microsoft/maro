@@ -4,7 +4,8 @@
 from math import ceil
 
 from .entities import CimBaseDataCollection, NoisedItem, PortSetting
-from .utils import apply_noise, buffer_tick_rand
+from .utils import apply_noise, BUFFER_TICK_RAND_KEY
+from ...simulator.utils import random
 
 
 class PortBufferTickWrapper:
@@ -29,4 +30,4 @@ class PortBufferTickWrapper:
 
         buffer_setting: NoisedItem = self._attribute_func(port)
 
-        return ceil(apply_noise(buffer_setting.base, buffer_setting.noise, buffer_tick_rand))
+        return ceil(apply_noise(buffer_setting.base, buffer_setting.noise, random[BUFFER_TICK_RAND_KEY]))

@@ -5,12 +5,11 @@ import os
 import urllib.parse
 
 from maro.cli.data_pipeline.utils import StaticParameter
-from maro.simulator.utils import seed
-
+from maro.simulator.utils import seed, random
 from .cim_data_container import CimBaseDataContainer, CimRealDataContainer, CimSyntheticDataContainer
 from .cim_data_generator import CimDataGenerator
 from .cim_data_loader import load_from_folder, load_real_data_from_folder
-from .utils import route_init_rand
+from .utils import ROUTE_INIT_RAND_KEY, DATA_CONTAINER_INIT_SEED_LIMIT
 
 
 class CimDataContainerWrapper:
@@ -45,7 +44,7 @@ class CimDataContainerWrapper:
     def reset(self, keep_seed):
         """Reset data container internal state"""
         if not keep_seed:
-            self._init_data_container(route_init_rand.randint(0, 4096 - 1))
+            self._init_data_container(random[ROUTE_INIT_RAND_KEY].randint(0, DATA_CONTAINER_INIT_SEED_LIMIT - 1))
         else:
             self._data_cntr.reset()
 
