@@ -6,14 +6,14 @@ from abc import ABC, abstractmethod
 from math import ceil
 from typing import Dict, List
 
+from maro.simulator.utils import random
+
 from .entities import (
     CimBaseDataCollection, CimRealDataCollection, CimSyntheticDataCollection, NoisedItem, Order, OrderGenerateMode,
     PortSetting, VesselSetting
 )
 from .port_buffer_tick_wrapper import PortBufferTickWrapper
-from .utils import (
-    apply_noise, buffer_tick_rand, get_buffer_tick_seed, get_order_num_seed, list_sum_normalize, order_num_rand
-)
+from .utils import BUFFER_TICK_RAND_KEY, ORDER_NUM_RAND_KEY, apply_noise, list_sum_normalize
 from .vessel_future_stops_prediction import VesselFutureStopsPrediction
 from .vessel_past_stops_wrapper import VesselPastStopsWrapper
 from .vessel_reachable_stops_wrapper import VesselReachableStopsWrapper
@@ -59,9 +59,6 @@ class CimBaseDataContainer(ABC):
         self._past_stop_wrapper = VesselPastStopsWrapper(self._data_collection)
         self._vessel_plan_wrapper = VesselSailingPlanWrapper(self._data_collection)
         self._reachable_stops_wrapper = VesselReachableStopsWrapper(self._data_collection)
-
-        # keep the seed so we can reproduce the sequence after reset
-        self._buffer_tick_seed: int = get_buffer_tick_seed()
 
         # flag to tell if we need to reset seed, we need this flag as outside may set the seed after env.reset
         self._is_need_reset_seed = False
@@ -245,7 +242,7 @@ class CimBaseDataContainer(ABC):
 
     def _reset_seed(self):
         """Reset internal seed for generate reproduceable data"""
-        buffer_tick_rand.seed(self._buffer_tick_seed)
+        random.reset_seed(BUFFER_TICK_RAND_KEY)
 
     @abstractmethod
     def get_orders(self, tick: int, total_empty_container: int) -> List[Order]:
@@ -271,9 +268,6 @@ class CimSyntheticDataContainer(CimBaseDataContainer):
 
     def __init__(self, data_collection: CimSyntheticDataCollection):
         super().__init__(data_collection)
-
-        # keep the seed so we can reproduce the sequence after reset
-        self._order_num_seed: int = get_order_num_seed()
 
     # TODO: get_events which composed with arrive, departure and order
 
@@ -303,7 +297,7 @@ class CimSyntheticDataContainer(CimBaseDataContainer):
     def _reset_seed(self):
         """Reset internal seed for generate reproduceable data"""
         super()._reset_seed()
-        order_num_rand.seed(self._order_num_seed)
+        random.reset_seed(ORDER_NUM_RAND_KEY)
 
     def _gen_orders(self, tick: int, total_empty_container: int) -> List[Order]:
         """Generate order for specified tick.
@@ -339,7 +333,7 @@ class CimSyntheticDataContainer(CimBaseDataContainer):
         for port_idx in range(self.port_number):
             source_dist: NoisedItem = self.ports[port_idx].source_proportion
 
-            noised_source_order_number = apply_noise(source_dist.base, source_dist.noise, order_num_rand)
+            noised_source_order_number = apply_noise(source_dist.base, source_dist.noise, random[ORDER_NUM_RAND_KEY])
 
             noised_source_order_dist.append(noised_source_order_number)
 
@@ -356,7 +350,7 @@ class CimSyntheticDataContainer(CimBaseDataContainer):
 
             # apply noise and normalize
             noised_targets_dist = list_sum_normalize(
-                [apply_noise(target.base, target.noise, order_num_rand) for target in targets_dist])
+                [apply_noise(target.base, target.noise, random[ORDER_NUM_RAND_KEY]) for target in targets_dist])
 
             # order for current ports
             cur_port_order_num = ceil(orders_to_gen * noised_source_order_dist[port_idx])

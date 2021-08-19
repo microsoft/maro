@@ -3,8 +3,10 @@
 
 from math import ceil
 
+from maro.simulator.utils import random
+
 from .entities import CimBaseDataCollection, NoisedItem, PortSetting
-from .utils import apply_noise, buffer_tick_rand
+from .utils import BUFFER_TICK_RAND_KEY, apply_noise
 
 
 class PortBufferTickWrapper:
@@ -29,4 +31,4 @@ class PortBufferTickWrapper:
 
         buffer_setting: NoisedItem = self._attribute_func(port)
 
-        return ceil(apply_noise(buffer_setting.base, buffer_setting.noise, buffer_tick_rand))
+        return ceil(apply_noise(buffer_setting.base, buffer_setting.noise, random[BUFFER_TICK_RAND_KEY]))

@@ -139,7 +139,7 @@ class AbsBusinessEngine(ABC):
         pass
 
     @abstractmethod
-    def reset(self):
+    def reset(self, keep_seed: bool = False):
         """Reset states business engine."""
         pass
 

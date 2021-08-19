@@ -101,8 +101,12 @@ class Env(AbsEnv):
         """
         return
 
-    def reset(self):
-        """Reset environment."""
+    def reset(self, keep_seed: bool = False):
+        """Reset environment.
+
+        Args:
+            keep_seed (bool): Reset the random seed to the generate the same data sequence or not. Defaults to False.
+        """
         self._tick = self._start_tick
 
         self._simulate_generator.close()
@@ -120,7 +124,7 @@ class Env(AbsEnv):
 
         self._decision_events.clear()
 
-        self._business_engine.reset()
+        self._business_engine.reset(keep_seed)
 
     @property
     def configs(self) -> dict:

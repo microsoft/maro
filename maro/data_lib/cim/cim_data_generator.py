@@ -6,14 +6,14 @@ from typing import List
 
 from yaml import safe_load
 
-from maro.simulator.utils import seed
-from maro.utils.exception.data_lib_exeption import CimGeneratorInvalidParkingDuration
+from maro.simulator.utils import random, seed
+from maro.utils.exception.data_lib_exception import CimGeneratorInvalidParkingDuration
 
 from .entities import CimSyntheticDataCollection, OrderGenerateMode, Stop
 from .global_order_proportion import GlobalOrderProportion
 from .port_parser import PortsParser
 from .route_parser import RoutesParser
-from .utils import apply_noise, route_init_rand
+from .utils import ROUTE_INIT_RAND_KEY, apply_noise
 from .vessel_parser import VesselsParser
 
 CIM_GENERATOR_VERSION = 0x000001
@@ -29,13 +29,19 @@ class CimDataGenerator:
         self._routes_parser = RoutesParser()
         self._global_order_proportion = GlobalOrderProportion()
 
-    def gen_data(self, config_file: str, max_tick: int, start_tick: int = 0) -> CimSyntheticDataCollection:
+    def gen_data(
+        self, config_file: str, max_tick: int,
+        start_tick: int = 0,
+        topology_seed: int = None
+    ) -> CimSyntheticDataCollection:
         """Generate data with specified configurations.
 
         Args:
             config_file(str): File of configuration (yaml).
             max_tick(int): Max tick to generate.
             start_tick(int): Start tick to generate.
+            topology_seed(int): Random seed of the business engine. \
+                'None' means using the seed in the configuration file.
 
         Returns:
             CimSyntheticDataCollection: Data collection contains all cim data.
@@ -45,7 +51,8 @@ class CimDataGenerator:
         with open(config_file, "r") as fp:
             conf: dict = safe_load(fp)
 
-        topology_seed = conf["seed"]
+        if topology_seed is None:
+            topology_seed = conf["seed"]
 
         # set seed to generate data
         seed(topology_seed)
@@ -146,7 +153,7 @@ class CimDataGenerator:
                 port_idx = port_mapping[cur_route_point.port_name]
 
                 # apply noise to parking duration
-                parking_duration = ceil(apply_noise(duration, duration_noise, route_init_rand))
+                parking_duration = ceil(apply_noise(duration, duration_noise, random[ROUTE_INIT_RAND_KEY]))
 
                 if parking_duration <= 0:
                     raise CimGeneratorInvalidParkingDuration()
@@ -165,7 +172,7 @@ class CimDataGenerator:
                 distance_to_next_port = cur_route_point.distance_to_next_port
 
                 # apply noise to speed
-                noised_speed = apply_noise(speed, speed_noise, route_init_rand)
+                noised_speed = apply_noise(speed, speed_noise, random[ROUTE_INIT_RAND_KEY])
                 sailing_duration = ceil(distance_to_next_port / noised_speed)
 
                 # next tick

@@ -6,7 +6,9 @@ from typing import Union
 
 import numpy as np
 
-from .utils import apply_noise, clip, order_init_rand
+from maro.simulator.utils import random
+
+from .utils import ORDER_INIT_RAND_KEY, apply_noise, clip
 
 
 class GlobalOrderProportion:
@@ -59,7 +61,7 @@ class GlobalOrderProportion:
             # apply noise if the distribution not zero
             if orders != 0:
                 if noise != 0:
-                    orders = apply_noise(orders, noise, order_init_rand)
+                    orders = apply_noise(orders, noise, random[ORDER_INIT_RAND_KEY])
 
                 # clip and gen order
                 orders = floor(clip(0, 1, orders) * total_container)
