@@ -9,7 +9,6 @@ from .entities import CimBaseDataCollection, NoisedItem, PortSetting
 from .utils import BUFFER_TICK_RAND_KEY, apply_noise
 
 
-
 class PortBufferTickWrapper:
     """Used to generate buffer ticks when empty/full become available.
 

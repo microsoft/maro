@@ -7,6 +7,7 @@ from typing import Union
 import numpy as np
 
 from maro.simulator.utils import random
+
 from .utils import ORDER_INIT_RAND_KEY, apply_noise, clip
 
 

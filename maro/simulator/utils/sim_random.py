@@ -98,7 +98,7 @@ class SimRandom:
             key(str): Key of item to get.
         """
         assert type(key) is str
-        
+
         if key not in self._seed_dict:
             self._create_instance(key)
         rand = self._rand_instances[key]

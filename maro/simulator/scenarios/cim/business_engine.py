@@ -196,7 +196,7 @@ class CimBusinessEngine(AbsBusinessEngine):
 
         return tick + 1 == self._max_tick
 
-    def reset(self, keep_seed):
+    def reset(self, keep_seed: bool = False):
         """Reset the business engine, it will reset frame value."""
 
         self._snapshots.reset()

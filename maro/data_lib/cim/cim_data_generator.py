@@ -29,8 +29,11 @@ class CimDataGenerator:
         self._routes_parser = RoutesParser()
         self._global_order_proportion = GlobalOrderProportion()
 
-    def gen_data(self, config_file: str, max_tick: int, start_tick: int = 0,
-                 topology_seed: int = None) -> CimSyntheticDataCollection:
+    def gen_data(
+        self, config_file: str, max_tick: int,
+        start_tick: int = 0,
+        topology_seed: int = None
+    ) -> CimSyntheticDataCollection:
         """Generate data with specified configurations.
 
         Args:

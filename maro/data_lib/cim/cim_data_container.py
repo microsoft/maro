@@ -13,7 +13,7 @@ from .entities import (
     PortSetting, VesselSetting
 )
 from .port_buffer_tick_wrapper import PortBufferTickWrapper
-from .utils import apply_noise, list_sum_normalize, BUFFER_TICK_RAND_KEY, ORDER_NUM_RAND_KEY
+from .utils import BUFFER_TICK_RAND_KEY, ORDER_NUM_RAND_KEY, apply_noise, list_sum_normalize
 from .vessel_future_stops_prediction import VesselFutureStopsPrediction
 from .vessel_past_stops_wrapper import VesselPastStopsWrapper
 from .vessel_reachable_stops_wrapper import VesselReachableStopsWrapper

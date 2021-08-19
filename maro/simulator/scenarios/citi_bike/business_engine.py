@@ -146,7 +146,7 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
             CitiBikeEvents.DeliverBike.name: BikeTransferPayload.summary_key
         }
 
-    def reset(self, keep_seed):
+    def reset(self, keep_seed: bool = False):
         """Reset internal states for episode."""
         self._total_trips = 0
         self._total_operate_num = 0
