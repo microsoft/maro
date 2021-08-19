@@ -5,8 +5,10 @@ from enum import Enum
 
 
 class MsgTag(Enum):
-    COLLECT = "rollout"
-    EVAL = "eval"
+    SAMPLE = "sample"
+    TEST = "test"
+    SAMPLE_DONE = "eval_done"
+    TEST_DONE = "collect_done"
     INIT_POLICIES = "init_policies"
     INIT_POLICIES_DONE = "init_policies_done"
     POLICY_STATE = "policy_state"
@@ -17,8 +19,6 @@ class MsgTag(Enum):
     COMPUTE_GRAD = "compute_grad"
     COMPUTE_GRAD_DONE = "compute_grad_done"
     ABORT_ROLLOUT = "abort_rollout"
-    EVAL_DONE = "eval_done"
-    COLLECT_DONE = "collect_done"
     DONE = "done"
     EXIT = "exit"
 
@@ -28,6 +28,7 @@ class MsgKey(Enum):
     AGENT_ID = "agent_id"
     EPISODE = "episode"
     SEGMENT = "segment"
+    NUM_STEPS = "num_steps"
     STEP = "step"
     POLICY_NAMES = "policy_names"
     ROLLOUT_INFO = "rollout_info"
@@ -38,5 +39,5 @@ class MsgKey(Enum):
     POLICY_STATE = "policy_state"
     EXPLORATION_STEP = "exploration_step"
     VERSION = "version"
-    NUM_STEPS = "num_steps"
+    STEP_RANGE = "step_range"
     END_OF_EPISODE = "end_of_episode"

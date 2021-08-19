@@ -5,7 +5,7 @@ import sys
 from os import getenv
 from os.path import dirname, realpath
 
-from maro.rl.learning.synchronous import rollout_worker_node
+from maro.rl.learning.synchronous import rollout_worker
 
 
 workflow_dir = dirname(dirname(realpath(__file__)))  # template directory
@@ -22,12 +22,12 @@ if __name__ == "__main__":
         raise ValueError("Missing environment variable: WORKERID")
     worker_id = int(worker_id)
 
-    rollout_worker_node(
+    rollout_worker(
         getenv("ROLLOUTGROUP", default="rollout"),
         worker_id,
-        get_env_wrapper(replay_agent_ids=replay_agents[worker_id]),
-        get_agent_wrapper(),
-        eval_env_wrapper=get_eval_env_wrapper(),
+        get_env_wrapper,
+        get_agent_wrapper,
+        get_eval_env_wrapper=get_eval_env_wrapper,
         proxy_kwargs={
             "redis_address": (getenv("REDISHOST", default="maro-redis"), int(getenv("REDISPORT", default=6379))),
             "max_peer_discovery_retries": 50    

@@ -26,8 +26,7 @@ post_collect = getattr(module, "post_collect", None)
 post_evaluate = getattr(module, "post_evaluate", None)
 
 # roll-out experience distribution amongst workers
-mode = getenv("MODE")
-num_rollouts = int(getenv("NUMWORKERS")) if mode == "sync" else int(getenv("NUMACTORS"))
+num_rollouts = int(getenv("NUMROLLOUTS"))
 exp_dist = int(getenv("EXPDIST", default=0))
 if exp_dist:
     replay_agents = [[] for _ in range(num_rollouts)]

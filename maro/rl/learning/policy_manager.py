@@ -178,7 +178,6 @@ class DistributedPolicyManager(AbsPolicyManager):
 
         self._policy2host = {}
         self._host2policies = defaultdict(list)
-        self._logger = Logger("POLICY_MANAGER", dump_folder=log_dir)
 
         # assign policies to hosts
         for i, name in enumerate(self._policy_names):
@@ -197,7 +196,6 @@ class DistributedPolicyManager(AbsPolicyManager):
         # cache the initial policy states
         self._state_cache, dones = {}, 0
         for msg in self._proxy.receive():
-            self._logger.info(f"received a msg of tag {msg.tag}")
             if msg.tag == MsgTag.INIT_POLICIES_DONE:
                 for policy_name, policy_state in msg.body[MsgKey.POLICY_STATE].items():
                     self._state_cache[policy_name] = policy_state
@@ -218,6 +216,7 @@ class DistributedPolicyManager(AbsPolicyManager):
             if msg.tag == MsgTag.LEARN_DONE:
                 for policy_name, policy_state in msg.body[MsgKey.POLICY_STATE].items():
                     self._state_cache[policy_name] = policy_state
+                    self._logger.info(f"Cached state for policy {policy_name}")
                 dones += 1
                 if dones == len(msg_dict):
                     break

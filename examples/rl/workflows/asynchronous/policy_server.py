@@ -19,7 +19,7 @@ if __name__ == "__main__":
     policy_server(
         getenv("GROUP", default="ASYNC"),
         get_policy_manager(),
-        int(getenv("NUMACTORS", default=5)),
+        int(getenv("NUMROLLOUTS", default=5)),
         max_lag=int(getenv("MAXLAG", default=0)),
         proxy_kwargs={
             "redis_address": (getenv("REDISHOST", default="maro-redis"), int(getenv("REDISPORT", default=6379))),

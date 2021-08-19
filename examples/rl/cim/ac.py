@@ -56,7 +56,7 @@ ac_config = {
     "entropy_coeff": 0.01,
     # "clip_ratio": 0.8   # for PPO
     "lam": 0.9,
-    "get_loss_on_rollout_finish": True
+    "get_loss_on_rollout_finish": False
 }
 
 

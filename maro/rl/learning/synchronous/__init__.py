@@ -2,10 +2,11 @@
 # Licensed under the MIT license.
 
 from .learner import Learner
-from .rollout_manager import AbsRolloutManager, LocalRolloutManager, MultiNodeRolloutManager, MultiProcessRolloutManager
-from .rollout_worker import rollout_worker_node, rollout_worker_process
+from .rollout_manager import AbsRolloutManager, DistributedRolloutManager, SimpleRolloutManager, rollout_worker
+from .rollout_worker import RolloutWorker
 
 __all__ = [
-    "AbsRolloutManager", "Learner", "LocalRolloutManager", "MultiNodeRolloutManager", "MultiProcessRolloutManager",
-    "rollout_worker_node", "rollout_worker_process"
+    "Learner",
+    "AbsRolloutManager", "DistributedRolloutManager", "SimpleRolloutManager", "rollout_worker",
+    "RolloutWorker"
 ]

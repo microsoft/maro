@@ -15,7 +15,7 @@ simulation_logger = Logger("SIMUALTION", dump_folder=log_dir)
 def post_collect(trackers, ep, segment):
     # print the env metric from each rollout worker
     for tracker in trackers:
-        simulation_logger.info(f"env summary (episode {ep}, segement {segment}): {tracker['env_metric']}")
+        simulation_logger.info(f"env summary (episode {ep}, segment {segment}): {tracker['env_metric']}")
 
     # print the average env metric
     if len(trackers) > 1:
