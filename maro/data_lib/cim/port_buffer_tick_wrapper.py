@@ -3,9 +3,11 @@
 
 from math import ceil
 
+from maro.simulator.utils import random
+
 from .entities import CimBaseDataCollection, NoisedItem, PortSetting
-from .utils import apply_noise, BUFFER_TICK_RAND_KEY
-from ...simulator.utils import random
+from .utils import BUFFER_TICK_RAND_KEY, apply_noise
+
 
 
 class PortBufferTickWrapper:

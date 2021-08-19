@@ -6,20 +6,19 @@ from abc import ABC, abstractmethod
 from math import ceil
 from typing import Dict, List
 
+from maro.simulator.utils import random
+
 from .entities import (
     CimBaseDataCollection, CimRealDataCollection, CimSyntheticDataCollection, NoisedItem, Order, OrderGenerateMode,
     PortSetting, VesselSetting
 )
 from .port_buffer_tick_wrapper import PortBufferTickWrapper
-from .utils import (
-    apply_noise, list_sum_normalize, BUFFER_TICK_RAND_KEY, ORDER_NUM_RAND_KEY
-)
+from .utils import apply_noise, list_sum_normalize, BUFFER_TICK_RAND_KEY, ORDER_NUM_RAND_KEY
 from .vessel_future_stops_prediction import VesselFutureStopsPrediction
 from .vessel_past_stops_wrapper import VesselPastStopsWrapper
 from .vessel_reachable_stops_wrapper import VesselReachableStopsWrapper
 from .vessel_sailing_plan_wrapper import VesselSailingPlanWrapper
 from .vessel_stop_wrapper import VesselStopsWrapper
-from ...simulator.utils import random
 
 
 class CimBaseDataContainer(ABC):

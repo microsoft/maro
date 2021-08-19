@@ -5,11 +5,11 @@ import os
 import urllib.parse
 
 from maro.cli.data_pipeline.utils import StaticParameter
-from maro.simulator.utils import seed, random
+from maro.simulator.utils import random, seed
 from .cim_data_container import CimBaseDataContainer, CimRealDataContainer, CimSyntheticDataContainer
 from .cim_data_generator import CimDataGenerator
 from .cim_data_loader import load_from_folder, load_real_data_from_folder
-from .utils import ROUTE_INIT_RAND_KEY, DATA_CONTAINER_INIT_SEED_LIMIT
+from .utils import DATA_CONTAINER_INIT_SEED_LIMIT, ROUTE_INIT_RAND_KEY
 
 
 class CimDataContainerWrapper:
@@ -35,7 +35,8 @@ class CimDataContainerWrapper:
         config_path = os.path.join(self._config_path, "config.yml")
         if os.path.exists(config_path):
             self._data_cntr = data_from_generator(
-                config_path=config_path, max_tick=self._max_tick, start_tick=self._start_tick, topology_seed=topology_seed
+                config_path=config_path, max_tick=self._max_tick, start_tick=self._start_tick,
+                topology_seed=topology_seed
             )
         else:
             # Real Data Mode: read data from input data files, no need for any config.yml.
@@ -71,7 +72,8 @@ def data_from_dumps(dumps_folder: str) -> CimSyntheticDataContainer:
     return CimSyntheticDataContainer(data_collection)
 
 
-def data_from_generator(config_path: str, max_tick: int, start_tick: int = 0, topology_seed: int = None) -> CimSyntheticDataContainer:
+def data_from_generator(config_path: str, max_tick: int, start_tick: int = 0,
+                        topology_seed: int = None) -> CimSyntheticDataContainer:
     """Collect data from data generator with configurations.
 
     Args:

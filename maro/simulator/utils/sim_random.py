@@ -88,7 +88,7 @@ class SimRandom:
 
         return self._seed
 
-    def reset_seed(self, key: str = None) -> None:
+    def reset_seed(self, key: str) -> None:
         """Reset seed of current random generator.
 
         NOTE:
@@ -97,11 +97,12 @@ class SimRandom:
         Args:
             key(str): Key of item to get.
         """
-        if key is not None:
-            if key not in self._seed_dict:
-                self._create_instance(key)
-            rand = self._rand_instances[key]
-            rand.seed(self._seed_dict[key])
+        assert type(key) is str
+        
+        if key not in self._seed_dict:
+            self._create_instance(key)
+        rand = self._rand_instances[key]
+        rand.seed(self._seed_dict[key])
 
     def reset_all_seeds(self) -> None:
         """Reset seed of all random generators

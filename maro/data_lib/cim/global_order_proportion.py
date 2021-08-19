@@ -6,8 +6,8 @@ from typing import Union
 
 import numpy as np
 
-from .utils import apply_noise, clip, ORDER_INIT_RAND_KEY
-from ...simulator.utils import random
+from maro.simulator.utils import random
+from .utils import ORDER_INIT_RAND_KEY, apply_noise, clip
 
 
 class GlobalOrderProportion:
