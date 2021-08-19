@@ -70,24 +70,6 @@ class SimRandom:
 
         return self._rand_instances[key]
 
-    def get_seed(self, key: str = None) -> int:
-        """Get seed of current random generator.
-
-        NOTE:
-            This will only return the seed of first random object that specified by user (or default).
-
-        Args:
-            key(str): Key of item to get.
-
-        Returns:
-            int: If key is None return seed for 1st instance (same as what passed to seed function),
-                else return seed for specified generator.
-        """
-        if key is not None:
-            return self._seed_dict.get(key, None)
-
-        return self._seed
-
     def reset_seed(self, key: str) -> None:
         """Reset seed of current random generator.
 
@@ -103,12 +85,6 @@ class SimRandom:
             self._create_instance(key)
         rand = self._rand_instances[key]
         rand.seed(self._seed_dict[key])
-
-    def reset_all_seeds(self) -> None:
-        """Reset seed of all random generators
-        """
-        for key in self._rand_instances:
-            self.reset_seed(key)
 
 
 random = SimRandom()
