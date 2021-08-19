@@ -7,8 +7,7 @@ import numpy as np
 import torch
 
 from maro.rl.exploration import DiscreteSpaceExploration, EpsilonGreedyExploration
-from maro.rl.typing import DiscreteQNet, Trajectory
-from maro.rl.utils.remote_tools import LearnTask
+from maro.rl.types import DiscreteQNet, Trajectory
 from maro.utils.exception.rl_toolkit_exception import InvalidExperience
 
 from .policy import Batch, LossInfo, RLPolicy
@@ -20,7 +19,7 @@ class DQNBatch(Batch):
 
     An experience consists of state, action, reward, next state.
     """
-    __slots__ = ["states", "actions", "rewards", "next_states", "indexes", "is_weights"]
+    __slots__ = ["states", "actions", "rewards", "next_states"]
 
     def __init__(
         self,
@@ -28,10 +27,10 @@ class DQNBatch(Batch):
         actions: list,
         rewards: list,
         next_states: list,
-        indexes: list,
+        indexes: list = None,
         is_weights: list = None
     ):
-        if not len(states) == len(actions) == len(rewards) == len(next_states) == len(is_weights) == len(indexes):
+        if not len(states) == len(actions) == len(rewards) == len(next_states):
             raise InvalidExperience("values of contents should consist of lists of the same length")
         super().__init__()
         self.states = states
@@ -263,11 +262,11 @@ class DQN(RLPolicy):
             [self._replay_memory.data["actions"][idx] for idx in indexes],
             [self._replay_memory.data["rewards"][idx] for idx in indexes],
             [self._replay_memory.data["next_states"][idx] for idx in indexes],
-            indexes,
+            indexes=indexes,
             is_weights=is_weights
         )
 
-    def get_batch_loss(self, batch: DQNBatch, with_grad: bool = False):
+    def get_batch_loss(self, batch: DQNBatch, explicit_grad: bool = False):
         assert self.q_net.trainable, "q_net needs to have at least one optimizer registered."
         self.q_net.train()
         states, next_states = batch.states, batch.next_states
@@ -293,10 +292,10 @@ class DQN(RLPolicy):
         else:
             loss = self._loss_func(q_values, target_q_values)
 
-        grad = self.q_net.get_gradients(loss) if with_grad else None
+        grad = self.q_net.get_gradients(loss) if explicit_grad else None
         return DQNLossInfo(loss, td_errors, batch.indexes, grad=grad)
 
-    def apply(self, loss_info_list: List[DQNLossInfo]):
+    def update_with_multi_loss_info(self, loss_info_list: List[DQNLossInfo]):
         if self.prioritized_replay:
             for loss_info in loss_info_list:
                 self._sampler.update(loss_info.indexes, loss_info.td_errors)
@@ -325,6 +324,10 @@ class DQN(RLPolicy):
         # soft-update target network
         self.target_q_net.soft_update(self.q_net, self.soft_update_coeff)
         self._target_q_net_version = self._q_net_version
+
+    @property
+    def exploration_params(self):
+        return self.exploration.parameters
 
     def exploit(self):
         self.exploring = False

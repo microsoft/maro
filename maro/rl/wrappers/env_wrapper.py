@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from collections import defaultdict, deque
 from typing import Callable
 
-from maro.rl.typing import Trajectory, Transition
+from maro.rl.types import Trajectory, Transition
 from maro.simulator import Env
 
 

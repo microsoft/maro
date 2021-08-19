@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from collections import defaultdict
 from typing import Dict
 
 from maro.rl.policy import AbsPolicy, RLPolicy
@@ -18,11 +17,7 @@ class AgentWrapper:
         agent2policy (Dict[str, str]): Mapping from agent ID's to policy ID's. This is used to direct an agent's
             queries to the correct policy.
     """
-    def __init__(
-        self,
-        create_policy_func_dict: Dict[str, AbsPolicy],
-        agent2policy: Dict[str, str]
-    ):
+    def __init__(self, create_policy_func_dict: Dict[str, AbsPolicy], agent2policy: Dict[str, str]):
         self.policy_dict = {name: func(name) for name, func in create_policy_func_dict.items()}
         self.agent2policy = agent2policy
         self.policy = {
@@ -51,6 +46,12 @@ class AgentWrapper:
         """Update policy states."""
         for policy_id, policy_state in policy_state_dict.items():
             self.policy_dict[policy_id].set_state(policy_state)
+
+    @property
+    def exploration_params(self):
+        return {
+            name: policy.exploration_params for name, policy in self.policy_dict.items() if isinstance(policy, RLPolicy)
+        }
 
     def exploration_step(self):
         for policy in self.policy_dict.values():

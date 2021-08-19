@@ -23,7 +23,7 @@ if __name__ == "__main__":
     worker_id = int(worker_id)
 
     rollout_worker_node(
-        getenv("ROLLOUTGROUP", default="ROLLOUT"),
+        getenv("ROLLOUTGROUP", default="rollout"),
         worker_id,
         get_env_wrapper(replay_agent_ids=replay_agents[worker_id]),
         get_agent_wrapper(),

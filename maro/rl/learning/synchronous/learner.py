@@ -106,6 +106,7 @@ class Learner:
             tu0 = time.time()
             self.policy_manager.update(rollout_info_by_policy)
             policy_update_time += time.time() - tu0
+            self._logger.info(f"update time: {policy_update_time}")
 
         # performance details
         self._logger.info(

@@ -3,6 +3,7 @@
 
 import numpy as np
 
+from maro.rl.policy import ACActionInfo
 from maro.rl.wrappers import AbsEnvWrapper
 from maro.simulator import Env
 from maro.simulator.scenarios.cim.common import Action, ActionType
@@ -73,7 +74,7 @@ class CIMEnvWrapper(AbsEnvWrapper):
             )
             early_discharge = vessel_snapshots[tick:vessel:"early_discharge"][0] if self.has_early_discharge else 0
 
-            model_action = action_info[0] if isinstance(action_info, tuple) else action_info
+            model_action = action_info.action if isinstance(action_info, ACActionInfo) else action_info
             percent = abs(self.action_space[model_action])
             zero_action_idx = len(self.action_space) / 2  # index corresponding to value zero.
             if model_action < zero_action_idx:

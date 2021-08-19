@@ -47,10 +47,10 @@ else:
 # host spec
 if config["policy_manager"]["type"] == "distributed":
     for host_id in range(config["policy_manager"]["distributed"]["num_hosts"]):
-        str_id = f"host.{host_id}"
+        str_id = f"policy_host.{host_id}"
         host_spec = deepcopy(common_spec)
         del host_spec["build"]
-        host_spec["command"] = "python3 /maro/rl_examples/workflows/policy_manager/host.py"
+        host_spec["command"] = "python3 /maro/rl_examples/workflows/policy_manager/policy_host.py"
         host_spec["container_name"] = str_id
         host_spec["environment"] = [
             f"HOSTID={host_id}",
@@ -77,7 +77,7 @@ if mode == "sync":
                 f"NUMEPISODES={config['num_episodes']}",
                 f"EVALSCH={config['eval_schedule']}",
                 f"POLICYMANAGERTYPE={config['policy_manager']['type']}",
-                f"PARALLEL={config['policy_manager']['simple']['parallel']}",
+                f"PARALLEL={'1' if config['policy_manager']['simple']['parallel'] else '0'}",
                 f"LEARNGROUP={config['policy_manager']['distributed']['learn_group']}",
                 f"ALLOCATIONMODE={config['policy_manager']['distributed']['allocation_mode']}",
                 f"NUMHOSTS={config['policy_manager']['distributed']['num_hosts']}"

@@ -9,8 +9,8 @@ from os import getcwd
 from typing import Callable, Dict, List
 
 from maro.communication import Proxy, SessionMessage, SessionType
-from maro.rl.policy import LossInfo, RLPolicy
-from maro.rl.typing import Trajectory
+from maro.rl.policy import LossInfo
+from maro.rl.types import Trajectory
 from maro.rl.utils import MsgKey, MsgTag
 from maro.utils import Logger
 
@@ -63,8 +63,8 @@ class SimplePolicyManager(AbsPolicyManager):
         super().__init__()
         self._policy_names = list(create_policy_func_dict.keys())
         self._parallel = parallel
-        self._logger = Logger("SIMPLE_POLICY_MANAGER", dump_folder=log_dir)
-        if self._parallel:
+        self._logger = Logger("POLICY_MANAGER", dump_folder=log_dir)
+        if parallel:
             self._logger.info("Spawning policy host processes")
             self._state_cache = {}
             self._policy_hosts = []
@@ -80,7 +80,7 @@ class SimplePolicyManager(AbsPolicyManager):
                         if isinstance(info_list[0], Trajectory):
                             policy.learn_from_multi_trajectories(info_list)
                         elif isinstance(info_list[0], LossInfo):
-                            policy.apply(info_list)
+                            policy.update_with_multi_loss_info(info_list)
                         else:
                             raise TypeError(
                                 f"Roll-out information must be of type 'Trajectory' or 'LossInfo', "
@@ -91,9 +91,9 @@ class SimplePolicyManager(AbsPolicyManager):
                         break
 
             for name, create_policy_func in create_policy_func_dict.items():
-                manager_end, policy_end = Pipe()
+                manager_end, host_end = Pipe()
                 self._manager_end[name] = manager_end
-                host = Process(target=_policy_host, args=(name, create_policy_func, policy_end))
+                host = Process(target=_policy_host, args=(name, create_policy_func, host_end))
                 self._policy_hosts.append(host)
                 host.start()
 
@@ -101,6 +101,7 @@ class SimplePolicyManager(AbsPolicyManager):
                 msg = conn.recv()
                 if msg["type"] == "init":
                     self._state_cache[policy_name] = msg["policy_state"]
+                    self._logger.info(f"Initial state for policy {policy_name} cached")
         else:
             self._logger.info("local mode")
             self._policy_dict = {name: func(name) for name, func in create_policy_func_dict.items()}
@@ -111,32 +112,25 @@ class SimplePolicyManager(AbsPolicyManager):
         The incoming experiences are expected to be grouped by policy ID and will be stored in the corresponding
         policy's experience manager. Policies whose update conditions have been met will then be updated.
         """
-        self._logger.info(f"parallel: {self._parallel}")
+        t0 = time.time()
         if self._parallel:
-            self._logger.info("I'm parallel")
-            self._logger.info(f"received rollout info from policies {list(rollout_info.keys())}")
             for policy_name, info_list in rollout_info.items():
-                self._manager_end[policy_name].send({"type": "train", "rollout_info": info_list})
+                self._manager_end[policy_name].send({"type": "learn", "rollout_info": info_list})
             for policy_name, conn in self._manager_end.items():
                 msg = conn.recv()
                 if msg["type"] == "learn_done":
                     self._state_cache[policy_name] = msg["policy_state"]
+                    self._logger.info(f"Cached state for policy {policy_name}")
         else:
-            self._logger.info("I'm NOT parallel")
-            self._logger.info(f"received rollout info from policies {list(rollout_info.keys())}")
-            t0 = time.time()
             for policy_name, info_list in rollout_info.items():
                 if isinstance(info_list[0], Trajectory):
-                    self._logger.info("learning from multiple trajectories")
                     self._policy_dict[policy_name].learn_from_multi_trajectories(info_list)
                 elif isinstance(info_list[0], LossInfo):
-                    self._logger.info("learning from loss info")
-                    self._policy_dict[policy_name].apply(info_list)
+                    self._policy_dict[policy_name].update_with_multi_loss_info(info_list)
 
-            self._logger.info(f"Updated policies {list(rollout_info.keys())}")
-
+        self._logger.info(f"Updated policies {list(rollout_info.keys())}")
         self.update_count += 1
-        self._logger.debug(f"policy update time: {time.time() - t0}")
+        self._logger.info(f"policy update time: {time.time() - t0}")
 
     def get_state(self):
         if self._parallel:
@@ -180,11 +174,11 @@ class DistributedPolicyManager(AbsPolicyManager):
         self._policy_names = policy_names
         peers = {"policy_host": num_hosts}
         self._proxy = Proxy(group, "policy_manager", peers, component_name="POLICY_MANAGER", **proxy_kwargs)
-        self._logger = Logger("MULTINODE_POLICY_MANAGER", dump_folder=log_dir)
+        self._logger = Logger("POLICY_MANAGER", dump_folder=log_dir)
 
         self._policy2host = {}
         self._host2policies = defaultdict(list)
-        self._logger = Logger("MULTINODE_POLICY_MANAGER", dump_folder=log_dir)
+        self._logger = Logger("POLICY_MANAGER", dump_folder=log_dir)
 
         # assign policies to hosts
         for i, name in enumerate(self._policy_names):
@@ -192,19 +186,22 @@ class DistributedPolicyManager(AbsPolicyManager):
             self._policy2host[name] = f"POLICY_HOST.{host_id}"
             self._host2policies[f"POLICY_HOST.{host_id}"].append(name)
 
+        self._logger.info(f"Policy assignment: {self._policy2host}")
+
         # ask the hosts to initialize the assigned policies
         for host_name, policy_names in self._host2policies.items():
-            self._proxy.send(SessionMessage(
+            self._proxy.isend(SessionMessage(
                 MsgTag.INIT_POLICIES, self._proxy.name, host_name, body={MsgKey.POLICY_NAMES: policy_names}
             ))
 
         # cache the initial policy states
         self._state_cache, dones = {}, 0
         for msg in self._proxy.receive():
+            self._logger.info(f"received a msg of tag {msg.tag}")
             if msg.tag == MsgTag.INIT_POLICIES_DONE:
                 for policy_name, policy_state in msg.body[MsgKey.POLICY_STATE].items():
                     self._state_cache[policy_name] = policy_state
-                    self._logger.info(f"Policy {policy_name} initialized")
+                    self._logger.info(f"Cached state for policy {policy_name}")
                 dones += 1
                 if dones == num_hosts:
                     break

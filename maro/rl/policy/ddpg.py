@@ -6,10 +6,9 @@ from typing import List, Union
 import numpy as np
 import torch
 
-from maro.rl.exploration import GaussianNoiseExploration
-from maro.rl.typing import ContinuousACNet, Trajectory
+from maro.rl.exploration import GaussianNoiseExploration, NoiseExploration
+from maro.rl.types import ContinuousACNet, Trajectory
 from maro.rl.utils import get_torch_loss_cls
-from maro.rl.utils.remote_tools import LearnTask
 from maro.utils.exception.rl_toolkit_exception import InvalidExperience
 
 from .policy import Batch, LossInfo, RLPolicy
@@ -83,7 +82,7 @@ class DDPG(RLPolicy):
         q_value_loss_cls="mse",
         q_value_loss_coeff: float = 1.0,
         soft_update_coeff: float = 1.0,
-        exploration=GaussianNoiseExploration(),
+        exploration: NoiseExploration = GaussianNoiseExploration(),
         replay_memory_capacity: int = 10000,
         random_overwrite: bool = False,
         remote: bool = False
@@ -149,7 +148,7 @@ class DDPG(RLPolicy):
             [self._replay_memory.data["next_states"][idx] for idx in indexes]
         )
 
-    def get_batch_loss(self, batch: DDPGBatch, with_grad: bool = False) -> DDPGLossInfo:
+    def get_batch_loss(self, batch: DDPGBatch, explicit_grad: bool = False) -> DDPGLossInfo:
         assert self.ac_net.trainable, "ac_net needs to have at least one optimizer registered."
         self.ac_net.train()
         states, next_states = batch.states, batch.next_states
@@ -168,10 +167,10 @@ class DDPG(RLPolicy):
 
         # total loss
         loss = policy_loss + self.q_value_loss_coeff * q_loss
-        grad = self.ac_net.get_gradients(loss) if with_grad else None
+        grad = self.ac_net.get_gradients(loss) if explicit_grad else None
         return DDPGLossInfo(policy_loss, q_loss, loss, grad=grad)
 
-    def apply(self, loss_info_list: List[DDPGLossInfo]):
+    def update_with_multi_loss_info(self, loss_info_list: List[DDPGLossInfo]):
         self.ac_net.apply_gradients([loss_info.grad for loss_info in loss_info_list])
         if self._ac_net_version - self._target_ac_net_version == self.update_target_every:
             self._update_target()
@@ -185,7 +184,7 @@ class DDPG(RLPolicy):
             pass
         else:
             for _ in range(self.num_epochs):
-                loss_info = self.get_batch_loss(self._get_batch(), with_grad=False)
+                loss_info = self.get_batch_loss(self._get_batch(), explicit_grad=False)
                 self.ac_net.step(loss_info.loss)
                 self._ac_net_version += 1
                 if self._ac_net_version - self._target_ac_net_version == self.update_target_every:
@@ -195,6 +194,10 @@ class DDPG(RLPolicy):
         # soft-update target network
         self.target_ac_net.soft_update(self.ac_net, self.soft_update_coeff)
         self._target_ac_net_version = self._ac_net_version
+
+    @property
+    def exploration_params(self):
+        return self.exploration.parameters
 
     def exploit(self):
         self.exploring = False

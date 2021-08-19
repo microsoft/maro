@@ -82,4 +82,4 @@ def get_dqn_policy(name: str, remote: bool = False):
         param_name="epsilon",
         **exploration_config
     )
-    return DQN(name, qnet, **dqn_config, remote=remote)
+    return DQN(name, qnet, exploration=exploration, **dqn_config, remote=remote)

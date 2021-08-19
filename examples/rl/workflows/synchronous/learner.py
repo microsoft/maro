@@ -58,7 +58,7 @@ def get_rollout_manager():
 
     if rollout_mode == "multi-node":
         return MultiNodeRolloutManager(
-            getenv("ROLLOUTGROUP", default="ROLLOUT"),
+            getenv("ROLLOUTGROUP", default="rollout"),
             num_workers,
             num_steps=num_steps,
             max_lag=max_lag,

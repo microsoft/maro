@@ -7,7 +7,7 @@ from typing import Callable, Dict
 
 from maro.communication import Proxy
 from maro.rl.policy import LossInfo, RLPolicy
-from maro.rl.typing import Trajectory
+from maro.rl.types import Trajectory
 from maro.rl.utils import MsgKey, MsgTag
 from maro.utils import Logger
 
@@ -45,6 +45,7 @@ def policy_host(
             for name in msg.body[MsgKey.POLICY_NAMES]:
                 policy_dict[name] = create_policy_func_dict[name](name)
 
+            logger.info(f"Initialized policies {msg.body[MsgKey.POLICY_NAMES]}")
             proxy.reply(
                 msg,
                 tag=MsgTag.INIT_POLICIES_DONE,
@@ -56,14 +57,15 @@ def policy_host(
                 if isinstance(info_list[0], Trajectory):
                     policy_dict[name].learn_from_multi_trajectories(info_list)
                 elif isinstance(info_list[0], LossInfo):
-                    policy_dict[name].apply(info_list)
+                    logger.info("apply loss info")
+                    policy_dict[name].update_with_multi_loss_info(info_list)
                 else:
                     raise TypeError(
                         f"Roll-out information must be of type 'Trajectory' or 'LossInfo', "
                         f"got {type(info_list[0])}"
                     )
             msg_body = {
-                MsgKey.POLICY_STATE: {name: policy_dict[name].get_state() for name in msg.body[MsgKey.TRAJECTORIES]}
+                MsgKey.POLICY_STATE: {name: policy_dict[name].get_state() for name in msg.body[MsgKey.ROLLOUT_INFO]}
             }
             logger.debug(f"total policy update time: {time.time() - t0}")
             proxy.reply(msg, tag=MsgTag.LEARN_DONE, body=msg_body)

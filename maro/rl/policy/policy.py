@@ -4,7 +4,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-from maro.rl.typing import Trajectory
+from maro.rl.types import Trajectory
 
 
 class AbsPolicy(ABC):
@@ -57,7 +57,6 @@ class RLPolicy(AbsPolicy):
 
     Args:
         name (str): Name of the policy.
-        data_parallel (bool): If true,
     """
     def __init__(self, name: str, remote: bool = False):
         super().__init__(name)
@@ -71,11 +70,11 @@ class RLPolicy(AbsPolicy):
         return trajectory
 
     @abstractmethod
-    def get_batch_loss(self, batch: Batch, with_grad: bool = False):
+    def get_batch_loss(self, batch: Batch, explicit_grad: bool = False):
         raise NotImplementedError
 
     @abstractmethod
-    def apply(self, loss_info_list: List[LossInfo]):
+    def update_with_multi_loss_info(self, loss_info_list: List[LossInfo]):
         pass
 
     @abstractmethod
@@ -91,6 +90,10 @@ class RLPolicy(AbsPolicy):
 
     def exploration_step(self):
         pass
+
+    @property
+    def exploration_params(self):
+        return None
 
     @abstractmethod
     def get_state(self):

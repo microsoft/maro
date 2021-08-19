@@ -47,6 +47,6 @@ def worker(
             policy_name = task.policy_name
             if policy_name not in policy_dict:
                 policy_dict[policy_name] = create_policy_func_dict[policy_name]()
-            msg_body = {MsgKey.LOSS_INFO: policy_dict[policy_name].get_loss_info(task.batch, with_grad=True)}
+            msg_body = {MsgKey.LOSS_INFO: policy_dict[policy_name].get_loss_info(task.batch, explicit_grad=True)}
             logger.debug(f"total policy update time: {time.time() - t0}")
             proxy.reply(msg, tag=MsgTag.COMPUTE_GRAD_DONE, body=msg_body)
