@@ -81,7 +81,8 @@ def data_from_generator(config_path: str, max_tick: int, start_tick: int = 0,
         config_path(str): Path of configuration file (yaml).
         max_tick (int): Max tick to generate data.
         start_tick(int): Start tick to generate data.
-        topology_seed(int): Random seed for generating routes. 'None' means using the seed in the configuration file.
+        topology_seed(int): Random seed of the business engine. \
+                'None' means using the seed in the configuration file.
 
     Returns:
         CimSyntheticDataContainer: Data container used to provide cim data related interfaces.
