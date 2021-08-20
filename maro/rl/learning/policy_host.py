@@ -55,9 +55,10 @@ def policy_host(
             t0 = time.time()
             for name, info_list in msg.body[MsgKey.ROLLOUT_INFO].items():
                 if isinstance(info_list[0], Trajectory):
+                    logger.info("learning from multiple trajectories")
                     policy_dict[name].learn_from_multi_trajectories(info_list)
                 elif isinstance(info_list[0], LossInfo):
-                    logger.info("apply loss info")
+                    logger.info("updating with loss info")
                     policy_dict[name].update_with_multi_loss_info(info_list)
                 else:
                     raise TypeError(
