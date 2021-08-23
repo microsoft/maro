@@ -14,8 +14,8 @@ if workflow_dir not in sys.path:
 with open(join(workflow_dir, "config.yml"), "r") as fp:
     config = yaml.safe_load(fp)
 
-from agent_wrapper import get_agent_wrapper
 from general import get_env_wrapper, get_eval_env_wrapper, log_dir, post_collect, post_evaluate
+from rollout import get_agent_wrapper
 
 
 if __name__ == "__main__":

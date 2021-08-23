@@ -23,7 +23,7 @@ class AbsPolicyManager(ABC):
     @abstractmethod
     def update(self, rollout_info: Dict[str, list]):
         """Update policies using roll-out information.
-        
+
         The roll-out information is grouped by policy name and may be either raw simulation trajectories or loss
         information computed directly by roll-out workers.
         """
@@ -42,14 +42,15 @@ class AbsPolicyManager(ABC):
     def server(self, group: str, num_actors: int, max_lag: int = 0, proxy_kwargs: dict = {}, log_dir: str = getcwd()):
         """Run a server process.
 
-        The process serves the latest policy states to a set of remote actors and receives simulated experiences from them.
+        The process serves the latest policy states to a set of remote actors and receives simulated experiences from
+        them.
 
         Args:
             group (str): Group name for the cluster that includes the server and all actors.
             num_actors (int): Number of remote actors to collect simulation experiences.
             max_lag (int): Maximum policy version lag allowed for experiences collected from remote actors. Experiences
-                collected using policy versions older than (current_version - max_lag) will be discarded.
-                Defaults to 0, in which case only experiences collected using the latest policy version will be returned.
+                collected using policy versions older than (current_version - max_lag) will be discarded. Defaults to 0,
+                in which case only experiences collected using the latest policy version will be returned.
             proxy_kwargs: Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
                 for details. Defaults to the empty dictionary.
             log_dir (str): Directory to store logs in. Defaults to the current working directory.
@@ -87,7 +88,7 @@ class AbsPolicyManager(ABC):
 
 
 class SimplePolicyManager(AbsPolicyManager):
-    """Policy manager that contains all policy instances. 
+    """Policy manager that contains all policy instances.
 
     Args:
         create_policy_func_dict (dict): Dictionary that maps policy names to policy creators. A policy creator is a
@@ -155,7 +156,7 @@ class SimplePolicyManager(AbsPolicyManager):
 
     def update(self, rollout_info: Dict[str, list]):
         """Update policies using roll-out information.
-        
+
         The roll-out information is grouped by policy name and may be either raw simulation trajectories or loss
         information computed directly by roll-out workers.
         """

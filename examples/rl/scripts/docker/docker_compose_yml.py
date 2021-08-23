@@ -70,7 +70,7 @@ if __name__ == "__main__":
             str_id = f"policy_host.{host_id}"
             host_spec = deepcopy(common_spec)
             del host_spec["build"]
-            host_spec["command"] = "python3 /maro/rl_examples/workflows/policy_manager/policy_host.py"
+            host_spec["command"] = "python3 /maro/rl_examples/workflows/policy_host.py"
             host_spec["container_name"] = f"{namespace}.{str_id}"
             host_spec["environment"] = [f"HOSTID={host_id}"] + common_env
             docker_compose_manifest["services"][str_id] = host_spec
@@ -82,7 +82,7 @@ if __name__ == "__main__":
             **common_spec, 
             **{
                 "container_name": f"{namespace}.learner",
-                "command": "python3 /maro/rl_examples/workflows/synchronous/learner.py",
+                "command": "python3 /maro/rl_examples/workflows/learner.py",
                 "environment": [
                     f"ROLLOUTTYPE={config['sync']['rollout_type']}",
                     f"EVALPARALLELISM={config['sync']['simple']['eval_parallelism']}",
@@ -105,7 +105,7 @@ if __name__ == "__main__":
                 str_id = f"rollout_worker.{worker_id}"
                 worker_spec = deepcopy(common_spec)
                 del worker_spec["build"]
-                worker_spec["command"] = "python3 /maro/rl_examples/workflows/synchronous/rollout_worker.py"
+                worker_spec["command"] = "python3 /maro/rl_examples/workflows/rollout.py"
                 worker_spec["container_name"] = f"{namespace}.{str_id}"
                 worker_spec["environment"] = [
                     f"WORKERID={worker_id}",
@@ -119,7 +119,7 @@ if __name__ == "__main__":
             **common_spec, 
             **{
                 "container_name": f"{namespace}.policy_server",
-                "command": "python3 /maro/rl_examples/workflows/asynchronous/policy_server.py",
+                "command": "python3 /maro/rl_examples/workflows/policy_manager.py",
                 "environment": [
                     f"GROUP={config['async']['group']}",
                     f"MAXLAG={config['max_lag']}"
@@ -131,7 +131,7 @@ if __name__ == "__main__":
             str_id = f"actor.{actor_id}"
             actor_spec = deepcopy(common_spec)
             del actor_spec["build"]
-            actor_spec["command"] = "python3 /maro/rl_examples/workflows/asynchronous/actor.py"
+            actor_spec["command"] = "python3 /maro/rl_examples/workflows/rollout.py"
             actor_spec["container_name"] = f"{namespace}.{str_id}"
             actor_spec["environment"] = [
                 f"ACTORID={actor_id}",

@@ -11,8 +11,8 @@ workflow_dir = dirname(dirname((realpath(__file__))))
 if workflow_dir not in sys.path:
     sys.path.insert(0, workflow_dir)
 
-from agent_wrapper import get_agent_wrapper
-from policy_manager.policy_manager import get_policy_manager
+from policy_manager import get_policy_manager
+from rollout import get_agent_wrapper
 from general import post_collect, post_evaluate, get_env_wrapper, get_eval_env_wrapper, log_dir
 
 

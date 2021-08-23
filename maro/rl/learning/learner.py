@@ -7,7 +7,7 @@ from typing import Callable, List, Union
 
 from maro.rl.policy import LossInfo
 from maro.rl.types import Trajectory
-from maro.rl.wrappers import AgentWrapper, AbsEnvWrapper
+from maro.rl.wrappers import AbsEnvWrapper, AgentWrapper
 from maro.utils import Logger
 
 from .common import get_eval_schedule, get_rollout_finish_msg
@@ -90,7 +90,7 @@ def simple_learner(
                     env_sampler.agent.policy_dict[policy_name].update_with_multi_loss_info(info_list)
 
             if post_collect:
-                 post_collect([result["tracker"]], ep, segment)
+                post_collect([result["tracker"]], ep, segment)
 
             if result["end_of_episode"]:
                 break

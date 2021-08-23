@@ -36,3 +36,17 @@ def get_policy_manager():
         return policy_manager
 
     raise ValueError(f"Unsupported policy manager type: {manager_type}. Supported modes: simple, distributed")
+
+
+if __name__ == "__main__":
+    policy_manager = get_policy_manager()
+    policy_manager.server(
+        getenv("GROUP", default="ASYNC"),
+        int(getenv("NUMROLLOUTS", default=5)),
+        max_lag=int(getenv("MAXLAG", default=0)),
+        proxy_kwargs={
+            "redis_address": (getenv("REDISHOST", default="maro-redis"), int(getenv("REDISPORT", default=6379))),
+            "max_peer_discovery_retries": 50    
+        },
+        log_dir=log_dir
+    )

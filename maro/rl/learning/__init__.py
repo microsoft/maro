@@ -7,7 +7,6 @@ from .learner import Learner, simple_learner
 from .policy_manager import AbsPolicyManager, DistributedPolicyManager, SimplePolicyManager, policy_host
 from .rollout_manager import AbsRolloutManager, DistributedRolloutManager, SimpleRolloutManager
 
-
 __all__ = [
     "AbsEarlyStopper",
     "EnvironmentSampler",
