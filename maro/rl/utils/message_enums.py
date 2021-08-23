@@ -14,6 +14,7 @@ class MsgTag(Enum):
     POLICY_STATE = "policy_state"
     CHOOSE_ACTION = "choose_action"
     ACTION = "action"
+    GET_INITIAL_POLICY_STATE = "get_initial_policy_state"
     LEARN = "learn"
     LEARN_DONE = "learn_finished"
     COMPUTE_GRAD = "compute_grad"

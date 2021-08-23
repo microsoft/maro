@@ -5,7 +5,7 @@ import sys
 from os import getenv
 from os.path import dirname, realpath
 
-from maro.rl.learning.synchronous import Learner, DistributedRolloutManager, SimpleRolloutManager
+from maro.rl.learning import Learner, DistributedRolloutManager, SimpleRolloutManager
 
 workflow_dir = dirname(dirname((realpath(__file__))))
 if workflow_dir not in sys.path:

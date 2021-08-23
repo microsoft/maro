@@ -19,6 +19,7 @@ if __name__ == "__main__":
     root_dir = dirname(dirname(rl_example_dir))
     workflow_dir = join(rl_example_dir, "workflows")
     maro_rl_dir = join(root_dir, "maro", "rl")
+    maro_comm_dir = join(root_dir, "maro", "communication")
     maro_sc_dir = join(root_dir, "maro", "simulator", "scenarios", "supply_chain")
     config_path = join(workflow_dir, "config.yml")
     dockerfile_path = join(root_dir, "docker_files", "dev.df")
@@ -37,7 +38,8 @@ if __name__ == "__main__":
         "volumes": [
             f"{rl_example_dir}:/maro/rl_examples",
             f"{maro_rl_dir}:/maro/maro/rl",
-            f"{maro_sc_dir}:/maro/maro/simulator/scenarios/supply_chain"    
+            f"{maro_comm_dir}:/maro/maro/communication",
+            f"{maro_sc_dir}:/maro/maro/simulator/scenarios/supply_chain"
         ]
     }
 
@@ -47,6 +49,7 @@ if __name__ == "__main__":
         f"JOB={config['job']}",
         f"SCENARIO={config['scenario']}",
         f"MODE={config['mode']}",
+        f"POLICYMANAGERTYPE={config['policy_manager']['type']}",
         f"EXPDIST={'1' if config['rollout_experience_distribution'] else '0'}"
     ]
 
@@ -61,16 +64,15 @@ if __name__ == "__main__":
 
     # host spec
     if config["policy_manager"]["type"] == "distributed":
+        common_env.append(f"LEARNGROUP={config['policy_manager']['distributed']['group']}")
+        common_env.append(f"NUMHOSTS={config['policy_manager']['distributed']['num_hosts']}")
         for host_id in range(config["policy_manager"]["distributed"]["num_hosts"]):
             str_id = f"policy_host.{host_id}"
             host_spec = deepcopy(common_spec)
             del host_spec["build"]
             host_spec["command"] = "python3 /maro/rl_examples/workflows/policy_manager/policy_host.py"
             host_spec["container_name"] = f"{namespace}.{str_id}"
-            host_spec["environment"] = [
-                f"HOSTID={host_id}",
-                f"LEARNGROUP={config['policy_manager']['distributed']['group']}"
-            ] + common_env
+            host_spec["environment"] = [f"HOSTID={host_id}"] + common_env
             docker_compose_manifest["services"][str_id] = host_spec
 
     mode = config["mode"]
@@ -93,10 +95,7 @@ if __name__ == "__main__":
                     f"MINFINISH={config['sync']['distributed']['min_finished_workers']}",
                     f"MAXEXRECV={config['sync']['distributed']['max_extra_recv_tries']}",
                     f"MAXRECVTIMEO={config['sync']['distributed']['extra_recv_timeout']}",
-                    f"POLICYMANAGERTYPE={config['policy_manager']['type']}",
-                    f"PARALLEL={'1' if config['policy_manager']['simple']['parallel'] else '0'}",
-                    f"LEARNGROUP={config['policy_manager']['distributed']['group']}",
-                    f"NUMHOSTS={config['policy_manager']['distributed']['num_hosts']}"
+                    f"PARALLEL={'1' if config['policy_manager']['simple']['parallel'] else '0'}"
                 ] + common_env
             }
         }

@@ -2,13 +2,16 @@
 # Licensed under the MIT license.
 
 from .early_stopper import AbsEarlyStopper
-from .policy_host import policy_host
-from .policy_manager import AbsPolicyManager, DistributedPolicyManager, SimplePolicyManager
-from .simple_learner import SimpleLearner
+from .environment_sampler import EnvironmentSampler
+from .learner import Learner, simple_learner
+from .policy_manager import AbsPolicyManager, DistributedPolicyManager, SimplePolicyManager, policy_host
+from .rollout_manager import AbsRolloutManager, DistributedRolloutManager, SimpleRolloutManager
+
 
 __all__ = [
     "AbsEarlyStopper",
-    "policy_host",
-    "AbsPolicyManager", "DistributedPolicyManager", "SimplePolicyManager",
-    "SimpleLearner"
+    "EnvironmentSampler",
+    "Learner", "simple_learner",
+    "AbsPolicyManager", "DistributedPolicyManager", "SimplePolicyManager", "policy_host",
+    "AbsRolloutManager", "DistributedRolloutManager", "SimpleRolloutManager"
 ]

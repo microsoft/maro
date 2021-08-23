@@ -19,10 +19,11 @@ if __name__ == "__main__":
     if host_id is None:
         raise ValueError("missing environment variable: HOSTID")
 
+    group = getenv("LEARNGROUP", default="learn")
     policy_host(
         rl_policy_func_index,
         int(host_id),
-        getenv("LEARNGROUP", default="learn"),
+        group,
         proxy_kwargs={
             "redis_address": (getenv("REDISHOST", default="maro-redis"), int(getenv("REDISPORT", default=6379))),
             "max_peer_discovery_retries": 50

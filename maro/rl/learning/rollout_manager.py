@@ -13,17 +13,8 @@ from maro.rl.utils import MsgKey, MsgTag
 from maro.rl.wrappers import AbsEnvWrapper, AgentWrapper
 from maro.utils import Logger, set_seeds
 
-from .rollout_worker import RolloutWorker
-
-
-def get_rollout_finish_msg(ep, segment, step_range, exploration_params=None):
-    if exploration_params:
-        return (
-            f"Roll-out finished (episode: {ep}, segment: {segment}, "
-            f"step range: {step_range}, exploration parameters: {exploration_params})"
-        )
-    else:
-        return f"Roll-out finished (episode: {ep}, segment: {segment}, step range: {step_range})"
+from .common import get_rollout_finish_msg
+from .environment_sampler import EnvironmentSampler
 
 
 class AbsRolloutManager(ABC):
@@ -81,18 +72,15 @@ class SimpleRolloutManager(AbsRolloutManager):
     """Local roll-out controller.
 
     Args:
-        get_env_wrapper (Callable): Function to be used by each spawned roll-out worker to create an
-            environment wrapper for training data collection. The function should take no parameters and return an
-            environment wrapper instance.
-        get_agent_wrapper (Callable): Function to be used by each spawned roll-out worker to create a
-            decision generator for interacting with the environment. The function should take no parameters and return
-            a ``AgentWrapper`` instance.
+        get_env_wrapper (Callable): Function to create an environment wrapper for collecting training data. The function
+            should take no parameters and return an environment wrapper instance.
+        get_agent_wrapper (Callable): Function to create an agent wrapper that interacts with the environment wrapper.
+            The function should take no parameters and return a ``AgentWrapper`` instance.
         num_steps (int): Number of environment steps to roll out in each call to ``collect``. Defaults to -1, in which
             case the roll-out will be executed until the end of the environment.
-        get_env_wrapper (Callable): Function to be used by each spawned roll-out worker to create an
-            environment wrapper for evaluation. The function should take no parameters and return an environment
-            wrapper instance. If this is None, the training environment wrapper will be used for evaluation in the
-            worker processes. Defaults to None.
+        get_eval_env_wrapper (Callable): Function to create an environment wrapper for evaluation. The function should
+            take no parameters and return an environment wrapper instance. If this is None, the training environment
+            wrapper will be used for evaluation in the worker processes. Defaults to None.
         post_collect (Callable): Custom function to process whatever information is collected by each
             environment wrapper (local or remote) at the end of ``collect`` calls. The function signature should
             be (trackers, ep, segment) -> None, where tracker is a list of environment wrappers' ``tracker`` members.
@@ -133,9 +121,8 @@ class SimpleRolloutManager(AbsRolloutManager):
         self._parallelism = parallelism
         self._eval_parallelism = eval_parallelism
         if self._parallelism == 1:
-            self.worker = RolloutWorker(
-                get_env_wrapper, get_agent_wrapper,
-                get_eval_env_wrapper=get_eval_env_wrapper
+            self.env_sampler = EnvironmentSampler(
+                get_env_wrapper, get_agent_wrapper, get_eval_env_wrapper=get_eval_env_wrapper
             )
         else:
             self._worker_processes = []
@@ -143,24 +130,25 @@ class SimpleRolloutManager(AbsRolloutManager):
 
             def _rollout_worker(index, conn, get_env_wrapper, get_agent_wrapper, get_eval_env_wrapper=None):
                 set_seeds(index)
-                worker = RolloutWorker(get_env_wrapper, get_agent_wrapper, get_eval_env_wrapper=get_eval_env_wrapper)
+                env_sampler = EnvironmentSampler(
+                    get_env_wrapper, get_agent_wrapper, get_eval_env_wrapper=get_eval_env_wrapper
+                )
                 logger = Logger("ROLLOUT_WORKER", dump_folder=log_dir)
                 while True:
                     msg = conn.recv()
                     if msg["type"] == "sample":
-                        ep, segment = msg["episode"], msg["segment"]
-                        result = worker.sample(
+                        result = env_sampler.sample(
                             policy_state_dict=msg["policy_state"],
                             num_steps=self._num_steps,
                             exploration_step=self._exploration_step
                         )
                         logger.info(get_rollout_finish_msg(
-                            ep, segment, result["step_range"], exploration_params=result["exploration_params"]
+                            msg["episode"], result["step_range"], exploration_params=result["exploration_params"]
                         ))
                         result["worker_index"] = index
                         conn.send(result)
                     elif msg["type"] == "test":
-                        tracker = worker.test(msg["policy_state"])
+                        tracker = env_sampler.test(msg["policy_state"])
                         logger.info("Evaluation...")
                         conn.send({"worker_id": index, "tracker": tracker})
                     elif msg["type"] == "quit":
@@ -189,18 +177,18 @@ class SimpleRolloutManager(AbsRolloutManager):
         Returns:
             Experiences for policy training.
         """
-        self._logger.info(f"Collecting simulation data (episode {ep}, segment {segment}, policy version {version})")
+        self._logger.info(f"Collecting simulation data (episode {ep}, policy version {version})")
 
         info_by_policy, trackers = defaultdict(list), []
         if self._parallelism == 1:
-            result = self.worker.sample(
+            result = self.env_sampler.sample(
                 policy_state_dict=policy_state_dict,
                 num_steps=self._num_steps,
                 exploration_step=self._exploration_step
             )
-            self._logger.info(get_rollout_finish_msg(
-                ep, segment, result["step_range"], exploration_params=result["exploration_params"]
-            ))
+            self._logger.info(
+                get_rollout_finish_msg(ep, result["step_range"], exploration_params=result["exploration_params"])
+            )
 
             for policy_name, info in result["rollout_info"].items():
                 info_by_policy[policy_name].append(info)
@@ -210,7 +198,6 @@ class SimpleRolloutManager(AbsRolloutManager):
             rollout_req = {
                 "type": "sample",
                 "episode": ep,
-                "segment": segment,
                 "num_steps": self._num_steps,
                 "policy_state": policy_state_dict,
                 "exploration_step": self._exploration_step
@@ -250,7 +237,7 @@ class SimpleRolloutManager(AbsRolloutManager):
         trackers = []
         if self._eval_parallelism == 1:
             self._logger.info("Evaluating...")
-            tracker = self.worker.test(policy_state_dict)
+            tracker = self.env_sampler.test(policy_state_dict)
             trackers.append(tracker)
         else:
             eval_worker_conns = choices(self._manager_ends, k=self._eval_parallelism)
@@ -295,7 +282,7 @@ class DistributedRolloutManager(AbsRolloutManager):
         num_eval_workers (int): Number of workers for evaluation. Defaults to 1.
         post_collect (Callable): Custom function to process whatever information is collected by each
             environment wrapper (local or remote) at the end of ``collect`` calls. The function signature should
-            be (trackers, ep, segment) -> None, where tracker is a list of environment wrappers' ``tracker`` members.
+            be (trackers, ep, step_range) -> None, where tracker is a list of environment wrappers' ``tracker`` members.
             Defaults to None.
         post_evaluate (Callable): Custom function to process whatever information is collected by each
             environment wrapper (local or remote) at the end of ``evaluate`` calls. The function signature should
@@ -477,76 +464,3 @@ class DistributedRolloutManager(AbsRolloutManager):
         self._proxy.ibroadcast("rollout_worker", MsgTag.EXIT, SessionType.NOTIFICATION)
         self._proxy.close()
         self._logger.info("Exiting...")
-
-
-def rollout_worker(
-    group: str,
-    worker_id: int,
-    get_env_wrapper: Callable[[], AbsEnvWrapper],
-    get_agent_wrapper: Callable[[], AgentWrapper],
-    get_eval_env_wrapper: Callable[[], AbsEnvWrapper] = None,
-    proxy_kwargs: dict = {},
-    log_dir: str = getcwd()
-):
-    """Roll-out worker process that can be launched on separate computation nodes.
-
-    Args:
-        group (str): Group name for the roll-out cluster, which includes all roll-out workers and a roll-out manager
-            that manages them.
-        worker_idx (int): Worker index. The worker's ID in the cluster will be "ROLLOUT_WORKER.{worker_idx}".
-            This is used for bookkeeping by the parent manager.
-        env_wrapper (AbsEnvWrapper): Environment wrapper for training data collection.
-        agent_wrapper (AgentWrapper): Agent wrapper to interact with the environment wrapper.
-        eval_env_wrapper (AbsEnvWrapper): Environment wrapper for evaluation. If this is None, the training
-            environment wrapper will be used for evaluation. Defaults to None.
-        proxy_kwargs: Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
-            for details. Defaults to the empty dictionary.
-        log_dir (str): Directory to store logs in. Defaults to the current working directory.
-    """
-    worker = RolloutWorker(get_env_wrapper, get_agent_wrapper, get_eval_env_wrapper=get_eval_env_wrapper)
-    proxy = Proxy(
-        group, "rollout_worker", {"rollout_manager": 1},
-        component_name=f"ROLLOUT_WORKER.{int(worker_id)}", **proxy_kwargs
-    )
-    logger = Logger(proxy.name, dump_folder=log_dir)
-
-    """
-    The event loop handles 3 types of messages from the roll-out manager:
-        1)  COLLECT, upon which the agent-environment simulation will be carried out for a specified number of steps
-            and the collected experiences will be sent back to the roll-out manager;
-        2)  EVAL, upon which the policies contained in the message payload will be evaluated for the entire
-            duration of the evaluation environment.
-        3)  EXIT, upon which it will break out of the event loop and the process will terminate.
-
-    """
-    for msg in proxy.receive():
-        if msg.tag == MsgTag.EXIT:
-            logger.info("Exiting...")
-            proxy.close()
-            break
-
-        if msg.tag == MsgTag.SAMPLE:
-            ep, segment = msg.body[MsgKey.EPISODE], msg.body[MsgKey.SEGMENT]
-            result = worker.sample(
-                policy_state_dict=msg.body[MsgKey.POLICY_STATE],
-                num_steps=msg.body[MsgKey.NUM_STEPS],
-                exploration_step=msg.body[MsgKey.EXPLORATION_STEP]
-            )
-            logger.info(get_rollout_finish_msg(
-                ep, segment, result["step_range"], exploration_params=result["exploration_params"]
-            ))
-            return_info = {
-                MsgKey.EPISODE: ep,
-                MsgKey.SEGMENT: segment,
-                MsgKey.VERSION: msg.body[MsgKey.VERSION],
-                MsgKey.ROLLOUT_INFO: result["rollout_info"],
-                MsgKey.STEP_RANGE: result["step_range"],
-                MsgKey.TRACKER: result["tracker"],
-                MsgKey.END_OF_EPISODE: result["end_of_episode"]
-            }
-            proxy.reply(msg, tag=MsgTag.SAMPLE_DONE, body=return_info)
-        elif msg.tag == MsgTag.TEST:
-            tracker = worker.test(msg.body[MsgKey.POLICY_STATE])
-            return_info = {MsgKey.TRACKER: tracker, MsgKey.EPISODE: msg.body[MsgKey.EPISODE]}
-            logger.info("Testing complete")
-            proxy.reply(msg, tag=MsgTag.TEST_DONE, body=return_info)

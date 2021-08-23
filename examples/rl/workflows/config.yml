@@ -3,7 +3,7 @@
 
 job: cim
 scenario: cim
-mode: sync
+mode: async
 num_episodes: 5
 eval_schedule: 5
 num_steps: -1

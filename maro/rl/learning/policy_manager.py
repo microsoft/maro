@@ -19,11 +19,6 @@ class AbsPolicyManager(ABC):
     """Facility that controls policy update and serves the latest policy states."""
     def __init__(self):
         super().__init__()
-        self.update_count = 0
-
-    @property
-    def version(self):
-        return self.update_count
 
     @abstractmethod
     def update(self, rollout_info: Dict[str, list]):
@@ -38,6 +33,57 @@ class AbsPolicyManager(ABC):
     def get_state(self):
         """Get the latest policy states."""
         raise NotImplementedError
+
+    @abstractmethod
+    def get_version(self):
+        """Get the collective policy version."""
+        raise NotImplementedError
+
+    def server(self, group: str, num_actors: int, max_lag: int = 0, proxy_kwargs: dict = {}, log_dir: str = getcwd()):
+        """Run a server process.
+
+        The process serves the latest policy states to a set of remote actors and receives simulated experiences from them.
+
+        Args:
+            group (str): Group name for the cluster that includes the server and all actors.
+            num_actors (int): Number of remote actors to collect simulation experiences.
+            max_lag (int): Maximum policy version lag allowed for experiences collected from remote actors. Experiences
+                collected using policy versions older than (current_version - max_lag) will be discarded.
+                Defaults to 0, in which case only experiences collected using the latest policy version will be returned.
+            proxy_kwargs: Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
+                for details. Defaults to the empty dictionary.
+            log_dir (str): Directory to store logs in. Defaults to the current working directory.
+        """
+        peers = {"actor": num_actors}
+        name = "POLICY_SERVER"
+        proxy = Proxy(group, "policy_server", peers, component_name=name, **proxy_kwargs)
+        logger = Logger(name, dump_folder=log_dir)
+
+        num_active_actors = num_actors
+        for msg in proxy.receive():
+            if msg.tag == MsgTag.GET_INITIAL_POLICY_STATE:
+                proxy.reply(
+                    msg, tag=MsgTag.POLICY_STATE,
+                    body={MsgKey.POLICY_STATE: self.get_state(), MsgKey.VERSION: self.get_version()}
+                )
+            elif msg.tag == MsgTag.SAMPLE_DONE:
+                if self.get_version() - msg.body[MsgKey.VERSION] > max_lag:
+                    logger.info(
+                        f"Ignored a message because it contains experiences generated using a stale policy version. "
+                        f"Expected experiences generated using policy versions no earlier than "
+                        f"{self.get_version() - max_lag}, got {msg.body[MsgKey.VERSION]}"
+                    )
+                else:
+                    self.update(msg.body[MsgKey.ROLLOUT_INFO])
+                proxy.reply(
+                    msg, tag=MsgTag.POLICY_STATE,
+                    body={MsgKey.POLICY_STATE: self.get_state(), MsgKey.VERSION: self.get_version()}
+                )
+            elif msg.tag == MsgTag.DONE:
+                num_active_actors -= 1
+                if num_active_actors == 0:
+                    proxy.close()
+                    return
 
 
 class SimplePolicyManager(AbsPolicyManager):
@@ -102,8 +148,10 @@ class SimplePolicyManager(AbsPolicyManager):
                     self._state_cache[policy_name] = msg["policy_state"]
                     self._logger.info(f"Initial state for policy {policy_name} cached")
         else:
-            self._logger.info("local mode")
+            self._logger.info("Creating policy instances locally")
             self._policy_dict = {name: func(name) for name, func in create_policy_func_dict.items()}
+
+        self._version = 0
 
     def update(self, rollout_info: Dict[str, list]):
         """Update policies using roll-out information.
@@ -122,13 +170,15 @@ class SimplePolicyManager(AbsPolicyManager):
                     self._logger.info(f"Cached state for policy {policy_name}")
         else:
             for policy_name, info_list in rollout_info.items():
+                if not isinstance(info_list, list):
+                    info_list = [info_list]
                 if isinstance(info_list[0], Trajectory):
                     self._policy_dict[policy_name].learn_from_multi_trajectories(info_list)
                 elif isinstance(info_list[0], LossInfo):
                     self._policy_dict[policy_name].update_with_multi_loss_info(info_list)
 
         self._logger.info(f"Updated policies {list(rollout_info.keys())}")
-        self.update_count += 1
+        self._version += 1
         self._logger.info(f"policy update time: {time.time() - t0}")
 
     def get_state(self):
@@ -137,6 +187,10 @@ class SimplePolicyManager(AbsPolicyManager):
             return self._state_cache
         else:
             return {name: policy.get_state() for name, policy in self._policy_dict.items()}
+
+    def get_version(self):
+        """Get the collective policy version."""
+        return self._version
 
     def exit(self):
         """Tell the policy host processes to exit."""
@@ -200,14 +254,18 @@ class DistributedPolicyManager(AbsPolicyManager):
                 if dones == num_hosts:
                     break
 
+        self._version = 0
+
     def update(self, rollout_info: Dict[str, list]):
         """Update policies using roll-out information.
-        
+
         The roll-out information is grouped by policy name and may be either raw simulation trajectories or loss
         information computed directly by roll-out workers.
         """
         msg_dict = defaultdict(lambda: defaultdict(dict))
         for policy_name, info_list in rollout_info.items():
+            if not isinstance(info_list, list):
+                info_list = [info_list]
             host_id_str = self._policy2host[policy_name]
             msg_dict[host_id_str][MsgKey.ROLLOUT_INFO][policy_name] = info_list
 
@@ -222,15 +280,78 @@ class DistributedPolicyManager(AbsPolicyManager):
                 if dones == len(msg_dict):
                     break
 
-        self.update_count += 1
+        self._version += 1
         self._logger.info(f"Updated policies {list(rollout_info.keys())}")
 
     def get_state(self):
         """Get the latest policy states."""
         return self._state_cache
 
+    def get_version(self):
+        """Get the collective policy version."""
+        return self._version
+
     def exit(self):
         """Tell the remote policy hosts to exit."""
         self._proxy.ibroadcast("policy_host", MsgTag.EXIT, SessionType.NOTIFICATION)
         self._proxy.close()
         self._logger.info("Exiting...")
+
+
+def policy_host(
+    create_policy_func_dict: Dict[str, Callable[[str], RLPolicy]],
+    host_idx: int,
+    group: str,
+    proxy_kwargs: dict = {},
+    log_dir: str = getcwd()
+):
+    """Policy host process that can be launched on separate computation nodes.
+
+    Args:
+        create_policy_func_dict (dict): A dictionary mapping policy names to functions that create them. The policy
+            creation function should have policy name as the only parameter and return an ``RLPolicy`` instance.
+        host_idx (int): Integer host index. The host's ID in the cluster will be "POLICY_HOST.{host_idx}".
+        group (str): Group name for the training cluster, which includes all policy hosts and a policy manager that
+            manages them.
+        proxy_kwargs: Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
+            for details. Defaults to the empty dictionary.
+        log_dir (str): Directory to store logs in. Defaults to the current working directory.
+    """
+    policy_dict = {}
+    proxy = Proxy(group, "policy_host", {"policy_manager": 1}, component_name=f"POLICY_HOST.{host_idx}", **proxy_kwargs)
+    logger = Logger(proxy.name, dump_folder=log_dir)
+
+    for msg in proxy.receive():
+        if msg.tag == MsgTag.EXIT:
+            logger.info("Exiting...")
+            proxy.close()
+            break
+
+        if msg.tag == MsgTag.INIT_POLICIES:
+            for name in msg.body[MsgKey.POLICY_NAMES]:
+                policy_dict[name] = create_policy_func_dict[name](name)
+
+            logger.info(f"Initialized policies {msg.body[MsgKey.POLICY_NAMES]}")
+            proxy.reply(
+                msg,
+                tag=MsgTag.INIT_POLICIES_DONE,
+                body={MsgKey.POLICY_STATE: {name: policy.get_state() for name, policy in policy_dict.items()}}
+            )
+        elif msg.tag == MsgTag.LEARN:
+            t0 = time.time()
+            for name, info_list in msg.body[MsgKey.ROLLOUT_INFO].items():
+                if isinstance(info_list[0], Trajectory):
+                    logger.info("learning from multiple trajectories")
+                    policy_dict[name].learn_from_multi_trajectories(info_list)
+                elif isinstance(info_list[0], LossInfo):
+                    logger.info("updating with loss info")
+                    policy_dict[name].update_with_multi_loss_info(info_list)
+                else:
+                    raise TypeError(
+                        f"Roll-out information must be of type 'Trajectory' or 'LossInfo', got {type(info_list[0])}"
+                    )
+            msg_body = {
+                MsgKey.POLICY_STATE: {name: policy_dict[name].get_state() for name in msg.body[MsgKey.ROLLOUT_INFO]}
+            }
+            logger.debug(f"total policy update time: {time.time() - t0}")
+            proxy.reply(msg, tag=MsgTag.LEARN_DONE, body=msg_body)
