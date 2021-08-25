@@ -118,7 +118,7 @@ env_config = {
     "basic": {
         "scenario": "cim",
         "topology": "toy.4p_ssdd_l0.0",
-        "durations": 280
+        "durations": 560
     },
     "wrapper": {
         "port_attributes": ["empty", "full", "on_shipper", "on_consignee", "booking", "shortage", "fulfillment"],
@@ -140,9 +140,6 @@ env_config = {
 
 def get_env_wrapper(replay_agent_ids=None):
     return CIMEnvWrapper(Env(**env_config["basic"]), replay_agent_ids=replay_agent_ids, **env_config["wrapper"]) 
-
-
-tmp_env_wrapper = get_env_wrapper()
-AGENT_IDS = tmp_env_wrapper.agent_idx_list
-STATE_DIM = tmp_env_wrapper.state_dim
-del tmp_env_wrapper
+ 
+# obtain state dimension from a temporary env_wrapper instance
+STATE_DIM = get_env_wrapper().state_dim

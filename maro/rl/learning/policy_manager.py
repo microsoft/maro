@@ -8,54 +8,100 @@ from os import getcwd
 from typing import Callable, Dict
 
 from maro.communication import Proxy, SessionMessage, SessionType
-from maro.rl.policy import LossInfo, TrainerAllocator
+from maro.rl.policy import LossInfo, RLPolicy, TrainerAllocator
 from maro.rl.types import Trajectory
 from maro.rl.utils import MsgKey, MsgTag
 from maro.utils import Logger
 
 
 class AbsPolicyManager(ABC):
-    """Manage all policies.
-
-    The actual policy instances may reside here or be distributed on a set of processes or remote nodes.
-
-    Args:
-        policies (List[RLPolicy]): A list of ``RLPolicy`` instances.
-    """
+    """Facility that controls policy update and serves the latest policy states."""
     def __init__(self):
         super().__init__()
-        self.update_count = 0
-
-    @property
-    def version(self):
-        return self.update_count
 
     @abstractmethod
     def update(self, rollout_info: Dict[str, list]):
-        """Logic for handling incoming experiences is implemented here."""
+        """Update policies using roll-out information.
+
+        The roll-out information is grouped by policy name and may be either raw simulation trajectories or loss
+        information computed directly by roll-out workers.
+        """
         raise NotImplementedError
 
     @abstractmethod
     def get_state(self):
+        """Get the latest policy states."""
         raise NotImplementedError
+
+    @abstractmethod
+    def get_version(self):
+        """Get the collective policy version."""
+        raise NotImplementedError
+
+    def server(self, group: str, num_actors: int, max_lag: int = 0, proxy_kwargs: dict = {}, log_dir: str = getcwd()):
+        """Run a server process.
+
+        The process serves the latest policy states to a set of remote actors and receives simulated experiences from
+        them.
+
+        Args:
+            group (str): Group name for the cluster that includes the server and all actors.
+            num_actors (int): Number of remote actors to collect simulation experiences.
+            max_lag (int): Maximum policy version lag allowed for experiences collected from remote actors. Experiences
+                collected using policy versions older than (current_version - max_lag) will be discarded. Defaults to 0,
+                in which case only experiences collected using the latest policy version will be returned.
+            proxy_kwargs: Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
+                for details. Defaults to the empty dictionary.
+            log_dir (str): Directory to store logs in. Defaults to the current working directory.
+        """
+        peers = {"actor": num_actors}
+        name = "POLICY_SERVER"
+        proxy = Proxy(group, "policy_server", peers, component_name=name, **proxy_kwargs)
+        logger = Logger(name, dump_folder=log_dir)
+
+        num_active_actors = num_actors
+        for msg in proxy.receive():
+            if msg.tag == MsgTag.GET_INITIAL_POLICY_STATE:
+                proxy.reply(
+                    msg, tag=MsgTag.POLICY_STATE,
+                    body={MsgKey.POLICY_STATE: self.get_state(), MsgKey.VERSION: self.get_version()}
+                )
+            elif msg.tag == MsgTag.SAMPLE_DONE:
+                if self.get_version() - msg.body[MsgKey.VERSION] > max_lag:
+                    logger.info(
+                        f"Ignored a message because it contains experiences generated using a stale policy version. "
+                        f"Expected experiences generated using policy versions no earlier than "
+                        f"{self.get_version() - max_lag}, got {msg.body[MsgKey.VERSION]}"
+                    )
+                else:
+                    self.update(msg.body[MsgKey.ROLLOUT_INFO])
+                proxy.reply(
+                    msg, tag=MsgTag.POLICY_STATE,
+                    body={MsgKey.POLICY_STATE: self.get_state(), MsgKey.VERSION: self.get_version()}
+                )
+            elif msg.tag == MsgTag.DONE:
+                num_active_actors -= 1
+                if num_active_actors == 0:
+                    proxy.close()
+                    return
 
 
 class SimplePolicyManager(AbsPolicyManager):
-    """Policy manager that contains the actual policy instances.
+    """Policy manager that contains all policy instances.
 
     Args:
-        create_policy_func_dict (dict): A dictionary mapping policy names to functions that create them. The policy
-            creation function should have policy name as the only parameter and return an ``RLPolicy`` instance.
-        warmup (Dict[str, int]): A dictionary of (policy_name, warmup_size), where "warmup_size" indicates the
-            minimum number of experiences in the experience memory required to trigger a call to ``learn`` for
-            each policy. Defaults to None, in which case all warm-up sizes will be set to 1.
+        create_policy_func_dict (dict): Dictionary that maps policy names to policy creators. A policy creator is a
+            function that takes policy name as the only parameter and return an ``RLPolicy`` instance.
+        parallel (bool): If True, the policies will be created in separate processes so that they can be updated in
+            parallel. Otherwise, they will be created by the manager itself, in which case they can only be updated
+            sequentially. Defaults to False.
         log_dir (str): Directory to store logs in. A ``Logger`` with tag "POLICY_MANAGER" will be created at init
             time and this directory will be used to save the log files generated by it. Defaults to the current
             working directory.
     """
     def __init__(
         self,
-        create_policy_func_dict: Dict[str, Callable],
+        create_policy_func_dict: Dict[str, Callable[[str], RLPolicy]],
         parallel: bool = False,
         log_dir: str = getcwd()
     ):
@@ -102,14 +148,16 @@ class SimplePolicyManager(AbsPolicyManager):
                     self._state_cache[policy_name] = msg["policy_state"]
                     self._logger.info(f"Initial state for policy {policy_name} cached")
         else:
-            self._logger.info("local mode")
+            self._logger.info("Creating policy instances locally")
             self._policy_dict = {name: func(name) for name, func in create_policy_func_dict.items()}
 
-    def update(self, rollout_info: Dict[str, list]):
-        """Store experiences and update policies if possible.
+        self._version = 0
 
-        The incoming experiences are expected to be grouped by policy ID and will be stored in the corresponding
-        policy's experience manager. Policies whose update conditions have been met will then be updated.
+    def update(self, rollout_info: Dict[str, list]):
+        """Update policies using roll-out information.
+
+        The roll-out information is grouped by policy name and may be either raw simulation trajectories or loss
+        information computed directly by roll-out workers.
         """
         t0 = time.time()
         if self._parallel:
@@ -122,42 +170,45 @@ class SimplePolicyManager(AbsPolicyManager):
                     self._logger.info(f"Cached state for policy {policy_name}")
         else:
             for policy_name, info_list in rollout_info.items():
+                if not isinstance(info_list, list):
+                    info_list = [info_list]
                 if isinstance(info_list[0], Trajectory):
                     self._policy_dict[policy_name].learn_from_multi_trajectories(info_list)
                 elif isinstance(info_list[0], LossInfo):
                     self._policy_dict[policy_name].update_with_multi_loss_info(info_list)
 
         self._logger.info(f"Updated policies {list(rollout_info.keys())}")
-        self.update_count += 1
+        self._version += 1
         self._logger.info(f"policy update time: {time.time() - t0}")
 
     def get_state(self):
+        """Get the latest policy states."""
         if self._parallel:
             return self._state_cache
         else:
             return {name: policy.get_state() for name, policy in self._policy_dict.items()}
 
+    def get_version(self):
+        """Get the collective policy version."""
+        return self._version
+
     def exit(self):
-        """Tell the policy hosts to exit."""
+        """Tell the policy host processes to exit."""
         if self._parallel:
             for conn in self._manager_end.values():
                 conn.send({"type": "quit"})
 
 
 class DistributedPolicyManager(AbsPolicyManager):
-    """Policy manager that communicates with a set of remote nodes for parallel training.
+    """Policy manager that communicates with a set of remote nodes that house the policy instances.
 
     Args:
         create_policy_func_dict (dict): A dictionary mapping policy names to functions that create them. The policy
             creation function should have policy name as the only parameter and return an ``RLPolicy`` instance.
-        group (str): Group name for the training cluster, which includes all hosts and a policy manager that
-            manages them.
+        group (str): Group name for the cluster consisting of the manager and all policy hosts.
         num_hosts (int): Number of hosts. The hosts will be identified by "POLICY_HOST.i", where 0 <= i < num_hosts.
         trainer_allocator (TrainerAllocator): The allocation strategy of allocating trainers to policies
             for parallelization.
-        warmup (Dict[str, int]): A dictionary of (policy_name, warmup_size), where "warmup_size" indicates the
-            minimum number of experiences in the experience memory required to trigger a call to ``learn`` for
-            each policy. Defaults to None, in which case all warm-up sizes will be set to 1.
         log_dir (str): Directory to store logs in. A ``Logger`` with tag "POLICY_MANAGER" will be created at init
             time and this directory will be used to save the log files generated by it. Defaults to the current
             working directory.
@@ -234,6 +285,8 @@ class DistributedPolicyManager(AbsPolicyManager):
                 self._state_cache[policy_name] = msg["policy_state"]
                 self._logger.info(f"Initial state for policy {policy_name} cached")
 
+        self._version = 0
+
     def update(self, rollout_info: Dict[str, list]):
         self._policy2host, self._host2policies = self._trainer_allocator.allocate(
             policy_name=self._policy_names, logger=self._logger)
@@ -250,14 +303,97 @@ class DistributedPolicyManager(AbsPolicyManager):
             else:
                 self._logger.info(f"Warning: Wrong message type: {msg['type']}")
 
-        self.update_count += 1
+        self._version += 1
         self._logger.info(f"Updated policies {list(rollout_info.keys())}")
 
     def get_state(self):
+        """Get the latest policy states."""
         return self._state_cache
+
+    def get_version(self):
+        """Get the collective policy version."""
+        return self._version
 
     def exit(self):
         """Tell the remote policy hosts to exit."""
         self._proxy.ibroadcast("policy_host", MsgTag.EXIT, SessionType.NOTIFICATION)
         self._proxy.close()
         self._logger.info("Exiting...")
+
+
+def policy_host(
+    create_policy_func_dict: Dict[str, Callable[[str], RLPolicy]],
+    host_idx: int,
+    group: str,
+    proxy_kwargs: dict = {},
+    log_dir: str = getcwd()
+):
+    """Policy host process that can be launched on separate computation nodes.
+
+    Args:
+        create_policy_func_dict (dict): A dictionary mapping policy names to functions that create them. The policy
+            creation function should have policy name as the only parameter and return an ``RLPolicy`` instance.
+        host_idx (int): Integer host index. The host's ID in the cluster will be "POLICY_HOST.{host_idx}".
+        group (str): Group name for the training cluster, which includes all policy hosts and a policy manager that
+            manages them.
+        proxy_kwargs: Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
+            for details. Defaults to the empty dictionary.
+        log_dir (str): Directory to store logs in. Defaults to the current working directory.
+    """
+    policy_dict = {}
+    proxy = Proxy(
+        group, "policy_host", {"policy_manager": 1, "policy": len(create_policy_func_dict)},
+        component_name=f"POLICY_HOST.{host_idx}", **proxy_kwargs)
+    logger = Logger(proxy.name, dump_folder=log_dir)
+
+    for msg in proxy.receive():
+        if msg.tag == MsgTag.EXIT:
+            logger.info("Exiting...")
+            proxy.close()
+            break
+
+        if msg.tag == MsgTag.INIT_POLICIES:
+            for name in msg.body[MsgKey.POLICY_NAMES]:
+                policy_dict[name] = create_policy_func_dict[name](name)
+
+            logger.info(f"Initialized policies {msg.body[MsgKey.POLICY_NAMES]}")
+            proxy.reply(
+                msg,
+                tag=MsgTag.INIT_POLICIES_DONE,
+                body={MsgKey.POLICY_STATE: {name: policy.get_state() for name, policy in policy_dict.items()}}
+            )
+        elif msg.tag == MsgTag.LEARN:
+            t0 = time.time()
+            for name, info_list in msg.body[MsgKey.ROLLOUT_INFO].items():
+                if isinstance(info_list[0], Trajectory):
+                    logger.info("learning from multiple trajectories")
+                    policy_dict[name].learn_from_multi_trajectories(info_list)
+                elif isinstance(info_list[0], LossInfo):
+                    logger.info("updating with loss info")
+                    policy_dict[name].update_with_multi_loss_info(info_list)
+                else:
+                    raise TypeError(
+                        f"Roll-out information must be of type 'Trajectory' or 'LossInfo', got {type(info_list[0])}"
+                    )
+            msg_body = {
+                MsgKey.POLICY_STATE: {name: policy_dict[name].get_state() for name in msg.body[MsgKey.ROLLOUT_INFO]}
+            }
+            logger.debug(f"total policy update time: {time.time() - t0}")
+            proxy.reply(msg, tag=MsgTag.LEARN_DONE, body=msg_body)
+        elif msg.tag == MsgTag.COMPUTE_GRAD:
+            t0 = time.time()
+            msg_body = {MsgKey.LOSS_INFO: dict()}
+            for name, batch in msg.body[MsgKey.GRAD_TASK].items():
+                if MsgKey.POLICY_STATE in msg.body:
+                    policy_dict[name].set_state(msg.body[MsgKey.POLICY_STATE][name])
+                    logger.info(f"policy {name} sync state.")
+                if isinstance(batch, list):
+                    loss_info = [policy_dict[name].get_batch_loss(_batch, explicit_grad=True) for _batch in batch]
+                else:
+                    loss_info = policy_dict[name].get_batch_loss(batch, explicit_grad=True)
+                msg_body[MsgKey.LOSS_INFO][name] = loss_info
+            logger.info(f"total policy update time: {time.time() - t0}")
+            proxy.reply(msg, tag=MsgTag.COMPUTE_GRAD_DONE, body=msg_body)
+        else:
+            logger.info(f"Wrong message tag: {msg.tag}")
+            raise TypeError

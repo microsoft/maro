@@ -60,8 +60,8 @@ class DQNLossInfo(LossInfo):
         self.grad = grad
 
 
-class PrioritizedSampler:
-    """Sampler for Prioritized Experience Replay (PER).
+class PrioritizedExperienceReplay:
+    """Prioritized Experience Replay (PER).
 
     References:
         https://arxiv.org/pdf/1511.05952.pdf
@@ -119,7 +119,7 @@ class PrioritizedSampler:
             self._sum_tree[tree_idx] = priority
             self._update(tree_idx, delta)
 
-    def get(self, batch_size=None):
+    def sample(self, batch_size=None):
         """Priority-based sampling."""
         if batch_size is None:
             batch_size = self.batch_size
@@ -228,7 +228,7 @@ class DQN(RLPolicy):
         self._replay_memory = ReplayMemory(DQNBatch, replay_memory_capacity, random_overwrite=random_overwrite)
         self.prioritized_replay = prioritized_replay_kwargs is not None
         if self.prioritized_replay:
-            self._sampler = PrioritizedSampler(self._replay_memory, **prioritized_replay_kwargs)
+            self._per = PrioritizedExperienceReplay(self._replay_memory, **prioritized_replay_kwargs)
         else:
             self._loss_func = torch.nn.MSELoss()
 
@@ -264,11 +264,11 @@ class DQN(RLPolicy):
             batch = DQNBatch(traj.states[:-2], traj.actions[:-2], traj.rewards[:-1], traj.states[1:-1])
         indexes = self._replay_memory.put(batch)
         if self.prioritized_replay:
-            self._sampler.set_max_priority(indexes)
+            self._per.set_max_priority(indexes)
 
     def _sample(self, batch_size=None) -> DQNBatch:
         if self.prioritized_replay:
-            indexes, is_weights = self._sampler.get(batch_size)
+            indexes, is_weights = self._per.sample(batch_size)
         else:
             indexes = np.random.choice(
                 batch_size if batch_size is not None else self._replay_memory.size)
@@ -315,7 +315,7 @@ class DQN(RLPolicy):
     def update_with_multi_loss_info(self, loss_info_list: List[DQNLossInfo]):
         if self.prioritized_replay:
             for loss_info in loss_info_list:
-                self._sampler.update(loss_info.indexes, loss_info.td_errors)
+                self._per.update(loss_info.indexes, loss_info.td_errors)
 
         self.q_net.apply_gradients([loss_info.grad for loss_info in loss_info_list])
         self._q_net_version += 1

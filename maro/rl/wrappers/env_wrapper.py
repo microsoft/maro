@@ -46,7 +46,7 @@ class AbsEnvWrapper(ABC):
         self._state = None  # the latest extracted state is kept here
 
         self.tracker = {}  # User-defined tracking information is placed here.
-        self._replay = True
+        self.replay = True
 
     @property
     def step_index(self):
@@ -69,12 +69,6 @@ class AbsEnvWrapper(ABC):
     @property
     def event(self):
         return self._event
-
-    def collect(self):
-        self._replay = True
-
-    def evaluate(self):
-        self._replay = False
 
     def start(self):
         """Generate the initial environmental state at the beginning of a simulation episode."""
@@ -170,7 +164,7 @@ class AbsEnvWrapper(ABC):
                 # put things you want to track in the tracker attribute
                 self._post_step(self.env, self.tracker, transition)
 
-            if self._replay:
+            if self.replay:
                 for agent_id, agent_state in state.items():
                     if agent_id in self._replay_buffer:
                         buf = self._replay_buffer[agent_id]
