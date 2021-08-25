@@ -1,14 +1,16 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from collections import defaultdict
 from typing import List, Union
 
 import numpy as np
 import torch
 
+from maro.communication import SessionMessage
 from maro.rl.exploration import GaussianNoiseExploration, NoiseExploration
 from maro.rl.types import ContinuousACNet, Trajectory
-from maro.rl.utils import get_torch_loss_cls
+from maro.rl.utils import MsgKey, MsgTag, get_torch_loss_cls
 from maro.utils.exception.rl_toolkit_exception import InvalidExperience
 
 from .policy import Batch, LossInfo, RLPolicy
@@ -189,6 +191,36 @@ class DDPG(RLPolicy):
                 self._ac_net_version += 1
                 if self._ac_net_version - self._target_ac_net_version == self.update_target_every:
                     self._update_target()
+
+    def distributed_learn(self, rollout_info, host_id_list, name, proxy):
+        for traj in rollout_info:
+            self._preprocess(traj)
+
+        for _ in range(self.num_epochs):
+            msg_dict = defaultdict(lambda: defaultdict(dict))
+            for host_id_str in host_id_list:
+                msg_dict[host_id_str][MsgKey.GRAD_TASK][name] = self._get_batch()
+                msg_dict[host_id_str][MsgKey.POLICY_STATE][name] = self.get_state()
+                # data-parallel by multiple hosts/workers
+                proxy.isend(SessionMessage(
+                    MsgTag.COMPUTE_GRAD, proxy.name, host_id_str, body=msg_dict[host_id_str]))
+            dones = 0
+            loss_infos = {name: []}
+            for msg in proxy.receive():
+                if msg.tag == MsgTag.COMPUTE_GRAD_DONE:
+                    for policy_name, loss_info in msg.body[MsgKey.LOSS_INFO].items():
+                        if isinstance(loss_info, list):
+                            loss_infos[policy_name] += loss_info
+                        elif isinstance(loss_info, DDPGLossInfo):
+                            loss_infos[policy_name].append(loss_info)
+                        else:
+                            raise TypeError(f"Wrong type of loss_info: {type(loss_info)}")
+                    dones += 1
+                    if dones == len(msg_dict):
+                        break
+            # build dummy computation graph before apply gradients.
+            _ = self.get_batch_loss(self._get_batch(), explicit_grad=True)
+            self.update_with_multi_loss_info(loss_infos[name])
 
     def _update_target(self):
         # soft-update target network

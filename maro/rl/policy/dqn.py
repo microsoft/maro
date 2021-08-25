@@ -1,13 +1,16 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from collections import defaultdict
 from typing import List, Union
 
 import numpy as np
 import torch
 
+from maro.communication import SessionMessage
 from maro.rl.exploration import DiscreteSpaceExploration, EpsilonGreedyExploration
 from maro.rl.types import DiscreteQNet, Trajectory
+from maro.rl.utils import MsgKey, MsgTag
 from maro.utils.exception.rl_toolkit_exception import InvalidExperience
 
 from .policy import Batch, LossInfo, RLPolicy
@@ -116,11 +119,13 @@ class PrioritizedSampler:
             self._sum_tree[tree_idx] = priority
             self._update(tree_idx, delta)
 
-    def get(self):
+    def get(self, batch_size=None):
         """Priority-based sampling."""
+        if batch_size is None:
+            batch_size = self.batch_size
         indexes, priorities = [], []
-        segment_len = self.total() / self.batch_size
-        for i in range(self.batch_size):
+        segment_len = self.total() / batch_size
+        for i in range(batch_size):
             low, high = segment_len * i, segment_len * (i + 1)
             sampled_val = np.random.uniform(low=low, high=high)
             idx = self._get(0, sampled_val)
@@ -136,6 +141,8 @@ class PrioritizedSampler:
         return indexes, is_weights
 
     def _get_priority(self, error):
+        if isinstance(error, torch.Tensor):
+            error = error.detach().numpy()
         return (np.abs(error) + self.eps) ** self.alpha
 
     def _update(self, idx, delta):
@@ -241,6 +248,15 @@ class DQN(RLPolicy):
             actions = self.exploration(actions, state=states)
         return actions[0] if len(actions) == 1 else actions
 
+    def store_trajectory(self, trajs: Union[Trajectory, List[Trajectory]]):
+        if isinstance(trajs, Trajectory):
+            self._put_in_replay_memory(trajs)
+        elif isinstance(trajs, list):
+            for traj in trajs:
+                self._put_in_replay_memory(traj)
+        else:
+            raise TypeError
+
     def _put_in_replay_memory(self, traj: Trajectory):
         if traj.states[-1]:
             batch = DQNBatch(traj.states[:-1], traj.actions[:-1], traj.rewards, traj.states[1:])
@@ -250,11 +266,12 @@ class DQN(RLPolicy):
         if self.prioritized_replay:
             self._sampler.set_max_priority(indexes)
 
-    def _sample(self) -> DQNBatch:
+    def _sample(self, batch_size=None) -> DQNBatch:
         if self.prioritized_replay:
-            indexes, is_weights = self._sampler.get()
+            indexes, is_weights = self._sampler.get(batch_size)
         else:
-            indexes = np.random.choice(self._replay_memory.size)
+            indexes = np.random.choice(
+                batch_size if batch_size is not None else self._replay_memory.size)
             is_weights = None
 
         return DQNBatch(
@@ -306,8 +323,7 @@ class DQN(RLPolicy):
             self._update_target()
 
     def learn_from_multi_trajectories(self, trajectories: List[Trajectory]):
-        for traj in trajectories:
-            self._put_in_replay_memory(traj)
+        self.store_trajectory(trajectories)
 
         if self.remote:
             # TODO: distributed grad computation
@@ -324,6 +340,35 @@ class DQN(RLPolicy):
         # soft-update target network
         self.target_q_net.soft_update(self.q_net, self.soft_update_coeff)
         self._target_q_net_version = self._q_net_version
+
+    def distributed_learn(self, rollout_info, host_id_list, name, proxy):
+        self.store_trajectory(rollout_info)
+        for _ in range(self.num_epochs):
+            msg_dict = defaultdict(lambda: defaultdict(dict))
+            for host_id_str in host_id_list:
+                msg_dict[host_id_str][MsgKey.GRAD_TASK][name] = self._sample()
+                msg_dict[host_id_str][MsgKey.POLICY_STATE][name] = self.get_state()
+                # data-parallel by multiple hosts/workers
+                proxy.isend(SessionMessage(
+                    MsgTag.COMPUTE_GRAD, proxy.name, host_id_str, body=msg_dict[host_id_str]))
+            dones = 0
+            loss_infos = {name: []}
+            for msg in proxy.receive():
+                if msg.tag == MsgTag.COMPUTE_GRAD_DONE:
+                    for policy_name, loss_info in msg.body[MsgKey.LOSS_INFO].items():
+                        if isinstance(loss_info, list):
+                            loss_infos[policy_name] += loss_info
+                        elif isinstance(loss_info, DQNLossInfo):
+                            loss_infos[policy_name].append(loss_info)
+                        else:
+                            raise TypeError(f"Wrong type of loss_info: {type(loss_info)}")
+                    dones += 1
+                    if dones == len(msg_dict):
+                        break
+            # build dummy computation graph before apply gradients.
+            # batch_size=2 because nn.functional.batch_norm doesn't support batch_size=1.
+            _ = self.get_batch_loss(self._sample(batch_size=2), explicit_grad=True)
+            self.update_with_multi_loss_info(loss_infos[name])
 
     @property
     def exploration_params(self):

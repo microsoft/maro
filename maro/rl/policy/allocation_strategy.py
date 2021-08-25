@@ -3,7 +3,7 @@ from typing import Dict
 
 
 class TrainerAllocator(object):
-    """Allocate trainers follow some strategy."""
+    """Allocate trainers following some strategy."""
     def __init__(self, mode: str, num_trainers: int, policy_names: list, agent2policy: dict):
         assert num_trainers > 0
         assert len(policy_names) > 0
@@ -40,14 +40,14 @@ class TrainerAllocator(object):
         if len(policy_names) >= num_trainers:
             for i, name in enumerate(policy_names):
                 trainer_id = i % num_trainers
-                policy2trainers[name].append(f"TRAINER.{trainer_id}")
-                trainer2policies[f"TRAINER.{trainer_id}"].append(name)
+                policy2trainers[name].append(f"POLICY_HOST.{trainer_id}")
+                trainer2policies[f"POLICY_HOST.{trainer_id}"].append(name)
         else:
             trainer_id_list = list(range(num_trainers))
             for i, name in enumerate(policy_names):
                 for trainer_id in trainer_id_list[i::len(policy_names)]:
-                    policy2trainers[name].append(f"TRAINER.{trainer_id}")
-                    trainer2policies[f"TRAINER.{trainer_id}"].append(name)
+                    policy2trainers[name].append(f"POLICY_HOST.{trainer_id}")
+                    trainer2policies[f"POLICY_HOST.{trainer_id}"].append(name)
         return policy2trainers, trainer2policies
 
     def allocate_by_agent(self, agent2policy=None, logger=None):
@@ -104,8 +104,8 @@ class TrainerAllocator(object):
                         f"policy {name} payload: {num_payload[name]},  quota: {quota} node(s)")
                 for i in range(quota):
                     trainer_id = (i + offset) % num_trainers
-                    policy2trainers[name].append(f"TRAINER.{trainer_id}")
-                    trainer2policies[f"TRAINER.{trainer_id}"].append(name)
+                    policy2trainers[name].append(f"POLICY_HOST.{trainer_id}")
+                    trainer2policies[f"POLICY_HOST.{trainer_id}"].append(name)
                 offset = (offset + quota) % num_trainers
 
         return policy2trainers, trainer2policies

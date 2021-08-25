@@ -32,7 +32,9 @@ def policy_host(
         log_dir (str): Directory to store logs in. Defaults to the current working directory.
     """
     policy_dict = {}
-    proxy = Proxy(group, "policy_host", {"policy_manager": 1}, component_name=f"POLICY_HOST.{host_idx}", **proxy_kwargs)
+    proxy = Proxy(
+        group, "policy_host", {"policy_manager": 1, "policy": len(create_policy_func_dict)},
+        component_name=f"POLICY_HOST.{host_idx}", **proxy_kwargs)
     logger = Logger(proxy.name, dump_folder=log_dir)
 
     for msg in proxy.receive():
@@ -41,7 +43,7 @@ def policy_host(
             proxy.close()
             break
 
-        if msg.tag == MsgTag.INIT_POLICIES:
+        elif msg.tag == MsgTag.INIT_POLICIES:
             for name in msg.body[MsgKey.POLICY_NAMES]:
                 policy_dict[name] = create_policy_func_dict[name](name)
 
@@ -69,3 +71,20 @@ def policy_host(
             }
             logger.debug(f"total policy update time: {time.time() - t0}")
             proxy.reply(msg, tag=MsgTag.LEARN_DONE, body=msg_body)
+        elif msg.tag == MsgTag.COMPUTE_GRAD:
+            t0 = time.time()
+            msg_body = {MsgKey.LOSS_INFO: dict()}
+            for name, batch in msg.body[MsgKey.GRAD_TASK].items():
+                if MsgKey.POLICY_STATE in msg.body:
+                    policy_dict[name].set_state(msg.body[MsgKey.POLICY_STATE][name])
+                    logger.info(f"policy {name} sync state.")
+                if isinstance(batch, list):
+                    loss_info = [policy_dict[name].get_batch_loss(_batch, explicit_grad=True) for _batch in batch]
+                else:
+                    loss_info = policy_dict[name].get_batch_loss(batch, explicit_grad=True)
+                msg_body[MsgKey.LOSS_INFO][name] = loss_info
+            logger.info(f"total policy update time: {time.time() - t0}")
+            proxy.reply(msg, tag=MsgTag.COMPUTE_GRAD_DONE, body=msg_body)
+        else:
+            logger.info(f"Wrong message tag: {msg.tag}")
+            raise TypeError

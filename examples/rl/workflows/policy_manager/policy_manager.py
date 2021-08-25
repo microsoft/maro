@@ -6,12 +6,13 @@ from os import getenv
 from os.path import dirname, realpath
 
 from maro.rl.learning import DistributedPolicyManager, SimplePolicyManager
+from maro.rl.policy import TrainerAllocator
 
 workflow_dir = dirname(dirname(realpath(__file__)))  # template directory
 if workflow_dir not in sys.path:
     sys.path.insert(0, workflow_dir)
 
-from general import log_dir, rl_policy_func_index
+from general import agent2policy, log_dir, rl_policy_func_index
 
 def get_policy_manager():
     manager_type = getenv("POLICYMANAGERTYPE", default="simple")
@@ -21,14 +22,17 @@ def get_policy_manager():
 
     num_hosts = int(getenv("NUMHOSTS", default=5))
     if manager_type == "distributed":
+        allocation_mode = getenv("ALLOCATIONMODE", default="by-policy")
+        allocator = TrainerAllocator(allocation_mode, num_hosts, list(rl_policy_func_index.keys()), agent2policy)
         return DistributedPolicyManager(
-            list(rl_policy_func_index.keys()),
+            rl_policy_func_index,
             getenv("LEARNGROUP", default="learn"),
             num_hosts,
             proxy_kwargs={
                 "redis_address": (getenv("REDISHOST", default="maro-redis"), int(getenv("REDISPORT", default=6379))),
                 "max_peer_discovery_retries": 50
             },
+            trainer_allocator=allocator,
             log_dir=log_dir
         )
     if train_mode == "multi-node-dist":

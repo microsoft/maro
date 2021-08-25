@@ -3,13 +3,12 @@
 
 import time
 from abc import ABC, abstractmethod
-from collections import defaultdict
 from multiprocessing import Pipe, Process
 from os import getcwd
-from typing import Callable, Dict, List
+from typing import Callable, Dict
 
 from maro.communication import Proxy, SessionMessage, SessionType
-from maro.rl.policy import LossInfo
+from maro.rl.policy import LossInfo, TrainerAllocator
 from maro.rl.types import Trajectory
 from maro.rl.utils import MsgKey, MsgTag
 from maro.utils import Logger
@@ -149,10 +148,13 @@ class DistributedPolicyManager(AbsPolicyManager):
     """Policy manager that communicates with a set of remote nodes for parallel training.
 
     Args:
-        policy_dict (Dict[str, RLPolicy]): Policies managed by the manager.
+        create_policy_func_dict (dict): A dictionary mapping policy names to functions that create them. The policy
+            creation function should have policy name as the only parameter and return an ``RLPolicy`` instance.
         group (str): Group name for the training cluster, which includes all hosts and a policy manager that
             manages them.
         num_hosts (int): Number of hosts. The hosts will be identified by "POLICY_HOST.i", where 0 <= i < num_hosts.
+        trainer_allocator (TrainerAllocator): The allocation strategy of allocating trainers to policies
+            for parallelization.
         warmup (Dict[str, int]): A dictionary of (policy_name, warmup_size), where "warmup_size" indicates the
             minimum number of experiences in the experience memory required to trigger a call to ``learn`` for
             each policy. Defaults to None, in which case all warm-up sizes will be set to 1.
@@ -164,27 +166,58 @@ class DistributedPolicyManager(AbsPolicyManager):
     """
     def __init__(
         self,
-        policy_names: List[str],
+        create_policy_func_dict: Dict[str, Callable],
         group: str,
         num_hosts: int,
+        trainer_allocator: TrainerAllocator,
         log_dir: str = getcwd(),
         proxy_kwargs: dict = {}
     ):
         super().__init__()
-        self._policy_names = policy_names
+        self._policy_names = list(create_policy_func_dict.keys())
         peers = {"policy_host": num_hosts}
         self._proxy = Proxy(group, "policy_manager", peers, component_name="POLICY_MANAGER", **proxy_kwargs)
         self._logger = Logger("POLICY_MANAGER", dump_folder=log_dir)
+        self._trainer_allocator = trainer_allocator
 
-        self._policy2host = {}
-        self._host2policies = defaultdict(list)
-        self._logger = Logger("POLICY_MANAGER", dump_folder=log_dir)
+        self._policy2host, self._host2policies = self._trainer_allocator.allocate(
+            policy_name=self._policy_names, logger=self._logger)
 
-        # assign policies to hosts
-        for i, name in enumerate(self._policy_names):
-            host_id = i % num_hosts
-            self._policy2host[name] = f"POLICY_HOST.{host_id}"
-            self._host2policies[f"POLICY_HOST.{host_id}"].append(name)
+        self._logger.info("Spawning policy host processes")
+        self._state_cache = {}
+        self._policy_hosts = []
+        self._manager_end = {}
+
+        def _policy_host(name, create_policy_func, conn):
+            policy = create_policy_func(name)
+            _host_proxy = Proxy(group, "policy", peers, component_name=f"POLICY.{name}", **proxy_kwargs)
+            conn.send({"type": "init", "policy_state": policy.get_state()})
+
+            while True:
+                msg = conn.recv()
+                if msg["type"] == "learn":
+                    info_list = msg["rollout_info"]
+                    policy2host = msg["policy2host"]
+                    if isinstance(info_list[0], Trajectory):
+                        policy.distributed_learn(info_list, policy2host[name], name, _host_proxy)
+                    elif isinstance(info_list[0], LossInfo):
+                        policy.update_with_multi_loss_info(info_list)
+                    else:
+                        raise TypeError(
+                            f"Roll-out information must be of type 'Trajectory' or 'LossInfo', "
+                            f"got {type(info_list[0])}"
+                        )
+                    conn.send({"type": "learn_done", "policy_state": policy.get_state()})
+                elif msg["type"] == "quit":
+                    break
+
+        # fork process for policy_host
+        for name, create_policy_func in create_policy_func_dict.items():
+            manager_end, host_end = Pipe()
+            self._manager_end[name] = manager_end
+            host = Process(target=_policy_host, args=(name, create_policy_func, host_end))
+            self._policy_hosts.append(host)
+            host.start()
 
         self._logger.info(f"Policy assignment: {self._policy2host}")
 
@@ -195,32 +228,27 @@ class DistributedPolicyManager(AbsPolicyManager):
             ))
 
         # cache the initial policy states
-        self._state_cache, dones = {}, 0
-        for msg in self._proxy.receive():
-            self._logger.info(f"received a msg of tag {msg.tag}")
-            if msg.tag == MsgTag.INIT_POLICIES_DONE:
-                for policy_name, policy_state in msg.body[MsgKey.POLICY_STATE].items():
-                    self._state_cache[policy_name] = policy_state
-                    self._logger.info(f"Cached state for policy {policy_name}")
-                dones += 1
-                if dones == num_hosts:
-                    break
+        for policy_name, conn in self._manager_end.items():
+            msg = conn.recv()
+            if msg["type"] == "init":
+                self._state_cache[policy_name] = msg["policy_state"]
+                self._logger.info(f"Initial state for policy {policy_name} cached")
 
     def update(self, rollout_info: Dict[str, list]):
-        msg_dict = defaultdict(lambda: defaultdict(dict))
-        for policy_name, info_list in rollout_info.items():
-            host_id_str = self._policy2host[policy_name]
-            msg_dict[host_id_str][MsgKey.ROLLOUT_INFO][policy_name] = info_list
+        self._policy2host, self._host2policies = self._trainer_allocator.allocate(
+            policy_name=self._policy_names, logger=self._logger)
 
-        dones = 0
-        self._proxy.iscatter(MsgTag.LEARN, SessionType.TASK, list(msg_dict.items()))
-        for msg in self._proxy.receive():
-            if msg.tag == MsgTag.LEARN_DONE:
-                for policy_name, policy_state in msg.body[MsgKey.POLICY_STATE].items():
-                    self._state_cache[policy_name] = policy_state
-                dones += 1
-                if dones == len(msg_dict):
-                    break
+        for policy_name, info_list in rollout_info.items():
+            self._manager_end[policy_name].send(
+                {"type": "learn", "rollout_info": info_list, "policy2host": self._policy2host})
+        # update policy state from hosts
+        for policy_name, conn in self._manager_end.items():
+            msg = conn.recv()
+            if msg["type"] == "learn_done":
+                self._state_cache[policy_name] = msg["policy_state"]
+                self._logger.info(f"Cached state for policy {policy_name}")
+            else:
+                self._logger.info(f"Warning: Wrong message type: {msg['type']}")
 
         self.update_count += 1
         self._logger.info(f"Updated policies {list(rollout_info.keys())}")
