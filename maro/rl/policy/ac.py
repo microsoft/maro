@@ -23,6 +23,11 @@ class ACActionInfo:
         self.value = value
 
 
+class ACTrajectory(Trajectory):
+    def __init__(self):
+        
+
+
 class ACBatch(Batch):
 
     __slots__ = ["states", "actions", "returns", "advantages", "logps"]
