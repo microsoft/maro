@@ -15,16 +15,16 @@ rollout_experience_distribution: true
 sync:
   rollout_group: rollout
   rollout_mode: multi-node # single-process, multi-process, multi-node
-  num_rollout_workers: 10
-  min_finished_workers: 8
-  max_extra_recv_tries: 4
+  num_rollout_workers: 5
+  min_finished_workers: 4
+  max_extra_recv_tries: 2
   extra_recv_timeout: 200
 async:
   group: async
   num_actors: 3
 policy_manager:
   train_group: policy-manager
-  train_mode: multi-node # single-process, multi-process, multi-node
+  train_mode: single-process # single-process, multi-process, multi-node
   num_trainers: 20
 redis:
   host: maro-redis
