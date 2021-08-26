@@ -210,6 +210,8 @@ class CimBusinessEngine(AbsBusinessEngine):
         # Insert departure event again.
         self._load_departure_events()
 
+        self._init_vessel_plans()
+
         self._total_operate_num = 0
 
     def action_scope(self, port_idx: int, vessel_idx: int) -> ActionScope:
