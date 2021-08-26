@@ -81,28 +81,34 @@ Policy
 A policy is a an agent's mechanism to choose actions based on its observations of the environment.
 Accordingly, the abstract ``AbsPolicy`` class exposes a ``choose_action`` interface. This abstraction encompasses
 both static policies, such as rule-based policies, and updatable policies, such as RL policies. The latter is
-abstracted through the ``AbsCorePolicy`` sub-class which also exposes a ``update`` interface. By default, updatable
-policies require an experience manager to store and retrieve simulation data (in the form of "experiences sets")
-based on which updates can be made.
+abstracted through the ``RLPolicy`` sub-class which also exposes ``update_with_multi_loss_info`` and
+``learn_from_multi_trajectories`` interface. Replay buffer is optional to updatable policies to store and
+retrieve simulation data (in the form of "experiences sets") based on which updates can be made.
 
 
 .. code-block:: python
 
   class AbsPolicy(ABC):
+      def __init__(self, name)
+          super().__init__()
+          self._name = name
+
       @abstractmethod
       def choose_action(self, state):
           raise NotImplementedError
 
 
-  class AbsCorePolicy(AbsPolicy):
-      def __init__(self, experience_memory: ExperienceMemory):
-          super().__init__()
-          self.experience_memory = experience_memory
+  class RLPolicy(AbsPolicy):
+      def __init__(self, name):
+          super().__init__(name)
 
       @abstractmethod
-      def update(self):
+      def update_with_multi_loss_info(self):
           raise NotImplementedError
 
+      @abstractmethod
+      def learn_from_multi_trajectories(self):
+          raise NotImplementedError
 
 Policy Manager
 --------------
@@ -113,20 +119,20 @@ In asynchrounous learning, the policy manager is the centerpiece of the policy s
 Individual policy updates, however, may or may not occur within the policy manager itself depending
 on the policy manager type used. The provided policy manager classes include:
 
-* ``LocalPolicyManager``, where the policies are updated within the manager itself;
-* ``MultiProcessPolicyManager``, which distributes policies amongst a set of trainer processes to parallelize
-  policy update;
-* ``MultiNodePolicyManager``, which distributes policies amongst a set of remote compute nodes to parallelize
-  policy update, but for each policy, only one node would be assigned to. Thus the node number should be less
-  than or equal to policy number;
-* ``MultiNodeDistPolicyManager``, which distributes policies amongst a set of remote compute nodes to parallelize
-  policy update, while supporting to divide one policy to multiple remote compute nodes. The node number can
-  be greater than the policy number. Moreover, it will perform auto-balance during training, which dynamically
-  adjusts the number of compute nodes for policies according to their experience number.
+* ``SimplePolicyManager``, where the policies are updated within the manager itself, sequentially or in parallel through multi-process;
+* ``DistributedPolicyManager``, which distributes policies amongst a set of remote compute nodes to parallelize policy update. Moreover, a trainer allocator performs auto-balance during training, which dynamically adjusts the number of trainer nodes for policies according to the experience/agent/policy number.
 
 .. image:: ../images/rl/policy_manager.svg
     :target: ../images/rl/policy_manager.svg
     :alt: RL Overview
+
+The ``DistributedPolicyManager`` runs a set of ``policy_host`` for policy-level parallel,
+which independently update their own policies. For each ``policy_host``, experience data
+is divided and send to several assigned trainers for data-level parallel. ``policy_host``
+is a process that hosts the update of a policy. The policy-to-trainer allocation(mapping)
+is decided by a ``TrainerAllocator``, which dynamically adjusts trainer node numbers for
+policies according to the experience/agent/policy number.
+
 
 Core Model
 ----------
@@ -179,6 +185,17 @@ To performing a single gradient step on the model, call the ``step`` function:
 Here it is assumed that the losses have been computed using the same model instance and the gradients have
 been generated for the internal components.  
 
+Additional, core model provides ``get_gradients`` and ``apply_gradients`` interfaces for finer control in
+model update, for example, distributed training. Here is an example code of gradient related interfaces:
+
+.. code-block:: python
+
+    grad_dict_list = []
+    grad_dict_list.append(ac_model.get_gradients(loss))
+    ac_model.apply_gradients(grad_dict_list)
+
+The ``get_gradients`` function returns a gradient dict, and the ``apply_gradients`` function will first
+perform an average operation on a list of gradient dicts then apply the average gradient to the model.
 
 Experience
 ----------
