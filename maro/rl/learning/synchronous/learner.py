@@ -70,8 +70,13 @@ class Learner:
 
         self.early_stopper = early_stopper
 
+        self._collect_time = 0
+        self._policy_update_time = 0
+        self._num_experiences_collected = 0
+
     def run(self):
         """Entry point for executing a learning workflow."""
+        t0 = time.time()
         for ep in range(1, self.num_episodes + 1):
             self._collect_and_update(ep)
             if ep == self._eval_schedule[self._eval_point_index]:
@@ -90,8 +95,14 @@ class Learner:
         if hasattr(self.policy_manager, "exit"):
             self.policy_manager.exit()
 
+        self._logger.info(
+            f"total run time: {time.time() - t0}"
+            f"experiences collected: {self._num_experiences_collected} "
+            f"experience collection time: {self._collect_time} "
+            f"policy update time: {self._policy_update_time}"
+        )
+
     def _collect_and_update(self, ep: int):
-        collect_time = policy_update_time = num_experiences_collected = 0
         segment = 0
         self.rollout_manager.reset()
         while not self.rollout_manager.episode_complete:
@@ -101,16 +112,8 @@ class Learner:
             policy_version = self.policy_manager.version
             tc0 = time.time()
             exp_by_policy = self.rollout_manager.collect(ep, segment, policy_state_dict, policy_version)
-            collect_time += time.time() - tc0
+            self._collect_time += time.time() - tc0
             tu0 = time.time()
             self.policy_manager.update(exp_by_policy)
-            policy_update_time += time.time() - tu0
-            num_experiences_collected += sum(exp.size for exp in exp_by_policy.values())
-
-        # performance details
-        self._logger.info(
-            f"ep {ep} summary - "
-            f"experiences collected: {num_experiences_collected} "
-            f"experience collection time: {collect_time} "
-            f"policy update time: {policy_update_time}"
-        )
+            self._policy_update_time += time.time() - tu0
+            self._num_experiences_collected += sum(exp.size for exp in exp_by_policy.values())

@@ -1,0 +1,1370 @@
+facility_definitions:
+  RetailerFacility:
+    children:
+      products:
+        class: StoreProductUnit
+        config:
+          agent_type: product
+          consumer:
+            class: ConsumerUnit
+            config:
+              agent_type: consumer
+          seller:
+            class: SellerUnit
+            config:
+              sale_hist_len: 4
+        is_template: true
+      storage:
+        class: StorageUnit
+    class: RetailerFacility
+    config:
+      agent_type: facility
+  SupplierFacility:
+    children:
+      distribution:
+        class: DistributionUnit
+      products:
+        class: ProductUnit
+        config:
+          agent_type: product
+          consumer:
+            class: ConsumerUnit
+            config:
+              agent_type: consumer
+          manufacture:
+            class: SimpleManufactureUnit
+            config:
+              agent_type: producer
+        is_template: true
+      storage:
+        class: StorageUnit
+    class: SupplierFacility
+    config:
+      agent_type: facility
+  WarehouseFacility:
+    children:
+      distribution:
+        class: DistributionUnit
+      products:
+        class: ProductUnit
+        config:
+          agent_type: product
+          consumer:
+            class: ConsumerUnit
+            config:
+              agent_type: consumer
+        is_template: true
+      storage:
+        class: StorageUnit
+    class: WarehouseFacility
+    config:
+      agent_type: facility
+normal_vehicle: &id001
+  class: VehicleUnit
+  config:
+    patient: 100
+    unit_transport_cost: 1
+settings:
+  constraint_state_hist_len: 4
+  constraint_violate_reward: -1000000.0
+  consumption_hist_len: 4
+  downsampling_rate: 1
+  episod_duration: 21
+  gamma: 0.99
+  global_reward_weight_consumer: 0.5
+  global_reward_weight_producer: 0.5
+  heading_timesteps: 7
+  initial_balance: 100000
+  pending_order_len: 4
+  replenishment_discount: 0.9
+  reward_normalization: 10000000.0
+  sale_hist_len: 4
+  tail_timesteps: 7
+  total_echelons: 3
+world:
+  facilities:
+  - children:
+      distribution:
+        children:
+          vehicles:
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+        config:
+          unit_price: 1
+      storage:
+        config:
+          capacity: 145900
+          unit_storage_cost: 1
+    config:
+      delay_order_penalty: 1000
+      order_cost: 200
+    definition_ref: SupplierFacility
+    name: SUPPLIER0
+    skus:
+      SKU0:
+        cost: 115
+        init_stock: 500
+        price: 128
+        product_unit_cost: 1
+        production_rate: 500
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU1:
+        cost: 325
+        init_stock: 2750
+        price: 362
+        product_unit_cost: 1
+        production_rate: 2750
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU10:
+        cost: 48
+        init_stock: 4850
+        price: 54
+        product_unit_cost: 1
+        production_rate: 4850
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU11:
+        cost: 274
+        init_stock: 3650
+        price: 305
+        product_unit_cost: 1
+        production_rate: 3650
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU12:
+        cost: 286
+        init_stock: 3950
+        price: 318
+        product_unit_cost: 1
+        production_rate: 3950
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU13:
+        cost: 37
+        init_stock: 3800
+        price: 42
+        product_unit_cost: 1
+        production_rate: 3800
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU14:
+        cost: 17
+        init_stock: 2950
+        price: 19
+        product_unit_cost: 1
+        production_rate: 2950
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU15:
+        cost: 32
+        init_stock: 1700
+        price: 36
+        product_unit_cost: 1
+        production_rate: 1700
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU16:
+        cost: 405
+        init_stock: 600
+        price: 451
+        product_unit_cost: 1
+        production_rate: 600
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU17:
+        cost: 122
+        init_stock: 3900
+        price: 136
+        product_unit_cost: 1
+        production_rate: 3900
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU18:
+        cost: 156
+        init_stock: 1150
+        price: 174
+        product_unit_cost: 1
+        production_rate: 1150
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU19:
+        cost: 63
+        init_stock: 3900
+        price: 70
+        product_unit_cost: 1
+        production_rate: 3900
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU2:
+        cost: 143
+        init_stock: 3400
+        price: 159
+        product_unit_cost: 1
+        production_rate: 3400
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU20:
+        cost: 441
+        init_stock: 3350
+        price: 490
+        product_unit_cost: 1
+        production_rate: 3350
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU21:
+        cost: 283
+        init_stock: 1500
+        price: 315
+        product_unit_cost: 1
+        production_rate: 1500
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU22:
+        cost: 16
+        init_stock: 3650
+        price: 18
+        product_unit_cost: 1
+        production_rate: 3650
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU23:
+        cost: 226
+        init_stock: 1100
+        price: 252
+        product_unit_cost: 1
+        production_rate: 1100
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU24:
+        cost: 160
+        init_stock: 4300
+        price: 178
+        product_unit_cost: 1
+        production_rate: 4300
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU3:
+        cost: 279
+        init_stock: 2100
+        price: 310
+        product_unit_cost: 1
+        production_rate: 2100
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU4:
+        cost: 373
+        init_stock: 4000
+        price: 415
+        product_unit_cost: 1
+        production_rate: 4000
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU5:
+        cost: 12
+        init_stock: 2700
+        price: 14
+        product_unit_cost: 1
+        production_rate: 2700
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU6:
+        cost: 215
+        init_stock: 3350
+        price: 239
+        product_unit_cost: 1
+        production_rate: 3350
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU7:
+        cost: 126
+        init_stock: 3250
+        price: 140
+        product_unit_cost: 1
+        production_rate: 3250
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU8:
+        cost: 245
+        init_stock: 2050
+        price: 273
+        product_unit_cost: 1
+        production_rate: 2050
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU9:
+        cost: 71
+        init_stock: 4500
+        price: 79
+        product_unit_cost: 1
+        production_rate: 4500
+        service_level: 0.95
+        type: production
+        vlt: 3
+  - children:
+      distribution:
+        children:
+          vehicles:
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+          - *id001
+        config:
+          unit_price: 1
+      storage:
+        config:
+          capacity: 145900
+          unit_storage_cost: 1
+    config:
+      delay_order_penalty: 1000
+      order_cost: 500
+    definition_ref: WarehouseFacility
+    name: WAREHOUSE0
+    skus:
+      SKU0:
+        cost: 128
+        init_stock: 200
+        price: 128
+        service_level: 0.96
+        vlt: 3
+      SKU1:
+        cost: 362
+        init_stock: 1100
+        price: 362
+        service_level: 0.96
+        vlt: 1
+      SKU10:
+        cost: 54
+        init_stock: 1940
+        price: 54
+        service_level: 0.96
+        vlt: 1
+      SKU11:
+        cost: 305
+        init_stock: 1460
+        price: 305
+        service_level: 0.96
+        vlt: 1
+      SKU12:
+        cost: 318
+        init_stock: 1580
+        price: 318
+        service_level: 0.96
+        vlt: 3
+      SKU13:
+        cost: 42
+        init_stock: 1520
+        price: 42
+        service_level: 0.96
+        vlt: 1
+      SKU14:
+        cost: 19
+        init_stock: 1180
+        price: 19
+        service_level: 0.96
+        vlt: 1
+      SKU15:
+        cost: 36
+        init_stock: 680
+        price: 36
+        service_level: 0.96
+        vlt: 1
+      SKU16:
+        cost: 451
+        init_stock: 240
+        price: 451
+        service_level: 0.96
+        vlt: 2
+      SKU17:
+        cost: 136
+        init_stock: 1560
+        price: 136
+        service_level: 0.96
+        vlt: 2
+      SKU18:
+        cost: 174
+        init_stock: 460
+        price: 174
+        service_level: 0.96
+        vlt: 2
+      SKU19:
+        cost: 70
+        init_stock: 1560
+        price: 70
+        service_level: 0.96
+        vlt: 1
+      SKU2:
+        cost: 159
+        init_stock: 1360
+        price: 159
+        service_level: 0.96
+        vlt: 1
+      SKU20:
+        cost: 490
+        init_stock: 1340
+        price: 490
+        service_level: 0.96
+        vlt: 1
+      SKU21:
+        cost: 315
+        init_stock: 600
+        price: 315
+        service_level: 0.96
+        vlt: 1
+      SKU22:
+        cost: 18
+        init_stock: 1460
+        price: 18
+        service_level: 0.96
+        vlt: 3
+      SKU23:
+        cost: 252
+        init_stock: 440
+        price: 252
+        service_level: 0.96
+        vlt: 3
+      SKU24:
+        cost: 178
+        init_stock: 1720
+        price: 178
+        service_level: 0.96
+        vlt: 2
+      SKU3:
+        cost: 310
+        init_stock: 840
+        price: 310
+        service_level: 0.96
+        vlt: 2
+      SKU4:
+        cost: 415
+        init_stock: 1600
+        price: 415
+        service_level: 0.96
+        vlt: 3
+      SKU5:
+        cost: 14
+        init_stock: 1080
+        price: 14
+        service_level: 0.96
+        vlt: 2
+      SKU6:
+        cost: 239
+        init_stock: 1340
+        price: 239
+        service_level: 0.96
+        vlt: 2
+      SKU7:
+        cost: 140
+        init_stock: 1300
+        price: 140
+        service_level: 0.96
+        vlt: 2
+      SKU8:
+        cost: 273
+        init_stock: 820
+        price: 273
+        service_level: 0.96
+        vlt: 1
+      SKU9:
+        cost: 79
+        init_stock: 1800
+        price: 79
+        service_level: 0.96
+        vlt: 1
+  - children:
+      storage:
+        config:
+          capacity: 29180
+          unit_storage_cost: 1
+    config:
+      order_cost: 500
+    definition_ref: RetailerFacility
+    name: STORE0
+    skus:
+      SKU0:
+        constraint: null
+        cost: 128
+        init_stock: 40
+        max_stock: 1000
+        price: 208
+        sale_gamma: 10
+        service_level: 0.95
+      SKU1:
+        constraint: null
+        cost: 362
+        init_stock: 165
+        max_stock: 1000
+        price: 582
+        sale_gamma: 55
+        service_level: 0.95
+      SKU10:
+        constraint: G(stock_constraint)
+        cost: 54
+        init_stock: 485
+        max_stock: 1000
+        price: 84
+        sale_gamma: 97
+        service_level: 0.95
+      SKU11:
+        constraint: G(is_replenish_constraint -> ((X!is_replenish_constraint)&(XX!is_replenish_constraint)))
+        cost: 305
+        init_stock: 292
+        max_stock: 1000
+        price: 381
+        sale_gamma: 73
+        service_level: 0.95
+      SKU12:
+        constraint: G(is_replenish_constraint -> ((X!is_replenish_constraint)&(XX!is_replenish_constraint)))
+        cost: 318
+        init_stock: 553
+        max_stock: 1000
+        price: 521
+        sale_gamma: 79
+        service_level: 0.95
+      SKU13:
+        constraint: null
+        cost: 42
+        init_stock: 456
+        max_stock: 1000
+        price: 79
+        sale_gamma: 76
+        service_level: 0.95
+      SKU14:
+        constraint: G(stock_constraint)
+        cost: 19
+        init_stock: 295
+        max_stock: 1000
+        price: 32
+        sale_gamma: 59
+        service_level: 0.95
+      SKU15:
+        constraint: null
+        cost: 36
+        init_stock: 204
+        max_stock: 1000
+        price: 52
+        sale_gamma: 34
+        service_level: 0.95
+      SKU16:
+        constraint: G(is_replenish_constraint -> ((X!is_replenish_constraint)&(XX!is_replenish_constraint)))
+        cost: 451
+        init_stock: 60
+        max_stock: 1000
+        price: 577
+        sale_gamma: 12
+        service_level: 0.95
+      SKU17:
+        constraint: G(is_replenish_constraint -> ((X!is_replenish_constraint)&(XX!is_replenish_constraint)))
+        cost: 136
+        init_stock: 234
+        max_stock: 1000
+        price: 155
+        sale_gamma: 78
+        service_level: 0.95
+      SKU18:
+        constraint: null
+        cost: 174
+        init_stock: 138
+        max_stock: 1000
+        price: 257
+        sale_gamma: 23
+        service_level: 0.95
+      SKU19:
+        constraint: null
+        cost: 70
+        init_stock: 156
+        max_stock: 1000
+        price: 109
+        sale_gamma: 78
+        service_level: 0.95
+      SKU2:
+        constraint: null
+        cost: 159
+        init_stock: 136
+        max_stock: 1000
+        price: 208
+        sale_gamma: 68
+        service_level: 0.95
+      SKU20:
+        constraint: null
+        cost: 490
+        init_stock: 201
+        max_stock: 1000
+        price: 945
+        sale_gamma: 67
+        service_level: 0.95
+      SKU21:
+        constraint: G(stock_constraint)
+        cost: 315
+        init_stock: 120
+        max_stock: 1000
+        price: 570
+        sale_gamma: 30
+        service_level: 0.95
+      SKU22:
+        constraint: null
+        cost: 18
+        init_stock: 365
+        max_stock: 1000
+        price: 22
+        sale_gamma: 73
+        service_level: 0.95
+      SKU23:
+        constraint: G(low_profit -> low_stock_constraint)
+        cost: 252
+        init_stock: 132
+        max_stock: 1000
+        price: 325
+        sale_gamma: 22
+        service_level: 0.95
+      SKU24:
+        constraint: null
+        cost: 178
+        init_stock: 516
+        max_stock: 1000
+        price: 284
+        sale_gamma: 86
+        service_level: 0.95
+      SKU3:
+        constraint: null
+        cost: 310
+        init_stock: 252
+        max_stock: 1000
+        price: 551
+        sale_gamma: 42
+        service_level: 0.95
+      SKU4:
+        constraint: G(low_profit -> low_stock_constraint)
+        cost: 415
+        init_stock: 480
+        max_stock: 1000
+        price: 751
+        sale_gamma: 80
+        service_level: 0.95
+      SKU5:
+        constraint: null
+        cost: 14
+        init_stock: 378
+        max_stock: 1000
+        price: 19
+        sale_gamma: 54
+        service_level: 0.95
+      SKU6:
+        constraint: G(is_replenish_constraint -> ((X!is_replenish_constraint)&(XX!is_replenish_constraint)))
+        cost: 239
+        init_stock: 335
+        max_stock: 1000
+        price: 277
+        sale_gamma: 67
+        service_level: 0.95
+      SKU7:
+        constraint: null
+        cost: 140
+        init_stock: 325
+        max_stock: 1000
+        price: 172
+        sale_gamma: 65
+        service_level: 0.95
+      SKU8:
+        constraint: null
+        cost: 273
+        init_stock: 164
+        max_stock: 1000
+        price: 496
+        sale_gamma: 41
+        service_level: 0.95
+      SKU9:
+        constraint: G(stock_constraint)
+        cost: 79
+        init_stock: 180
+        max_stock: 1000
+        price: 109
+        sale_gamma: 90
+        service_level: 0.95
+  grid:
+    facilities:
+      STORE0:
+      - 19
+      - 1
+      SUPPLIER0:
+      - 1
+      - 12
+      WAREHOUSE0:
+      - 17
+      - 2
+    size:
+    - 20
+    - 20
+  skus:
+  - id: 0
+    name: SKU0
+  - id: 1
+    name: SKU1
+  - id: 2
+    name: SKU2
+  - id: 3
+    name: SKU3
+  - id: 4
+    name: SKU4
+  - id: 5
+    name: SKU5
+  - id: 6
+    name: SKU6
+  - id: 7
+    name: SKU7
+  - id: 8
+    name: SKU8
+  - id: 9
+    name: SKU9
+  - id: 10
+    name: SKU10
+  - id: 11
+    name: SKU11
+  - id: 12
+    name: SKU12
+  - id: 13
+    name: SKU13
+  - id: 14
+    name: SKU14
+  - id: 15
+    name: SKU15
+  - id: 16
+    name: SKU16
+  - id: 17
+    name: SKU17
+  - id: 18
+    name: SKU18
+  - id: 19
+    name: SKU19
+  - id: 20
+    name: SKU20
+  - id: 21
+    name: SKU21
+  - id: 22
+    name: SKU22
+  - id: 23
+    name: SKU23
+  - id: 24
+    name: SKU24
+  topology:
+    STORE0:
+      SKU0:
+      - WAREHOUSE0
+      SKU1:
+      - WAREHOUSE0
+      SKU10:
+      - WAREHOUSE0
+      SKU11:
+      - WAREHOUSE0
+      SKU12:
+      - WAREHOUSE0
+      SKU13:
+      - WAREHOUSE0
+      SKU14:
+      - WAREHOUSE0
+      SKU15:
+      - WAREHOUSE0
+      SKU16:
+      - WAREHOUSE0
+      SKU17:
+      - WAREHOUSE0
+      SKU18:
+      - WAREHOUSE0
+      SKU19:
+      - WAREHOUSE0
+      SKU2:
+      - WAREHOUSE0
+      SKU20:
+      - WAREHOUSE0
+      SKU21:
+      - WAREHOUSE0
+      SKU22:
+      - WAREHOUSE0
+      SKU23:
+      - WAREHOUSE0
+      SKU24:
+      - WAREHOUSE0
+      SKU3:
+      - WAREHOUSE0
+      SKU4:
+      - WAREHOUSE0
+      SKU5:
+      - WAREHOUSE0
+      SKU6:
+      - WAREHOUSE0
+      SKU7:
+      - WAREHOUSE0
+      SKU8:
+      - WAREHOUSE0
+      SKU9:
+      - WAREHOUSE0
+    WAREHOUSE0:
+      SKU0:
+      - SUPPLIER0
+      SKU1:
+      - SUPPLIER0
+      SKU10:
+      - SUPPLIER0
+      SKU11:
+      - SUPPLIER0
+      SKU12:
+      - SUPPLIER0
+      SKU13:
+      - SUPPLIER0
+      SKU14:
+      - SUPPLIER0
+      SKU15:
+      - SUPPLIER0
+      SKU16:
+      - SUPPLIER0
+      SKU17:
+      - SUPPLIER0
+      SKU18:
+      - SUPPLIER0
+      SKU19:
+      - SUPPLIER0
+      SKU2:
+      - SUPPLIER0
+      SKU20:
+      - SUPPLIER0
+      SKU21:
+      - SUPPLIER0
+      SKU22:
+      - SUPPLIER0
+      SKU23:
+      - SUPPLIER0
+      SKU24:
+      - SUPPLIER0
+      SKU3:
+      - SUPPLIER0
+      SKU4:
+      - SUPPLIER0
+      SKU5:
+      - SUPPLIER0
+      SKU6:
+      - SUPPLIER0
+      SKU7:
+      - SUPPLIER0
+      SKU8:
+      - SUPPLIER0
+      SKU9:
+      - SUPPLIER0

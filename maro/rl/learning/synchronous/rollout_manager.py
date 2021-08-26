@@ -491,6 +491,7 @@ class MultiNodeRolloutManager(AbsRolloutManager):
             return
 
         for policy_name, exp in msg.body[MsgKey.EXPERIENCES].items():
+            self._logger.info(f"Received {exp.size} experiences for policy {policy_name}")
             combined_exp[policy_name].extend(exp)
 
         # The message is what we expect

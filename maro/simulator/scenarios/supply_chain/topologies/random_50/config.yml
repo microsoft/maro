@@ -591,7 +591,7 @@ world:
           unit_price: 1
       storage:
         config:
-          capacity: 260700
+          capacity: 246500
           unit_storage_cost: 1
     config:
       delay_order_penalty: 1000
@@ -600,452 +600,452 @@ world:
     name: SUPPLIER0
     skus:
       SKU0:
-        cost: 244
-        init_stock: 4600
-        price: 272
+        cost: 333
+        init_stock: 800
+        price: 371
         product_unit_cost: 1
-        production_rate: 4600
+        production_rate: 800
         service_level: 0.95
         type: production
         vlt: 3
       SKU1:
-        cost: 107
-        init_stock: 4700
-        price: 119
-        product_unit_cost: 1
-        production_rate: 4700
-        service_level: 0.95
-        type: production
-        vlt: 3
-      SKU10:
-        cost: 339
-        init_stock: 1450
-        price: 377
-        product_unit_cost: 1
-        production_rate: 1450
-        service_level: 0.95
-        type: production
-        vlt: 3
-      SKU11:
-        cost: 267
+        cost: 89
         init_stock: 2500
-        price: 297
+        price: 99
         product_unit_cost: 1
         production_rate: 2500
         service_level: 0.95
         type: production
         vlt: 3
-      SKU12:
-        cost: 252
-        init_stock: 2450
-        price: 281
+      SKU10:
+        cost: 135
+        init_stock: 1800
+        price: 150
         product_unit_cost: 1
-        production_rate: 2450
+        production_rate: 1800
         service_level: 0.95
         type: production
         vlt: 3
-      SKU13:
-        cost: 346
-        init_stock: 350
-        price: 385
-        product_unit_cost: 1
-        production_rate: 350
-        service_level: 0.95
-        type: production
-        vlt: 3
-      SKU14:
-        cost: 238
-        init_stock: 2750
-        price: 265
-        product_unit_cost: 1
-        production_rate: 2750
-        service_level: 0.95
-        type: production
-        vlt: 3
-      SKU15:
-        cost: 315
-        init_stock: 2300
-        price: 351
-        product_unit_cost: 1
-        production_rate: 2300
-        service_level: 0.95
-        type: production
-        vlt: 3
-      SKU16:
-        cost: 98
-        init_stock: 300
-        price: 109
-        product_unit_cost: 1
-        production_rate: 300
-        service_level: 0.95
-        type: production
-        vlt: 3
-      SKU17:
-        cost: 274
-        init_stock: 1250
-        price: 305
-        product_unit_cost: 1
-        production_rate: 1250
-        service_level: 0.95
-        type: production
-        vlt: 3
-      SKU18:
-        cost: 369
-        init_stock: 2900
-        price: 410
-        product_unit_cost: 1
-        production_rate: 2900
-        service_level: 0.95
-        type: production
-        vlt: 3
-      SKU19:
-        cost: 118
-        init_stock: 1700
-        price: 132
-        product_unit_cost: 1
-        production_rate: 1700
-        service_level: 0.95
-        type: production
-        vlt: 3
-      SKU2:
-        cost: 423
-        init_stock: 3800
-        price: 471
-        product_unit_cost: 1
-        production_rate: 3800
-        service_level: 0.95
-        type: production
-        vlt: 3
-      SKU20:
-        cost: 347
-        init_stock: 850
-        price: 386
-        product_unit_cost: 1
-        production_rate: 850
-        service_level: 0.95
-        type: production
-        vlt: 3
-      SKU21:
-        cost: 441
-        init_stock: 300
-        price: 490
-        product_unit_cost: 1
-        production_rate: 300
-        service_level: 0.95
-        type: production
-        vlt: 3
-      SKU22:
-        cost: 74
-        init_stock: 1950
-        price: 83
-        product_unit_cost: 1
-        production_rate: 1950
-        service_level: 0.95
-        type: production
-        vlt: 3
-      SKU23:
-        cost: 400
-        init_stock: 4250
-        price: 445
-        product_unit_cost: 1
-        production_rate: 4250
-        service_level: 0.95
-        type: production
-        vlt: 3
-      SKU24:
-        cost: 134
-        init_stock: 1150
-        price: 149
-        product_unit_cost: 1
-        production_rate: 1150
-        service_level: 0.95
-        type: production
-        vlt: 3
-      SKU25:
-        cost: 401
-        init_stock: 1500
-        price: 446
-        product_unit_cost: 1
-        production_rate: 1500
-        service_level: 0.95
-        type: production
-        vlt: 3
-      SKU26:
-        cost: 269
-        init_stock: 250
-        price: 299
-        product_unit_cost: 1
-        production_rate: 250
-        service_level: 0.95
-        type: production
-        vlt: 3
-      SKU27:
-        cost: 302
-        init_stock: 4850
-        price: 336
-        product_unit_cost: 1
-        production_rate: 4850
-        service_level: 0.95
-        type: production
-        vlt: 3
-      SKU28:
-        cost: 261
-        init_stock: 4700
-        price: 291
-        product_unit_cost: 1
-        production_rate: 4700
-        service_level: 0.95
-        type: production
-        vlt: 3
-      SKU29:
-        cost: 205
-        init_stock: 3900
-        price: 228
-        product_unit_cost: 1
-        production_rate: 3900
-        service_level: 0.95
-        type: production
-        vlt: 3
-      SKU3:
-        cost: 390
-        init_stock: 4700
-        price: 434
-        product_unit_cost: 1
-        production_rate: 4700
-        service_level: 0.95
-        type: production
-        vlt: 3
-      SKU30:
-        cost: 439
-        init_stock: 3750
-        price: 488
-        product_unit_cost: 1
-        production_rate: 3750
-        service_level: 0.95
-        type: production
-        vlt: 3
-      SKU31:
-        cost: 413
-        init_stock: 750
-        price: 459
-        product_unit_cost: 1
-        production_rate: 750
-        service_level: 0.95
-        type: production
-        vlt: 3
-      SKU32:
-        cost: 326
-        init_stock: 2350
-        price: 363
-        product_unit_cost: 1
-        production_rate: 2350
-        service_level: 0.95
-        type: production
-        vlt: 3
-      SKU33:
-        cost: 115
-        init_stock: 3200
-        price: 128
-        product_unit_cost: 1
-        production_rate: 3200
-        service_level: 0.95
-        type: production
-        vlt: 3
-      SKU34:
-        cost: 353
-        init_stock: 1100
-        price: 393
-        product_unit_cost: 1
-        production_rate: 1100
-        service_level: 0.95
-        type: production
-        vlt: 3
-      SKU35:
-        cost: 270
-        init_stock: 1550
-        price: 301
-        product_unit_cost: 1
-        production_rate: 1550
-        service_level: 0.95
-        type: production
-        vlt: 3
-      SKU36:
-        cost: 14
-        init_stock: 2200
-        price: 16
-        product_unit_cost: 1
-        production_rate: 2200
-        service_level: 0.95
-        type: production
-        vlt: 3
-      SKU37:
-        cost: 290
-        init_stock: 4400
-        price: 323
-        product_unit_cost: 1
-        production_rate: 4400
-        service_level: 0.95
-        type: production
-        vlt: 3
-      SKU38:
-        cost: 9
-        init_stock: 4400
-        price: 11
-        product_unit_cost: 1
-        production_rate: 4400
-        service_level: 0.95
-        type: production
-        vlt: 3
-      SKU39:
-        cost: 198
-        init_stock: 1050
-        price: 221
-        product_unit_cost: 1
-        production_rate: 1050
-        service_level: 0.95
-        type: production
-        vlt: 3
-      SKU4:
-        cost: 90
-        init_stock: 4600
-        price: 100
-        product_unit_cost: 1
-        production_rate: 4600
-        service_level: 0.95
-        type: production
-        vlt: 3
-      SKU40:
-        cost: 303
-        init_stock: 4250
-        price: 337
-        product_unit_cost: 1
-        production_rate: 4250
-        service_level: 0.95
-        type: production
-        vlt: 3
-      SKU41:
-        cost: 385
-        init_stock: 3800
-        price: 428
-        product_unit_cost: 1
-        production_rate: 3800
-        service_level: 0.95
-        type: production
-        vlt: 3
-      SKU42:
-        cost: 238
-        init_stock: 850
-        price: 265
-        product_unit_cost: 1
-        production_rate: 850
-        service_level: 0.95
-        type: production
-        vlt: 3
-      SKU43:
-        cost: 34
-        init_stock: 2550
-        price: 38
-        product_unit_cost: 1
-        production_rate: 2550
-        service_level: 0.95
-        type: production
-        vlt: 3
-      SKU44:
-        cost: 325
-        init_stock: 3400
-        price: 362
-        product_unit_cost: 1
-        production_rate: 3400
-        service_level: 0.95
-        type: production
-        vlt: 3
-      SKU45:
-        cost: 134
-        init_stock: 3200
-        price: 149
-        product_unit_cost: 1
-        production_rate: 3200
-        service_level: 0.95
-        type: production
-        vlt: 3
-      SKU46:
-        cost: 372
-        init_stock: 250
-        price: 414
-        product_unit_cost: 1
-        production_rate: 250
-        service_level: 0.95
-        type: production
-        vlt: 3
-      SKU47:
-        cost: 213
-        init_stock: 1000
-        price: 237
-        product_unit_cost: 1
-        production_rate: 1000
-        service_level: 0.95
-        type: production
-        vlt: 3
-      SKU48:
-        cost: 166
+      SKU11:
+        cost: 308
         init_stock: 3150
-        price: 185
+        price: 343
         product_unit_cost: 1
         production_rate: 3150
         service_level: 0.95
         type: production
         vlt: 3
-      SKU49:
-        cost: 24
-        init_stock: 4400
-        price: 27
+      SKU12:
+        cost: 404
+        init_stock: 1650
+        price: 449
         product_unit_cost: 1
-        production_rate: 4400
+        production_rate: 1650
         service_level: 0.95
         type: production
         vlt: 3
-      SKU5:
-        cost: 345
-        init_stock: 3700
-        price: 384
+      SKU13:
+        cost: 327
+        init_stock: 2300
+        price: 364
         product_unit_cost: 1
-        production_rate: 3700
+        production_rate: 2300
         service_level: 0.95
         type: production
         vlt: 3
-      SKU6:
-        cost: 297
-        init_stock: 2200
-        price: 330
+      SKU14:
+        cost: 422
+        init_stock: 2650
+        price: 469
         product_unit_cost: 1
-        production_rate: 2200
+        production_rate: 2650
         service_level: 0.95
         type: production
         vlt: 3
-      SKU7:
-        cost: 23
-        init_stock: 4150
-        price: 26
+      SKU15:
+        cost: 213
+        init_stock: 300
+        price: 237
         product_unit_cost: 1
-        production_rate: 4150
+        production_rate: 300
         service_level: 0.95
         type: production
         vlt: 3
-      SKU8:
-        cost: 243
+      SKU16:
+        cost: 122
+        init_stock: 5000
+        price: 136
+        product_unit_cost: 1
+        production_rate: 5000
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU17:
+        cost: 88
+        init_stock: 3100
+        price: 98
+        product_unit_cost: 1
+        production_rate: 3100
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU18:
+        cost: 352
+        init_stock: 750
+        price: 392
+        product_unit_cost: 1
+        production_rate: 750
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU19:
+        cost: 90
+        init_stock: 2400
+        price: 101
+        product_unit_cost: 1
+        production_rate: 2400
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU2:
+        cost: 448
+        init_stock: 3500
+        price: 498
+        product_unit_cost: 1
+        production_rate: 3500
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU20:
+        cost: 253
+        init_stock: 4800
+        price: 282
+        product_unit_cost: 1
+        production_rate: 4800
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU21:
+        cost: 375
+        init_stock: 500
+        price: 417
+        product_unit_cost: 1
+        production_rate: 500
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU22:
+        cost: 49
+        init_stock: 2400
+        price: 55
+        product_unit_cost: 1
+        production_rate: 2400
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU23:
+        cost: 382
+        init_stock: 1300
+        price: 425
+        product_unit_cost: 1
+        production_rate: 1300
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU24:
+        cost: 320
+        init_stock: 1450
+        price: 356
+        product_unit_cost: 1
+        production_rate: 1450
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU25:
+        cost: 435
+        init_stock: 3550
+        price: 484
+        product_unit_cost: 1
+        production_rate: 3550
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU26:
+        cost: 424
+        init_stock: 2550
+        price: 472
+        product_unit_cost: 1
+        production_rate: 2550
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU27:
+        cost: 313
+        init_stock: 3000
+        price: 348
+        product_unit_cost: 1
+        production_rate: 3000
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU28:
+        cost: 172
+        init_stock: 1700
+        price: 192
+        product_unit_cost: 1
+        production_rate: 1700
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU29:
+        cost: 208
+        init_stock: 1200
+        price: 232
+        product_unit_cost: 1
+        production_rate: 1200
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU3:
+        cost: 304
+        init_stock: 950
+        price: 338
+        product_unit_cost: 1
+        production_rate: 950
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU30:
+        cost: 312
+        init_stock: 2500
+        price: 347
+        product_unit_cost: 1
+        production_rate: 2500
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU31:
+        cost: 428
+        init_stock: 4900
+        price: 476
+        product_unit_cost: 1
+        production_rate: 4900
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU32:
+        cost: 174
+        init_stock: 4050
+        price: 194
+        product_unit_cost: 1
+        production_rate: 4050
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU33:
+        cost: 396
+        init_stock: 1500
+        price: 441
+        product_unit_cost: 1
+        production_rate: 1500
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU34:
+        cost: 123
+        init_stock: 300
+        price: 137
+        product_unit_cost: 1
+        production_rate: 300
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU35:
+        cost: 416
+        init_stock: 2450
+        price: 463
+        product_unit_cost: 1
+        production_rate: 2450
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU36:
+        cost: 133
+        init_stock: 550
+        price: 148
+        product_unit_cost: 1
+        production_rate: 550
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU37:
+        cost: 62
+        init_stock: 4500
+        price: 69
+        product_unit_cost: 1
+        production_rate: 4500
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU38:
+        cost: 326
+        init_stock: 2450
+        price: 363
+        product_unit_cost: 1
+        production_rate: 2450
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU39:
+        cost: 292
+        init_stock: 2550
+        price: 325
+        product_unit_cost: 1
+        production_rate: 2550
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU4:
+        cost: 97
+        init_stock: 2450
+        price: 108
+        product_unit_cost: 1
+        production_rate: 2450
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU40:
+        cost: 363
+        init_stock: 700
+        price: 404
+        product_unit_cost: 1
+        production_rate: 700
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU41:
+        cost: 81
+        init_stock: 2800
+        price: 90
+        product_unit_cost: 1
+        production_rate: 2800
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU42:
+        cost: 327
+        init_stock: 2550
+        price: 364
+        product_unit_cost: 1
+        production_rate: 2550
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU43:
+        cost: 109
+        init_stock: 4650
+        price: 122
+        product_unit_cost: 1
+        production_rate: 4650
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU44:
+        cost: 45
+        init_stock: 900
+        price: 50
+        product_unit_cost: 1
+        production_rate: 900
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU45:
+        cost: 350
         init_stock: 3650
-        price: 270
+        price: 389
         product_unit_cost: 1
         production_rate: 3650
         service_level: 0.95
         type: production
         vlt: 3
-      SKU9:
-        cost: 53
-        init_stock: 1000
-        price: 59
+      SKU46:
+        cost: 263
+        init_stock: 3600
+        price: 293
         product_unit_cost: 1
-        production_rate: 1000
+        production_rate: 3600
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU47:
+        cost: 201
+        init_stock: 4950
+        price: 224
+        product_unit_cost: 1
+        production_rate: 4950
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU48:
+        cost: 28
+        init_stock: 600
+        price: 32
+        product_unit_cost: 1
+        production_rate: 600
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU49:
+        cost: 288
+        init_stock: 3100
+        price: 320
+        product_unit_cost: 1
+        production_rate: 3100
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU5:
+        cost: 64
+        init_stock: 4700
+        price: 72
+        product_unit_cost: 1
+        production_rate: 4700
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU6:
+        cost: 130
+        init_stock: 1950
+        price: 145
+        product_unit_cost: 1
+        production_rate: 1950
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU7:
+        cost: 253
+        init_stock: 4350
+        price: 282
+        product_unit_cost: 1
+        production_rate: 4350
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU8:
+        cost: 265
+        init_stock: 950
+        price: 295
+        product_unit_cost: 1
+        production_rate: 950
+        service_level: 0.95
+        type: production
+        vlt: 3
+      SKU9:
+        cost: 194
+        init_stock: 2300
+        price: 216
+        product_unit_cost: 1
+        production_rate: 2300
         service_level: 0.95
         type: production
         vlt: 3
@@ -1557,7 +1557,7 @@ world:
           unit_price: 1
       storage:
         config:
-          capacity: 260700
+          capacity: 246500
           unit_storage_cost: 1
     config:
       delay_order_penalty: 1000
@@ -1566,309 +1566,309 @@ world:
     name: WAREHOUSE0
     skus:
       SKU0:
-        cost: 272
-        init_stock: 1840
-        price: 272
+        cost: 371
+        init_stock: 320
+        price: 371
         service_level: 0.96
         vlt: 3
       SKU1:
-        cost: 119
-        init_stock: 1880
-        price: 119
+        cost: 99
+        init_stock: 1000
+        price: 99
         service_level: 0.96
-        vlt: 3
+        vlt: 2
       SKU10:
-        cost: 377
-        init_stock: 580
-        price: 377
+        cost: 150
+        init_stock: 720
+        price: 150
         service_level: 0.96
         vlt: 1
       SKU11:
-        cost: 297
-        init_stock: 1000
-        price: 297
+        cost: 343
+        init_stock: 1260
+        price: 343
         service_level: 0.96
-        vlt: 1
+        vlt: 2
       SKU12:
-        cost: 281
-        init_stock: 980
-        price: 281
+        cost: 449
+        init_stock: 660
+        price: 449
         service_level: 0.96
-        vlt: 3
+        vlt: 2
       SKU13:
-        cost: 385
-        init_stock: 140
-        price: 385
+        cost: 364
+        init_stock: 920
+        price: 364
+        service_level: 0.96
+        vlt: 2
+      SKU14:
+        cost: 469
+        init_stock: 1060
+        price: 469
         service_level: 0.96
         vlt: 3
-      SKU14:
-        cost: 265
-        init_stock: 1100
-        price: 265
-        service_level: 0.96
-        vlt: 1
       SKU15:
-        cost: 351
-        init_stock: 920
-        price: 351
+        cost: 237
+        init_stock: 120
+        price: 237
         service_level: 0.96
         vlt: 1
       SKU16:
-        cost: 109
-        init_stock: 120
-        price: 109
+        cost: 136
+        init_stock: 2000
+        price: 136
         service_level: 0.96
-        vlt: 2
+        vlt: 3
       SKU17:
-        cost: 305
-        init_stock: 500
-        price: 305
+        cost: 98
+        init_stock: 1240
+        price: 98
         service_level: 0.96
-        vlt: 2
+        vlt: 3
       SKU18:
-        cost: 410
-        init_stock: 1160
-        price: 410
+        cost: 392
+        init_stock: 300
+        price: 392
         service_level: 0.96
-        vlt: 1
+        vlt: 3
       SKU19:
-        cost: 132
-        init_stock: 680
-        price: 132
+        cost: 101
+        init_stock: 960
+        price: 101
         service_level: 0.96
-        vlt: 1
+        vlt: 2
       SKU2:
-        cost: 471
-        init_stock: 1520
-        price: 471
+        cost: 498
+        init_stock: 1400
+        price: 498
         service_level: 0.96
-        vlt: 2
+        vlt: 3
       SKU20:
-        cost: 386
-        init_stock: 340
-        price: 386
+        cost: 282
+        init_stock: 1920
+        price: 282
         service_level: 0.96
-        vlt: 2
+        vlt: 3
       SKU21:
-        cost: 490
-        init_stock: 120
-        price: 490
+        cost: 417
+        init_stock: 200
+        price: 417
         service_level: 0.96
         vlt: 1
       SKU22:
-        cost: 83
-        init_stock: 780
-        price: 83
+        cost: 55
+        init_stock: 960
+        price: 55
         service_level: 0.96
         vlt: 3
       SKU23:
-        cost: 445
-        init_stock: 1700
-        price: 445
+        cost: 425
+        init_stock: 520
+        price: 425
         service_level: 0.96
         vlt: 3
       SKU24:
-        cost: 149
-        init_stock: 460
-        price: 149
+        cost: 356
+        init_stock: 580
+        price: 356
         service_level: 0.96
         vlt: 3
       SKU25:
-        cost: 446
-        init_stock: 600
-        price: 446
+        cost: 484
+        init_stock: 1420
+        price: 484
         service_level: 0.96
-        vlt: 2
+        vlt: 3
       SKU26:
-        cost: 299
-        init_stock: 100
-        price: 299
+        cost: 472
+        init_stock: 1020
+        price: 472
         service_level: 0.96
         vlt: 3
       SKU27:
-        cost: 336
-        init_stock: 1940
-        price: 336
-        service_level: 0.96
-        vlt: 1
-      SKU28:
-        cost: 291
-        init_stock: 1880
-        price: 291
+        cost: 348
+        init_stock: 1200
+        price: 348
         service_level: 0.96
         vlt: 2
-      SKU29:
-        cost: 228
-        init_stock: 1560
-        price: 228
+      SKU28:
+        cost: 192
+        init_stock: 680
+        price: 192
         service_level: 0.96
-        vlt: 3
+        vlt: 1
+      SKU29:
+        cost: 232
+        init_stock: 480
+        price: 232
+        service_level: 0.96
+        vlt: 1
       SKU3:
-        cost: 434
-        init_stock: 1880
-        price: 434
+        cost: 338
+        init_stock: 380
+        price: 338
         service_level: 0.96
         vlt: 2
       SKU30:
-        cost: 488
-        init_stock: 1500
-        price: 488
+        cost: 347
+        init_stock: 1000
+        price: 347
         service_level: 0.96
-        vlt: 1
+        vlt: 3
       SKU31:
-        cost: 459
-        init_stock: 300
-        price: 459
+        cost: 476
+        init_stock: 1960
+        price: 476
         service_level: 0.96
-        vlt: 1
+        vlt: 3
       SKU32:
-        cost: 363
-        init_stock: 940
-        price: 363
+        cost: 194
+        init_stock: 1620
+        price: 194
         service_level: 0.96
         vlt: 1
       SKU33:
-        cost: 128
-        init_stock: 1280
-        price: 128
+        cost: 441
+        init_stock: 600
+        price: 441
         service_level: 0.96
-        vlt: 3
+        vlt: 2
       SKU34:
-        cost: 393
-        init_stock: 440
-        price: 393
+        cost: 137
+        init_stock: 120
+        price: 137
         service_level: 0.96
         vlt: 2
       SKU35:
-        cost: 301
-        init_stock: 620
-        price: 301
-        service_level: 0.96
-        vlt: 2
-      SKU36:
-        cost: 16
-        init_stock: 880
-        price: 16
-        service_level: 0.96
-        vlt: 2
-      SKU37:
-        cost: 323
-        init_stock: 1760
-        price: 323
+        cost: 463
+        init_stock: 980
+        price: 463
         service_level: 0.96
         vlt: 1
-      SKU38:
-        cost: 11
-        init_stock: 1760
-        price: 11
+      SKU36:
+        cost: 148
+        init_stock: 220
+        price: 148
         service_level: 0.96
         vlt: 3
-      SKU39:
-        cost: 221
-        init_stock: 420
-        price: 221
+      SKU37:
+        cost: 69
+        init_stock: 1800
+        price: 69
+        service_level: 0.96
+        vlt: 3
+      SKU38:
+        cost: 363
+        init_stock: 980
+        price: 363
         service_level: 0.96
         vlt: 2
-      SKU4:
-        cost: 100
-        init_stock: 1840
-        price: 100
+      SKU39:
+        cost: 325
+        init_stock: 1020
+        price: 325
         service_level: 0.96
         vlt: 1
+      SKU4:
+        cost: 108
+        init_stock: 980
+        price: 108
+        service_level: 0.96
+        vlt: 3
       SKU40:
-        cost: 337
-        init_stock: 1700
-        price: 337
+        cost: 404
+        init_stock: 280
+        price: 404
         service_level: 0.96
         vlt: 1
       SKU41:
-        cost: 428
-        init_stock: 1520
-        price: 428
+        cost: 90
+        init_stock: 1120
+        price: 90
         service_level: 0.96
-        vlt: 3
+        vlt: 1
       SKU42:
-        cost: 265
-        init_stock: 340
-        price: 265
-        service_level: 0.96
-        vlt: 1
-      SKU43:
-        cost: 38
+        cost: 364
         init_stock: 1020
-        price: 38
+        price: 364
         service_level: 0.96
-        vlt: 3
-      SKU44:
-        cost: 362
-        init_stock: 1360
-        price: 362
+        vlt: 2
+      SKU43:
+        cost: 122
+        init_stock: 1860
+        price: 122
         service_level: 0.96
         vlt: 1
-      SKU45:
-        cost: 149
-        init_stock: 1280
-        price: 149
+      SKU44:
+        cost: 50
+        init_stock: 360
+        price: 50
         service_level: 0.96
-        vlt: 3
+        vlt: 2
+      SKU45:
+        cost: 389
+        init_stock: 1460
+        price: 389
+        service_level: 0.96
+        vlt: 1
       SKU46:
-        cost: 414
-        init_stock: 100
-        price: 414
+        cost: 293
+        init_stock: 1440
+        price: 293
         service_level: 0.96
         vlt: 3
       SKU47:
-        cost: 237
-        init_stock: 400
-        price: 237
+        cost: 224
+        init_stock: 1980
+        price: 224
         service_level: 0.96
         vlt: 2
       SKU48:
-        cost: 185
-        init_stock: 1260
-        price: 185
+        cost: 32
+        init_stock: 240
+        price: 32
         service_level: 0.96
-        vlt: 3
+        vlt: 2
       SKU49:
-        cost: 27
-        init_stock: 1760
-        price: 27
+        cost: 320
+        init_stock: 1240
+        price: 320
         service_level: 0.96
-        vlt: 1
+        vlt: 2
       SKU5:
-        cost: 384
-        init_stock: 1480
-        price: 384
+        cost: 72
+        init_stock: 1880
+        price: 72
         service_level: 0.96
         vlt: 3
       SKU6:
-        cost: 330
-        init_stock: 880
-        price: 330
+        cost: 145
+        init_stock: 780
+        price: 145
         service_level: 0.96
-        vlt: 1
+        vlt: 2
       SKU7:
-        cost: 26
-        init_stock: 1660
-        price: 26
-        service_level: 0.96
-        vlt: 2
-      SKU8:
-        cost: 270
-        init_stock: 1460
-        price: 270
-        service_level: 0.96
-        vlt: 2
-      SKU9:
-        cost: 59
-        init_stock: 400
-        price: 59
+        cost: 282
+        init_stock: 1740
+        price: 282
         service_level: 0.96
         vlt: 3
+      SKU8:
+        cost: 295
+        init_stock: 380
+        price: 295
+        service_level: 0.96
+        vlt: 3
+      SKU9:
+        cost: 216
+        init_stock: 920
+        price: 216
+        service_level: 0.96
+        vlt: 2
   - children:
       storage:
         config:
-          capacity: 52140
+          capacity: 49300
           unit_storage_cost: 1
     config:
       order_cost: 500
@@ -1876,416 +1876,416 @@ world:
     name: STORE0
     skus:
       SKU0:
-        constraint: G(is_replenish_constraint -> ((X!is_replenish_constraint)&(XX!is_replenish_constraint)))
-        cost: 272
-        init_stock: 460
+        constraint: G(stock_constraint)
+        cost: 371
+        init_stock: 64
         max_stock: 1000
-        price: 541
-        sale_gamma: 92
+        price: 434
+        sale_gamma: 16
         service_level: 0.95
       SKU1:
-        constraint: null
-        cost: 119
-        init_stock: 752
+        constraint: G(low_profit -> low_stock_constraint)
+        cost: 99
+        init_stock: 200
         max_stock: 1000
-        price: 218
-        sale_gamma: 94
+        price: 165
+        sale_gamma: 50
         service_level: 0.95
       SKU10:
         constraint: null
-        cost: 377
-        init_stock: 145
+        cost: 150
+        init_stock: 144
         max_stock: 1000
-        price: 546
-        sale_gamma: 29
+        price: 174
+        sale_gamma: 36
         service_level: 0.95
       SKU11:
-        constraint: G(low_profit -> low_stock_constraint)
-        cost: 297
-        init_stock: 300
+        constraint: null
+        cost: 343
+        init_stock: 189
         max_stock: 1000
-        price: 490
-        sale_gamma: 50
+        price: 607
+        sale_gamma: 63
         service_level: 0.95
       SKU12:
-        constraint: null
-        cost: 281
-        init_stock: 196
+        constraint: G(is_replenish_constraint -> ((X!is_replenish_constraint)&(XX!is_replenish_constraint)))
+        cost: 449
+        init_stock: 198
         max_stock: 1000
-        price: 410
-        sale_gamma: 49
+        price: 731
+        sale_gamma: 33
         service_level: 0.95
       SKU13:
-        constraint: G(low_profit -> low_stock_constraint)
-        cost: 385
-        init_stock: 42
+        constraint: null
+        cost: 364
+        init_stock: 184
         max_stock: 1000
-        price: 592
-        sale_gamma: 7
+        price: 524
+        sale_gamma: 46
         service_level: 0.95
       SKU14:
-        constraint: G(stock_constraint)
-        cost: 265
-        init_stock: 110
+        constraint: G(low_profit -> low_stock_constraint)
+        cost: 469
+        init_stock: 265
         max_stock: 1000
-        price: 530
-        sale_gamma: 55
+        price: 637
+        sale_gamma: 53
         service_level: 0.95
       SKU15:
         constraint: null
-        cost: 351
-        init_stock: 230
+        cost: 237
+        init_stock: 36
         max_stock: 1000
-        price: 663
-        sale_gamma: 46
+        price: 364
+        sale_gamma: 6
         service_level: 0.95
       SKU16:
         constraint: G(low_profit -> low_stock_constraint)
-        cost: 109
-        init_stock: 30
+        cost: 136
+        init_stock: 700
         max_stock: 1000
-        price: 135
-        sale_gamma: 6
+        price: 213
+        sale_gamma: 100
         service_level: 0.95
       SKU17:
-        constraint: G(is_replenish_constraint -> ((X!is_replenish_constraint)&(XX!is_replenish_constraint)))
-        cost: 305
-        init_stock: 175
+        constraint: null
+        cost: 98
+        init_stock: 372
         max_stock: 1000
-        price: 549
-        sale_gamma: 25
+        price: 190
+        sale_gamma: 62
         service_level: 0.95
       SKU18:
-        constraint: G(stock_constraint)
-        cost: 410
-        init_stock: 116
+        constraint: null
+        cost: 392
+        init_stock: 75
         max_stock: 1000
-        price: 520
-        sale_gamma: 58
+        price: 493
+        sale_gamma: 15
         service_level: 0.95
       SKU19:
         constraint: null
-        cost: 132
-        init_stock: 204
+        cost: 101
+        init_stock: 144
         max_stock: 1000
-        price: 219
-        sale_gamma: 34
+        price: 133
+        sale_gamma: 48
         service_level: 0.95
       SKU2:
-        constraint: G(is_replenish_constraint -> ((X!is_replenish_constraint)&(XX!is_replenish_constraint)))
-        cost: 471
-        init_stock: 532
+        constraint: null
+        cost: 498
+        init_stock: 350
         max_stock: 1000
-        price: 791
-        sale_gamma: 76
+        price: 776
+        sale_gamma: 70
         service_level: 0.95
       SKU20:
-        constraint: G(stock_constraint)
-        cost: 386
-        init_stock: 119
+        constraint: null
+        cost: 282
+        init_stock: 480
         max_stock: 1000
-        price: 671
-        sale_gamma: 17
+        price: 527
+        sale_gamma: 96
         service_level: 0.95
       SKU21:
-        constraint: G(low_profit -> low_stock_constraint)
-        cost: 490
-        init_stock: 24
-        max_stock: 1000
-        price: 588
-        sale_gamma: 6
-        service_level: 0.95
-      SKU22:
-        constraint: G(low_profit -> low_stock_constraint)
-        cost: 83
-        init_stock: 156
-        max_stock: 1000
-        price: 141
-        sale_gamma: 39
-        service_level: 0.95
-      SKU23:
-        constraint: G(is_replenish_constraint -> ((X!is_replenish_constraint)&(XX!is_replenish_constraint)))
-        cost: 445
-        init_stock: 680
-        max_stock: 1000
-        price: 805
-        sale_gamma: 85
-        service_level: 0.95
-      SKU24:
         constraint: null
-        cost: 149
-        init_stock: 161
-        max_stock: 1000
-        price: 278
-        sale_gamma: 23
-        service_level: 0.95
-      SKU25:
-        constraint: G(low_profit -> low_stock_constraint)
-        cost: 446
-        init_stock: 210
+        cost: 417
+        init_stock: 30
         max_stock: 1000
         price: 829
-        sale_gamma: 30
+        sale_gamma: 10
+        service_level: 0.95
+      SKU22:
+        constraint: null
+        cost: 55
+        init_stock: 384
+        max_stock: 1000
+        price: 70
+        sale_gamma: 48
+        service_level: 0.95
+      SKU23:
+        constraint: G(stock_constraint)
+        cost: 425
+        init_stock: 182
+        max_stock: 1000
+        price: 654
+        sale_gamma: 26
+        service_level: 0.95
+      SKU24:
+        constraint: G(is_replenish_constraint -> ((X!is_replenish_constraint)&(XX!is_replenish_constraint)))
+        cost: 356
+        init_stock: 203
+        max_stock: 1000
+        price: 590
+        sale_gamma: 29
+        service_level: 0.95
+      SKU25:
+        constraint: null
+        cost: 484
+        init_stock: 497
+        max_stock: 1000
+        price: 798
+        sale_gamma: 71
         service_level: 0.95
       SKU26:
         constraint: null
-        cost: 299
-        init_stock: 35
+        cost: 472
+        init_stock: 357
         max_stock: 1000
-        price: 427
-        sale_gamma: 5
+        price: 906
+        sale_gamma: 51
         service_level: 0.95
       SKU27:
-        constraint: G(stock_constraint)
-        cost: 336
-        init_stock: 194
+        constraint: G(low_profit -> low_stock_constraint)
+        cost: 348
+        init_stock: 420
         max_stock: 1000
-        price: 611
-        sale_gamma: 97
+        price: 609
+        sale_gamma: 60
         service_level: 0.95
       SKU28:
-        constraint: null
-        cost: 291
-        init_stock: 658
+        constraint: G(low_profit -> low_stock_constraint)
+        cost: 192
+        init_stock: 204
         max_stock: 1000
-        price: 520
-        sale_gamma: 94
+        price: 336
+        sale_gamma: 34
         service_level: 0.95
       SKU29:
         constraint: null
-        cost: 228
-        init_stock: 390
+        cost: 232
+        init_stock: 120
         max_stock: 1000
-        price: 300
-        sale_gamma: 78
+        price: 406
+        sale_gamma: 24
         service_level: 0.95
       SKU3:
-        constraint: null
-        cost: 434
-        init_stock: 376
+        constraint: G(is_replenish_constraint -> ((X!is_replenish_constraint)&(XX!is_replenish_constraint)))
+        cost: 338
+        init_stock: 76
         max_stock: 1000
-        price: 724
-        sale_gamma: 94
+        price: 493
+        sale_gamma: 19
         service_level: 0.95
       SKU30:
-        constraint: G(stock_constraint)
-        cost: 488
+        constraint: G(low_profit -> low_stock_constraint)
+        cost: 347
         init_stock: 300
         max_stock: 1000
-        price: 712
-        sale_gamma: 75
+        price: 458
+        sale_gamma: 50
         service_level: 0.95
       SKU31:
-        constraint: G(is_replenish_constraint -> ((X!is_replenish_constraint)&(XX!is_replenish_constraint)))
-        cost: 459
-        init_stock: 75
+        constraint: null
+        cost: 476
+        init_stock: 490
         max_stock: 1000
-        price: 853
-        sale_gamma: 15
+        price: 880
+        sale_gamma: 98
         service_level: 0.95
       SKU32:
         constraint: null
-        cost: 363
-        init_stock: 141
+        cost: 194
+        init_stock: 405
         max_stock: 1000
-        price: 642
-        sale_gamma: 47
+        price: 242
+        sale_gamma: 81
         service_level: 0.95
       SKU33:
-        constraint: G(is_replenish_constraint -> ((X!is_replenish_constraint)&(XX!is_replenish_constraint)))
-        cost: 128
-        init_stock: 320
+        constraint: null
+        cost: 441
+        init_stock: 150
         max_stock: 1000
-        price: 183
-        sale_gamma: 64
+        price: 820
+        sale_gamma: 30
         service_level: 0.95
       SKU34:
         constraint: null
-        cost: 393
-        init_stock: 88
+        cost: 137
+        init_stock: 24
         max_stock: 1000
-        price: 577
-        sale_gamma: 22
+        price: 193
+        sale_gamma: 6
         service_level: 0.95
       SKU35:
-        constraint: null
-        cost: 301
-        init_stock: 155
+        constraint: G(low_profit -> low_stock_constraint)
+        cost: 463
+        init_stock: 245
         max_stock: 1000
-        price: 535
-        sale_gamma: 31
+        price: 828
+        sale_gamma: 49
         service_level: 0.95
       SKU36:
         constraint: null
-        cost: 16
-        init_stock: 308
+        cost: 148
+        init_stock: 77
         max_stock: 1000
-        price: 19
-        sale_gamma: 44
+        price: 293
+        sale_gamma: 11
         service_level: 0.95
       SKU37:
         constraint: G(is_replenish_constraint -> ((X!is_replenish_constraint)&(XX!is_replenish_constraint)))
-        cost: 323
-        init_stock: 264
+        cost: 69
+        init_stock: 540
         max_stock: 1000
-        price: 416
-        sale_gamma: 88
+        price: 105
+        sale_gamma: 90
         service_level: 0.95
       SKU38:
-        constraint: G(is_replenish_constraint -> ((X!is_replenish_constraint)&(XX!is_replenish_constraint)))
-        cost: 11
-        init_stock: 352
+        constraint: null
+        cost: 363
+        init_stock: 196
         max_stock: 1000
-        price: 18
-        sale_gamma: 88
+        price: 453
+        sale_gamma: 49
         service_level: 0.95
       SKU39:
-        constraint: G(is_replenish_constraint -> ((X!is_replenish_constraint)&(XX!is_replenish_constraint)))
-        cost: 221
-        init_stock: 126
+        constraint: null
+        cost: 325
+        init_stock: 306
         max_stock: 1000
-        price: 364
-        sale_gamma: 21
+        price: 494
+        sale_gamma: 51
         service_level: 0.95
       SKU4:
-        constraint: G(stock_constraint)
-        cost: 100
-        init_stock: 184
+        constraint: null
+        cost: 108
+        init_stock: 196
         max_stock: 1000
-        price: 112
-        sale_gamma: 92
+        price: 195
+        sale_gamma: 49
         service_level: 0.95
       SKU40:
-        constraint: G(stock_constraint)
-        cost: 337
-        init_stock: 170
+        constraint: null
+        cost: 404
+        init_stock: 42
         max_stock: 1000
-        price: 586
-        sale_gamma: 85
+        price: 658
+        sale_gamma: 14
         service_level: 0.95
       SKU41:
         constraint: null
-        cost: 428
-        init_stock: 456
+        cost: 90
+        init_stock: 112
         max_stock: 1000
-        price: 535
-        sale_gamma: 76
+        price: 151
+        sale_gamma: 56
         service_level: 0.95
       SKU42:
         constraint: G(is_replenish_constraint -> ((X!is_replenish_constraint)&(XX!is_replenish_constraint)))
-        cost: 265
-        init_stock: 68
-        max_stock: 1000
-        price: 416
-        sale_gamma: 17
-        service_level: 0.95
-      SKU43:
-        constraint: G(low_profit -> low_stock_constraint)
-        cost: 38
+        cost: 364
         init_stock: 306
         max_stock: 1000
-        price: 42
+        price: 444
         sale_gamma: 51
         service_level: 0.95
-      SKU44:
-        constraint: G(low_profit -> low_stock_constraint)
-        cost: 362
-        init_stock: 340
+      SKU43:
+        constraint: null
+        cost: 122
+        init_stock: 465
         max_stock: 1000
-        price: 416
-        sale_gamma: 68
+        price: 179
+        sale_gamma: 93
+        service_level: 0.95
+      SKU44:
+        constraint: null
+        cost: 50
+        init_stock: 108
+        max_stock: 1000
+        price: 77
+        sale_gamma: 18
         service_level: 0.95
       SKU45:
-        constraint: null
-        cost: 149
-        init_stock: 320
+        constraint: G(stock_constraint)
+        cost: 389
+        init_stock: 146
         max_stock: 1000
-        price: 290
-        sale_gamma: 64
+        price: 587
+        sale_gamma: 73
         service_level: 0.95
       SKU46:
-        constraint: null
-        cost: 414
-        init_stock: 25
+        constraint: G(is_replenish_constraint -> ((X!is_replenish_constraint)&(XX!is_replenish_constraint)))
+        cost: 293
+        init_stock: 504
         max_stock: 1000
-        price: 467
-        sale_gamma: 5
+        price: 465
+        sale_gamma: 72
         service_level: 0.95
       SKU47:
-        constraint: null
-        cost: 237
-        init_stock: 140
+        constraint: G(is_replenish_constraint -> ((X!is_replenish_constraint)&(XX!is_replenish_constraint)))
+        cost: 224
+        init_stock: 594
         max_stock: 1000
-        price: 364
-        sale_gamma: 20
+        price: 369
+        sale_gamma: 99
         service_level: 0.95
       SKU48:
-        constraint: null
-        cost: 185
-        init_stock: 252
+        constraint: G(low_profit -> low_stock_constraint)
+        cost: 32
+        init_stock: 60
         max_stock: 1000
-        price: 345
-        sale_gamma: 63
+        price: 51
+        sale_gamma: 12
         service_level: 0.95
       SKU49:
         constraint: null
-        cost: 27
-        init_stock: 264
+        cost: 320
+        init_stock: 434
         max_stock: 1000
-        price: 47
-        sale_gamma: 88
+        price: 537
+        sale_gamma: 62
         service_level: 0.95
       SKU5:
-        constraint: G(low_profit -> low_stock_constraint)
-        cost: 384
-        init_stock: 518
+        constraint: G(stock_constraint)
+        cost: 72
+        init_stock: 658
         max_stock: 1000
-        price: 679
-        sale_gamma: 74
+        price: 92
+        sale_gamma: 94
         service_level: 0.95
       SKU6:
-        constraint: G(is_replenish_constraint -> ((X!is_replenish_constraint)&(XX!is_replenish_constraint)))
-        cost: 330
-        init_stock: 220
+        constraint: null
+        cost: 145
+        init_stock: 117
         max_stock: 1000
-        price: 376
-        sale_gamma: 44
+        price: 252
+        sale_gamma: 39
         service_level: 0.95
       SKU7:
-        constraint: G(low_profit -> low_stock_constraint)
-        cost: 26
-        init_stock: 581
+        constraint: G(is_replenish_constraint -> ((X!is_replenish_constraint)&(XX!is_replenish_constraint)))
+        cost: 282
+        init_stock: 696
         max_stock: 1000
-        price: 30
-        sale_gamma: 83
+        price: 346
+        sale_gamma: 87
         service_level: 0.95
       SKU8:
-        constraint: G(is_replenish_constraint -> ((X!is_replenish_constraint)&(XX!is_replenish_constraint)))
-        cost: 270
-        init_stock: 365
+        constraint: null
+        cost: 295
+        init_stock: 133
         max_stock: 1000
-        price: 437
-        sale_gamma: 73
+        price: 333
+        sale_gamma: 19
         service_level: 0.95
       SKU9:
-        constraint: null
-        cost: 59
-        init_stock: 120
+        constraint: G(stock_constraint)
+        cost: 216
+        init_stock: 276
         max_stock: 1000
-        price: 79
-        sale_gamma: 20
+        price: 289
+        sale_gamma: 46
         service_level: 0.95
   grid:
     facilities:
       STORE0:
-      - 19
-      - 9
+      - 0
+      - 11
       SUPPLIER0:
-      - 7
-      - 0
+      - 19
+      - 13
       WAREHOUSE0:
-      - 0
-      - 6
+      - 8
+      - 1
     size:
     - 20
     - 20
