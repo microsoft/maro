@@ -50,32 +50,3 @@ class Transition:
         self.info = info
 
 
-class Trajectory:
-    """Sequence of transitions for an agent.
-
-    Args:
-        states: Sequence of ``State`` objects traversed during simulation.
-        actions: Sequence of actions taken in response to the states.
-        rewards: Sequence of rewards received as a result of the actions.
-        info: Sequence of each transition's auxillary information.
-    """
-
-    __slots__ = ["states", "state_meta", "actions", "rewards", "info", "max_len", "terminal"]
-
-    def __init__(
-        self,
-        states: np.ndarray,
-        state_meta,
-        actions: np.ndarray,
-        rewards: np.ndarray,
-        info: list,
-        max_len: int = 10000,
-        terminal: bool = True
-    ):
-        self.states = states
-        self.state_meta = state_meta
-        self.actions = actions
-        self.rewards = rewards
-        self.info = info
-        self.max_len = max_len
-        self.terminal = terminal

@@ -4,7 +4,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-from maro.rl.types import Trajectory
+import numpy as np
 
 
 class AbsPolicy(ABC):
@@ -36,20 +36,6 @@ class NullPolicy(AbsPolicy):
         return None
 
 
-class Batch:
-    def __init__(self):
-        pass
-
-
-class LossInfo:
-
-    __slots__ = ["loss", "grad"]
-
-    def __init__(self, loss, grad):
-        self.loss = loss
-        self.grad = grad
-
-
 class RLPolicy(AbsPolicy):
     """Policy that can update itself using simulation experiences.
 
@@ -58,6 +44,64 @@ class RLPolicy(AbsPolicy):
     Args:
         name (str): Name of the policy.
     """
+
+    class Buffer:
+        """Sequence of transitions for an agent.
+
+        Args:
+            states: Sequence of ``State`` objects traversed during simulation.
+            actions: Sequence of actions taken in response to the states.
+            rewards: Sequence of rewards received as a result of the actions.
+            info: Sequence of each transition's auxillary information.
+        """
+        def __init__(self, state_dim: int, action_dim: int = 1, max_len: int = 10000):
+            self.states = np.zeros((max_len, state_dim), dtype=np.float32)
+            if action_dim == 1:
+                self.actions = np.zeros(max_len, dtype=np.float32)
+            else:
+                self.actions = np.zeros((max_len, action_dim), dtype=np.float32)
+            self.rewards = np.zeros(max_len, dtype=np.float32)
+            self.terminal = np.zeros(max_len, dtype=np.bool)
+            self.max_len = max_len
+
+            self._ptr = 0
+            self._last_ptr = 0
+
+        def store(self, state: np.ndarray, action, reward: float, terminal: bool = False):
+            self.states[self._ptr] = state
+            self.actions[self._ptr] = action
+            self.rewards[self._ptr] = reward
+            self.terminal[self._ptr] = terminal
+            # increment pointer
+            self._ptr += 1
+            if self._ptr == self.max_len:
+                self._ptr = 0
+
+        def get(self):
+            traj_slice = slice(self._last_ptr, self._ptr)
+            self._last_ptr = self._ptr
+            return {
+                "states": self.states[traj_slice],
+                "actions": self.actions[traj_slice],
+                "rewards": self.rewards[traj_slice],
+                "terminal": self.terminal[traj_slice],
+            }
+
+
+    class Batch:
+        def __init__(self):
+            pass
+
+
+    class LossInfo:
+
+        __slots__ = ["loss", "grad"]
+
+        def __init__(self, loss, grad):
+            self.loss = loss
+            self.grad = grad
+
+
     def __init__(self, name: str, remote: bool = False):
         super().__init__(name)
         self.remote = remote

@@ -16,15 +16,21 @@ class ReplayMemory:
             overwrite positions will be selected randomly. Otherwise, overwrites will occur sequentially with
             wrap-around. Defaults to False.
     """
-    def __init__(self, batch_type, capacity: int, random_overwrite: bool = False):
+    def __init__(self, capacity: int, state_dim: int, action_dim: int = 1, random_overwrite: bool = False):
         super().__init__()
-        self._batch_type = batch_type
+        self._state_dim = state_dim
+        self._action_dim = action_dim
         self._capacity = capacity
         self._random_overwrite = random_overwrite
-        self._keys = batch_type.__slots__
-        self.data = {key: [None] * self._capacity for key in self._keys}
-        self._size = 0
-        self._index = 0
+        self.states = np.zeros((self._capacity, self._state_dim), dtype=np.float32)
+        if action_dim > 1:
+            self.actions = np.zeros((self._capacity, self._action_dim), dtype=np.float32)
+        else:
+            self.actions = np.zeros(self._capacity, dtype=np.float32)
+        self.rewards = np.zeros(self._capacity, dtype=np.float32)
+        self.next_states = np.zeros(self._capacity, dtype=np.float32)
+        self.terminal = np.zeros(self._capacity, dtype=np.bool)
+        self._ptr = 0
 
     @property
     def capacity(self):
@@ -39,44 +45,30 @@ class ReplayMemory:
     @property
     def size(self):
         """Current number of experiences stored."""
-        return self._size
+        return self._ptr
 
-    @property
-    def keys(self):
-        """Keys as specified by ``batch_type``."""
-        return self._keys
-
-    def put(self, batch):
-        """Put a experience set in the store.
-        Args:
-            experience_set (ExperienceSet): Experience set to be put in the store.
-        """
-        assert isinstance(batch, self._batch_type)
-        added_size = batch.size
-        if added_size > self._capacity:
+    def put(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray, next_states: np.ndarray):
+        """Put SARS and terminal flags in the memory."""
+        assert len(states) == len(actions) == len(rewards) == len(next_states)
+        added = len(states)
+        if added > self._capacity:
             raise ValueError("size of added items should not exceed the capacity.")
 
-        num_experiences = self._size + added_size
-        num_overwrites = num_experiences - self._capacity
-        if num_overwrites <= 0:
-            indexes = list(range(self._size, num_experiences))
+        if self._ptr + added <= self._capacity:
+            indexes = np.arange(self._ptr, self._ptr + added)
         # follow the overwrite rule set at init
-        elif self._random_overwrite:
-            random_indexes = np.random.choice(self._size, size=num_overwrites, replace=False)
-            indexes = list(range(self._size, self._capacity)) + list(random_indexes)
         else:
-            # using the negative index convention for convenience
-            start_index = self._size - self._capacity
-            indexes = list(range(start_index, start_index + added_size))
+            overwrites = self._ptr + added - self._capacity
+            indexes = np.concatenate([
+                np.arange(self._ptr, self._capacity),
+                np.random.choice(self._ptr, size=overwrites, replace=False) if self._random_overwrite
+                else np.arange(overwrites)
+            ])
 
-        for key in self.data:
-            for idx, val in zip(indexes, getattr(batch, key)):
-                self.data[key][idx] = val
+        self.states[indexes] = states
+        self.actions[indexes] = actions
+        self.rewards[indexes] = rewards
+        self.next_states[indexes] = next_states
 
-        self._size = min(self._capacity, num_experiences)
+        self._ptr = min(self._ptr + added, self._capacity)
         return indexes
-
-    def clear(self):
-        """Empty the memory."""
-        self.data = {key: [None] * self._capacity for key in self._keys}
-        self._size = 0

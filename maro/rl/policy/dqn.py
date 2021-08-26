@@ -7,54 +7,11 @@ import numpy as np
 import torch
 
 from maro.rl.exploration import DiscreteSpaceExploration, EpsilonGreedyExploration
-from maro.rl.types import DiscreteQNet, Trajectory
+from maro.rl.modeling import DiscreteQNet
 from maro.utils.exception.rl_toolkit_exception import InvalidExperience
 
-from .policy import Batch, LossInfo, RLPolicy
+from .policy import RLPolicy
 from .replay import ReplayMemory
-
-
-class DQNBatch(Batch):
-    """Wrapper for a set of experiences.
-
-    An experience consists of state, action, reward, next state.
-    """
-    __slots__ = ["states", "actions", "rewards", "next_states"]
-
-    def __init__(
-        self,
-        states: list,
-        actions: list,
-        rewards: list,
-        next_states: list,
-        indexes: list = None,
-        is_weights: list = None
-    ):
-        if not len(states) == len(actions) == len(rewards) == len(next_states):
-            raise InvalidExperience("values of contents should consist of lists of the same length")
-        super().__init__()
-        self.states = states
-        self.actions = actions
-        self.rewards = rewards
-        self.next_states = next_states
-        self.is_weights = is_weights
-        self.indexes = indexes
-
-    @property
-    def size(self):
-        return len(self.states)
-
-
-class DQNLossInfo(LossInfo):
-
-    __slots__ = ["td_errors", "indexes"]
-
-    def __init__(self, loss, td_errors, indexes, grad=None):
-        super().__init__(loss, grad)
-        self.loss = loss
-        self.td_errors = td_errors
-        self.indexes = indexes
-        self.grad = grad
 
 
 class PrioritizedExperienceReplay:
@@ -183,6 +140,52 @@ class DQN(RLPolicy):
             overwrite positions will be selected randomly. Otherwise, overwrites will occur sequentially with
             wrap-around. Defaults to False.
     """
+
+    class Batch(RLPolicy.Batch):
+        """Wrapper for a set of experiences.
+
+        An experience consists of state, action, reward, next state.
+        """
+        __slots__ = ["states", "actions", "rewards", "next_states", "terminal"]
+
+        def __init__(
+            self,
+            states: np.ndarray,
+            actions: np.ndarray,
+            rewards: np.ndarray,
+            next_states: np.ndarray,
+            terminal: np.ndarray,
+            indexes: list = None,
+            is_weights: list = None
+        ):
+            if not len(states) == len(actions) == len(rewards) == len(next_states) == len(terminal):
+                raise InvalidExperience("values of contents should consist of lists of the same length")
+            super().__init__()
+            self.states = states
+            self.actions = actions
+            self.rewards = rewards
+            self.next_states = next_states
+            self.terminal = terminal
+            self.is_weights = is_weights
+            self.indexes = indexes
+
+        @property
+        def size(self):
+            return len(self.states)
+
+
+    class LossInfo(RLPolicy.LossInfo):
+
+        __slots__ = ["td_errors", "indexes"]
+
+        def __init__(self, loss, td_errors, indexes, grad=None):
+            super().__init__(loss, grad)
+            self.loss = loss
+            self.td_errors = td_errors
+            self.indexes = indexes
+            self.grad = grad
+
+
     def __init__(
         self,
         name: str,
@@ -218,7 +221,7 @@ class DQN(RLPolicy):
         self.soft_update_coeff = soft_update_coeff
         self.double = double
 
-        self._replay_memory = ReplayMemory(DQNBatch, replay_memory_capacity, random_overwrite=random_overwrite)
+        self._replay_memory = ReplayMemory(self.Batch, replay_memory_capacity, random_overwrite=random_overwrite)
         self.prioritized_replay = prioritized_replay_kwargs is not None
         if self.prioritized_replay:
             self._per = PrioritizedExperienceReplay(self._replay_memory, **prioritized_replay_kwargs)
@@ -241,23 +244,20 @@ class DQN(RLPolicy):
             actions = self.exploration(actions, state=states)
         return actions[0] if len(actions) == 1 else actions
 
-    def _put_in_replay_memory(self, traj: Trajectory):
-        if traj.states[-1]:
-            batch = DQNBatch(traj.states[:-1], traj.actions[:-1], traj.rewards, traj.states[1:])
-        else:
-            batch = DQNBatch(traj.states[:-2], traj.actions[:-2], traj.rewards[:-1], traj.states[1:-1])
+    def _put_in_replay_memory(self, traj: dict):
+        batch = self.Batch(traj["states"][:-1], traj["actions"][:-1], traj["rewards"], traj["states"][1:])
         indexes = self._replay_memory.put(batch)
         if self.prioritized_replay:
             self._per.set_max_priority(indexes)
 
-    def _sample(self) -> DQNBatch:
+    def _sample(self):
         if self.prioritized_replay:
             indexes, is_weights = self._per.sample()
         else:
             indexes = np.random.choice(self._replay_memory.size)
             is_weights = None
 
-        return DQNBatch(
+        return self.Batch(
             [self._replay_memory.data["states"][idx] for idx in indexes],
             [self._replay_memory.data["actions"][idx] for idx in indexes],
             [self._replay_memory.data["rewards"][idx] for idx in indexes],
@@ -266,7 +266,7 @@ class DQN(RLPolicy):
             is_weights=is_weights
         )
 
-    def get_batch_loss(self, batch: DQNBatch, explicit_grad: bool = False):
+    def get_batch_loss(self, batch: Batch, explicit_grad: bool = False):
         assert self.q_net.trainable, "q_net needs to have at least one optimizer registered."
         self.q_net.train()
         states, next_states = batch.states, batch.next_states
@@ -281,7 +281,7 @@ class DQN(RLPolicy):
             else:
                 next_q_values = self.target_q_net.get_action(next_states)[1]  # (N,)
 
-        target_q_values = (rewards + self.reward_discount * next_q_values).detach()  # (N,)
+        target_q_values = (rewards + self.reward_discount * (1 - ) * next_q_values).detach()  # (N,)
 
         # gradient step
         q_values = self.q_net.q_values(states, actions)
@@ -293,9 +293,9 @@ class DQN(RLPolicy):
             loss = self._loss_func(q_values, target_q_values)
 
         grad = self.q_net.get_gradients(loss) if explicit_grad else None
-        return DQNLossInfo(loss, td_errors, batch.indexes, grad=grad)
+        return self.LossInfo(loss, td_errors, batch.indexes, grad=grad)
 
-    def update_with_multi_loss_info(self, loss_info_list: List[DQNLossInfo]):
+    def update_with_multi_loss_info(self, loss_info_list: List[LossInfo]):
         if self.prioritized_replay:
             for loss_info in loss_info_list:
                 self._per.update(loss_info.indexes, loss_info.td_errors)
@@ -305,7 +305,7 @@ class DQN(RLPolicy):
         if self._q_net_version - self._target_q_net_version == self.update_target_every:
             self._update_target()
 
-    def learn_from_multi_trajectories(self, trajectories: List[Trajectory]):
+    def learn_from_multi_trajectories(self, trajectories: List[dict]):
         for traj in trajectories:
             self._put_in_replay_memory(traj)
 
