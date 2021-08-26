@@ -1,6 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
-from typing import Optional, List, Union
+from typing import List, Optional, Union
 
 from .event import AbsEvent, ActualEvent, CascadeEvent, DummyEvent
 from .event_state import EventState

@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from .event import ActualEvent, AtomEvent, AbsEvent, CascadeEvent, DummyEvent
+from .event import AbsEvent, ActualEvent, AtomEvent, CascadeEvent, DummyEvent
 from .event_buffer import EventBuffer
 from .event_state import EventState
 from .maro_events import MaroEvents

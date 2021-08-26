@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 from itertools import count
-from typing import List, Union, Iterator, Iterable
+from typing import Iterable, Iterator, List, Union
 
 from .event import ActualEvent, AtomEvent, CascadeEvent
 from .event_linked_list import EventLinkedList
