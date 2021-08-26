@@ -1163,7 +1163,7 @@ env_config = {
     # Currently available topologies are "sample" or "random". New topologies must consist of a single folder
     # that contains a single config.yml and should be placed under /maro/simulator/scenarios/supply_chain/topologies
     "topology": "random_50",
-    "durations": 100  # number of ticks per episode
+    "durations": 1460  # number of ticks per episode
 }
 
 def get_env_wrapper(replay_agent_ids=None):
