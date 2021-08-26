@@ -3,12 +3,93 @@
 
 
 import unittest
-from maro.event_buffer import EventBuffer, AtomEvent, CascadeEvent, EventState
+from typing import Optional
+
+from maro.event_buffer import ActualEvent, AtomEvent, CascadeEvent, DummyEvent, EventBuffer, EventState, MaroEvents
+from maro.event_buffer.event_linked_list import EventLinkedList
 
 
 class TestEventBuffer(unittest.TestCase):
     def setUp(self):
         self.eb = EventBuffer()
+
+    def test_cascade_event(self):
+        evt = CascadeEvent(None, None, None, None)
+        self.assertEqual(type(evt.immediate_event_head), DummyEvent)
+        self.assertIsNone(evt.immediate_event_head.next_event)
+        self.assertIsNone(evt.immediate_event_tail)
+        self.assertEqual(evt.immediate_event_head.next_event, evt.immediate_event_tail)
+        self.assertEqual(evt.immediate_event_count, 0)
+
+        evt.add_immediate_event(AtomEvent(1, None, None, None), is_head=False)
+        evt.add_immediate_event(AtomEvent(2, None, None, None), is_head=False)
+        evt.add_immediate_event(AtomEvent(3, None, None, None), is_head=True)
+        evt.add_immediate_event(AtomEvent(4, None, None, None), is_head=True)
+        evt.add_immediate_event(AtomEvent(5, None, None, None), is_head=False)
+        evt.add_immediate_event(AtomEvent(6, None, None, None), is_head=False)
+        evt.add_immediate_event(AtomEvent(7, None, None, None), is_head=True)
+        evt.add_immediate_event(AtomEvent(8, None, None, None), is_head=True)
+        self.assertEqual(evt.immediate_event_count, 8)
+
+        iter_evt: Optional[ActualEvent] = evt.immediate_event_head.next_event
+        event_ids = []
+        while iter_evt is not None:
+            event_ids.append(iter_evt.id)
+            iter_evt = iter_evt.next_event
+        self.assertListEqual(event_ids, [8, 7, 4, 3, 1, 2, 5, 6])
+
+        evt.clear()
+        self.assertIsNone(evt.immediate_event_head.next_event)
+        self.assertIsNone(evt.immediate_event_tail)
+        self.assertEqual(evt.immediate_event_head.next_event, evt.immediate_event_tail)
+        self.assertEqual(evt.immediate_event_count, 0)
+
+    def test_event_linked_list(self):
+        event_linked_list = EventLinkedList()
+        self.assertEqual(len(event_linked_list), 0)
+        self.assertListEqual([evt for evt in event_linked_list], [])
+
+        evt_list = []
+        for i in range(7):
+            evt_list.append(CascadeEvent(i, None, None, None))
+
+        evt_list[0].add_immediate_event(evt_list[3])
+        evt_list[0].add_immediate_event(evt_list[4])
+        evt_list[0].add_immediate_event(evt_list[5])
+        evt_list[0].add_immediate_event(evt_list[6])
+
+        event_linked_list.append_tail(evt_list[1])
+        event_linked_list.append_head(evt_list[0])
+        event_linked_list.append_tail(evt_list[2])
+        self.assertEqual(len(event_linked_list), 3)
+
+        event_ids = [event.id for event in event_linked_list]
+        self.assertListEqual(event_ids, [0, 1, 2])
+
+        evt = event_linked_list.front()
+        self.assertEqual(evt.id, 0)
+
+        # Test `_clear_finished_events()`
+        evt_list[0].state = EventState.FINISHED
+        evt = event_linked_list.front()
+        self.assertIsInstance(evt, ActualEvent)
+        self.assertEqual(evt.id, 3)
+        self.assertEqual(len(event_linked_list), 6)
+
+        self.assertListEqual([evt.id for evt in event_linked_list], [3, 4, 5, 6, 1, 2])
+
+        evt_list[3].event_type = MaroEvents.PENDING_DECISION
+        evt_list[4].event_type = MaroEvents.PENDING_DECISION
+        evt_list[5].event_type = MaroEvents.PENDING_DECISION
+        evts = event_linked_list.front()
+        self.assertTrue(all(isinstance(evt, ActualEvent) for evt in evts))
+        self.assertEqual(len(evts), 3)
+        self.assertListEqual([evt.id for evt in evts], [3, 4, 5])
+        self.assertListEqual([evt.id for evt in event_linked_list], [3, 4, 5, 6, 1, 2])
+
+        event_linked_list.clear()
+        self.assertEqual(len(event_linked_list), 0)
+        self.assertListEqual([evt for evt in event_linked_list], [])
 
     def test_gen_event(self):
         """Test event generating correct"""

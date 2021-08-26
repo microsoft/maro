@@ -8,7 +8,7 @@ import yaml
 
 from citi_bike_ilp import CitiBikeILP
 from maro.data_lib import BinaryReader, ItemTickPicker
-from maro.event_buffer import Event
+from maro.event_buffer import AbsEvent
 from maro.forecasting import OneStepFixWindowMA as Forecaster
 from maro.simulator import Env
 from maro.simulator.scenarios.citi_bike.adj_loader import load_adj_from_csv
@@ -50,7 +50,7 @@ class MaIlpAgent():
 
     # ============================= private start =============================
 
-    def _record_history(self, env_tick: int, finished_events: List[Event]):
+    def _record_history(self, env_tick: int, finished_events: List[AbsEvent]):
         """
         Args:
             env_tick (int): The current Env tick.

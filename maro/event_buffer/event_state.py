@@ -11,5 +11,3 @@ class EventState(IntEnum):
     PENDING = 0
     EXECUTING = 1
     FINISHED = 2
-    # Will be recycled
-    RECYCLING = 3

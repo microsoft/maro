@@ -4,27 +4,25 @@
 
 import csv
 from collections import defaultdict
-from typing import Callable
+from typing import Callable, List, Optional
 
-from .atom_event import AtomEvent
-from .cascade_event import CascadeEvent
+from .event import ActualEvent, AtomEvent, CascadeEvent
 from .event_linked_list import EventLinkedList
 from .event_pool import EventPool
 from .event_state import EventState
 from .maro_events import MaroEvents
-from .typings import Event, EventList
 
 
 class EventRecorder:
     """Recorder used to record events to csv file."""
-    def __init__(self, path: str):
+    def __init__(self, path: str) -> None:
         self._fp = open(path, "wt+", newline='')
         self._writer = csv.writer(self._fp)
         self._writer.writerow(['episode', 'tick', 'event_type', 'payload'])
 
-    def record(self, o: dict):
+    def record(self, o: dict) -> None:
         # yaml.dump(o, self._fp, sort_keys=False)
-        self._writer.writerow([o['episode'], o["tick"], o["type"], o["payload"]])
+        self._writer.writerow([o["episode"], o["tick"], o["type"], o["payload"]])
 
     def __del__(self):
         if self._fp is not None and not self._fp.closed:
@@ -59,24 +57,23 @@ class EventBuffer:
         self._handlers = defaultdict(list)
 
         # used to hold all the events that been processed
-        self._finished_events = []
+        self._finished_events: List[ActualEvent] = []
 
-        self._event_pool = EventPool()
+        self._event_pool: EventPool = EventPool()
 
-        self._disable_finished_events = disable_finished_events
+        self._disable_finished_events: bool = disable_finished_events
 
-        self._record_events = record_events
+        self._record_events: bool = record_events
 
-        self._recorder = None
-        self._recorder_ep = None
+        self._recorder: Optional[EventRecorder] = None
+        self._recorder_ep: Optional[int] = None
 
         if self._record_events:
             if record_path is None:
                 raise ValueError("Invalid path to save finished events.")
-
             self._recorder = EventRecorder(record_path)
 
-    def get_finished_events(self) -> EventList:
+    def get_finished_events(self) -> List[ActualEvent]:
         """Get all the processed events, call this function before reset method.
 
         Returns:
@@ -84,7 +81,7 @@ class EventBuffer:
         """
         return self._finished_events
 
-    def get_pending_events(self, tick: int) -> EventList:
+    def get_pending_events(self, tick: int) -> List[ActualEvent]:
         """Get pending event at specified tick.
 
         Args:
@@ -95,20 +92,18 @@ class EventBuffer:
         """
         return [evt for evt in self._pending_events[tick] if evt is not None]
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset internal states, this method will clear all events.
 
         NOTE:
             After reset the get_finished_event method will return empty list.
         """
-        # Collect the events from pendding and finished pool to reuse them.
+        # Collect the events from pending and finished pool to reuse them.
         self._event_pool.recycle(self._finished_events)
-
         self._finished_events.clear()
 
         for pending_pool in self._pending_events.values():
             self._event_pool.recycle(pending_pool)
-
             pending_pool.clear()
 
         if self._record_events:
@@ -167,7 +162,7 @@ class EventBuffer:
         """
         return self._event_pool.gen(tick, MaroEvents.TAKE_ACTION, payload, True)
 
-    def register_event_handler(self, event_type: object, handler: Callable):
+    def register_event_handler(self, event_type: object, handler: Callable) -> None:
         """Register an event with handler, when there is an event need to be processed,
         EventBuffer will invoke the handler if there are any event's type match specified at each tick.
 
@@ -180,7 +175,7 @@ class EventBuffer:
         """
         self._handlers[event_type].append(handler)
 
-    def insert_event(self, event: Event):
+    def insert_event(self, event: ActualEvent) -> None:
         """Insert an event to the pending queue.
 
         Args:
@@ -190,7 +185,7 @@ class EventBuffer:
 
         self._pending_events[event.tick].append(event)
 
-    def execute(self, tick: int) -> EventList:
+    def execute(self, tick: int) -> List[ActualEvent]:
         """Process and dispatch event by tick.
 
         NOTE:
@@ -205,11 +200,11 @@ class EventBuffer:
             EventList: A list of events that are pending decisions at the current tick.
         """
         if tick in self._pending_events:
-            cur_events_list: EventLinkedList = self._pending_events[tick]
+            cur_events_list = self._pending_events[tick]
 
             # 1. check if current events match tick.
             while len(cur_events_list):
-                next_events = cur_events_list.pop()
+                next_events = cur_events_list.front()
 
                 if next_events is None:
                     # End of current tick.
