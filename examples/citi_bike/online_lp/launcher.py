@@ -136,7 +136,7 @@ class MaIlpAgent():
 
     # ============================= private end =============================
 
-    def get_action_list(self, env_tick: int, init_inventory: np.ndarray, finished_events: List[Event]):
+    def get_action_list(self, env_tick: int, init_inventory: np.ndarray, finished_events: List[AbsEvent]):
         if PEEP_AND_USE_REAL_DATA:
             demand, supply = self.__peep_at_the_future(env_tick=env_tick)
         else:
