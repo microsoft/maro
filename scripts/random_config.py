@@ -26,11 +26,13 @@ children:
         class: "ProductUnit"
         is_template: true
         config:
-            agent_type: 4
+            agent_type: "product"
             consumer:
                 class: "ConsumerUnit"
+                config:
+                    agent_type: "consumer"
 config:
-    agent_type: 1
+    agent_type: "facility"
 """
 
 # Definition of supplier.
@@ -45,13 +47,17 @@ children:
         class: "ProductUnit"
         is_template: true
         config:
-            agent_type: 3
+            agent_type: "product"
             consumer:
                 class: "ConsumerUnit"
+                config:
+                    agent_type: "consumer"
             manufacture:
-                class: "ManufactureUnit"
+                class: "SimpleManufactureUnit"
+                config:
+                    agent_type: "producer"
 config:
-    agent_type: 0
+    agent_type: "facility"
 """
 
 # Definition of retailer.
@@ -64,15 +70,17 @@ children:
         class: "StoreProductUnit"
         is_template: true
         config:
-            agent_type: 5
+            agent_type: "product"
             consumer:
                 class: "ConsumerUnit"
+                config:
+                    agent_type: "consumer"
             seller:
                 class: "SellerUnit"
                 config:
                     sale_hist_len: 4
 config:
-    agent_type: 2
+    agent_type: "facility"
 """
 
 # Template to generate a supplier facility.

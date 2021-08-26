@@ -14,7 +14,7 @@ from or_policies import (
     get_consumer_baseline_policy, get_consumer_eoq_policy, get_consumer_minmax_policy, get_producer_baseline_policy
 )
 
-NUM_RL_POLICIES = 100
+NUM_RL_POLICIES = 10
 
 non_rl_policy_func_index = {
     "consumer": get_consumer_minmax_policy,
@@ -26,7 +26,6 @@ non_rl_policy_func_index = {
 
 rl_policy_func_index = {f"consumerstore-{i}": get_dqn_policy for i in range(NUM_RL_POLICIES)}
 consumerstores = [agent_id for agent_id in AGENT_IDS if agent_id.startswith("consumerstore")]
-
 agent2policy = {
     agent_id: agent_id.split(".")[0] for agent_id in AGENT_IDS if not agent_id.startswith("consumerstore")
 }

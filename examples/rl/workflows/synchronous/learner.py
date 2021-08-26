@@ -15,7 +15,7 @@ if workflow_dir not in sys.path:
 
 from agent_wrapper import get_agent_wrapper
 from policy_manager.policy_manager import get_policy_manager
-from general import post_collect, post_evaluate, get_env_wrapper, log_dir
+from general import post_collect, post_evaluate, get_env_wrapper, log_dir, replay_agents
 
 
 def get_rollout_manager():
@@ -23,7 +23,7 @@ def get_rollout_manager():
     num_steps = int(getenv("NUMSTEPS", default=-1))
     if rollout_mode == "single-process":
         return LocalRolloutManager(
-            get_env_wrapper(),
+            get_env_wrapper(replay_agent_ids=replay_agents[0]),
             get_agent_wrapper(),
             num_steps=num_steps,
             post_collect=post_collect,
