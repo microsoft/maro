@@ -4,7 +4,7 @@
 from abc import abstractmethod
 from collections import defaultdict, deque
 from os import getcwd
-from typing import Callable, Dict
+from typing import Callable, Dict, List
 
 from maro.communication import Proxy, SessionMessage, SessionType
 from maro.rl.policy import AbsPolicy, RLPolicy
@@ -40,38 +40,38 @@ class EnvSampler:
     """
     def __init__(
         self,
-        get_env: Callable[[], Env],
-        get_policy_func_dict: Dict[str, AbsPolicy],
+        env: Env,
+        policies: List[AbsPolicy],
         get_state_func_dict: Dict[str, Callable],
-        get_eval_env: Callable[[], Env] = None,
+        eval_env: Env = None,
         reward_eval_delay: int = 0,
-        max_trajectory_len: Dict[str, int] = None,
         post_step: Callable = None,
     ):
-        self.env = get_env()
-        self.eval_env = get_eval_env() if get_eval_env else self.env
-        self.policy_dict = {name: func(name) for name, func in get_policy_func_dict.items()}
-        self.policy = {}
-        for policy in self.policy_dict.values():
+        unbound_agents = set(self.env.agent_idx_list)
+        self.policy_dict = {}
+        self.policy_by_agent = {}
+        for policy in policies:
+            self.policy_dict[policy.name] = policy
             for agent in policy.agents:
-                self.policy[agent] = policy
+                if agent in self.policy_by_agent:
+                    raise Exception(f"Agent {agent} is already bound to a policy")
+                self.policy_by_agent[agent] = policy
+                unbound_agents.remove(agent)
 
+        if unbound_agents:
+            raise Exception(f"Agents {unbound_agents} are not bound to any policy")
+
+        self.env = env
+        self.eval_env = eval_env if eval_env else self.env
         self.get_state = get_state_func_dict
-
         self.reward_eval_delay = reward_eval_delay
         self._post_step = post_step
 
-        self.max_trajectory_len = max_trajectory_len if max_trajectory_len else defaultdict(lambda: self.env._durations)
-        self._replay_buffer = {
-            agent_id: policy.Buffer(self.state_dim[agent_id], ) 
-            for agent_id, policy in self.policy.items() if isinstance(policy, RLPolicy)
-        }
-        self._transition_cache = defaultdict(deque())  # for caching transitions whose rewards have yet to be evaluated
         self._step_index = None
         self._terminal = False
 
+        self._transition_cache = defaultdict(deque())  # for caching transitions whose rewards have yet to be evaluated
         self.tracker = {}  # User-defined tracking information is placed here.
-        self.replay = True
 
     @property
     def step_index(self):
@@ -79,15 +79,11 @@ class EnvSampler:
         return self._step_index
 
     @property
-    def agent_idx_list(self):
-        return self.env.agent_idx_list
-
-    @property
     def summary(self):
         return self.env.metrics
 
     def get_agents_from_event(self, event):
-        return self.agent_idx_list
+        return self.env.agent_idx_list
 
     def sample(self, policy_state_dict: dict = None, num_steps: int = -1, exploration_step: bool = False):
         # set policy states
@@ -114,7 +110,7 @@ class EnvSampler:
         starting_step_index = self._step_index + 1
         steps_to_go = float("inf") if num_steps == -1 else num_steps
         while not self._terminal and steps_to_go > 0:
-            action = {agent: self.policy[agent].choose_action(st) for agent, st in self._state.items()} 
+            action = {agent: self.policy_by_agent[agent].choose_action(st) for agent, st in self._state.items()}
             env_action = self.to_env_action(action)
             _, self._event, self._terminal = self.env.step(env_action)
             prev_state = self._state
@@ -136,8 +132,10 @@ class EnvSampler:
                         # put things you want to track in the tracker attribute
                         self._post_step(self.env, self.tracker, state, action, env_action, reward, state_, tick)
 
-                    if isinstance(self.policy[agent], RLPolicy):
-                        self.policy[agent].record(agent, state, action, reward, state_, not cache and self._terminal)
+                    if isinstance(self.policy_by_agent[agent], RLPolicy):
+                        self.policy_by_agent[agent].record(
+                            agent, state, action, reward, state_, not cache and self._terminal
+                        )
 
         return {
             "rollout_info": {
@@ -170,7 +168,7 @@ class EnvSampler:
         _, event, _ = self.eval_env.step(None)
         state = {agent: self.get_state[agent](self.eval_env) for agent in self.get_agents_from_event(event)}
         while not terminal:
-            action = {agent: self.policy[agent].choose_action(st) for agent, st in state.items()} 
+            action = {agent: self.policy_by_agent[agent].choose_action(st) for agent, st in state.items()} 
             env_action = self.to_env_action(action)
             _, event, terminal = self.eval_env.step(env_action)
             state = {agent: self.get_state[agent](self.eval_env) for agent in self.get_agents_from_event(event)}

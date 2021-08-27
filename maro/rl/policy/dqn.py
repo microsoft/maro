@@ -151,6 +151,7 @@ class DQN(RLPolicy):
         replay_memory_capacity: int = 10000,
         random_overwrite: bool = False,
         batch_size: int = 32,
+        rollout_info_size: int = 1000,
         prioritized_replay_kwargs: dict = None,
         remote: bool = False
     ):
@@ -178,6 +179,7 @@ class DQN(RLPolicy):
             replay_memory_capacity, self.q_net.input_dim, action_dim=1, random_overwrite=random_overwrite
         )
         self.batch_size = batch_size
+        self.rollout_info_size = rollout_info_size
         self.prioritized_replay = prioritized_replay_kwargs is not None
         if self.prioritized_replay:
             self._per = PrioritizedExperienceReplay(self._replay_memory, **prioritized_replay_kwargs)
@@ -214,9 +216,9 @@ class DQN(RLPolicy):
             self._per.set_max_priority(indexes)
 
     def get_rollout_info(self):
-        return self.get_batch_loss(self._get_batch(), explicit_grad=True)
+        return self._replay_memory.sample(self.rollout_info_size)
 
-    def _sample(self):
+    def _get_batch(self):
         if self.prioritized_replay:
             indexes, is_weights = self._per.sample(self.batch_size)
             return {
@@ -283,7 +285,7 @@ class DQN(RLPolicy):
             pass
         else:
             for _ in range(self.num_epochs):
-                loss_info = self.get_batch_loss(self._sample())
+                loss_info = self.get_batch_loss(self._get_batch())
                 if self.prioritized_replay:
                     self._per.update(loss_info["indexes"], loss_info["td_errors"])
                 self.q_net.step(loss_info.loss)

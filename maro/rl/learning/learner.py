@@ -5,14 +5,11 @@ import time
 from os import getcwd
 from typing import Callable, List, Union
 
-from maro.rl.policy import LossInfo
-from maro.rl.types import Trajectory
-from maro.rl.wrappers import AbsEnvWrapper, AgentWrapper
 from maro.utils import Logger
 
 from .common import get_eval_schedule, get_rollout_finish_msg
 from .early_stopper import AbsEarlyStopper
-from .environment_sampler import EnvironmentSampler
+from .env_sampler import EnvSampler
 from .policy_manager import AbsPolicyManager
 from .rollout_manager import AbsRolloutManager
 
@@ -68,7 +65,7 @@ def simple_learner(
         raise ValueError("num_steps must be a positive integer or -1")
 
     logger = Logger("LOCAL_LEARNER", dump_folder=log_dir)
-    env_sampler = EnvironmentSampler(get_env_wrapper, get_agent_wrapper, get_eval_env_wrapper=get_eval_env_wrapper)
+    env_sampler = EnvSampler(get_env_wrapper, get_agent_wrapper, get_eval_env_wrapper=get_eval_env_wrapper)
 
     # evaluation schedule
     eval_schedule = get_eval_schedule(eval_schedule, num_episodes, final=eval_after_last_episode)
