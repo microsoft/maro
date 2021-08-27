@@ -8,7 +8,6 @@ import torch
 
 from maro.rl.exploration import DiscreteSpaceExploration, EpsilonGreedyExploration
 from maro.rl.modeling import DiscreteQNet
-from maro.utils.exception.rl_toolkit_exception import InvalidExperience
 
 from .policy import RLPolicy
 from .replay import ReplayMemory
@@ -26,7 +25,6 @@ class PrioritizedExperienceReplay:
 
     Args:
         replay_memory (ReplayMemory): experience manager the sampler is associated with.
-        batch_size (int): mini-batch size. Defaults to 32.
         alpha (float): Prioritization strength. Sampling probabilities are calculated according to
             P = p_i^alpha / sum(p_k^alpha). Defaults to 0.6.
         beta (float): Bias annealing strength using weighted importance sampling (IS) techniques.
@@ -39,7 +37,6 @@ class PrioritizedExperienceReplay:
         self,
         replay_memory: ReplayMemory,
         *,
-        batch_size: int = 32,
         alpha: float = 0.6,
         beta: float = 0.4,
         beta_step: float = 0.001,
@@ -49,7 +46,6 @@ class PrioritizedExperienceReplay:
             raise ValueError("beta should be between 0.0 and 1.0")
         self._replay_memory = replay_memory
         self._sum_tree = np.zeros(2 * self._replay_memory.capacity - 1)
-        self.batch_size = batch_size
         self.alpha = alpha
         self.beta = beta
         self.beta_step = beta_step
@@ -73,11 +69,11 @@ class PrioritizedExperienceReplay:
             self._sum_tree[tree_idx] = priority
             self._update(tree_idx, delta)
 
-    def sample(self):
+    def sample(self, size: int):
         """Priority-based sampling."""
         indexes, priorities = [], []
-        segment_len = self.total() / self.batch_size
-        for i in range(self.batch_size):
+        segment_len = self.total() / size
+        for i in range(size):
             low, high = segment_len * i, segment_len * (i + 1)
             sampled_val = np.random.uniform(low=low, high=high)
             idx = self._get(0, sampled_val)
@@ -139,52 +135,8 @@ class DQN(RLPolicy):
         random_overwrite (bool): This specifies overwrite behavior when the replay memory capacity is reached. If True,
             overwrite positions will be selected randomly. Otherwise, overwrites will occur sequentially with
             wrap-around. Defaults to False.
+        batch_size (int): Training sample. Defaults to 32.
     """
-
-    class Batch(RLPolicy.Batch):
-        """Wrapper for a set of experiences.
-
-        An experience consists of state, action, reward, next state.
-        """
-        __slots__ = ["states", "actions", "rewards", "next_states", "terminal"]
-
-        def __init__(
-            self,
-            states: np.ndarray,
-            actions: np.ndarray,
-            rewards: np.ndarray,
-            next_states: np.ndarray,
-            terminal: np.ndarray,
-            indexes: list = None,
-            is_weights: list = None
-        ):
-            if not len(states) == len(actions) == len(rewards) == len(next_states) == len(terminal):
-                raise InvalidExperience("values of contents should consist of lists of the same length")
-            super().__init__()
-            self.states = states
-            self.actions = actions
-            self.rewards = rewards
-            self.next_states = next_states
-            self.terminal = terminal
-            self.is_weights = is_weights
-            self.indexes = indexes
-
-        @property
-        def size(self):
-            return len(self.states)
-
-
-    class LossInfo(RLPolicy.LossInfo):
-
-        __slots__ = ["td_errors", "indexes"]
-
-        def __init__(self, loss, td_errors, indexes, grad=None):
-            super().__init__(loss, grad)
-            self.loss = loss
-            self.td_errors = td_errors
-            self.indexes = indexes
-            self.grad = grad
-
 
     def __init__(
         self,
@@ -198,6 +150,7 @@ class DQN(RLPolicy):
         exploration: DiscreteSpaceExploration = EpsilonGreedyExploration(),
         replay_memory_capacity: int = 10000,
         random_overwrite: bool = False,
+        batch_size: int = 32,
         prioritized_replay_kwargs: dict = None,
         remote: bool = False
     ):
@@ -221,7 +174,10 @@ class DQN(RLPolicy):
         self.soft_update_coeff = soft_update_coeff
         self.double = double
 
-        self._replay_memory = ReplayMemory(self.Batch, replay_memory_capacity, random_overwrite=random_overwrite)
+        self._replay_memory = ReplayMemory(
+            replay_memory_capacity, self.q_net.input_dim, action_dim=1, random_overwrite=random_overwrite
+        )
+        self.batch_size = batch_size
         self.prioritized_replay = prioritized_replay_kwargs is not None
         if self.prioritized_replay:
             self._per = PrioritizedExperienceReplay(self._replay_memory, **prioritized_replay_kwargs)
@@ -231,7 +187,7 @@ class DQN(RLPolicy):
         self.exploration = exploration
         self.exploring = True  # set initial exploration status to True
 
-    def choose_action(self, states) -> Union[int, np.ndarray]:
+    def choose_action(self, states: torch.tensor) -> Union[int, np.ndarray]:
         self.q_net.eval()
         with torch.no_grad():
             q_for_all_actions = self.q_net(states)  # (batch_size, num_actions)
@@ -244,34 +200,43 @@ class DQN(RLPolicy):
             actions = self.exploration(actions, state=states)
         return actions[0] if len(actions) == 1 else actions
 
-    def _put_in_replay_memory(self, traj: dict):
-        batch = self.Batch(traj["states"][:-1], traj["actions"][:-1], traj["rewards"], traj["states"][1:])
-        indexes = self._replay_memory.put(batch)
+    def record(
+        self,
+        agent: str,
+        state: np.ndarray,
+        action: Union[int, float, np.ndarray],
+        reward: float,
+        next_state: np.ndarray,
+        terminal: bool
+    ):
+        indexes = self._replay_memory.put(state, action, reward, next_state, terminal) 
         if self.prioritized_replay:
             self._per.set_max_priority(indexes)
 
+    def get_rollout_info(self):
+        return self.get_batch_loss(self._get_batch(), explicit_grad=True)
+
     def _sample(self):
         if self.prioritized_replay:
-            indexes, is_weights = self._per.sample()
+            indexes, is_weights = self._per.sample(self.batch_size)
+            return {
+                "states": self._replay_memory.states[indexes],
+                "actions": self._replay_memory.actions[indexes],
+                "rewards": self._replay_memory.rewards[indexes],
+                "next_states": self._replay_memory.next_states[indexes],
+                "indexes": indexes,
+                "is_weights": is_weights
+            }
         else:
-            indexes = np.random.choice(self._replay_memory.size)
-            is_weights = None
+            return self._replay_memory.sample(self.batch_size)
 
-        return self.Batch(
-            [self._replay_memory.data["states"][idx] for idx in indexes],
-            [self._replay_memory.data["actions"][idx] for idx in indexes],
-            [self._replay_memory.data["rewards"][idx] for idx in indexes],
-            [self._replay_memory.data["next_states"][idx] for idx in indexes],
-            indexes=indexes,
-            is_weights=is_weights
-        )
-
-    def get_batch_loss(self, batch: Batch, explicit_grad: bool = False):
+    def get_batch_loss(self, batch: dict, explicit_grad: bool = False):
         assert self.q_net.trainable, "q_net needs to have at least one optimizer registered."
         self.q_net.train()
-        states, next_states = batch.states, batch.next_states
-        actions = torch.from_numpy(np.asarray(batch.actions)).to(self.device)
-        rewards = torch.from_numpy(np.asarray(batch.rewards)).to(self.device)
+        states, next_states = batch["states"], batch["next_states"]
+        actions = torch.from_numpy(batch["actions"]).to(self.device)
+        rewards = torch.from_numpy(batch["rewards"]).to(self.device)
+        terminals = torch.from_numpy(batch["terminals"]).to(self.device)
 
         # get target Q values
         with torch.no_grad():
@@ -281,26 +246,30 @@ class DQN(RLPolicy):
             else:
                 next_q_values = self.target_q_net.get_action(next_states)[1]  # (N,)
 
-        target_q_values = (rewards + self.reward_discount * (1 - ) * next_q_values).detach()  # (N,)
+        target_q_values = (rewards + self.reward_discount * (1 - terminals) * next_q_values).detach()  # (N,)
 
         # gradient step
+        loss_info = {}
         q_values = self.q_net.q_values(states, actions)
         td_errors = target_q_values - q_values
         if self.prioritized_replay:
-            is_weights = torch.from_numpy(np.asarray(batch.is_weights)).to(self.device)
+            is_weights = torch.from_numpy(batch["is_weights"]).to(self.device)
             loss = (td_errors * is_weights).mean()
+            loss_info["td_errors"], loss_info["indexes"] = td_errors, batch["indexes"]
         else:
             loss = self._loss_func(q_values, target_q_values)
 
-        grad = self.q_net.get_gradients(loss) if explicit_grad else None
-        return self.LossInfo(loss, td_errors, batch.indexes, grad=grad)
+        loss_info["loss"] = loss
+        if explicit_grad:
+            loss_info["grad"] = self.q_net.get_gradients(loss)
+        return loss_info
 
-    def update_with_multi_loss_info(self, loss_info_list: List[LossInfo]):
+    def update_with_multi_loss_info(self, loss_info_list: List[dict]):
         if self.prioritized_replay:
             for loss_info in loss_info_list:
-                self._per.update(loss_info.indexes, loss_info.td_errors)
+                self._per.update(loss_info["indexes"], loss_info["td_errors"])
 
-        self.q_net.apply_gradients([loss_info.grad for loss_info in loss_info_list])
+        self.q_net.apply_gradients([loss_info["grad"] for loss_info in loss_info_list])
         self._q_net_version += 1
         if self._q_net_version - self._target_q_net_version == self.update_target_every:
             self._update_target()
@@ -315,6 +284,8 @@ class DQN(RLPolicy):
         else:
             for _ in range(self.num_epochs):
                 loss_info = self.get_batch_loss(self._sample())
+                if self.prioritized_replay:
+                    self._per.update(loss_info["indexes"], loss_info["td_errors"])
                 self.q_net.step(loss_info.loss)
                 self._q_net_version += 1
                 if self._q_net_version - self._target_q_net_version == self.update_target_every:

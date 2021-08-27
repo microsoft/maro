@@ -29,7 +29,7 @@ class ReplayMemory:
             self.actions = np.zeros(self._capacity, dtype=np.float32)
         self.rewards = np.zeros(self._capacity, dtype=np.float32)
         self.next_states = np.zeros(self._capacity, dtype=np.float32)
-        self.terminal = np.zeros(self._capacity, dtype=np.bool)
+        self.terminals = np.zeros(self._capacity, dtype=np.bool)
         self._ptr = 0
 
     @property
@@ -47,9 +47,16 @@ class ReplayMemory:
         """Current number of experiences stored."""
         return self._ptr
 
-    def put(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray, next_states: np.ndarray):
+    def put(
+        self,
+        states: np.ndarray,
+        actions: np.ndarray,
+        rewards: np.ndarray,
+        next_states: np.ndarray,
+        terminals: np.ndarray
+    ):
         """Put SARS and terminal flags in the memory."""
-        assert len(states) == len(actions) == len(rewards) == len(next_states)
+        assert len(states) == len(actions) == len(rewards) == len(next_states) == len(terminals)
         added = len(states)
         if added > self._capacity:
             raise ValueError("size of added items should not exceed the capacity.")
@@ -72,3 +79,12 @@ class ReplayMemory:
 
         self._ptr = min(self._ptr + added, self._capacity)
         return indexes
+
+    def sample(self, size: int):
+        indexes = np.random.choice(self._ptr, size=size)
+        return {
+            "states": self.states[indexes],
+            "actions": self.actions[indexes],
+            "rewards": self.rewards[indexes],
+            "next_states": self.next_states[indexes]
+        }

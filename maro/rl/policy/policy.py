@@ -17,10 +17,14 @@ class AbsPolicy(ABC):
     def __init__(self, name: str):
         super().__init__()
         self._name = name
+        self.agents = set()
 
     @property
     def name(self):
         return self._name
+
+    def add_agent(self, agent: str):
+        self.agents.add(agent)
 
     @abstractmethod
     def choose_action(self, state):
@@ -37,14 +41,6 @@ class NullPolicy(AbsPolicy):
 
 
 class RLPolicy(AbsPolicy):
-    """Policy that can update itself using simulation experiences.
-
-    Reinforcement learning (RL) policies should inherit from this.
-
-    Args:
-        name (str): Name of the policy.
-    """
-
     class Buffer:
         """Sequence of transitions for an agent.
 
@@ -67,41 +63,21 @@ class RLPolicy(AbsPolicy):
             self._ptr = 0
             self._last_ptr = 0
 
-        def store(self, state: np.ndarray, action, reward: float, terminal: bool = False):
-            self.states[self._ptr] = state
-            self.actions[self._ptr] = action
-            self.rewards[self._ptr] = reward
-            self.terminal[self._ptr] = terminal
-            # increment pointer
-            self._ptr += 1
-            if self._ptr == self.max_len:
-                self._ptr = 0
+        @abstractmethod
+        def put(self, transition):
+            raise NotImplementedError
 
+        @abstractmethod
         def get(self):
-            traj_slice = slice(self._last_ptr, self._ptr)
-            self._last_ptr = self._ptr
-            return {
-                "states": self.states[traj_slice],
-                "actions": self.actions[traj_slice],
-                "rewards": self.rewards[traj_slice],
-                "terminal": self.terminal[traj_slice],
-            }
+            raise NotImplementedError
 
+    """Policy that learns from simulation experiences.
 
-    class Batch:
-        def __init__(self):
-            pass
+    Reinforcement learning (RL) policies should inherit from this.
 
-
-    class LossInfo:
-
-        __slots__ = ["loss", "grad"]
-
-        def __init__(self, loss, grad):
-            self.loss = loss
-            self.grad = grad
-
-
+    Args:
+        name (str): Name of the policy.
+    """
     def __init__(self, name: str, remote: bool = False):
         super().__init__(name)
         self.remote = remote
@@ -110,19 +86,23 @@ class RLPolicy(AbsPolicy):
     def choose_action(self, state):
         raise NotImplementedError
 
-    def get_rollout_info(self, trajectory: Trajectory):
-        return trajectory
-
+    def record(self, key: str, state, action, reward, next_state, terminal: bool):
+        pass
+    
     @abstractmethod
-    def get_batch_loss(self, batch: Batch, explicit_grad: bool = False):
+    def get_rollout_info(self):
         raise NotImplementedError
 
     @abstractmethod
-    def update_with_multi_loss_info(self, loss_info_list: List[LossInfo]):
+    def get_batch_loss(self, batch: dict, explicit_grad: bool = False):
+        raise NotImplementedError
+
+    @abstractmethod
+    def update_with_multi_loss_info(self, loss_info_list: List[dict]):
         pass
 
     @abstractmethod
-    def learn_from_multi_trajectories(self, trajectories: List[Trajectory]):
+    def learn_from_multi_trajectories(self, trajectories: List[dict]):
         """Perform policy improvement based on a list of trajectories obtained from parallel rollouts."""
         raise NotImplementedError
 

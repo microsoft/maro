@@ -1,14 +1,13 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from collections import defaultdict, deque
 from os import getcwd
 from typing import Callable, Dict
 
 from maro.communication import Proxy, SessionMessage, SessionType
 from maro.rl.policy import AbsPolicy, RLPolicy
-from maro.rl.types import Transition
 from maro.rl.utils import MsgKey, MsgTag
 from maro.simulator import Env
 from maro.utils import Logger
@@ -16,7 +15,7 @@ from maro.utils import Logger
 from .common import get_rollout_finish_msg
 
 
-class AbsEnvSampler(ABC):
+class EnvSampler:
     """Simulation data collector and policy evaluator.
 
     Args:
@@ -33,11 +32,8 @@ class AbsEnvSampler(ABC):
             instance in the wrapper, tracker is a dictionary where the gathered information is stored and transition
             is a ``Transition`` object. For example, this callback can be used to collect various statistics on the
             simulation. Defaults to None.
-        
         get_policy_func_dict (dict): A dictionary mapping policy names to functions that create them. The policy
             creation function should have policy name as the only parameter and return an ``AbsPolicy`` instance.
-        agent2policy (Dict[str, str]): Mapping from agent ID's to policy ID's. This is used to direct an agent's
-            queries to the correct policy.
         get_eval_env_wrapper (Callable): Function to create an environment wrapper for evaluation. The function should
             take no parameters and return an environment wrapper instance. If this is None, the training environment
             wrapper will be used for evaluation in the worker processes. Defaults to None.
@@ -46,7 +42,7 @@ class AbsEnvSampler(ABC):
         self,
         get_env: Callable[[], Env],
         get_policy_func_dict: Dict[str, AbsPolicy],
-        agent2policy: Dict[str, str],
+        get_state_func_dict: Dict[str, Callable],
         get_eval_env: Callable[[], Env] = None,
         reward_eval_delay: int = 0,
         max_trajectory_len: Dict[str, int] = None,
@@ -55,10 +51,12 @@ class AbsEnvSampler(ABC):
         self.env = get_env()
         self.eval_env = get_eval_env() if get_eval_env else self.env
         self.policy_dict = {name: func(name) for name, func in get_policy_func_dict.items()}
-        self.agent2policy = agent2policy
-        self.policy = {
-            agent_id: self.policy_dict[policy_id] for agent_id, policy_id in self.agent2policy.items()
-        }
+        self.policy = {}
+        for policy in self.policy_dict.values():
+            for agent in policy.agents:
+                self.policy[agent] = policy
+
+        self.get_state = get_state_func_dict
 
         self.reward_eval_delay = reward_eval_delay
         self._post_step = post_step
@@ -68,22 +66,12 @@ class AbsEnvSampler(ABC):
             agent_id: policy.Buffer(self.state_dim[agent_id], ) 
             for agent_id, policy in self.policy.items() if isinstance(policy, RLPolicy)
         }
-        self._transition_cache = deque()  # list of (state, action, tick) whose rewards have yet to be evaluated
+        self._transition_cache = defaultdict(deque())  # for caching transitions whose rewards have yet to be evaluated
         self._step_index = None
         self._terminal = False
 
         self.tracker = {}  # User-defined tracking information is placed here.
         self.replay = True
-
-    @property
-    @abstractmethod
-    def state_dim(self) -> int:
-        raise NotImplementedError
-
-    @property
-    @abstractmethod
-    def action_dim(self) -> int:
-        raise NotImplementedError
 
     @property
     def step_index(self):
@@ -97,6 +85,9 @@ class AbsEnvSampler(ABC):
     @property
     def summary(self):
         return self.env.metrics
+
+    def get_agents_from_event(self, event):
+        return self.agent_idx_list
 
     def sample(self, policy_state_dict: dict = None, num_steps: int = -1, exploration_step: bool = False):
         # set policy states
@@ -118,54 +109,41 @@ class AbsEnvSampler(ABC):
             # get initial state
             self._step_index = 0
             _, self._event, _ = self.env.step(None)
-            self._state = self.get_state(self.env.tick)
+            self._state = {agent: self.get_state[agent](self.env) for agent in self.get_agents_from_event(self._event)}
 
         starting_step_index = self._step_index + 1
         steps_to_go = float("inf") if num_steps == -1 else num_steps
         while not self._terminal and steps_to_go > 0:
-            state_by_agent = self.get_state()
-            action_by_agent = {agent: self.policy[agent].choose_action(st) for agent, st in state_by_agent.items()} 
-            env_action = self.to_env_action(action_by_agent)
-            self._transition_cache.append((
-                state_by_agent,
-                action_by_agent,
-                env_action,
-                self.env.tick
-            ))
+            action = {agent: self.policy[agent].choose_action(st) for agent, st in self._state.items()} 
+            env_action = self.to_env_action(action)
             _, self._event, self._terminal = self.env.step(env_action)
+            prev_state = self._state
+            self._state = None if self._terminal else {
+                agent: self.get_state[agent](self.env) for agent in self.get_agents_from_event(self._event)
+            }
+            self._transition_cache.append((prev_state, action, env_action, self._state, self.env.tick))
             self._step_index += 1
             steps_to_go -= 1
             """
             If this is the final step, evaluate rewards for all remaining events except the last.
             Otherwise, evaluate rewards only for events at least self.reward_eval_delay ticks ago.
             """
-            while (
-                self._transition_cache and
-                (self._terminal or self.env.tick - self._transition_cache[0][-1] >= self.reward_eval_delay)
-            ):
-                state_by_agent, action_by_agent, env_action, tick = self._transition_cache.popleft()
-                reward_by_agent = self.get_reward(env_action, tick=tick)
-                if self._post_step:
-                    next_state = self._transition_cache[0][0] if self._transition_cache else None
-                    transition = Transition(state_by_agent, action_by_agent, env_action, reward_by_agent, next_state)
-                    # put things you want to track in the tracker attribute
-                    self._post_step(self.env, self.tracker, transition)
+            for agent, cache in self._transition_cache.items():
+                while cache and (self._terminal or self.env.tick - cache[0][-1] >= self.reward_eval_delay):
+                    state, action, env_action, state_, tick = cache.popleft()
+                    reward = self.get_reward(env_action, tick=tick)
+                    if self._post_step:
+                        # put things you want to track in the tracker attribute
+                        self._post_step(self.env, self.tracker, state, action, env_action, reward, state_, tick)
 
-                for agent_id, state in state_by_agent.items():
-                    if agent_id in self._replay_buffer:
-                        self._replay_buffer[agent_id].store(
-                            state, action_by_agent[agent_id], reward_by_agent[agent_id],
-                            terminal=not self._transition_cache and self._terminal,
-                        )
-
-        rollout_info = {}
-        for agent_id, buf in self._replay_buffer.items():
-            if isinstance(self.policy[agent_id], RLPolicy):
-                policy_name = self.agent2policy[agent_id]
-                rollout_info[policy_name] = self.policy_dict[policy_name].get_rollout_info(buf.get())
+                    if isinstance(self.policy[agent], RLPolicy):
+                        self.policy[agent].record(agent, state, action, reward, state_, not cache and self._terminal)
 
         return {
-            "rollout_info": rollout_info,
+            "rollout_info": {
+                id_: policy.get_rollout_info() for id_, policy in self.policy_dict.items()
+                if isinstance(policy, RLPolicy)
+            },
             "step_range": (starting_step_index, self._step_index),
             "tracker": self.tracker,
             "end_of_episode": not self._terminal,
@@ -176,9 +154,10 @@ class AbsEnvSampler(ABC):
         }
 
     def test(self, policy_state_dict: dict = None):
+        # set policy states
         if policy_state_dict:
-            for policy_id, policy_state in policy_state_dict.items():
-                self.policy_dict[policy_id].set_state(policy_state)
+            for id_, policy_state in policy_state_dict.items():
+                self.policy_dict[id_].set_state(policy_state)
 
         # Set policies to exploitation mode
         for policy in self.policy_dict.values():
@@ -186,25 +165,17 @@ class AbsEnvSampler(ABC):
                 policy.exploit()
 
         self.eval_env.reset()
-        self.eval_env.replay = False
-        self.eval_env.start()  # get initial state
-        while self.eval_env.state:
-            self.eval_env.step({agent: self.policy[agent].choose_action(st) for agent, st in self.env.state.items()})
+        terminal = False
+        # get initial state
+        _, event, _ = self.eval_env.step(None)
+        state = {agent: self.get_state[agent](self.eval_env) for agent in self.get_agents_from_event(event)}
+        while not terminal:
+            action = {agent: self.policy[agent].choose_action(st) for agent, st in state.items()} 
+            env_action = self.to_env_action(action)
+            _, event, terminal = self.eval_env.step(env_action)
+            state = {agent: self.get_state[agent](self.eval_env) for agent in self.get_agents_from_event(event)}
 
-        return self.eval_env.tracker
-
-    @abstractmethod
-    def get_state(self, tick: int = None) -> dict:
-        """Compute the state for a given tick.
-
-        Args:
-            tick (int): The tick for which to compute the environmental state. If computing the current state,
-                use tick=self.env.tick.
-
-        Returns:
-            A dictionary with (agent ID, state) as key-value pairs.
-        """
-        raise NotImplementedError
+        return self.tracker
 
     @abstractmethod
     def to_env_action(self, action) -> dict:
