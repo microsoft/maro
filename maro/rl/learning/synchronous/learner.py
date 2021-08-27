@@ -52,23 +52,23 @@ class Learner:
         self.num_episodes = num_episodes
 
         # evaluation schedule
-        if eval_schedule is None:
-            self._eval_schedule = []
-        elif isinstance(eval_schedule, int):
-            num_eval_schedule = num_episodes // eval_schedule
-            self._eval_schedule = [eval_schedule * i for i in range(1, num_eval_schedule + 1)]
-        else:
-            self._eval_schedule = eval_schedule
-            self._eval_schedule.sort()
+        # if eval_schedule is None:
+        #     self._eval_schedule = []
+        # elif isinstance(eval_schedule, int):
+        #     num_eval_schedule = num_episodes // eval_schedule
+        #     self._eval_schedule = [eval_schedule * i for i in range(1, num_eval_schedule + 1)]
+        # else:
+        #     self._eval_schedule = eval_schedule
+        #     self._eval_schedule.sort()
 
-        # always evaluate after the last episode
-        if not self._eval_schedule or num_episodes != self._eval_schedule[-1]:
-            self._eval_schedule.append(num_episodes)
+        # # always evaluate after the last episode
+        # if not self._eval_schedule or num_episodes != self._eval_schedule[-1]:
+        #     self._eval_schedule.append(num_episodes)
 
-        self._logger.info(f"Policy will be evaluated at the end of episodes {self._eval_schedule}")
-        self._eval_point_index = 0
+        # self._logger.info(f"Policy will be evaluated at the end of episodes {self._eval_schedule}")
+        # self._eval_point_index = 0
 
-        self.early_stopper = early_stopper
+        # self.early_stopper = early_stopper
 
         self._collect_time = 0
         self._policy_update_time = 0
@@ -79,15 +79,15 @@ class Learner:
         t0 = time.time()
         for ep in range(1, self.num_episodes + 1):
             self._collect_and_update(ep)
-            if ep == self._eval_schedule[self._eval_point_index]:
-                self._eval_point_index += 1
-                env_metric_dict = self.rollout_manager.evaluate(ep, self.policy_manager.get_state())
-                # early stopping check
-                if self.early_stopper:
-                    for env_metric in env_metric_dict.values():
-                        self.early_stopper.push(env_metric)
-                        if self.early_stopper.stop():
-                            return
+            # if ep == self._eval_schedule[self._eval_point_index]:
+            #     self._eval_point_index += 1
+            #     env_metric_dict = self.rollout_manager.evaluate(ep, self.policy_manager.get_state())
+            #     # early stopping check
+            #     if self.early_stopper:
+            #         for env_metric in env_metric_dict.values():
+            #             self.early_stopper.push(env_metric)
+            #             if self.early_stopper.stop():
+            #                 return
 
         if hasattr(self.rollout_manager, "exit"):
             self.rollout_manager.exit()
