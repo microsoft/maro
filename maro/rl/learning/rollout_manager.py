@@ -6,15 +6,20 @@ from collections import defaultdict
 from multiprocessing import Pipe, Process
 from os import getcwd
 from random import choices
-from typing import Callable
+from typing import Callable, List
+
+import numpy as np
 
 from maro.communication import Proxy, SessionType
 from maro.rl.utils import MsgKey, MsgTag
-from maro.rl.wrappers import AbsEnvWrapper, AgentWrapper
 from maro.utils import Logger, set_seeds
 
 from .common import get_rollout_finish_msg
-from .environment_sampler import EnvironmentSampler
+from .env_sampler import AbsEnvSampler
+
+
+def concat_batches(batch_list: List[dict]):
+    return {key: np.concatenate([batch[key] for batch in batch_list]) for key in batch_list[0]}
 
 
 class AbsRolloutManager(ABC):
@@ -72,15 +77,10 @@ class SimpleRolloutManager(AbsRolloutManager):
     """Local roll-out controller.
 
     Args:
-        get_env_wrapper (Callable): Function to create an environment wrapper for collecting training data. The function
-            should take no parameters and return an environment wrapper instance.
-        get_agent_wrapper (Callable): Function to create an agent wrapper that interacts with the environment wrapper.
-            The function should take no parameters and return a ``AgentWrapper`` instance.
+        get_env_sampler (Callable): Function to create an environment sampler for collecting training data. The function
+            should take no parameters and return an ``AbsEnvSampler`` instance.
         num_steps (int): Number of environment steps to roll out in each call to ``collect``. Defaults to -1, in which
             case the roll-out will be executed until the end of the environment.
-        get_eval_env_wrapper (Callable): Function to create an environment wrapper for evaluation. The function should
-            take no parameters and return an environment wrapper instance. If this is None, the training environment
-            wrapper will be used for evaluation in the worker processes. Defaults to None.
         post_collect (Callable): Custom function to process whatever information is collected by each
             environment wrapper (local or remote) at the end of ``collect`` calls. The function signature should
             be (trackers, ep, segment) -> None, where tracker is a list of environment wrappers' ``tracker`` members.
@@ -95,11 +95,9 @@ class SimpleRolloutManager(AbsRolloutManager):
     """
     def __init__(
         self,
-        get_env_wrapper: Callable[[], AbsEnvWrapper],
-        get_agent_wrapper: Callable[[], AgentWrapper],
+        get_env_sampler: Callable[[], AbsEnvSampler],
         num_steps: int = -1,
         parallelism: int = 1,
-        get_eval_env_wrapper: Callable[[], AbsEnvWrapper] = None,
         eval_parallelism: int = 1,
         post_collect: Callable = None,
         post_evaluate: Callable = None,
@@ -121,18 +119,14 @@ class SimpleRolloutManager(AbsRolloutManager):
         self._parallelism = parallelism
         self._eval_parallelism = eval_parallelism
         if self._parallelism == 1:
-            self.env_sampler = EnvironmentSampler(
-                get_env_wrapper, get_agent_wrapper, get_eval_env_wrapper=get_eval_env_wrapper
-            )
+            self.env_sampler = get_env_sampler()
         else:
             self._worker_processes = []
             self._manager_ends = []
 
-            def _rollout_worker(index, conn, get_env_wrapper, get_agent_wrapper, get_eval_env_wrapper=None):
+            def _rollout_worker(index, conn, get_env_sampler):
                 set_seeds(index)
-                env_sampler = EnvironmentSampler(
-                    get_env_wrapper, get_agent_wrapper, get_eval_env_wrapper=get_eval_env_wrapper
-                )
+                env_sampler = get_env_sampler()
                 logger = Logger("ROLLOUT_WORKER", dump_folder=log_dir)
                 while True:
                     msg = conn.recv()
@@ -157,11 +151,7 @@ class SimpleRolloutManager(AbsRolloutManager):
             for index in range(self._parallelism):
                 manager_end, worker_end = Pipe()
                 self._manager_ends.append(manager_end)
-                worker = Process(
-                    target=_rollout_worker,
-                    args=(index, worker_end, get_env_wrapper, get_agent_wrapper),
-                    kwargs={"get_eval_env_wrapper": get_eval_env_wrapper}
-                )
+                worker = Process(target=_rollout_worker, args=(index, worker_end, get_env_sampler))
                 self._worker_processes.append(worker)
                 worker.start()
 
@@ -190,8 +180,8 @@ class SimpleRolloutManager(AbsRolloutManager):
                 get_rollout_finish_msg(ep, result["step_range"], exploration_params=result["exploration_params"])
             )
 
-            for policy_name, info in result["rollout_info"].items():
-                info_by_policy[policy_name].append(info)
+            for policy_id, info in result["rollout_info"].items():
+                info_by_policy[policy_id].append(info)
             trackers.append(result["tracker"])
             self.episode_complete = result["end_of_episode"]
         else:
@@ -211,8 +201,8 @@ class SimpleRolloutManager(AbsRolloutManager):
 
             for conn in self._manager_ends:
                 result = conn.recv()
-                for policy_name, info in result["rollout_info"].items():
-                    info_by_policy[policy_name].append(info)
+                for policy_id, info in result["rollout_info"].items():
+                    info_by_policy[policy_id].append(info)
                 trackers.append(result["tracker"])
                 self.episode_complete = result["episode_end"]
 
@@ -221,6 +211,11 @@ class SimpleRolloutManager(AbsRolloutManager):
 
         if self._post_collect:
             self._post_collect(trackers, ep, segment)
+
+        # concat batches from different roll-out workers
+        for policy_id, info_list in info_by_policy.items():
+            if not "loss" in info_list[0]:
+                info_by_policy[policy_id] = concat_batches(info_list)
 
         return info_by_policy
 
@@ -364,14 +359,14 @@ class DistributedRolloutManager(AbsRolloutManager):
         if self._exploration_step:
             self._exploration_step = False
 
-        info_list_by_policy, trackers, num_finishes = defaultdict(list), [], 0
+        info_by_policy, trackers, num_finishes = defaultdict(list), [], 0
         # Ensure the minimum number of worker results are received.
         for msg in self._proxy.receive():
-            info_by_policy, tracker = self._handle_worker_result(msg, ep, segment, version)
-            if info_by_policy:
+            rollout_info, tracker = self._handle_worker_result(msg, ep, segment, version)
+            if rollout_info:
                 num_finishes += 1
-                for policy_name, info in info_by_policy.items():
-                    info_list_by_policy[policy_name].append(info)
+                for policy_id, info in rollout_info.items():
+                    info_by_policy[policy_id].append(info)
                 trackers.append(tracker)
             if num_finishes == self._min_finished_workers:
                 break
@@ -382,11 +377,11 @@ class DistributedRolloutManager(AbsRolloutManager):
             if not msg:
                 self._logger.info(f"Receive timeout, {self._max_extra_recv_tries - i - 1} attempts left")
             else:
-                info_by_policy, tracker = self._handle_worker_result(msg, ep, segment, version)
+                rollout_info, tracker = self._handle_worker_result(msg, ep, segment, version)
                 if info_by_policy:
                     num_finishes += 1
-                    for policy_name, info in info_by_policy.items():
-                        info_list_by_policy[policy_name].append(info)
+                    for policy_id, info in rollout_info.items():
+                        info_by_policy[policy_id].append(info)
                     trackers.append(tracker)
                 if num_finishes == self._num_workers:
                     break
@@ -397,7 +392,12 @@ class DistributedRolloutManager(AbsRolloutManager):
         if self._post_collect:
             self._post_collect(trackers, ep, segment)
 
-        return info_list_by_policy
+        # concat batches from different roll-out workers
+        for policy_id, info_list in info_by_policy.items():
+            if not "loss" in info_list[0]:
+                info_by_policy[policy_id] = concat_batches(info_list)
+
+        return info_by_policy
 
     def _handle_worker_result(self, msg, ep, segment, version):
         if msg.tag != MsgTag.SAMPLE_DONE:

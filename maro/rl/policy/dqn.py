@@ -82,9 +82,9 @@ class PrioritizedExperienceReplay:
             priorities.append(self._sum_tree[idx])
 
         self.beta = min(1., self.beta + self.beta_step)
-        sampling_probabilities = priorities / self.total()
+        sampling_probabilities = priorities / (self.total() + 1e-8)
         is_weights = np.power(self._replay_memory.size * sampling_probabilities, -self.beta)
-        is_weights /= is_weights.max()
+        is_weights /= (is_weights.max() + 1e-8)
 
         return indexes, is_weights
 
@@ -150,15 +150,14 @@ class DQN(RLPolicy):
         exploration: DiscreteSpaceExploration = EpsilonGreedyExploration(),
         replay_memory_capacity: int = 10000,
         random_overwrite: bool = False,
-        batch_size: int = 32,
-        rollout_info_size: int = 1000,
-        prioritized_replay_kwargs: dict = None,
-        remote: bool = False
+        train_batch_size: int = 32,
+        rollout_batch_size: int = 1000,
+        prioritized_replay_kwargs: dict = None
     ):
         if not isinstance(q_net, DiscreteQNet):
             raise TypeError("model must be an instance of 'DiscreteQNet'")
 
-        super().__init__(name, remote=remote)
+        super().__init__(name)
         self.q_net = q_net
         self.device = self.q_net.device
         if self.q_net.trainable:
@@ -178,8 +177,8 @@ class DQN(RLPolicy):
         self._replay_memory = ReplayMemory(
             replay_memory_capacity, self.q_net.input_dim, action_dim=1, random_overwrite=random_overwrite
         )
-        self.batch_size = batch_size
-        self.rollout_info_size = rollout_info_size
+        self.rollout_batch_size = rollout_batch_size
+        self.train_batch_size = train_batch_size
         self.prioritized_replay = prioritized_replay_kwargs is not None
         if self.prioritized_replay:
             self._per = PrioritizedExperienceReplay(self._replay_memory, **prioritized_replay_kwargs)
@@ -187,16 +186,19 @@ class DQN(RLPolicy):
             self._loss_func = torch.nn.MSELoss()
 
         self.exploration = exploration
-        self.exploring = True  # set initial exploration status to True
+        self.greedy = True  # set initial exploration status to True
 
-    def choose_action(self, states: torch.tensor) -> Union[int, np.ndarray]:
+    def choose_action(self, states: np.ndarray) -> Union[int, np.ndarray]:
         self.q_net.eval()
+        states = torch.from_numpy(states).to(self.device)
+        if len(states.shape) == 1:
+            states = states.unsqueeze(dim=0)
         with torch.no_grad():
             q_for_all_actions = self.q_net(states)  # (batch_size, num_actions)
             _, actions = q_for_all_actions.max(dim=1)
 
         actions = actions.cpu().numpy()
-        if self.exploring:
+        if not self.greedy:
             if self.exploration.action_space is None:
                 self.exploration.set_action_space(np.arange(q_for_all_actions.shape[1]))
             actions = self.exploration(actions, state=states)
@@ -204,41 +206,49 @@ class DQN(RLPolicy):
 
     def record(
         self,
-        agent: str,
+        key: str,
         state: np.ndarray,
         action: Union[int, float, np.ndarray],
         reward: float,
         next_state: np.ndarray,
         terminal: bool
     ):
-        indexes = self._replay_memory.put(state, action, reward, next_state, terminal) 
+        indexes = self._replay_memory.put(
+            np.expand_dims(state, axis=0),
+            np.expand_dims(action, axis=0),
+            np.expand_dims(reward, axis=0),
+            np.expand_dims(next_state, axis=0),
+            np.expand_dims(terminal, axis=0)
+        )
         if self.prioritized_replay:
             self._per.set_max_priority(indexes)
 
     def get_rollout_info(self):
-        return self._replay_memory.sample(self.rollout_info_size)
+        return self._replay_memory.sample(self.rollout_batch_size)
 
     def _get_batch(self):
         if self.prioritized_replay:
-            indexes, is_weights = self._per.sample(self.batch_size)
+            indexes, is_weights = self._per.sample(self.train_batch_size)
             return {
                 "states": self._replay_memory.states[indexes],
                 "actions": self._replay_memory.actions[indexes],
                 "rewards": self._replay_memory.rewards[indexes],
                 "next_states": self._replay_memory.next_states[indexes],
+                "terminals": self._replay_memory.terminals[indexes],
                 "indexes": indexes,
                 "is_weights": is_weights
             }
         else:
-            return self._replay_memory.sample(self.batch_size)
+            return self._replay_memory.sample(self.train_batch_size)
 
     def get_batch_loss(self, batch: dict, explicit_grad: bool = False):
         assert self.q_net.trainable, "q_net needs to have at least one optimizer registered."
         self.q_net.train()
-        states, next_states = batch["states"], batch["next_states"]
+        states = torch.from_numpy(batch["states"]).to(self.device)
+        next_states = torch.from_numpy(batch["next_states"]).to(self.device)
         actions = torch.from_numpy(batch["actions"]).to(self.device)
         rewards = torch.from_numpy(batch["rewards"]).to(self.device)
-        terminals = torch.from_numpy(batch["terminals"]).to(self.device)
+        terminals = torch.from_numpy(batch["terminals"]).float().to(self.device)
 
         # get target Q values
         with torch.no_grad():
@@ -250,14 +260,15 @@ class DQN(RLPolicy):
 
         target_q_values = (rewards + self.reward_discount * (1 - terminals) * next_q_values).detach()  # (N,)
 
-        # gradient step
+        # loss info
         loss_info = {}
         q_values = self.q_net.q_values(states, actions)
+        # print(f"target: {target_q_values}, eval: {q_values}")
         td_errors = target_q_values - q_values
         if self.prioritized_replay:
             is_weights = torch.from_numpy(batch["is_weights"]).to(self.device)
             loss = (td_errors * is_weights).mean()
-            loss_info["td_errors"], loss_info["indexes"] = td_errors, batch["indexes"]
+            loss_info["td_errors"], loss_info["indexes"] = td_errors.detach().cpu().numpy(), batch["indexes"]
         else:
             loss = self._loss_func(q_values, target_q_values)
 
@@ -266,7 +277,7 @@ class DQN(RLPolicy):
             loss_info["grad"] = self.q_net.get_gradients(loss)
         return loss_info
 
-    def update_with_multi_loss_info(self, loss_info_list: List[dict]):
+    def update(self, loss_info_list: List[dict]):
         if self.prioritized_replay:
             for loss_info in loss_info_list:
                 self._per.update(loss_info["indexes"], loss_info["td_errors"])
@@ -276,19 +287,20 @@ class DQN(RLPolicy):
         if self._q_net_version - self._target_q_net_version == self.update_target_every:
             self._update_target()
 
-    def learn_from_multi_trajectories(self, trajectories: List[dict]):
-        for traj in trajectories:
-            self._put_in_replay_memory(traj)
+    def learn(self, batch: dict):
+        self._replay_memory.put(
+            batch["states"], batch["actions"], batch["rewards"], batch["next_states"], batch["terminals"]
+        )
 
-        if self.remote:
+        if self.grad_parallel:
             # TODO: distributed grad computation
             pass
-        else:
+        else:            
             for _ in range(self.num_epochs):
                 loss_info = self.get_batch_loss(self._get_batch())
                 if self.prioritized_replay:
                     self._per.update(loss_info["indexes"], loss_info["td_errors"])
-                self.q_net.step(loss_info.loss)
+                self.q_net.step(loss_info["loss"])
                 self._q_net_version += 1
                 if self._q_net_version - self._target_q_net_version == self.update_target_every:
                     self._update_target()
@@ -303,10 +315,10 @@ class DQN(RLPolicy):
         return self.exploration.parameters
 
     def exploit(self):
-        self.exploring = False
+        self.greedy = True
 
     def explore(self):
-        self.exploring = True
+        self.greedy = False
 
     def exploration_step(self):
         self.exploration.step()

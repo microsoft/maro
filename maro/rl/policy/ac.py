@@ -30,8 +30,10 @@ class ActorCritic(RLPolicy):
             self.logps = np.zeros(size, dtype=np.float32)
             self.values = np.zeros(size, dtype=np.float32)
             self.rewards = np.zeros(size, dtype=np.float32)
-            self.terminal = np.zeros(size, dtype=np.bool)
+            self.terminals = np.zeros(size, dtype=np.bool)
             self.size = size
+            self._ptr = 0
+            self._last_ptr = 0
 
         def put(self, state: np.ndarray, action: dict, reward: float, terminal: bool = False):
             self.states[self._ptr] = state
@@ -39,14 +41,14 @@ class ActorCritic(RLPolicy):
             self.logps[self._ptr] = action["logp"]
             self.values[self._ptr] = action["value"]
             self.rewards[self._ptr] = reward
-            self.terminal[self._ptr] = terminal
+            self.terminals[self._ptr] = terminal
             # increment pointer
             self._ptr += 1
             if self._ptr == self.size:
                 self._ptr = 0
 
         def get(self):
-            terminal = self.terminal[self._ptr - 1]
+            terminal = self.terminals[self._ptr - 1]
             traj_slice = slice(self._last_ptr, self._ptr - (not terminal))
             self._last_ptr = self._ptr - (not terminal)
             return {
@@ -93,13 +95,12 @@ class ActorCritic(RLPolicy):
         clip_ratio: float = None,
         lam: float = 0.9,
         buffer_size: int = 10000,
-        get_loss_on_rollout_finish: bool = False,
-        remote: bool = False
+        get_loss_on_rollout: bool = False
     ):
         if not isinstance(ac_net, DiscreteACNet):
             raise TypeError("model must be an instance of 'DiscreteACNet'")
 
-        super().__init__(name, remote=remote)
+        super().__init__(name)
         self.ac_net = ac_net
         self.device = self.ac_net.device
         self.reward_discount = reward_discount
@@ -111,17 +112,16 @@ class ActorCritic(RLPolicy):
         self.clip_ratio = clip_ratio
         self.lam = lam
         self.buffer_size = buffer_size
-        self._get_loss_on_rollout_finish = get_loss_on_rollout_finish
+        self.get_loss_on_rollout = get_loss_on_rollout
 
-        self._buffer = {}
+        self._buffer = defaultdict(lambda: self.Buffer(self.ac_net.input_dim, size=self.buffer_size))
 
-    def add_agent(self, agent: str):
-        super().add_agent(agent)
-        self._buffer[agent] = self.Buffer(self.ac_net.input_dim, size=self.buffer_size)
-
-    def choose_action(self, states):
+    def choose_action(self, states: np.ndarray):
         """Return actions and log probabilities for given states."""
         self.ac_net.eval()
+        states = torch.from_numpy(states).to(self.device)
+        if len(states.shape) == 1:
+            states = states.unsqueeze(dim=0)
         with torch.no_grad():
             actions, logps, values = self.ac_net.get_action(states)
         actions, logps, values = actions.cpu().numpy(), logps.cpu().numpy(), values.cpu().numpy()
@@ -134,32 +134,27 @@ class ActorCritic(RLPolicy):
 
     def record(
         self,
-        agent: str,
+        key: str,
         state: np.ndarray,
         action: dict,
         reward: float,
         next_state: np.ndarray,
         terminal: bool
     ):
-        if agent not in self._buffer:
-            raise KeyError(
-                f"Agent {agent} has not been added to this policy. "
-                f"Make sure to add it using 'add_agent' before using it for inference."
-            )
-        self._buffer[agent].put(state, action, reward, terminal) 
+        self._buffer[key].put(state, action, reward, terminal) 
 
     def get_rollout_info(self):
-        if self._get_loss_on_rollout_finish:
+        if self.get_loss_on_rollout:
             return self.get_batch_loss(self._get_batch(), explicit_grad=True)
         else:
             return self._get_batch()
 
     def _get_batch(self):
         batch = defaultdict(list)
-        for buf in self._buffer:
+        for buf in self._buffer.values():
             trajectory = buf.get()
-            values = np.append(trajectory["values"], trajectory["last_val"])
-            rewards = np.append(trajectory["rewards"], trajectory["last_val"])
+            values = np.append(trajectory["values"], trajectory["last_value"])
+            rewards = np.append(trajectory["rewards"], trajectory["last_value"])
             deltas = rewards[:-1] + self.reward_discount * values[1:] - values[:-1]
             batch["states"].append(trajectory["states"])
             batch["actions"].append(trajectory["actions"])
@@ -169,17 +164,18 @@ class ActorCritic(RLPolicy):
             batch["advantages"].append(discount_cumsum(deltas, self.reward_discount * self.lam))
             batch["logps"].append(trajectory["logps"])
 
-        return {key: np.concatenate(vals) for key, vals in batch.items}
+        return {key: np.concatenate(vals) for key, vals in batch.items()}
 
     def get_batch_loss(self, batch: dict, explicit_grad: bool = False):
         assert self.ac_net.trainable, "ac_net needs to have at least one optimizer registered."
         self.ac_net.train()
+        states = torch.from_numpy(batch["states"]).to(self.device)
         actions = torch.from_numpy(batch["actions"]).to(self.device)
         logp_old = torch.from_numpy(batch["logps"]).to(self.device)
         returns = torch.from_numpy(batch["returns"]).to(self.device)
         advantages = torch.from_numpy(batch["advantages"]).to(self.device)
 
-        action_probs, state_values = self.ac_net(batch["states"])
+        action_probs, state_values = self.ac_net(states)
         state_values = state_values.squeeze()
 
         # actor loss
@@ -200,24 +196,28 @@ class ActorCritic(RLPolicy):
         # total loss
         loss = actor_loss + self.critic_loss_coeff * critic_loss + self.entropy_coeff * entropy
 
-        loss_info = {"actor_loss": actor_loss, "critic_loss": critic_loss, "entropy": entropy, "loss": loss}
+        loss_info = {
+            "actor_loss": actor_loss.detach().cpu().numpy(),
+            "critic_loss": critic_loss.detach().cpu().numpy(),
+            "entropy": entropy.detach().cpu().numpy(),
+            "loss": loss
+        }
         if explicit_grad:
             loss_info["grad"] = self.ac_net.get_gradients(loss)
 
         return loss_info
 
-    def update_with_multi_loss_info(self, loss_info_list: List[dict]):
+    def update(self, loss_info_list: List[dict]):
         """Apply gradients to the underlying parameterized model."""
-        self.ac_net.apply_gradients([loss_info.grad for loss_info in loss_info_list])
+        self.ac_net.apply_gradients([loss_info["grad"] for loss_info in loss_info_list])
 
-    def learn_from_multi_trajectories(self, trajectories: List[dict]):
-        if self.remote:
+    def learn(self, batch: dict):
+        if self.grad_parallel:
             # TODO: distributed grad computation
             pass
         else:
-            batches = [self._preprocess(traj) for traj in trajectories]
             for _ in range(self.grad_iters):
-                self.update_with_multi_loss_info([self.get_batch_loss(batch, explicit_grad=True) for batch in batches])
+                self.ac_net.step(self.get_batch_loss(batch)["loss"])
 
     def set_state(self, policy_state):
         self.ac_net.load_state_dict(policy_state)

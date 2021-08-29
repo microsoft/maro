@@ -7,45 +7,11 @@ import numpy as np
 import torch
 
 from maro.rl.exploration import GaussianNoiseExploration, NoiseExploration
-from maro.rl.types import ContinuousACNet, Trajectory
+from maro.rl.modeling import ContinuousACNet
 from maro.rl.utils import get_torch_loss_cls
-from maro.utils.exception.rl_toolkit_exception import InvalidExperience
 
-from .policy import Batch, LossInfo, RLPolicy
+from .policy import RLPolicy
 from .replay import ReplayMemory
-
-
-class DDPGBatch(Batch):
-    """Wrapper for a set of experiences.
-
-    An experience consists of state, action, reward, next state and auxillary information.
-    """
-    __slots__ = ["states", "actions", "rewards", "next_states"]
-
-    def __init__(self, states: list, actions: list, rewards: list, next_states: list):
-        if not len(states) == len(actions) == len(rewards) == len(next_states):
-            raise InvalidExperience("values of contents should consist of lists of the same length")
-        super().__init__()
-        self.states = states
-        self.actions = actions
-        self.rewards = rewards
-        self.next_states = next_states
-
-    @property
-    def size(self):
-        return len(self.states)
-
-
-class DDPGLossInfo(LossInfo):
-
-    __slots__ = ["policy_loss", "q_loss"]
-
-    def __init__(self, loss, policy_loss, q_loss, grad=None):
-        super().__init__(loss, grad)
-        self.loss = loss
-        self.policy_loss = policy_loss
-        self.q_loss = q_loss
-        self.grad = grad
 
 
 class DDPG(RLPolicy):
@@ -71,6 +37,7 @@ class DDPG(RLPolicy):
         random_overwrite (bool): This specifies overwrite behavior when the replay memory capacity is reached. If True,
             overwrite positions will be selected randomly. Otherwise, overwrites will occur sequentially with
             wrap-around. Defaults to False.
+        batch_size (int): Training sample. Defaults to 32.
     """
     def __init__(
         self,
@@ -85,12 +52,12 @@ class DDPG(RLPolicy):
         exploration: NoiseExploration = GaussianNoiseExploration(),
         replay_memory_capacity: int = 10000,
         random_overwrite: bool = False,
-        remote: bool = False
+        batch_size: int = 32
     ):
         if not isinstance(ac_net, ContinuousACNet):
             raise TypeError("model must be an instance of 'ContinuousACNet'")
 
-        super().__init__(name, remote=remote)
+        super().__init__(name)
         self.ac_net = ac_net
         self.device = self.ac_net.device
         if self.ac_net.trainable:
@@ -108,84 +75,88 @@ class DDPG(RLPolicy):
         self._ac_net_version = 0
         self._target_ac_net_version = 0
 
-        self._replay_memory = ReplayMemory(DDPGBatch, replay_memory_capacity, random_overwrite=random_overwrite)
+        self._replay_memory = ReplayMemory(
+            replay_memory_capacity, self.ac_net.input_dim, action_dim=1, random_overwrite=random_overwrite
+        )
+        self.batch_size = batch_size
 
         self.exploration = exploration
-        self.exploring = True  # set initial exploration status to True
+        self.greedy = True
 
-    def choose_action(self, states, explore: bool = False) -> Union[float, np.ndarray]:
+    def choose_action(self, states) -> Union[float, np.ndarray]:
         self.ac_net.eval()
         with torch.no_grad():
             actions = self.ac_net.get_action(states).cpu().numpy()
 
-        if explore:
+        if not self.greedy:
             actions = self.exploration(actions, state=states)
         return actions[0] if len(actions) == 1 else actions
 
-    def _preprocess(self, trajectory: Trajectory):
-        if trajectory.states[-1]:
-            batch = DDPGBatch(
-                states=trajectory.states[:-1],
-                actions=trajectory.actions[:-1],
-                rewards=trajectory.rewards,
-                next_states=trajectory.states[1:]
-            )
-        else:
-            batch = DDPGBatch(
-                states=trajectory.states[:-2],
-                actions=trajectory.actions[:-2],
-                rewards=trajectory.rewards[:-1],
-                next_states=trajectory.states[1:-1]
-            )
-        self._replay_memory.put(batch)
-
-    def _get_batch(self) -> DDPGBatch:
-        indexes = np.random.choice(self._replay_memory.size)
-        return DDPGBatch(
-            [self._replay_memory.data["states"][idx] for idx in indexes],
-            [self._replay_memory.data["actions"][idx] for idx in indexes],
-            [self._replay_memory.data["rewards"][idx] for idx in indexes],
-            [self._replay_memory.data["next_states"][idx] for idx in indexes]
+    def record(
+        self,
+        key: str,
+        state: np.ndarray,
+        action: Union[int, float, np.ndarray],
+        reward: float,
+        next_state: np.ndarray,
+        terminal: bool
+    ):
+        self._replay_memory.put(
+            np.expand_dims(state, axis=0),
+            np.expand_dims(action, axis=0),
+            np.expand_dims(reward, axis=0),
+            np.expand_dims(next_state, axis=0),
+            np.expand_dims(terminal, axis=0)
         )
 
-    def get_batch_loss(self, batch: DDPGBatch, explicit_grad: bool = False) -> DDPGLossInfo:
+    def get_batch_loss(self, batch: dict, explicit_grad: bool = False) -> dict:
         assert self.ac_net.trainable, "ac_net needs to have at least one optimizer registered."
         self.ac_net.train()
-        states, next_states = batch.states, batch.next_states
-        actual_actions = torch.from_numpy(batch.actions).to(self.device)
-        rewards = torch.from_numpy(batch.rewards).to(self.device)
+        states = torch.from_numpy(batch["states"]).to(self.device)
+        next_states = torch.from_numpy(["next_states"]).to(self.device)
+        actual_actions = torch.from_numpy(batch["actions"]).to(self.device)
+        rewards = torch.from_numpy(batch["rewards"]).to(self.device)
+        terminals = torch.from_numpy(batch["terminals"]).float().to(self.device)
         if len(actual_actions.shape) == 1:
             actual_actions = actual_actions.unsqueeze(dim=1)  # (N, 1)
 
         with torch.no_grad():
             next_q_values = self.target_ac_net.value(next_states)
-        target_q_values = (rewards + self.reward_discount * next_q_values).detach()  # (N,)
+        target_q_values = (rewards + self.reward_discount * (1 - terminals) * next_q_values).detach()  # (N,)
 
+        # loss info
+        loss_info = {}
         q_values = self.ac_net(states, actions=actual_actions).squeeze(dim=1)  # (N,)
         q_loss = self.q_value_loss_func(q_values, target_q_values)
         policy_loss = -self.ac_net.value(states).mean()
-
-        # total loss
         loss = policy_loss + self.q_value_loss_coeff * q_loss
-        grad = self.ac_net.get_gradients(loss) if explicit_grad else None
-        return DDPGLossInfo(policy_loss, q_loss, loss, grad=grad)
+        loss_info = {
+            "policy_loss": policy_loss.detach().cpu().numpy(),
+            "q_loss": q_loss.detach().cpu().numpy(),
+            "loss": loss.detach().cpu().numpy()
+        }
+        if explicit_grad:
+            loss_info["grad"] = self.ac_net.get_gradients(loss)
 
-    def update_with_multi_loss_info(self, loss_info_list: List[DDPGLossInfo]):
-        self.ac_net.apply_gradients([loss_info.grad for loss_info in loss_info_list])
+        return loss_info
+
+    def update(self, loss_info_list: List[dict]):
+        self.ac_net.apply_gradients([loss_info["grad"] for loss_info in loss_info_list])
         if self._ac_net_version - self._target_ac_net_version == self.update_target_every:
             self._update_target()
 
-    def learn_from_multi_trajectories(self, trajectories: List[Trajectory]):
-        for traj in trajectories:
-            self._preprocess(traj)
+    def learn(self, batch: dict):
+        self._replay_memory.put(
+            batch["states"], batch["actions"], batch["rewards"], batch["next_states"], batch["terminals"]
+        )
 
-        if self.remote:
+        if self.grad_parallel:
             # TODO: distributed grad computation
             pass
         else:
             for _ in range(self.num_epochs):
-                loss_info = self.get_batch_loss(self._get_batch(), explicit_grad=False)
-                self.ac_net.step(loss_info.loss)
+                train_batch = self._replay_memory.sample(self.batch_size)
+                self.ac_net.step(self.get_batch_loss(train_batch)["loss"])
                 self._ac_net_version += 1
                 if self._ac_net_version - self._target_ac_net_version == self.update_target_every:
                     self._update_target()
@@ -200,10 +171,10 @@ class DDPG(RLPolicy):
         return self.exploration.parameters
 
     def exploit(self):
-        self.exploring = False
+        self.greedy = True
 
     def explore(self):
-        self.exploring = True
+        self.greedy = False
 
     def exploration_step(self):
         self.exploration.step()

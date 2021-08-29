@@ -14,13 +14,13 @@ if workflow_dir not in sys.path:
 with open(join(workflow_dir, "config.yml"), "r") as fp:
     config = yaml.safe_load(fp)
 
-from general import get_env_wrapper, get_eval_env_wrapper, log_dir, post_collect, post_evaluate
+from general import get_env_sampler, get_eval_env_wrapper, log_dir, post_collect, post_evaluate
 from rollout import get_agent_wrapper
 
 
 if __name__ == "__main__":
     simple_learner(
-        get_env_wrapper(),
+        get_env_sampler(),
         get_agent_wrapper(rollout_only=False),
         num_episodes=config["num_episodes"],
         num_steps=config["num_steps"],

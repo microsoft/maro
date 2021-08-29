@@ -19,9 +19,9 @@ sync:
     eval_parallelism: 1
   distributed:
     group: rollout
-    num_workers: 3
+    num_workers: 4
     num_eval_workers: 1
-    min_finished_workers: 2
+    min_finished_workers: 3
     max_extra_recv_tries: 2
     extra_recv_timeout: 200
 async:

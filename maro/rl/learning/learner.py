@@ -9,17 +9,15 @@ from maro.utils import Logger
 
 from .common import get_eval_schedule, get_rollout_finish_msg
 from .early_stopper import AbsEarlyStopper
-from .env_sampler import EnvSampler
+from .env_sampler import AbsEnvSampler
 from .policy_manager import AbsPolicyManager
 from .rollout_manager import AbsRolloutManager
 
 
 def simple_learner(
-    get_env_wrapper: Callable[[], AbsEnvWrapper],
-    get_agent_wrapper: Callable[[], AgentWrapper],
+    get_env_sampler: Callable[[], AbsEnvSampler],
     num_episodes: int,
     num_steps: int = -1,
-    get_eval_env_wrapper: Callable[[], AbsEnvWrapper] = None,
     eval_schedule: Union[int, List[int]] = None,
     eval_after_last_episode: bool = True,
     early_stopper: AbsEarlyStopper = None,
@@ -30,7 +28,7 @@ def simple_learner(
     """Single-threaded learning workflow.
 
     Args:
-        get_env_wrapper (Callable): Function to create an environment wrapper for collecting training data. The function
+        get_env_sampler (Callable): Function to create an environment wrapper for collecting training data. The function
             should take no parameters and return an environment wrapper instance.
         get_agent_wrapper (Callable): Function to create an agent wrapper that interacts with the environment wrapper.
             The function should take no parameters and return a ``AgentWrapper`` instance.
@@ -65,7 +63,7 @@ def simple_learner(
         raise ValueError("num_steps must be a positive integer or -1")
 
     logger = Logger("LOCAL_LEARNER", dump_folder=log_dir)
-    env_sampler = EnvSampler(get_env_wrapper, get_agent_wrapper, get_eval_env_wrapper=get_eval_env_wrapper)
+    env_sampler = get_env_sampler()
 
     # evaluation schedule
     eval_schedule = get_eval_schedule(eval_schedule, num_episodes, final=eval_after_last_episode)
@@ -80,11 +78,11 @@ def simple_learner(
             logger.info(
                 get_rollout_finish_msg(ep, result["step_range"], exploration_params=result["exploration_params"])
             )
-            for policy_name, info_list in result["rollout_info"].items():
-                if isinstance(info_list[0], Trajectory):
-                    env_sampler.agent.policy_dict[policy_name].learn_from_multi_trajectories(info_list)
-                elif isinstance(info_list[0], LossInfo):
-                    env_sampler.agent.policy_dict[policy_name].update_with_multi_loss_info(info_list)
+            for policy_name, info in result["rollout_info"].items():
+                if "grad" in info:
+                    env_sampler.policy_dict[policy_name].update([info])
+                else:
+                    env_sampler.policy_dict[policy_name].learn([info])
 
             if post_collect:
                 post_collect([result["tracker"]], ep, segment)

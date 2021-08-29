@@ -10,7 +10,7 @@ import torch.nn as nn
 from maro.rl.utils import get_torch_activation_cls
 
 
-class FullyConnectedBlock(nn.Module):
+class FullyConnected(nn.Module):
     """Fully connected network with optional batch normalization, activation and dropout components.
 
     Args:

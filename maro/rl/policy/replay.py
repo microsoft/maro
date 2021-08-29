@@ -26,9 +26,9 @@ class ReplayMemory:
         if action_dim > 1:
             self.actions = np.zeros((self._capacity, self._action_dim), dtype=np.float32)
         else:
-            self.actions = np.zeros(self._capacity, dtype=np.float32)
+            self.actions = np.zeros(self._capacity, dtype=np.int64)
         self.rewards = np.zeros(self._capacity, dtype=np.float32)
-        self.next_states = np.zeros(self._capacity, dtype=np.float32)
+        self.next_states = np.zeros((self._capacity, self._state_dim), dtype=np.float32)
         self.terminals = np.zeros(self._capacity, dtype=np.bool)
         self._ptr = 0
 
@@ -86,5 +86,6 @@ class ReplayMemory:
             "states": self.states[indexes],
             "actions": self.actions[indexes],
             "rewards": self.rewards[indexes],
-            "next_states": self.next_states[indexes]
+            "next_states": self.next_states[indexes],
+            "terminals": self.terminals[indexes]
         }

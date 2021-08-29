@@ -9,8 +9,7 @@ from os import getcwd
 from typing import Callable, Dict, List
 
 from maro.communication import Proxy, SessionMessage, SessionType
-from maro.rl.policy import LossInfo, RLPolicy
-from maro.rl.types import Trajectory
+from maro.rl.policy import RLPolicy
 from maro.rl.utils import MsgKey, MsgTag
 from maro.utils import Logger
 
@@ -24,8 +23,8 @@ class AbsPolicyManager(ABC):
     def update(self, rollout_info: Dict[str, list]):
         """Update policies using roll-out information.
 
-        The roll-out information is grouped by policy name and may be either raw simulation trajectories or loss
-        information computed directly by roll-out workers.
+        The roll-out information is grouped by policy name and may be either a training batch or a list of loss
+        information dictionaries computed directly by roll-out workers.
         """
         raise NotImplementedError
 
@@ -123,15 +122,13 @@ class SimplePolicyManager(AbsPolicyManager):
                     msg = conn.recv()
                     if msg["type"] == "learn":
                         info_list = msg["rollout_info"]
-                        if isinstance(info_list[0], Trajectory):
-                            policy.learn_from_multi_trajectories(info_list)
-                        elif isinstance(info_list[0], LossInfo):
-                            policy.update_with_multi_loss_info(info_list)
+                        if not isinstance(info_list, list):
+                            info_list = [info_list]
+                        if "loss" in info_list[0]:
+                            policy.update(info_list)
                         else:
-                            raise TypeError(
-                                f"Roll-out information must be of type 'Trajectory' or 'LossInfo', "
-                                f"got {type(info_list[0])}"
-                            )
+                            policy.learn(info_list)
+
                         conn.send({"type": "learn_done", "policy_state": policy.get_state()})
                     elif msg["type"] == "quit":
                         break
@@ -157,8 +154,8 @@ class SimplePolicyManager(AbsPolicyManager):
     def update(self, rollout_info: Dict[str, list]):
         """Update policies using roll-out information.
 
-        The roll-out information is grouped by policy name and may be either raw simulation trajectories or loss
-        information computed directly by roll-out workers.
+        The roll-out information is grouped by policy name and may be either a training batch or a list of loss
+        information dictionaries computed directly by roll-out workers.
         """
         t0 = time.time()
         if self._parallel:
@@ -170,13 +167,11 @@ class SimplePolicyManager(AbsPolicyManager):
                     self._state_cache[policy_name] = msg["policy_state"]
                     self._logger.info(f"Cached state for policy {policy_name}")
         else:
-            for policy_name, info_list in rollout_info.items():
-                if not isinstance(info_list, list):
-                    info_list = [info_list]
-                if isinstance(info_list[0], Trajectory):
-                    self._policy_dict[policy_name].learn_from_multi_trajectories(info_list)
-                elif isinstance(info_list[0], LossInfo):
-                    self._policy_dict[policy_name].update_with_multi_loss_info(info_list)
+            for policy_name, info in rollout_info.items():
+                if isinstance(info, list):
+                    self._policy_dict[policy_name].update(info)
+                else:
+                    self._policy_dict[policy_name].learn(info)
 
         self._logger.info(f"Updated policies {list(rollout_info.keys())}")
         self._version += 1
@@ -260,15 +255,13 @@ class DistributedPolicyManager(AbsPolicyManager):
     def update(self, rollout_info: Dict[str, list]):
         """Update policies using roll-out information.
 
-        The roll-out information is grouped by policy name and may be either raw simulation trajectories or loss
-        information computed directly by roll-out workers.
+        The roll-out information is grouped by policy name and may be either a training batch or a list if loss
+        information dictionaries computed directly by roll-out workers.
         """
         msg_dict = defaultdict(lambda: defaultdict(dict))
-        for policy_name, info_list in rollout_info.items():
-            if not isinstance(info_list, list):
-                info_list = [info_list]
+        for policy_name, info in rollout_info.items():
             host_id_str = self._policy2host[policy_name]
-            msg_dict[host_id_str][MsgKey.ROLLOUT_INFO][policy_name] = info_list
+            msg_dict[host_id_str][MsgKey.ROLLOUT_INFO][policy_name] = info
 
         dones = 0
         self._proxy.iscatter(MsgTag.LEARN, SessionType.TASK, list(msg_dict.items()))
@@ -340,17 +333,14 @@ def policy_host(
             )
         elif msg.tag == MsgTag.LEARN:
             t0 = time.time()
-            for name, info_list in msg.body[MsgKey.ROLLOUT_INFO].items():
-                if isinstance(info_list[0], Trajectory):
-                    logger.info("learning from multiple trajectories")
-                    policy_dict[name].learn_from_multi_trajectories(info_list)
-                elif isinstance(info_list[0], LossInfo):
+            for name, info in msg.body[MsgKey.ROLLOUT_INFO].items():
+                if isinstance(info, list):
                     logger.info("updating with loss info")
-                    policy_dict[name].update_with_multi_loss_info(info_list)
+                    policy_dict[name].update(info)
                 else:
-                    raise TypeError(
-                        f"Roll-out information must be of type 'Trajectory' or 'LossInfo', got {type(info_list[0])}"
-                    )
+                    logger.info("learning from batch")
+                    policy_dict[name].learn(info)
+
             msg_body = {
                 MsgKey.POLICY_STATE: {name: policy_dict[name].get_state() for name in msg.body[MsgKey.ROLLOUT_INFO]}
             }

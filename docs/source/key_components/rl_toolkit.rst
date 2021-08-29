@@ -149,9 +149,9 @@ The code snippet below shows how to create a model for the actor-critic algorith
           )
 
 
-  representation_stack = FullyConnectedBlock(...)
-  actor_head = FullyConnectedBlock(...)
-  critic_head = FullyConnectedBlock(...)
+  representation_stack = FullyConnected(...)
+  actor_head = FullyConnected(...)
+  critic_head = FullyConnected(...)
   ac_model = SimpleMultiHeadModel(
       {"representation": representation_stack, "actor": actor_head, "critic": critic_head},
       optim_option={

@@ -41,36 +41,6 @@ class NullPolicy(AbsPolicy):
 
 
 class RLPolicy(AbsPolicy):
-    class Buffer:
-        """Sequence of transitions for an agent.
-
-        Args:
-            states: Sequence of ``State`` objects traversed during simulation.
-            actions: Sequence of actions taken in response to the states.
-            rewards: Sequence of rewards received as a result of the actions.
-            info: Sequence of each transition's auxillary information.
-        """
-        def __init__(self, state_dim: int, action_dim: int = 1, max_len: int = 10000):
-            self.states = np.zeros((max_len, state_dim), dtype=np.float32)
-            if action_dim == 1:
-                self.actions = np.zeros(max_len, dtype=np.float32)
-            else:
-                self.actions = np.zeros((max_len, action_dim), dtype=np.float32)
-            self.rewards = np.zeros(max_len, dtype=np.float32)
-            self.terminal = np.zeros(max_len, dtype=np.bool)
-            self.max_len = max_len
-
-            self._ptr = 0
-            self._last_ptr = 0
-
-        @abstractmethod
-        def put(self, transition):
-            raise NotImplementedError
-
-        @abstractmethod
-        def get(self):
-            raise NotImplementedError
-
     """Policy that learns from simulation experiences.
 
     Reinforcement learning (RL) policies should inherit from this.
@@ -78,9 +48,9 @@ class RLPolicy(AbsPolicy):
     Args:
         name (str): Name of the policy.
     """
-    def __init__(self, name: str, remote: bool = False):
+    def __init__(self, name: str):
         super().__init__(name)
-        self.remote = remote
+        self.grad_parallel = False
 
     @abstractmethod
     def choose_action(self, state):
@@ -98,11 +68,11 @@ class RLPolicy(AbsPolicy):
         raise NotImplementedError
 
     @abstractmethod
-    def update_with_multi_loss_info(self, loss_info_list: List[dict]):
+    def update(self, loss_info_list: List[dict]):
         pass
 
     @abstractmethod
-    def learn_from_multi_trajectories(self, trajectories: List[dict]):
+    def learn(self, trajectories: List[dict]):
         """Perform policy improvement based on a list of trajectories obtained from parallel rollouts."""
         raise NotImplementedError
 
