@@ -137,7 +137,7 @@ class Env(AbsEnv):
         return {
             "node_mapping": self._business_engine.get_node_mapping(),
             "node_detail": self.current_frame.get_node_info(),
-            "event_payload": self._business_engine.get_event_payload_detail(),
+            "event_payload": self._business_engine.get_event_payload_detail()
         }
 
     @property
@@ -267,10 +267,7 @@ class Env(AbsEnv):
                 # Keep processing events, until no more events in this tick.
                 pending_events = self._event_buffer.execute(self._tick)
 
-                # Processing pending events.
-                pending_event_length: int = len(pending_events)
-
-                if pending_event_length == 0:
+                if len(pending_events) == 0:
                     # We have processed all the event of current tick, lets go for next tick.
                     break
 
@@ -291,8 +288,7 @@ class Env(AbsEnv):
                 if actions is None:
                     # Make business engine easy to work.
                     actions = []
-
-                if actions is not None and not isinstance(actions, Iterable):
+                elif not isinstance(actions, Iterable):
                     actions = [actions]
 
                 if self._decision_mode == DecisionMode.Sequential:

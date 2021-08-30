@@ -149,7 +149,7 @@ class EventBuffer:
         Returns:
             CascadeEvent: Event object
         """
-        return self._event_pool.gen(tick, MaroEvents.PENDING_DECISION, payload, True)
+        return self.gen_cascade_event(tick, MaroEvents.PENDING_DECISION, payload)
 
     def gen_action_event(self, tick: int, payload: object) -> CascadeEvent:
         """Generate an event that used to dispatch action to business engine.
@@ -160,7 +160,7 @@ class EventBuffer:
         Returns:
             CascadeEvent: Event object
         """
-        return self._event_pool.gen(tick, MaroEvents.TAKE_ACTION, payload, True)
+        return self.gen_cascade_event(tick, MaroEvents.TAKE_ACTION, payload)
 
     def register_event_handler(self, event_type: object, handler: Callable) -> None:
         """Register an event with handler, when there is an event need to be processed,

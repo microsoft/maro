@@ -103,10 +103,10 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
 
         if self._decision_strategy.is_decision_tick(tick):
             # Generate an event, so that we can do the checking after all the trip requirement processed.
-            decition_checking_evt = self._event_buffer.gen_atom_event(
+            decision_checking_evt = self._event_buffer.gen_atom_event(
                 tick, CitiBikeEvents.RebalanceBike)
 
-            self._event_buffer.insert_event(decition_checking_evt)
+            self._event_buffer.insert_event(decision_checking_evt)
 
         # Update our additional features that not trip related.
         self._update_station_extra_features(tick)
