@@ -8,18 +8,22 @@ env_conf = {
     "durations": 560
 }
 
-env_sampler_conf = {
-    "port_features": ["empty", "full", "on_shipper", "on_consignee", "booking", "shortage", "fulfillment"],
-    "vessel_features": ["empty", "full", "remaining_space"],
-    "num_actions": 21,
-    # Parameters for computing states
+port_features = ["empty", "full", "on_shipper", "on_consignee", "booking", "shortage", "fulfillment"],
+vessel_features = ["empty", "full", "remaining_space"]
+
+state_shaping_conf = {
     "look_back": 7,
-    "max_ports_downstream": 2,
-    # Parameters for computing actions
+    "max_ports_downstream": 2
+}
+
+action_shaping_conf = {
+    "action_space": [(i - 10) / 10 for i in range(21)],
     "finite_vessel_space": True,
-    "has_early_discharge": True,
-    # Parameters for computing rewards
-    "reward_eval_delay": 99,
+    "has_early_discharge": True
+}
+
+reward_shaping_conf = {
+    "time_window": 99,
     "fulfillment_factor": 1.0,
     "shortage_factor": 1.0,
     "time_decay": 0.97
@@ -27,8 +31,8 @@ env_sampler_conf = {
 
 # obtain state dimension from a temporary env_wrapper instance
 state_dim = (
-    (env_sampler_conf["look_back"] + 1) * (env_sampler_conf["max_ports_downstream"] + 1) *
-    len(env_sampler_conf["port_features"]) + len(env_sampler_conf["vessel_features"])
+    (state_shaping_conf["look_back"] + 1) * (state_shaping_conf["max_ports_downstream"] + 1) *
+    len(state_shaping_conf["port_features"]) + len(state_shaping_conf["vessel_features"])
 )
 
 # DQN settings
@@ -36,7 +40,7 @@ q_net_conf = {
     "network": {
         "input_dim": state_dim,
         "hidden_dims": [256, 128, 64, 32],
-        "output_dim": env_sampler_conf["num_actions"],
+        "output_dim": len(action_shaping_conf["num_actions"]),
         "activation": "leaky_relu",
         "softmax": False,
         "batch_norm": True,
@@ -82,7 +86,7 @@ ac_net_conf = {
         "actor": {
             "input_dim": state_dim,
             "hidden_dims": [256, 128, 64],
-            "output_dim": env_sampler_conf["num_actions"],
+            "output_dim": len(action_shaping_conf["action_space"]),
             "activation": "tanh",
             "softmax": True,
             "batch_norm": False,

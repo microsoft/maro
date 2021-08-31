@@ -292,18 +292,14 @@ class DQN(RLPolicy):
             batch["states"], batch["actions"], batch["rewards"], batch["next_states"], batch["terminals"]
         )
 
-        if self.grad_parallel:
-            # TODO: distributed grad computation
-            pass
-        else:            
-            for _ in range(self.num_epochs):
-                loss_info = self.get_batch_loss(self._get_batch())
-                if self.prioritized_replay:
-                    self._per.update(loss_info["indexes"], loss_info["td_errors"])
-                self.q_net.step(loss_info["loss"])
-                self._q_net_version += 1
-                if self._q_net_version - self._target_q_net_version == self.update_target_every:
-                    self._update_target()
+        for _ in range(self.num_epochs):
+            loss_info = self.get_batch_loss(self._get_batch())
+            if self.prioritized_replay:
+                self._per.update(loss_info["indexes"], loss_info["td_errors"])
+            self.q_net.step(loss_info["loss"])
+            self._q_net_version += 1
+            if self._q_net_version - self._target_q_net_version == self.update_target_every:
+                self._update_target()
 
     def _update_target(self):
         # soft-update target network

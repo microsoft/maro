@@ -9,13 +9,13 @@ from maro.utils import Logger
 
 from .common import get_eval_schedule, get_rollout_finish_msg
 from .early_stopper import AbsEarlyStopper
-from .env_sampler import AbsEnvSampler
+from .env_sampler import EnvSampler
 from .policy_manager import AbsPolicyManager
 from .rollout_manager import AbsRolloutManager
 
 
 def simple_learner(
-    get_env_sampler: Callable[[], AbsEnvSampler],
+    get_env_sampler: Callable[[], EnvSampler],
     num_episodes: int,
     num_steps: int = -1,
     eval_schedule: Union[int, List[int]] = None,
@@ -36,7 +36,7 @@ def simple_learner(
             collect-update cycles, depending on how the implementation of the roll-out manager.
         num_steps (int): Number of environment steps to roll out in each call to ``collect``. Defaults to -1, in which
             case the roll-out will be executed until the end of the environment.
-        get_eval_env_wrapper (Callable): Function to create an environment wrapper for evaluation. The function should
+        get_test_env_wrapper (Callable): Function to create an environment wrapper for evaluation. The function should
             take no parameters and return an environment wrapper instance. If this is None, the training environment
             wrapper will be used for evaluation in the worker processes. Defaults to None.
         eval_schedule (Union[int, List[int]]): Evaluation schedule. If an integer is provided, the policies will
@@ -102,7 +102,7 @@ def simple_learner(
                 post_evaluate([tracker])
             # early stopping check
             if early_stopper:
-                early_stopper.push(env_sampler.eval_env.summary)
+                early_stopper.push(env_sampler.test_env.summary)
                 if early_stopper.stop():
                     return
 

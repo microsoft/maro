@@ -99,14 +99,14 @@ class PolicyGradient(RLPolicy):
         next_state: np.ndarray,
         terminal: bool
     ):
-        self._buffer[key].put(state, action, reward, terminal) 
+        self._buffer[key].put(state, action, reward, terminal)
 
     def get_rollout_info(self):
         if self._get_loss_on_rollout_finish:
             return self.get_batch_loss(self._get_batch(), explicit_grad=True)
         else:
             return self._get_batch()
-    
+
     def _get_batch(self):
         batch = defaultdict(list)
         for buf in self._buffer:
@@ -141,12 +141,8 @@ class PolicyGradient(RLPolicy):
         self.policy_net.apply_gradients([loss_info["grad"] for loss_info in loss_info_list])
 
     def learn(self, batch: dict):
-        if self.grad_parallel:
-            # TODO: distributed grad computation
-            pass
-        else:
-            for _ in range(self.grad_iters):
-                self.policy_net.step(self.get_batch_loss(batch)["grad"])
+        for _ in range(self.grad_iters):
+            self.policy_net.step(self.get_batch_loss(batch)["grad"])
 
     def set_state(self, policy_state):
         self.policy_net.load_state_dict(policy_state)

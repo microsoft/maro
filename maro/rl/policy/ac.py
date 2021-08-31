@@ -141,7 +141,7 @@ class ActorCritic(RLPolicy):
         next_state: np.ndarray,
         terminal: bool
     ):
-        self._buffer[key].put(state, action, reward, terminal) 
+        self._buffer[key].put(state, action, reward, terminal)
 
     def get_rollout_info(self):
         if self.get_loss_on_rollout:
@@ -212,12 +212,8 @@ class ActorCritic(RLPolicy):
         self.ac_net.apply_gradients([loss_info["grad"] for loss_info in loss_info_list])
 
     def learn(self, batch: dict):
-        if self.grad_parallel:
-            # TODO: distributed grad computation
-            pass
-        else:
-            for _ in range(self.grad_iters):
-                self.ac_net.step(self.get_batch_loss(batch)["loss"])
+        for _ in range(self.grad_iters):
+            self.ac_net.step(self.get_batch_loss(batch)["loss"])
 
     def set_state(self, policy_state):
         self.ac_net.load_state_dict(policy_state)

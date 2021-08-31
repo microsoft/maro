@@ -153,7 +153,7 @@ env_config = {
 }
 
 
-eval_env_config = {
+test_env_config = {
     "basic": {
         "scenario": "vm_scheduling",
         "topology": "azure.2019.10k.oversubscription",
@@ -179,10 +179,10 @@ def get_env_sampler(replay_agent_ids=None):
     return VMEnvWrapper(env, **env_config["wrapper"])
 
 
-def get_eval_env_wrapper():
-    eval_env = Env(**eval_env_config["basic"])
-    eval_env.set_seed(eval_env_config["seed"])
-    return VMEnvWrapper(eval_env, **eval_env_config["wrapper"])
+def get_test_env_wrapper():
+    test_env = Env(**test_env_config["basic"])
+    test_env.set_seed(test_env_config["seed"])
+    return VMEnvWrapper(test_env, **test_env_config["wrapper"])
 
 
 tmp_env_wrapper = get_env_sampler()

@@ -15,7 +15,7 @@ from maro.rl.utils import MsgKey, MsgTag
 from maro.utils import Logger, set_seeds
 
 from .common import get_rollout_finish_msg
-from .env_sampler import AbsEnvSampler
+from .env_sampler import EnvSampler
 
 
 def concat_batches(batch_list: List[dict]):
@@ -78,7 +78,7 @@ class SimpleRolloutManager(AbsRolloutManager):
 
     Args:
         get_env_sampler (Callable): Function to create an environment sampler for collecting training data. The function
-            should take no parameters and return an ``AbsEnvSampler`` instance.
+            should take no parameters and return an ``EnvSampler`` instance.
         num_steps (int): Number of environment steps to roll out in each call to ``collect``. Defaults to -1, in which
             case the roll-out will be executed until the end of the environment.
         post_collect (Callable): Custom function to process whatever information is collected by each
@@ -95,7 +95,7 @@ class SimpleRolloutManager(AbsRolloutManager):
     """
     def __init__(
         self,
-        get_env_sampler: Callable[[], AbsEnvSampler],
+        get_env_sampler: Callable[[], EnvSampler],
         num_steps: int = -1,
         parallelism: int = 1,
         eval_parallelism: int = 1,
@@ -214,7 +214,7 @@ class SimpleRolloutManager(AbsRolloutManager):
 
         # concat batches from different roll-out workers
         for policy_id, info_list in info_by_policy.items():
-            if not "loss" in info_list[0]:
+            if "loss" not in info_list[0]:
                 info_by_policy[policy_id] = concat_batches(info_list)
 
         return info_by_policy
@@ -394,7 +394,7 @@ class DistributedRolloutManager(AbsRolloutManager):
 
         # concat batches from different roll-out workers
         for policy_id, info_list in info_by_policy.items():
-            if not "loss" in info_list[0]:
+            if "loss" not in info_list[0]:
                 info_by_policy[policy_id] = concat_batches(info_list)
 
         return info_by_policy

@@ -150,16 +150,12 @@ class DDPG(RLPolicy):
             batch["states"], batch["actions"], batch["rewards"], batch["next_states"], batch["terminals"]
         )
 
-        if self.grad_parallel:
-            # TODO: distributed grad computation
-            pass
-        else:
-            for _ in range(self.num_epochs):
-                train_batch = self._replay_memory.sample(self.batch_size)
-                self.ac_net.step(self.get_batch_loss(train_batch)["loss"])
-                self._ac_net_version += 1
-                if self._ac_net_version - self._target_ac_net_version == self.update_target_every:
-                    self._update_target()
+        for _ in range(self.num_epochs):
+            train_batch = self._replay_memory.sample(self.batch_size)
+            self.ac_net.step(self.get_batch_loss(train_batch)["loss"])
+            self._ac_net_version += 1
+            if self._ac_net_version - self._target_ac_net_version == self.update_target_every:
+                self._update_target()
 
     def _update_target(self):
         # soft-update target network

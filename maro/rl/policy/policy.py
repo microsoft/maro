@@ -4,8 +4,6 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-import numpy as np
-
 
 class AbsPolicy(ABC):
     """Abstract policy class.
@@ -17,14 +15,10 @@ class AbsPolicy(ABC):
     def __init__(self, name: str):
         super().__init__()
         self._name = name
-        self.agents = set()
 
     @property
     def name(self):
         return self._name
-
-    def add_agent(self, agent: str):
-        self.agents.add(agent)
 
     @abstractmethod
     def choose_action(self, state):
@@ -50,7 +44,6 @@ class RLPolicy(AbsPolicy):
     """
     def __init__(self, name: str):
         super().__init__(name)
-        self.grad_parallel = False
 
     @abstractmethod
     def choose_action(self, state):
@@ -58,7 +51,7 @@ class RLPolicy(AbsPolicy):
 
     def record(self, key: str, state, action, reward, next_state, terminal: bool):
         pass
-    
+
     @abstractmethod
     def get_rollout_info(self):
         raise NotImplementedError
