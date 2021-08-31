@@ -32,7 +32,7 @@ class EnvSampler:
             policy outputs, an event and a dictionary of keyword parameters and returns a list of action objects.
         get_reward (Callable): Function to compute rewards for a list of actions that occurred at a given tick. The
             function takes as input an ``Env``, a list of actions (output by ``get_env_actions``), a tick and a
-            dictionary of keyword parameters and returns a scalar reward for each agent as a dictionary. 
+            dictionary of keyword parameters and returns a scalar reward for each agent as a dictionary.
         get_test_env (Callable): Function to create an ``Env`` instance for testing policy performance. The function
             should take no parameters and return an environment wrapper instance. If this is None, the training
             environment wrapper will be used for evaluation in the worker processes. Defaults to None.
@@ -55,7 +55,7 @@ class EnvSampler:
         agent2policy: Dict[str, str],
         get_state: Dict[str, Callable],
         get_env_actions: Callable,
-        get_reward: Callable, 
+        get_reward: Callable,
         get_test_env: Callable[[], Env] = None,
         reward_eval_delay: int = 0,
         post_step: Callable = None,
@@ -277,7 +277,7 @@ class EnvSampler:
         logger = Logger(proxy.name, dump_folder=log_dir)
 
         # get initial policy states from the policy manager
-        msg = SessionMessage(MsgTag.GET_INITIAL_POLICY_STATE, proxy.name, policy_server_address)
+        msg = SessionMessage(MsgTag.GET_INITIAL_POLICY_STATE, proxy.name, server_address)
         reply = proxy.send(msg)[0]
         policy_state_dict, policy_version = reply.body[MsgKey.POLICY_STATE], reply.body[MsgKey.VERSION]
 
