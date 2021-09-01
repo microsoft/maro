@@ -14,8 +14,8 @@ from maro.communication import Proxy, SessionType
 from maro.rl.utils import MsgKey, MsgTag
 from maro.utils import Logger, set_seeds
 
-from .common import get_rollout_finish_msg
 from .env_sampler import EnvSampler
+from .helpers import get_rollout_finish_msg
 
 
 def concat_batches(batch_list: List[dict]):

@@ -12,7 +12,7 @@ rl_example_dir = dirname(workflow_dir)
 if rl_example_dir not in sys.path:
     sys.path.insert(0, rl_example_dir)
 
-log_dir = join(rl_example_dir, "log", getenv("JOB"))
+log_dir = join(rl_example_dir, "log", getenv("JOB", ""))
 
 module = importlib.import_module(f"{getenv('SCENARIO')}")
 

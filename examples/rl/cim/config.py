@@ -5,7 +5,7 @@
 env_conf = {
     "scenario": "cim",
     "topology": "toy.4p_ssdd_l0.0",
-    "durations": 560
+    "durations": 280
 }
 
 port_attributes = ["empty", "full", "on_shipper", "on_consignee", "booking", "shortage", "fulfillment"]

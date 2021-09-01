@@ -200,7 +200,7 @@ class ActorCritic(RLPolicy):
             "actor_loss": actor_loss.detach().cpu().numpy(),
             "critic_loss": critic_loss.detach().cpu().numpy(),
             "entropy": entropy.detach().cpu().numpy(),
-            "loss": loss
+            "loss": loss.detach().cpu().numpy()
         }
         if explicit_grad:
             loss_info["grad"] = self.ac_net.get_gradients(loss)

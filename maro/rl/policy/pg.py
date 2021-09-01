@@ -131,7 +131,7 @@ class PolicyGradient(RLPolicy):
 
         _, logp = self.policy_net(batch["states"])
         loss = -(logp * returns).mean()
-        loss_info = {"loss": loss}
+        loss_info = {"loss": loss.detach().cpu().numpy()}
         if explicit_grad:
             loss_info["grad"] = self.policy_net.get_gradients(loss)
         return loss_info

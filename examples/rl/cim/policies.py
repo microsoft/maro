@@ -69,7 +69,5 @@ def get_ac(name: str):
 
 policy_func_dict = {
     "dqn": get_dqn,
-    "ac.0": get_ac,
-    "ac.1": get_ac,
-    "ac.2": get_ac
+    "ac": get_ac
 }

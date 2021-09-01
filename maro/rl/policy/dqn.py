@@ -213,6 +213,9 @@ class DQN(RLPolicy):
         next_state: np.ndarray,
         terminal: bool
     ):
+        if next_state is None:
+            next_state = np.zeros(state.shape, dtype=np.float32)
+
         indexes = self._replay_memory.put(
             np.expand_dims(state, axis=0),
             np.expand_dims(action, axis=0),

@@ -7,9 +7,9 @@ from typing import Callable, List, Union
 
 from maro.utils import Logger
 
-from .common import get_eval_schedule, get_rollout_finish_msg
 from .early_stopper import AbsEarlyStopper
 from .env_sampler import EnvSampler
+from .helpers import get_eval_schedule, get_rollout_finish_msg
 from .policy_manager import AbsPolicyManager
 from .rollout_manager import AbsRolloutManager
 
