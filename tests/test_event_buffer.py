@@ -59,9 +59,9 @@ class TestEventBuffer(unittest.TestCase):
         evt_list[0].add_immediate_event(evt_list[5])
         evt_list[0].add_immediate_event(evt_list[6])
 
-        event_linked_list.append_tail(evt_list[1])
-        event_linked_list.append_head(evt_list[0])
+        event_linked_list.append_head(evt_list[1])
         event_linked_list.append_tail(evt_list[2])
+        event_linked_list.append_head(evt_list[0])
         self.assertEqual(len(event_linked_list), 3)
 
         event_ids = [event.id for event in event_linked_list]
@@ -275,7 +275,19 @@ class TestEventBuffer(unittest.TestCase):
         timestamp = str(time.time()).replace(".", "_")
         temp_file_path = f'./test_tmp_file_{timestamp}.txt'
 
+        try:
+            EventBuffer(record_events=True, record_path=None)
+            self.assertTrue(False)
+        except ValueError:
+            pass
+
         eb = EventBuffer(record_events=True, record_path=temp_file_path)
+        eb.insert_event(eb.gen_atom_event(1, 1, (1, 3)))
+        eb.insert_event(eb.gen_atom_event(1, 1, (1, 3)))
+        eb.insert_event(eb.gen_atom_event(1, 1, (1, 3)))
+        eb.insert_event(eb.gen_atom_event(1, 1, (1, 3)))
+        eb.execute(1)
+        eb.reset()
         eb.insert_event(eb.gen_atom_event(1, 1, (1, 3)))
         eb.insert_event(eb.gen_atom_event(1, 1, (1, 3)))
         eb.insert_event(eb.gen_atom_event(1, 1, (1, 3)))
@@ -290,7 +302,11 @@ class TestEventBuffer(unittest.TestCase):
                 '0,1,1,"(1, 3)"\n',
                 '0,1,1,"(1, 3)"\n',
                 '0,1,1,"(1, 3)"\n',
-                '0,1,1,"(1, 3)"\n'
+                '0,1,1,"(1, 3)"\n',
+                '1,1,1,"(1, 3)"\n',
+                '1,1,1,"(1, 3)"\n',
+                '1,1,1,"(1, 3)"\n',
+                '1,1,1,"(1, 3)"\n'
             ])
 
         os.remove(temp_file_path)

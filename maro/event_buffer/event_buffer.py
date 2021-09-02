@@ -107,10 +107,10 @@ class EventBuffer:
             pending_pool.clear()
 
         if self._record_events:
-            if self._recorder_ep is not None:
-                self._recorder_ep += 1
-            else:
+            if self._recorder_ep is None:
                 self._recorder_ep = 0
+            else:
+                self._recorder_ep += 1
 
     def gen_atom_event(self, tick: int, event_type: object, payload: object = None) -> AtomEvent:
         """Generate an atom event, an atom event is for normal usages,
