@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 
-from typing import List, Tuple, Union, NamedTuple, Optional
+from typing import List, NamedTuple, Optional, Tuple, Union
 
 import networkx as nx
 from maro.backends.frame import FrameBase
