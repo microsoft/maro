@@ -27,6 +27,14 @@ class EventPool:
 
         self._event_count: Iterator[int] = count()
 
+    @property
+    def atom_event_count(self) -> int:
+        return len(self._atom_events)
+
+    @property
+    def cascade_event_count(self) -> int:
+        return len(self._cascade_events)
+
     def gen(
         self, tick: int, event_type: object, payload: object,
         is_cascade: bool = False
@@ -63,7 +71,7 @@ class EventPool:
 
     def _append(self, event: ActualEvent) -> None:
         """Append event to related pool"""
-        if event is not None:
+        if isinstance(event, CascadeEvent) or isinstance(event, AtomEvent):
             # Detach the payload before recycle.
             event.payload = None
             event.next_event = None
@@ -71,7 +79,5 @@ class EventPool:
 
             if isinstance(event, CascadeEvent):
                 self._cascade_events.append(event)
-            elif isinstance(event, AtomEvent):
-                self._atom_events.append(event)
             else:
-                raise ValueError("Not a ActualEvent.")
+                self._atom_events.append(event)

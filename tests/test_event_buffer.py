@@ -1,12 +1,13 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
-
-
+import os
+import time
 import unittest
 from typing import Optional
 
 from maro.event_buffer import ActualEvent, AtomEvent, CascadeEvent, DummyEvent, EventBuffer, EventState, MaroEvents
 from maro.event_buffer.event_linked_list import EventLinkedList
+from maro.event_buffer.event_pool import EventPool
 
 
 class TestEventBuffer(unittest.TestCase):
@@ -14,22 +15,25 @@ class TestEventBuffer(unittest.TestCase):
         self.eb = EventBuffer()
 
     def test_cascade_event(self):
-        evt = CascadeEvent(None, None, None, None)
+        evt = CascadeEvent(0, 1, None, None)
         self.assertEqual(type(evt.immediate_event_head), DummyEvent)
         self.assertIsNone(evt.immediate_event_head.next_event)
         self.assertIsNone(evt.immediate_event_tail)
         self.assertEqual(evt.immediate_event_head.next_event, evt.immediate_event_tail)
         self.assertEqual(evt.immediate_event_count, 0)
 
-        evt.add_immediate_event(AtomEvent(1, None, None, None), is_head=False)
-        evt.add_immediate_event(AtomEvent(2, None, None, None), is_head=False)
-        evt.add_immediate_event(AtomEvent(3, None, None, None), is_head=True)
-        evt.add_immediate_event(AtomEvent(4, None, None, None), is_head=True)
-        evt.add_immediate_event(AtomEvent(5, None, None, None), is_head=False)
-        evt.add_immediate_event(AtomEvent(6, None, None, None), is_head=False)
-        evt.add_immediate_event(AtomEvent(7, None, None, None), is_head=True)
-        evt.add_immediate_event(AtomEvent(8, None, None, None), is_head=True)
+        evt.add_immediate_event(AtomEvent(1, 1, None, None), is_head=False)
+        evt.add_immediate_event(AtomEvent(2, 1, None, None), is_head=False)
+        evt.add_immediate_event(AtomEvent(3, 1, None, None), is_head=True)
+        evt.add_immediate_event(AtomEvent(4, 1, None, None), is_head=True)
+        evt.add_immediate_event(AtomEvent(5, 1, None, None), is_head=False)
+        evt.add_immediate_event(AtomEvent(6, 1, None, None), is_head=False)
+        evt.add_immediate_event(AtomEvent(7, 1, None, None), is_head=True)
+        evt.add_immediate_event(AtomEvent(8, 1, None, None), is_head=True)
         self.assertEqual(evt.immediate_event_count, 8)
+
+        # Should be declined because the tick of the events are not equal
+        self.assertTrue(not evt.add_immediate_event(AtomEvent(9, 2, None, None)))
 
         iter_evt: Optional[ActualEvent] = evt.immediate_event_head.next_event
         event_ids = []
@@ -49,10 +53,7 @@ class TestEventBuffer(unittest.TestCase):
         self.assertEqual(len(event_linked_list), 0)
         self.assertListEqual([evt for evt in event_linked_list], [])
 
-        evt_list = []
-        for i in range(7):
-            evt_list.append(CascadeEvent(i, None, None, None))
-
+        evt_list = [CascadeEvent(i, None, None, None) for i in range(7)]
         evt_list[0].add_immediate_event(evt_list[3])
         evt_list[0].add_immediate_event(evt_list[4])
         evt_list[0].add_immediate_event(evt_list[5])
@@ -90,6 +91,30 @@ class TestEventBuffer(unittest.TestCase):
         event_linked_list.clear()
         self.assertEqual(len(event_linked_list), 0)
         self.assertListEqual([evt for evt in event_linked_list], [])
+
+    def test_event_pool(self):
+        ep = EventPool()
+        cascade_events = [CascadeEvent(i, None, None, None) for i in range(5)]
+        atom_events = [AtomEvent(i, None, None, None) for i in range(5, 10)]
+
+        for evt in cascade_events:
+            ep.recycle(evt)
+        ep.recycle(atom_events)
+
+        self.assertEqual(ep.atom_event_count, 5)
+        self.assertEqual(ep.cascade_event_count, 5)
+
+        for i in range(5):
+            is_cascade = i % 2 == 0
+            evt = ep.gen(tick=i, event_type=-1, payload=-1, is_cascade=is_cascade)
+            self.assertEqual(evt.id, i)
+            self.assertEqual(evt.tick, i)
+            self.assertEqual(evt.event_type, -1)
+            self.assertEqual(evt.payload, -1)
+            self.assertIsInstance(evt, CascadeEvent if is_cascade else AtomEvent)
+
+        self.assertEqual(ep.atom_event_count, 3)
+        self.assertEqual(ep.cascade_event_count, 2)
 
     def test_gen_event(self):
         """Test event generating correct"""
@@ -143,7 +168,7 @@ class TestEventBuffer(unittest.TestCase):
     def test_get_finish_events(self):
         """Test if we can get correct finished events"""
 
-        # no finised at first
+        # no finished at first
         self.assertListEqual([], self.eb.get_finished_events(),
                              msg="finished pool should be empty")
 
@@ -155,7 +180,7 @@ class TestEventBuffer(unittest.TestCase):
 
         # after dispatching, finish pool should contains 1 object
         self.assertEqual(1, len(self.eb.get_finished_events()),
-                         msg="after dispathing, there should 1 object")
+                         msg="after dispatching, there should 1 object")
 
     def test_get_pending_events(self):
         """Test if we can get correct pending events"""
@@ -232,6 +257,43 @@ class TestEventBuffer(unittest.TestCase):
         self.assertEqual(2, len(decision_events))
         self.assertEqual(sub1, decision_events[0])
         self.assertEqual(sub2, decision_events[1])
+
+    def test_disable_finished_events(self):
+        eb = EventBuffer(disable_finished_events=True)
+        self.assertListEqual([], eb.get_finished_events(), msg="finished pool should be empty")
+
+        eb.insert_event(eb.gen_atom_event(1, 1, (1, 3)))
+        eb.insert_event(eb.gen_atom_event(1, 1, (1, 3)))
+        eb.insert_event(eb.gen_atom_event(1, 1, (1, 3)))
+        eb.insert_event(eb.gen_atom_event(1, 1, (1, 3)))
+        eb.execute(1)
+
+        # after dispatching, finish pool should still contains no object
+        self.assertListEqual([], eb.get_finished_events(), msg="finished pool should be empty")
+
+    def test_record_events(self):
+        timestamp = str(time.time()).replace(".", "_")
+        temp_file_path = f'./test_tmp_file_{timestamp}.txt'
+
+        eb = EventBuffer(record_events=True, record_path=temp_file_path)
+        eb.insert_event(eb.gen_atom_event(1, 1, (1, 3)))
+        eb.insert_event(eb.gen_atom_event(1, 1, (1, 3)))
+        eb.insert_event(eb.gen_atom_event(1, 1, (1, 3)))
+        eb.insert_event(eb.gen_atom_event(1, 1, (1, 3)))
+        eb.execute(1)
+        del eb
+
+        with open(temp_file_path, "r") as input_stream:
+            texts = input_stream.readlines()
+            self.assertListEqual(texts, [
+                'episode,tick,event_type,payload\n',
+                '0,1,1,"(1, 3)"\n',
+                '0,1,1,"(1, 3)"\n',
+                '0,1,1,"(1, 3)"\n',
+                '0,1,1,"(1, 3)"\n'
+            ])
+
+        os.remove(temp_file_path)
 
 
 if __name__ == "__main__":
