@@ -66,7 +66,7 @@ class EventBuffer:
         self._record_events: bool = record_events
 
         self._recorder: Optional[EventRecorder] = None
-        self._recorder_ep: Optional[int] = None
+        self._recorder_ep: int = 0
 
         if self._record_events:
             if record_path is None:
@@ -107,10 +107,7 @@ class EventBuffer:
             pending_pool.clear()
 
         if self._record_events:
-            if self._recorder_ep is None:
-                self._recorder_ep = 0
-            else:
-                self._recorder_ep += 1
+            self._recorder_ep += 1
 
     def gen_atom_event(self, tick: int, event_type: object, payload: object = None) -> AtomEvent:
         """Generate an atom event, an atom event is for normal usages,
@@ -233,9 +230,6 @@ class EventBuffer:
                     self._finished_events.append(next_events)
 
                 if self._record_events:
-                    if self._recorder_ep is None:
-                        self._recorder_ep = 0
-
                     self._recorder.record({
                         "episode": self._recorder_ep,
                         "tick": next_events.tick,
