@@ -11,7 +11,7 @@ To run the distributed workflow, start by choosing "sync" or "async" for the ``m
 ## Write Your Own Scenarios
 
 To use the workflow provided under ``workflows``, the following ingredients are required:
-* ``get_env_wrapper``, a function that takes no parameters and returns an environment wrapper instance.
+* ``get_env_sampler``, a function that takes no parameters and returns an environment wrapper instance.
 * ``get_agent_wrapper``, a function that takes no parameters and returns an agent wrapper instance.
 * ``policy_func_index``, a dictionary mapping policy names to functions that create them.
 The policy-creating functions should take as its sole parameter a flag indicating whether the created policy is for roll-out or training. 

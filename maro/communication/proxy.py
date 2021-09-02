@@ -236,7 +236,6 @@ class Proxy:
                                     the value of table is the peer's socket address.
         """
         self._redis_connection.hset(self._redis_hash_name, self._name, json.dumps(self._driver.address))
-
         # Handle interrupt signal for clearing Redis record.
         try:
             signal.signal(signal.SIGINT, self._signal_handler)

@@ -1,11 +1,16 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from .policy import AbsCorePolicy, AbsPolicy, NullPolicy
-from .policy_manager import AbsPolicyManager, LocalPolicyManager, MultiNodePolicyManager, MultiProcessPolicyManager
-from .trainer import trainer_node, trainer_process
+from .ac import ActorCritic
+from .ddpg import DDPG
+from .dqn import DQN, PrioritizedExperienceReplay
+from .pg import PolicyGradient
+from .policy import AbsPolicy, NullPolicy, RLPolicy
 
 __all__ = [
-    "AbsCorePolicy", "AbsPolicy", "AbsPolicyManager", "LocalPolicyManager", "MultiNodePolicyManager",
-    "MultiProcessPolicyManager", "NullPolicy", "trainer_node", "trainer_process"
+    "ActorCritic",
+    "DDPG",
+    "DQN", "PrioritizedExperienceReplay",
+    "PolicyGradient",
+    "AbsPolicy", "NullPolicy", "RLPolicy"
 ]
