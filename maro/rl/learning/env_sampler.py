@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from abc import ABC, abstractmethod
 from collections import defaultdict, deque
 from multiprocessing import Pipe, Process
 from os import getcwd
@@ -160,7 +161,7 @@ class AgentWrapper:
             })
 
 
-class EnvSampler:
+class AbsEnvSampler(ABC):
     """Simulation data collector and policy evaluator.
 
     Args:
@@ -170,15 +171,6 @@ class EnvSampler:
             creation function should have policy name as the only parameter and return an ``AbsPolicy`` instance.
         agent2policy (Dict[str, str]): A dictionary that maps agent IDs to policy IDs, i.e., specifies the policy used
             by each agent.
-        get_state (Callable): Function to compute the state. The function takes as input an ``Env`` and an event and
-            returns a state vector encoded as a one-dimensional (flattened) Numpy arrays for each agent involved as a
-            dictionary.
-        get_env_actions (Callable): Function to convert policy outputs to action objects that can be passed directly to
-            the environment's ``step`` method. The function takes as input an ``Env``, a dictionary of a set of agents'
-            policy output and an event and returns a list of action objects.
-        get_reward (Callable): Function to compute rewards for a list of actions that occurred at a given tick. The
-            function takes as input an ``Env``, a list of actions (output by ``get_env_actions``) and a tick and returns
-            a scalar reward for each agent as a dictionary.
         get_test_env (Callable): Function to create an ``Env`` instance for testing policy performance. The function
             should take no parameters and return an environment wrapper instance. If this is None, the training
             environment wrapper will be used for evaluation in the worker processes. Defaults to None.
@@ -196,9 +188,6 @@ class EnvSampler:
         get_env: Callable[[], Env],
         get_policy_func_dict: Dict[str, Callable],
         agent2policy: Dict[str, str],
-        get_state: Dict[str, Callable],
-        get_env_actions: Callable,
-        get_reward: Callable,
         get_test_env: Callable[[], Env] = None,
         reward_eval_delay: int = 0,
         post_step: Callable = None,
@@ -215,11 +204,6 @@ class EnvSampler:
         self.reward_eval_delay = reward_eval_delay
         self._post_step = post_step
 
-        # shaping
-        self._get_state = get_state
-        self._get_env_actions = get_env_actions
-        self._get_reward = get_reward
-
         self._state = None
         self._event = None
         self._step_index = 0
@@ -227,6 +211,39 @@ class EnvSampler:
 
         self._transition_cache = defaultdict(deque)  # for caching transitions whose rewards have yet to be evaluated
         self.tracker = {}  # User-defined tracking information is placed here.
+
+    @property
+    def event(self):
+        return self._event
+
+    @abstractmethod
+    def get_state(self, tick: int = None) -> dict:
+        """Compute the state for a given tick.
+
+        Args:
+            tick (int): The tick for which to compute the environmental state. If computing the current state,
+                use tick=self.env.tick.
+        Returns:
+            A dictionary with (agent ID, state) as key-value pairs.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_env_actions(self, action) -> dict:
+        """Convert policy outputs to an action that can be executed by ``self.env.step()``."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_reward(self, actions: list, tick: int):
+        """Evaluate the reward for an action.
+        Args:
+            tick (int): Evaluate the reward for the actions that occured at the given tick. Each action in
+                ``actions`` must be an Action object defined for the environment in question.
+
+        Returns:
+            A dictionary with (agent ID, reward) as key-value pairs.
+        """
+        raise NotImplementedError
 
     def sample(self, policy_state_dict: dict = None, num_steps: int = -1, exploration_step: bool = False):
         self.env = self._learn_env
@@ -248,17 +265,17 @@ class EnvSampler:
             self.tracker.clear()
             self._terminal = False
             _, self._event, _ = self.env.step(None)
-            self._state = self._get_state(self.env, self._event)
+            self._state = self.get_state()
 
         starting_step_index = self._step_index + 1
         steps_to_go = float("inf") if num_steps == -1 else num_steps
         while not self._terminal and steps_to_go > 0:
             action = self.agent_wrapper.choose_action(self._state)
-            env_actions = self._get_env_actions(self.env, action, self._event)
+            env_actions = self.get_env_actions(action)
             for agent, state in self._state.items():
                 self._transition_cache[agent].append((state, action[agent], env_actions, self.env.tick))
             _, self._event, self._terminal = self.env.step(env_actions)
-            self._state = None if self._terminal else self._get_state(self.env, self._event)
+            self._state = None if self._terminal else self.get_state()
             self._step_index += 1
             steps_to_go -= 1
 
@@ -269,7 +286,7 @@ class EnvSampler:
         for agent, cache in self._transition_cache.items():
             while cache and (self._terminal or self.env.tick - cache[0][-1] >= self.reward_eval_delay):
                 state, action, env_actions, tick = cache.popleft()
-                reward = self._get_reward(self.env, env_actions, tick)
+                reward = self.get_reward(env_actions, tick)
                 if self._post_step:
                     # put things you want to track in the tracker attribute
                     self._post_step(self.env, self.tracker, state, action, env_actions, reward, tick)
@@ -299,14 +316,14 @@ class EnvSampler:
         self.env.reset()
         terminal = False
         # get initial state
-        _, event, _ = self.env.step(None)
-        state = self._get_state(self.env, event)
+        _, self._event, _ = self.env.step(None)
+        state = self.get_state()
         while not terminal:
             action = self.agent_wrapper.choose_action(state)
-            env_actions = self._get_env_actions(self.env, action, event)
-            _, event, terminal = self.env.step(env_actions)
+            env_actions = self.get_env_actions(action)
+            _, self._event, terminal = self.env.step(env_actions)
             if not terminal:
-                state = self._get_state(self.env, event)
+                state = self.get_state()
 
         return self.tracker
 
