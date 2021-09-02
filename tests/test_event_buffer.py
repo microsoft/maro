@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
-
-
+import os
+import time
 import unittest
 from typing import Optional
 
@@ -143,7 +143,7 @@ class TestEventBuffer(unittest.TestCase):
     def test_get_finish_events(self):
         """Test if we can get correct finished events"""
 
-        # no finised at first
+        # no finished at first
         self.assertListEqual([], self.eb.get_finished_events(),
                              msg="finished pool should be empty")
 
@@ -155,7 +155,7 @@ class TestEventBuffer(unittest.TestCase):
 
         # after dispatching, finish pool should contains 1 object
         self.assertEqual(1, len(self.eb.get_finished_events()),
-                         msg="after dispathing, there should 1 object")
+                         msg="after dispatching, there should 1 object")
 
     def test_get_pending_events(self):
         """Test if we can get correct pending events"""
@@ -232,6 +232,44 @@ class TestEventBuffer(unittest.TestCase):
         self.assertEqual(2, len(decision_events))
         self.assertEqual(sub1, decision_events[0])
         self.assertEqual(sub2, decision_events[1])
+
+    def test_disable_finished_events(self):
+        eb = EventBuffer(disable_finished_events=True)
+        self.assertListEqual([], eb.get_finished_events(), msg="finished pool should be empty")
+
+        eb.insert_event(eb.gen_atom_event(1, 1, (1, 3)))
+        eb.insert_event(eb.gen_atom_event(1, 1, (1, 3)))
+        eb.insert_event(eb.gen_atom_event(1, 1, (1, 3)))
+        eb.insert_event(eb.gen_atom_event(1, 1, (1, 3)))
+        eb.execute(1)
+
+        # after dispatching, finish pool should still contains no object
+        print(eb.get_finished_events())
+        self.assertListEqual([], eb.get_finished_events(), msg="finished pool should be empty")
+
+    def test_record_events(self):
+        timestamp = str(time.time()).replace(".", "_")
+        temp_file_path = f'./test_tmp_file_{timestamp}.txt'
+
+        eb = EventBuffer(record_events=True, record_path=temp_file_path)
+        eb.insert_event(eb.gen_atom_event(1, 1, (1, 3)))
+        eb.insert_event(eb.gen_atom_event(1, 1, (1, 3)))
+        eb.insert_event(eb.gen_atom_event(1, 1, (1, 3)))
+        eb.insert_event(eb.gen_atom_event(1, 1, (1, 3)))
+        eb.execute(1)
+        del eb
+
+        with open(temp_file_path, "r") as input_stream:
+            texts = input_stream.readlines()
+            self.assertListEqual(texts, [
+                'episode,tick,event_type,payload\n',
+                '0,1,1,"(1, 3)"\n',
+                '0,1,1,"(1, 3)"\n',
+                '0,1,1,"(1, 3)"\n',
+                '0,1,1,"(1, 3)"\n'
+            ])
+
+        os.remove(temp_file_path)
 
 
 if __name__ == "__main__":
