@@ -4,6 +4,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 
+from maro.communication import Proxy
 from maro.rl.types import Trajectory
 
 
@@ -81,6 +82,19 @@ class RLPolicy(AbsPolicy):
     def learn_from_multi_trajectories(self, trajectories: List[Trajectory]):
         """Perform policy improvement based on a list of trajectories obtained from parallel rollouts."""
         raise NotImplementedError
+
+    def data_parallel(self, *args, **kwargs):
+        self.remote = True
+        self._proxy = Proxy(*args, **kwargs)
+
+    def data_parallel_with_existing_proxy(self, proxy):
+        self.remote = True
+        self._proxy = proxy
+
+    def exit_data_parallel(self):
+        self.remote = False
+        if hasattr(self, '_proxy'):
+            self._proxy.close()
 
     def exploit(self):
         pass

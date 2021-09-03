@@ -341,19 +341,21 @@ class DQN(RLPolicy):
         self.target_q_net.soft_update(self.q_net, self.soft_update_coeff)
         self._target_q_net_version = self._q_net_version
 
-    def distributed_learn(self, rollout_info, host_id_list, name, proxy):
+    def distributed_learn(self, rollout_info, worker_id_list):
+        assert self.remote, "distributed_learn is invalid when self.remote is False!"
+
         self.store_trajectory(rollout_info)
         for _ in range(self.num_epochs):
             msg_dict = defaultdict(lambda: defaultdict(dict))
-            for host_id_str in host_id_list:
-                msg_dict[host_id_str][MsgKey.GRAD_TASK][name] = self._sample()
-                msg_dict[host_id_str][MsgKey.POLICY_STATE][name] = self.get_state()
-                # data-parallel by multiple hosts/workers
-                proxy.isend(SessionMessage(
-                    MsgTag.COMPUTE_GRAD, proxy.name, host_id_str, body=msg_dict[host_id_str]))
+            for worker_id in worker_id_list:
+                msg_dict[worker_id][MsgKey.GRAD_TASK][self._name] = self._sample()
+                msg_dict[worker_id][MsgKey.POLICY_STATE][self._name] = self.get_state()
+                # data-parallel by multiple remote gradient workers
+                self._proxy.isend(SessionMessage(
+                    MsgTag.COMPUTE_GRAD, self._proxy.name, worker_id, body=msg_dict[worker_id]))
             dones = 0
-            loss_infos = {name: []}
-            for msg in proxy.receive():
+            loss_infos = {self._name: []}
+            for msg in self._proxy.receive():
                 if msg.tag == MsgTag.COMPUTE_GRAD_DONE:
                     for policy_name, loss_info in msg.body[MsgKey.LOSS_INFO].items():
                         if isinstance(loss_info, list):
@@ -368,7 +370,7 @@ class DQN(RLPolicy):
             # build dummy computation graph before apply gradients.
             # batch_size=2 because nn.functional.batch_norm doesn't support batch_size=1.
             _ = self.get_batch_loss(self._sample(batch_size=2), explicit_grad=True)
-            self.update_with_multi_loss_info(loss_infos[name])
+            self.update_with_multi_loss_info(loss_infos[self._name])
 
     @property
     def exploration_params(self):

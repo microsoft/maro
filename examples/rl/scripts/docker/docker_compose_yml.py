@@ -61,12 +61,28 @@ if __name__ == "__main__":
         num_rollouts = config['sync']['distributed']['num_workers']
 
     common_env.append(f"NUMROLLOUTS={num_rollouts}")
-
-    # host spec
+    common_env.append(f"DATAPARALLEL={config['data_parallel']['enable']}")
+    common_env.append(f"DISTRIBUTED={config['policy_manager']['type'] == 'distributed'}")
+    if config["data_parallel"]["enable"]:
+        common_env.append(f"NUMGRADWORKERS={config['data_parallel']['num_workers']}")
+        common_env.append(f"ALLOCATIONMODE={config['data_parallel']['allocation_mode']}")
     if config["policy_manager"]["type"] == "distributed":
         common_env.append(f"LEARNGROUP={config['policy_manager']['distributed']['group']}")
         common_env.append(f"NUMHOSTS={config['policy_manager']['distributed']['num_hosts']}")
-        common_env.append(f"ALLOCATIONMODE={config['policy_manager']['distributed']['allocation_mode']}")
+
+    # grad worker config
+    if config["data_parallel"]["enable"]:
+        for worker_id in range(config['data_parallel']['num_workers']):
+            str_id = f"grad_worker.{worker_id}"
+            grad_worker_spec = deepcopy(common_spec)
+            del grad_worker_spec["build"]
+            grad_worker_spec["command"] = "python3 /maro/rl_examples/workflows/grad_worker.py"
+            grad_worker_spec["container_name"] = f"{namespace}.{str_id}"
+            grad_worker_spec["environment"] = [f"WORKERID={worker_id}"] + common_env
+            docker_compose_manifest["services"][str_id] = grad_worker_spec
+
+    # policy host spec
+    if config["policy_manager"]["type"] == "distributed":
         for host_id in range(config["policy_manager"]["distributed"]["num_hosts"]):
             str_id = f"policy_host.{host_id}"
             host_spec = deepcopy(common_spec)

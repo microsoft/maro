@@ -192,19 +192,21 @@ class ActorCritic(RLPolicy):
             for _ in range(self.grad_iters):
                 self.update_with_multi_loss_info([self.get_batch_loss(batch, explicit_grad=True) for batch in batches])
 
-    def distributed_learn(self, rollout_info, host_id_list, name, proxy):
+    def distributed_learn(self, rollout_info, worker_id_list):
+        assert self.remote, "distributed_learn is invalid when self.remote is False!"
+
         batches = [self._preprocess(traj) for traj in rollout_info]
         for _ in range(self.grad_iters):
             msg_dict = defaultdict(lambda: defaultdict(dict))
-            for i, host_id_str in enumerate(host_id_list):
-                msg_dict[host_id_str][MsgKey.GRAD_TASK][name] = batches[i::len(host_id_str)]
-                msg_dict[host_id_str][MsgKey.POLICY_STATE][name] = self.get_state()
+            for i, worker_id in enumerate(worker_id_list):
+                msg_dict[worker_id][MsgKey.GRAD_TASK][self._name] = batches[i::len(worker_id)]
+                msg_dict[worker_id][MsgKey.POLICY_STATE][self._name] = self.get_state()
                 # data-parallel
-                proxy.isend(SessionMessage(
-                    MsgTag.COMPUTE_GRAD, proxy.name, host_id_str, body=msg_dict[host_id_str]))
+                self._proxy.isend(SessionMessage(
+                    MsgTag.COMPUTE_GRAD, self._proxy.name, worker_id, body=msg_dict[worker_id]))
             dones = 0
-            loss_infos = {name: []}
-            for msg in proxy.receive():
+            loss_infos = {self._name: []}
+            for msg in self._proxy.receive():
                 if msg.tag == MsgTag.COMPUTE_GRAD_DONE:
                     for policy_name, loss_info in msg.body[MsgKey.LOSS_INFO].items():
                         if isinstance(loss_info, list):
@@ -218,7 +220,7 @@ class ActorCritic(RLPolicy):
                         break
             # build dummy computation graph before apply gradients.
             _ = self.get_batch_loss(batches[0], explicit_grad=True)
-            self.update_with_multi_loss_info(loss_infos[name])
+            self.update_with_multi_loss_info(loss_infos[self._name])
 
     def set_state(self, policy_state):
         self.ac_net.load_state_dict(policy_state)

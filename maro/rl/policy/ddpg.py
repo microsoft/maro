@@ -192,21 +192,23 @@ class DDPG(RLPolicy):
                 if self._ac_net_version - self._target_ac_net_version == self.update_target_every:
                     self._update_target()
 
-    def distributed_learn(self, rollout_info, host_id_list, name, proxy):
+    def distributed_learn(self, rollout_info, worker_id_list):
+        assert self.remote, "distributed_learn is invalid when self.remote is False!"
+
         for traj in rollout_info:
             self._preprocess(traj)
 
         for _ in range(self.num_epochs):
             msg_dict = defaultdict(lambda: defaultdict(dict))
-            for host_id_str in host_id_list:
-                msg_dict[host_id_str][MsgKey.GRAD_TASK][name] = self._get_batch()
-                msg_dict[host_id_str][MsgKey.POLICY_STATE][name] = self.get_state()
+            for worker_id in worker_id_list:
+                msg_dict[worker_id][MsgKey.GRAD_TASK][self._name] = self._get_batch()
+                msg_dict[worker_id][MsgKey.POLICY_STATE][self._name] = self.get_state()
                 # data-parallel by multiple hosts/workers
-                proxy.isend(SessionMessage(
-                    MsgTag.COMPUTE_GRAD, proxy.name, host_id_str, body=msg_dict[host_id_str]))
+                self._proxy.isend(SessionMessage(
+                    MsgTag.COMPUTE_GRAD, self._proxy.name, worker_id, body=msg_dict[worker_id]))
             dones = 0
-            loss_infos = {name: []}
-            for msg in proxy.receive():
+            loss_infos = {self._name: []}
+            for msg in self._proxy.receive():
                 if msg.tag == MsgTag.COMPUTE_GRAD_DONE:
                     for policy_name, loss_info in msg.body[MsgKey.LOSS_INFO].items():
                         if isinstance(loss_info, list):
@@ -220,7 +222,7 @@ class DDPG(RLPolicy):
                         break
             # build dummy computation graph before apply gradients.
             _ = self.get_batch_loss(self._get_batch(), explicit_grad=True)
-            self.update_with_multi_loss_info(loss_infos[name])
+            self.update_with_multi_loss_info(loss_infos[self._name])
 
     def _update_target(self):
         # soft-update target network
