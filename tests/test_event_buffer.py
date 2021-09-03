@@ -310,8 +310,6 @@ class TestEventBuffer(unittest.TestCase):
                 '1,1,1,"(1, 3)"\n'
             ])
 
-        os.remove(temp_file_path)
-
 
 if __name__ == "__main__":
     unittest.main()
