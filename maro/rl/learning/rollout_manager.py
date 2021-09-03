@@ -14,7 +14,7 @@ from maro.communication import Proxy, SessionType
 from maro.rl.utils import MsgKey, MsgTag
 from maro.utils import Logger, set_seeds
 
-from .env_sampler import EnvSampler
+from .env_sampler import AbsEnvSampler
 from .helpers import get_rollout_finish_msg
 
 
@@ -78,7 +78,7 @@ class SimpleRolloutManager(AbsRolloutManager):
 
     Args:
         get_env_sampler (Callable): Function to create an environment sampler for collecting training data. The function
-            should take no parameters and return an ``EnvSampler`` instance.
+            should take no parameters and return an ``AbsEnvSampler`` instance.
         num_steps (int): Number of environment steps to roll out in each call to ``collect``. Defaults to -1, in which
             case the roll-out will be executed until the end of the environment.
         post_collect (Callable): Custom function to process whatever information is collected by each
@@ -95,7 +95,7 @@ class SimpleRolloutManager(AbsRolloutManager):
     """
     def __init__(
         self,
-        get_env_sampler: Callable[[], EnvSampler],
+        get_env_sampler: Callable[[], AbsEnvSampler],
         num_steps: int = -1,
         parallelism: int = 1,
         eval_parallelism: int = 1,

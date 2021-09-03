@@ -104,36 +104,39 @@ common_env = [
     {"name": "JOB", "value": config["job"]},
     {"name": "SCENARIO", "value": config["scenario"]},
     {"name": "MODE", "value": config["mode"]},
-    {"name": "EXPDIST", "value": "1" if config["rollout_experience_distribution"] else "0"}
+    {"name": "POLICYMANAGERTYPE", "value": config['policy_manager']['type']}
 ]
 
-if config["mode"] == "sync":
-    common_env.append({"name": "NUMWORKERS", "value": str(config["sync"]["num_rollout_workers"])})
+if config["mode"] == "async":
+    num_rollouts = config['async']['num_actors']
+elif config["sync"]["rollout_type"] == "simple":
+    num_rollouts = config['sync']['simple']['parallelism']
 else:
-    common_env.append({"name": "NUMACTORS", "value": str(config["async"]["num_actors"])})
+    num_rollouts = config['sync']['distributed']['num_workers']
 
-# trainer spec
-if config["policy_manager"]["train_mode"] == "multi-node":
-    for trainer_id in range(config["policy_manager"]["num_trainers"]):
-        job_name = f"trainer-{trainer_id}"
-        trainer_manifest = deepcopy(common)
-        trainer_manifest["metadata"] = {"name": job_name}
-        trainer_manifest["spec"]["template"]["spec"]["containers"] = [
+common_env.append({"name": "NUMROLLOUTS", "value": str(num_rollouts)})
+
+# policy host spec
+if config["policy_manager"]["type"] == "distributed":
+    common_env.append(f"LEARNGROUP={config['policy_manager']['distributed']['group']}")
+    common_env.append(f"NUMHOSTS={config['policy_manager']['distributed']['num_hosts']}")
+    for host_id in range(config["policy_manager"]["distributed"]["num_hosts"]):
+        job_name = f"policy-host-{host_id}"
+        host_manifest = deepcopy(common)
+        host_manifest["metadata"] = {"name": job_name}
+        host_manifest["spec"]["template"]["spec"]["containers"] = [
             {   
                 **deepcopy(common_container_spec),
                 **{
                     "name": job_name,
-                    "command": ["python3", join(mnt_path, 'workflows/policy_manager/trainer.py')],
-                    "env": [
-                        {"name": "TRAINERID", "value": str(trainer_id)},
-                        {"name": "TRAINGROUP", "value": config["policy_manager"]["train_group"]}
-                    ] + common_env
+                    "command": ["python3", join(mnt_path, 'workflows/policy_host.py')],
+                    "env": [{"name": "HOSTID", "value": str(host_id)}] + common_env
                 }
             }
         ]
 
-        with open(join(k8s_manifest_dir, f"trainer_{trainer_id}.yml"), "w") as fp:
-            yaml.safe_dump(trainer_manifest, fp)
+        with open(join(k8s_manifest_dir, f"policy_host_{host_id}.yml"), "w") as fp:
+            yaml.safe_dump(host_manifest, fp)
 
 mode = config["mode"]
 if mode == "sync":
@@ -147,18 +150,18 @@ if mode == "sync":
                 "name": "learner",
                 "command": ["python3", join(mnt_path, 'workflows/synchronous/learner.py')],
                 "env": [
-                    {"name": "ROLLOUTMODE", "value": config["sync"]["rollout_mode"]},
-                    {"name": "NUMSTEPS", "value": str(config["num_steps"])},
-                    {"name": "MAXLAG", "value": str(config["max_lag"])},
-                    {"name": "MINFINISH", "value": str(config["sync"]["min_finished_workers"])},
-                    {"name": "MAXEXRECV", "value": str(config["sync"]["max_extra_recv_tries"])},
-                    {"name": "MAXRECVTIMEO", "value": str(config["sync"]["extra_recv_timeout"])},
-                    {"name": "ROLLOUTGROUP", "value": config["sync"]["rollout_group"]},
+                    {"name": "ROLLOUTTYPE", "value": config['sync']['rollout_type']},
                     {"name": "NUMEPISODES", "value": str(config["num_episodes"])},
+                    {"name": "NUMSTEPS", "value": str(config["num_steps"])},
                     {"name": "EVALSCH", "value": str(config["eval_schedule"])},
-                    {"name": "TRAINMODE", "value": config["policy_manager"]["train_mode"]},
-                    {"name": "TRAINGROUP", "value": config["policy_manager"]["train_group"]},
-                    {"name": "NUMTRAINERS", "value": str(config["policy_manager"]["num_trainers"])}
+                    {"name": "PARALLEL", "value": '1' if config['policy_manager']['simple']['parallel'] else '0'},
+                    {"name": "EVALPARALLELISM", "value": config['sync']['simple']['eval_parallelism']},
+                    {"name": "ROLLOUTGROUP", "value": config['sync']['distributed']['group']},
+                    {"name": "NUMEVALWORKERS", "value": config['sync']['distributed']['num_eval_workers']},
+                    {"name": "MAXLAG", "value": str(config["max_lag"])},
+                    {"name": "MINFINISH", "value": str(config['sync']['distributed']['min_finished_workers'])},
+                    {"name": "MAXEXRECV", "value": str(config['sync']['distributed']['max_extra_recv_tries'])},
+                    {"name": "MAXRECVTIMEO", "value": str(config['sync']['distributed']['extra_recv_timeout'])}
                 ] + common_env
             }
         }
@@ -167,7 +170,7 @@ if mode == "sync":
         yaml.safe_dump(learner_manifest, fp)
 
     # rollout worker spec
-    if config["sync"]["rollout_mode"] == "multi-node":
+    if config["sync"]["rollout_type"] == "distributed":
         for worker_id in range(config["sync"]["num_rollout_workers"]):
             job_name = f"rollout-worker-{worker_id}"
             worker_manifest = deepcopy(common)
@@ -180,8 +183,7 @@ if mode == "sync":
                         "command": ["python3", join(mnt_path, 'workflows/synchronous/rollout_worker.py')],
                         "env": [
                             {"name": "WORKERID", "value": str(worker_id)},
-                            {"name": "ROLLOUTGROUP", "value": config["sync"]["rollout_group"]},
-                            {"name": "EVALSCH", "value": str(config["eval_schedule"])}
+                            {"name": "ROLLOUTGROUP", "value": config['sync']['distributed']['group']}
                         ] + common_env
                     }
                 }
@@ -222,8 +224,7 @@ elif mode == "async":
                         {"name": "ACTORID", "value": str(actor_id)},
                         {"name": "GROUP", "value": config["async"]["group"]},
                         {"name": "NUMEPISODES", "value": str(config["num_episodes"])},
-                        {"name": "NUMSTEPS", "value": str(config["num_steps"])},
-                        {"name": "EVALSCH", "value": str(config["eval_schedule"])}
+                        {"name": "NUMSTEPS", "value": str(config["num_steps"])}
                     ] + common_env
                 }
             }

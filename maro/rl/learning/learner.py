@@ -8,14 +8,14 @@ from typing import Callable, List, Union
 from maro.utils import Logger
 
 from .early_stopper import AbsEarlyStopper
-from .env_sampler import EnvSampler
+from .env_sampler import AbsEnvSampler
 from .helpers import get_eval_schedule, get_rollout_finish_msg
 from .policy_manager import AbsPolicyManager
 from .rollout_manager import AbsRolloutManager
 
 
 def simple_learner(
-    get_env_sampler: Callable[[], EnvSampler],
+    get_env_sampler: Callable[[], AbsEnvSampler],
     num_episodes: int,
     num_steps: int = -1,
     eval_schedule: Union[int, List[int]] = None,

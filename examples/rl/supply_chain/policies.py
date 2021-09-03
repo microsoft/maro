@@ -7,27 +7,26 @@ import sys
 
 import numpy as np
 import scipy.stats as st
-from torch import nn
 
 from maro.rl.exploration import EpsilonGreedyExploration, LinearExplorationScheduler
 from maro.rl.modeling import FullyConnected, OptimOption, DiscreteQNet
-from maro.rl.policy import DQN, AbsPolicy
+from maro.rl.policy import DQN, AbsPolicy, NullPolicy
 
 cim_path = os.path.dirname(os.path.realpath(__file__))
 if cim_path not in sys.path:
     sys.path.insert(0, cim_path)
-from config import dqn_conf, q_net_conf, exploration_conf, state_dim
+from config import NUM_CONSUMER_ACTIONS, NUM_RL_POLICIES, dqn_conf, exploration_conf, q_net_conf
 
 
 ######################################## DQN #################################################
 class QNet(DiscreteQNet):
-    def __init__(self, component: nn.Module, optim_option: OptimOption=None, device=None):
+    def __init__(self, component, optim_option=None, device=None):
         super().__init__(component, optim_option=optim_option, device=device)
 
     @property
     def input_dim(self):
-        return state_dim
-    
+        return self.component.input_dim
+
     def forward(self, states):
         return self.component(states)
 
@@ -46,16 +45,13 @@ def get_dqn(name: str):
 ######################################## Rule-based / OR #################################################
 
 class ProducerBaselinePolicy(AbsPolicy):
-    def __init__(self):
-        super().__init__()
-
     def choose_action(self, state):
         return state.get('product_rate', 500)
 
 
 class ConsumerBaselinePolicy(AbsPolicy):
-    def __init__(self, num_actions: int):
-        super().__init__()
+    def __init__(self, name, num_actions: int):
+        super().__init__(name)
         self.num_actions = num_actions
 
     def choose_action(self, state):
@@ -153,16 +149,17 @@ class ConsumerMinMaxPolicy(AbsPolicy):
         return consumer_quantity
 
 
-CONSUMER_NUM_ACTIONS = 10
+# def get_consumer_baseline_policy():
+#     return ConsumerBaselinePolicy(NUM_CONSUMER_ACTIONS)
 
-def get_producer_baseline_policy():
-    return ProducerBaselinePolicy()
+# def get_consumer_eoq_policy():
+#     return ConsumerEOQPolicy()
 
-def get_consumer_baseline_policy():
-    return ConsumerBaselinePolicy(CONSUMER_NUM_ACTIONS)
-
-def get_consumer_minmax_policy():
-    return ConsumerMinMaxPolicy()
-
-def get_consumer_eoq_policy():
-    return ConsumerEOQPolicy()
+or_policy_func_dict = {
+    # "consumer": lambda: ConsumerMinMaxPolicy(),
+    "producer": lambda name: ProducerBaselinePolicy(name),
+    "facility": lambda name: NullPolicy(name),
+    "product": lambda name: NullPolicy(name),
+    "productstore": lambda name: NullPolicy(name)
+}
+policy_func_dict = {f"consumer-{i}": get_dqn for i in range(NUM_RL_POLICIES)}

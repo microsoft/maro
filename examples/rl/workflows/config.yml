@@ -4,8 +4,8 @@
 job: supply_chain
 scenario: supply_chain
 mode: sync
-num_episodes: 5
-eval_schedule: 5
+num_episodes: 3
+eval_schedule: 3
 num_steps: -1
 max_lag: 0
 # If true, the roll-out experiences will be distributed amongst roll-out workers / actors
@@ -19,10 +19,10 @@ sync:
     eval_parallelism: 1
   distributed:
     group: rollout
-    num_workers: 4
+    num_workers: 2
     num_eval_workers: 1
-    min_finished_workers: 3
-    max_extra_recv_tries: 2
+    min_finished_workers: 2
+    max_extra_recv_tries: 1
     extra_recv_timeout: 200
 async:
   group: async
