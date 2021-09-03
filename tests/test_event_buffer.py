@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 import os
+import tempfile
 import time
 import unittest
 from typing import Optional
@@ -273,7 +274,7 @@ class TestEventBuffer(unittest.TestCase):
 
     def test_record_events(self):
         timestamp = str(time.time()).replace(".", "_")
-        temp_file_path = f'./test_tmp_file_{timestamp}.txt'
+        temp_file_path = f'{tempfile.gettempdir()}/{timestamp}.txt'
 
         try:
             EventBuffer(record_events=True, record_path=None)
