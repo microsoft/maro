@@ -68,13 +68,17 @@ class PolicyGradient(RLPolicy):
         reward_discount: float,
         grad_iters: int = 1,
         buffer_size: int = 10000,
-        get_loss_on_rollout: bool = False
+        get_loss_on_rollout: bool = False,
+        device: str = None
     ):
         if not isinstance(policy_net, DiscretePolicyNet):
             raise TypeError("model must be an instance of 'DiscretePolicyNet'")
         super().__init__(name)
-        self.policy_net = policy_net
-        self.device = self.policy_net.device
+        if device is None:
+            self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        else:
+            self.device = torch.device(device)
+        self.policy_net = policy_net.to(self.device)
         self.reward_discount = reward_discount
         self.grad_iters = grad_iters
         self.buffer_size = buffer_size
@@ -86,9 +90,9 @@ class PolicyGradient(RLPolicy):
         """Return actions and log probabilities for given states."""
         self.policy_net.eval()
         with torch.no_grad():
-            actions, log_p = self.policy_net.get_action(states)
-        actions, log_p = actions.cpu().numpy(), log_p.cpu().numpy()
-        return (actions[0], log_p[0]) if len(actions) == 1 else actions, log_p
+            actions, logps = self.policy_net.get_action(states, greedy=self.greedy)
+        actions, logps = actions.cpu().numpy(), logps.cpu().numpy()
+        return [{"action": action, "logp": logp} for action, logp in zip(actions, logps)]
 
     def record(
         self,
@@ -124,9 +128,7 @@ class PolicyGradient(RLPolicy):
         the experience store's ``get`` method should be a sequential set, i.e., in the order in
         which they are generated during the simulation. Otherwise, the return values may be meaningless.
         """
-        assert self.policy_net.trainable, "policy_net needs to have at least one optimizer registered."
         self.policy_net.train()
-
         returns = torch.from_numpy(np.asarray(batch.returns)).to(self.device)
 
         _, logp = self.policy_net(batch["states"])

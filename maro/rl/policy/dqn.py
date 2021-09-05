@@ -1,13 +1,14 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import List, Union
+from typing import Callable, List, Union
 
 import numpy as np
 import torch
 
-from maro.rl.exploration import DiscreteSpaceExploration, EpsilonGreedyExploration
+from maro.rl.exploration import eps_greedy
 from maro.rl.modeling import DiscreteQNet
+from maro.utils import clone
 
 from .policy import RLPolicy
 from .replay import ReplayMemory
@@ -32,6 +33,7 @@ class PrioritizedExperienceReplay:
             This value of ``beta`` should not exceed 1.0, which corresponds to full annealing. Defaults to 0.4.
         beta_step (float): The amount ``beta`` is incremented by after each get() call until it reaches 1.0.
             Defaults to 0.001.
+        max_priority (float): Maximum priority value to use for new experiences. Defaults to 1e8.
     """
     def __init__(
         self,
@@ -135,7 +137,14 @@ class DQN(RLPolicy):
         random_overwrite (bool): This specifies overwrite behavior when the replay memory capacity is reached. If True,
             overwrite positions will be selected randomly. Otherwise, overwrites will occur sequentially with
             wrap-around. Defaults to False.
-        batch_size (int): Training sample. Defaults to 32.
+        warmup (int): When the total number of experiences in the replay memory is below this threshold,
+            ``choose_action`` will return uniformly random actions for warm-up purposes. Defaults to 1000.
+        rollout_batch_size (int): Size of the experience batch to use as roll-out information by calling
+            ``get_rollout_info``. Defaults to 1000.
+        train_batch_size (int): Batch size for training the Q-net. Defaults to 32.
+        prioritized_replay_kwargs (dict): Keyword arguments for prioritized experience replay. See
+            ``PrioritizedExperienceReplay`` for details. Defaults to None, in which case experiences will be sampled
+            from the replay memory uniformly randomly.
     """
 
     def __init__(
@@ -147,24 +156,28 @@ class DQN(RLPolicy):
         update_target_every: int = 5,
         soft_update_coeff: float = 0.1,
         double: bool = False,
-        exploration: DiscreteSpaceExploration = EpsilonGreedyExploration(),
+        exploration_func: Callable = eps_greedy,
+        exploration_params: dict = {"epsilon": 0.1},
         replay_memory_capacity: int = 10000,
         random_overwrite: bool = False,
-        train_batch_size: int = 32,
+        warmup: int = 1000,
         rollout_batch_size: int = 1000,
-        prioritized_replay_kwargs: dict = None
+        train_batch_size: int = 32,
+        prioritized_replay_kwargs: dict = None,
+        device: str = None
     ):
         if not isinstance(q_net, DiscreteQNet):
             raise TypeError("model must be an instance of 'DiscreteQNet'")
 
         super().__init__(name)
-        self.q_net = q_net
-        self.device = self.q_net.device
-        if self.q_net.trainable:
-            self.target_q_net = q_net.copy()
-            self.target_q_net.eval()
+        self._num_actions = self.q_net.num_actions
+        if device is None:
+            self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         else:
-            self.target_q_net = None
+            self.device = torch.device(device)
+        self.q_net = q_net.to(self.device)
+        self.target_q_net = clone(q_net)
+        self.target_q_net.eval()
         self._q_net_version = 0
         self._target_q_net_version = 0
 
@@ -177,6 +190,7 @@ class DQN(RLPolicy):
         self._replay_memory = ReplayMemory(
             replay_memory_capacity, self.q_net.input_dim, action_dim=1, random_overwrite=random_overwrite
         )
+        self.warmup = warmup
         self.rollout_batch_size = rollout_batch_size
         self.train_batch_size = train_batch_size
         self.prioritized_replay = prioritized_replay_kwargs is not None
@@ -185,10 +199,14 @@ class DQN(RLPolicy):
         else:
             self._loss_func = torch.nn.MSELoss()
 
-        self.exploration = exploration
+        self.exploration_func = exploration_func
+        self.exploration_params = exploration_params
         self.greedy = True  # set initial exploration status to True
 
     def choose_action(self, states: np.ndarray) -> Union[int, np.ndarray]:
+        if self._replay_memory.size < self.warmup:
+            return np.random.randint(self._num_actions, size=(states.shape[0] if len(states.shape) > 1 else 1,))
+
         self.q_net.eval()
         states = torch.from_numpy(states).to(self.device)
         if len(states.shape) == 1:
@@ -197,12 +215,10 @@ class DQN(RLPolicy):
             q_for_all_actions = self.q_net(states)  # (batch_size, num_actions)
             _, actions = q_for_all_actions.max(dim=1)
 
-        actions = actions.cpu().numpy()
-        if not self.greedy:
-            if self.exploration.action_space is None:
-                self.exploration.set_action_space(np.arange(q_for_all_actions.shape[1]))
-            actions = self.exploration(actions, state=states)
-        return actions[0] if len(actions) == 1 else actions
+        if self.greedy:
+            return actions.cpu().numpy()
+        else:
+            return self.exploration_func(actions.cpu().numpy(), self._num_actions, **self.exploration_params)
 
     def record(
         self,
@@ -245,7 +261,6 @@ class DQN(RLPolicy):
             return self._replay_memory.sample(self.train_batch_size)
 
     def get_batch_loss(self, batch: dict, explicit_grad: bool = False):
-        assert self.q_net.trainable, "q_net needs to have at least one optimizer registered."
         self.q_net.train()
         states = torch.from_numpy(batch["states"]).to(self.device)
         next_states = torch.from_numpy(batch["next_states"]).to(self.device)
@@ -308,19 +323,6 @@ class DQN(RLPolicy):
         # soft-update target network
         self.target_q_net.soft_update(self.q_net, self.soft_update_coeff)
         self._target_q_net_version = self._q_net_version
-
-    @property
-    def exploration_params(self):
-        return self.exploration.parameters
-
-    def exploit(self):
-        self.greedy = True
-
-    def explore(self):
-        self.greedy = False
-
-    def exploration_step(self):
-        self.exploration.step()
 
     def set_state(self, policy_state):
         self.q_net.load_state_dict(policy_state["eval"])

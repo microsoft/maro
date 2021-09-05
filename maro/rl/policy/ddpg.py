@@ -1,14 +1,15 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import List, Union
+from typing import Callable, List, Union
 
 import numpy as np
 import torch
 
-from maro.rl.exploration import GaussianNoiseExploration, NoiseExploration
+from maro.rl.exploration import gaussian_noise
 from maro.rl.modeling import ContinuousACNet
 from maro.rl.utils import get_torch_loss_cls
+from maro.utils import clone
 
 from .policy import RLPolicy
 from .replay import ReplayMemory
@@ -32,12 +33,17 @@ class DDPG(RLPolicy):
             loss = policy_loss + ``q_value_loss_coeff`` * q_value_loss. Defaults to 1.0.
         soft_update_coeff (float): Soft update coefficient, e.g., target_model = (soft_update_coeff) * eval_model +
             (1-soft_update_coeff) * target_model. Defaults to 1.0.
-        exploration: Exploration strategy for generating exploratory actions. Defaults to ``GaussianNoiseExploration``.
+        exploration_func: Exploration strategy for generating exploratory actions. Defaults to ``gaussian_noise``.
+        exploration_params (dict): Keyword parameters for the exploration strategy.
         replay_memory_capacity (int): Capacity of the replay memory. Defaults to 10000.
         random_overwrite (bool): This specifies overwrite behavior when the replay memory capacity is reached. If True,
             overwrite positions will be selected randomly. Otherwise, overwrites will occur sequentially with
             wrap-around. Defaults to False.
-        batch_size (int): Training sample. Defaults to 32.
+        warmup (int): When the total number of experiences in the replay memory is below this threshold,
+            ``choose_action`` will return uniformly random actions for warm-up purposes. Defaults to 1000.
+        rollout_batch_size (int): Size of the experience batch to use as roll-out information by calling
+            ``get_rollout_info``. Defaults to 1000.
+        train_batch_size (int): Batch size for training the Q-net. Defaults to 32.
     """
     def __init__(
         self,
@@ -49,22 +55,26 @@ class DDPG(RLPolicy):
         q_value_loss_cls="mse",
         q_value_loss_coeff: float = 1.0,
         soft_update_coeff: float = 1.0,
-        exploration: NoiseExploration = GaussianNoiseExploration(),
+        exploration_func: Callable = gaussian_noise,
+        exploration_params: dict = {"mean": .0, "stddev": 1.0, "relative": False},
         replay_memory_capacity: int = 10000,
         random_overwrite: bool = False,
-        batch_size: int = 32
+        warmup: int = 1000,
+        rollout_batch_size: int = 1000,
+        train_batch_size: int = 32,
+        device: str = None
     ):
         if not isinstance(ac_net, ContinuousACNet):
             raise TypeError("model must be an instance of 'ContinuousACNet'")
 
         super().__init__(name)
-        self.ac_net = ac_net
-        self.device = self.ac_net.device
-        if self.ac_net.trainable:
-            self.target_ac_net = ac_net.copy()
-            self.target_ac_net.eval()
+        if device is None:
+            self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         else:
-            self.target_ac_net = None
+            self.device = torch.device(device)
+        self.ac_net = ac_net.to(self.device)
+        self.target_ac_net = clone(self.ac_net)
+        self.target_ac_net.eval()
         self.reward_discount = reward_discount
         self.num_epochs = num_epochs
         self.update_target_every = update_target_every
@@ -78,19 +88,27 @@ class DDPG(RLPolicy):
         self._replay_memory = ReplayMemory(
             replay_memory_capacity, self.ac_net.input_dim, action_dim=1, random_overwrite=random_overwrite
         )
-        self.batch_size = batch_size
+        self.warmup = warmup
+        self.rollout_batch_size = rollout_batch_size
+        self.train_batch_size = train_batch_size
 
-        self.exploration = exploration
+        self.exploration_func = exploration_func
+        self.exploration_params = exploration_params
         self.greedy = True
 
     def choose_action(self, states) -> Union[float, np.ndarray]:
+        if self._replay_memory.size < self.warmup:
+            return np.random.uniform(
+                low=self.ac_net.min_action, high=self.ac_net.max_action, size=self.ac_net.action_dim
+            )
+
         self.ac_net.eval()
         with torch.no_grad():
             actions = self.ac_net.get_action(states).cpu().numpy()
 
         if not self.greedy:
-            actions = self.exploration(actions, state=states)
-        return actions[0] if len(actions) == 1 else actions
+            actions = self.exploration_func(actions, state=states)
+        return actions
 
     def record(
         self,
@@ -112,8 +130,10 @@ class DDPG(RLPolicy):
             np.expand_dims(terminal, axis=0)
         )
 
+    def get_rollout_info(self):
+        return self._replay_memory.sample(self.rollout_batch_size)
+
     def get_batch_loss(self, batch: dict, explicit_grad: bool = False) -> dict:
-        assert self.ac_net.trainable, "ac_net needs to have at least one optimizer registered."
         self.ac_net.train()
         states = torch.from_numpy(batch["states"]).to(self.device)
         next_states = torch.from_numpy(["next_states"]).to(self.device)
@@ -154,7 +174,7 @@ class DDPG(RLPolicy):
         )
 
         for _ in range(self.num_epochs):
-            train_batch = self._replay_memory.sample(self.batch_size)
+            train_batch = self._replay_memory.sample(self.train_batch_size)
             self.ac_net.step(self.get_batch_loss(train_batch)["loss"])
             self._ac_net_version += 1
             if self._ac_net_version - self._target_ac_net_version == self.update_target_every:
@@ -164,19 +184,6 @@ class DDPG(RLPolicy):
         # soft-update target network
         self.target_ac_net.soft_update(self.ac_net, self.soft_update_coeff)
         self._target_ac_net_version = self._ac_net_version
-
-    @property
-    def exploration_params(self):
-        return self.exploration.parameters
-
-    def exploit(self):
-        self.greedy = True
-
-    def explore(self):
-        self.greedy = False
-
-    def exploration_step(self):
-        self.exploration.step()
 
     def set_state(self, policy_state):
         self.ac_net.load_state_dict(policy_state)

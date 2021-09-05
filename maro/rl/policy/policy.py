@@ -44,6 +44,8 @@ class RLPolicy(AbsPolicy):
     """
     def __init__(self, name: str):
         super().__init__(name)
+        self.exploration_params = {}
+        self.greedy = True
 
     @abstractmethod
     def choose_action(self, state):
@@ -70,17 +72,10 @@ class RLPolicy(AbsPolicy):
         raise NotImplementedError
 
     def exploit(self):
-        pass
+        self.greedy = True
 
     def explore(self):
-        pass
-
-    def exploration_step(self):
-        pass
-
-    @property
-    def exploration_params(self):
-        return None
+        self.greedy = False
 
     @abstractmethod
     def get_state(self):

@@ -49,8 +49,7 @@ if __name__ == "__main__":
         f"JOB={config['job']}",
         f"SCENARIO={config['scenario']}",
         f"MODE={config['mode']}",
-        f"POLICYMANAGERTYPE={config['policy_manager']['type']}",
-        f"EXPDIST={'1' if config['rollout_experience_distribution'] else '0'}"
+        f"POLICYMANAGERTYPE={config['policy_manager']['type']}"
     ]
 
     if config["mode"] == "async":
@@ -85,17 +84,17 @@ if __name__ == "__main__":
                 "command": "python3 /maro/rl_examples/workflows/learner.py",
                 "environment": [
                     f"ROLLOUTTYPE={config['sync']['rollout_type']}",
+                    f"NUMEPISODES={config['num_episodes']}",
+                    f"NUMSTEPS={config['num_steps']}",
+                    f"EVALSCH={config['eval_schedule']}",
+                    f"PARALLEL={'1' if config['policy_manager']['simple']['parallel'] else '0'}",
                     f"EVALPARALLELISM={config['sync']['simple']['eval_parallelism']}",
                     f"ROLLOUTGROUP={config['sync']['distributed']['group']}",
-                    f"NUMEPISODES={config['num_episodes']}",
-                    f"EVALSCH={config['eval_schedule']}",
                     f"NUMEVALWORKERS={config['sync']['distributed']['num_eval_workers']}",
-                    f"NUMSTEPS={config['num_steps']}",
                     f"MAXLAG={config['max_lag']}",
                     f"MINFINISH={config['sync']['distributed']['min_finished_workers']}",
                     f"MAXEXRECV={config['sync']['distributed']['max_extra_recv_tries']}",
                     f"MAXRECVTIMEO={config['sync']['distributed']['extra_recv_timeout']}",
-                    f"PARALLEL={'1' if config['policy_manager']['simple']['parallel'] else '0'}"
                 ] + common_env
             }
         }
@@ -109,8 +108,7 @@ if __name__ == "__main__":
                 worker_spec["container_name"] = f"{namespace}.{str_id}"
                 worker_spec["environment"] = [
                     f"WORKERID={worker_id}",
-                    f"ROLLOUTGROUP={config['sync']['distributed']['group']}",
-                    f"EVALSCH={config['eval_schedule']}"
+                    f"ROLLOUTGROUP={config['sync']['distributed']['group']}"
                 ] + common_env
                 docker_compose_manifest["services"][str_id] = worker_spec
     elif mode == "async":
@@ -137,8 +135,7 @@ if __name__ == "__main__":
                 f"ACTORID={actor_id}",
                 f"GROUP={config['async']['group']}",
                 f"NUMEPISODES={config['num_episodes']}",
-                f"NUMSTEPS={config['num_steps']}",
-                f"EVALSCH={config['eval_schedule']}"
+                f"NUMSTEPS={config['num_steps']}"
             ] + common_env
             docker_compose_manifest["services"][str_id] = actor_spec
     else: 

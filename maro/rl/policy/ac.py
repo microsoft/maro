@@ -95,14 +95,18 @@ class ActorCritic(RLPolicy):
         clip_ratio: float = None,
         lam: float = 0.9,
         buffer_size: int = 10000,
-        get_loss_on_rollout: bool = False
+        get_loss_on_rollout: bool = False,
+        device: str = None
     ):
         if not isinstance(ac_net, DiscreteACNet):
             raise TypeError("model must be an instance of 'DiscreteACNet'")
 
         super().__init__(name)
-        self.ac_net = ac_net
-        self.device = self.ac_net.device
+        if device is None:
+            self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        else:
+            self.device = torch.device(device)
+        self.ac_net = ac_net.to(self.device)
         self.reward_discount = reward_discount
         self.grad_iters = grad_iters
         self.critic_loss_func = get_torch_loss_cls(critic_loss_cls)()
@@ -123,14 +127,11 @@ class ActorCritic(RLPolicy):
         if len(states.shape) == 1:
             states = states.unsqueeze(dim=0)
         with torch.no_grad():
-            actions, logps, values = self.ac_net.get_action(states)
+            actions, logps, values = self.ac_net.get_action(states, greedy=self.greedy)
         actions, logps, values = actions.cpu().numpy(), logps.cpu().numpy(), values.cpu().numpy()
-        if len(actions) == 1:
-            return {"action": actions[0], "logp": logps[0], "value": values[0]}
-        else:
-            return [
-                {"action": action, "logp": logp, "value": value} for action, logp, value in zip(actions, logps, values)
-            ]
+        return [
+            {"action": action, "logp": logp, "value": value} for action, logp, value in zip(actions, logps, values)
+        ]
 
     def record(
         self,
@@ -167,7 +168,6 @@ class ActorCritic(RLPolicy):
         return {key: np.concatenate(vals) for key, vals in batch.items()}
 
     def get_batch_loss(self, batch: dict, explicit_grad: bool = False):
-        assert self.ac_net.trainable, "ac_net needs to have at least one optimizer registered."
         self.ac_net.train()
         states = torch.from_numpy(batch["states"]).to(self.device)
         actions = torch.from_numpy(batch["actions"]).to(self.device)

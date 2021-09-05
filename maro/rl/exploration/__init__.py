@@ -1,16 +1,12 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from .abs_exploration import AbsExploration, NullExploration
-from .discrete_space_exploration import DiscreteSpaceExploration, EpsilonGreedyExploration
-from .exploration_scheduler import (
-    AbsExplorationScheduler, LinearExplorationScheduler, MultiPhaseLinearExplorationScheduler
+from .scheduler import (
+    AbsExplorationScheduler, LinearExplorationScheduler, MultiLinearExplorationScheduler
 )
-from .noise_exploration import GaussianNoiseExploration, NoiseExploration, UniformNoiseExploration
+from .strategies import eps_greedy, gaussian_noise, uniform_noise
 
 __all__ = [
-    "AbsExploration", "NullExploration",
-    "DiscreteSpaceExploration", "EpsilonGreedyExploration",
-    "AbsExplorationScheduler", "LinearExplorationScheduler", "MultiPhaseLinearExplorationScheduler",
-    "GaussianNoiseExploration", "NoiseExploration", "UniformNoiseExploration"
+    "AbsExplorationScheduler", "LinearExplorationScheduler", "MultiLinearExplorationScheduler",
+    "eps_greedy", "gaussian_noise", "uniform_noise"
 ]

@@ -1,11 +1,12 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from torch.optim import Adam, RMSprop
 
 env_conf = {
     "scenario": "cim",
     "topology": "toy.4p_ssdd_l0.0",
-    "durations": 280
+    "durations": 560
 }
 
 port_attributes = ["empty", "full", "on_shipper", "on_consignee", "booking", "shortage", "fulfillment"]
@@ -37,22 +38,18 @@ state_dim = (
 
 # DQN settings
 q_net_conf = {
-    "network": {
-        "input_dim": state_dim,
-        "hidden_dims": [256, 128, 64, 32],
-        "output_dim": len(action_shaping_conf["action_space"]),
-        "activation": "leaky_relu",
-        "softmax": False,
-        "batch_norm": True,
-        "skip_connection": False,
-        "head": True,
-        "dropout_p": 0.0
-    },
-    "optimization": {
-        "optim_cls": "rmsprop",
-        "optim_params": {"lr": 0.05}
-    }
+    "input_dim": state_dim,
+    "hidden_dims": [256, 128, 64, 32],
+    "output_dim": len(action_shaping_conf["action_space"]),
+    "activation": "leaky_relu",
+    "softmax": False,
+    "batch_norm": True,
+    "skip_connection": False,
+    "head": True,
+    "dropout_p": 0.0
 }
+
+q_net_optim_conf = (RMSprop, {"lr": 0.05})
 
 dqn_conf = {
     "reward_discount": .0,
@@ -81,38 +78,28 @@ exploration_conf = {
 
 
 # AC settings
-ac_net_conf = {
-    "network": {
-        "actor": {
-            "input_dim": state_dim,
-            "hidden_dims": [256, 128, 64],
-            "output_dim": len(action_shaping_conf["action_space"]),
-            "activation": "tanh",
-            "softmax": True,
-            "batch_norm": False,
-            "head": True
-        },
-        "critic": {
-            "input_dim": state_dim,
-            "hidden_dims": [256, 128, 64],
-            "output_dim": 1,
-            "activation": "leaky_relu",
-            "softmax": False,
-            "batch_norm": True,
-            "head": True
-        }
-    },
-    "optimization": {
-        "actor": {
-            "optim_cls": "adam",
-            "optim_params": {"lr": 0.001}
-        },
-        "critic": {
-            "optim_cls": "rmsprop",
-            "optim_params": {"lr": 0.001}
-        }
-    }
+actor_net_conf = {
+    "input_dim": state_dim,
+    "hidden_dims": [256, 128, 64],
+    "output_dim": len(action_shaping_conf["action_space"]),
+    "activation": "tanh",
+    "softmax": True,
+    "batch_norm": False,
+    "head": True
 }
+
+critic_net_conf = {
+    "input_dim": state_dim,
+    "hidden_dims": [256, 128, 64],
+    "output_dim": 1,
+    "activation": "leaky_relu",
+    "softmax": False,
+    "batch_norm": True,
+    "head": True
+}
+
+actor_optim_conf = (Adam, {"lr": 0.001})
+critic_optim_conf = (RMSprop, {"lr": 0.001})
 
 ac_conf = {
     "reward_discount": .0,

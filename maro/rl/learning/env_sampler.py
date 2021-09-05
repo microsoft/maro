@@ -23,11 +23,13 @@ class AgentWrapper:
         self,
         get_policy_func_dict: Dict[str, Callable],
         agent2policy: Dict[str, str],
+        exploration_scheduler_option: Dict[str, tuple],
         policies_to_parallelize: List[str] = []
     ):
         self._policies_to_parallelize = set(policies_to_parallelize)
         self.policy_dict = {
-            id_: func(id_) for id_, func in get_policy_func_dict.items() if id_ not in self._policies_to_parallelize
+            policy_id: func(policy_id) for policy_id, func in get_policy_func_dict.items()
+            if policy_id not in self._policies_to_parallelize
         }
         self.agent2policy = agent2policy
         self.policy_by_agent = {
@@ -35,11 +37,20 @@ class AgentWrapper:
             if policy_id in self.policy_dict
         }
 
-        self._policy_hosts = []
+        self.exploration_scheduler = {
+            policy_id: sch_cls(self.policy_dict[policy_id], **params)
+            for policy_id, (sch_cls, params) in exploration_scheduler_option.items() if policy_id in self.policy_dict
+        }
+
+        self._inference_services = []
         self._conn = {}
 
-        def _policy_host(name, get_policy, conn):
+        def _inference_service(name, get_policy, conn, exploration_scheduler_option):
             policy = get_policy(name)
+            if exploration_scheduler_option:
+                sch_cls, params = exploration_scheduler_option
+                exploration_scheduler = sch_cls(policy, **params)
+
             while True:
                 msg = conn.recv()
                 if msg["type"] == "choose_action":
@@ -52,7 +63,7 @@ class AgentWrapper:
                 elif msg["type"] == "exploit":
                     policy.exploit()
                 elif msg["type"] == "exploration_step":
-                    policy.exploration_step()
+                    exploration_scheduler.step()
                 elif msg["type"] == "rollout_info":
                     conn.send(policy.get_rollout_info())
                 elif msg["type"] == "exploration_params":
@@ -66,37 +77,42 @@ class AgentWrapper:
                 elif msg["type"] == "learn":
                     policy.learn(msg["batch"])
 
-        for id_ in policies_to_parallelize:
+        for policy_id in policies_to_parallelize:
             conn1, conn2 = Pipe()
-            self._conn[id_] = conn1
-            host = Process(target=_policy_host, args=(id_, get_policy_func_dict[id_], conn2))
-            self._policy_hosts.append(host)
+            self._conn[policy_id] = conn1
+            host = Process(
+                target=_inference_service,
+                args=(
+                    policy_id, get_policy_func_dict[policy_id], conn2, exploration_scheduler_option.get(policy_id, None)
+                )
+            )
+            self._inference_services.append(host)
             host.start()
 
     def choose_action(self, state_by_agent: Dict[str, np.ndarray]):
-        states_by_policy, agents_by_policy, action = defaultdict(list), defaultdict(list), {}
+        states_by_policy, agents_by_policy = defaultdict(list), defaultdict(list)
         for agent, state in state_by_agent.items():
-            if self.agent2policy[agent] in self._conn:
-                states_by_policy[self.agent2policy[agent]].append(state)
-                agents_by_policy[self.agent2policy[agent]].append(agent)
+            states_by_policy[self.agent2policy[agent]].append(state)
+            agents_by_policy[self.agent2policy[agent]].append(agent)
 
-        for policy_id, states in states_by_policy.items():
-            self._conn[policy_id].send({"type": "choose_action", "states": np.concatenate(states)})
+        # send state batch to inference processes for parallelized inference
+        for policy_id, conn in self._conn.items():
+            if states_by_policy[policy_id]:
+                conn.send({"type": "choose_action", "states": np.vstack(states_by_policy[policy_id])})
 
-        for policy_id, states in states_by_policy.items():
-            msg = self._conn[policy_id].recv()
-            if len(states) == 1:
-                msg = [msg]
-            for agent, act in zip(agents_by_policy[policy_id], msg):
-                action[agent] = act
+        action_by_agent = {}
+        # compute the actions for local policies first while the inferences processes do their work 
+        for policy_id, policy in self.policy_dict.items():
+            if states_by_policy[policy_id]:
+                action_by_agent.update(
+                    zip(agents_by_policy[policy_id], policy.choose_action(np.vstack(states_by_policy[policy_id])))
+                )
 
-        return {
-            **action,
-            **{
-                agent: self.policy_by_agent[agent].choose_action(state) for agent, state in state_by_agent.items()
-                if agent in self.policy_by_agent
-            }
-        }
+        for policy_id, conn in self._conn.items():
+            if states_by_policy[policy_id]:
+                action_by_agent.update(zip(agents_by_policy[policy_id], conn.recv()))
+
+        return action_by_agent
 
     def set_policy_states(self, policy_state_dict: dict):
         for policy_id, conn in self._conn.items():
@@ -122,9 +138,8 @@ class AgentWrapper:
     def exploration_step(self):
         for conn in self._conn.values():
             conn.send({"type": "exploration_step"})
-        for policy in self.policy_dict.values():
-            if hasattr(policy, "exploration_step"):
-                policy.exploration_step()
+        for sch in self.exploration_scheduler.values():
+            sch.step()
 
     def get_rollout_info(self):
         for conn in self._conn.values():
@@ -132,10 +147,10 @@ class AgentWrapper:
 
         return {
             **{
-                id_: policy.get_rollout_info() for id_, policy in self.policy_dict.items()
+                policy_id: policy.get_rollout_info() for policy_id, policy in self.policy_dict.items()
                 if isinstance(policy, RLPolicy)
             },
-            **{id_: conn.recv() for id_, conn in self._conn.items()}
+            **{policy_id: conn.recv() for policy_id, conn in self._conn.items()}
         }
 
     def get_exploration_params(self):
@@ -144,10 +159,10 @@ class AgentWrapper:
 
         return {
             **{
-                id_: policy.exploration_params for id_, policy in self.policy_dict.items()
+                policy_id: policy.exploration_params for policy_id, policy in self.policy_dict.items()
                 if isinstance(policy, RLPolicy)
             },
-            **{id_: conn.recv() for id_, conn in self._conn.items()}
+            **{policy_id: conn.recv() for policy_id, conn in self._conn.items()}
         }
 
     def record_transition(self, agent: str, state, action, reward, next_state, terminal: bool):
@@ -187,6 +202,7 @@ class AbsEnvSampler(ABC):
         self,
         get_env: Callable[[], Env],
         get_policy_func_dict: Dict[str, Callable],
+        exploration_scheduler_option: Dict[str, tuple],
         agent2policy: Dict[str, str],
         get_test_env: Callable[[], Env] = None,
         reward_eval_delay: int = 0,
@@ -198,7 +214,8 @@ class AbsEnvSampler(ABC):
         self.env = None
 
         self.agent_wrapper = AgentWrapper(
-            get_policy_func_dict, agent2policy, policies_to_parallelize=policies_to_parallelize
+            get_policy_func_dict, agent2policy, exploration_scheduler_option,
+            policies_to_parallelize=policies_to_parallelize
         )
 
         self.reward_eval_delay = reward_eval_delay
