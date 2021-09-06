@@ -68,12 +68,12 @@ class TestEventBuffer(unittest.TestCase):
         event_ids = [event.id for event in event_linked_list]
         self.assertListEqual(event_ids, [0, 1, 2])
 
-        evt = event_linked_list.front()
+        evt = event_linked_list.clear_finished_and_get_front()
         self.assertEqual(evt.id, 0)
 
         # Test `_clear_finished_events()`
         evt_list[0].state = EventState.FINISHED
-        evt = event_linked_list.front()
+        evt = event_linked_list.clear_finished_and_get_front()
         self.assertIsInstance(evt, ActualEvent)
         self.assertEqual(evt.id, 3)
         self.assertEqual(len(event_linked_list), 6)
@@ -83,7 +83,7 @@ class TestEventBuffer(unittest.TestCase):
         evt_list[3].event_type = MaroEvents.PENDING_DECISION
         evt_list[4].event_type = MaroEvents.PENDING_DECISION
         evt_list[5].event_type = MaroEvents.PENDING_DECISION
-        evts = event_linked_list.front()
+        evts = event_linked_list.clear_finished_and_get_front()
         self.assertTrue(all(isinstance(evt, ActualEvent) for evt in evts))
         self.assertEqual(len(evts), 3)
         self.assertListEqual([evt.id for evt in evts], [3, 4, 5])

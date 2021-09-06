@@ -121,7 +121,9 @@ class EventBuffer:
         Returns:
             AtomEvent: Atom event object
         """
-        return self._event_pool.gen(tick, event_type, payload, False)
+        event = self._event_pool.gen(tick, event_type, payload, False)
+        assert isinstance(event, AtomEvent)
+        return event
 
     def gen_cascade_event(self, tick: int, event_type: object, payload: object) -> CascadeEvent:
         """Generate an cascade event that used to hold immediate events that
@@ -135,7 +137,9 @@ class EventBuffer:
         Returns:
             CascadeEvent: Cascade event object.
         """
-        return self._event_pool.gen(tick, event_type, payload, True)
+        event = self._event_pool.gen(tick, event_type, payload, True)
+        assert isinstance(event, CascadeEvent)
+        return event
 
     def gen_decision_event(self, tick: int, payload: object) -> CascadeEvent:
         """Generate a decision event that will stop current simulation, and ask agent for action.
@@ -201,7 +205,7 @@ class EventBuffer:
 
             # 1. check if current events match tick.
             while len(cur_events_list):
-                next_events = cur_events_list.front()
+                next_events = cur_events_list.clear_finished_and_get_front()
 
                 if next_events is None:
                     # End of current tick.

@@ -15,8 +15,8 @@ class AbsEvent(metaclass=abc.ABCMeta):
     Args:
         id (int): Id of this event.
         tick (int): Tick that this event will be processed.
-        event_type (int): Type of this event, this is a customize field,
-            there is one predefined event type is 0 (PREDEFINE_EVENT_ACTION).
+        event_type (int): Type of this event, this is a customized field,
+            there is one predefined event type 0 (PREDEFINE_EVENT_ACTION).
         payload (object): Payload of this event.
 
     Attributes:

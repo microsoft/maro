@@ -102,17 +102,18 @@ class EventLinkedList:
             if isinstance(event, CascadeEvent) and event.immediate_event_count != 0:
                 self._extract_sub_events(event)
 
-    def _collect_pending_decision_events(self) -> List[ActualEvent]:
+    def _collect_pending_decision_events(self) -> List[CascadeEvent]:
         event = self._head.next_event
         decision_events = []
         while event is not None and event.event_type == MaroEvents.PENDING_DECISION:
-            assert isinstance(event, ActualEvent)
+            assert isinstance(event, CascadeEvent)
             decision_events.append(event)
             event = event.next_event
         return decision_events
 
-    def front(self) -> Union[None, ActualEvent, List[ActualEvent]]:
-        """Pop first event that its state is not Finished.
+    def clear_finished_and_get_front(self) -> Union[None, ActualEvent, List[ActualEvent]]:
+        """Clear all finished events in the head of the list
+        and then get the first event that its state is not Finished.
 
         Returns:
             Union[Event, EventList]: A list of decision events if current event is decision event, or an AtomEvent.
@@ -135,12 +136,12 @@ class EventLinkedList:
         return self._count
 
     def __iter__(self):
-        """Beginning of 'for' looping."""
+        """Beginning of 'for' loop."""
         self._iter_cur_event = self._head
         return self
 
     def __next__(self):
-        """Get next item for 'for' looping."""
+        """Get next item for 'for' loop."""
         if self._iter_cur_event.next_event is None:
             raise StopIteration()
 

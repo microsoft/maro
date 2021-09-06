@@ -8,7 +8,7 @@ from .event_linked_list import EventLinkedList
 from .event_state import EventState
 
 
-def _pop(cntr: List[ActualEvent], event_cls_type: type) -> Union[AtomEvent, CascadeEvent]:
+def _pop(cntr: List[ActualEvent], event_cls_type: type) -> ActualEvent:
     """Pop an event from related pool, generate buffer events if not enough."""
     return event_cls_type(None, None, None, None) if len(cntr) == 0 else cntr.pop()
 
@@ -38,7 +38,7 @@ class EventPool:
     def gen(
         self, tick: int, event_type: object, payload: object,
         is_cascade: bool = False
-    ) -> Union[AtomEvent, CascadeEvent]:
+    ) -> ActualEvent:
         """Generate an event.
 
         Args:
@@ -71,13 +71,14 @@ class EventPool:
 
     def _append(self, event: ActualEvent) -> None:
         """Append event to related pool"""
-        if isinstance(event, CascadeEvent) or isinstance(event, AtomEvent):
+        if isinstance(event, ActualEvent):
             # Detach the payload before recycle.
             event.payload = None
             event.next_event = None
-            event.state = EventState.FINISHED
+            event.state = EventState.RECYCLING
 
             if isinstance(event, CascadeEvent):
                 self._cascade_events.append(event)
             else:
+                assert isinstance(event, AtomEvent)
                 self._atom_events.append(event)
