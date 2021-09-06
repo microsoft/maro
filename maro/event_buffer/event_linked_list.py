@@ -116,7 +116,7 @@ class EventLinkedList:
         and then get the first event that its state is not Finished.
 
         Returns:
-            Union[Event, EventList]: A list of decision events if current event is decision event, or an AtomEvent.
+            Union[Event, EventList]: A list of decision events if current event is a decision event, or an AtomEvent.
         """
 
         self._clear_finished_events()
