@@ -2,12 +2,12 @@
 # Licensed under the MIT license.
 
 from .ac import ACActionInfo, ACBatch, ACLossInfo, ActorCritic, DiscreteACNet
-from .allocation_strategy import TrainerAllocator
 from .ddpg import DDPG, ContinuousACNet, DDPGBatch, DDPGLossInfo
 from .dqn import DQN, DiscreteQNet, DQNBatch, DQNLossInfo, PrioritizedExperienceReplay
 from .index import get_model_cls, get_policy_cls
 from .pg import DiscretePolicyNet, PGActionInfo, PGBatch, PGLossInfo, PolicyGradient
 from .policy import AbsPolicy, Batch, LossInfo, NullPolicy, RLPolicy
+from .trainer_allocator import TrainerAllocator
 
 __all__ = [
     "ACActionInfo", "ACBatch", "ACLossInfo", "ActorCritic", "DiscreteACNet",

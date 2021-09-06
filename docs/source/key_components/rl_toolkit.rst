@@ -83,7 +83,7 @@ Accordingly, the abstract ``AbsPolicy`` class exposes a ``choose_action`` interf
 both static policies, such as rule-based policies, and updatable policies, such as RL policies. The latter is
 abstracted through the ``RLPolicy`` sub-class which also exposes ``update_with_multi_loss_info`` and
 ``learn_from_multi_trajectories`` interface. Replay buffer is optional to updatable policies to store and
-retrieve simulation data (in the form of "experiences sets") based on which updates can be made.
+retrieve simulation data (in the form of ``ExperienceSet``) based on which updates can be made.
 
 
 .. code-block:: python
@@ -119,20 +119,30 @@ In asynchrounous learning, the policy manager is the centerpiece of the policy s
 Individual policy updates, however, may or may not occur within the policy manager itself depending
 on the policy manager type used. The provided policy manager classes include:
 
-* ``SimplePolicyManager``, where the policies are updated within the manager itself, sequentially or in parallel through multi-process;
-* ``DistributedPolicyManager``, which distributes policies amongst a set of remote compute nodes to parallelize policy update. Moreover, a trainer allocator performs auto-balance during training, which dynamically adjusts the number of trainer nodes for policies according to the experience/agent/policy number.
+* ``SimplePolicyManager``, where the policies are updated within the manager itself, sequentially or in parallel through multi-processing;
+* ``DistributedPolicyManager``, which distributes policies amongst a set of remote compute nodes to parallelize policy update.
+
+Moreover, in ``data-parallel`` mode, each policy manager has an additional trainer(``grad_worker``)
+allocator, which provides a policy-to-trainer mapping. The trainer allocator performs auto-balance
+during training, by dynamically adjusting trainer number for policies according to the
+experience/agent/policy number.
 
 .. image:: ../images/rl/policy_manager.svg
     :target: ../images/rl/policy_manager.svg
     :alt: RL Overview
 
-The ``DistributedPolicyManager`` runs a set of ``policy_host`` for policy-level parallel,
-which independently update their own policies. For each ``policy_host``, experience data
-is divided and send to several assigned trainers for data-level parallel. ``policy_host``
-is a process that hosts the update of a policy. The policy-to-trainer allocation(mapping)
-is decided by a ``TrainerAllocator``, which dynamically adjusts trainer node numbers for
-policies according to the experience/agent/policy number.
+The ``DistributedPolicyManager`` runs a set of ``policy_host`` and a ``TrainerAllocator``.
+``policy_host`` is a process/VM/node that hosts the update of a policy. The ``TrainerAllocator``
+dynamically adjusts trainer node numbers for policies according to the experience/agent/policy
+number. Each ``policy_host`` independently updates its own policies for policy-level parallelism. 
 
+During training, the ``PolicyManager`` first receive experience data from ``RolloutManger``,
+then send them to according ``policy_host``. Each ``policy_host`` will send gradient tasks consist
+of policy state and experience batch, to several stateless ``grad_worker`` for gradient computation.
+The ``grad_worker`` or trainer is stateless, which means it will not rely on previous policy states,
+and compute the gradient with respect to a batch of experience, as long as given a policy state.
+Then ``policy_host`` finanlly gathers gradients from ``grad_worker``, and update state through
+gradient descent.
 
 Core Model
 ----------
@@ -185,17 +195,20 @@ To performing a single gradient step on the model, call the ``step`` function:
 Here it is assumed that the losses have been computed using the same model instance and the gradients have
 been generated for the internal components.  
 
-Additional, core model provides ``get_gradients`` and ``apply_gradients`` interfaces for finer control in
+Additionally, core model provides ``get_gradients`` and ``apply_gradients`` interfaces for finer control in
 model update, for example, distributed training. Here is an example code of gradient related interfaces:
 
 .. code-block:: python
 
     grad_dict_list = []
-    grad_dict_list.append(ac_model.get_gradients(loss))
+    # gathering gradient from multiple sources
+    grad_dict_list.append(ac_model_0.get_gradients(loss_0))
+    grad_dict_list.append(ac_model_1.get_gradients(loss_1))
     ac_model.apply_gradients(grad_dict_list)
 
-The ``get_gradients`` function returns a gradient dict, and the ``apply_gradients`` function will first
-perform an average operation on a list of gradient dicts then apply the average gradient to the model.
+The ``get_gradients`` function returns a gradient dict, and the ``apply_gradients`` function takes a list of
+gradient dict as input, which enables the gradient gathering from single or multiple sources, then performs
+an average operation on the gradient dicts and apply the average gradient to model.
 
 Experience
 ----------

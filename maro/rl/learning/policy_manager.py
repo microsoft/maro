@@ -243,7 +243,7 @@ class MultiProcessPolicyManager(AbsPolicyManager):
         self._policy_hosts = []
         self._manager_end = {}
 
-        def _policy_host(name, create_policy_func, conn):
+        def _policy_host(name: str, create_policy_func: Callable[[str], RLPolicy], conn: Pipe):
             policy = create_policy_func(name)
             if self._data_parallel:
                 self._logger.info("========== data parallel mode ==========")
