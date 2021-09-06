@@ -1,7 +1,9 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import torch
 from torch.optim import Adam, RMSprop
+
 
 env_conf = {
     "scenario": "cim",
@@ -41,7 +43,7 @@ q_net_conf = {
     "input_dim": state_dim,
     "hidden_dims": [256, 128, 64, 32],
     "output_dim": len(action_shaping_conf["action_space"]),
-    "activation": "leaky_relu",
+    "activation": torch.nn.LeakyReLU,
     "softmax": False,
     "batch_norm": True,
     "skip_connection": False,
@@ -82,7 +84,7 @@ actor_net_conf = {
     "input_dim": state_dim,
     "hidden_dims": [256, 128, 64],
     "output_dim": len(action_shaping_conf["action_space"]),
-    "activation": "tanh",
+    "activation": torch.nn.Tanh,
     "softmax": True,
     "batch_norm": False,
     "head": True
@@ -92,7 +94,7 @@ critic_net_conf = {
     "input_dim": state_dim,
     "hidden_dims": [256, 128, 64],
     "output_dim": 1,
-    "activation": "leaky_relu",
+    "activation": torch.nn.LeakyReLU,
     "softmax": False,
     "batch_norm": True,
     "head": True
@@ -104,7 +106,7 @@ critic_optim_conf = (RMSprop, {"lr": 0.001})
 ac_conf = {
     "reward_discount": .0,
     "grad_iters": 10,
-    "critic_loss_cls": "smooth_l1",
+    "critic_loss_cls": torch.nn.SmoothL1Loss,
     "min_logp": None,
     "critic_loss_coeff": 0.1,
     "entropy_coeff": 0.01,

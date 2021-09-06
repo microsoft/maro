@@ -8,7 +8,7 @@ import numpy as np
 import torch
 
 from maro.rl.modeling import DiscretePolicyNet
-from maro.rl.utils import discount_cumsum
+from maro.rl.utils import average_grads, discount_cumsum
 
 from .policy import RLPolicy
 
@@ -112,7 +112,7 @@ class PolicyGradient(RLPolicy):
         self._buffer[key].put(state, action, reward, terminal)
 
     def get_rollout_info(self):
-        if self._get_loss_on_rollout_finish:
+        if self.get_loss_on_rollout:
             return self.get_batch_loss(self._get_batch(), explicit_grad=True)
         else:
             return self._get_batch()
@@ -139,18 +139,21 @@ class PolicyGradient(RLPolicy):
 
         _, logp = self.policy_net(batch["states"])
         loss = -(logp * returns).mean()
-        loss_info = {"loss": loss.detach().cpu().numpy()}
+        loss_info = {"loss": loss.detach().cpu().numpy() if explicit_grad else loss}
         if explicit_grad:
             loss_info["grad"] = self.policy_net.get_gradients(loss)
         return loss_info
 
     def update(self, loss_info_list: List[dict]):
         """Apply gradients to the underlying parameterized model."""
-        self.policy_net.apply_gradients([loss_info["grad"] for loss_info in loss_info_list])
+        self.policy_net.apply_gradients(average_grads([loss_info["grad"] for loss_info in loss_info_list]))
 
     def learn(self, batch: dict):
         for _ in range(self.grad_iters):
             self.policy_net.step(self.get_batch_loss(batch)["grad"])
+
+    def improve(self):
+        self.learn(self._get_batch())
 
     def set_state(self, policy_state):
         self.policy_net.load_state_dict(policy_state)

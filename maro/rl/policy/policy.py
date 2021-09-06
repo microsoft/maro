@@ -54,22 +54,21 @@ class RLPolicy(AbsPolicy):
     def record(self, key: str, state, action, reward, next_state, terminal: bool):
         pass
 
-    @abstractmethod
     def get_rollout_info(self):
-        raise NotImplementedError
+        pass
 
-    @abstractmethod
     def get_batch_loss(self, batch: dict, explicit_grad: bool = False):
-        raise NotImplementedError
+        pass
 
-    @abstractmethod
     def update(self, loss_info_list: List[dict]):
         pass
 
-    @abstractmethod
-    def learn(self, trajectories: List[dict]):
-        """Perform policy improvement based on a list of trajectories obtained from parallel rollouts."""
-        raise NotImplementedError
+    def learn(self, batch: dict):
+        """Perform policy improvement based on a single data batch collected from one or more roll-out instances."""
+        pass
+
+    def improve(self):
+        pass
 
     def exploit(self):
         self.greedy = True

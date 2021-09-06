@@ -8,7 +8,7 @@ import torch
 
 from maro.rl.exploration import gaussian_noise
 from maro.rl.modeling import ContinuousACNet
-from maro.rl.utils import get_torch_loss_cls
+from maro.rl.utils import average_grads
 from maro.utils import clone
 
 from .policy import RLPolicy
@@ -84,7 +84,7 @@ class DDPG(RLPolicy):
         self.reward_discount = reward_discount
         self.num_epochs = num_epochs
         self.update_target_every = update_target_every
-        self.q_value_loss_func = get_torch_loss_cls(q_value_loss_cls)()
+        self.q_value_loss_func = q_value_loss_cls()
         self.q_value_loss_coeff = q_value_loss_coeff
         self.soft_update_coeff = soft_update_coeff
 
@@ -162,7 +162,7 @@ class DDPG(RLPolicy):
         loss_info = {
             "policy_loss": policy_loss.detach().cpu().numpy(),
             "q_loss": q_loss.detach().cpu().numpy(),
-            "loss": loss.detach().cpu().numpy()
+            "loss": loss.detach().cpu().numpy() if explicit_grad else loss
         }
         if explicit_grad:
             loss_info["grad"] = self.ac_net.get_gradients(loss)
@@ -170,7 +170,7 @@ class DDPG(RLPolicy):
         return loss_info
 
     def update(self, loss_info_list: List[dict]):
-        self.ac_net.apply_gradients([loss_info["grad"] for loss_info in loss_info_list])
+        self.ac_net.apply_gradients(average_grads([loss_info["grad"] for loss_info in loss_info_list]))
         if self._ac_net_version - self._target_ac_net_version == self.update_target_every:
             self._update_target()
 
@@ -178,7 +178,9 @@ class DDPG(RLPolicy):
         self._replay_memory.put(
             batch["states"], batch["actions"], batch["rewards"], batch["next_states"], batch["terminals"]
         )
+        self.improve()
 
+    def improve(self):
         for _ in range(self.num_epochs):
             train_batch = self._replay_memory.sample(self.train_batch_size)
             self.ac_net.step(self.get_batch_loss(train_batch)["loss"])

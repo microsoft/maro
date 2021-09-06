@@ -8,13 +8,7 @@ import torch.nn as nn
 
 
 class AbsCoreModel(nn.Module):
-    """General model abstraction for 
-
-    Args:
-        device (str): Identifier for the torch device. The model instance will be moved to the specified
-            device. If it is None, the device will be set to "cpu" if cuda is unavailable and "cuda" otherwise.
-            Defaults to None.
-    """
+    """General model abstraction for use in RL algorithms."""
     def __init__(self):
         super().__init__()
 
@@ -32,7 +26,7 @@ class AbsCoreModel(nn.Module):
         raise NotImplementedError
 
     def get_gradients(self, loss: torch.tensor):
-        pass 
+        pass
 
     def apply_gradients(self, grad: dict):
         pass

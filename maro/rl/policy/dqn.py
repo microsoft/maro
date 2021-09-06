@@ -8,6 +8,7 @@ import torch
 
 from maro.rl.exploration import eps_greedy
 from maro.rl.modeling import DiscreteQNet
+from maro.rl.utils import average_grads
 from maro.utils import clone
 
 from .policy import RLPolicy
@@ -294,7 +295,7 @@ class DQN(RLPolicy):
         else:
             loss = self._loss_func(q_values, target_q_values)
 
-        loss_info["loss"] = loss
+        loss_info["loss"] = loss.detach().cpu().numpy() if explicit_grad else loss
         if explicit_grad:
             loss_info["grad"] = self.q_net.get_gradients(loss)
         return loss_info
@@ -304,7 +305,7 @@ class DQN(RLPolicy):
             for loss_info in loss_info_list:
                 self._per.update(loss_info["indexes"], loss_info["td_errors"])
 
-        self.q_net.apply_gradients([loss_info["grad"] for loss_info in loss_info_list])
+        self.q_net.apply_gradients(average_grads([loss_info["grad"] for loss_info in loss_info_list]))
         self._q_net_version += 1
         if self._q_net_version - self._target_q_net_version == self.update_target_every:
             self._update_target()
@@ -313,7 +314,9 @@ class DQN(RLPolicy):
         self._replay_memory.put(
             batch["states"], batch["actions"], batch["rewards"], batch["next_states"], batch["terminals"]
         )
+        self.improve()
 
+    def improve(self):
         for _ in range(self.num_epochs):
             loss_info = self.get_batch_loss(self._get_batch())
             if self.prioritized_replay:

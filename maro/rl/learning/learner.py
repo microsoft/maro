@@ -70,19 +70,17 @@ def simple_learner(
     logger.info(f"Policy will be evaluated at the end of episodes {eval_schedule}")
     eval_point_index = 0
 
-    def collect_and_update(ep):
+    def collect_and_update(ep, exploration_step):
         """Collect simulation data for training."""
-        segment, exploration_step = 1, True
+        segment = 1
         while True:
-            result = env_sampler.sample(num_steps=num_steps, exploration_step=exploration_step)
+            result = env_sampler.sample(
+                num_steps=num_steps, exploration_step=exploration_step, return_rollout_info=False
+            )
             logger.info(
                 get_rollout_finish_msg(ep, result["step_range"], exploration_params=result["exploration_params"])
             )
-            for policy_name, info in result["rollout_info"].items():
-                if "grad" in info:
-                    env_sampler.policy_dict[policy_name].update([info])
-                else:
-                    env_sampler.policy_dict[policy_name].learn([info])
+            env_sampler.agent_wrapper.improve()
 
             if post_collect:
                 post_collect([result["tracker"]], ep, segment)
@@ -91,15 +89,16 @@ def simple_learner(
                 break
 
             segment += 1
-            exploration_step = False
 
+    exploration_step = False
     for ep in range(1, num_episodes + 1):
-        collect_and_update(ep)
+        collect_and_update(ep, exploration_step)
+        exploration_step = True
         if ep == eval_schedule[eval_point_index]:
             eval_point_index += 1
             tracker = env_sampler.test()
             if post_evaluate:
-                post_evaluate([tracker])
+                post_evaluate([tracker], eval_point_index)
             # early stopping check
             if early_stopper:
                 early_stopper.push(env_sampler.test_env.summary)

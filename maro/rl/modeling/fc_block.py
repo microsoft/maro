@@ -7,8 +7,6 @@ from typing import List
 import torch
 import torch.nn as nn
 
-from maro.rl.utils import get_torch_activation_cls
-
 
 class FullyConnected(nn.Module):
     """Fully connected network with optional batch normalization, activation and dropout components.
@@ -37,7 +35,7 @@ class FullyConnected(nn.Module):
         input_dim: int,
         output_dim: int,
         hidden_dims: List[int],
-        activation="relu",
+        activation=nn.ReLU,
         head: bool = False,
         softmax: bool = False,
         batch_norm: bool = False,
@@ -52,7 +50,7 @@ class FullyConnected(nn.Module):
         self._output_dim = output_dim
 
         # network features
-        self._activation = get_torch_activation_cls(activation)() if activation else None
+        self._activation = activation() if activation else None
         self._head = head
         self._softmax = nn.Softmax(dim=1) if softmax else None
         self._batch_norm = batch_norm

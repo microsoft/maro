@@ -9,7 +9,7 @@ import torch
 from torch.distributions import Categorical
 
 from maro.rl.modeling import DiscreteACNet
-from maro.rl.utils import discount_cumsum, get_torch_loss_cls
+from maro.rl.utils import average_grads, discount_cumsum
 
 from .policy import RLPolicy
 
@@ -52,7 +52,7 @@ class ActorCritic(RLPolicy):
             if last > self._prev_ptr:
                 traj_slice = np.arange(self._prev_ptr, last)
             else:  # wrap-around
-                traj_slice = np.concatenate([np.arange(self._prev_ptr, self.size), np.arange(last)]) 
+                traj_slice = np.concatenate([np.arange(self._prev_ptr, self.size), np.arange(last)])
             self._prev_ptr = last
             return {
                 "states": self.states[traj_slice],
@@ -121,13 +121,13 @@ class ActorCritic(RLPolicy):
         self.ac_net = ac_net.to(self.device)
         self.reward_discount = reward_discount
         self.grad_iters = grad_iters
-        self.critic_loss_func = get_torch_loss_cls(critic_loss_cls)()
+        self.critic_loss_func = critic_loss_cls()
         self.min_logp = min_logp
         self.critic_loss_coeff = critic_loss_coeff
         self.entropy_coeff = entropy_coeff
         self.clip_ratio = clip_ratio
         self.lam = lam
-        self.max_trajectory_len  = max_trajectory_len 
+        self.max_trajectory_len = max_trajectory_len
         self.get_loss_on_rollout = get_loss_on_rollout
 
         self._buffer = defaultdict(lambda: self.Buffer(self.ac_net.input_dim, size=self.max_trajectory_len))
@@ -212,7 +212,7 @@ class ActorCritic(RLPolicy):
             "actor_loss": actor_loss.detach().cpu().numpy(),
             "critic_loss": critic_loss.detach().cpu().numpy(),
             "entropy": entropy.detach().cpu().numpy(),
-            "loss": loss.detach().cpu().numpy()
+            "loss": loss.detach().cpu().numpy() if explicit_grad else loss
         }
         if explicit_grad:
             loss_info["grad"] = self.ac_net.get_gradients(loss)
@@ -221,11 +221,14 @@ class ActorCritic(RLPolicy):
 
     def update(self, loss_info_list: List[dict]):
         """Apply gradients to the underlying parameterized model."""
-        self.ac_net.apply_gradients([loss_info["grad"] for loss_info in loss_info_list])
+        self.ac_net.apply_gradients(average_grads([loss_info["grad"] for loss_info in loss_info_list]))
 
     def learn(self, batch: dict):
         for _ in range(self.grad_iters):
             self.ac_net.step(self.get_batch_loss(batch)["loss"])
+
+    def improve(self):
+        self.learn(self._get_batch())
 
     def set_state(self, policy_state):
         self.ac_net.load_state_dict(policy_state)

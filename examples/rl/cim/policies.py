@@ -38,6 +38,17 @@ class QNet(DiscreteQNet):
         loss.backward()
         self.optim.step()
 
+    def get_gradients(self, loss):
+        self.optim.zero_grad()
+        loss.backward()
+        return {name: param.grad for name, param in self.named_parameters()}
+
+    def apply_gradients(self, grad):
+        for name, param in self.named_parameters():
+            param.grad = grad[name]
+
+        self.optim.step()
+
 
 class MyACNet(DiscreteACNet):
     def __init__(self):
@@ -58,6 +69,19 @@ class MyACNet(DiscreteACNet):
         self.actor_optim.zero_grad()
         self.critic_optim.zero_grad()
         loss.backward()
+        self.actor_optim.step()
+        self.critic_optim.step()
+
+    def get_gradients(self, loss):
+        self.actor_optim.zero_grad()
+        self.critic_optim.zero_grad()
+        loss.backward()
+        return {name: param.grad for name, param in self.named_parameters()}
+
+    def apply_gradients(self, grad):
+        for name, param in self.named_parameters():
+            param.grad = grad[name]
+
         self.actor_optim.step()
         self.critic_optim.step()
 

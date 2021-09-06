@@ -41,7 +41,7 @@ class AgentWrapper:
         self.exploration_scheduler = {
             policy_id: sch_cls(self.policy_dict[policy_id].exploration_params, param_name, **sch_params)
             for policy_id, opt_dict in exploration_scheduler_option.items()
-            for param_name, (sch_cls, sch_params) in opt_dict.items() 
+            for param_name, (sch_cls, sch_params) in opt_dict.items()
             if policy_id in self.policy_dict
         }
 
@@ -83,6 +83,8 @@ class AgentWrapper:
                     policy.update(msg["loss_info"])
                 elif msg["type"] == "learn":
                     policy.learn(msg["batch"])
+                elif msg["type"] == "improve":
+                    policy.improve()
 
         for policy_id in policies_to_parallelize:
             conn1, conn2 = Pipe()
@@ -102,13 +104,13 @@ class AgentWrapper:
             states_by_policy[self.agent2policy[agent]].append(state)
             agents_by_policy[self.agent2policy[agent]].append(agent)
 
-        # send state batch to inference processes for parallelized inference
+        # send state batch to inference processes for parallelized inference.
         for policy_id, conn in self._conn.items():
             if states_by_policy[policy_id]:
                 conn.send({"type": "choose_action", "states": np.vstack(states_by_policy[policy_id])})
 
         action_by_agent = {}
-        # compute the actions for local policies first while the inferences processes do their work 
+        # compute the actions for local policies first while the inferences processes do their work.
         for policy_id, policy in self.policy_dict.items():
             if states_by_policy[policy_id]:
                 action_by_agent.update(
@@ -181,6 +183,13 @@ class AgentWrapper:
                 "type": "record", "agent": agent, "state": state, "action": action, "reward": reward,
                 "next_state": next_state, "terminal": terminal
             })
+
+    def improve(self):
+        for conn in self._conn.values():
+            conn.send({"type": "improve"})
+
+        for policy in self.policy_dict.values():
+            policy.improve()
 
 
 class AbsEnvSampler(ABC):
@@ -269,7 +278,13 @@ class AbsEnvSampler(ABC):
         """
         raise NotImplementedError
 
-    def sample(self, policy_state_dict: dict = None, num_steps: int = -1, exploration_step: bool = False):
+    def sample(
+        self,
+        policy_state_dict: dict = None,
+        num_steps: int = -1,
+        exploration_step: bool = False,
+        return_rollout_info: bool = True
+    ):
         self.env = self._learn_env
         # set policy states
         if policy_state_dict:
@@ -320,13 +335,17 @@ class AbsEnvSampler(ABC):
                     not cache and self._terminal
                 )
 
-        return {
-            "rollout_info": self.agent_wrapper.get_rollout_info(),
+        result = {
             "step_range": (starting_step_index, self._step_index),
             "tracker": self.tracker,
             "end_of_episode": self._terminal,
             "exploration_params": self.agent_wrapper.get_exploration_params()
         }
+
+        if return_rollout_info:
+            result["rollout_info"] = self.agent_wrapper.get_rollout_info()
+
+        return result
 
     def test(self, policy_state_dict: dict = None):
         self.env = self._test_env
