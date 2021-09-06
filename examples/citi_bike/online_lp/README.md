@@ -1,5 +1,23 @@
 # Performance
 
+## Solver Used
+
+To get stable problem solution, the experiments are made with **GLPK solver**.
+To use GLPK solver, you need to first install the GLPK package in your platform
+accordingly. Then replace the *PULP_CBC_CMD* solver with GLPK in the code.
+
+```python
+from pulp import GLPK
+
+class CitiBikeILP():
+
+  def _formulate_and_solve(...):
+    ...
+    problem.solve(GLPK(msg=0))
+```
+
+## Configuration
+
 Below are the final environment metrics of the onlineLP in different topologies.
 For each experiment, we setup the environment and test for a duration of 1 week
 with environment random seed 0, 128, 1024.  Besides the parameter listed in the
