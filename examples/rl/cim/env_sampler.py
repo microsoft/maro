@@ -6,6 +6,7 @@ import sys
 
 import numpy as np
 
+from maro.rl.exploration import MultiLinearExplorationScheduler
 from maro.rl.learning import AbsEnvSampler
 from maro.simulator import Env
 from maro.simulator.scenarios.cim.common import Action, ActionType
@@ -16,7 +17,8 @@ if cim_path not in sys.path:
 
 from callbacks import post_step
 from config import (
-    action_shaping_conf, env_conf, port_attributes, reward_shaping_conf, state_shaping_conf, vessel_attributes
+    action_shaping_conf, env_conf, exploration_conf, port_attributes, reward_shaping_conf, state_shaping_conf,
+    vessel_attributes
 )
 from policies import policy_func_dict
 
@@ -90,9 +92,10 @@ agent2policy = {
 
 def get_env_sampler():
     return CIMEnvSampler(
-        lambda: Env(**env_conf),
-        policy_func_dict,
-        agent2policy,
+        get_env=lambda: Env(**env_conf),
+        get_policy_func_dict=policy_func_dict,
+        exploration_scheduler_option={"dqn": {"epsilon": (MultiLinearExplorationScheduler, exploration_conf)}},
+        agent2policy=agent2policy,
         reward_eval_delay=reward_shaping_conf["time_window"],
         post_step=post_step,
         policies_to_parallelize=["ac", "dqn"]

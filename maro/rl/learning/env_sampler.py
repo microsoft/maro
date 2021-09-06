@@ -19,11 +19,12 @@ from .helpers import get_rollout_finish_msg
 
 
 class AgentWrapper:
+    """Wrapper for multiple agents using multiple policies that exposes single-agent interfaces."""
     def __init__(
         self,
         get_policy_func_dict: Dict[str, Callable],
         agent2policy: Dict[str, str],
-        exploration_scheduler_option: Dict[str, tuple],
+        exploration_scheduler_option: Dict[str, Dict[str, tuple]],
         policies_to_parallelize: List[str] = []
     ):
         self._policies_to_parallelize = set(policies_to_parallelize)
@@ -38,8 +39,10 @@ class AgentWrapper:
         }
 
         self.exploration_scheduler = {
-            policy_id: sch_cls(self.policy_dict[policy_id], **params)
-            for policy_id, (sch_cls, params) in exploration_scheduler_option.items() if policy_id in self.policy_dict
+            policy_id: sch_cls(self.policy_dict[policy_id].exploration_params, param_name, **sch_params)
+            for policy_id, opt_dict in exploration_scheduler_option.items()
+            for param_name, (sch_cls, sch_params) in opt_dict.items() 
+            if policy_id in self.policy_dict
         }
 
         self._inference_services = []
@@ -48,8 +51,10 @@ class AgentWrapper:
         def _inference_service(name, get_policy, conn, exploration_scheduler_option):
             policy = get_policy(name)
             if exploration_scheduler_option:
-                sch_cls, params = exploration_scheduler_option
-                exploration_scheduler = sch_cls(policy, **params)
+                exploration_scheduler = {
+                    param_name: sch_cls(policy.exploration_params, param_name, **sch_params)
+                    for param_name, (sch_cls, sch_params) in exploration_scheduler_option.items()
+                }
 
             while True:
                 msg = conn.recv()
@@ -63,7 +68,9 @@ class AgentWrapper:
                 elif msg["type"] == "exploit":
                     policy.exploit()
                 elif msg["type"] == "exploration_step":
-                    exploration_scheduler.step()
+                    if exploration_scheduler_option:
+                        for sch in exploration_scheduler.values():
+                            sch.step()
                 elif msg["type"] == "rollout_info":
                     conn.send(policy.get_rollout_info())
                 elif msg["type"] == "exploration_params":

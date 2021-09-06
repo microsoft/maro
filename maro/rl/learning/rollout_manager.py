@@ -378,7 +378,7 @@ class DistributedRolloutManager(AbsRolloutManager):
                 self._logger.info(f"Receive timeout, {self._max_extra_recv_tries - i - 1} attempts left")
             else:
                 rollout_info, tracker = self._handle_worker_result(msg, ep, segment, version)
-                if info_by_policy:
+                if rollout_info:
                     num_finishes += 1
                     for policy_id, info in rollout_info.items():
                         info_by_policy[policy_id].append(info)

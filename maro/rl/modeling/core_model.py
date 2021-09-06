@@ -8,7 +8,7 @@ import torch.nn as nn
 
 
 class AbsCoreModel(nn.Module):
-    """Trainable model that consists of multiple network components.
+    """General model abstraction for 
 
     Args:
         device (str): Identifier for the torch device. The model instance will be moved to the specified

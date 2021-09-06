@@ -26,6 +26,7 @@ class DDPG(RLPolicy):
         name (str): Unique identifier for the policy.
         ac_net (ContinuousACNet): DDPG policy and q-value models.
         reward_discount (float): Reward decay as defined in standard RL terminology.
+        num_epochs (int): Number of training epochs per call to ``learn``. Defaults to 1.
         update_target_every (int): Number of training rounds between policy target model updates.
         q_value_loss_cls: A string indicating a loss class provided by torch.nn or a custom loss class for
             the Q-value loss. If it is a string, it must be a key in ``TORCH_LOSS``. Defaults to "mse".
@@ -33,8 +34,11 @@ class DDPG(RLPolicy):
             loss = policy_loss + ``q_value_loss_coeff`` * q_value_loss. Defaults to 1.0.
         soft_update_coeff (float): Soft update coefficient, e.g., target_model = (soft_update_coeff) * eval_model +
             (1-soft_update_coeff) * target_model. Defaults to 1.0.
-        exploration_func: Exploration strategy for generating exploratory actions. Defaults to ``gaussian_noise``.
-        exploration_params (dict): Keyword parameters for the exploration strategy.
+        exploration_func (Callable): Function to generate exploratory actions. The function takes an action
+            (single or batch) and a set of keyword arguments, and returns an exploratory action (single or batch
+            depending on the input). Defaults to ``gaussian_noise``.
+        exploration_params (dict): Keyword arguments for ``exploration_func``. Defaults to {"mean": .0, "stddev": 1.0,
+            "relative": False}.
         replay_memory_capacity (int): Capacity of the replay memory. Defaults to 10000.
         random_overwrite (bool): This specifies overwrite behavior when the replay memory capacity is reached. If True,
             overwrite positions will be selected randomly. Otherwise, overwrites will occur sequentially with
@@ -44,6 +48,8 @@ class DDPG(RLPolicy):
         rollout_batch_size (int): Size of the experience batch to use as roll-out information by calling
             ``get_rollout_info``. Defaults to 1000.
         train_batch_size (int): Batch size for training the Q-net. Defaults to 32.
+        device (str): Identifier for the torch device. The ``ac_net`` will be moved to the specified device. If it is
+            None, the device will be set to "cpu" if cuda is unavailable and "cuda" otherwise. Defaults to None.
     """
     def __init__(
         self,

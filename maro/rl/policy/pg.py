@@ -15,13 +15,11 @@ from .policy import RLPolicy
 
 class PolicyGradient(RLPolicy):
     class Buffer:
-        """Sequence of transitions for an agent.
+        """Store a sequence of transitions, i.e., a trajectory.
 
         Args:
-            states: Sequence of ``State`` objects traversed during simulation.
-            actions: Sequence of actions taken in response to the states.
-            rewards: Sequence of rewards received as a result of the actions.
-            info: Sequence of each transition's auxillary information.
+            state_dim (int): State vector dimension.
+            size (int): Buffer capacity, i.e., the maximum number of stored transitions.
         """
         def __init__(self, state_dim, size: int = 10000):
             self.states = np.zeros((size, state_dim), dtype=np.float32)
@@ -60,6 +58,14 @@ class PolicyGradient(RLPolicy):
             It may or may not have a shared bottom stack.
         reward_discount (float): Reward decay as defined in standard RL terminology.
         grad_iters (int): Number of gradient steps for each batch or set of batches. Defaults to 1.
+        max_trajectory_len (int): Maximum trajectory length that can be held by the buffer (for each agent that uses
+            this policy). Defaults to 10000.
+        get_loss_on_rollout (bool): If True, ``get_rollout_info`` will return the loss information (including gradients)
+            for the trajectories stored in the buffers. The loss information, along with that from other roll-out
+            instances, can be passed directly to ``update``. Otherwise, it will simply process the trajectories into a
+            single data batch that can be passed directly to ``learn``. Defaults to False.
+        device (str): Identifier for the torch device. The ``policy net`` will be moved to the specified device. If it
+            is None, the device will be set to "cpu" if cuda is unavailable and "cuda" otherwise. Defaults to None.
     """
     def __init__(
         self,
@@ -67,7 +73,7 @@ class PolicyGradient(RLPolicy):
         policy_net: DiscretePolicyNet,
         reward_discount: float,
         grad_iters: int = 1,
-        buffer_size: int = 10000,
+        max_trajectory_len: int = 10000,
         get_loss_on_rollout: bool = False,
         device: str = None
     ):
@@ -81,10 +87,10 @@ class PolicyGradient(RLPolicy):
         self.policy_net = policy_net.to(self.device)
         self.reward_discount = reward_discount
         self.grad_iters = grad_iters
-        self.buffer_size = buffer_size
+        self.max_trajectory_len = max_trajectory_len
         self.get_loss_on_rollout = get_loss_on_rollout
 
-        self._buffer = defaultdict(lambda: self.Buffer(self.policy_net.input_dim, size=self.buffer_size))
+        self._buffer = defaultdict(lambda: self.Buffer(self.policy_net.input_dim, size=self.max_trajectory_len))
 
     def choose_action(self, states: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """Return actions and log probabilities for given states."""

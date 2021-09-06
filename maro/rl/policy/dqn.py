@@ -123,7 +123,7 @@ class DQN(RLPolicy):
         name (str): Unique identifier for the policy.
         q_net (DiscreteQNet): Q-value model.
         reward_discount (float): Reward decay as defined in standard RL terminology.
-        train_epochs (int): Number of training epochs per call to ``update()``. Defaults to 1.
+        num_epochs (int): Number of training epochs per call to ``learn``. Defaults to 1.
         update_target_every (int): Number of gradient steps between target model updates.
         soft_update_coeff (float): Soft update coefficient, e.g.,
             target_model = (soft_update_coeff) * eval_model + (1-soft_update_coeff) * target_model.
@@ -131,8 +131,10 @@ class DQN(RLPolicy):
         double (bool): If True, the next Q values will be computed according to the double DQN algorithm,
             i.e., q_next = Q_target(s, argmax(Q_eval(s, a))). Otherwise, q_next = max(Q_target(s, a)).
             See https://arxiv.org/pdf/1509.06461.pdf for details. Defaults to False.
-        exploration (DiscreteSpaceExploration): Exploration strategy for generating exploratory actions. Defaults to
-            ``EpsilonGreedyExploration``.
+        exploration_func (Callable): Function to generate exploratory actions. The function takes an action
+            (single or batch), the total number of possible actions and a set of keyword arguments, and returns an
+            exploratory action (single or batch depending on the input). Defaults to ``epsilon_greedy``.
+        exploration_params (dict): Keyword arguments for ``exploration_func``. Defaults to {"epsilon": 0.1}.
         replay_memory_capacity (int): Capacity of the replay memory. Defaults to 10000.
         random_overwrite (bool): This specifies overwrite behavior when the replay memory capacity is reached. If True,
             overwrite positions will be selected randomly. Otherwise, overwrites will occur sequentially with
@@ -145,6 +147,8 @@ class DQN(RLPolicy):
         prioritized_replay_kwargs (dict): Keyword arguments for prioritized experience replay. See
             ``PrioritizedExperienceReplay`` for details. Defaults to None, in which case experiences will be sampled
             from the replay memory uniformly randomly.
+        device (str): Identifier for the torch device. The ``q_net`` will be moved to the specified device. If it is
+            None, the device will be set to "cpu" if cuda is unavailable and "cuda" otherwise. Defaults to None.
     """
 
     def __init__(
@@ -170,7 +174,6 @@ class DQN(RLPolicy):
             raise TypeError("model must be an instance of 'DiscreteQNet'")
 
         super().__init__(name)
-        self._num_actions = self.q_net.num_actions
         if device is None:
             self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         else:
@@ -181,6 +184,7 @@ class DQN(RLPolicy):
         self._q_net_version = 0
         self._target_q_net_version = 0
 
+        self._num_actions = self.q_net.num_actions
         self.reward_discount = reward_discount
         self.num_epochs = num_epochs
         self.update_target_every = update_target_every

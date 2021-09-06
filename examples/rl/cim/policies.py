@@ -4,7 +4,6 @@
 import os
 import sys
 
-from maro.rl.exploration import MultiLinearExplorationScheduler
 from maro.rl.modeling import DiscreteACNet, DiscreteQNet, FullyConnected
 from maro.rl.policy import DQN, ActorCritic
 
@@ -13,13 +12,13 @@ if cim_path not in sys.path:
     sys.path.insert(0, cim_path)
 from config import (
     ac_conf, actor_net_conf, actor_optim_conf, critic_net_conf, critic_optim_conf, dqn_conf, q_net_conf,
-    q_net_optim_conf, exploration_conf, state_dim
+    q_net_optim_conf, state_dim
 )
 
 
 class QNet(DiscreteQNet):
-    def __init__(self, device=None):
-        super().__init__(device=device)
+    def __init__(self):
+        super().__init__()
         self.fc = FullyConnected(**q_net_conf)
         self.optim = q_net_optim_conf[0](self.fc.parameters(), **q_net_optim_conf[1])
 
@@ -27,8 +26,12 @@ class QNet(DiscreteQNet):
     def input_dim(self):
         return state_dim
 
+    @property
+    def num_actions(self):
+        return q_net_conf["output_dim"]
+
     def forward(self, states):
-        return self.component(states)
+        return self.fc(states)
 
     def step(self, loss):
         self.optim.zero_grad()
@@ -36,42 +39,30 @@ class QNet(DiscreteQNet):
         self.optim.step()
 
 
-def get_dqn(name: str):
-    exploration = EpsilonGreedyExploration()
-    exploration.register_schedule(
-        scheduler_cls=MultiLinearExplorationScheduler,
-        param_name="epsilon",
-        **exploration_conf
-    )
-    return DQN(name, QNet(), exploration=exploration, **dqn_conf)
+class MyACNet(DiscreteACNet):
+    def __init__(self):
+        super().__init__()
+        self.actor = FullyConnected(**actor_net_conf)
+        self.critic = FullyConnected(**critic_net_conf)
+        self.actor_optim = actor_optim_conf[0](self.actor.parameters(), **actor_optim_conf[1])
+        self.critic_optim = critic_optim_conf[0](self.critic.parameters(), **critic_optim_conf[1])
 
+    @property
+    def input_dim(self):
+        return state_dim
 
-def get_ac(name: str):
-    class MyACNet(DiscreteACNet):
-        def __init__(self):
-            self.actor = FullyConnected(**actor_net_conf)
-            self.critic = FullyConnected(**critic_net_conf)
-            self.actor_optim = actor_optim_conf[0](self.actor.parameters(), **actor_optim_conf[1])
-            self.critic_optim = critic_optim_conf[0](self.critic.parameters, **critic_optim_conf[1])
+    def forward(self, states, actor: bool = True, critic: bool = True):
+        return (self.actor(states) if actor else None), (self.critic(states) if critic else None)
 
-        @property
-        def input_dim(self):
-            return state_dim
-
-        def forward(self, states, actor: bool = True, critic: bool = True):
-            return (self.actor(states) if actor else None), (self.critic(states) if critic else None)
-
-        def step(self, loss):
-            self.actor_optim.zero_grad()
-            self.critic_optim.zero_grad()
-            loss.backward()
-            self.actor_optim.step()
-            self.critic_optim.step()
-
-    return ActorCritic(name, MyACNet(), **ac_conf)
+    def step(self, loss):
+        self.actor_optim.zero_grad()
+        self.critic_optim.zero_grad()
+        loss.backward()
+        self.actor_optim.step()
+        self.critic_optim.step()
 
 
 policy_func_dict = {
-    "dqn": get_dqn,
-    "ac": get_ac
+    "dqn": lambda name: DQN(name, QNet(), **dqn_conf),
+    "ac": lambda name: ActorCritic(name, MyACNet(), **ac_conf)
 }
