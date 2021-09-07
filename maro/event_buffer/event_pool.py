@@ -1,11 +1,16 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
+from itertools import count
+from typing import Iterable, Iterator, List, Union
 
-from .atom_event import AtomEvent
-from .cascade_event import CascadeEvent
+from .event import ActualEvent, AtomEvent, CascadeEvent
 from .event_linked_list import EventLinkedList
 from .event_state import EventState
-from .typings import Event, EventList, List, Union
+
+
+def _pop(cntr: List[ActualEvent], event_cls_type: type) -> ActualEvent:
+    """Pop an event from related pool, generate buffer events if not enough."""
+    return event_cls_type(None, None, None, None) if len(cntr) == 0 else cntr.pop()
 
 
 class EventPool:
@@ -16,15 +21,24 @@ class EventPool:
     When enable pooling, it will recycle events.
     """
 
-    def __init__(self, capacity: int = 1000):
-        self._capacity = capacity
-        self._atom_pool: List[AtomEvent] = []
-        self._cascade_pool: List[CascadeEvent] = []
-        self._recycle_buffer: EventList = []
+    def __init__(self):
+        self._atom_events: List[AtomEvent] = []
+        self._cascade_events: List[CascadeEvent] = []
 
-        self._event_id: int = 0
+        self._event_count: Iterator[int] = count()
 
-    def gen(self, tick: int, event_type: object, payload: object, is_cascade: bool = False) -> Event:
+    @property
+    def atom_event_count(self) -> int:
+        return len(self._atom_events)
+
+    @property
+    def cascade_event_count(self) -> int:
+        return len(self._cascade_events)
+
+    def gen(
+        self, tick: int, event_type: object, payload: object,
+        is_cascade: bool = False
+    ) -> ActualEvent:
         """Generate an event.
 
         Args:
@@ -36,50 +50,35 @@ class EventPool:
         Returns:
             Event: AtomEvent or CascadeEvent instance.
         """
-        if is_cascade:
-            event = self._pop(self._cascade_pool, CascadeEvent)
-        else:
-            event = self._pop(self._atom_pool, AtomEvent)
-
-        event.tick = tick
-        event.event_type = event_type
-        event.payload = payload
-        event.id = self._event_id
-        event.state = EventState.PENDING
-
-        self._event_id += 1
-
+        event = _pop(self._cascade_events, CascadeEvent) if is_cascade else _pop(self._atom_events, AtomEvent)
+        event.reset_value(
+            id=next(self._event_count), tick=tick, event_type=event_type,
+            payload=payload, state=EventState.PENDING
+        )
         return event
 
-    def recycle(self, events: Union[Event, EventList]):
+    def recycle(self, events: Union[ActualEvent, List[ActualEvent], EventLinkedList]) -> None:
         """Recycle specified event for further using.
 
         Args:
             events (Union[Event, EventList]): Event object(s) to recycle.
         """
-        if type(events) != list and type(events) != EventLinkedList:
-            events = [events]
+        self._append(events) if isinstance(events, ActualEvent) else self._extend(events)
 
+    def _extend(self, events: Iterable[ActualEvent]) -> None:
         for event in events:
-            if event is not None:
-                self._append(event)
+            self._append(event)
 
-    def _append(self, event: Event):
+    def _append(self, event: ActualEvent) -> None:
         """Append event to related pool"""
-        if event:
-            # Deattach the payload before recycle.
+        if isinstance(event, ActualEvent):
+            # Detach the payload before recycle.
             event.payload = None
-            event._next_event_ = None
-            event.state = EventState.FINISHED
+            event.next_event = None
+            event.state = EventState.RECYCLING
 
             if isinstance(event, CascadeEvent):
-                self._cascade_pool.append(event)
+                self._cascade_events.append(event)
             else:
-                self._atom_pool.append(event)
-
-    def _pop(self, cntr: EventList, event_cls_type: type):
-        """Pop an event from related pool, generate buffer events if not enough."""
-        if len(cntr) == 0:
-            return event_cls_type(None, None, None, None)
-        else:
-            return cntr.pop()
+                assert isinstance(event, AtomEvent)
+                self._atom_events.append(event)
