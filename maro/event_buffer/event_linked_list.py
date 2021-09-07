@@ -94,7 +94,10 @@ class EventLinkedList:
     def _clear_finished_events(self) -> None:
         """Remove all finished events from the head of the list.
         """
-        while self._head.next_event is not None and self._head.next_event.state == EventState.FINISHED:
+        def _is_finish(event: ActualEvent) -> bool:
+            return event.state in (EventState.FINISHED, EventState.RECYCLING)
+
+        while self._head.next_event is not None and _is_finish(self._head.next_event):
             event = self._head.next_event
             self._head.next_event = event.next_event
             self._count -= 1
