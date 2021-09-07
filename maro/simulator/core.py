@@ -4,17 +4,17 @@
 from collections import Iterable
 from importlib import import_module
 from inspect import getmembers, isclass
-from typing import List
+from typing import List, Optional, Tuple, Generator
 
 from maro.backends.frame import FrameBase, SnapshotList
+
 from maro.data_lib.dump_csv_converter import DumpConverter
-from maro.event_buffer import EventBuffer, EventState
+from maro.event_buffer import EventBuffer, EventState, CascadeEvent, ActualEvent
 from maro.streamit import streamit
 from maro.utils.exception.simulator_exception import BusinessEngineNotFoundError
-
 from .abs_core import AbsEnv, DecisionMode
 from .scenarios.abs_business_engine import AbsBusinessEngine
-from .utils import seed as sim_seed
+from .utils import random
 from .utils.common import tick_to_frame_index
 
 
@@ -47,17 +47,16 @@ class Env(AbsEnv):
         business_engine_cls: type = None, disable_finished_events: bool = False,
         record_finished_events: bool = False,
         record_file_path: str = None,
-        options: dict = {}
-    ):
+        options: Optional[dict] = None
+    ) -> None:
         super().__init__(
             scenario, topology, start_tick, durations,
             snapshot_resolution, max_snapshots, decision_mode, business_engine_cls,
-            disable_finished_events, options
+            disable_finished_events, options if options is not None else {}
         )
 
         self._name = f'{self._scenario}:{self._topology}' if business_engine_cls is None \
             else business_engine_cls.__name__
-        self._business_engine: AbsBusinessEngine = None
 
         self._event_buffer = EventBuffer(disable_finished_events, record_finished_events, record_file_path)
 
@@ -72,12 +71,12 @@ class Env(AbsEnv):
 
         if "enable-dump-snapshot" in self._additional_options:
             parent_path = self._additional_options["enable-dump-snapshot"]
-            self._converter = DumpConverter(parent_path, self._business_engine._scenario_name)
+            self._converter = DumpConverter(parent_path, self._business_engine.scenario_name)
             self._converter.reset_folder_path()
 
         self._streamit_episode = 0
 
-    def step(self, action):
+    def step(self, action) -> Tuple[Optional[dict], Optional[List[object]], Optional[bool]]:
         """Push the environment to next step with action.
 
         Args:
@@ -93,7 +92,7 @@ class Env(AbsEnv):
 
         return metrics, decision_event, _is_done
 
-    def dump(self):
+    def dump(self) -> None:
         """Dump environment for restore.
 
         NOTE:
@@ -101,7 +100,7 @@ class Env(AbsEnv):
         """
         return
 
-    def reset(self, keep_seed: bool = False):
+    def reset(self, keep_seed: bool = False) -> None:
         """Reset environment.
 
         Args:
@@ -114,10 +113,10 @@ class Env(AbsEnv):
 
         self._event_buffer.reset()
 
-        if ("enable-dump-snapshot" in self._additional_options) and (self._business_engine._frame is not None):
+        if "enable-dump-snapshot" in self._additional_options and self._business_engine.frame is not None:
             dump_folder = self._converter.get_new_snapshot_folder()
 
-            self._business_engine._frame.dump(dump_folder)
+            self._business_engine.frame.dump(dump_folder)
             self._converter.start_processing(self.configs)
             self._converter.dump_descsion_events(self._decision_events, self._start_tick, self._snapshot_resolution)
             self._business_engine.dump(dump_folder)
@@ -173,7 +172,7 @@ class Env(AbsEnv):
         """List[int]: Agent index list that related to this environment."""
         return self._business_engine.get_agent_idx_list()
 
-    def set_seed(self, seed: int):
+    def set_seed(self, seed: int) -> None:
         """Set random seed used by simulator.
 
         NOTE:
@@ -184,7 +183,7 @@ class Env(AbsEnv):
         """
 
         if seed is not None:
-            sim_seed(seed)
+            random.seed(seed)
 
     @property
     def metrics(self) -> dict:
@@ -196,11 +195,11 @@ class Env(AbsEnv):
 
         return self._business_engine.get_metrics()
 
-    def get_finished_events(self):
+    def get_finished_events(self) -> List[ActualEvent]:
         """List[Event]: All events finished so far."""
         return self._event_buffer.get_finished_events()
 
-    def get_pending_events(self, tick):
+    def get_pending_events(self, tick) -> List[ActualEvent]:
         """Pending events at certain tick.
 
         Args:
@@ -208,7 +207,7 @@ class Env(AbsEnv):
         """
         return self._event_buffer.get_pending_events(tick)
 
-    def _init_business_engine(self):
+    def _init_business_engine(self) -> None:
         """Initialize business engine object.
 
         NOTE:
@@ -238,7 +237,7 @@ class Env(AbsEnv):
             if business_class is None:
                 raise BusinessEngineNotFoundError()
 
-        self._business_engine = business_class(
+        self._business_engine: AbsBusinessEngine = business_class(
             event_buffer=self._event_buffer,
             topology=self._topology,
             start_tick=self._start_tick,
@@ -248,10 +247,8 @@ class Env(AbsEnv):
             additional_options=self._additional_options
         )
 
-    def _simulate(self):
+    def _simulate(self) -> Generator[Tuple[dict, List[object], bool], object, None]:
         """This is the generator to wrap each episode process."""
-        is_end_tick = False
-
         self._streamit_episode += 1
 
         streamit.episode(self._streamit_episode)
@@ -297,8 +294,10 @@ class Env(AbsEnv):
 
                     # NOTE: decision event always be a CascadeEvent
                     # We just append the action into sub event of first pending cascade event.
-                    pending_events[0].state = EventState.EXECUTING
-                    pending_events[0].add_immediate_event(action_event, is_head=True)
+                    event = pending_events[0]
+                    assert isinstance(event, CascadeEvent)
+                    event.state = EventState.EXECUTING
+                    event.add_immediate_event(action_event, is_head=True)
                 else:
                     # For joint mode, we will assign actions from beginning to end.
                     # Then mark others pending events to finished if not sequential action mode.
@@ -314,6 +313,7 @@ class Env(AbsEnv):
                             pending_event.state = EventState.EXECUTING
                             action_event = self._event_buffer.gen_action_event(self._tick, action)
 
+                            assert isinstance(pending_event, CascadeEvent)
                             pending_event.add_immediate_event(action_event, is_head=True)
 
             # Check the end tick of the simulation to decide if we should end the simulation.
