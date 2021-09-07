@@ -2,7 +2,7 @@ import math
 from typing import List, Tuple
 
 import numpy as np
-from pulp import GLPK, LpInteger, LpMaximize, LpProblem, LpVariable, lpSum
+from pulp import PULP_CBC_CMD, LpInteger, LpMaximize, LpProblem, LpVariable, lpSum
 
 from maro.utils import DottableDict
 
@@ -176,7 +176,7 @@ class CitiBikeILP():
         self._init_variables(init_inventory=init_inventory)
         self._add_constraints(problem=problem, demand=demand, supply=supply)
         self._set_objective(problem=problem)
-        problem.solve(GLPK(msg=0))
+        problem.solve(PULP_CBC_CMD(msg=0))
 
     # ============================= private end =============================
 
