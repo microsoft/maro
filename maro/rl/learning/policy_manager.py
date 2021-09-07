@@ -121,14 +121,11 @@ class SimplePolicyManager(AbsPolicyManager):
                 while True:
                     msg = conn.recv()
                     if msg["type"] == "learn":
-                        info_list = msg["rollout_info"]
-                        if not isinstance(info_list, list):
-                            info_list = [info_list]
-                        if "loss" in info_list[0]:
-                            policy.update(info_list)
+                        info = msg["rollout_info"]
+                        if isinstance(info, list):
+                            policy.update(info)
                         else:
-                            policy.learn(info_list)
-
+                            policy.learn(info)
                         conn.send({"type": "learn_done", "policy_state": policy.get_state()})
                     elif msg["type"] == "quit":
                         break
@@ -159,8 +156,8 @@ class SimplePolicyManager(AbsPolicyManager):
         """
         t0 = time.time()
         if self._parallel:
-            for policy_id, info_list in rollout_info.items():
-                self._manager_end[policy_id].send({"type": "learn", "rollout_info": info_list})
+            for policy_id, info in rollout_info.items():
+                self._manager_end[policy_id].send({"type": "learn", "rollout_info": info})
             for policy_id, conn in self._manager_end.items():
                 msg = conn.recv()
                 if msg["type"] == "learn_done":
