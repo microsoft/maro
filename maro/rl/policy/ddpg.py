@@ -200,7 +200,7 @@ class DDPG(RLPolicy):
             msg_dict = defaultdict(lambda: defaultdict(dict))
             for worker_id in worker_id_list:
                 msg_dict[worker_id][MsgKey.GRAD_TASK][self._name] = self._replay_memory.sample(
-                    self.train_batch_size//len(worker_id_list))
+                    self.train_batch_size // len(worker_id_list))
                 msg_dict[worker_id][MsgKey.POLICY_STATE][self._name] = self.get_state()
                 # data-parallel by multiple hosts/workers
                 self._proxy.isend(SessionMessage(

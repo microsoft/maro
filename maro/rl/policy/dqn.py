@@ -347,7 +347,7 @@ class DQN(RLPolicy):
             msg_dict = defaultdict(lambda: defaultdict(dict))
             for worker_id in worker_id_list:
                 msg_dict[worker_id][MsgKey.GRAD_TASK][self._name] = self._get_batch(
-                    self.train_batch_size//len(worker_id_list))
+                    self.train_batch_size // len(worker_id_list))
                 msg_dict[worker_id][MsgKey.POLICY_STATE][self._name] = self.get_state()
                 # data-parallel by multiple remote gradient workers
                 self._proxy.isend(SessionMessage(
