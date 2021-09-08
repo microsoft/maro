@@ -254,9 +254,7 @@ class MultiProcessPolicyManager(AbsPolicyManager):
                 if msg["type"] == "learn":
                     info_list = msg["rollout_info"]
                     policy2workers = msg["policy2workers"]
-                    if not isinstance(info_list, list):
-                        info_list = [info_list]
-                    if "loss" in info_list[0]:
+                    if isinstance(info_list, list):
                         # in some cases e.g. Actor-Critic that get loss from rollout workers
                         policy.update(info_list)
                     else:
