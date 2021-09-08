@@ -100,7 +100,7 @@ class AbsBusinessEngine(ABC):
         return self._max_snapshots if self._max_snapshots is not None \
             else total_frames(self._start_tick, self._max_tick, self._snapshot_resolution)
 
-    def update_config_root_path(self, business_engine_file_path: str):
+    def update_config_root_path(self, business_engine_file_path: str) -> None:
         """Helper method used to update the config path with business engine path if you
         follow the way to load configuration file as built-in scenarios.
 
@@ -136,7 +136,7 @@ class AbsBusinessEngine(ABC):
                 self._config_path = os.path.join(be_file_path, "topologies", self._topology)
 
     @abstractmethod
-    def step(self, tick: int):
+    def step(self, tick: int) -> None:
         """Method that is called at each tick, usually used to trigger business logic at current tick.
 
         Args:
@@ -151,7 +151,7 @@ class AbsBusinessEngine(ABC):
         pass
 
     @abstractmethod
-    def reset(self, keep_seed: bool = False):
+    def reset(self, keep_seed: bool = False) -> None:
         """Reset states business engine."""
         pass
 
@@ -195,7 +195,7 @@ class AbsBusinessEngine(ABC):
         """
         return {}
 
-    def dump(self, folder: str):
+    def dump(self, folder: str) -> None:
         """Dump something from business engine.
 
         Args:
