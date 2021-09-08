@@ -5,7 +5,6 @@ from abc import ABC, abstractmethod
 from typing import List
 
 from maro.communication import Proxy
-from maro.rl.types import Trajectory
 
 
 class AbsPolicy(ABC):
@@ -37,51 +36,31 @@ class NullPolicy(AbsPolicy):
         return None
 
 
-class Batch:
-    def __init__(self):
-        pass
-
-
-class LossInfo:
-
-    __slots__ = ["loss", "grad"]
-
-    def __init__(self, loss, grad):
-        self.loss = loss
-        self.grad = grad
-
-
 class RLPolicy(AbsPolicy):
-    """Policy that can update itself using simulation experiences.
+    """Policy that learns from simulation experiences.
 
     Reinforcement learning (RL) policies should inherit from this.
 
     Args:
         name (str): Name of the policy.
     """
-    def __init__(self, name: str, remote: bool = False):
+    def __init__(self, name: str):
         super().__init__(name)
-        self.remote = remote
+        self.exploration_params = {}
+        self.greedy = True
 
     @abstractmethod
     def choose_action(self, state):
         raise NotImplementedError
 
-    def get_rollout_info(self, trajectory: Trajectory):
-        return trajectory
-
-    @abstractmethod
-    def get_batch_loss(self, batch: Batch, explicit_grad: bool = False):
-        raise NotImplementedError
-
-    @abstractmethod
-    def update_with_multi_loss_info(self, loss_info_list: List[LossInfo]):
+    def record(self, key: str, state, action, reward, next_state, terminal: bool):
         pass
 
-    @abstractmethod
-    def learn_from_multi_trajectories(self, trajectories: List[Trajectory]):
-        """Perform policy improvement based on a list of trajectories obtained from parallel rollouts."""
-        raise NotImplementedError
+    def get_rollout_info(self):
+        pass
+
+    def get_batch_loss(self, batch: dict, explicit_grad: bool = False):
+        pass
 
     def data_parallel(self, *args, **kwargs):
         self.remote = True
@@ -96,18 +75,21 @@ class RLPolicy(AbsPolicy):
         if hasattr(self, '_proxy'):
             self._proxy.close()
 
-    def exploit(self):
+    def update(self, loss_info_list: List[dict]):
         pass
+
+    def learn(self, batch: dict):
+        """Perform policy improvement based on a single data batch collected from one or more roll-out instances."""
+        pass
+
+    def improve(self):
+        pass
+
+    def exploit(self):
+        self.greedy = True
 
     def explore(self):
-        pass
-
-    def exploration_step(self):
-        pass
-
-    @property
-    def exploration_params(self):
-        return None
+        self.greedy = False
 
     @abstractmethod
     def get_state(self):

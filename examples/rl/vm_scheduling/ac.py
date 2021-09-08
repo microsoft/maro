@@ -8,7 +8,7 @@ import numpy as np
 import torch
 
 from maro.rl.experience import ReplayMemory, UniformSampler
-from maro.rl.model import DiscreteACNet, FullyConnectedBlock, OptimOption
+from maro.rl.model import DiscreteACNet, FullyConnected, OptimOption
 from maro.rl.policy.algorithms import ActorCritic, ActorCriticConfig
 
 vm_path = os.path.dirname(os.path.realpath(__file__))
@@ -81,8 +81,8 @@ def get_ac_policy(mode="update"):
 
     ac_net = MyACNet(
         component={
-            "actor": FullyConnectedBlock(**config["model"]["network"]["actor"]),
-            "critic": FullyConnectedBlock(**config["model"]["network"]["critic"])
+            "actor": FullyConnected(**config["model"]["network"]["actor"]),
+            "critic": FullyConnected(**config["model"]["network"]["critic"])
         },
         optim_option={
             "actor":  OptimOption(**config["model"]["optimization"]["actor"]),

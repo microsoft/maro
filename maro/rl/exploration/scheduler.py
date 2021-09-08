@@ -4,38 +4,31 @@
 from abc import ABC, abstractmethod
 from typing import List, Tuple
 
-from maro.rl.exploration.abs_exploration import AbsExploration
-
 
 class AbsExplorationScheduler(ABC):
     """Abstract exploration scheduler.
 
-    Each exploration scheduler is registered to a single parameter of an exploration instance.
+    Each exploration scheduler is registered to a single parameter of an ``RLPolicy`` instance.
 
     Args:
-        exploration (AbsExploration): An exploration instance to which the scheduler is applied.
+        exploration_params (dict): The exploration params attribute from some ``RLPolicy`` instance to which the
+            scheduler is applied.
         param_name (str): Name of the exploration parameter to which the scheduler is applied.
         last_ep (int): Last episode.
-        initial_value: Initial value for the exploration parameter. If None, the value the exploration
-            instance is instantiated with will be used as the initial value. Defaults to None.
+        initial_value: Initial value for the exploration parameter. If None, the value the exploration instance is
+            instantiated with will be used as the initial value. Defaults to None.
     """
 
-    def __init__(
-        self,
-        exploration: AbsExploration,
-        param_name: str,
-        last_ep: int,
-        initial_value=None
-    ):
+    def __init__(self, exploration_params: dict, param_name: str, last_ep: int, initial_value=None):
         super().__init__()
-        self.exploration = exploration
+        self._exploration_params = exploration_params
         self.param_name = param_name
         self.last_ep = last_ep
         if initial_value is not None:
-            setattr(self.exploration, self.param_name, initial_value)
+            self._exploration_params[self.param_name] = initial_value
 
     def get_value(self):
-        return getattr(self.exploration, self.param_name)
+        return self._exploration_params[self.param_name]
 
     @abstractmethod
     def step(self):
@@ -46,41 +39,43 @@ class LinearExplorationScheduler(AbsExplorationScheduler):
     """Linear exploration parameter schedule.
 
     Args:
-        exploration (AbsExploration): An exploration instance to which the scheduler is applied.
+        exploration_params (dict): The exploration params attribute from some ``RLPolicy`` instance to which the
+            scheduler is applied.
         param_name (str): Name of the exploration parameter to which the scheduler is applied.
         last_ep (int): Last episode.
         final_value (float): The value of the exploration parameter corresponding to ``last_ep``.
-        initial_value: Initial value for the exploration parameter. If None, the value the exploration
-            instance is instantiated with will be used as the initial value. Defaults to None.
+        initial_value: Initial value for the exploration parameter. If None, the value the exploration instance is
+            instantiated with will be used as the initial value. Defaults to None.
     """
 
     def __init__(
         self,
-        exploration: AbsExploration,
+        exploration_params: dict,
         param_name: str,
         last_ep: int,
         final_value: float,
         initial_value: float = None,
     ):
-        super().__init__(exploration, param_name, last_ep, initial_value=initial_value)
+        super().__init__(exploration_params, param_name, last_ep, initial_value=initial_value)
         self.final_value = final_value
         if self.last_ep > 1:
-            self.delta = (self.final_value - getattr(self.exploration, self.param_name)) / (self.last_ep - 1)
+            self.delta = (self.final_value - self._exploration_params[self.param_name]) / (self.last_ep - 1)
         else:
             self.delta = 0
 
     def step(self):
-        if self.get_value() == self.final_value:
+        if self._exploration_params[self.param_name] == self.final_value:
             return
 
-        setattr(self.exploration, self.param_name, self.get_value() + self.delta)
+        self._exploration_params[self.param_name] += self.delta
 
 
-class MultiPhaseLinearExplorationScheduler(AbsExplorationScheduler):
+class MultiLinearExplorationScheduler(AbsExplorationScheduler):
     """Exploration parameter schedule that consists of multiple linear phases.
 
     Args:
-        exploration (AbsExploration): An exploration instance to which the scheduler is applied.
+        exploration_params (dict): The exploration params attribute from some ``RLPolicy`` instance to which the
+            scheduler is applied.
         param_name (str): Name of the exploration parameter to which the scheduler is applied.
         last_ep (int): Last episode.
         splits (List[Tuple[int, float]]): List of points that separate adjacent linear phases. Each
@@ -88,15 +83,15 @@ class MultiPhaseLinearExplorationScheduler(AbsExplorationScheduler):
             the start of another. These points do not have to be given in any particular order. There
             cannot be two points with the same first element (episode), or a ``ValueError`` will be raised.
         final_value (float): The value of the exploration parameter corresponding to ``last_ep``.
-        initial_value: Initial value for the exploration parameter. If None, the value the exploration
-            instance is instantiated with will be used as the initial value. Defaults to None.
+        initial_value: Initial value for the exploration parameter. If None, the value the exploration instance is
+            instantiated with will be used as the initial value. Defaults to None.
 
     Returns:
         An iterator over the series of exploration rates from episode 0 to ``max_iter`` - 1.
     """
     def __init__(
         self,
-        exploration: AbsExploration,
+        exploration_params: dict,
         param_name: str,
         last_ep: int,
         splits: List[Tuple[int, float]],
@@ -110,18 +105,18 @@ class MultiPhaseLinearExplorationScheduler(AbsExplorationScheduler):
             if ep == ep2:
                 raise ValueError("The zeroth element of split points must be unique")
 
-        super().__init__(exploration, param_name, last_ep, initial_value=initial_value)
+        super().__init__(exploration_params, param_name, last_ep, initial_value=initial_value)
         self.final_value = final_value
         self._splits = splits
         self._ep = 1
         self._split_index = 1
-        self._delta = (self._splits[1][1] - self.get_value()) / (self._splits[1][0] - 1)
+        self._delta = (self._splits[1][1] - self._exploration_params[self.param_name]) / (self._splits[1][0] - 1)
 
     def step(self):
         if self._split_index == len(self._splits):
             return
 
-        setattr(self.exploration, self.param_name, self.get_value() + self._delta)
+        self._exploration_params[self.param_name] += self._delta
         self._ep += 1
         if self._ep == self._splits[self._split_index][0]:
             self._split_index += 1
@@ -133,11 +128,10 @@ class MultiPhaseLinearExplorationScheduler(AbsExplorationScheduler):
 
 
 if __name__ == "__main__":
-    from maro.rl.exploration.discrete_space_exploration import EpsilonGreedyExploration
-    exploration = EpsilonGreedyExploration(5, epsilon=0.6)
-    scheduler = MultiPhaseLinearExplorationScheduler(
-        exploration, "epsilon", 20, [(12, 0.25), (6, 0.5), (16, 0.15), (9, 0.4)], .0
+    exploration_params = {"epsilon": 0.6}
+    scheduler = MultiLinearExplorationScheduler(
+        exploration_params, "epsilon", 20, [(12, 0.25), (6, 0.5), (16, 0.15), (9, 0.4)], .0
     )
     for ep in range(1, scheduler.last_ep + 1):
-        print(f"ep = {ep}, value = {exploration.epsilon}")
+        print(f"ep = {ep}, value = {exploration_params['epsilon']}")
         scheduler.step()

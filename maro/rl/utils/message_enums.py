@@ -31,7 +31,7 @@ class MsgKey(Enum):
     SEGMENT = "segment"
     NUM_STEPS = "num_steps"
     STEP = "step"
-    POLICY_NAMES = "policy_names"
+    POLICY_IDS = "policy_ids"
     ROLLOUT_INFO = "rollout_info"
     TRACKER = "tracker"
     GRAD_TASK = "grad_task"

@@ -6,11 +6,10 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 from multiprocessing import Pipe, Process
 from os import getcwd
-from typing import Callable, Dict
+from typing import Callable, Dict, List
 
 from maro.communication import Proxy, SessionMessage, SessionType
-from maro.rl.policy import LossInfo, RLPolicy, TrainerAllocator
-from maro.rl.types import Trajectory
+from maro.rl.policy import RLPolicy, TrainerAllocator
 from maro.rl.utils import MsgKey, MsgTag
 from maro.utils import Logger
 
@@ -24,8 +23,8 @@ class AbsPolicyManager(ABC):
     def update(self, rollout_info: Dict[str, list]):
         """Update policies using roll-out information.
 
-        The roll-out information is grouped by policy name and may be either raw simulation trajectories or loss
-        information computed directly by roll-out workers.
+        The roll-out information is grouped by policy name and may be either a training batch or a list of loss
+        information dictionaries computed directly by roll-out workers.
         """
         raise NotImplementedError
 
@@ -117,7 +116,7 @@ class SimplePolicyManager(AbsPolicyManager):
         log_dir: str = getcwd()
     ):
         super().__init__()
-        self._policy_names = list(create_policy_func_dict.keys())
+        self._policy_ids = list(create_policy_func_dict.keys())
         self._data_parallel = data_parallel
         self._num_grad_workers = num_grad_workers
         self._trainer_allocator = trainer_allocator
@@ -137,11 +136,11 @@ class SimplePolicyManager(AbsPolicyManager):
                     component_name=f"POLICY_HOST.{name}", **proxy_kwargs)
 
             self._policy2workers, self._worker2policies = self._trainer_allocator.allocate(
-                policy_name=self._policy_names, logger=self._logger)
+                policy_name=self._policy_ids, logger=self._logger)
             # ask the hosts to initialize the assigned policies
-            for worker_id, policy_names in self._worker2policies.items():
+            for worker_id, policy_ids in self._worker2policies.items():
                 self._proxy.isend(SessionMessage(
-                    MsgTag.INIT_POLICIES, self._proxy.name, worker_id, body={MsgKey.POLICY_NAMES: policy_names}
+                    MsgTag.INIT_POLICIES, self._proxy.name, worker_id, body={MsgKey.POLICY_IDS: policy_ids}
                 ))
         else:
             self._policy2workers, self._worker2policies = dict(), dict()
@@ -151,26 +150,24 @@ class SimplePolicyManager(AbsPolicyManager):
     def update(self, rollout_info: Dict[str, list]):
         """Update policies using roll-out information.
 
-        The roll-out information is grouped by policy name and may be either raw simulation trajectories or loss
-        information computed directly by roll-out workers.
+        The roll-out information is grouped by policy name and may be either a training batch or a list of loss
+        information dictionaries computed directly by roll-out workers.
         """
         t0 = time.time()
         if self._data_parallel:
             # re-allocate grad workers before update.
             self._policy2workers, self._worker2policies = self._trainer_allocator.allocate(
-                policy_name=self._policy_names, logger=self._logger)
+                policy_name=self._policy_ids, logger=self._logger)
 
-        for policy_name, info_list in rollout_info.items():
-            if not isinstance(info_list, list):
-                info_list = [info_list]
-            if isinstance(info_list[0], Trajectory):
-                if self._data_parallel:
-                    self._policy_dict[policy_name].distributed_learn(info_list, self._policy2workers[policy_name])
-                else:
-                    self._policy_dict[policy_name].learn_from_multi_trajectories(info_list)
+        for policy_id, info_list in rollout_info.items():
             # in some cases e.g. Actor-Critic that get loss from rollout workers
-            elif isinstance(info_list[0], LossInfo):
-                self._policy_dict[policy_name].update_with_multi_loss_info(info_list)
+            if isinstance(info_list, list):
+                self._policy_dict[policy_id].update(info_list)
+            else:
+                if self._data_parallel:
+                    self._policy_dict[policy_id].distributed_learn(info_list, self._policy2workers[policy_id])
+                else:
+                    self._policy_dict[policy_id].learn(info_list)
 
         self._logger.info(f"Updated policies {list(rollout_info.keys())}")
         self._version += 1
@@ -188,7 +185,7 @@ class SimplePolicyManager(AbsPolicyManager):
         """Tell the policy host processes to exit."""
         if self._data_parallel:
             self._proxy.close()
-            for name in self._policy_names:
+            for name in self._policy_ids:
                 self._policy_dict[name].exit_data_parallel()
 
 
@@ -222,7 +219,7 @@ class MultiProcessPolicyManager(AbsPolicyManager):
         log_dir: str = getcwd()
     ):
         super().__init__()
-        self._policy_names = list(create_policy_func_dict.keys())
+        self._policy_ids = list(create_policy_func_dict.keys())
         self._data_parallel = data_parallel
         self._num_grad_workers = num_grad_workers
         self._trainer_allocator = trainer_allocator
@@ -230,7 +227,7 @@ class MultiProcessPolicyManager(AbsPolicyManager):
 
         if self._data_parallel:
             self._policy2workers, self._worker2policies = self._trainer_allocator.allocate(
-                policy_name=self._policy_names, logger=self._logger)
+                policy_name=self._policy_ids, logger=self._logger)
             self._proxy = Proxy(
                 group, "policy_manager", {"grad_worker": self._num_grad_workers},
                 component_name="POLICY_MANAGER", **proxy_kwargs)
@@ -257,19 +254,16 @@ class MultiProcessPolicyManager(AbsPolicyManager):
                 if msg["type"] == "learn":
                     info_list = msg["rollout_info"]
                     policy2workers = msg["policy2workers"]
-                    if isinstance(info_list[0], Trajectory):
+                    if not isinstance(info_list, list):
+                        info_list = [info_list]
+                    if "loss" in info_list[0]:
+                        # in some cases e.g. Actor-Critic that get loss from rollout workers
+                        policy.update(info_list)
+                    else:
                         if self._data_parallel:
                             policy.distributed_learn(info_list, policy2workers[name])
                         else:
-                            policy.learn_from_multi_trajectories(info_list)
-                    # in some cases e.g. Actor-Critic that get loss from rollout workers
-                    elif isinstance(info_list[0], LossInfo):
-                        policy.update_with_multi_loss_info(info_list)
-                    else:
-                        raise TypeError(
-                            f"Roll-out information must be of type 'Trajectory' or 'LossInfo', "
-                            f"got {type(info_list[0])}"
-                        )
+                            policy.learn(info_list)
                     conn.send({"type": "learn_done", "policy_state": policy.get_state()})
                 elif msg["type"] == "quit":
                     if self._data_parallel:
@@ -284,17 +278,17 @@ class MultiProcessPolicyManager(AbsPolicyManager):
             self._policy_hosts.append(host)
             host.start()
 
-        for policy_name, conn in self._manager_end.items():
+        for policy_id, conn in self._manager_end.items():
             msg = conn.recv()
             if msg["type"] == "init":
-                self._state_cache[policy_name] = msg["policy_state"]
-                self._logger.info(f"Initial state for policy {policy_name} cached")
+                self._state_cache[policy_id] = msg["policy_state"]
+                self._logger.info(f"Initial state for policy {policy_id} cached")
 
         # ask the hosts to initialize the assigned policies
         if self._data_parallel:
-            for worker_id, policy_names in self._worker2policies.items():
+            for worker_id, policy_ids in self._worker2policies.items():
                 self._proxy.isend(SessionMessage(
-                    MsgTag.INIT_POLICIES, self._proxy.name, worker_id, body={MsgKey.POLICY_NAMES: policy_names}
+                    MsgTag.INIT_POLICIES, self._proxy.name, worker_id, body={MsgKey.POLICY_IDS: policy_ids}
                 ))
 
         self._version = 0
@@ -309,16 +303,16 @@ class MultiProcessPolicyManager(AbsPolicyManager):
         if self._data_parallel:
             # re-allocate grad workers before update.
             self._policy2workers, self._worker2policies = self._trainer_allocator.allocate(
-                policy_name=self._policy_names, logger=self._logger)
+                policy_name=self._policy_ids, logger=self._logger)
 
-        for policy_name, info_list in rollout_info.items():
-            self._manager_end[policy_name].send(
+        for policy_id, info_list in rollout_info.items():
+            self._manager_end[policy_id].send(
                 {"type": "learn", "rollout_info": info_list, "policy2workers": self._policy2workers})
-        for policy_name, conn in self._manager_end.items():
+        for policy_id, conn in self._manager_end.items():
             msg = conn.recv()
             if msg["type"] == "learn_done":
-                self._state_cache[policy_name] = msg["policy_state"]
-                self._logger.info(f"Cached state for policy {policy_name}")
+                self._state_cache[policy_id] = msg["policy_state"]
+                self._logger.info(f"Cached state for policy {policy_id}")
             else:
                 self._logger.info(f"Warning: Wrong message type: {msg['type']}")
 
@@ -346,8 +340,7 @@ class DistributedPolicyManager(AbsPolicyManager):
     """Policy manager that communicates with a set of remote nodes that house the policy instances.
 
     Args:
-        create_policy_func_dict (dict): A dictionary mapping policy names to functions that create them. The policy
-            creation function should have policy name as the only parameter and return an ``RLPolicy`` instance.
+        policy_ids (List[str]): Names of the registered policies.
         group (str): Group name for the cluster consisting of the manager and all policy hosts.
         num_hosts (int): Number of hosts. The hosts will be identified by "POLICY_HOST.i", where 0 <= i < num_hosts.
         data_parallel (bool): Whether to train policy on remote gradient workers or locally on policy hosts.
@@ -363,7 +356,7 @@ class DistributedPolicyManager(AbsPolicyManager):
     """
     def __init__(
         self,
-        create_policy_func_dict: Dict[str, Callable],
+        policy_ids: List[str],
         group: str,
         num_hosts: int,
         data_parallel: bool = False,
@@ -373,7 +366,7 @@ class DistributedPolicyManager(AbsPolicyManager):
         log_dir: str = getcwd()
     ):
         super().__init__()
-        self._policy_names = list(create_policy_func_dict.keys())
+        self._policy_ids = policy_ids
         peers = {"policy_host": num_hosts}
         if data_parallel:
             peers["grad_worker"] = num_grad_workers
@@ -388,7 +381,7 @@ class DistributedPolicyManager(AbsPolicyManager):
         self._worker2policies = defaultdict(list)
 
         # assign policies to hosts
-        for i, name in enumerate(self._policy_names):
+        for i, name in enumerate(self._policy_ids):
             host_id = i % num_hosts
             self._policy2host[name] = f"POLICY_HOST.{host_id}"
             self._host2policies[f"POLICY_HOST.{host_id}"].append(name)
@@ -396,18 +389,18 @@ class DistributedPolicyManager(AbsPolicyManager):
         self._logger.info(f"Policy assignment: {self._policy2host}")
 
         # ask the hosts to initialize the assigned policies
-        for host_name, policy_names in self._host2policies.items():
+        for host_name, policy_ids in self._host2policies.items():
             self._proxy.isend(SessionMessage(
-                MsgTag.INIT_POLICIES, self._proxy.name, host_name, body={MsgKey.POLICY_NAMES: policy_names}
+                MsgTag.INIT_POLICIES, self._proxy.name, host_name, body={MsgKey.POLICY_IDS: policy_ids}
             ))
 
         # cache the initial policy states
         self._state_cache, dones = {}, 0
         for msg in self._proxy.receive():
             if msg.tag == MsgTag.INIT_POLICIES_DONE:
-                for policy_name, policy_state in msg.body[MsgKey.POLICY_STATE].items():
-                    self._state_cache[policy_name] = policy_state
-                    self._logger.info(f"Cached state for policy {policy_name}")
+                for policy_id, policy_state in msg.body[MsgKey.POLICY_STATE].items():
+                    self._state_cache[policy_id] = policy_state
+                    self._logger.info(f"Cached state for policy {policy_id}")
                 dones += 1
                 if dones == num_hosts:
                     break
@@ -415,10 +408,10 @@ class DistributedPolicyManager(AbsPolicyManager):
         # ask the grad workers to initialize the assigned policies
         if self._data_parallel:
             self._policy2workers, self._worker2policies = self._trainer_allocator.allocate(
-                policy_name=self._policy_names, logger=self._logger)
-            for worker_id, policy_names in self._worker2policies.items():
+                policy_name=self._policy_ids, logger=self._logger)
+            for worker_id, policy_ids in self._worker2policies.items():
                 self._proxy.isend(SessionMessage(
-                    MsgTag.INIT_POLICIES, self._proxy.name, worker_id, body={MsgKey.POLICY_NAMES: policy_names}
+                    MsgTag.INIT_POLICIES, self._proxy.name, worker_id, body={MsgKey.POLICY_IDS: policy_ids}
                 ))
 
         self._version = 0
@@ -426,28 +419,26 @@ class DistributedPolicyManager(AbsPolicyManager):
     def update(self, rollout_info: Dict[str, list]):
         """Update policies using roll-out information.
 
-        The roll-out information is grouped by policy name and may be either raw simulation trajectories or loss
-        information computed directly by roll-out workers.
+        The roll-out information is grouped by policy name and may be either a training batch or a list if loss
+        information dictionaries computed directly by roll-out workers.
         """
         if self._data_parallel:
             self._policy2workers, self._worker2policies = self._trainer_allocator.allocate(
-                policy_name=self._policy_names, logger=self._logger)
+                policy_name=self._policy_ids, logger=self._logger)
 
         msg_dict = defaultdict(lambda: defaultdict(dict))
-        for policy_name, info_list in rollout_info.items():
-            if not isinstance(info_list, list):
-                info_list = [info_list]
-            host_id_str = self._policy2host[policy_name]
-            msg_dict[host_id_str][MsgKey.ROLLOUT_INFO][policy_name] = info_list
-            msg_dict[host_id_str][MsgKey.WORKER_INFO][policy_name] = self._policy2workers
+        for policy_id, info_list in rollout_info.items():
+            host_id_str = self._policy2host[policy_id]
+            msg_dict[host_id_str][MsgKey.ROLLOUT_INFO][policy_id] = info_list
+            msg_dict[host_id_str][MsgKey.WORKER_INFO][policy_id] = self._policy2workers
 
         dones = 0
         self._proxy.iscatter(MsgTag.LEARN, SessionType.TASK, list(msg_dict.items()))
         for msg in self._proxy.receive():
             if msg.tag == MsgTag.LEARN_DONE:
-                for policy_name, policy_state in msg.body[MsgKey.POLICY_STATE].items():
-                    self._state_cache[policy_name] = policy_state
-                    self._logger.info(f"Cached state for policy {policy_name}")
+                for policy_id, policy_state in msg.body[MsgKey.POLICY_STATE].items():
+                    self._state_cache[policy_id] = policy_state
+                    self._logger.info(f"Cached state for policy {policy_id}")
                 dones += 1
                 if dones == len(msg_dict):
                     break
@@ -510,12 +501,12 @@ def policy_host(
             proxy.close()
             break
         elif msg.tag == MsgTag.INIT_POLICIES:
-            for name in msg.body[MsgKey.POLICY_NAMES]:
+            for name in msg.body[MsgKey.POLICY_IDS]:
                 policy_dict[name] = create_policy_func_dict[name](name)
                 if data_parallel:
                     policy_dict[name].data_parallel_with_existing_proxy(proxy)
 
-            logger.info(f"Initialized policies {msg.body[MsgKey.POLICY_NAMES]}")
+            logger.info(f"Initialized policies {msg.body[MsgKey.POLICY_IDS]}")
             proxy.reply(
                 msg,
                 tag=MsgTag.INIT_POLICIES_DONE,
@@ -523,23 +514,20 @@ def policy_host(
             )
         elif msg.tag == MsgTag.LEARN:
             t0 = time.time()
-            for name, info_list in msg.body[MsgKey.ROLLOUT_INFO].items():
-                if isinstance(info_list[0], Trajectory):
+            for name, info in msg.body[MsgKey.ROLLOUT_INFO].items():
+                # in some cases e.g. Actor-Critic that get loss from rollout workers
+                if isinstance(info, list):
+                    logger.info("updating with loss info")
+                    policy_dict[name].update(info)
+                else:
                     if data_parallel:
                         logger.info("learning on remote grad workers")
                         policy2workers = msg.body[MsgKey.WORKER_INFO][name]
-                        policy_dict[name].distributed_learn(info_list, policy2workers[name])
+                        policy_dict[name].distributed_learn(info, policy2workers[name])
                     else:
-                        logger.info("learning from multiple trajectories")
-                        policy_dict[name].learn_from_multi_trajectories(info_list)
-                # in some cases e.g. Actor-Critic that get loss from rollout workers
-                elif isinstance(info_list[0], LossInfo):
-                    logger.info("updating with loss info")
-                    policy_dict[name].update_with_multi_loss_info(info_list)
-                else:
-                    raise TypeError(
-                        f"Roll-out information must be of type 'Trajectory' or 'LossInfo', got {type(info_list[0])}"
-                    )
+                        logger.info("learning from batch")
+                        policy_dict[name].learn(info)
+
             msg_body = {
                 MsgKey.POLICY_STATE: {name: policy_dict[name].get_state() for name in msg.body[MsgKey.ROLLOUT_INFO]}
             }
@@ -586,10 +574,10 @@ def grad_worker(
             proxy.close()
             break
         elif msg.tag == MsgTag.INIT_POLICIES:
-            for name in msg.body[MsgKey.POLICY_NAMES]:
+            for name in msg.body[MsgKey.POLICY_IDS]:
                 policy_dict[name] = create_policy_func_dict[name](name)
 
-            logger.info(f"Initialized policies {msg.body[MsgKey.POLICY_NAMES]}")
+            logger.info(f"Initialized policies {msg.body[MsgKey.POLICY_IDS]}")
             proxy.reply(
                 msg,
                 tag=MsgTag.INIT_POLICIES_DONE,

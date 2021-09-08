@@ -2,60 +2,68 @@
 # Licensed under the MIT license.
 
 from collections import defaultdict
-from typing import List, Union
+from typing import List
 
 import numpy as np
 import torch
 from torch.distributions import Categorical
 
 from maro.communication import SessionMessage
-from maro.rl.types import DiscreteACNet, Trajectory
-from maro.rl.utils import MsgKey, MsgTag, discount_cumsum, get_torch_loss_cls
+from maro.rl.modeling import DiscreteACNet
+from maro.rl.utils import MsgKey, MsgTag, average_grads, discount_cumsum
 
-from .policy import Batch, LossInfo, RLPolicy
-
-
-class ACActionInfo:
-
-    __slots__ = ["action", "logp", "value"]
-
-    def __init__(self, action, logp: float, value: float):
-        self.action = action
-        self.logp = logp
-        self.value = value
-
-
-class ACBatch(Batch):
-
-    __slots__ = ["states", "actions", "returns", "advantages", "logps"]
-
-    def __init__(self, states, actions: np.ndarray, returns: np.ndarray, advantages: np.ndarray, logps: np.ndarray):
-        super().__init__()
-        self.states = states
-        self.actions = actions
-        self.returns = returns
-        self.advantages = advantages
-        self.logps = logps
-
-    @property
-    def size(self):
-        return len(self.states)
-
-
-class ACLossInfo(LossInfo):
-
-    __slots__ = ["actor_loss", "critic_loss", "entropy"]
-
-    def __init__(self, loss, actor_loss, critic_loss, entropy, grad=None):
-        super().__init__(loss, grad)
-        self.loss = loss
-        self.actor_loss = actor_loss
-        self.critic_loss = critic_loss
-        self.entropy = entropy
-        self.grad = grad
+from .policy import RLPolicy
 
 
 class ActorCritic(RLPolicy):
+    class Buffer:
+        """Store a sequence of transitions, i.e., a trajectory.
+
+        Args:
+            state_dim (int): State vector dimension.
+            size (int): Buffer capacity, i.e., the maximum number of stored transitions.
+        """
+        def __init__(self, state_dim, size: int = 10000):
+            self.states = np.zeros((size, state_dim), dtype=np.float32)
+            self.actions = np.zeros(size, dtype=np.int)
+            self.logps = np.zeros(size, dtype=np.float32)
+            self.values = np.zeros(size, dtype=np.float32)
+            self.rewards = np.zeros(size, dtype=np.float32)
+            self.terminals = np.zeros(size, dtype=np.bool)
+            self.size = size
+            self._ptr = 0
+            self._prev_ptr = 0
+
+        def put(self, state: np.ndarray, action: dict, reward: float, terminal: bool = False):
+            self.states[self._ptr] = state
+            self.actions[self._ptr] = action["action"]
+            self.logps[self._ptr] = action["logp"]
+            self.values[self._ptr] = action["value"]
+            self.rewards[self._ptr] = reward
+            self.terminals[self._ptr] = terminal
+            # increment pointer
+            self._ptr += 1
+            if self._ptr == self.size:
+                self._ptr = 0
+
+        def get(self):
+            """Retrieve the latest trajectory segment."""
+            terminal = self.terminals[self._ptr - 1]
+            last = self._ptr - (not terminal)
+            if last > self._prev_ptr:
+                traj_slice = np.arange(self._prev_ptr, last)
+            else:  # wrap-around
+                traj_slice = np.concatenate([np.arange(self._prev_ptr, self.size), np.arange(last)])
+            self._prev_ptr = last
+            return {
+                "states": self.states[traj_slice],
+                "actions": self.actions[traj_slice],
+                "logps": self.logps[traj_slice],
+                "values": self.values[traj_slice],
+                "rewards": self.rewards[traj_slice],
+                "last_value": self.values[-1]
+            }
+
     """Actor Critic algorithm with separate policy and value models.
 
     References:
@@ -76,6 +84,15 @@ class ActorCritic(RLPolicy):
             total loss will not include an entropy term.
         clip_ratio (float): Clip ratio in the PPO algorithm (https://arxiv.org/pdf/1707.06347.pdf). Defaults to None,
             in which case the actor loss is calculated using the usual policy gradient theorem.
+        lambda (float): Lambda value for generalized advantage estimation (TD-Lambda). Defaults to 0.9.
+        max_trajectory_len (int): Maximum trajectory length that can be held by the buffer (for each agent that uses
+            this policy). Defaults to 10000.
+        get_loss_on_rollout (bool): If True, ``get_rollout_info`` will return the loss information (including gradients)
+            for the trajectories stored in the buffers. The loss information, along with that from other roll-out
+            instances, can be passed directly to ``update``. Otherwise, it will simply process the trajectories into a
+            single data batch that can be passed directly to ``learn``. Defaults to False.
+        device (str): Identifier for the torch device. The ``ac_net`` will be moved to the specified device. If it is
+            None, the device will be set to "cpu" if cuda is unavailable and "cuda" otherwise. Defaults to None.
     """
 
     def __init__(
@@ -90,69 +107,88 @@ class ActorCritic(RLPolicy):
         entropy_coeff: float = None,
         clip_ratio: float = None,
         lam: float = 0.9,
-        get_loss_on_rollout_finish: bool = False,
-        remote: bool = False
+        max_trajectory_len: int = 10000,
+        get_loss_on_rollout: bool = False,
+        device: str = None
     ):
         if not isinstance(ac_net, DiscreteACNet):
             raise TypeError("model must be an instance of 'DiscreteACNet'")
 
-        super().__init__(name, remote=remote)
-        self.ac_net = ac_net
-        self.device = self.ac_net.device
+        super().__init__(name)
+        if device is None:
+            self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        else:
+            self.device = torch.device(device)
+        self.ac_net = ac_net.to(self.device)
         self.reward_discount = reward_discount
         self.grad_iters = grad_iters
-        self.critic_loss_func = get_torch_loss_cls(critic_loss_cls)()
+        self.critic_loss_func = critic_loss_cls()
         self.min_logp = min_logp
         self.critic_loss_coeff = critic_loss_coeff
         self.entropy_coeff = entropy_coeff
         self.clip_ratio = clip_ratio
         self.lam = lam
-        self._get_loss_on_rollout_finish = get_loss_on_rollout_finish
+        self.max_trajectory_len = max_trajectory_len
+        self.get_loss_on_rollout = get_loss_on_rollout
 
-    def choose_action(self, states) -> Union[ACActionInfo, List[ACActionInfo]]:
+        self._buffer = defaultdict(lambda: self.Buffer(self.ac_net.input_dim, size=self.max_trajectory_len))
+
+    def choose_action(self, states: np.ndarray):
         """Return actions and log probabilities for given states."""
         self.ac_net.eval()
+        states = torch.from_numpy(states).to(self.device)
+        if len(states.shape) == 1:
+            states = states.unsqueeze(dim=0)
         with torch.no_grad():
-            actions, logps, values = self.ac_net.get_action(states)
+            actions, logps, values = self.ac_net.get_action(states, greedy=self.greedy)
         actions, logps, values = actions.cpu().numpy(), logps.cpu().numpy(), values.cpu().numpy()
-        if len(actions) == 1:
-            return ACActionInfo(actions[0], logps[0], values[0])
+        return [
+            {"action": action, "logp": logp, "value": value} for action, logp, value in zip(actions, logps, values)
+        ]
+
+    def record(
+        self,
+        key: str,
+        state: np.ndarray,
+        action: dict,
+        reward: float,
+        next_state: np.ndarray,
+        terminal: bool
+    ):
+        self._buffer[key].put(state, action, reward, terminal)
+
+    def get_rollout_info(self):
+        if self.get_loss_on_rollout:
+            return self.get_batch_loss(self._get_batch(), explicit_grad=True)
         else:
-            return [ACActionInfo(action, logp, value) for action, logp, value in zip(actions, logps, values)]
+            return self._get_batch()
 
-    def get_rollout_info(self, trajectory: Trajectory):
-        if self._get_loss_on_rollout_finish:
-            return self.get_batch_loss(self._preprocess(trajectory), explicit_grad=True)
-        else:
-            return trajectory
+    def _get_batch(self):
+        batch = defaultdict(list)
+        for buf in self._buffer.values():
+            trajectory = buf.get()
+            values = np.append(trajectory["values"], trajectory["last_value"])
+            rewards = np.append(trajectory["rewards"], trajectory["last_value"])
+            deltas = rewards[:-1] + self.reward_discount * values[1:] - values[:-1]
+            batch["states"].append(trajectory["states"])
+            batch["actions"].append(trajectory["actions"])
+            # Returns rewards-to-go, to be targets for the value function
+            batch["returns"].append(discount_cumsum(rewards, self.reward_discount)[:-1])
+            # Generalized advantage estimation using TD(Lambda)
+            batch["advantages"].append(discount_cumsum(deltas, self.reward_discount * self.lam))
+            batch["logps"].append(trajectory["logps"])
 
-    def _preprocess(self, trajectory: Trajectory):
-        if trajectory.actions[-1]:
-            values = np.array([action_info.value for action_info in trajectory.actions])
-            rewards = np.append(trajectory.rewards, trajectory.actions[-1].value)
-        else:
-            values = np.append([action_info.value for action_info in trajectory.actions[:-1]], .0)
-            rewards = np.append(trajectory.rewards, .0)
+        return {key: np.concatenate(vals) for key, vals in batch.items()}
 
-        actions = np.array([action_info.action for action_info in trajectory.actions[:-1]])
-        logps = np.array([action_info.logp for action_info in trajectory.actions[:-1]], dtype=np.float32)
-
-        # Generalized advantage estimation using TD(Lambda)
-        deltas = rewards[:-1] + self.reward_discount * values[1:] - values[:-1]
-        advantages = discount_cumsum(deltas, self.reward_discount * self.lam)
-        # Returns rewards-to-go, to be targets for the value function
-        returns = discount_cumsum(rewards, self.reward_discount)[:-1]
-        return ACBatch(trajectory.states[:-1], actions, returns, advantages, logps)
-
-    def get_batch_loss(self, batch: ACBatch, explicit_grad: bool = False) -> ACLossInfo:
-        assert self.ac_net.trainable, "ac_net needs to have at least one optimizer registered."
+    def get_batch_loss(self, batch: dict, explicit_grad: bool = False):
         self.ac_net.train()
-        actions = torch.from_numpy(batch.actions).to(self.device)
-        logp_old = torch.from_numpy(batch.logps).to(self.device)
-        returns = torch.from_numpy(batch.returns).to(self.device)
-        advantages = torch.from_numpy(batch.advantages).to(self.device)
+        states = torch.from_numpy(batch["states"]).to(self.device)
+        actions = torch.from_numpy(batch["actions"]).to(self.device)
+        logp_old = torch.from_numpy(batch["logps"]).to(self.device)
+        returns = torch.from_numpy(batch["returns"]).to(self.device)
+        advantages = torch.from_numpy(batch["advantages"]).to(self.device)
 
-        action_probs, state_values = self.ac_net(batch.states)
+        action_probs, state_values = self.ac_net(states)
         state_values = state_values.squeeze()
 
         # actor loss
@@ -167,39 +203,42 @@ class ActorCritic(RLPolicy):
 
         # critic_loss
         critic_loss = self.critic_loss_func(state_values, returns)
-
         # entropy
-        if self.entropy_coeff is not None:
-            entropy = -Categorical(action_probs).entropy().mean()
-        else:
-            entropy = 0
+        entropy = -Categorical(action_probs).entropy().mean() if self.entropy_coeff is not None else 0
 
         # total loss
         loss = actor_loss + self.critic_loss_coeff * critic_loss + self.entropy_coeff * entropy
-        grad = self.ac_net.get_gradients(loss) if explicit_grad else None
-        return ACLossInfo(actor_loss, critic_loss, entropy, loss, grad=grad)
 
-    def update_with_multi_loss_info(self, loss_info_list: List[ACLossInfo]):
+        loss_info = {
+            "actor_loss": actor_loss.detach().cpu().numpy(),
+            "critic_loss": critic_loss.detach().cpu().numpy(),
+            "entropy": entropy.detach().cpu().numpy(),
+            "loss": loss.detach().cpu().numpy() if explicit_grad else loss
+        }
+        if explicit_grad:
+            loss_info["grad"] = self.ac_net.get_gradients(loss)
+
+        return loss_info
+
+    def update(self, loss_info_list: List[dict]):
         """Apply gradients to the underlying parameterized model."""
-        self.ac_net.apply_gradients([loss_info.grad for loss_info in loss_info_list])
+        self.ac_net.apply_gradients(average_grads([loss_info["grad"] for loss_info in loss_info_list]))
 
-    def learn_from_multi_trajectories(self, trajectories: List[Trajectory]):
-        if self.remote:
-            # TODO: distributed grad computation
-            pass
-        else:
-            batches = [self._preprocess(traj) for traj in trajectories]
-            for _ in range(self.grad_iters):
-                self.update_with_multi_loss_info([self.get_batch_loss(batch, explicit_grad=True) for batch in batches])
+    def learn(self, batch: dict):
+        for _ in range(self.grad_iters):
+            self.ac_net.step(self.get_batch_loss(batch)["loss"])
 
-    def distributed_learn(self, rollout_info, worker_id_list):
+    def improve(self):
+        self.learn(self._get_batch())
+
+    def distributed_learn(self, batch: dict, worker_id_list: list):
         assert self.remote, "distributed_learn is invalid when self.remote is False!"
 
-        batches = [self._preprocess(traj) for traj in rollout_info]
         for _ in range(self.grad_iters):
             msg_dict = defaultdict(lambda: defaultdict(dict))
             for i, worker_id in enumerate(worker_id_list):
-                msg_dict[worker_id][MsgKey.GRAD_TASK][self._name] = batches[i::len(worker_id)]
+                sub_batch = {key: batch[key][i::len(worker_id_list)] for key in batch}
+                msg_dict[worker_id][MsgKey.GRAD_TASK][self._name] = sub_batch
                 msg_dict[worker_id][MsgKey.POLICY_STATE][self._name] = self.get_state()
                 # data-parallel
                 self._proxy.isend(SessionMessage(
@@ -211,16 +250,16 @@ class ActorCritic(RLPolicy):
                     for policy_name, loss_info in msg.body[MsgKey.LOSS_INFO].items():
                         if isinstance(loss_info, list):
                             loss_infos[policy_name] += loss_info
-                        elif isinstance(loss_info, ACLossInfo):
+                        elif isinstance(loss_info, dict):
                             loss_infos[policy_name].append(loss_info)
                         else:
                             raise TypeError(f"Wrong type of loss_info: {type(loss_info)}")
                     dones += 1
                     if dones == len(msg_dict):
                         break
-            # build dummy computation graph before apply gradients.
-            _ = self.get_batch_loss(batches[0], explicit_grad=True)
-            self.update_with_multi_loss_info(loss_infos[self._name])
+            # build dummy computation graph by `get_batch_loss` before apply gradients.
+            _ = self.get_batch_loss(sub_batch, explicit_grad=True)
+            self.update(loss_infos[self._name])
 
     def set_state(self, policy_state):
         self.ac_net.load_state_dict(policy_state)

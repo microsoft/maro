@@ -11,7 +11,7 @@ workflow_dir = dirname(dirname(realpath(__file__)))  # template directory
 if workflow_dir not in sys.path:
     sys.path.insert(0, workflow_dir)
 
-from general import log_dir, rl_policy_func_index
+from general import log_dir, policy_func_dict
 
 
 if __name__ == "__main__":
@@ -29,7 +29,7 @@ if __name__ == "__main__":
 
     group = getenv("LEARNGROUP", default="learn")
     grad_worker(
-        rl_policy_func_index,
+        policy_func_dict,
         int(worker_id),
         int(num_hosts),
         group,

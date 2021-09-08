@@ -25,13 +25,13 @@ in the roll-out loop. In this example,
 .. code-block:: python
     class CIMTrajectoryForDQN(Trajectory):
         def __init__(
-            self, env, *, port_attributes, vessel_attributes, action_space, look_back, max_ports_downstream,
+            self, env, *, port_features, vessel_features, action_space, look_back, max_ports_downstream,
             reward_eval_delay, fulfillment_factor, shortage_factor, time_decay,
             finite_vessel_space=True, has_early_discharge=True 
         ):
             super().__init__(env)
-            self.port_attributes = port_attributes
-            self.vessel_attributes = vessel_attributes
+            self.port_features = port_features
+            self.vessel_features = vessel_features
             self.action_space = action_space
             self.look_back = look_back
             self.max_ports_downstream = max_ports_downstream
@@ -47,8 +47,8 @@ in the roll-out loop. In this example,
             tick, port_idx, vessel_idx = event.tick, event.port_idx, event.vessel_idx
             ticks = [max(0, tick - rt) for rt in range(self.look_back - 1)]
             future_port_idx_list = vessel_snapshots[tick: vessel_idx: 'future_stop_list'].astype('int')
-            port_features = port_snapshots[ticks: [port_idx] + list(future_port_idx_list): self.port_attributes]
-            vessel_features = vessel_snapshots[tick: vessel_idx: self.vessel_attributes]
+            port_features = port_snapshots[ticks: [port_idx] + list(future_port_idx_list): self.port_features]
+            vessel_features = vessel_snapshots[tick: vessel_idx: self.vessel_features]
             return {port_idx: np.concatenate((port_features, vessel_features))}
 
         def get_action(self, action_by_agent, event):
@@ -57,7 +57,7 @@ in the roll-out loop. In this example,
             model_action = action_info[0] if isinstance(action_info, tuple) else action_info
             scope, tick, port, vessel = event.action_scope, event.tick, event.port_idx, event.vessel_idx
             zero_action_idx = len(self.action_space) / 2  # index corresponding to value zero.
-            vessel_space = vessel_snapshots[tick:vessel:self.vessel_attributes][2] if self.finite_vessel_space else float("inf")
+            vessel_space = vessel_snapshots[tick:vessel:self.vessel_features][2] if self.finite_vessel_space else float("inf")
             early_discharge = vessel_snapshots[tick:vessel:"early_discharge"][0] if self.has_early_discharge else 0
             percent = abs(self.action_space[model_action])
 
@@ -122,7 +122,7 @@ The out-of-the-box DQN is used as our agent.
 
     def get_dqn_agent():
         q_model = SimpleMultiHeadModel(
-            FullyConnectedBlock(**agent_config["model"]), optim_option=agent_config["optimization"]
+            FullyConnected(**agent_config["model"]), optim_option=agent_config["optimization"]
         )
         return DQN(q_model, DQNConfig(**agent_config["hyper_params"]))
 

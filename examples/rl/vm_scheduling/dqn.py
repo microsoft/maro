@@ -9,8 +9,8 @@ import numpy as np
 import torch
 
 from maro.rl.experience import ReplayMemory, UniformSampler
-from maro.rl.exploration import DiscreteSpaceExploration, MultiPhaseLinearExplorationScheduler
-from maro.rl.model import DiscreteQNet, FullyConnectedBlock, OptimOption
+from maro.rl.exploration import DiscreteSpaceExploration, MultiLinearExplorationScheduler
+from maro.rl.model import DiscreteQNet, FullyConnected, OptimOption
 from maro.rl.policy.algorithms import DQN, DQNConfig
 
 vm_path = os.path.dirname(os.path.realpath(__file__))
@@ -97,7 +97,7 @@ class MaskedEpsilonGreedy(DiscreteSpaceExploration):
 def get_dqn_policy(mode="update"):
     assert mode in {"inference", "update", "inference-update"}
     q_net = MyQNet(
-        FullyConnectedBlock(**config["model"]["network"]),
+        FullyConnected(**config["model"]["network"]),
         optim_option=OptimOption(**config["model"]["optimization"]) if mode != "inference" else None
     )
 
@@ -109,7 +109,7 @@ def get_dqn_policy(mode="update"):
         exp_store = ReplayMemory(**config["replay_memory"]["rollout"])
         exploration = MaskedEpsilonGreedy()
         exploration.register_schedule(
-            scheduler_cls=MultiPhaseLinearExplorationScheduler,
+            scheduler_cls=MultiLinearExplorationScheduler,
             param_name="epsilon",
             **config["exploration"]
         )

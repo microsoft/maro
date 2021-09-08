@@ -12,6 +12,11 @@ makedirs(log_dir, exist_ok=True)
 
 simulation_logger = Logger("SIMUALTION", dump_folder=log_dir)
 
+
+def post_step(env, tracker, state, action, env_action, reward, tick):
+    tracker["env_metric"] = env.metrics
+
+
 def post_collect(trackers, ep, segment):
     # print the env metric from each rollout worker
     for tracker in trackers:

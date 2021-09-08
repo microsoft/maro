@@ -7,27 +7,25 @@ from os.path import dirname, realpath
 
 from maro.rl.learning import DistributedPolicyManager, MultiProcessPolicyManager, SimplePolicyManager
 from maro.rl.policy import TrainerAllocator
-from maro.utils import Logger
 
 workflow_dir = dirname(dirname(realpath(__file__)))  # template directory
 if workflow_dir not in sys.path:
     sys.path.insert(0, workflow_dir)
 
-from general import agent2policy, log_dir, rl_policy_func_index
+from general import agent2policy, log_dir, policy_func_dict
 
 def get_policy_manager():
-    logger = Logger("policy manager creator")
     manager_type = getenv("POLICYMANAGERTYPE", default="simple")
     parallel = int(getenv("PARALLEL", default=0))
     data_parallel = getenv("DATAPARALLEL") == "True"
     num_grad_workers = int(getenv("NUMGRADWORKERS", default=1))
     group = getenv("LEARNGROUP", default="learn")
     allocation_mode = getenv("ALLOCATIONMODE", default="by-policy")
-    allocator = TrainerAllocator(allocation_mode, num_grad_workers, list(rl_policy_func_index.keys()), agent2policy)
+    allocator = TrainerAllocator(allocation_mode, num_grad_workers, list(policy_func_dict.keys()), agent2policy)
     if manager_type == "simple":
         if parallel == 0:
             return SimplePolicyManager(
-                rl_policy_func_index, group,
+                policy_func_dict, group,
                 data_parallel=data_parallel,
                 num_grad_workers=num_grad_workers,
                 trainer_allocator=allocator,
@@ -38,7 +36,7 @@ def get_policy_manager():
                 log_dir=log_dir)
         else:
             return MultiProcessPolicyManager(
-                rl_policy_func_index, group,
+                policy_func_dict, group,
                 data_parallel=data_parallel,
                 num_grad_workers=num_grad_workers,
                 trainer_allocator=allocator,
@@ -50,7 +48,7 @@ def get_policy_manager():
     num_hosts = int(getenv("NUMHOSTS", default=5))
     if manager_type == "distributed":
         policy_manager = DistributedPolicyManager(
-            rl_policy_func_index, group, num_hosts,
+            list(policy_func_dict.keys()), group, num_hosts,
             data_parallel=data_parallel,
             num_grad_workers=num_grad_workers,
             trainer_allocator=allocator,

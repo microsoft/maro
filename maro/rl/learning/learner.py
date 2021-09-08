@@ -5,24 +5,19 @@ import time
 from os import getcwd
 from typing import Callable, List, Union
 
-from maro.rl.policy import LossInfo
-from maro.rl.types import Trajectory
-from maro.rl.wrappers import AbsEnvWrapper, AgentWrapper
 from maro.utils import Logger
 
-from .common import get_eval_schedule, get_rollout_finish_msg
 from .early_stopper import AbsEarlyStopper
-from .environment_sampler import EnvironmentSampler
+from .env_sampler import AbsEnvSampler
+from .helpers import get_eval_schedule, get_rollout_finish_msg
 from .policy_manager import AbsPolicyManager
 from .rollout_manager import AbsRolloutManager
 
 
 def simple_learner(
-    get_env_wrapper: Callable[[], AbsEnvWrapper],
-    get_agent_wrapper: Callable[[], AgentWrapper],
+    get_env_sampler: Callable[[], AbsEnvSampler],
     num_episodes: int,
     num_steps: int = -1,
-    get_eval_env_wrapper: Callable[[], AbsEnvWrapper] = None,
     eval_schedule: Union[int, List[int]] = None,
     eval_after_last_episode: bool = True,
     early_stopper: AbsEarlyStopper = None,
@@ -33,7 +28,7 @@ def simple_learner(
     """Single-threaded learning workflow.
 
     Args:
-        get_env_wrapper (Callable): Function to create an environment wrapper for collecting training data. The function
+        get_env_sampler (Callable): Function to create an environment wrapper for collecting training data. The function
             should take no parameters and return an environment wrapper instance.
         get_agent_wrapper (Callable): Function to create an agent wrapper that interacts with the environment wrapper.
             The function should take no parameters and return a ``AgentWrapper`` instance.
@@ -41,7 +36,7 @@ def simple_learner(
             collect-update cycles, depending on how the implementation of the roll-out manager.
         num_steps (int): Number of environment steps to roll out in each call to ``collect``. Defaults to -1, in which
             case the roll-out will be executed until the end of the environment.
-        get_eval_env_wrapper (Callable): Function to create an environment wrapper for evaluation. The function should
+        get_test_env_wrapper (Callable): Function to create an environment wrapper for evaluation. The function should
             take no parameters and return an environment wrapper instance. If this is None, the training environment
             wrapper will be used for evaluation in the worker processes. Defaults to None.
         eval_schedule (Union[int, List[int]]): Evaluation schedule. If an integer is provided, the policies will
@@ -68,26 +63,24 @@ def simple_learner(
         raise ValueError("num_steps must be a positive integer or -1")
 
     logger = Logger("LOCAL_LEARNER", dump_folder=log_dir)
-    env_sampler = EnvironmentSampler(get_env_wrapper, get_agent_wrapper, get_eval_env_wrapper=get_eval_env_wrapper)
+    env_sampler = get_env_sampler()
 
     # evaluation schedule
     eval_schedule = get_eval_schedule(eval_schedule, num_episodes, final=eval_after_last_episode)
     logger.info(f"Policy will be evaluated at the end of episodes {eval_schedule}")
     eval_point_index = 0
 
-    def collect_and_update(ep):
+    def collect_and_update(ep, exploration_step):
         """Collect simulation data for training."""
-        segment, exploration_step = 1, True
+        segment = 1
         while True:
-            result = env_sampler.sample(num_steps=num_steps, exploration_step=exploration_step)
+            result = env_sampler.sample(
+                num_steps=num_steps, exploration_step=exploration_step, return_rollout_info=False
+            )
             logger.info(
                 get_rollout_finish_msg(ep, result["step_range"], exploration_params=result["exploration_params"])
             )
-            for policy_name, info_list in result["rollout_info"].items():
-                if isinstance(info_list[0], Trajectory):
-                    env_sampler.agent.policy_dict[policy_name].learn_from_multi_trajectories(info_list)
-                elif isinstance(info_list[0], LossInfo):
-                    env_sampler.agent.policy_dict[policy_name].update_with_multi_loss_info(info_list)
+            env_sampler.agent_wrapper.improve()
 
             if post_collect:
                 post_collect([result["tracker"]], ep, segment)
@@ -96,18 +89,19 @@ def simple_learner(
                 break
 
             segment += 1
-            exploration_step = False
 
+    exploration_step = False
     for ep in range(1, num_episodes + 1):
-        collect_and_update(ep)
+        collect_and_update(ep, exploration_step)
+        exploration_step = True
         if ep == eval_schedule[eval_point_index]:
             eval_point_index += 1
             tracker = env_sampler.test()
             if post_evaluate:
-                post_evaluate([tracker])
+                post_evaluate([tracker], eval_point_index)
             # early stopping check
             if early_stopper:
-                early_stopper.push(env_sampler.eval_env.summary)
+                early_stopper.push(env_sampler.test_env.summary)
                 if early_stopper.stop():
                     return
 

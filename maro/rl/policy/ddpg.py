@@ -2,52 +2,19 @@
 # Licensed under the MIT license.
 
 from collections import defaultdict
-from typing import List, Union
+from typing import Callable, List, Union
 
 import numpy as np
 import torch
 
 from maro.communication import SessionMessage
-from maro.rl.exploration import GaussianNoiseExploration, NoiseExploration
-from maro.rl.types import ContinuousACNet, Trajectory
-from maro.rl.utils import MsgKey, MsgTag, get_torch_loss_cls
-from maro.utils.exception.rl_toolkit_exception import InvalidExperience
+from maro.rl.exploration import gaussian_noise
+from maro.rl.modeling import ContinuousACNet
+from maro.rl.utils import MsgKey, MsgTag, average_grads
+from maro.utils import clone
 
-from .policy import Batch, LossInfo, RLPolicy
+from .policy import RLPolicy
 from .replay import ReplayMemory
-
-
-class DDPGBatch(Batch):
-    """Wrapper for a set of experiences.
-
-    An experience consists of state, action, reward, next state and auxillary information.
-    """
-    __slots__ = ["states", "actions", "rewards", "next_states"]
-
-    def __init__(self, states: list, actions: list, rewards: list, next_states: list):
-        if not len(states) == len(actions) == len(rewards) == len(next_states):
-            raise InvalidExperience("values of contents should consist of lists of the same length")
-        super().__init__()
-        self.states = states
-        self.actions = actions
-        self.rewards = rewards
-        self.next_states = next_states
-
-    @property
-    def size(self):
-        return len(self.states)
-
-
-class DDPGLossInfo(LossInfo):
-
-    __slots__ = ["policy_loss", "q_loss"]
-
-    def __init__(self, loss, policy_loss, q_loss, grad=None):
-        super().__init__(loss, grad)
-        self.loss = loss
-        self.policy_loss = policy_loss
-        self.q_loss = q_loss
-        self.grad = grad
 
 
 class DDPG(RLPolicy):
@@ -61,6 +28,7 @@ class DDPG(RLPolicy):
         name (str): Unique identifier for the policy.
         ac_net (ContinuousACNet): DDPG policy and q-value models.
         reward_discount (float): Reward decay as defined in standard RL terminology.
+        num_epochs (int): Number of training epochs per call to ``learn``. Defaults to 1.
         update_target_every (int): Number of training rounds between policy target model updates.
         q_value_loss_cls: A string indicating a loss class provided by torch.nn or a custom loss class for
             the Q-value loss. If it is a string, it must be a key in ``TORCH_LOSS``. Defaults to "mse".
@@ -68,11 +36,22 @@ class DDPG(RLPolicy):
             loss = policy_loss + ``q_value_loss_coeff`` * q_value_loss. Defaults to 1.0.
         soft_update_coeff (float): Soft update coefficient, e.g., target_model = (soft_update_coeff) * eval_model +
             (1-soft_update_coeff) * target_model. Defaults to 1.0.
-        exploration: Exploration strategy for generating exploratory actions. Defaults to ``GaussianNoiseExploration``.
+        exploration_func (Callable): Function to generate exploratory actions. The function takes an action
+            (single or batch) and a set of keyword arguments, and returns an exploratory action (single or batch
+            depending on the input). Defaults to ``gaussian_noise``.
+        exploration_params (dict): Keyword arguments for ``exploration_func``. Defaults to {"mean": .0, "stddev": 1.0,
+            "relative": False}.
         replay_memory_capacity (int): Capacity of the replay memory. Defaults to 10000.
         random_overwrite (bool): This specifies overwrite behavior when the replay memory capacity is reached. If True,
             overwrite positions will be selected randomly. Otherwise, overwrites will occur sequentially with
             wrap-around. Defaults to False.
+        warmup (int): When the total number of experiences in the replay memory is below this threshold,
+            ``choose_action`` will return uniformly random actions for warm-up purposes. Defaults to 1000.
+        rollout_batch_size (int): Size of the experience batch to use as roll-out information by calling
+            ``get_rollout_info``. Defaults to 1000.
+        train_batch_size (int): Batch size for training the Q-net. Defaults to 32.
+        device (str): Identifier for the torch device. The ``ac_net`` will be moved to the specified device. If it is
+            None, the device will be set to "cpu" if cuda is unavailable and "cuda" otherwise. Defaults to None.
     """
     def __init__(
         self,
@@ -84,124 +63,144 @@ class DDPG(RLPolicy):
         q_value_loss_cls="mse",
         q_value_loss_coeff: float = 1.0,
         soft_update_coeff: float = 1.0,
-        exploration: NoiseExploration = GaussianNoiseExploration(),
+        exploration_func: Callable = gaussian_noise,
+        exploration_params: dict = {"mean": .0, "stddev": 1.0, "relative": False},
         replay_memory_capacity: int = 10000,
         random_overwrite: bool = False,
-        remote: bool = False
+        warmup: int = 1000,
+        rollout_batch_size: int = 1000,
+        train_batch_size: int = 32,
+        device: str = None
     ):
         if not isinstance(ac_net, ContinuousACNet):
             raise TypeError("model must be an instance of 'ContinuousACNet'")
 
-        super().__init__(name, remote=remote)
-        self.ac_net = ac_net
-        self.device = self.ac_net.device
-        if self.ac_net.trainable:
-            self.target_ac_net = ac_net.copy()
-            self.target_ac_net.eval()
+        super().__init__(name)
+        if device is None:
+            self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         else:
-            self.target_ac_net = None
+            self.device = torch.device(device)
+        self.ac_net = ac_net.to(self.device)
+        self.target_ac_net = clone(self.ac_net)
+        self.target_ac_net.eval()
         self.reward_discount = reward_discount
         self.num_epochs = num_epochs
         self.update_target_every = update_target_every
-        self.q_value_loss_func = get_torch_loss_cls(q_value_loss_cls)()
+        self.q_value_loss_func = q_value_loss_cls()
         self.q_value_loss_coeff = q_value_loss_coeff
         self.soft_update_coeff = soft_update_coeff
 
         self._ac_net_version = 0
         self._target_ac_net_version = 0
 
-        self._replay_memory = ReplayMemory(DDPGBatch, replay_memory_capacity, random_overwrite=random_overwrite)
+        self._replay_memory = ReplayMemory(
+            replay_memory_capacity, self.ac_net.input_dim, action_dim=1, random_overwrite=random_overwrite
+        )
+        self.warmup = warmup
+        self.rollout_batch_size = rollout_batch_size
+        self.train_batch_size = train_batch_size
 
-        self.exploration = exploration
-        self.exploring = True  # set initial exploration status to True
+        self.exploration_func = exploration_func
+        self.exploration_params = exploration_params
+        self.greedy = True
 
-    def choose_action(self, states, explore: bool = False) -> Union[float, np.ndarray]:
+    def choose_action(self, states) -> Union[float, np.ndarray]:
+        if self._replay_memory.size < self.warmup:
+            return np.random.uniform(
+                low=self.ac_net.min_action, high=self.ac_net.max_action, size=self.ac_net.action_dim
+            )
+
         self.ac_net.eval()
         with torch.no_grad():
             actions = self.ac_net.get_action(states).cpu().numpy()
 
-        if explore:
-            actions = self.exploration(actions, state=states)
-        return actions[0] if len(actions) == 1 else actions
+        if not self.greedy:
+            actions = self.exploration_func(actions, state=states)
+        return actions
 
-    def _preprocess(self, trajectory: Trajectory):
-        if trajectory.states[-1]:
-            batch = DDPGBatch(
-                states=trajectory.states[:-1],
-                actions=trajectory.actions[:-1],
-                rewards=trajectory.rewards,
-                next_states=trajectory.states[1:]
-            )
-        else:
-            batch = DDPGBatch(
-                states=trajectory.states[:-2],
-                actions=trajectory.actions[:-2],
-                rewards=trajectory.rewards[:-1],
-                next_states=trajectory.states[1:-1]
-            )
-        self._replay_memory.put(batch)
+    def record(
+        self,
+        key: str,
+        state: np.ndarray,
+        action: Union[int, float, np.ndarray],
+        reward: float,
+        next_state: np.ndarray,
+        terminal: bool
+    ):
+        if next_state is None:
+            next_state = np.zeros(state.shape, dtype=np.float32)
 
-    def _get_batch(self) -> DDPGBatch:
-        indexes = np.random.choice(self._replay_memory.size)
-        return DDPGBatch(
-            [self._replay_memory.data["states"][idx] for idx in indexes],
-            [self._replay_memory.data["actions"][idx] for idx in indexes],
-            [self._replay_memory.data["rewards"][idx] for idx in indexes],
-            [self._replay_memory.data["next_states"][idx] for idx in indexes]
+        self._replay_memory.put(
+            np.expand_dims(state, axis=0),
+            np.expand_dims(action, axis=0),
+            np.expand_dims(reward, axis=0),
+            np.expand_dims(next_state, axis=0),
+            np.expand_dims(terminal, axis=0)
         )
 
-    def get_batch_loss(self, batch: DDPGBatch, explicit_grad: bool = False) -> DDPGLossInfo:
-        assert self.ac_net.trainable, "ac_net needs to have at least one optimizer registered."
+    def get_rollout_info(self):
+        return self._replay_memory.sample(self.rollout_batch_size)
+
+    def get_batch_loss(self, batch: dict, explicit_grad: bool = False) -> dict:
         self.ac_net.train()
-        states, next_states = batch.states, batch.next_states
-        actual_actions = torch.from_numpy(batch.actions).to(self.device)
-        rewards = torch.from_numpy(batch.rewards).to(self.device)
+        states = torch.from_numpy(batch["states"]).to(self.device)
+        next_states = torch.from_numpy(["next_states"]).to(self.device)
+        actual_actions = torch.from_numpy(batch["actions"]).to(self.device)
+        rewards = torch.from_numpy(batch["rewards"]).to(self.device)
+        terminals = torch.from_numpy(batch["terminals"]).float().to(self.device)
         if len(actual_actions.shape) == 1:
             actual_actions = actual_actions.unsqueeze(dim=1)  # (N, 1)
 
         with torch.no_grad():
             next_q_values = self.target_ac_net.value(next_states)
-        target_q_values = (rewards + self.reward_discount * next_q_values).detach()  # (N,)
+        target_q_values = (rewards + self.reward_discount * (1 - terminals) * next_q_values).detach()  # (N,)
 
+        # loss info
+        loss_info = {}
         q_values = self.ac_net(states, actions=actual_actions).squeeze(dim=1)  # (N,)
         q_loss = self.q_value_loss_func(q_values, target_q_values)
         policy_loss = -self.ac_net.value(states).mean()
-
-        # total loss
         loss = policy_loss + self.q_value_loss_coeff * q_loss
-        grad = self.ac_net.get_gradients(loss) if explicit_grad else None
-        return DDPGLossInfo(policy_loss, q_loss, loss, grad=grad)
+        loss_info = {
+            "policy_loss": policy_loss.detach().cpu().numpy(),
+            "q_loss": q_loss.detach().cpu().numpy(),
+            "loss": loss.detach().cpu().numpy() if explicit_grad else loss
+        }
+        if explicit_grad:
+            loss_info["grad"] = self.ac_net.get_gradients(loss)
 
-    def update_with_multi_loss_info(self, loss_info_list: List[DDPGLossInfo]):
-        self.ac_net.apply_gradients([loss_info.grad for loss_info in loss_info_list])
+        return loss_info
+
+    def update(self, loss_info_list: List[dict]):
+        self.ac_net.apply_gradients(average_grads([loss_info["grad"] for loss_info in loss_info_list]))
         if self._ac_net_version - self._target_ac_net_version == self.update_target_every:
             self._update_target()
 
-    def learn_from_multi_trajectories(self, trajectories: List[Trajectory]):
-        for traj in trajectories:
-            self._preprocess(traj)
+    def learn(self, batch: dict):
+        self._replay_memory.put(
+            batch["states"], batch["actions"], batch["rewards"], batch["next_states"], batch["terminals"]
+        )
+        self.improve()
 
-        if self.remote:
-            # TODO: distributed grad computation
-            pass
-        else:
-            for _ in range(self.num_epochs):
-                loss_info = self.get_batch_loss(self._get_batch(), explicit_grad=False)
-                self.ac_net.step(loss_info.loss)
-                self._ac_net_version += 1
-                if self._ac_net_version - self._target_ac_net_version == self.update_target_every:
-                    self._update_target()
+    def improve(self):
+        for _ in range(self.num_epochs):
+            train_batch = self._replay_memory.sample(self.train_batch_size)
+            self.ac_net.step(self.get_batch_loss(train_batch)["loss"])
+            self._ac_net_version += 1
+            if self._ac_net_version - self._target_ac_net_version == self.update_target_every:
+                self._update_target()
 
-    def distributed_learn(self, rollout_info, worker_id_list):
+    def distributed_learn(self, batch: dict, worker_id_list: list):
         assert self.remote, "distributed_learn is invalid when self.remote is False!"
 
-        for traj in rollout_info:
-            self._preprocess(traj)
-
+        self._replay_memory.put(
+            batch["states"], batch["actions"], batch["rewards"], batch["next_states"], batch["terminals"]
+        )
         for _ in range(self.num_epochs):
             msg_dict = defaultdict(lambda: defaultdict(dict))
             for worker_id in worker_id_list:
-                msg_dict[worker_id][MsgKey.GRAD_TASK][self._name] = self._get_batch()
+                msg_dict[worker_id][MsgKey.GRAD_TASK][self._name] = self._replay_memory.sample(
+                    self.train_batch_size//len(worker_id_list))
                 msg_dict[worker_id][MsgKey.POLICY_STATE][self._name] = self.get_state()
                 # data-parallel by multiple hosts/workers
                 self._proxy.isend(SessionMessage(
@@ -213,34 +212,22 @@ class DDPG(RLPolicy):
                     for policy_name, loss_info in msg.body[MsgKey.LOSS_INFO].items():
                         if isinstance(loss_info, list):
                             loss_infos[policy_name] += loss_info
-                        elif isinstance(loss_info, DDPGLossInfo):
-                            loss_infos[policy_name].append(loss_info)
+                        elif isinstance(loss_info, dict):
+                            loss_infos[policy_name].append(loss_info["grad"])
                         else:
                             raise TypeError(f"Wrong type of loss_info: {type(loss_info)}")
                     dones += 1
                     if dones == len(msg_dict):
                         break
-            # build dummy computation graph before apply gradients.
-            _ = self.get_batch_loss(self._get_batch(), explicit_grad=True)
-            self.update_with_multi_loss_info(loss_infos[self._name])
+            # build dummy computation graph by `get_batch_loss` before apply gradients.
+            # batch_size=2 because torch.nn.functional.batch_norm doesn't support batch_size=1.
+            _ = self.get_batch_loss(self._replay_memory.sample(2), explicit_grad=True)
+            self.update(loss_infos[self._name])
 
     def _update_target(self):
         # soft-update target network
         self.target_ac_net.soft_update(self.ac_net, self.soft_update_coeff)
         self._target_ac_net_version = self._ac_net_version
-
-    @property
-    def exploration_params(self):
-        return self.exploration.parameters
-
-    def exploit(self):
-        self.exploring = False
-
-    def explore(self):
-        self.exploring = True
-
-    def exploration_step(self):
-        self.exploration.step()
 
     def set_state(self, policy_state):
         self.ac_net.load_state_dict(policy_state)
