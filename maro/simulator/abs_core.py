@@ -7,6 +7,7 @@ from enum import IntEnum
 from typing import List, Optional, Tuple
 
 from maro.backends.frame import SnapshotList
+
 from maro.event_buffer import EventBuffer
 from maro.simulator.scenarios.abs_business_engine import AbsBusinessEngine
 

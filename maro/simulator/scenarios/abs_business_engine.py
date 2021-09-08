@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from maro.backends.frame import FrameBase, SnapshotList
+
 from maro.event_buffer import EventBuffer
 from maro.simulator.utils.common import tick_to_frame_index, total_frames
 
