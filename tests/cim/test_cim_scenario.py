@@ -1,59 +1,48 @@
-# Copyright (c) Microsoft Corporation.
-# Licensed under the MIT license.
-
-
 import csv
-import unittest
 import os
 import tempfile
-
+import unittest
 from collections import namedtuple
-from maro.event_buffer import EventBuffer, EventState
-from maro.simulator.scenarios.cim.business_engine import CimBusinessEngine, Events
-from maro.simulator.scenarios.cim.ports_order_export import PortOrderExporter
-from tests.utils import next_step
-from .mock_data_container import MockDataContainer
+from typing import Optional
 
-from tests.utils import next_step, backends_to_test
+from maro.backends.frame import FrameBase
+
+from maro.event_buffer import EventBuffer
+from maro.simulator.scenarios.cim.business_engine import CimBusinessEngine
+from maro.simulator.scenarios.cim.ports_order_export import PortOrderExporter
+from tests.cim.mock_data_container import MockDataContainer
+from tests.utils import backends_to_test, next_step
 
 MAX_TICK = 20
 
 
-def setup_case(case_name: str):
+class MockCimBusinessEngine(CimBusinessEngine):
+    def __init__(self, event_buffer: EventBuffer, topology_path: str, max_tick: int) -> None:
+        super().__init__(
+            event_buffer=event_buffer, topology=None, start_tick=0,
+            max_tick=max_tick, snapshot_resolution=1, max_snapshots=None, mock_mode=True
+        )
+
+        self._data_cntr = MockDataContainer(topology_path)
+
+        self._vessels = []
+        self._ports = []
+        self._frame: Optional[FrameBase] = None
+        self._port_orders_exporter = PortOrderExporter(False)
+        self._init_frame()
+
+        self._snapshots = self._frame.snapshots
+        self._register_events()
+        self._load_departure_events()
+        self._init_vessel_plans()
+
+
+def setup_case(case_name: str) -> (EventBuffer, MockCimBusinessEngine):
     eb = EventBuffer()
     case_folder = os.path.join("tests", "data", "cim", case_name)
-
-    CimBusinessEngine.__init__ = mock_cim_init_func
-
-    be = CimBusinessEngine(eb, case_folder, MAX_TICK)
+    be = MockCimBusinessEngine(event_buffer=eb, topology_path=case_folder, max_tick=MAX_TICK)
 
     return eb, be
-
-
-def mock_cim_init_func(self, event_buffer, topology_path, max_tick):
-
-    self._start_tick = 0
-    self._max_tick = max_tick
-    self._topology_path = topology_path
-    self._event_buffer = event_buffer
-    self._max_snapshots = None
-    self._snapshot_resolution = 1
-
-    self._data_cntr = MockDataContainer(topology_path)
-
-    self._vessels = []
-    self._ports = []
-    self._frame = None
-    self._port_orders_exporter = PortOrderExporter(False)
-    self._init_frame()
-
-    self._snapshots = self._frame.snapshots
-
-    self._register_events()
-
-    self._load_departure_events()
-
-    self._init_vessel_plans()
 
 
 class TestCimScenarios(unittest.TestCase):
@@ -64,8 +53,6 @@ class TestCimScenarios(unittest.TestCase):
         for backend_name in backends_to_test:
             os.environ["DEFAULT_BACKEND_NAME"] = backend_name
 
-            eb: EventBuffer = None
-            be: CimBusinessEngine = None
             eb, be = setup_case("case_01")
 
             # check frame
@@ -340,18 +327,13 @@ class TestCimScenarios(unittest.TestCase):
             # push the simulator to next tick to update snapshot
             next_step(eb, be, tick)
 
-            # check if there is any container missing
-            total_cntr_number = sum([port.empty for port in be._ports]) + \
-                sum([vessel.empty for vessel in be._vessels]) + \
-                sum([port.full for port in be._ports]) + \
-                sum([vessel.full for vessel in be._vessels])
-
             # NOTE: we flatten here, as raw backend query result has 4dim shape
             # check if statistics data correct
             order_states = be.snapshots["ports"][7:0:[
                 "shortage", "acc_shortage", "booking", "acc_booking"]].flatten()
 
             # all the value should be 0 for this case
+            i = 4 - 1
             self.assertEqual(
                 1, order_states[0], f"shortage of port 0 should be 0 at tick {i}")
             self.assertEqual(
@@ -430,7 +412,6 @@ class TestCimScenarios(unittest.TestCase):
             eb, be = setup_case("case_04")
             tick = 0
 
-            p0 = be._ports[0]
             p1 = be._ports[1]
             p2 = be._ports[2]
             v = be._vessels[0]
@@ -441,7 +422,8 @@ class TestCimScenarios(unittest.TestCase):
                 next_step(eb, be, tick)
                 tick += 1
 
-            # at tick 10, vessel 0 arrive port 2, it already loaded 50 full, it need to load 50 at port 2, so it will early dicharge 10 empty
+            # at tick 10, vessel 0 arrive port 2, it already loaded 50 full, it need to load 50 at port 2,
+            # so it will early discharge 10 empty
             self.assertEqual(
                 0, v.empty, "vessel 0 should early discharge all the empty at tick 10")
             self.assertEqual(
@@ -495,6 +477,7 @@ class TestCimScenarios(unittest.TestCase):
                 self.assertEqual(row+1, int(line["quantity"]))
 
                 row += 1
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -5,6 +5,7 @@ from math import ceil
 from typing import List
 
 from .entities import CimBaseDataCollection, Stop
+from .utils import extract_key_of_three_ints
 
 
 class VesselFutureStopsPrediction:
@@ -18,30 +19,25 @@ class VesselFutureStopsPrediction:
             stops = data_cntr.vessel_future_stops[0]
     """
 
-    def __init__(self, data: CimBaseDataCollection):
+    def __init__(self, data: CimBaseDataCollection) -> None:
         self._vessels = data.vessel_settings
         self._stops = data.vessel_stops
         self._routes = data.routes
         self._route_mapping = data.route_mapping
         self._port_mapping = data.port_mapping
         self._stop_number = data.future_stop_number
-        self._vessel_start_port_offsets = self._make_vessel_start_port_offset()
+        self._vessel_start_port_offsets = self._make_vessel_start_port_offsets()
 
     def __getitem__(self, key):
         """Used to support querying future stops by vessel index, last location index, next location index."""
-        assert type(key) == tuple or type(key) == list
-        assert len(key) == 3
-
-        vessel_idx = key[0]
-        last_loc_idx = key[1]
-        loc_idx = key[2]
+        vessel_idx, last_loc_idx, loc_idx = extract_key_of_three_ints(key)
 
         # ignore current port if parking
         last_stop_idx = loc_idx + (0 if last_loc_idx == loc_idx else -1)
 
         return self._predict_future_stops(vessel_idx, last_stop_idx, self._stop_number)
 
-    def _make_vessel_start_port_offset(self) -> List[int]:
+    def _make_vessel_start_port_offsets(self) -> List[int]:
         vessel_start_port_offsets = []
         for vessel in self._vessels:
             route_points = self._routes[self._route_mapping[vessel.route_name]]
@@ -50,7 +46,7 @@ class VesselFutureStopsPrediction:
             vessel_start_port_offsets.append(vessel_start_port_offset)
         return vessel_start_port_offsets
 
-    def _predict_future_stops(self, vessel_idx: int, last_stop_idx: int, stop_number: int):
+    def _predict_future_stops(self, vessel_idx: int, last_stop_idx: int, stop_number: int) -> List[Stop]:
         """Do predict future stops.
         """
         vessel = self._vessels[vessel_idx]

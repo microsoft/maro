@@ -4,6 +4,7 @@
 import os
 from abc import ABC, abstractmethod
 from pathlib import Path
+
 from typing import List, Optional
 
 from maro.backends.frame import FrameBase, SnapshotList
@@ -36,8 +37,8 @@ class AbsBusinessEngine(ABC):
     """
 
     def __init__(
-        self, scenario_name: str, event_buffer: EventBuffer, topology: str,
-        start_tick: int, max_tick: int, snapshot_resolution: int, max_snapshots: int,
+        self, scenario_name: str, event_buffer: EventBuffer, topology: Optional[str],
+        start_tick: int, max_tick: int, snapshot_resolution: int, max_snapshots: Optional[int],
         additional_options: dict = None
     ):
         self._scenario_name: str = scenario_name

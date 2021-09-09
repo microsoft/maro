@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 
 from .entities import CimBaseDataCollection
+from .utils import extract_key_of_three_ints
 from .vessel_future_stops_prediction import VesselFutureStopsPrediction
 
 
@@ -17,19 +18,11 @@ class VesselSailingPlanWrapper(VesselFutureStopsPrediction):
             stops = data_cntr.vessel_planned_stops[0]
     """
 
-    def __init__(self, data: CimBaseDataCollection):
+    def __init__(self, data: CimBaseDataCollection) -> None:
         super().__init__(data)
 
     def __getitem__(self, key):
-        assert type(key) == tuple or type(key) == list
-        assert len(key) == 3
-
-        vessel_idx = key[0]
-        route_idx = key[1]
-        next_loc_idx = key[2]
-
+        vessel_idx, route_idx, next_loc_idx = extract_key_of_three_ints(key)
         route_length = len(self._routes[route_idx])
-
         stops = self._predict_future_stops(vessel_idx, next_loc_idx, route_length)
-
         return [(stop.port_idx, stop.arrival_tick) for stop in stops]

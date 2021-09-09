@@ -3,10 +3,10 @@
 
 import os
 import urllib.parse
+from typing import Optional
 
 from maro.cli.data_pipeline.utils import StaticParameter
 from maro.simulator.utils import random, seed
-
 from .cim_data_container import CimBaseDataContainer, CimRealDataContainer, CimSyntheticDataContainer
 from .cim_data_generator import CimDataGenerator
 from .cim_data_loader import load_from_folder, load_real_data_from_folder
@@ -16,7 +16,7 @@ from .utils import DATA_CONTAINER_INIT_SEED_LIMIT, ROUTE_INIT_RAND_KEY
 class CimDataContainerWrapper:
 
     def __init__(self, config_path: str, max_tick: int, topology: str):
-        self._data_cntr: CimBaseDataContainer = None
+        self._data_cntr: Optional[CimBaseDataContainer] = None
         self._max_tick = max_tick
         self._config_path = config_path
         self._start_tick = 0
@@ -87,9 +87,8 @@ def data_from_generator(config_path: str, max_tick: int, start_tick: int = 0,
     Returns:
         CimSyntheticDataContainer: Data container used to provide cim data related interfaces.
     """
-    edg = CimDataGenerator()
-
-    data_collection = edg.gen_data(config_path, start_tick=start_tick, max_tick=max_tick, topology_seed=topology_seed)
+    data_collection = CimDataGenerator.gen_data(
+        config_path, start_tick=start_tick, max_tick=max_tick, topology_seed=topology_seed)
 
     return CimSyntheticDataContainer(data_collection)
 

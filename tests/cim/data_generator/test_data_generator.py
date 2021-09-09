@@ -11,13 +11,12 @@ from maro.data_lib.cim.entities import CimSyntheticDataCollection
 
 MAX_TICK = 20
 
+
 class TestDataGenerator(unittest.TestCase):
     def test_data_generator_without_noise(self):
         config_path = os.path.join("tests", "data", "cim", "data_generator", "dumps", "config.yml")
 
-        ge = CimDataGenerator()
-
-        dc: CimSyntheticDataCollection = ge.gen_data(config_path, max_tick=MAX_TICK)
+        dc: CimSyntheticDataCollection = CimDataGenerator.gen_data(config_path, max_tick=MAX_TICK)
 
         self.assertEqual(MAX_TICK, len(dc.order_proportion))
         self.assertEqual(100000, dc.total_containers)
@@ -47,5 +46,6 @@ class TestDataGenerator(unittest.TestCase):
 
         # TODO: more
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     unittest.main()

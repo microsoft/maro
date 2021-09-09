@@ -4,7 +4,7 @@
 import os
 import shutil
 import tarfile
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from yaml import safe_load
 
@@ -51,11 +51,11 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
     def __init__(
         self,
         event_buffer: EventBuffer,
-        topology: str,
+        topology: Optional[str],
         start_tick: int,
         max_tick: int,
         snapshot_resolution: int,
-        max_snapshots: int,
+        max_snapshots: Optional[int],
         additional_options: dict = {}
     ):
         super().__init__(
@@ -565,19 +565,21 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
         return DocableDict(
             metrics_desc,
-            total_vm_requests=self._total_vm_requests,
-            total_incomes=self._total_incomes,
-            energy_consumption_cost=self._energy_consumption_cost,
-            total_profit=self._total_profit,
-            total_energy_consumption=self._total_energy_consumption,
-            successful_allocation=self._successful_allocation,
-            successful_completion=self._successful_completion,
-            failed_allocation=self._failed_allocation,
-            failed_completion=self._failed_completion,
-            total_latency=self._total_latency,
-            total_oversubscriptions=self._total_oversubscriptions,
-            total_overload_pms=self._total_overload_pms,
-            total_overload_vms=self._total_overload_vms
+            {
+                'total_vm_requests': self._total_vm_requests,
+                'total_incomes': self._total_incomes,
+                'energy_consumption_cost': self._energy_consumption_cost,
+                'total_profit': self._total_profit,
+                'total_energy_consumption': self._total_energy_consumption,
+                'successful_allocation': self._successful_allocation,
+                'successful_completion': self._successful_completion,
+                'failed_allocation': self._failed_allocation,
+                'failed_completion': self._failed_completion,
+                'total_latency': self._total_latency,
+                'total_oversubscriptions': self._total_oversubscriptions,
+                'total_overload_pms': self._total_overload_pms,
+                'total_overload_vms': self._total_overload_vms
+            }
         )
 
     def _register_events(self):
