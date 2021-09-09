@@ -136,13 +136,13 @@ The ``DistributedPolicyManager`` runs a set of ``policy_host`` and a ``TrainerAl
 dynamically adjusts trainer node numbers for policies according to the experience/agent/policy
 number. Each ``policy_host`` independently updates its own policies for policy-level parallelism. 
 
-During training, the ``PolicyManager`` first receive experience data from ``RolloutManger``,
-then send them to according ``policy_host``. Each ``policy_host`` will send gradient tasks consist
+During training, the ``PolicyManager`` receives training data collected by the ``RolloutManager``,
+then send them to corresponding ``policy_host``. Each ``policy_host`` will send gradient tasks consist
 of policy state and experience batch, to several stateless ``grad_worker`` for gradient computation.
-The ``grad_worker`` or trainer is stateless, which means it will not rely on previous policy states,
-and compute the gradient with respect to a batch of experience, as long as given a policy state.
-Then ``policy_host`` finanlly gathers gradients from ``grad_worker``, and update state through
-gradient descent.
+The ``grad_worker`` or trainer is stateless, and computes gradients using the policy state and data
+batch provided in a task.
+Then ``policy_host`` aggregates the gradients from ``grad_worker`` s, and performs gradient descent
+on its parameters.
 
 Core Model
 ----------
@@ -200,15 +200,18 @@ model update, for example, distributed training. Here is an example code of grad
 
 .. code-block:: python
 
+    # for single gradient source
+    grad_dict = ac_model_0.get_gradients(loss_0)
+    ac_model.apply_gradients(grad_dict)
+    # for multiple gradient sources
     grad_dict_list = []
-    # gathering gradient from multiple sources
     grad_dict_list.append(ac_model_0.get_gradients(loss_0))
     grad_dict_list.append(ac_model_1.get_gradients(loss_1))
-    ac_model.apply_gradients(grad_dict_list)
+    ac_model.apply_gradients(average_grads(grad_dict_list))
 
-The ``get_gradients`` function returns a gradient dict, and the ``apply_gradients`` function takes a list of
-gradient dict as input, which enables the gradient gathering from single or multiple sources, then performs
-an average operation on the gradient dicts and apply the average gradient to model.
+The ``get_gradients`` function returns a gradient dict, in the form {param_name: gradient_value}.
+The ``apply_gradients`` function takes it as input, then apply it to model. ``average_grads`` enables
+the gradient gathering from multiple sources.
 
 Experience
 ----------

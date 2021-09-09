@@ -588,10 +588,7 @@ def grad_worker(
                 if MsgKey.POLICY_STATE in msg.body:
                     policy_dict[name].set_state(msg.body[MsgKey.POLICY_STATE][name])
                     logger.debug(f"policy {name} sync state.")
-                if isinstance(batch, list):
-                    loss_info = [policy_dict[name].get_batch_loss(_batch, explicit_grad=True) for _batch in batch]
-                else:
-                    loss_info = policy_dict[name].get_batch_loss(batch, explicit_grad=True)
+                loss_info = policy_dict[name].get_batch_loss(batch, explicit_grad=True)
                 msg_body[MsgKey.LOSS_INFO][name] = loss_info
             logger.debug(f"total policy update time: {time.time() - t0}")
             proxy.reply(msg, tag=MsgTag.COMPUTE_GRAD_DONE, body=msg_body)

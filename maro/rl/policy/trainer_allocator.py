@@ -1,5 +1,15 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 from collections import defaultdict
+from enum import Enum
 from typing import Dict
+
+
+class AllocationMode(Enum):
+    BY_POLICY = "by-policy"
+    BY_AGENT = "by-agent"
+    BY_EXPERIENCE = "by-experience"
 
 
 class TrainerAllocator(object):
@@ -16,17 +26,17 @@ class TrainerAllocator(object):
 
     def allocate(self, **kwargs):
         logger = kwargs.get('logger', None)
-        if self.mode == 'by-policy':
+        if self.mode == AllocationMode.BY_POLICY.value:
             policy_names = kwargs.get('policy_names', None)
             return self.allocate_by_policy(policy_names=policy_names, logger=logger)
-        elif self.mode == 'by-agent':
+        elif self.mode == AllocationMode.BY_AGENT.value:
             return self.allocate_by_agent(logger=logger)
-        elif self.mode == 'by-experience':
+        elif self.mode == AllocationMode.BY_EXPERIENCE.value:
             assert 'num_experiences_by_policy' in kwargs
             num_experiences_by_policy = kwargs.pop('num_experiences_by_policy')
             return self.allocate_by_experience(num_experiences_by_policy, logger=logger)
         else:
-            raise NotImplementedError
+            raise NotImplementedError(f"{self.mode} is not implemented.")
 
     def allocate_by_policy(self, policy_names=None, logger=None):
         """Evenly allocate trainers (or grad workers) to each policy."""

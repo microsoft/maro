@@ -169,14 +169,14 @@ class PolicyGradient(RLPolicy):
                 self._proxy.isend(SessionMessage(
                     MsgTag.COMPUTE_GRAD, self._proxy.name, worker_id, body=msg_dict[worker_id]))
             dones = 0
-            loss_infos = {self._name: []}
+            loss_info_by_policy = {self._name: []}
             for msg in self._proxy.receive():
                 if msg.tag == MsgTag.COMPUTE_GRAD_DONE:
                     for policy_name, loss_info in msg.body[MsgKey.LOSS_INFO].items():
                         if isinstance(loss_info, list):
-                            loss_infos[policy_name] += loss_info
+                            loss_info_by_policy[policy_name] += loss_info
                         elif isinstance(loss_info, dict):
-                            loss_infos[policy_name].append(loss_info["grad"])
+                            loss_info_by_policy[policy_name].append(loss_info["grad"])
                         else:
                             raise TypeError(f"Wrong type of loss_info: {type(loss_info)}")
                     dones += 1
@@ -184,7 +184,7 @@ class PolicyGradient(RLPolicy):
                         break
             # build dummy computation graph before apply gradients.
             _ = self.get_batch_loss(sub_batch, explicit_grad=True)
-            self.policy_net.step(loss_infos[self._name])
+            self.policy_net.step(loss_info_by_policy[self._name])
 
     def set_state(self, policy_state):
         self.policy_net.load_state_dict(policy_state)
