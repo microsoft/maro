@@ -8,6 +8,7 @@ from yaml import safe_load
 
 from maro.simulator.utils import random, seed
 from maro.utils.exception.data_lib_exception import CimGeneratorInvalidParkingDuration
+
 from .entities import CimSyntheticDataCollection, OrderGenerateMode, Stop
 from .parsers import GlobalOrderProportion, PortsParser, RoutesParser, VesselsParser
 from .utils import ROUTE_INIT_RAND_KEY, apply_noise

@@ -4,6 +4,7 @@ from math import ceil
 from typing import Callable
 
 from maro.simulator.utils import random
+
 from .entities import CimBaseDataCollection, NoisedItem, PortSetting
 from .utils import BUFFER_TICK_RAND_KEY, apply_noise
 

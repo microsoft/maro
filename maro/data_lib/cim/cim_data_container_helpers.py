@@ -7,6 +7,7 @@ from typing import Optional
 
 from maro.cli.data_pipeline.utils import StaticParameter
 from maro.simulator.utils import random, seed
+
 from .cim_data_container import CimBaseDataContainer, CimRealDataContainer, CimSyntheticDataContainer
 from .cim_data_generator import CimDataGenerator
 from .cim_data_loader import load_from_folder, load_real_data_from_folder

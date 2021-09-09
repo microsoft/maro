@@ -7,6 +7,7 @@ from math import ceil
 from typing import Dict, List
 
 from maro.simulator.utils import random
+
 from .entities import (
     CimBaseDataCollection, CimRealDataCollection, CimSyntheticDataCollection, NoisedItem, Order, OrderGenerateMode,
     PortSetting, SyntheticPortSetting, VesselSetting

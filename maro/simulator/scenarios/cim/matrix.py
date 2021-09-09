@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 from maro.backends.frame import NodeAttribute, NodeBase, node
-
 from maro.simulator.scenarios.matrix_accessor import MatrixAttributeAccessor
 
 
