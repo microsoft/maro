@@ -14,8 +14,8 @@ from yaml import safe_load
 from maro.data_lib import BinaryReader
 
 from .entities import (
-    CimRealDataCollection, CimSyntheticDataCollection, NoisedItem, Order, OrderGenerateMode,
-    PortSetting, RoutePoint, Stop, SyntheticPortSetting, VesselSetting
+    CimRealDataCollection, CimSyntheticDataCollection, NoisedItem, Order, OrderGenerateMode, PortSetting, RoutePoint,
+    Stop, SyntheticPortSetting, VesselSetting
 )
 
 

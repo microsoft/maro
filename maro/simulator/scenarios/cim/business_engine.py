@@ -10,7 +10,6 @@ import numpy as np
 from yaml import safe_load
 
 from maro.backends.frame import FrameBase, SnapshotList
-
 from maro.data_lib.cim import CimDataContainerWrapper, Order, Stop
 from maro.event_buffer import AtomEvent, CascadeEvent, EventBuffer, MaroEvents
 from maro.simulator.scenarios import AbsBusinessEngine
