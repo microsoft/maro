@@ -6,7 +6,7 @@ from os import getenv
 from os.path import dirname, realpath
 
 from maro.rl.learning import DistributedPolicyManager, MultiProcessPolicyManager, SimplePolicyManager
-from maro.rl.policy import TrainerAllocator
+from maro.rl.policy import WorkerAllocator
 
 workflow_dir = dirname(dirname(realpath(__file__)))  # template directory
 if workflow_dir not in sys.path:
@@ -21,14 +21,14 @@ def get_policy_manager():
     num_grad_workers = int(getenv("NUMGRADWORKERS", default=1))
     group = getenv("LEARNGROUP", default="learn")
     allocation_mode = getenv("ALLOCATIONMODE", default="by-policy")
-    allocator = TrainerAllocator(allocation_mode, num_grad_workers, list(policy_func_dict.keys()), agent2policy)
+    allocator = WorkerAllocator(allocation_mode, num_grad_workers, list(policy_func_dict.keys()), agent2policy)
     if manager_type == "simple":
         if parallel == 0:
             return SimplePolicyManager(
                 policy_func_dict, group,
                 data_parallel=data_parallel,
                 num_grad_workers=num_grad_workers,
-                trainer_allocator=allocator,
+                worker_allocator=allocator,
                 proxy_kwargs={
                     "redis_address": (getenv("REDISHOST", default="maro-redis"), int(getenv("REDISPORT", default=6379))),
                     "max_peer_discovery_retries": 50
@@ -39,7 +39,7 @@ def get_policy_manager():
                 policy_func_dict, group,
                 data_parallel=data_parallel,
                 num_grad_workers=num_grad_workers,
-                trainer_allocator=allocator,
+                worker_allocator=allocator,
                 proxy_kwargs={
                     "redis_address": (getenv("REDISHOST", default="maro-redis"), int(getenv("REDISPORT", default=6379))),
                     "max_peer_discovery_retries": 50
@@ -51,7 +51,7 @@ def get_policy_manager():
             list(policy_func_dict.keys()), group, num_hosts,
             data_parallel=data_parallel,
             num_grad_workers=num_grad_workers,
-            trainer_allocator=allocator,
+            worker_allocator=allocator,
             proxy_kwargs={
                 "redis_address": (getenv("REDISHOST", default="maro-redis"), int(getenv("REDISPORT", default=6379))),
                 "max_peer_discovery_retries": 50

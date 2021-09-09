@@ -18,8 +18,8 @@ minimum number of workers required to receive from before proceeding to the next
 losing precious data in the case of all workers reporting back at roughly the same time, we also provide the option
 to continue to receive after receiving the minimum number of results, but with a timeout to keep the wait time
 upperbounded. Note that the transition from the policy update phase to the data collection phase is still strictly
-synchronous. This means that in the case of the policy instances distributed amongst a set of trainer nodes, the
-central controller waits until all trainers report back with the latest policy states before starting the next
+synchronous. This means that in the case of the policy instances distributed amongst a set of worker nodes, the
+central controller waits until all workers report back with the latest policy states before starting the next
 cycle.
 
 
@@ -122,9 +122,9 @@ on the policy manager type used. The provided policy manager classes include:
 * ``SimplePolicyManager``, where the policies are updated within the manager itself, sequentially or in parallel through multi-processing;
 * ``DistributedPolicyManager``, which distributes policies amongst a set of remote compute nodes to parallelize policy update.
 
-Moreover, in ``data-parallel`` mode, each policy manager has an additional trainer(``grad_worker``)
-allocator, which provides a policy-to-trainer mapping. The trainer allocator performs auto-balance
-during training, by dynamically adjusting trainer number for policies according to the
+Moreover, in ``data-parallel`` mode, each policy manager has an additional worker(``grad_worker``)
+allocator, which provides a policy-to-worker mapping. The worker allocator performs auto-balance
+during training, by dynamically adjusting worker number for policies according to the
 experience/agent/policy number.
 
 .. image:: ../images/rl/policy_manager.svg
@@ -133,13 +133,13 @@ experience/agent/policy number.
 
 The ``DistributedPolicyManager`` runs a set of ``policy_host`` and a ``TrainerAllocator``.
 ``policy_host`` is a process/VM/node that hosts the update of a policy. The ``TrainerAllocator``
-dynamically adjusts trainer node numbers for policies according to the experience/agent/policy
+dynamically adjusts worker node numbers for policies according to the experience/agent/policy
 number. Each ``policy_host`` independently updates its own policies for policy-level parallelism. 
 
 During training, the ``PolicyManager`` receives training data collected by the ``RolloutManager``,
 then send them to corresponding ``policy_host``. Each ``policy_host`` will send gradient tasks consist
 of policy state and experience batch, to several stateless ``grad_worker`` for gradient computation.
-The ``grad_worker`` or trainer is stateless, and computes gradients using the policy state and data
+The ``grad_worker`` is stateless, and computes gradients using the policy state and data
 batch provided in a task.
 Then ``policy_host`` aggregates the gradients from ``grad_worker`` s, and performs gradient descent
 on its parameters.

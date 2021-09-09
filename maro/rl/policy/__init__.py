@@ -6,7 +6,7 @@ from .ddpg import DDPG
 from .dqn import DQN, PrioritizedExperienceReplay
 from .pg import PolicyGradient
 from .policy import AbsPolicy, NullPolicy, RLPolicy
-from .trainer_allocator import TrainerAllocator
+from .worker_allocator import WorkerAllocator
 
 __all__ = [
     "ActorCritic",
@@ -14,5 +14,5 @@ __all__ = [
     "DQN", "PrioritizedExperienceReplay",
     "PolicyGradient",
     "AbsPolicy", "NullPolicy", "RLPolicy",
-    "TrainerAllocator"
+    "WorkerAllocator"
 ]

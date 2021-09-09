@@ -12,17 +12,17 @@ class AllocationMode(Enum):
     BY_EXPERIENCE = "by-experience"
 
 
-class TrainerAllocator(object):
-    """Allocate trainers following some strategy."""
-    def __init__(self, mode: str, num_trainers: int, policy_names: list, agent2policy: dict):
-        assert num_trainers > 0, f"Invalid arguments: num_trainers should be greater than 0 instead of {num_trainers}."
+class WorkerAllocator(object):
+    """Allocate workers following some strategy."""
+    def __init__(self, mode: str, num_workers: int, policy_names: list, agent2policy: dict):
+        assert num_workers > 0, f"Invalid arguments: num_workers should be greater than 0 instead of {num_workers}."
         assert len(policy_names) > 0, "Invalid arguments: policy_names should not be empty."
         assert len(agent2policy) > 0, "Invalid arguments: agent2policy should not be empty."
         self.mode = mode
-        self.num_trainers = num_trainers
+        self.num_workers = num_workers
         self.policy_names = policy_names
         self.agent2policy = agent2policy
-        self.trainer_prefix = "GRAD_WORKER"
+        self.worker_prefix = "GRAD_WORKER"
 
     def allocate(self, **kwargs):
         logger = kwargs.get('logger', None)
@@ -39,25 +39,25 @@ class TrainerAllocator(object):
             raise NotImplementedError(f"{self.mode} is not implemented.")
 
     def allocate_by_policy(self, policy_names=None, logger=None):
-        """Evenly allocate trainers (or grad workers) to each policy."""
+        """Evenly allocate workers (or grad workers) to each policy."""
         if policy_names is None:
             policy_names = self.policy_names
-        num_trainers = self.num_trainers
-        policy2trainers = defaultdict(list)
-        trainer2policies = defaultdict(list)
+        num_workers = self.num_workers
+        policy2workers = defaultdict(list)
+        worker2policies = defaultdict(list)
 
-        if len(policy_names) >= num_trainers:
+        if len(policy_names) >= num_workers:
             for i, name in enumerate(policy_names):
-                trainer_id = i % num_trainers
-                policy2trainers[name].append(f"{self.trainer_prefix}.{trainer_id}")
-                trainer2policies[f"{self.trainer_prefix}.{trainer_id}"].append(name)
+                worker_id = i % num_workers
+                policy2workers[name].append(f"{self.worker_prefix}.{worker_id}")
+                worker2policies[f"{self.worker_prefix}.{worker_id}"].append(name)
         else:
-            trainer_id_list = list(range(num_trainers))
+            worker_id_list = list(range(num_workers))
             for i, name in enumerate(policy_names):
-                for trainer_id in trainer_id_list[i::len(policy_names)]:
-                    policy2trainers[name].append(f"{self.trainer_prefix}.{trainer_id}")
-                    trainer2policies[f"{self.trainer_prefix}.{trainer_id}"].append(name)
-        return policy2trainers, trainer2policies
+                for worker_id in worker_id_list[i::len(policy_names)]:
+                    policy2workers[name].append(f"{self.worker_prefix}.{worker_id}")
+                    worker2policies[f"{self.worker_prefix}.{worker_id}"].append(name)
+        return policy2workers, worker2policies
 
     def allocate_by_agent(self, agent2policy=None, logger=None):
         if agent2policy is None:
@@ -72,27 +72,27 @@ class TrainerAllocator(object):
         return self._allocate_by_payload(num_experiences_by_policy, logger)
 
     def _allocate_by_payload(self, num_payload: Dict[str, int], logger=None):
-        """Allocate trainers (or grad workers) by payload of each policy.
+        """Allocate workers (or grad workers) by payload of each policy.
 
         Args:
             num_payload (Dict[str, int]): Payload of each policy, could be experience numbers
                 or agent nums.
 
         Returns:
-            policy2trainers (Dict[str, list]): The mapping from policy name to assigned trainer ids.
-            trainer2policies (Dict[str, list]): The mapping from trainer id to according policies.
+            policy2workers (Dict[str, list]): The mapping from policy name to assigned worker ids.
+            worker2policies (Dict[str, list]): The mapping from worker id to according policies.
         """
-        num_trainers = self.num_trainers
-        policy2trainers = defaultdict(list)
-        trainer2policies = defaultdict(list)
+        num_workers = self.num_workers
+        policy2workers = defaultdict(list)
+        worker2policies = defaultdict(list)
 
         # no payload yet
         if len(num_payload) == 0:
             return self.allocate_by_policy()
-        # allocate trainers according to historical payload.
+        # allocate workers according to historical payload.
         else:
             total_num_payload = sum(num_payload.values())
-            average_payload = total_num_payload / num_trainers
+            average_payload = total_num_payload / num_workers
 
             offset = 0
             policy_quota = dict()
@@ -102,7 +102,7 @@ class TrainerAllocator(object):
                 policy_quota[name] = quota
 
             # adjust quota if any redundancy occurs.
-            redundancy = num_trainers - sum(policy_quota.values())
+            redundancy = num_workers - sum(policy_quota.values())
             if redundancy > 0:
                 busiest_policy = max(policy_quota, key=lambda name: policy_quota[name])
                 policy_quota[busiest_policy] += redundancy
@@ -112,9 +112,9 @@ class TrainerAllocator(object):
                     logger.info(
                         f"policy {name} payload: {num_payload[name]},  quota: {quota} node(s)")
                 for i in range(quota):
-                    trainer_id = (i + offset) % num_trainers
-                    policy2trainers[name].append(f"{self.trainer_prefix}.{trainer_id}")
-                    trainer2policies[f"{self.trainer_prefix}.{trainer_id}"].append(name)
-                offset = (offset + quota) % num_trainers
+                    worker_id = (i + offset) % num_workers
+                    policy2workers[name].append(f"{self.worker_prefix}.{worker_id}")
+                    worker2policies[f"{self.worker_prefix}.{worker_id}"].append(name)
+                offset = (offset + quota) % num_workers
 
-        return policy2trainers, trainer2policies
+        return policy2workers, worker2policies

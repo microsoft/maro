@@ -9,7 +9,7 @@ from os import getcwd
 from typing import Callable, Dict, List
 
 from maro.communication import Proxy, SessionMessage, SessionType
-from maro.rl.policy import RLPolicy, TrainerAllocator
+from maro.rl.policy import RLPolicy, WorkerAllocator
 from maro.rl.utils import MsgKey, MsgTag
 from maro.utils import Logger
 
@@ -98,7 +98,7 @@ class SimplePolicyManager(AbsPolicyManager):
             data-parallel, otherwise learnt locally. Defaults to False.
         num_grad_workers (int): Number of gradient workers, which is meaningless when ``data_parallel`` is False.
             Defaults to 1.
-        trainer_allocator (TrainerAllocator): The allocation strategy of allocating trainers to policies
+        worker_allocator (WorkerAllocator): The allocation strategy of allocating workers to policies
             for parallelization.
         proxy_kwargs (dict): Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
         log_dir (str): Directory to store logs in. A ``Logger`` with tag "POLICY_MANAGER" will be created at init
@@ -111,7 +111,7 @@ class SimplePolicyManager(AbsPolicyManager):
         group: str = "learn",
         data_parallel: bool = False,
         num_grad_workers: int = 1,
-        trainer_allocator: TrainerAllocator = None,
+        worker_allocator: WorkerAllocator = None,
         proxy_kwargs: dict = {},
         log_dir: str = getcwd()
     ):
@@ -119,7 +119,7 @@ class SimplePolicyManager(AbsPolicyManager):
         self._policy_ids = list(create_policy_func_dict.keys())
         self._data_parallel = data_parallel
         self._num_grad_workers = num_grad_workers
-        self._trainer_allocator = trainer_allocator
+        self._worker_allocator = worker_allocator
         self._logger = Logger("POLICY_MANAGER", dump_folder=log_dir)
 
         self._logger.info("Creating policy instances locally")
@@ -135,7 +135,7 @@ class SimplePolicyManager(AbsPolicyManager):
                     group, "policy_host", {"grad_worker": self._num_grad_workers},
                     component_name=f"POLICY_HOST.{name}", **proxy_kwargs)
 
-            self._policy2workers, self._worker2policies = self._trainer_allocator.allocate(
+            self._policy2workers, self._worker2policies = self._worker_allocator.allocate(
                 policy_name=self._policy_ids, logger=self._logger)
             # ask the hosts to initialize the assigned policies
             for worker_id, policy_ids in self._worker2policies.items():
@@ -156,7 +156,7 @@ class SimplePolicyManager(AbsPolicyManager):
         t0 = time.time()
         if self._data_parallel:
             # re-allocate grad workers before update.
-            self._policy2workers, self._worker2policies = self._trainer_allocator.allocate(
+            self._policy2workers, self._worker2policies = self._worker_allocator.allocate(
                 policy_name=self._policy_ids, logger=self._logger)
 
         for policy_id, info_list in rollout_info.items():
@@ -201,7 +201,7 @@ class MultiProcessPolicyManager(AbsPolicyManager):
             data-parallel, otherwise learnt locally. Defaults to False.
         num_grad_workers (int): Number of gradient workers, which is meaningless when ``data_parallel`` is False.
             Defaults to 1.
-        trainer_allocator (TrainerAllocator): The allocation strategy of allocating trainers to policies
+        worker_allocator (WorkerAllocator): The allocation strategy of allocating workers to policies
             for parallelization.
         proxy_kwargs (dict): Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
         log_dir (str): Directory to store logs in. A ``Logger`` with tag "POLICY_MANAGER" will be created at init
@@ -214,7 +214,7 @@ class MultiProcessPolicyManager(AbsPolicyManager):
         group: str = "learn",
         data_parallel: bool = False,
         num_grad_workers: int = 1,
-        trainer_allocator: TrainerAllocator = None,
+        worker_allocator: WorkerAllocator = None,
         proxy_kwargs: dict = {},
         log_dir: str = getcwd()
     ):
@@ -222,11 +222,11 @@ class MultiProcessPolicyManager(AbsPolicyManager):
         self._policy_ids = list(create_policy_func_dict.keys())
         self._data_parallel = data_parallel
         self._num_grad_workers = num_grad_workers
-        self._trainer_allocator = trainer_allocator
+        self._worker_allocator = worker_allocator
         self._logger = Logger("POLICY_MANAGER", dump_folder=log_dir)
 
         if self._data_parallel:
-            self._policy2workers, self._worker2policies = self._trainer_allocator.allocate(
+            self._policy2workers, self._worker2policies = self._worker_allocator.allocate(
                 policy_name=self._policy_ids, logger=self._logger)
             self._proxy = Proxy(
                 group, "policy_manager", {"grad_worker": self._num_grad_workers},
@@ -300,7 +300,7 @@ class MultiProcessPolicyManager(AbsPolicyManager):
         t0 = time.time()
         if self._data_parallel:
             # re-allocate grad workers before update.
-            self._policy2workers, self._worker2policies = self._trainer_allocator.allocate(
+            self._policy2workers, self._worker2policies = self._worker_allocator.allocate(
                 policy_name=self._policy_ids, logger=self._logger)
 
         for policy_id, info_list in rollout_info.items():
@@ -344,7 +344,7 @@ class DistributedPolicyManager(AbsPolicyManager):
         data_parallel (bool): Whether to train policy on remote gradient workers or locally on policy hosts.
         num_grad_workers (int): Number of gradient workers, which is meaningless when ``data_parallel`` is False.
             Defaults to 1.
-        trainer_allocator (TrainerAllocator): The allocation strategy of allocating trainers to policies
+        worker_allocator (WorkerAllocator): The allocation strategy of allocating workers to policies
             for parallelization.
         proxy_kwargs: Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
             for details. Defaults to the empty dictionary.
@@ -359,7 +359,7 @@ class DistributedPolicyManager(AbsPolicyManager):
         num_hosts: int,
         data_parallel: bool = False,
         num_grad_workers: int = 1,
-        trainer_allocator: TrainerAllocator = None,
+        worker_allocator: WorkerAllocator = None,
         proxy_kwargs: dict = {},
         log_dir: str = getcwd()
     ):
@@ -370,7 +370,7 @@ class DistributedPolicyManager(AbsPolicyManager):
             peers["grad_worker"] = num_grad_workers
         self._proxy = Proxy(group, "policy_manager", peers, component_name="POLICY_MANAGER", **proxy_kwargs)
         self._logger = Logger("POLICY_MANAGER", dump_folder=log_dir)
-        self._trainer_allocator = trainer_allocator
+        self._worker_allocator = worker_allocator
         self._data_parallel = data_parallel
 
         self._policy2host = {}
@@ -405,7 +405,7 @@ class DistributedPolicyManager(AbsPolicyManager):
 
         # ask the grad workers to initialize the assigned policies
         if self._data_parallel:
-            self._policy2workers, self._worker2policies = self._trainer_allocator.allocate(
+            self._policy2workers, self._worker2policies = self._worker_allocator.allocate(
                 policy_name=self._policy_ids, logger=self._logger)
             for worker_id, policy_ids in self._worker2policies.items():
                 self._proxy.isend(SessionMessage(
@@ -421,7 +421,7 @@ class DistributedPolicyManager(AbsPolicyManager):
         information dictionaries computed directly by roll-out workers.
         """
         if self._data_parallel:
-            self._policy2workers, self._worker2policies = self._trainer_allocator.allocate(
+            self._policy2workers, self._worker2policies = self._worker_allocator.allocate(
                 policy_name=self._policy_ids, logger=self._logger)
 
         msg_dict = defaultdict(lambda: defaultdict(dict))
