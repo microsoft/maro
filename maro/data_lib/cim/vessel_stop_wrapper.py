@@ -36,7 +36,7 @@ class VesselStopsWrapper:
             loc_idx = key[1]
 
             return self._stops[vessel_idx][loc_idx]
-        elif all([key_type == slice, key.start is None, key.step is None, key.stop is None]):
+        elif key_type == slice and all([key.start is None, key.step is None, key.stop is None]):
             return self._stops
 
         return None

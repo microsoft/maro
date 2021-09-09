@@ -40,11 +40,13 @@ class CimDataContainerWrapper:
                 config_path=config_path, max_tick=self._max_tick, start_tick=self._start_tick,
                 topology_seed=topology_seed
             )
+        elif os.path.exists(os.path.join(self._config_path, "order_proportion.csv")):
+            self._data_cntr = data_from_dumps(dumps_folder=self._config_path)
         else:
             # Real Data Mode: read data from input data files, no need for any config.yml.
             self._data_cntr = data_from_files(data_folder=self._config_path)
 
-    def reset(self, keep_seed):
+    def reset(self, keep_seed: bool):
         """Reset data container internal state"""
         if not keep_seed:
             self._init_data_container(random[ROUTE_INIT_RAND_KEY].randint(0, DATA_CONTAINER_INIT_SEED_LIMIT - 1))

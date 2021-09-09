@@ -62,9 +62,7 @@ def _extend_route(
 
             # apply noise to parking duration
             parking_duration = ceil(apply_noise(duration, duration_noise, random[ROUTE_INIT_RAND_KEY]))
-
-            if parking_duration <= 0:
-                raise CimGeneratorInvalidParkingDuration()
+            assert parking_duration > 0
 
             # a new stop
             stop = Stop(
@@ -110,9 +108,6 @@ def _extend_route(
 
 class CimDataGenerator:
     """Utility to generate cim data from configuration file."""
-
-    def __init__(self) -> None:
-        pass
 
     @staticmethod
     def gen_data(

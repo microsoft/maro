@@ -35,9 +35,6 @@ def gen_matrix(port_num: int, vessel_num: int):
                 "vessel_plans": MatrixAttributeAccessor(self, "vessel_plans", vessel_num, port_num)}
 
         def __getitem__(self, key):
-            if key in self._acc_dict:
-                return self._acc_dict[key]
-
-            return None
+            return self._acc_dict.get(key, None)
 
     return GeneralInfoMatrix

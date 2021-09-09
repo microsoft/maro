@@ -85,7 +85,7 @@ class GlobalOrderProportion:
 
         # step 1: interpolate with configured sample nodes to generate proportion in period
 
-        # check if there is 0 and max_tick - 1 node exist ,insert if not exist
+        # check if there is 0 and max_tick - 1 node exist, insert if not exist
         if sample_nodes[0][0] != 0:
             sample_nodes.insert(0, (0, 0))
         if sample_nodes[-1][0] != period - 1:

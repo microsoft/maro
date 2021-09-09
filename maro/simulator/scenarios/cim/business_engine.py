@@ -4,7 +4,7 @@
 
 import os
 from math import ceil, floor
-from typing import Optional
+from typing import Optional, Iterable
 
 import numpy as np
 from yaml import safe_load
@@ -39,16 +39,12 @@ class CimBusinessEngine(AbsBusinessEngine):
 
     def __init__(
         self, event_buffer: EventBuffer, topology: Optional[str], start_tick: int, max_tick: int,
-        snapshot_resolution: int, max_snapshots: Optional[int], additional_options: dict = None,
-        mock_mode: bool = False
+        snapshot_resolution: int, max_snapshots: Optional[int], additional_options: dict = None
     ):
         super().__init__(
             "cim", event_buffer, topology, start_tick, max_tick,
             snapshot_resolution, max_snapshots, additional_options
         )
-
-        if mock_mode:
-            return
 
         # Update self._config_path with current file path.
         self.update_config_root_path(__file__)
@@ -108,6 +104,18 @@ class CimBusinessEngine(AbsBusinessEngine):
     def snapshots(self) -> SnapshotList:
         """SnapshotList: Snapshot list of current frame."""
         return self._snapshots
+
+    @property
+    def data_container(self) -> CimDataContainerWrapper:
+        return self._data_cntr
+
+    @property
+    def vessels(self) -> list:
+        return self._vessels
+
+    @property
+    def ports(self) -> list:
+        return self._ports
 
     def step(self, tick: int):
         """Called at each tick to generate orders and arrival events.
@@ -453,10 +461,8 @@ class CimBusinessEngine(AbsBusinessEngine):
         )
 
         # If buffer_tick is 0, we should execute it as this tick.
-        if buffer_ticks == 0:
-            event.add_immediate_event(laden_return_evt)
-        else:
-            self._event_buffer.insert_event(laden_return_evt)
+        event.add_immediate_event(laden_return_evt) if buffer_ticks == 0 \
+            else self._event_buffer.insert_event(laden_return_evt)
 
     def _on_full_return(self, event: AtomEvent):
         """Handler for processing the event that full containers are returned from shipper.
@@ -637,10 +643,8 @@ class CimBusinessEngine(AbsBusinessEngine):
             tick=event.tick + buffer_ticks, event_type=Events.RETURN_EMPTY, payload=payload
         )
 
-        if buffer_ticks == 0:
-            event.add_immediate_event(mt_return_evt)
-        else:
-            self._event_buffer.insert_event(mt_return_evt)
+        event.add_immediate_event(mt_return_evt) if buffer_ticks == 0 \
+            else self._event_buffer.insert_event(mt_return_evt)
 
     def _on_empty_return(self, event: AtomEvent):
         """Handler for processing event when there are some empty container return to port.
@@ -662,11 +666,9 @@ class CimBusinessEngine(AbsBusinessEngine):
             event (CascadeEvent): Action event object with expected payload: {vessel_id: empty_number_to_move}}.
         """
         actions = event.payload
+        assert isinstance(actions, Iterable)
 
         if actions:
-            if type(actions) is not list:
-                actions = [actions]
-
             for action in actions:
                 vessel_idx = action.vessel_idx
                 port_idx = action.port_idx
