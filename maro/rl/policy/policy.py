@@ -55,13 +55,13 @@ class RLPolicy(AbsPolicy):
 
     @abstractmethod
     def __call__(self, states: np.ndarray):
-        raise NotImplementedError        
+        raise NotImplementedError
 
     def record(self, agent_id: str, state, action, reward, next_state, terminal: bool):
         """Record a transition in an internal buffer or memory.
 
         Since we may have multiple agents sharing this policy, the internal buffer / memory should use the agents'
-        names to separate storage for these agents. The ``agent_id`` parameter serves this purpose.  
+        names to separate storage for these agents. The ``agent_id`` parameter serves this purpose.
         """
         pass
 
@@ -74,7 +74,7 @@ class RLPolicy(AbsPolicy):
         to be invoked on roll-out instances (i.e., in distributed fashion), this should return loss information (which
         can be obtained by calling ``get_batch_loss`` function with ``explicit_grad`` set to True) to be used by
         ``update`` on the learning side. If you want the policy improvement algorithm to be invoked on the learning
-        side, this should return a data batch to be used by ``learn`` on the learning side. See the implementation of 
+        side, this should return a data batch to be used by ``learn`` on the learning side. See the implementation of
         this function in ``ActorCritic`` for reference.
         """
         pass
@@ -83,7 +83,7 @@ class RLPolicy(AbsPolicy):
         """Compute policy improvement information, i.e., loss, from a data batch.
 
         This can be used as a sub-routine in ``learn`` and ``improve``, as these methods usually require computing
-        loss from a batch. 
+        loss from a batch.
 
         Args:
             batch (dict): Data batch to compute the policy improvement information for.
@@ -100,7 +100,7 @@ class RLPolicy(AbsPolicy):
         algorithm. Such information usually includes gradients with respect to the policy parameters. An example where
         this can be useful is the Asynchronous Advantage Actor Acritic (A3C) (https://arxiv.org/abs/1602.01783);
         2) if you are computing loss in data-parallel fashion, i.e., by splitting a data batch to several smaller
-        batches and sending them to a set of remote workers for parallelized loss computation. 
+        batches and sending them to a set of remote workers for parallelized loss computation.
 
         Args:
             loss_info_list (List[dict]): A list of dictionaries containing loss information (e.g., gradients) computed
@@ -125,7 +125,7 @@ class RLPolicy(AbsPolicy):
 
         Implement this interface if you are doing single-threaded learning where a single policy instance is used for
         roll-out and training. The policy should have some kind of internal buffer / memory to store roll-out data and
-        use as the source of training data. 
+        use as the source of training data.
         """
         pass
 

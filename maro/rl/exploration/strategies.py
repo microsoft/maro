@@ -12,7 +12,7 @@ def epsilon_greedy(state: np.ndarray, action: np.ndarray, num_actions, *, epsilo
     Args:
         state (np.ndarray): State(s) based on which ``action`` is chosen. This is not used by the vanilla
             eps-greedy exploration and is put here to conform to the function signature required for the exploration
-            strategy parameter for ``DQN``. See ``maro.rl.policy.DQN`` for more details.  
+            strategy parameter for ``DQN``. See ``maro.rl.policy.DQN`` for more details.
         action (np.ndarray): Action(s) chosen greedily by the policy.
         num_actions (int): Number of possible actions.
         epsilon (float): The probability that a random action will be selected.
@@ -30,11 +30,11 @@ def uniform_noise(
     high: Union[float, list, np.ndarray]
 ) -> Union[float, np.ndarray]:
     """Apply a uniform noise to a continuous multi-dimensional action.
-    
+
     Args:
         state (np.ndarray): State(s) based on which ``action`` is chosen. This is not used by the gaussian noise
             exploration scheme and is put here to conform to the function signature for the exploration in continuous
-            action spaces.  
+            action spaces.
         action (np.ndarray): Action(s) chosen greedily by the policy.
         min_action (Union[float, list, np.ndarray]): Lower bound for the multi-dimensional action space.
         max_action (Union[float, list, np.ndarray]): Upper bound for the multi-dimensional action space.
@@ -58,11 +58,11 @@ def gaussian_noise(
     relative: bool = False
 ) -> Union[float, np.ndarray]:
     """Apply a gaussian noise to a continuous multi-dimensional action.
-    
+
     Args:
         state (np.ndarray): State(s) based on which ``action`` is chosen. This is not used by the gaussian noise
             exploration scheme and is put here to conform to the function signature for the exploration in continuous
-            action spaces.  
+            action spaces.
         action (np.ndarray): Action(s) chosen greedily by the policy.
         min_action (Union[float, list, np.ndarray]): Lower bound for the multi-dimensional action space.
         max_action (Union[float, list, np.ndarray]): Upper bound for the multi-dimensional action space.
@@ -70,7 +70,7 @@ def gaussian_noise(
         stddev (Union[float, list, np.ndarray]): Standard deviation for the Gaussian noise. Defaults to 1.0.
         relative (bool): If True, the generated noise will be multiplied by the action itself before being added to
             the action. Defaults to False.
-        
+
     """
     noise = np.random.normal(loc=mean, scale=stddev)
     if min_action is None and max_action is None:
