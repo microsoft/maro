@@ -10,17 +10,16 @@ distributed learning workflows. The distributed workflow can be synchronous or a
 Synchronous Learning
 ====================
 
-In synchronous mode, a central controler executes learning cycles that consist of simulation data collection and
-policy update. In a strictly synchronous learning process, the coordinator would wait for all data collectors,
+In synchronous mode, a central controller executes learning cycles that consist of simulation data collection and
+policy update. In a strictly synchronous learning process, a roll-out manager waits for all data collectors,
 a.k.a. "roll-out workers", to return their results before moving on to the policy update phase. So what if a slow
-worker drags the whole process down? We provide users the flexibility to loosen the restriction by specifying the
-minimum number of workers required to receive from before proceeding to the next phase. If one is concerned about
-losing precious data in the case of all workers reporting back at roughly the same time, we also provide the option
-to continue to receive after receiving the minimum number of results, but with a timeout to keep the wait time
-upperbounded. Note that the transition from the policy update phase to the data collection phase is still strictly
-synchronous. This means that in the case of the policy instances distributed amongst a set of trainer nodes, the
-central controller waits until all trainers report back with the latest policy states before starting the next
-cycle.
+worker drags the whole process down? We provide the flexibility to loosen the restriction by specifying the
+number of workers required to report back before proceeding to the next phase. After the required number of workers
+report back, the roll-out manager can optionally try to receive from the remaining workers a certain number of times
+but with a timeout to keep the wait time upperbounded. Note that the transition from the policy update phase to the
+data collection phase is always synchronous. This means that in the case of the policy instances distributed amongst
+a set of trainer nodes, the central controller waits until all trainers report back with the latest policy states before
+starting the next cycle.
 
 
 The components required for synchronous learning include:
@@ -57,67 +56,68 @@ The components required for asynchronous learning include:
 * policy server, which receives data from the actors and update the policy states when necessary.
 
 
-Environment Wrapper
+Environment Sampler
 -------------------
 
-To use the training components described above, it is necessary to implement an environment wrapper for the environment of
-your choice. An environment wrapper serves as a bridge between a simulator and the policies that interact with it by providing
-unified interfaces to the interaction workflow. It is also responsible for caching transitions and preparing experiences for
-training. Key methods that need to be implemented for an environment wrapper include:
-
-* ``get_state``, which encodes agents' observations into policy input. The encoded state for each agent must correspond
-    to the policy used by the agent.
-* ``to_env_action``, which provides model output with context so that it can be executed by the environment simulator.
-* ``get_reward``, for evaluating rewards.
-
-.. image:: ../images/rl/env_wrapper.svg
-   :target: ../images/rl/env_wrapper.svg
-   :alt: Environment Wrapper
+It is necessary to implement an environment sampler (a subclass of ``AbsEnvSampler``) with user-defined state, action
+and reward shaping to collect roll-out information for learning and testing purposes. An environment sampler can be
+easily turned into a roll-out worker or an actor for synchronous and asynchronous learning, respectively.
 
 
 Policy
 ------
 
-A policy is a an agent's mechanism to choose actions based on its observations of the environment.
-Accordingly, the abstract ``AbsPolicy`` class exposes a ``choose_action`` interface. This abstraction encompasses
-both static policies, such as rule-based policies, and updatable policies, such as RL policies. The latter is
-abstracted through the ``AbsCorePolicy`` sub-class which also exposes a ``update`` interface. By default, updatable
-policies require an experience manager to store and retrieve simulation data (in the form of "experiences sets")
-based on which updates can be made.
+The ``AbsPolicy`` abstraction is the core component of MARO's RL toolkit. A policy is a an agent's mechanism to select
+actions in its interaction with an environment. MARO allows arbitrary agent-to-policy mapping to make policy sharing
+easily configurable. It is also possible to use a mixture of rule-based policies and ``RLPolicy`` instances. The latter
+provides various policy improvement interfaces to support single-threaded and distributed learning.   
 
 
 .. code-block:: python
 
   class AbsPolicy(ABC):
       @abstractmethod
-      def choose_action(self, state):
+      def __call__(self, state):
+          """Select an action based on a state."""
           raise NotImplementedError
 
 
-  class AbsCorePolicy(AbsPolicy):
-      def __init__(self, experience_memory: ExperienceMemory):
-          super().__init__()
-          self.experience_memory = experience_memory
+  class RLPolicy(AbsPolicy):     
+      ...
 
-      @abstractmethod
-      def update(self):
-          raise NotImplementedError
+      def record(self, key: str, state, action, reward, next_state, terminal: bool):
+          pass
+
+      def get_rollout_info(self):
+          pass
+
+      def get_batch_loss(self, batch: dict, explicit_grad: bool = False):
+          pass
+
+      def update(self, loss_info_list: List[dict]):
+          pass
+
+      def learn(self, batch: dict):
+          pass
+
+      def improve(self):
+          pass
 
 
 Policy Manager
 --------------
 
-A policy manager is an abstraction that controls policy update. It houses the latest policy states.
-In synchrounous learning, the policy manager controls the policy update phase of a learning cycle.
-In asynchrounous learning, the policy manager is the centerpiece of the policy server process. 
-Individual policy updates, however, may or may not occur within the policy manager itself depending
-on the policy manager type used. The provided policy manager classes include:
+A policy manager controls policy update and provides the latest policy states for roll-outs. In synchrounous learning,
+the policy manager controls the policy update phase of a learning cycle. In asynchrounous learning, the policy manager
+is present as a server process. The types of policy manager include:
 
-* ``LocalPolicyManager``, where the policies are updated within the manager itself;
-* ``MultiProcessPolicyManager``, which distributes policies amongst a set of trainer processes to parallelize
-  policy update;
-* ``MultiNodePolicyManager``, which distributes policies amongst a set of remote compute nodes to parallelize
-  policy update;
+* ``SimplePolicyManager``, where all policies instances reside within the manager and are updated sequentially;
+* ``MultiProcessPolicyManager``, where each policy is placed in a dedicated process that runs event loops to receive
+  roll-out information for update; this approach takes advantage of the parallelism from Python's multi-processing, so
+  the policies can be updated in parallel, but comes with inter-process communication overhead;
+* ``DistributedPolicyManager``, where policies are distributed among a set of remote compute nodes that run event loops
+  to reeeive roll-out information for update. This approach allows the policies to be updated in parallel and may be
+  necessary when the combined size of the policies is too big to fit in a single node. 
 
 
 .. image:: ../images/rl/policy_manager.svg
@@ -128,78 +128,56 @@ on the policy manager type used. The provided policy manager classes include:
 Core Model
 ----------
 
-In the deep reinforcement learning (DRL) world, a core policy usually includes one or more neural-network-based models,
-which may be used to compute action preferences or estimate state / action values. The core model abstraction is designed
-to decouple the the inner workings of these models from the algorithmic aspects of the policy that uses them. For example,
-the actor-critic algorithm does not need to concern itself with the structures and optimizing schemes of the actor and
-critic models. The ``AbsCoreModel`` abstraction represents a collection of network components with embedded optimizers.
-Subclasses of ``AbsCoreModel`` provided for use with specific RL algorithms include ``DiscreteQNet`` for DQN, ``DiscretePolicyNet``
+In the deep reinforcement learning (DRL) world, a policy usually includes one or more neural-network com-based models,
+which may be used to compute action preferences or estimate state / action values. The ``AbsCoreModel`` represents a
+collection of network components with embedded optimizers and exposes unified interfaces to decouple model inference
+and optimization from the algorithmic aspects of the policy that uses them. For example, the actor-critic algorithm
+does not need to concern itself with how the action probabilities and state values are computed. Subclasses of
+``AbsCoreModel`` provided for use with specific RL algorithms include ``DiscreteQNet`` for DQN, ``DiscretePolicyNet``
 for Policy Gradient, ``DiscreteACNet`` for Actor-Critic and ``ContinuousACNet`` for DDPG.
 
 The code snippet below shows how to create a model for the actor-critic algorithm with a shared bottom stack:
 
 .. code-block:: python
 
-  class MyACModel(DiscreteACNet):
-      def forward(self, states, actor=True, critic=True):
-          features = self.component["representation"](states)
-          return (
-              self.component["actor"](features) if actor else None,
-              self.component["critic"](features) if critic else None
-          )
+  shared_net_conf = {...}
+  actor_net_conf = {...}
+  critic_net_conf = {...}
+  shared_optim_conf = {torch.optim.SGD, {"lr": 0.0001}}
+  actor_optim_conf = (torch.optim.Adam, {"lr": 0.001})
+  critic_optim_conf = (torch.optim.RMSprop, {"lr": 0.001})
 
+  class MyACNet(DiscreteACNet):
+      def __init__(self):
+          super().__init__()
+          self.shared = FullyConnected(**shared_net_conf)
+          self.actor = FullyConnected(**actor_net_conf)
+          self.critic = FullyConnected(**critic_net_conf)
+          self.shared_optim = shared_optim_conf[0](self.shared.parameters(), **shared_optim_conf[1])
+          self.actor_optim = actor_optim_conf[0](self.actor.parameters(), **actor_optim_conf[1])
+          self.critic_optim = critic_optim_conf[0](self.critic.parameters(), **critic_optim_conf[1])
 
-  representation_stack = FullyConnected(...)
-  actor_head = FullyConnected(...)
-  critic_head = FullyConnected(...)
-  ac_model = SimpleMultiHeadModel(
-      {"representation": representation_stack, "actor": actor_head, "critic": critic_head},
-      optim_option={
-        "representation": OptimizerOption(cls="adam", params={"lr": 0.0001}),
-        "actor": OptimizerOption(cls="adam", params={"lr": 0.001}),
-        "critic": OptimizerOption(cls="rmsprop", params={"lr": 0.0001})  
-      }
-  )
+      def forward(self, states, actor: bool = True, critic: bool = True):
+          representation = self.shared(states)
+          return (self.actor(representation) if actor else None), (self.critic(representation) if critic else None)
+
+      def step(self, loss):
+          self.shared_optim.zero_grad()
+          self.actor_optim.zero_grad()
+          self.critic_optim.zero_grad()
+          loss.backward()
+          self.hsared_optim.step()
+          self.actor_optim.step()
+          self.critic_optim.step()
 
 To generate stochastic actions given a batch of states, call ``get_action`` on the model instance: 
 
 .. code-block:: python
 
-  action, log_p = ac_model.get_action(state)
+  action, log_p, values = ac_model.get_action(state)
 
-To performing a single gradient step on the model, call the ``step`` function: 
+To performing a single gradient step on the model, pass the loss to the ``step`` function: 
 
 .. code-block:: python
 
   ac_model.step(critic_loss + actor_loss)
-
-Here it is assumed that the losses have been computed using the same model instance and the gradients have
-been generated for the internal components.  
-
-
-Experience
-----------
-
-An ``ExperienceSet`` is a synonym for training data for RL policies. The data originate from the simulator and
-get processed and organized into a set of transitions in the form of (state, action, reward, next_state, info),
-where ''info'' contains information about the transition that is not encoded in the state but may be necessary
-for sampling purposes. An ``ExperienceMemory`` is a storage facility for experience sets and is maintained by
-a policy for storing and retrieving training data. Sampling from the experience memory can be customized by 
-registering a user-defined sampler to it.  
-
-
-Exploration
------------
-
-Some RL algorithms such as DQN and DDPG require explicit exploration governed by a set of parameters. The
-``AbsExploration`` class is designed to cater to these needs. Simple exploration schemes, such as ``EpsilonGreedyExploration`` for discrete action space
-and ``UniformNoiseExploration`` and ``GaussianNoiseExploration`` for continuous action space, are provided in
-the toolkit.
-
-As an example, the exploration for DQN may be carried out with the aid of an ``EpsilonGreedyExploration``:
-
-.. code-block:: python
-
-  exploration = EpsilonGreedyExploration(num_actions=10)
-  greedy_action = q_net.get_action(state)
-  exploration_action = exploration(greedy_action)

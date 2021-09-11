@@ -92,7 +92,10 @@ class PolicyGradient(RLPolicy):
 
         self._buffer = defaultdict(lambda: self.Buffer(self.policy_net.input_dim, size=self.max_trajectory_len))
 
-    def choose_action(self, states: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    def get_random_action(self, states: np.ndarray):
+        return np.random.randint(self.policy_net.num_actions, size=(states.shape[0] if len(states.shape) > 1 else 1,))
+
+    def get_action(self, states: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """Return actions and log probabilities for given states."""
         self.policy_net.eval()
         with torch.no_grad():

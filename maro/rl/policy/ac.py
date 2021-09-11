@@ -132,7 +132,7 @@ class ActorCritic(RLPolicy):
 
         self._buffer = defaultdict(lambda: self.Buffer(self.ac_net.input_dim, size=self.max_trajectory_len))
 
-    def choose_action(self, states: np.ndarray):
+    def __call__(self, states: np.ndarray):
         """Return actions and log probabilities for given states."""
         self.ac_net.eval()
         states = torch.from_numpy(states).to(self.device)

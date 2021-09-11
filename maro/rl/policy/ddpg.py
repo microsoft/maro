@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import Callable, List, Union
+from typing import Callable, List, Tuple, Union
 
 import numpy as np
 import torch
@@ -34,17 +34,23 @@ class DDPG(RLPolicy):
             loss = policy_loss + ``q_value_loss_coeff`` * q_value_loss. Defaults to 1.0.
         soft_update_coeff (float): Soft update coefficient, e.g., target_model = (soft_update_coeff) * eval_model +
             (1-soft_update_coeff) * target_model. Defaults to 1.0.
-        exploration_func (Callable): Function to generate exploratory actions. The function takes an action
-            (single or batch) and a set of keyword arguments, and returns an exploratory action (single or batch
-            depending on the input). Defaults to ``gaussian_noise``.
+        exploration_strategy (Tuple[Callable, dict]): A 2-tuple that consists of a) a function that takes a state
+            (single or batch), an action (single or batch), the total number of possible actions and a set of keyword
+            arguments, and returns an exploratory action (single or batch depending on the input), and b) a dictionary
+            of keyword arguments for the function in a) (this will be assigned to the ``exploration_params`` member
+            variable). Defaults to (``gaussian_noise``, {"mean": .0, "stddev": 1.0, "relative": False}).
+        exploration_scheduling_option (List[tuple]): A list of 3-tuples specifying the exploration schedulers to be
+            registered to the exploration parameters. Each tuple consists of an exploration parameter name, an
+            exploration scheduler class (subclass of ``AbsExplorationScheduler``) and keyword arguments for that class.
+            The exploration parameter name must be a key in the keyword arguments (second element) of
+            ``exploration_strategy``. Defaults to an empty list.
+        replay_memory_capacity (int): Capacity of the replay memory. Defaults to 10000.
         exploration_params (dict): Keyword arguments for ``exploration_func``. Defaults to {"mean": .0, "stddev": 1.0,
             "relative": False}.
         replay_memory_capacity (int): Capacity of the replay memory. Defaults to 10000.
         random_overwrite (bool): This specifies overwrite behavior when the replay memory capacity is reached. If True,
             overwrite positions will be selected randomly. Otherwise, overwrites will occur sequentially with
             wrap-around. Defaults to False.
-        warmup (int): When the total number of experiences in the replay memory is below this threshold,
-            ``choose_action`` will return uniformly random actions for warm-up purposes. Defaults to 1000.
         rollout_batch_size (int): Size of the experience batch to use as roll-out information by calling
             ``get_rollout_info``. Defaults to 1000.
         train_batch_size (int): Batch size for training the Q-net. Defaults to 32.
@@ -61,17 +67,23 @@ class DDPG(RLPolicy):
         q_value_loss_cls="mse",
         q_value_loss_coeff: float = 1.0,
         soft_update_coeff: float = 1.0,
-        exploration_func: Callable = gaussian_noise,
-        exploration_params: dict = {"mean": .0, "stddev": 1.0, "relative": False},
-        replay_memory_capacity: int = 10000,
+        exploration_strategy: Tuple[Callable, dict] = (gaussian_noise, {"mean": .0, "stddev": 1.0, "relative": False}),
+        exploration_scheduling_options: List[tuple] = [],
+        replay_memory_capacity: int = 1000000,
         random_overwrite: bool = False,
-        warmup: int = 1000,
+        warmup: int = 50000,
         rollout_batch_size: int = 1000,
         train_batch_size: int = 32,
         device: str = None
     ):
         if not isinstance(ac_net, ContinuousACNet):
             raise TypeError("model must be an instance of 'ContinuousACNet'")
+
+        if any(opt[0] not in exploration_strategy[1] for opt in exploration_scheduling_options):
+            raise ValueError(
+                f"The first element of an exploration scheduling option must be one of "
+                f"{list(exploration_strategy[1].keys())}"
+            )
 
         super().__init__(name)
         if device is None:
@@ -98,22 +110,28 @@ class DDPG(RLPolicy):
         self.rollout_batch_size = rollout_batch_size
         self.train_batch_size = train_batch_size
 
-        self.exploration_func = exploration_func
-        self.exploration_params = exploration_params
-        self.greedy = True
+        self.exploration_func = exploration_strategy[0]
+        self._exploration_params = clone(exploration_strategy[1])
+        self.exploration_schedulers = [
+            opt[1](self._exploration_params, opt[0], **opt[2]) for opt in exploration_scheduling_options
+        ]
 
-    def choose_action(self, states) -> Union[float, np.ndarray]:
+    def __call__(self, states: np.ndarray):
         if self._replay_memory.size < self.warmup:
             return np.random.uniform(
-                low=self.ac_net.min_action, high=self.ac_net.max_action, size=self.ac_net.action_dim
+                low=self.ac_net.out_min, high=self.ac_net.out_max,
+                size=(states.shape[0] if len(states.shape) > 1 else 1, self.ac_net.action_dim)
             )
 
         self.ac_net.eval()
+        states = torch.from_numpy(states).to(self.device)
+        if len(states.shape) == 1:
+            states = states.unsqueeze(dim=0)
         with torch.no_grad():
             actions = self.ac_net.get_action(states).cpu().numpy()
 
         if not self.greedy:
-            actions = self.exploration_func(actions, state=states)
+            actions = self.exploration_func(states, actions, **self._exploration_params)
         return actions
 
     def record(
@@ -192,6 +210,10 @@ class DDPG(RLPolicy):
         # soft-update target network
         self.target_ac_net.soft_update(self.ac_net, self.soft_update_coeff)
         self._target_ac_net_version = self._ac_net_version
+
+    def exploration_step(self):
+        for sch in self.exploration_schedulers:
+            sch.step()
 
     def set_state(self, policy_state):
         self.ac_net.load_state_dict(policy_state)

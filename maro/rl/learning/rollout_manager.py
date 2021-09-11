@@ -115,7 +115,6 @@ class SimpleRolloutManager(AbsRolloutManager):
         super().__init__(post_collect=post_collect, post_evaluate=post_evaluate)
         self._logger = Logger("ROLLOUT_MANAGER", dump_folder=log_dir)
         self._num_steps = num_steps if num_steps > 0 else float("inf")
-        self._exploration_step = False
         self._parallelism = parallelism
         self._eval_parallelism = eval_parallelism
         if self._parallelism == 1:
@@ -131,11 +130,7 @@ class SimpleRolloutManager(AbsRolloutManager):
                 while True:
                     msg = conn.recv()
                     if msg["type"] == "sample":
-                        result = env_sampler.sample(
-                            policy_state_dict=msg["policy_state"],
-                            num_steps=self._num_steps,
-                            exploration_step=self._exploration_step
-                        )
+                        result = env_sampler.sample(policy_state_dict=msg["policy_state"], num_steps=self._num_steps)
                         logger.info(get_rollout_finish_msg(
                             msg["episode"], result["step_range"], exploration_params=result["exploration_params"]
                         ))
@@ -171,11 +166,7 @@ class SimpleRolloutManager(AbsRolloutManager):
 
         info_by_policy, trackers = defaultdict(list), []
         if self._parallelism == 1:
-            result = self.env_sampler.sample(
-                policy_state_dict=policy_state_dict,
-                num_steps=self._num_steps,
-                exploration_step=self._exploration_step
-            )
+            result = self.env_sampler.sample(policy_state_dict=policy_state_dict, num_steps=self._num_steps)
             self._logger.info(
                 get_rollout_finish_msg(ep, result["step_range"], exploration_params=result["exploration_params"])
             )
@@ -189,15 +180,11 @@ class SimpleRolloutManager(AbsRolloutManager):
                 "type": "sample",
                 "episode": ep,
                 "num_steps": self._num_steps,
-                "policy_state": policy_state_dict,
-                "exploration_step": self._exploration_step
+                "policy_state": policy_state_dict
             }
 
             for conn in self._manager_ends:
                 conn.send(rollout_req)
-
-            if self._exploration_step:
-                self._exploration_step = False
 
             for conn in self._manager_ends:
                 result = conn.recv()
@@ -205,9 +192,6 @@ class SimpleRolloutManager(AbsRolloutManager):
                     info_by_policy[policy_id].append(info)
                 trackers.append(result["tracker"])
                 self.episode_complete = result["episode_end"]
-
-        if self.episode_complete:
-            self._exploration_step = True
 
         if self._post_collect:
             self._post_collect(trackers, ep, segment)
@@ -330,7 +314,6 @@ class DistributedRolloutManager(AbsRolloutManager):
 
         self._max_lag = max_lag
         self._num_eval_workers = num_eval_workers
-        self._exploration_step = False
 
     def collect(self, ep: int, segment: int, policy_state_dict: dict, version: int):
         """Collect simulation data, i.e., experiences for training.
@@ -349,15 +332,11 @@ class DistributedRolloutManager(AbsRolloutManager):
             MsgKey.SEGMENT: segment,
             MsgKey.NUM_STEPS: self._num_steps,
             MsgKey.POLICY_STATE: policy_state_dict,
-            MsgKey.VERSION: version,
-            MsgKey.EXPLORATION_STEP: self._exploration_step
+            MsgKey.VERSION: version
         }
 
         self._proxy.iscatter(MsgTag.SAMPLE, SessionType.TASK, [(worker_id, msg_body) for worker_id in self._workers])
         self._logger.info(f"Collecting simulation data (episode {ep}, segment {segment}, policy version {version})")
-
-        if self._exploration_step:
-            self._exploration_step = False
 
         info_by_policy, trackers, num_finishes = defaultdict(list), [], 0
         # Ensure the minimum number of worker results are received.
@@ -385,9 +364,6 @@ class DistributedRolloutManager(AbsRolloutManager):
                     trackers.append(tracker)
                 if num_finishes == self._num_workers:
                     break
-
-        if self.episode_complete:
-            self._exploration_step = True
 
         if self._post_collect:
             self._post_collect(trackers, ep, segment)

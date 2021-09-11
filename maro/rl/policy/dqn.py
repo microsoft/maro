@@ -1,12 +1,12 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import Callable, List, Union
+from typing import Callable, List, Tuple, Union
 
 import numpy as np
 import torch
 
-from maro.rl.exploration import eps_greedy
+from maro.rl.exploration import epsilon_greedy
 from maro.rl.modeling import DiscreteQNet
 from maro.rl.utils import average_grads
 from maro.utils import clone
@@ -132,16 +132,22 @@ class DQN(RLPolicy):
         double (bool): If True, the next Q values will be computed according to the double DQN algorithm,
             i.e., q_next = Q_target(s, argmax(Q_eval(s, a))). Otherwise, q_next = max(Q_target(s, a)).
             See https://arxiv.org/pdf/1509.06461.pdf for details. Defaults to False.
-        exploration_func (Callable): Function to generate exploratory actions. The function takes an action
-            (single or batch), the total number of possible actions and a set of keyword arguments, and returns an
-            exploratory action (single or batch depending on the input). Defaults to ``epsilon_greedy``.
-        exploration_params (dict): Keyword arguments for ``exploration_func``. Defaults to {"epsilon": 0.1}.
-        replay_memory_capacity (int): Capacity of the replay memory. Defaults to 10000.
+        exploration_strategy (Tuple[Callable, dict]): A 2-tuple that consists of a) a function that takes a state
+            (single or batch), an action (single or batch), the total number of possible actions and a set of keyword
+            arguments, and returns an exploratory action (single or batch depending on the input), and b) a dictionary
+            of keyword arguments for the function in a) (this will be assigned to the ``_exploration_params`` member
+            variable). Defaults to (``epsilon_greedy``, {"epsilon": 0.1}).
+        exploration_scheduling_options (List[tuple]): A list of 3-tuples specifying the exploration schedulers to be
+            registered to the exploration parameters. Each tuple consists of an exploration parameter name, an
+            exploration scheduler class (subclass of ``AbsExplorationScheduler``) and keyword arguments for that class.
+            The exploration parameter name must be a key in the keyword arguments (second element) of
+            ``exploration_strategy``. Defaults to an empty list.
+        replay_memory_capacity (int): Capacity of the replay memory. Defaults to 1000000.
         random_overwrite (bool): This specifies overwrite behavior when the replay memory capacity is reached. If True,
             overwrite positions will be selected randomly. Otherwise, overwrites will occur sequentially with
             wrap-around. Defaults to False.
         warmup (int): When the total number of experiences in the replay memory is below this threshold,
-            ``choose_action`` will return uniformly random actions for warm-up purposes. Defaults to 1000.
+            ``choose_action`` will return uniformly random actions for warm-up purposes. Defaults to 50000.
         rollout_batch_size (int): Size of the experience batch to use as roll-out information by calling
             ``get_rollout_info``. Defaults to 1000.
         train_batch_size (int): Batch size for training the Q-net. Defaults to 32.
@@ -161,11 +167,11 @@ class DQN(RLPolicy):
         update_target_every: int = 5,
         soft_update_coeff: float = 0.1,
         double: bool = False,
-        exploration_func: Callable = eps_greedy,
-        exploration_params: dict = {"epsilon": 0.1},
-        replay_memory_capacity: int = 10000,
+        exploration_strategy: Tuple[Callable, dict] = (epsilon_greedy, {"epsilon": 0.1}),
+        exploration_scheduling_options: List[tuple] = [],
+        replay_memory_capacity: int = 1000000,
         random_overwrite: bool = False,
-        warmup: int = 1000,
+        warmup: int = 50000,
         rollout_batch_size: int = 1000,
         train_batch_size: int = 32,
         prioritized_replay_kwargs: dict = None,
@@ -173,6 +179,12 @@ class DQN(RLPolicy):
     ):
         if not isinstance(q_net, DiscreteQNet):
             raise TypeError("model must be an instance of 'DiscreteQNet'")
+
+        if any(opt[0] not in exploration_strategy[1] for opt in exploration_scheduling_options):
+            raise ValueError(
+                f"The first element of an exploration scheduling option must be one of "
+                f"{list(exploration_strategy[1].keys())}"
+            )
 
         super().__init__(name)
         if device is None:
@@ -204,11 +216,13 @@ class DQN(RLPolicy):
         else:
             self._loss_func = torch.nn.MSELoss()
 
-        self.exploration_func = exploration_func
-        self.exploration_params = exploration_params
-        self.greedy = True  # set initial exploration status to True
+        self.exploration_func = exploration_strategy[0]
+        self._exploration_params = clone(exploration_strategy[1])  # deep copy is needed to avoid unwanted sharing
+        self.exploration_schedulers = [
+            opt[1](self._exploration_params, opt[0], **opt[2]) for opt in exploration_scheduling_options
+        ]
 
-    def choose_action(self, states: np.ndarray) -> Union[int, np.ndarray]:
+    def __call__(self, states: np.ndarray):
         if self._replay_memory.size < self.warmup:
             return np.random.randint(self._num_actions, size=(states.shape[0] if len(states.shape) > 1 else 1,))
 
@@ -223,7 +237,7 @@ class DQN(RLPolicy):
         if self.greedy:
             return actions.cpu().numpy()
         else:
-            return self.exploration_func(actions.cpu().numpy(), self._num_actions, **self.exploration_params)
+            return self.exploration_func(states, actions.cpu().numpy(), self._num_actions, **self._exploration_params)
 
     def record(
         self,
@@ -286,7 +300,6 @@ class DQN(RLPolicy):
         # loss info
         loss_info = {}
         q_values = self.q_net.q_values(states, actions)
-        # print(f"target: {target_q_values}, eval: {q_values}")
         td_errors = target_q_values - q_values
         if self.prioritized_replay:
             is_weights = torch.from_numpy(batch["is_weights"]).to(self.device)
@@ -331,13 +344,17 @@ class DQN(RLPolicy):
         self.target_q_net.soft_update(self.q_net, self.soft_update_coeff)
         self._target_q_net_version = self._q_net_version
 
-    def set_state(self, policy_state):
-        self.q_net.load_state_dict(policy_state["eval"])
-        if "target" in policy_state:
-            self.target_q_net.load_state_dict(policy_state["target"])
+    def exploration_step(self):
+        for sch in self.exploration_schedulers:
+            sch.step()
 
     def get_state(self, inference: bool = True):
         policy_state = {"eval": self.q_net.state_dict()}
         if not inference and self.target_q_net:
             policy_state["target"] = self.target_q_net.state_dict()
         return policy_state
+
+    def set_state(self, policy_state):
+        self.q_net.load_state_dict(policy_state["eval"])
+        if "target" in policy_state:
+            self.target_q_net.load_state_dict(policy_state["target"])
