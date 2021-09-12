@@ -6,7 +6,6 @@ from os.path import dirname, realpath
 
 import numpy as np
 
-from maro.rl.exploration import MultiLinearExplorationScheduler
 from maro.rl.learning import AbsEnvSampler
 from maro.simulator import Env
 from maro.simulator.scenarios.vm_scheduling import AllocateAction, PostponeAction
@@ -14,43 +13,34 @@ from maro.simulator.scenarios.vm_scheduling import AllocateAction, PostponeActio
 vm_path = dirname(realpath(__file__))
 sys.path.insert(0, vm_path)
 from config import (
-    env_conf, exploration_conf, pm_attributes, pm_window_size, reward_shaping_conf, seed, test_env_conf,
+    algorithm, env_conf, pm_attributes, pm_window_size, reward_shaping_conf, num_features, seed, test_env_conf,
     test_reward_shaping_conf, test_seed
 )
 from policies import policy_func_dict
 
 
-def post_step(env: Env, tracker: dict, transition):
-    tracker["env_metric"] = env.metrics
+def post_step(env, tracker: dict, state, action, env_actions, reward, tick):
+    tracker["env_metric"] = {key: metric for key, metric in env.metrics.items() if key != "total_latency"}
+    tracker["env_metric"]["latency_due_to_agent"] = env.metrics["total_latency"].due_to_agent
+    tracker["env_metric"]["latency_due_to_resource"] = env.metrics["total_latency"].due_to_resource
     if "vm_cpu_cores_requirement" not in tracker:
-        tracker["vm_core_requirement"] = []
+        tracker["vm_cpu_cores_requirement"] = []
     if "action_sequence" not in tracker:
         tracker["action_sequence"] = []
 
-    tracker["vm_core_requirement"].append([transition.action["AGENT"], transition.state["AGENT"]["mask"]])
-    tracker["action_sequence"].append(transition.action["AGENT"])
+    tracker["vm_cpu_cores_requirement"].append([action, state[num_features:]])
+    tracker["action_sequence"].append(action)
 
 
 class VMEnvSampler(AbsEnvSampler):
-    def __init__(
-        self,
-        get_env,
-        get_policy_func_dict,
-        exploration_scheduler_option,
-        agent2policy,
-        get_test_env=None,
-        post_step=None
-    ):
-        super().__init__(
-            get_env, get_policy_func_dict, exploration_scheduler_option, agent2policy,
-            get_test_env=get_test_env, post_step=post_step
-        )
+    def __init__(self, get_env, get_policy_func_dict, agent2policy, get_test_env=None, post_step=None):
+        super().__init__(get_env, get_policy_func_dict, agent2policy, get_test_env=get_test_env, post_step=post_step)
         self._learn_env.set_seed(seed)
         self._test_env.set_seed(test_seed)
 
         # adjust the ratio of the success allocation and the total income when computing the reward
-        self.num_pms = self.env.business_engine._pm_amount # the number of pms
-        self._durations = self.env.business_engine._max_tick
+        self.num_pms = self._learn_env.business_engine._pm_amount # the number of pms
+        self._durations = self._learn_env.business_engine._max_tick
         self._pm_state_history = np.zeros((pm_window_size - 1, self.num_pms, 2))
         self._legal_pm_mask = None
 
@@ -65,7 +55,7 @@ class VMEnvSampler(AbsEnvSampler):
             legal_pm_mask[self.num_pms] = 1
             remain_cpu_dict = dict()
             for pm in self.event.valid_pms:
-                # if two pm has same remaining cpu, only choose the one which has smaller id
+                # If two pms have the same remaining cpu, choose the one with the smaller id
                 if pm_state[-1, pm, 0] not in remain_cpu_dict:
                     remain_cpu_dict[pm_state[-1, pm, 0]] = 1
                     legal_pm_mask[pm] = 1
@@ -73,11 +63,11 @@ class VMEnvSampler(AbsEnvSampler):
                     legal_pm_mask[pm] = 0
 
         self._legal_pm_mask = legal_pm_mask
-        return {"AGENT": np.concatenate((pm_state.flatten(), vm_state.flatten(), legal_pm_mask))}
+        return {"AGENT": np.concatenate((pm_state.flatten(), vm_state.flatten(), legal_pm_mask)).astype(np.float32)}
 
-    def to_env_action(self, action_info):
+    def get_env_actions(self, action_info):
         action_info = action_info["AGENT"]
-        model_action = action_info[0] if isinstance(action_info, tuple) else action_info
+        model_action = action_info["action"] if isinstance(action_info, dict) else action_info
         if model_action == self.num_pms:
             return PostponeAction(vm_id=self.event.vm_id, postpone_step=1)
         else:
@@ -121,25 +111,24 @@ class VMEnvSampler(AbsEnvSampler):
 
         # get the sequence pms' information
         self._pm_state_history = np.concatenate((self._pm_state_history, total_pm_info), axis=0)
-        return self._pm_state_history[pm_window_size:, :, :].astype(np.float32) # (win_size, num_pms, 2)
+        return self._pm_state_history[-pm_window_size:, :, :] # (win_size, num_pms, 2)
 
     def _get_vm_state(self):
-        vm_info = np.array([
+        return np.array([
             self.event.vm_cpu_cores_requirement / self._max_cpu_capacity,
             self.event.vm_memory_requirement / self._max_memory_capacity,
             (self._durations - self.env.tick) * 1.0 / 200,   # TODO: CHANGE 200 TO SOMETHING CONFIGURABLE
             self.env.business_engine._get_unit_price(
                 self.event.vm_cpu_cores_requirement, self.event.vm_memory_requirement
             )
-        ], dtype=np.float32)
-        return vm_info
+        ])
 
 
 def get_env_sampler():
     return VMEnvSampler(
         get_env=lambda: Env(**env_conf),
         get_policy_func_dict=policy_func_dict,
-        exploration_scheduler_option={"dqn": {"epsilon": (MultiLinearExplorationScheduler, exploration_conf)}},
-        agent2policy={"AGENT": "dqn"},
-        get_test_env=lambda: Env(**test_env_conf)
+        agent2policy={"AGENT": algorithm},
+        get_test_env=lambda: Env(**test_env_conf),
+        post_step=post_step
     )
