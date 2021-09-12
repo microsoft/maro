@@ -103,7 +103,7 @@ class ActorCritic(RLPolicy):
         critic_loss_cls="mse",
         min_logp: float = None,
         critic_loss_coeff: float = 1.0,
-        entropy_coeff: float = None,
+        entropy_coeff: float = .0,
         clip_ratio: float = None,
         lam: float = 0.9,
         max_trajectory_len: int = 10000,
@@ -203,7 +203,7 @@ class ActorCritic(RLPolicy):
         # critic_loss
         critic_loss = self.critic_loss_func(state_values, returns)
         # entropy
-        entropy = -Categorical(action_probs).entropy().mean() if self.entropy_coeff is not None else 0
+        entropy = -Categorical(action_probs).entropy().mean() if self.entropy_coeff else 0
 
         # total loss
         loss = actor_loss + self.critic_loss_coeff * critic_loss + self.entropy_coeff * entropy
@@ -211,7 +211,7 @@ class ActorCritic(RLPolicy):
         loss_info = {
             "actor_loss": actor_loss.detach().cpu().numpy(),
             "critic_loss": critic_loss.detach().cpu().numpy(),
-            "entropy": entropy.detach().cpu().numpy(),
+            "entropy": entropy.detach().cpu().numpy() if self.entropy_coeff else .0,
             "loss": loss.detach().cpu().numpy() if explicit_grad else loss
         }
         if explicit_grad:
