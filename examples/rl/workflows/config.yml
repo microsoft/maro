@@ -24,7 +24,7 @@ async:
   group: async
   num_actors: 3
 policy_manager:
-  type: distributed   # simple, distributed
+  type: simple   # simple, distributed
   simple:
     parallel: false
   distributed:
