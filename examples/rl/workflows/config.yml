@@ -26,7 +26,7 @@ async:
 policy_manager:
   type: simple   # simple, distributed
   simple:
-    parallel: true
+    parallel: false
   distributed:
     group: learn
     num_hosts: 2
