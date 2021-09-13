@@ -39,7 +39,7 @@ class WorkerAllocator(object):
             raise NotImplementedError(f"{self.mode} is not implemented.")
 
     def allocate_by_policy(self, policy_names=None, logger=None):
-        """Evenly allocate workers (or grad workers) to each policy."""
+        """Evenly allocate grad workers to each policy."""
         if policy_names is None:
             policy_names = self.policy_names
         num_workers = self.num_workers
@@ -72,7 +72,7 @@ class WorkerAllocator(object):
         return self._allocate_by_payload(num_experiences_by_policy, logger)
 
     def _allocate_by_payload(self, num_payload: Dict[str, int], logger=None):
-        """Allocate workers (or grad workers) by payload of each policy.
+        """Allocate grad workers by payload of each policy.
 
         Args:
             num_payload (Dict[str, int]): Payload of each policy, could be experience numbers

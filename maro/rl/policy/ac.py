@@ -231,8 +231,8 @@ class ActorCritic(RLPolicy):
     def improve(self):
         self.learn(self._get_batch())
 
-    def distributed_learn(self, batch: dict, worker_id_list: list):
-        assert self.remote, "distributed_learn is invalid when self.remote is False!"
+    def learn_with_data_parallel(self, batch: dict, worker_id_list: list):
+        assert self.remote, "learn_with_data_parallel is invalid when self.remote is False!"
 
         for _ in range(self.grad_iters):
             msg_dict = defaultdict(lambda: defaultdict(dict))

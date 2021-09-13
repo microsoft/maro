@@ -165,7 +165,7 @@ class SimplePolicyManager(AbsPolicyManager):
                 self._policy_dict[policy_id].update(info_list)
             else:
                 if self._data_parallel:
-                    self._policy_dict[policy_id].distributed_learn(info_list, self._policy2workers[policy_id])
+                    self._policy_dict[policy_id].learn_with_data_parallel(info_list, self._policy2workers[policy_id])
                 else:
                     self._policy_dict[policy_id].learn(info_list)
 
@@ -259,7 +259,7 @@ class MultiProcessPolicyManager(AbsPolicyManager):
                         policy.update(info_list)
                     else:
                         if self._data_parallel:
-                            policy.distributed_learn(info_list, policy2workers[name])
+                            policy.learn_with_data_parallel(info_list, policy2workers[name])
                         else:
                             policy.learn(info_list)
                     conn.send({"type": "learn_done", "policy_state": policy.get_state()})
@@ -521,7 +521,7 @@ def policy_host(
                     if data_parallel:
                         logger.info("learning on remote grad workers")
                         policy2workers = msg.body[MsgKey.WORKER_INFO][name]
-                        policy_dict[name].distributed_learn(info, policy2workers[name])
+                        policy_dict[name].learn_with_data_parallel(info, policy2workers[name])
                     else:
                         logger.info("learning from batch")
                         policy_dict[name].learn(info)
@@ -585,9 +585,7 @@ def grad_worker(
             t0 = time.time()
             msg_body = {MsgKey.LOSS_INFO: dict()}
             for name, batch in msg.body[MsgKey.GRAD_TASK].items():
-                if MsgKey.POLICY_STATE in msg.body:
-                    policy_dict[name].set_state(msg.body[MsgKey.POLICY_STATE][name])
-                    logger.debug(f"policy {name} sync state.")
+                policy_dict[name].set_state(msg.body[MsgKey.POLICY_STATE][name])
                 loss_info = policy_dict[name].get_batch_loss(batch, explicit_grad=True)
                 msg_body[MsgKey.LOSS_INFO][name] = loss_info
             logger.debug(f"total policy update time: {time.time() - t0}")

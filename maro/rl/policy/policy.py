@@ -75,6 +75,9 @@ class RLPolicy(AbsPolicy):
         if hasattr(self, '_proxy'):
             self._proxy.close()
 
+    def learn_with_data_parallel(self):
+        pass
+
     def update(self, loss_info_list: List[dict]):
         pass
 

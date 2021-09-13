@@ -337,8 +337,8 @@ class DQN(RLPolicy):
         self.target_q_net.soft_update(self.q_net, self.soft_update_coeff)
         self._target_q_net_version = self._q_net_version
 
-    def distributed_learn(self, batch: dict, worker_id_list: list):
-        assert self.remote, "distributed_learn is invalid when self.remote is False!"
+    def learn_with_data_parallel(self, batch: dict, worker_id_list: list):
+        assert self.remote, "learn_with_data_parallel is invalid when self.remote is False!"
 
         self._replay_memory.put(
             batch["states"], batch["actions"], batch["rewards"], batch["next_states"], batch["terminals"]
