@@ -4,7 +4,7 @@
 
 import os
 from math import ceil, floor
-from typing import Optional, Iterable
+from typing import Iterable, Optional
 
 import numpy as np
 from yaml import safe_load
