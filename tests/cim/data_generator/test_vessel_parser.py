@@ -6,7 +6,7 @@ import unittest
 import yaml
 
 from maro.data_lib.cim.entities import VesselSetting
-from maro.data_lib.cim.vessel_parser import VesselsParser
+from maro.data_lib.cim.parsers import VesselsParser
 
 conf_str = """
 vessels:
@@ -34,13 +34,12 @@ vessels:
       speed: 10
 """
 
+
 class TestVesselParser(unittest.TestCase):
     def test_vessel_parse(self):
         conf = yaml.safe_load(conf_str)
 
-        parser = VesselsParser()
-
-        vessel_mapping, vessels = parser.parse(conf["vessels"])
+        vessel_mapping, vessels = VesselsParser.parse(conf["vessels"])
 
         self.assertEqual(2, len(vessel_mapping))
         self.assertEqual(2, len(vessels))
@@ -55,6 +54,7 @@ class TestVesselParser(unittest.TestCase):
         self.assertListEqual([0, 0], [v.parking_noise for v in vessels])
         self.assertListEqual([10, 10], [v.sailing_speed for v in vessels])
         self.assertListEqual([0, 0], [v.sailing_noise for v in vessels])
+
 
 if __name__=="__main__":
     unittest.main()

@@ -4,7 +4,7 @@
 from random import Random
 from typing import List, Union
 
-# we keep 4 random generator to make the result is reproduceable with same seed(s), no matter if agent passed actions
+# we keep 4 random generator to make the result is reproduce-able with same seed(s), no matter if agent passed actions
 ROUTE_INIT_RAND_KEY = "route_init"
 ORDER_INIT_RAND_KEY = "order_init"
 BUFFER_TICK_RAND_KEY = "buffer_time"
@@ -53,7 +53,11 @@ def list_sum_normalize(num_list: List[Union[int, float]]) -> List[float]:
     t = sum(num_list)
 
     # avoid dive zero exception
-    if t == 0:
-        return 0
+    return num_list if t == 0 else [d / t for d in num_list]
 
-    return [d / t for d in num_list]
+
+def extract_key_of_three_ints(key) -> (int, int, int):
+    assert type(key) == tuple or type(key) == list
+    assert len(key) == 3
+
+    return int(key[0]), int(key[1]), int(key[2])

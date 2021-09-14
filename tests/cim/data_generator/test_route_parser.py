@@ -6,7 +6,7 @@ import unittest
 import yaml
 
 from maro.data_lib.cim.entities import RoutePoint
-from maro.data_lib.cim.route_parser import RoutesParser
+from maro.data_lib.cim.parsers import RoutesParser
 
 conf_str = """
 routes:
@@ -24,13 +24,12 @@ routes:
     port_name: demand_port_002
 """
 
+
 class TestRoutePoint(unittest.TestCase):
     def test_route_parser(self):
         conf = yaml.safe_load(conf_str)
 
-        parser = RoutesParser()
-
-        route_mapping, routes = parser.parse(conf["routes"])
+        route_mapping, routes = RoutesParser.parse(conf["routes"])
 
         # there should be 2 routes
         self.assertEqual(2, len(route_mapping))
@@ -44,5 +43,5 @@ class TestRoutePoint(unittest.TestCase):
         self.assertListEqual([60, 70, 80], [r.distance_to_next_port for r in routes[1]])
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     unittest.main()

@@ -66,7 +66,7 @@ class DecisionEvent:
         tick (int): On which tick we need an action.
         port_idx (int): Which port will take action.
         vessel_idx (int): Which vessel will take action.
-        snapshot_list (int): Snapshots of the environment to input into the decision model.
+        snapshot_list (SnapshotList): Snapshots of the environment to input into the decision model.
         action_scope_func (Function): Function to calculate action scope, we use function here to make it
             getting the value as late as possible.
         early_discharge_func (Function): Function to fetch early discharge number of specified vessel, we

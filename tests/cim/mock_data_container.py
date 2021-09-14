@@ -40,6 +40,7 @@ class MockVesselStopsWrapper:
 
             return ret
 
+
 class MockEmptyReturnBufferWrapper:
     def __getitem__(self, key):
         return 1
@@ -58,7 +59,7 @@ class MockVesselSailingPlanWrapper:
         ]
 
 
-class MockVeselPastStopWapper:
+class MockVesselPastStopWrapper:
     def __getitem__(self, key):
         return [None, Stop(-1, 0, 2, 0, 0)]
 
@@ -78,8 +79,11 @@ class MockReachableStopsWrapper:
         route_idx = key[1]
         next_loc_idx = key[2]
 
-        return [(stop.port_idx, stop.arrival_tick) for stop in
-                    self._stops[vessel_idx][next_loc_idx + 1:next_loc_idx + 1 + self._route_length[route_idx]]]
+        return [
+            (stop.port_idx, stop.arrival_tick)
+            for stop in self._stops[vessel_idx][next_loc_idx + 1:next_loc_idx + 1 + self._route_length[route_idx]]
+        ]
+
 
 class MockDataContainer:
     def __init__(self, case_folder: str):
@@ -110,8 +114,6 @@ class MockDataContainer:
 
         self.port_name_to_id = {i: i for i in range(PORT_NUM)}
         self.vessel_name_to_id = {i: i for i in range(VESSEL_NUM)}
-
-
 
         self._vessel_stops_wrapper = MockVesselStopsWrapper(self.route_dict)
         self._reachable_stops_wrapper = MockReachableStopsWrapper(self.route_dict, self.route_length)
@@ -145,7 +147,7 @@ class MockDataContainer:
         return CONTAINER_VOLUME
 
     @property
-    def vessel_stops(self) :
+    def vessel_stops(self):
         return self._vessel_stops_wrapper
 
     @property
@@ -158,7 +160,7 @@ class MockDataContainer:
 
     @property
     def vessel_past_stops(self):
-        return MockVeselPastStopWapper()
+        return MockVesselPastStopWrapper()
 
     @property
     def vessel_future_stops(self):
@@ -173,8 +175,8 @@ class MockDataContainer:
         return self._reachable_stops_wrapper
 
     @property
-    def vessel_peroid(self):
-        pass
+    def vessel_period(self):
+        return None
 
     @property
     def route_mapping(self):
@@ -206,10 +208,10 @@ class MockDataContainer:
 
                 next(reader)
 
-                for l in reader:
-                    port_id = int(l[0])
-                    cap = float(l[1])
-                    cntr = int(l[2])
+                for line in reader:
+                    port_id = int(line[0])
+                    cap = int(line[1])
+                    cntr = int(line[2])
 
                     if port_id not in self.ports_dict:
                         self.ports_dict[port_id] = {}
@@ -224,10 +226,10 @@ class MockDataContainer:
                 reader = csv.reader(fp)
                 next(reader)
 
-                for l in reader:
-                    vessel_id = int(l[0])
-                    cap = float(l[1])
-                    cntr = int(l[2])
+                for line in reader:
+                    vessel_id = int(line[0])
+                    cap = int(line[1])
+                    cntr = int(line[2])
 
                     if vessel_id not in self.vessels_dict:
                         self.vessels_dict[vessel_id] = {}
@@ -245,9 +247,9 @@ class MockDataContainer:
 
             next(reader)  # skip header
 
-            for l in reader:
-                self.route_dict[int(l[0])].append(
-                    Stop(-1, int(l[1]), int(l[2]), int(l[3]), int(l[0])))
+            for line in reader:
+                self.route_dict[int(line[0])].append(
+                    Stop(-1, int(line[1]), int(line[2]), int(line[3]), int(line[0])))
 
     def _read_order(self, path: str):
         with open(path, "r") as fp:
@@ -255,14 +257,14 @@ class MockDataContainer:
 
             next(reader)  # skip header
 
-            for l in reader:
-                if l == "":
+            for line in reader:
+                if line == "":
                     continue
 
-                tick = int(l[0])
-                src = int(l[1])
-                dest = int(l[2])
-                qty = int(l[3])
+                tick = int(line[0])
+                src = int(line[1])
+                dest = int(line[2])
+                qty = int(line[3])
 
                 if tick not in self.order_dict:
                     self.order_dict[tick] = {}

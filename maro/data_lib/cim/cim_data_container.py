@@ -10,7 +10,7 @@ from maro.simulator.utils import random
 
 from .entities import (
     CimBaseDataCollection, CimRealDataCollection, CimSyntheticDataCollection, NoisedItem, Order, OrderGenerateMode,
-    PortSetting, VesselSetting
+    PortSetting, SyntheticPortSetting, VesselSetting
 )
 from .port_buffer_tick_wrapper import PortBufferTickWrapper
 from .utils import BUFFER_TICK_RAND_KEY, ORDER_NUM_RAND_KEY, apply_noise, list_sum_normalize
@@ -42,7 +42,7 @@ class CimBaseDataContainer(ABC):
     Args:
         data_collection (CimBaseDataCollection): Corresponding data collection.
     """
-    def __init__(self, data_collection: CimBaseDataCollection):
+    def __init__(self, data_collection: CimBaseDataCollection) -> None:
         self._data_collection = data_collection
 
         # wrapper for interfaces, to make it easy to use
@@ -209,7 +209,7 @@ class CimBaseDataContainer(ABC):
         return self._reachable_stops_wrapper
 
     @property
-    def vessel_period(self) -> int:
+    def vessel_period(self) -> List[int]:
         """Wrapper to get vessel's planned sailing period (without noise to complete a whole route).
 
         Examples:
@@ -295,7 +295,7 @@ class CimSyntheticDataContainer(CimBaseDataContainer):
         return self._gen_orders(tick, total_empty_container)
 
     def _reset_seed(self):
-        """Reset internal seed for generate reproduceable data"""
+        """Reset internal seed for generate reproduce-able data"""
         super()._reset_seed()
         random.reset_seed(ORDER_NUM_RAND_KEY)
 
@@ -308,6 +308,7 @@ class CimSyntheticDataContainer(CimBaseDataContainer):
         """
         # result
         order_list: List[Order] = []
+        assert isinstance(self._data_collection, CimSyntheticDataCollection)
         order_proportion = self._data_collection.order_proportion
         order_mode = self._data_collection.order_mode
         total_containers = self._data_collection.total_containers
@@ -331,7 +332,9 @@ class CimSyntheticDataContainer(CimBaseDataContainer):
 
         # calculate orders distribution for each port as source
         for port_idx in range(self.port_number):
-            source_dist: NoisedItem = self.ports[port_idx].source_proportion
+            port = self.ports[port_idx]
+            assert isinstance(port, SyntheticPortSetting)
+            source_dist: NoisedItem = port.source_proportion
 
             noised_source_order_number = apply_noise(source_dist.base, source_dist.noise, random[ORDER_NUM_RAND_KEY])
 
@@ -346,7 +349,9 @@ class CimSyntheticDataContainer(CimBaseDataContainer):
             if remaining_orders == 0:
                 break
 
-            targets_dist: List[NoisedItem] = self.ports[port_idx].target_proportions
+            port = self.ports[port_idx]
+            assert isinstance(port, SyntheticPortSetting)
+            targets_dist: List[NoisedItem] = port.target_proportions
 
             # apply noise and normalize
             noised_targets_dist = list_sum_normalize(
@@ -403,6 +408,7 @@ class CimRealDataContainer(CimBaseDataContainer):
         super().__init__(data_collection)
 
         # orders
+        assert isinstance(self._data_collection, CimRealDataCollection)
         self._orders: Dict[int, List[Order]] = self._data_collection.orders
 
     def get_orders(self, tick: int, total_empty_container: int) -> List[Order]:

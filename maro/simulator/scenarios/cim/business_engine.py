@@ -4,6 +4,7 @@
 
 import os
 from math import ceil, floor
+from typing import Optional
 
 import numpy as np
 from yaml import safe_load
@@ -37,13 +38,17 @@ class CimBusinessEngine(AbsBusinessEngine):
     """Cim business engine, used simulate CIM related problem."""
 
     def __init__(
-        self, event_buffer: EventBuffer, topology: str, start_tick: int, max_tick: int,
-        snapshot_resolution: int, max_snapshots: int, additional_options: dict = None
+        self, event_buffer: EventBuffer, topology: Optional[str], start_tick: int, max_tick: int,
+        snapshot_resolution: int, max_snapshots: Optional[int], additional_options: dict = None,
+        mock_mode: bool = False
     ):
         super().__init__(
             "cim", event_buffer, topology, start_tick, max_tick,
             snapshot_resolution, max_snapshots, additional_options
         )
+
+        if mock_mode:
+            return
 
         # Update self._config_path with current file path.
         self.update_config_root_path(__file__)
@@ -62,10 +67,10 @@ class CimBusinessEngine(AbsBusinessEngine):
 
         self._vessels = []
         self._ports = []
-        self._frame = None
-        self._full_on_ports: MatrixAttributeAccessor = None
-        self._full_on_vessels: MatrixAttributeAccessor = None
-        self._vessel_plans: MatrixAttributeAccessor = None
+        self._frame: Optional[FrameBase] = None
+        self._full_on_ports: Optional[MatrixAttributeAccessor] = None
+        self._full_on_vessels: Optional[MatrixAttributeAccessor] = None
+        self._vessel_plans: Optional[MatrixAttributeAccessor] = None
         self._port_orders_exporter = PortOrderExporter("enable-dump-snapshot" in additional_options)
 
         self._load_cost_factor: float = self._data_cntr.load_cost_factor
@@ -239,19 +244,17 @@ class CimBusinessEngine(AbsBusinessEngine):
 
     def get_metrics(self) -> DocableDict:
         """Get metrics information for cim scenario.
-
-        Args:
-            dict: A dict that contains "perf", "total_shortage" and "total_cost",
-                and can use help method to show help docs.
         """
         total_shortage = sum([p.acc_shortage for p in self._ports])
         total_booking = sum([p.acc_booking for p in self._ports])
 
         return DocableDict(
             metrics_desc,
-            order_requirements=total_booking,
-            container_shortage=total_shortage,
-            operation_number=self._total_operate_num
+            {
+                'order_requirements': total_booking,
+                'container_shortage': total_shortage,
+                'operation_number': self._total_operate_num
+            }
         )
 
     def get_node_mapping(self) -> dict:
@@ -417,6 +420,7 @@ class CimBusinessEngine(AbsBusinessEngine):
         Args:
             event (CascadeEvent): Order event object.
         """
+        assert isinstance(event.payload, Order)
         order: Order = event.payload
         src_port = self._ports[order.src_port_idx]
 
@@ -461,6 +465,7 @@ class CimBusinessEngine(AbsBusinessEngine):
         1. First move the container from on_shipper to full (update state: on_shipper -> full).
         2. Then append the container to the port pending list.
         """
+        assert isinstance(event.payload, LadenReturnPayload)
         payload: LadenReturnPayload = event.payload
 
         src_port = self._ports[payload.src_port_idx]
@@ -487,7 +492,7 @@ class CimBusinessEngine(AbsBusinessEngine):
         Args:
             event (AtomEvent): Arrival event object.
         """
-
+        assert isinstance(event.payload, VesselStatePayload)
         arrival_obj: VesselStatePayload = event.payload
         vessel_idx: int = arrival_obj.vessel_idx
         port_idx: int = arrival_obj.port_idx
@@ -556,7 +561,7 @@ class CimBusinessEngine(AbsBusinessEngine):
         Args:
             event (AtomEvent): Arrival event object.
         """
-
+        assert isinstance(event.payload, VesselStatePayload)
         arrival_payload: VesselStatePayload = event.payload
         vessel_idx = arrival_payload.vessel_idx
         vessel = self._vessels[vessel_idx]
@@ -587,7 +592,7 @@ class CimBusinessEngine(AbsBusinessEngine):
         Args:
             event (AtomEvent): Departure event object.
         """
-
+        assert isinstance(event.payload, VesselStatePayload)
         departure_payload: VesselStatePayload = event.payload
         vessel_idx = departure_payload.vessel_idx
         vessel = self._vessels[vessel_idx]
@@ -613,6 +618,7 @@ class CimBusinessEngine(AbsBusinessEngine):
         Args:
             event (AtomEvent): Discharge event object.
         """
+        assert isinstance(event.payload, VesselDischargePayload)
         discharge_payload: VesselDischargePayload = event.payload
         vessel_idx = discharge_payload.vessel_idx
         port_idx = discharge_payload.port_idx
@@ -642,6 +648,7 @@ class CimBusinessEngine(AbsBusinessEngine):
         Args:
             event (AtomEvent): Empty-return event object.
         """
+        assert isinstance(event.payload, EmptyReturnPayload)
         payload: EmptyReturnPayload = event.payload
         port = self._ports[payload.port_idx]
 
