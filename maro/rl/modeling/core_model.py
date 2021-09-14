@@ -30,9 +30,9 @@ class AbsCoreModel(nn.Module):
 
         There are two possible scenarios where you need to implement this interface: 1) if you are doing distributed
         learning and want each roll-out instance to collect gradients that can be directly applied to policy parameters
-        on the learning side (abstracted through ``AbsPolicyManager``); 2) if you are computing loss in data-parallel fashion,
-        i.e., by splitting a data batch to several smaller batches and sending them to a set of remote workers for
-        parallelized gradient computation. In this case, this method will be used by the remote workers. 
+        on the learning side (abstracted through ``AbsPolicyManager``); 2) if you are computing loss in data-parallel
+        fashion, i.e., by splitting a data batch to several smaller batches and sending them to a set of remote workers
+        for parallelized gradient computation. In this case, this method will be used by the remote workers.
         """
         pass
 

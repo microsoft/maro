@@ -134,7 +134,7 @@ class ActorCritic(RLPolicy):
 
     def __call__(self, states: np.ndarray):
         """Return a list of action information dict given a batch of states.
-        
+
         An action information dict contains the action itself, the corresponding log-P value and the corresponding
         state value.
         """

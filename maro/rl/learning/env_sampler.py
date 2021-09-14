@@ -202,7 +202,7 @@ class AbsEnvSampler(ABC):
             simulation. Defaults to None.
         policies_to_parallelize (List[str]): Policies to be placed in separate processes so that inference can be
             performed in parallel to speed up simulation. This is useful if some policies are big and takes long times
-            to compute actions. Defaults to an empty list. 
+            to compute actions. Defaults to an empty list.
     """
     def __init__(
         self,
@@ -370,7 +370,7 @@ class AbsEnvSampler(ABC):
             num_extra_recv_attempts (int): Number of extra receive attempts after each received ``SAMPLE`` message. This
                 is used to catch the worker up to the latest episode in case it trails the main learning loop by at
                 least one full episode. Defaults to 0.
-            recv_timeout (int): Timeout for the extra receive attempts. Defaults to 100 (miliseconds). 
+            recv_timeout (int): Timeout for the extra receive attempts. Defaults to 100 (miliseconds).
             proxy_kwargs: Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
                 for details. Defaults to the empty dictionary.
             log_dir (str): Directory to store logs in. Defaults to the current working directory.

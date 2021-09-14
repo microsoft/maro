@@ -40,7 +40,7 @@ class AbsRolloutManager(ABC):
 
         Returns:
             A 2-tuple consisting of a dictionary of roll-out information grouped by policy ID and a list of dictionaries
-            containing step-level information collected by the user-defined ``post_step`` callback in ``AbsEnvSampler``. 
+            containing step-level information collected by the user-defined ``post_step`` callback in ``AbsEnvSampler``.
             An RL policy's roll-out information must be either loss information or a data batch that can be passed to
             the policy's ``update`` or ``learn``, respectively.
         """
@@ -144,7 +144,7 @@ class MultiProcessRolloutManager(AbsRolloutManager):
 
         Returns:
             A 2-tuple consisting of a dictionary of roll-out information grouped by policy ID and a list of dictionaries
-            containing step-level information collected by the user-defined ``post_step`` callback in ``AbsEnvSampler``. 
+            containing step-level information collected by the user-defined ``post_step`` callback in ``AbsEnvSampler``.
             An RL policy's roll-out information must be either loss information or a data batch that can be passed to
             the policy's ``update`` or ``learn``, respectively.
         """
@@ -279,7 +279,7 @@ class DistributedRolloutManager(AbsRolloutManager):
 
         Returns:
             A 2-tuple consisting of a dictionary of roll-out information grouped by policy ID and a list of dictionaries
-            containing step-level information collected by the user-defined ``post_step`` callback in ``AbsEnvSampler``. 
+            containing step-level information collected by the user-defined ``post_step`` callback in ``AbsEnvSampler``.
             An RL policy's roll-out information must be either loss information or a data batch that can be passed to
             the policy's ``update`` or ``learn``, respectively.
         """

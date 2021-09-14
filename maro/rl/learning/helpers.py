@@ -17,7 +17,7 @@ def get_rollout_finish_msg(ep, step_range, exploration_params=None):
 
 def get_eval_schedule(sch: Union[int, List[int]], num_episodes: int, final: bool = True):
     """Helper function to the policy evaluation schedule.
-    
+
     Args:
         sch (Union[int, List[int]]): Evaluation schedule. If it is an int, it is treated as the number of episodes
             between two adjacent evaluations. For example, if the total number of episodes is 20 and ``sch`` is 6,
