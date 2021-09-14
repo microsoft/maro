@@ -8,7 +8,7 @@ from yaml import safe_load
 
 from maro.simulator.utils import random, seed
 from .entities import CimSyntheticDataCollection, OrderGenerateMode, Stop
-from .parsers import GlobalOrderProportion, PortsParser, RoutesParser, VesselsParser
+from .parsers import parse_global_order_proportion, parse_ports, parse_routes, parse_vessels
 from .utils import ROUTE_INIT_RAND_KEY, apply_noise
 
 CIM_GENERATOR_VERSION = 0x000001
@@ -138,10 +138,10 @@ def gen_cim_data(
     container_volumes = conf["container_volumes"]
 
     # parse configurations
-    vessel_mapping, vessels_setting = VesselsParser.parse(conf["vessels"])
-    port_mapping, ports_setting = PortsParser.parse(conf["ports"], total_containers)
-    route_mapping, routes = RoutesParser.parse(conf["routes"])
-    global_order_proportion = GlobalOrderProportion.parse(
+    vessel_mapping, vessels_setting = parse_vessels(conf["vessels"])
+    port_mapping, ports_setting = parse_ports(conf["ports"], total_containers)
+    route_mapping, routes = parse_routes(conf["routes"])
+    global_order_proportion = parse_global_order_proportion(
         conf["container_usage_proportion"],
         total_containers, start_tick=start_tick, max_tick=max_tick)
 

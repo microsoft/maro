@@ -5,8 +5,7 @@ import unittest
 
 import yaml
 
-from maro.data_lib.cim.entities import RoutePoint
-from maro.data_lib.cim.parsers import RoutesParser
+from maro.data_lib.cim.parsers import parse_routes
 
 conf_str = """
 routes:
@@ -29,7 +28,7 @@ class TestRoutePoint(unittest.TestCase):
     def test_route_parser(self):
         conf = yaml.safe_load(conf_str)
 
-        route_mapping, routes = RoutesParser.parse(conf["routes"])
+        route_mapping, routes = parse_routes(conf["routes"])
 
         # there should be 2 routes
         self.assertEqual(2, len(route_mapping))
