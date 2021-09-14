@@ -55,5 +55,5 @@ class TestVesselParser(unittest.TestCase):
         self.assertListEqual([0, 0], [v.sailing_noise for v in vessels])
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     unittest.main()

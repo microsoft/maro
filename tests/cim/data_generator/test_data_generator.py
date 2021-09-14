@@ -39,7 +39,7 @@ class TestDataGenerator(unittest.TestCase):
         self.assertListEqual([0] * 5, [v.empty for v in dc.vessel_settings])
 
         # port
-        self.assertListEqual([100000,100000, 1000000, 100000], [p.capacity for p in dc.port_settings])
+        self.assertListEqual([100000, 100000, 1000000, 100000], [p.capacity for p in dc.port_settings])
         self.assertListEqual([0.25 * dc.total_containers] * 4, [p.empty for p in dc.port_settings])
 
         # TODO: more

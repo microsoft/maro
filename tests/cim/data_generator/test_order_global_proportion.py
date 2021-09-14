@@ -15,11 +15,11 @@ class TestOrderGlobalProportion(unittest.TestCase):
         period = 10
         ratio = 0.02
 
-        conf ={
+        conf = {
             "period": period,
             "sample_nodes": [
                 (0, ratio),
-                (period-1, ratio)
+                (period - 1, ratio)
             ],
             "sample_noise": 0
         }
@@ -42,7 +42,7 @@ class TestOrderGlobalProportion(unittest.TestCase):
             "period": period,
             "sample_nodes": [
                 (0, ratio),
-                (period-1, ratio)
+                (period - 1, ratio)
             ],
             "sample_noise": 0.1
         }
@@ -58,11 +58,11 @@ class TestOrderGlobalProportion(unittest.TestCase):
         period = 10
         ratio = 0.02
 
-        conf ={
+        conf = {
             "period": period,
             "sample_nodes": [
                 (0, ratio),
-                (period-1, ratio)
+                (period - 1, ratio)
             ],
             "sample_noise": 0
         }
