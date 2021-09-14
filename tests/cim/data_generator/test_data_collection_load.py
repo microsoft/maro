@@ -9,9 +9,9 @@ from typing import List
 from maro.data_lib import BinaryConverter
 from maro.data_lib.cim import load_from_folder
 from maro.data_lib.cim.cim_data_dump import CimDataDumpUtil
-from maro.data_lib.cim.cim_data_generator import CimDataGenerator
+from maro.data_lib.cim.cim_data_generator import gen_cim_data
 from maro.data_lib.cim.entities import (
-    CimSyntheticDataCollection, NoisedItem, SyntheticPortSetting, RoutePoint, Stop, VesselSetting
+    CimSyntheticDataCollection, NoisedItem, RoutePoint, Stop, SyntheticPortSetting, VesselSetting
 )
 
 MAX_TICK = 20
@@ -25,7 +25,7 @@ class TestDumpsLoad(unittest.TestCase):
         output_folder = tempfile.mkdtemp()
 
         # here we need to use CimDataDumpUtil manually to compare the result
-        dc: CimSyntheticDataCollection = CimDataGenerator.gen_data(config_path, 20)
+        dc: CimSyntheticDataCollection = gen_cim_data(config_path, 20)
 
         dumper = CimDataDumpUtil(dc)
 

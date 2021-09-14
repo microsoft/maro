@@ -4,9 +4,7 @@
 import os
 import unittest
 
-import yaml
-
-from maro.data_lib.cim.cim_data_generator import CimDataGenerator
+from maro.data_lib.cim.cim_data_generator import gen_cim_data
 from maro.data_lib.cim.entities import CimSyntheticDataCollection
 
 MAX_TICK = 20
@@ -16,7 +14,7 @@ class TestDataGenerator(unittest.TestCase):
     def test_data_generator_without_noise(self):
         config_path = os.path.join("tests", "data", "cim", "data_generator", "dumps", "config.yml")
 
-        dc: CimSyntheticDataCollection = CimDataGenerator.gen_data(config_path, max_tick=MAX_TICK)
+        dc: CimSyntheticDataCollection = gen_cim_data(config_path, max_tick=MAX_TICK)
 
         self.assertEqual(MAX_TICK, len(dc.order_proportion))
         self.assertEqual(100000, dc.total_containers)
