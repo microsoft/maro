@@ -6,7 +6,7 @@ from typing import Union
 import numpy as np
 
 
-def epsilon_greedy(state: np.ndarray, action: np.ndarray, num_actions, *, epsilon: float):
+def epsilon_greedy(state: np.ndarray, action: np.ndarray, num_actions, *, epsilon: float) -> np.ndarray:
     """epsilon-greedy exploration.
 
     Args:
@@ -16,6 +16,9 @@ def epsilon_greedy(state: np.ndarray, action: np.ndarray, num_actions, *, epsilo
         action (np.ndarray): Action(s) chosen greedily by the policy.
         num_actions (int): Number of possible actions.
         epsilon (float): The probability that a random action will be selected.
+
+    Returns:
+        Exploratory actions.
     """
     return np.array([act if np.random.random() > epsilon else np.random.randint(num_actions) for act in action])
 
@@ -40,11 +43,14 @@ def uniform_noise(
         max_action (Union[float, list, np.ndarray]): Upper bound for the multi-dimensional action space.
         low (Union[float, list, np.ndarray]): Lower bound for the noise range.
         high (Union[float, list, np.ndarray]): Upper bound for the noise range.
+
+    Returns:
+        Exploration actions with added noise.
     """
     if min_action is None and max_action is None:
-        return action + np.random.uniform(low, high)
+        return action + np.random.uniform(low, high, size=action.shape)
     else:
-        return np.clip(action + np.random.uniform(low, high), min_action, max_action)
+        return np.clip(action + np.random.uniform(low, high, size=action.shape), min_action, max_action)
 
 
 def gaussian_noise(
@@ -68,11 +74,13 @@ def gaussian_noise(
         max_action (Union[float, list, np.ndarray]): Upper bound for the multi-dimensional action space.
         mean (Union[float, list, np.ndarray]): Gaussian noise mean. Defaults to .0.
         stddev (Union[float, list, np.ndarray]): Standard deviation for the Gaussian noise. Defaults to 1.0.
-        relative (bool): If True, the generated noise will be multiplied by the action itself before being added to
-            the action. Defaults to False.
+        relative (bool): If True, the generated noise is treated as a relative measure and will be multiplied by the
+            action itself before being added to the action. Defaults to False.
 
+    Returns:
+        Exploration actions with added noise.
     """
-    noise = np.random.normal(loc=mean, scale=stddev)
+    noise = np.random.normal(loc=mean, scale=stddev, size=action.shape)
     if min_action is None and max_action is None:
         return action + ((noise * action) if relative else noise)
     else:

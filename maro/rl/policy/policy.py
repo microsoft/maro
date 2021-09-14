@@ -27,7 +27,7 @@ class AbsPolicy(ABC):
         raise NotImplementedError
 
 
-class NullPolicy(AbsPolicy):
+class DummyPolicy(AbsPolicy):
     """Dummy policy that does nothing.
 
     Note that the meaning of a "None" action may depend on the scenario.
@@ -92,7 +92,7 @@ class RLPolicy(AbsPolicy):
         pass
 
     def update(self, loss_info_list: List[dict]):
-        """Update using loss information collected from multiple loss computing instances.
+        """Update with loss information computed by multiple sources.
 
         There are two possible scenarios where you need to implement this interface: 1) if you are doing distributed
         learning and want each roll-out instance to collect information that can be used to update policy parameters
@@ -104,7 +104,7 @@ class RLPolicy(AbsPolicy):
 
         Args:
             loss_info_list (List[dict]): A list of dictionaries containing loss information (e.g., gradients) computed
-                by distributed roll-out instances.
+                by multiple sources.
         """
         pass
 
