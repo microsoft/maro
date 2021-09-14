@@ -7,6 +7,7 @@ from typing import List
 from yaml import safe_load
 
 from maro.simulator.utils import random, seed
+
 from .entities import CimSyntheticDataCollection, OrderGenerateMode, Stop
 from .parsers import parse_global_order_proportion, parse_ports, parse_routes, parse_vessels
 from .utils import ROUTE_INIT_RAND_KEY, apply_noise
