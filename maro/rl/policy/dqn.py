@@ -338,7 +338,7 @@ class DQN(RLPolicy):
         self._target_q_net_version = self._q_net_version
 
     def learn_with_data_parallel(self, batch: dict, worker_id_list: list):
-        assert self.remote, "learn_with_data_parallel is invalid when self.remote is False!"
+        assert hasattr(self, '_proxy'), "learn_with_data_parallel is invalid before data_parallel is called."
 
         self._replay_memory.put(
             batch["states"], batch["actions"], batch["rewards"], batch["next_states"], batch["terminals"]

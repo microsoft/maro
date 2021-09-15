@@ -191,7 +191,7 @@ class DDPG(RLPolicy):
                 self._update_target()
 
     def learn_with_data_parallel(self, batch: dict, worker_id_list: list):
-        assert self.remote, "learn_with_data_parallel is invalid when self.remote is False!"
+        assert hasattr(self, '_proxy'), "learn_with_data_parallel is invalid before data_parallel is called."
 
         self._replay_memory.put(
             batch["states"], batch["actions"], batch["rewards"], batch["next_states"], batch["terminals"]

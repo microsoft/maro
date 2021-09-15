@@ -63,15 +63,15 @@ class RLPolicy(AbsPolicy):
         pass
 
     def data_parallel(self, *args, **kwargs):
-        self.remote = True
+        """"Initialize a proxy in the policy, for data-parallel training.
+        Using the same arguments as `Proxy`."""
         self._proxy = Proxy(*args, **kwargs)
 
     def data_parallel_with_existing_proxy(self, proxy):
-        self.remote = True
+        """"Initialize a proxy in the policy with an existing one, for data-parallel training."""
         self._proxy = proxy
 
     def exit_data_parallel(self):
-        self.remote = False
         if hasattr(self, '_proxy'):
             self._proxy.close()
 

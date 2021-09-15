@@ -23,22 +23,29 @@ class WorkerAllocator(object):
         self.policy_names = policy_names
         self.agent2policy = agent2policy
         self.worker_prefix = "GRAD_WORKER"
+        self.logger = None
+
+        self._cached_mappings = dict()
+
+    def set_logger(self, logger):
+        self.logger = logger
 
     def allocate(self, **kwargs):
-        logger = kwargs.get('logger', None)
-        if self.mode == AllocationMode.BY_POLICY.value:
-            policy_names = kwargs.get('policy_names', None)
-            return self.allocate_by_policy(policy_names=policy_names, logger=logger)
-        elif self.mode == AllocationMode.BY_AGENT.value:
-            return self.allocate_by_agent(logger=logger)
-        elif self.mode == AllocationMode.BY_EXPERIENCE.value:
-            assert 'num_experiences_by_policy' in kwargs
-            num_experiences_by_policy = kwargs.pop('num_experiences_by_policy')
-            return self.allocate_by_experience(num_experiences_by_policy, logger=logger)
-        else:
-            raise NotImplementedError(f"{self.mode} is not implemented.")
+        if self.mode not in self._cached_mappings:
+            if self.mode == AllocationMode.BY_POLICY.value:
+                policy_names = kwargs.get('policy_names', None)
+                self._cached_mappings[self.mode] = self.allocate_by_policy(policy_names=policy_names)
+            elif self.mode == AllocationMode.BY_AGENT.value:
+                self._cached_mappings[self.mode] = self.allocate_by_agent()
+            elif self.mode == AllocationMode.BY_EXPERIENCE.value:
+                assert 'num_experiences_by_policy' in kwargs
+                num_experiences_by_policy = kwargs.pop('num_experiences_by_policy')
+                self._cached_mappings[self.mode] = self.allocate_by_experience(num_experiences_by_policy)
+            else:
+                raise NotImplementedError(f"{self.mode} is not implemented.")
+        return self._cached_mappings[self.mode]
 
-    def allocate_by_policy(self, policy_names=None, logger=None):
+    def allocate_by_policy(self, policy_names=None):
         """Evenly allocate grad workers to each policy."""
         if policy_names is None:
             policy_names = self.policy_names
@@ -59,19 +66,19 @@ class WorkerAllocator(object):
                     worker2policies[f"{self.worker_prefix}.{worker_id}"].append(name)
         return policy2workers, worker2policies
 
-    def allocate_by_agent(self, agent2policy=None, logger=None):
+    def allocate_by_agent(self, agent2policy=None):
         if agent2policy is None:
             agent2policy = self.agent2policy
 
         num_agents_by_policy = {}
         for agent_id, policy_name in agent2policy.items():
             num_agents_by_policy[policy_name] = num_agents_by_policy.get(policy_name, 0) + 1
-        return self._allocate_by_payload(num_agents_by_policy, logger)
+        return self._allocate_by_payload(num_agents_by_policy)
 
-    def allocate_by_experience(self, num_experiences_by_policy: dict, logger=None):
-        return self._allocate_by_payload(num_experiences_by_policy, logger)
+    def allocate_by_experience(self, num_experiences_by_policy: dict):
+        return self._allocate_by_payload(num_experiences_by_policy)
 
-    def _allocate_by_payload(self, num_payload: Dict[str, int], logger=None):
+    def _allocate_by_payload(self, num_payload: Dict[str, int]):
         """Allocate grad workers by payload of each policy.
 
         Args:
@@ -108,8 +115,8 @@ class WorkerAllocator(object):
                 policy_quota[busiest_policy] += redundancy
 
             for name, quota in policy_quota.items():
-                if logger is not None:
-                    logger.info(
+                if self.logger is not None:
+                    self.logger.info(
                         f"policy {name} payload: {num_payload[name]},  quota: {quota} node(s)")
                 for i in range(quota):
                     worker_id = (i + offset) % num_workers

@@ -122,6 +122,7 @@ class SimplePolicyManager(AbsPolicyManager):
         self._worker_allocator = worker_allocator
         self._logger = Logger("POLICY_MANAGER", dump_folder=log_dir)
 
+        self._worker_allocator.set_logger(self._logger)
         self._logger.info("Creating policy instances locally")
         self._policy_dict = {name: func(name) for name, func in create_policy_func_dict.items()}
 
@@ -135,16 +136,6 @@ class SimplePolicyManager(AbsPolicyManager):
                     group, "policy_host", {"grad_worker": self._num_grad_workers},
                     component_name=f"POLICY_HOST.{name}", **proxy_kwargs)
 
-            self._policy2workers, self._worker2policies = self._worker_allocator.allocate(
-                policy_name=self._policy_ids, logger=self._logger)
-            # ask the hosts to initialize the assigned policies
-            for worker_id, policy_ids in self._worker2policies.items():
-                self._proxy.isend(SessionMessage(
-                    MsgTag.INIT_POLICIES, self._proxy.name, worker_id, body={MsgKey.POLICY_IDS: policy_ids}
-                ))
-        else:
-            self._policy2workers, self._worker2policies = dict(), dict()
-
         self._version = 0
 
     def update(self, rollout_info: Dict[str, list]):
@@ -157,7 +148,7 @@ class SimplePolicyManager(AbsPolicyManager):
         if self._data_parallel:
             # re-allocate grad workers before update.
             self._policy2workers, self._worker2policies = self._worker_allocator.allocate(
-                policy_name=self._policy_ids, logger=self._logger)
+                policy_names=self._policy_ids, logger=self._logger)
 
         for policy_id, info_list in rollout_info.items():
             # in some cases e.g. Actor-Critic that get loss from rollout workers
@@ -225,15 +216,12 @@ class MultiProcessPolicyManager(AbsPolicyManager):
         self._worker_allocator = worker_allocator
         self._logger = Logger("POLICY_MANAGER", dump_folder=log_dir)
 
+        self._worker_allocator.set_logger(self._logger)
+
         if self._data_parallel:
-            self._policy2workers, self._worker2policies = self._worker_allocator.allocate(
-                policy_name=self._policy_ids, logger=self._logger)
             self._proxy = Proxy(
                 group, "policy_manager", {"grad_worker": self._num_grad_workers},
                 component_name="POLICY_MANAGER", **proxy_kwargs)
-
-        else:
-            self._policy2workers, self._worker2policies = dict(), dict()
 
         self._logger.info("Spawning policy host processes")
         self._state_cache = {}
@@ -282,13 +270,6 @@ class MultiProcessPolicyManager(AbsPolicyManager):
                 self._state_cache[policy_id] = msg["policy_state"]
                 self._logger.info(f"Initial state for policy {policy_id} cached")
 
-        # ask the hosts to initialize the assigned policies
-        if self._data_parallel:
-            for worker_id, policy_ids in self._worker2policies.items():
-                self._proxy.isend(SessionMessage(
-                    MsgTag.INIT_POLICIES, self._proxy.name, worker_id, body={MsgKey.POLICY_IDS: policy_ids}
-                ))
-
         self._version = 0
 
     def update(self, rollout_info: Dict[str, list]):
@@ -301,7 +282,7 @@ class MultiProcessPolicyManager(AbsPolicyManager):
         if self._data_parallel:
             # re-allocate grad workers before update.
             self._policy2workers, self._worker2policies = self._worker_allocator.allocate(
-                policy_name=self._policy_ids, logger=self._logger)
+                policy_names=self._policy_ids, logger=self._logger)
 
         for policy_id, info_list in rollout_info.items():
             self._manager_end[policy_id].send(
@@ -373,6 +354,8 @@ class DistributedPolicyManager(AbsPolicyManager):
         self._worker_allocator = worker_allocator
         self._data_parallel = data_parallel
 
+        self._worker_allocator.set_logger(self._logger)
+
         self._policy2host = {}
         self._policy2workers = {}
         self._host2policies = defaultdict(list)
@@ -403,15 +386,6 @@ class DistributedPolicyManager(AbsPolicyManager):
                 if dones == num_hosts:
                     break
 
-        # ask the grad workers to initialize the assigned policies
-        if self._data_parallel:
-            self._policy2workers, self._worker2policies = self._worker_allocator.allocate(
-                policy_name=self._policy_ids, logger=self._logger)
-            for worker_id, policy_ids in self._worker2policies.items():
-                self._proxy.isend(SessionMessage(
-                    MsgTag.INIT_POLICIES, self._proxy.name, worker_id, body={MsgKey.POLICY_IDS: policy_ids}
-                ))
-
         self._version = 0
 
     def update(self, rollout_info: Dict[str, list]):
@@ -422,7 +396,7 @@ class DistributedPolicyManager(AbsPolicyManager):
         """
         if self._data_parallel:
             self._policy2workers, self._worker2policies = self._worker_allocator.allocate(
-                policy_name=self._policy_ids, logger=self._logger)
+                policy_names=self._policy_ids, logger=self._logger)
 
         msg_dict = defaultdict(lambda: defaultdict(dict))
         for policy_id, info_list in rollout_info.items():
@@ -542,6 +516,7 @@ def grad_worker(
     num_hosts: int,
     group: str,
     proxy_kwargs: dict = {},
+    max_policy_number: int = 10,
     log_dir: str = getcwd()
 ):
     """Stateless gradient workers that excute gradient computation tasks.
@@ -556,9 +531,11 @@ def grad_worker(
             manages them.
         proxy_kwargs: Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
             for details. Defaults to the empty dictionary.
+        max_policy_number (int): Maximum policy number in a single worker node. Defaults to 10.
         log_dir (str): Directory to store logs in. Defaults to the current working directory.
     """
     policy_dict = {}
+    active_policies = []
     if num_hosts == 0:
         # no remote nodes for policy hosts
         num_hosts = len(create_policy_func_dict)
@@ -571,23 +548,27 @@ def grad_worker(
             logger.info("Exiting...")
             proxy.close()
             break
-        elif msg.tag == MsgTag.INIT_POLICIES:
-            for name in msg.body[MsgKey.POLICY_IDS]:
-                policy_dict[name] = create_policy_func_dict[name](name)
-
-            logger.info(f"Initialized policies {msg.body[MsgKey.POLICY_IDS]}")
-            proxy.reply(
-                msg,
-                tag=MsgTag.INIT_POLICIES_DONE,
-                body={MsgKey.POLICY_STATE: {name: policy.get_state() for name, policy in policy_dict.items()}}
-            )
         elif msg.tag == MsgTag.COMPUTE_GRAD:
             t0 = time.time()
-            msg_body = {MsgKey.LOSS_INFO: dict()}
+            msg_body = {MsgKey.LOSS_INFO: dict(), MsgKey.POLICY_IDS: list()}
             for name, batch in msg.body[MsgKey.GRAD_TASK].items():
+                if name not in policy_dict:
+                    if len(policy_dict) > max_policy_number:
+                        # remove the oldest one when size exceeds.
+                        policy_to_remove = active_policies.pop()
+                        policy_dict.pop(policy_to_remove)
+                    policy_dict[name] = create_policy_func_dict[name](name)
+                    active_policies.insert(0, name)
+                    logger.info(f"Initialized policies {name}")
+
                 policy_dict[name].set_state(msg.body[MsgKey.POLICY_STATE][name])
                 loss_info = policy_dict[name].get_batch_loss(batch, explicit_grad=True)
                 msg_body[MsgKey.LOSS_INFO][name] = loss_info
+                msg_body[MsgKey.POLICY_IDS].append(name)
+                # put the latest one to queue head
+                active_policies.remove(name)
+                active_policies.insert(0, name)
+
             logger.debug(f"total policy update time: {time.time() - t0}")
             proxy.reply(msg, tag=MsgTag.COMPUTE_GRAD_DONE, body=msg_body)
         else:
