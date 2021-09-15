@@ -12,7 +12,6 @@ class FullyConnected(nn.Module):
     """Fully connected network with optional batch normalization, activation and dropout components.
 
     Args:
-        name (str): Network name.
         input_dim (int): Network input dimension.
         output_dim (int): Network output dimension.
         hidden_dims ([int]): Dimensions of hidden layers. Its length is the number of hidden layers.
@@ -29,6 +28,7 @@ class FullyConnected(nn.Module):
         dropout_p (float): Dropout probability. Defaults to None, in which case there is no drop-out.
         gradient_threshold (float): Gradient clipping threshold. Defaults to None, in which case not gradient clipping
             is performed.
+        name (str): Network name. Defaults to None.
     """
     def __init__(
         self,
@@ -98,7 +98,7 @@ class FullyConnected(nn.Module):
         return self._output_dim
 
     def _build_layer(self, input_dim, output_dim, head: bool = False):
-        """Build basic layer.
+        """Build a basic layer.
 
         BN -> Linear -> Activation -> Dropout
         """

@@ -262,6 +262,11 @@ class DQN(RLPolicy):
             self._per.set_max_priority(indexes)
 
     def get_rollout_info(self):
+        """Randomly sample a batch of transitions from the replay memory.
+
+        This is used in a distributed learning setting and the returned data will be sent to its parent instance
+        on the learning side (serving as the source of the latest model parameters) for training.
+        """
         return self._replay_memory.sample(self.rollout_batch_size)
 
     def _get_batch(self):
@@ -280,6 +285,13 @@ class DQN(RLPolicy):
             return self._replay_memory.sample(self.train_batch_size)
 
     def get_batch_loss(self, batch: dict, explicit_grad: bool = False):
+        """Compute loss for a data batch.
+
+        Args:
+            batch (dict): A batch containing "states", "actions", "rewards", "next_states" and "terminals" as keys.
+            explicit_grad (bool): If True, the gradients should be returned as part of the loss information. Defaults
+                to False.
+        """
         self.q_net.train()
         states = torch.from_numpy(batch["states"]).to(self.device)
         next_states = torch.from_numpy(batch["next_states"]).to(self.device)
@@ -314,22 +326,35 @@ class DQN(RLPolicy):
         return loss_info
 
     def update(self, loss_info_list: List[dict]):
+        """Update the Q-net parameters with gradients computed by multiple gradient workers.
+
+        Args:
+            loss_info_list (List[dict]): A list of dictionaries containing loss information (including gradients)
+                computed by multiple gradient workers.
+        """
         if self.prioritized_replay:
             for loss_info in loss_info_list:
                 self._per.update(loss_info["indexes"], loss_info["td_errors"])
 
         self.q_net.apply_gradients(average_grads([loss_info["grad"] for loss_info in loss_info_list]))
         self._q_net_version += 1
+        # soft-update target network
         if self._q_net_version - self._target_q_net_version == self.update_target_every:
             self._update_target()
 
     def learn(self, batch: dict):
+        """Learn from a batch containing data required for policy improvement.
+
+        Args:
+            batch (dict): A batch containing "states", "actions", "rewards", "next_states" and "terminals" as keys.
+        """
         self._replay_memory.put(
             batch["states"], batch["actions"], batch["rewards"], batch["next_states"], batch["terminals"]
         )
         self.improve()
 
     def improve(self):
+        """Learn using data from the replay memory."""
         for _ in range(self.num_epochs):
             loss_info = self.get_batch_loss(self._get_batch())
             if self.prioritized_replay:
@@ -340,11 +365,11 @@ class DQN(RLPolicy):
                 self._update_target()
 
     def _update_target(self):
-        # soft-update target network
         self.target_q_net.soft_update(self.q_net, self.soft_update_coeff)
         self._target_q_net_version = self._q_net_version
 
     def exploration_step(self):
+        """Update the exploration parameters according to the exploration scheduler."""
         for sch in self.exploration_schedulers:
             sch.step()
 

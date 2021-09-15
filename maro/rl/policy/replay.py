@@ -12,6 +12,8 @@ class ReplayMemory:
 
     Args:
         capacity (int): Maximum number of experiences that can be stored.
+        state_dim (int): Dimension of flattened state.
+        action_dim (int): Action dimension. Defaults to 1.
         random_overwrite (bool): This specifies overwrite behavior when the capacity is reached. If this is True,
             overwrite positions will be selected randomly. Otherwise, overwrites will occur sequentially with
             wrap-around. Defaults to False.
@@ -81,6 +83,7 @@ class ReplayMemory:
         return indexes
 
     def sample(self, size: int):
+        """Obtain a random sample."""
         indexes = np.random.choice(self._ptr, size=size)
         return {
             "states": self.states[indexes],

@@ -155,9 +155,21 @@ class DDPG(RLPolicy):
         )
 
     def get_rollout_info(self):
+        """Randomly sample a batch of transitions from the replay memory.
+
+        This is used in a distributed learning setting and the returned data will be sent to its parent instance
+        on the learning side (serving as the source of the latest model parameters) for training.
+        """
         return self._replay_memory.sample(self.rollout_batch_size)
 
     def get_batch_loss(self, batch: dict, explicit_grad: bool = False) -> dict:
+        """Compute loss for a data batch.
+
+        Args:
+            batch (dict): A batch containing "states", "actions", "rewards", "next_states" and "terminals" as keys.
+            explicit_grad (bool): If True, the gradients should be returned as part of the loss information. Defaults
+                to False.
+        """
         self.ac_net.train()
         states = torch.from_numpy(batch["states"]).to(self.device)
         next_states = torch.from_numpy(["next_states"]).to(self.device)
@@ -188,17 +200,29 @@ class DDPG(RLPolicy):
         return loss_info
 
     def update(self, loss_info_list: List[dict]):
+        """Update the model parameters with gradients computed by multiple gradient workers.
+
+        Args:
+            loss_info_list (List[dict]): A list of dictionaries containing loss information (including gradients)
+                computed by multiple gradient workers.
+        """
         self.ac_net.apply_gradients(average_grads([loss_info["grad"] for loss_info in loss_info_list]))
         if self._ac_net_version - self._target_ac_net_version == self.update_target_every:
             self._update_target()
 
     def learn(self, batch: dict):
+        """Learn from a batch containing data required for policy improvement.
+
+        Args:
+            batch (dict): A batch containing "states", "actions", "rewards", "next_states" and "terminals" as keys.
+        """
         self._replay_memory.put(
             batch["states"], batch["actions"], batch["rewards"], batch["next_states"], batch["terminals"]
         )
         self.improve()
 
     def improve(self):
+        """Learn using data from the replay memory."""
         for _ in range(self.num_epochs):
             train_batch = self._replay_memory.sample(self.train_batch_size)
             self.ac_net.step(self.get_batch_loss(train_batch)["loss"])

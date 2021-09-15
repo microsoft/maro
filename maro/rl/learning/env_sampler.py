@@ -19,7 +19,7 @@ from .helpers import get_rollout_finish_msg
 
 
 class AgentWrapper:
-    """Wrapper for multiple agents using multiple policies that exposes single-agent interfaces."""
+    """Wrapper for multiple agents using multiple policies to expose simple single-agent interfaces."""
     def __init__(
         self,
         get_policy_func_dict: Dict[str, Callable],
@@ -200,6 +200,9 @@ class AbsEnvSampler(ABC):
             instance in the wrapper, tracker is a dictionary where the gathered information is stored and transition
             is a ``Transition`` object. For example, this callback can be used to collect various statistics on the
             simulation. Defaults to None.
+        policies_to_parallelize (List[str]): Policies to be placed in separate processes so that inference can be
+            performed in parallel to speed up simulation. This is useful if some policies are big and takes long times
+            to compute actions. Defaults to an empty list.
     """
     def __init__(
         self,
@@ -348,14 +351,26 @@ class AbsEnvSampler(ABC):
 
         return self.tracker
 
-    def worker(self, group: str, index: int, proxy_kwargs: dict = {}, log_dir: str = getcwd()):
+    def worker(
+        self,
+        group: str,
+        index: int,
+        num_extra_recv_attempts: int = 0,
+        recv_timeout: int = 100,
+        proxy_kwargs: dict = {},
+        log_dir: str = getcwd()
+    ):
         """Roll-out worker process that can be launched on separate computation nodes.
 
         Args:
             group (str): Group name for the roll-out cluster, which includes all roll-out workers and a roll-out manager
                 that manages them.
-            worker_idx (int): Worker index. The worker's ID in the cluster will be "ROLLOUT_WORKER.{worker_idx}".
-                This is used for bookkeeping by the parent manager.
+            index (int): Worker index. The worker's ID in the cluster will be "ROLLOUT_WORKER.{worker_idx}".
+                This is used for bookkeeping by the roll-out manager.
+            num_extra_recv_attempts (int): Number of extra receive attempts after each received ``SAMPLE`` message. This
+                is used to catch the worker up to the latest episode in case it trails the main learning loop by at
+                least one full episode. Defaults to 0.
+            recv_timeout (int): Timeout for the extra receive attempts. Defaults to 100 (miliseconds).
             proxy_kwargs: Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
                 for details. Defaults to the empty dictionary.
             log_dir (str): Directory to store logs in. Defaults to the current working directory.
@@ -374,31 +389,38 @@ class AbsEnvSampler(ABC):
             3)  EXIT, upon which it will break out of the event loop and the process will terminate.
 
         """
-        for msg in proxy.receive():
+        while True:
+            msg = proxy.receive_once()
             if msg.tag == MsgTag.EXIT:
                 logger.info("Exiting...")
                 proxy.close()
                 break
 
             if msg.tag == MsgTag.SAMPLE:
-                ep = msg.body[MsgKey.EPISODE]
+                latest = msg
+                for _ in range(num_extra_recv_attempts):
+                    msg = proxy.receive_once(timeout=recv_timeout)
+                    if msg.body[MsgKey.EPISODE] > latest.body[MsgKey.EPISODE]:
+                        logger.info(f"Skipped roll-out message for ep {latest.body[MsgKey.EPISODE]}")
+                        latest = msg
+
+                ep = latest.body[MsgKey.EPISODE]
                 result = self.sample(
-                    policy_state_dict=msg.body[MsgKey.POLICY_STATE],
-                    num_steps=msg.body[MsgKey.NUM_STEPS]
+                    policy_state_dict=latest.body[MsgKey.POLICY_STATE], num_steps=latest.body[MsgKey.NUM_STEPS]
                 )
                 logger.info(
                     get_rollout_finish_msg(ep, result["step_range"], exploration_params=result["exploration_params"])
                 )
                 return_info = {
                     MsgKey.EPISODE: ep,
-                    MsgKey.SEGMENT: msg.body[MsgKey.SEGMENT],
-                    MsgKey.VERSION: msg.body[MsgKey.VERSION],
+                    MsgKey.SEGMENT: latest.body[MsgKey.SEGMENT],
+                    MsgKey.VERSION: latest.body[MsgKey.VERSION],
                     MsgKey.ROLLOUT_INFO: result["rollout_info"],
                     MsgKey.STEP_RANGE: result["step_range"],
                     MsgKey.TRACKER: result["tracker"],
                     MsgKey.END_OF_EPISODE: result["end_of_episode"]
                 }
-                proxy.reply(msg, tag=MsgTag.SAMPLE_DONE, body=return_info)
+                proxy.reply(latest, tag=MsgTag.SAMPLE_DONE, body=return_info)
             elif msg.tag == MsgTag.TEST:
                 tracker = self.test(msg.body[MsgKey.POLICY_STATE])
                 return_info = {MsgKey.TRACKER: tracker, MsgKey.EPISODE: msg.body[MsgKey.EPISODE]}

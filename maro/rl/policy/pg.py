@@ -92,11 +92,11 @@ class PolicyGradient(RLPolicy):
 
         self._buffer = defaultdict(lambda: self.Buffer(self.policy_net.input_dim, size=self.max_trajectory_len))
 
-    def get_random_action(self, states: np.ndarray):
-        return np.random.randint(self.policy_net.num_actions, size=(states.shape[0] if len(states.shape) > 1 else 1,))
+    def __call__(self, states: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+        """Return a list of action information dict given a batch of states.
 
-    def get_action(self, states: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
-        """Return actions and log probabilities for given states."""
+        An action information dict contains the action itself and the corresponding log-P value.
+        """
         self.policy_net.eval()
         with torch.no_grad():
             actions, logps = self.policy_net.get_action(states, greedy=self.greedy)
@@ -115,6 +115,12 @@ class PolicyGradient(RLPolicy):
         self._buffer[key].put(state, action, reward, terminal)
 
     def get_rollout_info(self):
+        """Extract information from the recorded transitions.
+
+        Returns:
+            Loss (including gradients) for the latest trajectory segment in the replay buffer if ``get_loss_on_rollout``
+            is True or the latest trajectory segment with pre-computed return values.
+        """
         if self.get_loss_on_rollout:
             return self.get_batch_loss(self._get_batch(), explicit_grad=True)
         else:
@@ -132,13 +138,15 @@ class PolicyGradient(RLPolicy):
         return {key: np.concatenate(vals) for key, vals in batch.items}
 
     def get_batch_loss(self, batch: dict, explicit_grad: bool = False):
-        """
-        This should be called at the end of a simulation episode and the experiences obtained from
-        the experience store's ``get`` method should be a sequential set, i.e., in the order in
-        which they are generated during the simulation. Otherwise, the return values may be meaningless.
+        """Compute AC loss for a data batch.
+
+        Args:
+            batch (dict): A batch containing "states" and "returns" as keys.
+            explicit_grad (bool): If True, the gradients should be returned as part of the loss information. Defaults
+                to False.
         """
         self.policy_net.train()
-        returns = torch.from_numpy(np.asarray(batch.returns)).to(self.device)
+        returns = torch.from_numpy(np.asarray(batch["returns"])).to(self.device)
 
         _, logp = self.policy_net(batch["states"])
         loss = -(logp * returns).mean()
@@ -148,14 +156,25 @@ class PolicyGradient(RLPolicy):
         return loss_info
 
     def update(self, loss_info_list: List[dict]):
-        """Apply gradients to the underlying parameterized model."""
+        """Update the model parameters with gradients computed by multiple roll-out instances or gradient workers.
+
+        Args:
+            loss_info_list (List[dict]): A list of dictionaries containing loss information (including gradients)
+                computed by multiple roll-out instances or gradient workers.
+        """
         self.policy_net.apply_gradients(average_grads([loss_info["grad"] for loss_info in loss_info_list]))
 
     def learn(self, batch: dict):
+        """Learn from a batch containing data required for policy improvement.
+
+        Args:
+            batch (dict): A batch containing "states" and "returns" as keys.
+        """
         for _ in range(self.grad_iters):
             self.policy_net.step(self.get_batch_loss(batch)["grad"])
 
     def improve(self):
+        """Learn using data from the buffer."""
         self.learn(self._get_batch())
 
     def set_state(self, policy_state):

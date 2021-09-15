@@ -133,7 +133,11 @@ class ActorCritic(RLPolicy):
         self._buffer = defaultdict(lambda: self.Buffer(self.ac_net.input_dim, size=self.max_trajectory_len))
 
     def __call__(self, states: np.ndarray):
-        """Return actions and log probabilities for given states."""
+        """Return a list of action information dict given a batch of states.
+
+        An action information dict contains the action itself, the corresponding log-P value and the corresponding
+        state value.
+        """
         self.ac_net.eval()
         states = torch.from_numpy(states).to(self.device)
         if len(states.shape) == 1:
@@ -157,6 +161,12 @@ class ActorCritic(RLPolicy):
         self._buffer[key].put(state, action, reward, terminal)
 
     def get_rollout_info(self):
+        """Extract information from the recorded transitions.
+
+        Returns:
+            Loss (including gradients) for the latest trajectory segment in the replay buffer if ``get_loss_on_rollout``
+            is True or the latest trajectory segment with pre-computed return and advantage values.
+        """
         if self.get_loss_on_rollout:
             return self.get_batch_loss(self._get_batch(), explicit_grad=True)
         else:
@@ -180,6 +190,13 @@ class ActorCritic(RLPolicy):
         return {key: np.concatenate(vals) for key, vals in batch.items()}
 
     def get_batch_loss(self, batch: dict, explicit_grad: bool = False):
+        """Compute AC loss for a data batch.
+
+        Args:
+            batch (dict): A batch containing "states", "actions", "logps", "returns" and "advantages" as keys.
+            explicit_grad (bool): If True, the gradients should be returned as part of the loss information. Defaults
+                to False.
+        """
         self.ac_net.train()
         states = torch.from_numpy(batch["states"]).to(self.device)
         actions = torch.from_numpy(batch["actions"]).to(self.device)
@@ -220,14 +237,25 @@ class ActorCritic(RLPolicy):
         return loss_info
 
     def update(self, loss_info_list: List[dict]):
-        """Apply gradients to the underlying parameterized model."""
+        """Update the model parameters with gradients computed by multiple roll-out instances or gradient workers.
+
+        Args:
+            loss_info_list (List[dict]): A list of dictionaries containing loss information (including gradients)
+                computed by multiple roll-out instances or gradient workers.
+        """
         self.ac_net.apply_gradients(average_grads([loss_info["grad"] for loss_info in loss_info_list]))
 
     def learn(self, batch: dict):
+        """Learn from a batch containing data required for policy improvement.
+
+        Args:
+            batch (dict): A batch containing "states", "actions", "logps", "returns" and "advantages" as keys.
+        """
         for _ in range(self.grad_iters):
             self.ac_net.step(self.get_batch_loss(batch)["loss"])
 
     def improve(self):
+        """Learn using data from the buffer."""
         self.learn(self._get_batch())
 
     def set_state(self, policy_state):

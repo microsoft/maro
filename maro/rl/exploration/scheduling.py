@@ -12,8 +12,8 @@ class AbsExplorationScheduler(ABC):
         exploration_params (dict): The exploration params attribute from some ``RLPolicy`` instance to which the
             scheduler is applied.
         param_name (str): Name of the exploration parameter to which the scheduler is applied.
-        initial_value: Initial value for the exploration parameter. If None, the value the exploration instance is
-            instantiated with will be used as the initial value. Defaults to None.
+        initial_value: Initial value for the exploration parameter. If None, the value from the original dictionary
+            the policy is instantiated with will be used as the initial value. Defaults to None.
     """
 
     def __init__(self, exploration_params: dict, param_name: str, initial_value=None):
@@ -40,8 +40,8 @@ class LinearExplorationScheduler(AbsExplorationScheduler):
         last_ep (int): Last episode.
         final_value (float): The value of the exploration parameter corresponding to ``last_ep``.
         start_ep (int): starting episode. Defaults to 1.
-        initial_value: Initial value for the exploration parameter. If None, the value the exploration instance is
-            instantiated with will be used as the initial value. Defaults to None.
+        initial_value: Initial value for the exploration parameter. If None, the value from the original dictionary
+            the policy is instantiated with will be used as the initial value. Defaults to None.
     """
 
     def __init__(
@@ -81,8 +81,8 @@ class MultiLinearExplorationScheduler(AbsExplorationScheduler):
         last_ep (int): Last episode.
         final_value (float): The value of the exploration parameter corresponding to ``last_ep``.
         start_ep (int): starting episode. Defaults to 1.
-        initial_value: Initial value for the exploration parameter. If None, the value the exploration instance is
-            instantiated with will be used as the initial value. Defaults to None.
+        initial_value: Initial value for the exploration parameter. If None, the value from the original dictionary
+            the policy is instantiated with will be used as the initial value. Defaults to None.
 
     Returns:
         An iterator over the series of exploration rates from episode 0 to ``max_iter`` - 1.
