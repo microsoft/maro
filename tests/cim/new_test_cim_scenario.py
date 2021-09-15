@@ -8,6 +8,8 @@ from typing import List, Optional
 
 import yaml
 
+from maro.simulator.scenarios.cim.business_engine import CimBusinessEngine
+
 os.environ["MARO_STREAMIT_ENABLED"] = "true"
 os.environ["MARO_STREAMIT_EXPERIMENT_NAME"] = "cim_testing"
 
@@ -15,7 +17,7 @@ from maro.data_lib.cim import dump_from_config
 from maro.data_lib.cim.entities import PortSetting, Stop, SyntheticPortSetting, VesselSetting
 from maro.data_lib.cim.vessel_stop_wrapper import VesselStopsWrapper
 from maro.simulator import Env
-from maro.simulator.scenarios.cim.common import Action, ActionType
+from maro.simulator.scenarios.cim.common import Action, DecisionEvent
 from maro.simulator.scenarios.cim.ports_order_export import PortOrderExporter
 from tests.utils import backends_to_test, compare_dictionary
 
@@ -34,6 +36,7 @@ class TestCimScenarios(unittest.TestCase):
 
         self._env: Optional[Env] = None
         self._reload_topology: str = TOPOLOGY_PATH_CONFIG
+        self._business_engine: Optional[CimBusinessEngine] = None
 
     def _init_env(self, backend_name: str) -> None:
         os.environ["DEFAULT_BACKEND_NAME"] = backend_name
@@ -44,24 +47,25 @@ class TestCimScenarios(unittest.TestCase):
             durations=200,
             options={"enable-dump-snapshot": tempfile.gettempdir()}
         )
+        self._business_engine = self._business_engine
 
     def test_load_from_config(self) -> None:
         for backend_name in backends_to_test:
             self._init_env(backend_name)
 
             #########################################################
-            if len(self._env.business_engine.configs) > 0:  # Env will not have `configs` if loaded from dump/real.
-                self.assertTrue(compare_dictionary(self._env.business_engine.configs, self._raw_topology))
+            if len(self._business_engine.configs) > 0:  # Env will not have `configs` if loaded from dump/real.
+                self.assertTrue(compare_dictionary(self._business_engine.configs, self._raw_topology))
 
-            self.assertEqual(len(getattr(self._env.business_engine.frame, "ports")), 22)
-            self.assertEqual(self._env.business_engine.data_container.port_number, 22)
-            self.assertEqual(len(getattr(self._env.business_engine.frame, "vessels")), 46)
-            self.assertEqual(self._env.business_engine.data_container.vessel_number, 46)
-            self.assertEqual(len(self._env.business_engine.snapshots), 0)
+            self.assertEqual(len(getattr(self._business_engine.frame, "ports")), 22)
+            self.assertEqual(self._business_engine.data_container.port_number, 22)
+            self.assertEqual(len(getattr(self._business_engine.frame, "vessels")), 46)
+            self.assertEqual(self._business_engine.data_container.vessel_number, 46)
+            self.assertEqual(len(self._business_engine.snapshots), 0)
 
             #########################################################
             # Vessel
-            vessels: List[VesselSetting] = self._env.business_engine.data_container.vessels
+            vessels: List[VesselSetting] = self._business_engine.data_container.vessels
             for i, vessel in enumerate(vessels):
                 vessel_config = self._raw_topology["vessels"][vessel.name]
                 self.assertEqual(vessel.index, i)
@@ -73,12 +77,12 @@ class TestCimScenarios(unittest.TestCase):
                 self.assertEqual(vessel.sailing_noise, vessel_config["sailing"]["noise"])
                 self.assertEqual(vessel.sailing_speed, vessel_config["sailing"]["speed"])
 
-            for name, idx in self._env.business_engine.get_node_mapping()["vessels"].items():
+            for name, idx in self._business_engine.get_node_mapping()["vessels"].items():
                 self.assertEqual(vessels[idx].name, name)
 
             #########################################################
             # Port
-            ports: List[PortSetting] = self._env.business_engine.data_container.ports
+            ports: List[PortSetting] = self._business_engine.data_container.ports
             port_names = [port.name for port in ports]
             for i, port in enumerate(ports):
                 assert isinstance(port, SyntheticPortSetting)
@@ -94,7 +98,7 @@ class TestCimScenarios(unittest.TestCase):
                         port_config["order_distribution"]["targets"][port_names[target.index]]["noise"]
                     )
 
-            for name, idx in self._env.business_engine.get_node_mapping()["ports"].items():
+            for name, idx in self._business_engine.get_node_mapping()["ports"].items():
                 self.assertEqual(ports[idx].name, name)
 
     def test_load_from_real(self) -> None:
@@ -103,21 +107,21 @@ class TestCimScenarios(unittest.TestCase):
             for backend_name in backends_to_test:
                 self._init_env(backend_name)
 
-                for i, port in enumerate(self._env.business_engine.ports):
+                for i, port in enumerate(self._business_engine.ports):
                     self.assertEqual(port.booking, 0)
                     self.assertEqual(port.shortage, 0)
 
                 hard_coded_truth = [556, 0, 20751], [1042, 0, 17320], [0, 0, 25000], [0, 0, 25000]
 
                 self._env.step(action=None)
-                for i, port in enumerate(self._env.business_engine.ports):
+                for i, port in enumerate(self._business_engine.ports):
                     self.assertEqual(port.booking, hard_coded_truth[i][0])
                     self.assertEqual(port.shortage, hard_coded_truth[i][1])
                     self.assertEqual(port.empty, hard_coded_truth[i][2])
 
                 self._env.reset(keep_seed=True)
                 self._env.step(action=None)
-                for i, port in enumerate(self._env.business_engine.ports):
+                for i, port in enumerate(self._business_engine.ports):
                     self.assertEqual(port.booking, hard_coded_truth[i][0])
                     self.assertEqual(port.shortage, hard_coded_truth[i][1])
                     self.assertEqual(port.empty, hard_coded_truth[i][2])
@@ -147,12 +151,12 @@ class TestCimScenarios(unittest.TestCase):
                 78, 154, 169, 136, 154, 169, 94, 105, 117, 94, 189, 210, 167, 189, 210, 167, 141, 158, 125, 141, 158,
                 125
             ]
-            self.assertListEqual(self._env.business_engine.data_container.vessel_period, hard_coded_period)
+            self.assertListEqual(self._business_engine.data_container.vessel_period, hard_coded_period)
 
-            ports: List[PortSetting] = self._env.business_engine.data_container.ports
+            ports: List[PortSetting] = self._business_engine.data_container.ports
             port_names: List[str] = [port.name for port in ports]
-            vessel_stops: VesselStopsWrapper = self._env.business_engine.data_container.vessel_stops
-            vessels: List[VesselSetting] = self._env.business_engine.data_container.vessels
+            vessel_stops: VesselStopsWrapper = self._business_engine.data_container.vessel_stops
+            vessels: List[VesselSetting] = self._business_engine.data_container.vessels
 
             # Test invalid argument
             self.assertIsNone(vessel_stops[None])
@@ -176,7 +180,7 @@ class TestCimScenarios(unittest.TestCase):
 
             #########################################################
             # STEP: beginning
-            for i, vessel in enumerate(self._env.business_engine.vessels):
+            for i, vessel in enumerate(self._business_engine.vessels):
                 self.assertEqual(vessel.idx, i)
                 self.assertEqual(vessel.next_loc_idx, 0)
                 self.assertEqual(vessel.last_loc_idx, 0)
@@ -184,7 +188,7 @@ class TestCimScenarios(unittest.TestCase):
             #########################################################
             self._env.step(action=None)
             self.assertEqual(self._env.tick, 5)  # Vessel 35 will trigger the first arrival event at tick 5
-            for i, vessel in enumerate(self._env.business_engine.vessels):
+            for i, vessel in enumerate(self._business_engine.vessels):
                 if i == 35:
                     self.assertEqual(vessel.next_loc_idx, 1)
                     self.assertEqual(vessel.last_loc_idx, 1)
@@ -195,7 +199,7 @@ class TestCimScenarios(unittest.TestCase):
             #########################################################
             self._env.step(action=None)
             self.assertEqual(self._env.tick, 6)  # Vessel 27 will trigger the second arrival event at tick 6
-            for i, vessel in enumerate(self._env.business_engine.vessels):
+            for i, vessel in enumerate(self._business_engine.vessels):
                 if i == 27:  # Vessel 27 just arrives
                     self.assertEqual(vessel.next_loc_idx, 1)
                     self.assertEqual(vessel.last_loc_idx, 1)
@@ -210,7 +214,7 @@ class TestCimScenarios(unittest.TestCase):
             while self._env.tick < 100:
                 self._env.step(action=None)
             self.assertEqual(self._env.tick, 100)
-            for i, vessel in enumerate(self._env.business_engine.vessels):
+            for i, vessel in enumerate(self._business_engine.vessels):
                 expected_next_loc_idx = expected_last_loc_idx = -1
                 for j, stop in enumerate(vessel_stops[i]):
                     if stop.arrival_tick == self._env.tick:
@@ -228,7 +232,7 @@ class TestCimScenarios(unittest.TestCase):
         for backend_name in backends_to_test:
             self._init_env(backend_name)
 
-            for i, port in enumerate(self._env.business_engine.ports):
+            for i, port in enumerate(self._business_engine.ports):
                 total_containers = self._raw_topology['total_containers']
                 initial_container_proportion = self._raw_topology['ports'][port.name]['initial_container_proportion']
 
@@ -246,7 +250,7 @@ class TestCimScenarios(unittest.TestCase):
                 [137, 0, 7340], [19, 0, 912], [13, 0, 925], [107, 0, 6429], [136, 0, 9164], [64, 0, 3680],
                 [24, 0, 1377], [31, 0, 1840], [109, 0, 6454], [131, 0, 7351]
             ]
-            for i, port in enumerate(self._env.business_engine.ports):
+            for i, port in enumerate(self._business_engine.ports):
                 self.assertEqual(port.booking, hard_coded_truth[i][0])
                 self.assertEqual(port.shortage, hard_coded_truth[i][1])
                 self.assertEqual(port.empty, hard_coded_truth[i][2])
@@ -255,22 +259,22 @@ class TestCimScenarios(unittest.TestCase):
         for backend_name in backends_to_test:
             self._init_env(backend_name)
 
-            vessel_stops_1: List[List[Stop]] = self._env.business_engine.data_container.vessel_stops
+            vessel_stops_1: List[List[Stop]] = self._business_engine.data_container.vessel_stops
             self._env.step(action=None)
-            port_info_1 = [(port.booking, port.shortage, port.empty) for port in self._env.business_engine.ports]
+            port_info_1 = [(port.booking, port.shortage, port.empty) for port in self._business_engine.ports]
 
             self._env.reset(keep_seed=True)
-            vessel_stops_2: List[List[Stop]] = self._env.business_engine.data_container.vessel_stops
+            vessel_stops_2: List[List[Stop]] = self._business_engine.data_container.vessel_stops
             self._env.step(action=None)
-            port_info_2 = [(port.booking, port.shortage, port.empty) for port in self._env.business_engine.ports]
+            port_info_2 = [(port.booking, port.shortage, port.empty) for port in self._business_engine.ports]
 
             self._env.reset(keep_seed=False)
-            vessel_stops_3: List[List[Stop]] = self._env.business_engine.data_container.vessel_stops
+            vessel_stops_3: List[List[Stop]] = self._business_engine.data_container.vessel_stops
             self._env.step(action=None)
-            port_info_3 = [(port.booking, port.shortage, port.empty) for port in self._env.business_engine.ports]
+            port_info_3 = [(port.booking, port.shortage, port.empty) for port in self._business_engine.ports]
 
             # Vessel
-            for i in range(self._env.business_engine.data_container.vessel_number):
+            for i in range(self._business_engine.data_container.vessel_number):
                 # 1 and 2 should be totally equal
                 self.assertListEqual(vessel_stops_1[i], vessel_stops_2[i])
 
@@ -321,6 +325,7 @@ class TestCimScenarios(unittest.TestCase):
             self._init_env(backend_name)
 
             metric, decision_event, is_done = self._env.step(None)
+            assert isinstance(decision_event, DecisionEvent)
 
             self.assertEqual(decision_event.action_scope.load, 1240)
             self.assertEqual(decision_event.action_scope.discharge, 0)
@@ -345,8 +350,9 @@ class TestCimScenarios(unittest.TestCase):
             history = []
             while not is_done:
                 metric, decision_event, is_done = self._env.step(None)
+                assert isinstance(decision_event, DecisionEvent)
                 if decision_event is not None and decision_event.vessel_idx == 35:
-                    v = self._env.business_engine.vessels[35]
+                    v = self._business_engine.vessels[35]
                     history.append((v.full, v.empty, v.early_discharge))
 
             hard_coded_benchmark = [
@@ -369,9 +375,9 @@ class TestCimScenarios(unittest.TestCase):
                 'VESSEL_DEPARTURE': ['port_idx', 'vessel_idx'], 'RETURN_EMPTY': ['port_idx', 'quantity']
             }
             self.assertTrue(
-                compare_dictionary(self._env.business_engine.get_event_payload_detail(), payload_detail_benchmark))
-            port_number = self._env.business_engine.data_container.port_number
-            self.assertListEqual(self._env.business_engine.get_agent_idx_list(), list(range(port_number)))
+                compare_dictionary(self._business_engine.get_event_payload_detail(), payload_detail_benchmark))
+            port_number = self._business_engine.data_container.port_number
+            self.assertListEqual(self._business_engine.get_agent_idx_list(), list(range(port_number)))
 
 
 if __name__ == "__main__":
