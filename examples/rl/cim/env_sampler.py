@@ -80,20 +80,14 @@ class CIMEnvSampler(AbsEnvSampler):
         return {agent_id: reward for agent_id, reward in zip(ports, rewards)}
 
 
-agent2policy = {
-    0: "ac",
-    1: "ac",
-    2: "dqn",
-    3: "ac"
-}
-
+agent2policy = {agent: f"ac.{agent}" for agent in Env(**env_conf).agent_idx_list}
 
 def get_env_sampler():
     return CIMEnvSampler(
-        lambda: Env(**env_conf),
-        policy_func_dict,
-        agent2policy,
+        get_env=lambda: Env(**env_conf),
+        get_policy_func_dict=policy_func_dict,
+        agent2policy=agent2policy,
         reward_eval_delay=reward_shaping_conf["time_window"],
         post_step=post_step,
-        policies_to_parallelize=["ac", "dqn"]
+        policies_to_parallelize=[]
     )

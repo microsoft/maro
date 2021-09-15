@@ -7,14 +7,11 @@ from typing import List
 import torch
 import torch.nn as nn
 
-from maro.rl.utils import get_torch_activation_cls
-
 
 class FullyConnected(nn.Module):
     """Fully connected network with optional batch normalization, activation and dropout components.
 
     Args:
-        name (str): Network name.
         input_dim (int): Network input dimension.
         output_dim (int): Network output dimension.
         hidden_dims ([int]): Dimensions of hidden layers. Its length is the number of hidden layers.
@@ -31,13 +28,14 @@ class FullyConnected(nn.Module):
         dropout_p (float): Dropout probability. Defaults to None, in which case there is no drop-out.
         gradient_threshold (float): Gradient clipping threshold. Defaults to None, in which case not gradient clipping
             is performed.
+        name (str): Network name. Defaults to None.
     """
     def __init__(
         self,
         input_dim: int,
         output_dim: int,
         hidden_dims: List[int],
-        activation="relu",
+        activation=nn.ReLU,
         head: bool = False,
         softmax: bool = False,
         batch_norm: bool = False,
@@ -52,7 +50,7 @@ class FullyConnected(nn.Module):
         self._output_dim = output_dim
 
         # network features
-        self._activation = get_torch_activation_cls(activation)() if activation else None
+        self._activation = activation() if activation else None
         self._head = head
         self._softmax = nn.Softmax(dim=1) if softmax else None
         self._batch_norm = batch_norm
@@ -100,7 +98,7 @@ class FullyConnected(nn.Module):
         return self._output_dim
 
     def _build_layer(self, input_dim, output_dim, head: bool = False):
-        """Build basic layer.
+        """Build a basic layer.
 
         BN -> Linear -> Activation -> Dropout
         """

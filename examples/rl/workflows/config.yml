@@ -3,34 +3,27 @@
 
 job: supply_chain
 scenario: supply_chain
-mode: sync
+mode: sync  # single, sync, async
 num_episodes: 3
 eval_schedule: 3
 num_steps: -1
 max_lag: 0
-# If true, the roll-out experiences will be distributed amongst roll-out workers / actors
-# in round-robin fashion based on agent index. Otherwise, every roll-out worker / actor will
-# store the roll-out experiences for all agents whose experiences need to be stored.
-rollout_experience_distribution: false
 sync:
-  rollout_type: distributed   # simple, distributed
-  simple:
-    parallelism: 1
-    eval_parallelism: 1
+  num_rollouts: 3
+  num_eval_rollouts: 1
+  rollout_type: distributed   # multi-process, distributed
   distributed:
     group: rollout
-    num_workers: 2
-    num_eval_workers: 1
     min_finished_workers: 2
     max_extra_recv_tries: 1
     extra_recv_timeout: 200
 async:
   group: async
-  num_actors: 3
+  num_rollouts: 3
 policy_manager:
   type: distributed   # simple, distributed
   simple:
-    parallel: false
+    parallel: true
   distributed:
     group: learn
     num_hosts: 2

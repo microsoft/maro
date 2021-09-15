@@ -2,43 +2,27 @@
 # Licensed under the MIT license.
 
 from abc import abstractmethod
-from typing import Dict, Union
+from typing import Union
 
 import numpy as np
 import torch
 from torch import nn
 from torch.distributions import Categorical
 
-from .core_model import AbsCoreModel, OptimOption
+from .core_model import AbsCoreModel
 
 
 class DiscreteACNet(AbsCoreModel):
-    """Model container for the actor-critic architecture for finite and discrete action spaces.
-
-    Args:
-        component (Union[nn.Module, Dict[str, nn.Module]]): Network component(s) comprising the model.
-        optim_option (Union[OptimOption, Dict[str, OptimOption]]): Optimizer options for the components.
-            If none, no optimizer will be created for the model which means the model is not trainable.
-            If it is a OptimOption instance, a single optimizer will be created to jointly optimize all
-            parameters of the model. If it is a dictionary of OptimOptions, the keys will be matched against
-            the component names and optimizers created for them. Note that it is possible to freeze certain
-            components while optimizing others by providing a subset of the keys in ``component``.
-            Defaults toNone.
-        device (str): Identifier for the torch device. The model instance will be moved to the specified
-            device. If it is None, the device will be set to "cpu" if cuda is unavailable and "cuda" otherwise.
-            Defaults to None.
-    """
-    def __init__(
-        self,
-        component: Union[nn.Module, Dict[str, nn.Module]],
-        optim_option: Union[OptimOption, Dict[str, OptimOption]] = None,
-        device: str = None
-    ):
-        super().__init__(component, optim_option=optim_option, device=device)
+    """Model framework for the actor-critic architecture for finite and discrete action spaces."""
 
     @property
     @abstractmethod
     def input_dim(self):
+        raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def num_actions(self):
         raise NotImplementedError
 
     @abstractmethod
@@ -56,13 +40,17 @@ class DiscreteACNet(AbsCoreModel):
         """
         raise NotImplementedError
 
-    def get_action(self, states: torch.tensor, max_prob: bool = False):
+    def get_action(self, states: torch.tensor, greedy: bool = False):
         """
-        Given Q-values for a batch of states, return the action index and the corresponding maximum Q-value
-        for each state.
+        Given Q-values for a batch of states, return the actions, the corresponding log-P values and the state values.
+
+        Args:
+            states (torch.tensor): State batch to compute actions for.
+            greedy (bool): If True, the action with the greatest probability will be returned for each state in the
+                batch. Defaults to False.
         """
         action_probs, values = self.forward(states)
-        if max_prob:
+        if greedy:
             probs, actions = action_probs.max(dim=1)
             return actions, torch.log(probs), values
         else:
@@ -73,32 +61,16 @@ class DiscreteACNet(AbsCoreModel):
 
 
 class DiscretePolicyNet(AbsCoreModel):
-    """Parameterized policy for finite and discrete action spaces.
-
-    Args:
-        component (Union[nn.Module, Dict[str, nn.Module]]): Network component(s) comprising the model.
-        optim_option (Union[OptimOption, Dict[str, OptimOption]]): Optimizer options for the components.
-            If none, no optimizer will be created for the model which means the model is not trainable.
-            If it is a OptimOption instance, a single optimizer will be created to jointly optimize all
-            parameters of the model. If it is a dictionary of OptimOptions, the keys will be matched against
-            the component names and optimizers created for them. Note that it is possible to freeze certain
-            components while optimizing others by providing a subset of the keys in ``component``.
-            Defaults to None.
-        device (str): Identifier for the torch device. The model instance will be moved to the specified
-            device. If it is None, the device will be set to "cpu" if cuda is unavailable and "cuda" otherwise.
-            Defaults to None.
-    """
-    def __init__(
-        self,
-        component: Union[nn.Module, Dict[str, nn.Module]],
-        optim_option: Union[OptimOption, Dict[str, OptimOption]] = None,
-        device: str = None
-    ):
-        super().__init__(component, optim_option=optim_option, device=device)
+    """Parameterized policy for finite and discrete action spaces."""
 
     @property
     @abstractmethod
     def input_dim(self):
+        raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def num_actions(self):
         raise NotImplementedError
 
     @abstractmethod
@@ -112,13 +84,17 @@ class DiscretePolicyNet(AbsCoreModel):
         """
         raise NotImplementedError
 
-    def get_action(self, states: torch.tensor, max_prob: bool = False):
+    def get_action(self, states: torch.tensor, greedy: bool = False):
         """
-        Given a batch of states, return actions selected based on the probabilities computed by ``forward``
-        and the corresponding log probabilities.
+        Given Q-values for a batch of states, return the actions and the corresponding log-P values.
+
+        Args:
+            states (torch.tensor): State batch to compute actions for.
+            greedy (bool): If True, the action with the greatest probability will be returned for each state in the
+                batch. Defaults to False.
         """
         action_prob = self.forward(states)   # (batch_size, num_actions)
-        if max_prob:
+        if greedy:
             prob, action = action_prob.max(dim=1)
             return action, torch.log(prob)
         else:
@@ -129,28 +105,7 @@ class DiscretePolicyNet(AbsCoreModel):
 
 
 class DiscreteQNet(AbsCoreModel):
-    """Q-value model for finite and discrete action spaces.
-
-    Args:
-        component (Union[nn.Module, Dict[str, nn.Module]]): Network component(s) comprising the model.
-        optim_option (Union[OptimOption, Dict[str, OptimOption]]): Optimizer options for the components.
-            If none, no optimizer will be created for the model which means the model is not trainable.
-            If it is a OptimOption instance, a single optimizer will be created to jointly optimize all
-            parameters of the model. If it is a dictionary of OptimOptions, the keys will be matched against
-            the component names and optimizers created for them. Note that it is possible to freeze certain
-            components while optimizing others by providing a subset of the keys in ``component``.
-            Defaults toNone.
-        device (str): Identifier for the torch device. The model instance will be moved to the specified
-            device. If it is None, the device will be set to "cpu" if cuda is unavailable and "cuda" otherwise.
-            Defaults to None.
-    """
-    def __init__(
-        self,
-        component: Union[nn.Module, Dict[str, nn.Module]],
-        optim_option: Union[OptimOption, Dict[str, OptimOption]] = None,
-        device: str = None
-    ):
-        super().__init__(component, optim_option=optim_option, device=device)
+    """Q-value model for finite and discrete action spaces."""
 
     @property
     @abstractmethod
@@ -197,58 +152,32 @@ class DiscreteQNet(AbsCoreModel):
 
 
 class ContinuousACNet(AbsCoreModel):
-    """Model container for the actor-critic architecture for continuous action spaces.
+    """Model container for the actor-critic architecture for continuous action spaces."""
+    def __init__(self, out_min: Union[float, np.ndarray] = None, out_max: Union[float, np.ndarray] = None):
+        super().__init__()
+        if out_min:
+            assert isinstance(out_min, (float, np.ndarray)), "out_min must be a float or a numpy array"
+        if out_max:
+            assert isinstance(out_max, (float, np.ndarray)), "out_max must be a float or a numpy array"
 
-    Args:
-        component (Union[nn.Module, Dict[str, nn.Module]]): Network component(s) comprising the model.
-        optim_option (Union[OptimOption, Dict[str, OptimOption]]): Optimizer options for the components.
-            If none, no optimizer will be created for the model which means the model is not trainable.
-            If it is a OptimOption instance, a single optimizer will be created to jointly optimize all
-            parameters of the model. If it is a dictionary of OptimOptions, the keys will be matched against
-            the component names and optimizers created for them. Note that it is possible to freeze certain
-            components while optimizing others by providing a subset of the keys in ``component``.
-            Defaults toNone.
-        device (str): Identifier for the torch device. The model instance will be moved to the specified
-            device. If it is None, the device will be set to "cpu" if cuda is unavailable and "cuda" otherwise.
-            Defaults to None.
-    """
-    def __init__(
-        self,
-        component: Union[nn.Module, Dict[str, nn.Module]],
-        optim_option: Union[OptimOption, Dict[str, OptimOption]] = None,
-        device: str = None
-    ):
-        super().__init__(component, optim_option=optim_option, device=device)
+        if isinstance(out_min, np.ndarray) and isinstance(out_max, np.ndarray):
+            assert len(out_min) == len(out_max), "out_min and out_max should have the same dimension."
+
+        self.out_min = out_min
+        self.out_max = out_max
+        # For torch clamping
+        self._min = torch.from_numpy(out_min) if isinstance(out_min, np.ndarray) else out_min
+        self._max = torch.from_numpy(out_max) if isinstance(out_max, np.ndarray) else out_max
 
     @property
     @abstractmethod
     def input_dim(self):
         raise NotImplementedError
 
-    def set_action_space(
-        self,
-        min_action: Union[float, np.ndarray] = None,
-        max_action: Union[float, np.ndarray] = None
-    ):
-        """Set action clamping bounds.
-
-        Args:
-            min_action (Union[float, np.ndarray]): Lower bound for action. Actions generated from the model will be
-                clipped according to this bound. Defaults to None, which means no lower bound.
-            max_action (Union[float, np.ndarray]): Upper bound for action. Actions generated from the model will be
-                clipped according to this bound. Defaults to None, which means no upper bound.
-        """
-        if min_action:
-            assert isinstance(min_action, (float, np.ndarray)), "min_action must be a float or a numpy array"
-        if max_action:
-            assert isinstance(max_action, (float, np.ndarray)), "max_action must be a float or a numpy array"
-
-        if isinstance(min_action, np.ndarray) and isinstance(max_action, np.ndarray):
-            assert len(min_action) == len(max_action), "min_action and max_action should have the same dimension."
-
-        # For torch clamping
-        self._min_action = torch.from_numpy(min_action) if isinstance(min_action, np.ndarray) else min_action
-        self._max_action = torch.from_numpy(max_action) if isinstance(max_action, np.ndarray) else max_action
+    @property
+    @abstractmethod
+    def action_dim(self):
+        raise NotImplementedError
 
     @abstractmethod
     def forward(self, states: torch.tensor, actions=None) -> torch.tensor:
@@ -264,7 +193,9 @@ class ContinuousACNet(AbsCoreModel):
 
     def get_action(self, states: torch.tensor) -> torch.tensor:
         """Compute actions given a batch of states."""
-        return torch.clamp(self.forward(states), min=self._min_action, max=self._max_action)
+        if self._min is None and self._max is None:
+            return self.forward(states)
+        return torch.clamp(self.forward(states), min=self._min, max=self._max)
 
     def value(self, states: torch.tensor):
         """Compute the Q-values for a batch of states using the actions computed from them."""

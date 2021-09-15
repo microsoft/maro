@@ -107,14 +107,7 @@ common_env = [
     {"name": "POLICYMANAGERTYPE", "value": config['policy_manager']['type']}
 ]
 
-if config["mode"] == "async":
-    num_rollouts = config['async']['num_actors']
-elif config["sync"]["rollout_type"] == "simple":
-    num_rollouts = config['sync']['simple']['parallelism']
-else:
-    num_rollouts = config['sync']['distributed']['num_workers']
-
-common_env.append({"name": "NUMROLLOUTS", "value": str(num_rollouts)})
+common_env.append({"name": "NUMROLLOUTS", "value": str(config[config['mode']]['num_rollouts'])})
 
 # policy host spec
 if config["policy_manager"]["type"] == "distributed":
@@ -155,9 +148,8 @@ if mode == "sync":
                     {"name": "NUMSTEPS", "value": str(config["num_steps"])},
                     {"name": "EVALSCH", "value": str(config["eval_schedule"])},
                     {"name": "PARALLEL", "value": '1' if config['policy_manager']['simple']['parallel'] else '0'},
-                    {"name": "EVALPARALLELISM", "value": config['sync']['simple']['eval_parallelism']},
+                    {"name": "NUMEVALROLLOUTS", "value": config[config['mode']]['num_eval_rollouts']},
                     {"name": "ROLLOUTGROUP", "value": config['sync']['distributed']['group']},
-                    {"name": "NUMEVALWORKERS", "value": config['sync']['distributed']['num_eval_workers']},
                     {"name": "MAXLAG", "value": str(config["max_lag"])},
                     {"name": "MINFINISH", "value": str(config['sync']['distributed']['min_finished_workers'])},
                     {"name": "MAXEXRECV", "value": str(config['sync']['distributed']['max_extra_recv_tries'])},

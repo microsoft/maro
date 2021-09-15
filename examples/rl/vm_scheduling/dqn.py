@@ -9,7 +9,7 @@ import numpy as np
 import torch
 
 from maro.rl.experience import ReplayMemory, UniformSampler
-from maro.rl.exploration import DiscreteSpaceExploration, MultiPhaseLinearExplorationScheduler
+from maro.rl.exploration import DiscreteSpaceExploration, MultiLinearExplorationScheduler
 from maro.rl.model import DiscreteQNet, FullyConnected, OptimOption
 from maro.rl.policy.algorithms import DQN, DQNConfig
 
@@ -109,7 +109,7 @@ def get_dqn_policy(mode="update"):
         exp_store = ReplayMemory(**config["replay_memory"]["rollout"])
         exploration = MaskedEpsilonGreedy()
         exploration.register_schedule(
-            scheduler_cls=MultiPhaseLinearExplorationScheduler,
+            scheduler_cls=MultiLinearExplorationScheduler,
             param_name="epsilon",
             **config["exploration"]
         )
