@@ -4,6 +4,8 @@
 import torch
 from torch.optim import Adam, RMSprop
 
+from maro.rl.exploration import MultiLinearExplorationScheduler, epsilon_greedy
+
 
 env_conf = {
     "scenario": "cim",
@@ -59,8 +61,18 @@ dqn_conf = {
     "num_epochs": 10,
     "soft_update_coeff": 0.1,
     "double": False,
+    "exploration_strategy": (epsilon_greedy, {"epsilon": 0.4}),
+    "exploration_scheduling_options": [(
+        "epsilon", MultiLinearExplorationScheduler, {
+            "splits": [(2, 0.32)],
+            "initial_value": 0.4,
+            "last_ep": 5,
+            "final_value": 0.0,
+        }
+    )],
     "replay_memory_capacity": 10000,
     "random_overwrite": False,
+    "warmup": 100,
     "rollout_batch_size": 128,
     "train_batch_size": 32,
     # "prioritized_replay_kwargs": {
@@ -69,13 +81,6 @@ dqn_conf = {
     #     "beta_step": 0.001,
     #     "max_priority": 1e8
     # }
-}
-
-exploration_conf = {
-    "last_ep": 10,
-    "initial_value": 0.4,
-    "final_value": 0.0,
-    "splits": [(5, 0.32)]
 }
 
 
@@ -111,6 +116,6 @@ ac_conf = {
     "critic_loss_coeff": 0.1,
     "entropy_coeff": 0.01,
     # "clip_ratio": 0.8   # for PPO
-    "lam": 0.9,
-    "get_loss_on_rollout": True
+    "lam": .0,
+    "get_loss_on_rollout": False
 }

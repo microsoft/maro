@@ -20,6 +20,11 @@ class DiscreteACNet(AbsCoreModel):
     def input_dim(self):
         raise NotImplementedError
 
+    @property
+    @abstractmethod
+    def num_actions(self):
+        raise NotImplementedError
+
     @abstractmethod
     def forward(self, states: torch.tensor, actor: bool = True, critic: bool = True) -> tuple:
         """Compute action probabilities and values for a state batch.
@@ -61,6 +66,11 @@ class DiscretePolicyNet(AbsCoreModel):
     @property
     @abstractmethod
     def input_dim(self):
+        raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def num_actions(self):
         raise NotImplementedError
 
     @abstractmethod
@@ -143,19 +153,21 @@ class DiscreteQNet(AbsCoreModel):
 
 class ContinuousACNet(AbsCoreModel):
     """Model container for the actor-critic architecture for continuous action spaces."""
-    def __init__(self, min_action: Union[float, np.ndarray] = None, max_action: Union[float, np.ndarray] = None):
+    def __init__(self, out_min: Union[float, np.ndarray] = None, out_max: Union[float, np.ndarray] = None):
         super().__init__()
-        if min_action:
-            assert isinstance(min_action, (float, np.ndarray)), "min_action must be a float or a numpy array"
-        if max_action:
-            assert isinstance(max_action, (float, np.ndarray)), "max_action must be a float or a numpy array"
+        if out_min:
+            assert isinstance(out_min, (float, np.ndarray)), "out_min must be a float or a numpy array"
+        if out_max:
+            assert isinstance(out_max, (float, np.ndarray)), "out_max must be a float or a numpy array"
 
-        if isinstance(min_action, np.ndarray) and isinstance(max_action, np.ndarray):
-            assert len(min_action) == len(max_action), "min_action and max_action should have the same dimension."
+        if isinstance(out_min, np.ndarray) and isinstance(out_max, np.ndarray):
+            assert len(out_min) == len(out_max), "out_min and out_max should have the same dimension."
 
+        self.out_min = out_min
+        self.out_max = out_max
         # For torch clamping
-        self._min_action = torch.from_numpy(min_action) if isinstance(min_action, np.ndarray) else min_action
-        self._max_action = torch.from_numpy(max_action) if isinstance(max_action, np.ndarray) else max_action
+        self._min = torch.from_numpy(out_min) if isinstance(out_min, np.ndarray) else out_min
+        self._max = torch.from_numpy(out_max) if isinstance(out_max, np.ndarray) else out_max
 
     @property
     @abstractmethod
@@ -166,14 +178,6 @@ class ContinuousACNet(AbsCoreModel):
     @abstractmethod
     def action_dim(self):
         raise NotImplementedError
-
-    @property
-    def min_action(self):
-        return self._min_action
-
-    @property
-    def max_action(self):
-        return self._max_action
 
     @abstractmethod
     def forward(self, states: torch.tensor, actions=None) -> torch.tensor:
@@ -189,7 +193,9 @@ class ContinuousACNet(AbsCoreModel):
 
     def get_action(self, states: torch.tensor) -> torch.tensor:
         """Compute actions given a batch of states."""
-        return torch.clamp(self.forward(states), min=self._min_action, max=self._max_action)
+        if self._min is None and self._max is None:
+            return self.forward(states)
+        return torch.clamp(self.forward(states), min=self._min, max=self._max)
 
     def value(self, states: torch.tensor):
         """Compute the Q-values for a batch of states using the actions computed from them."""

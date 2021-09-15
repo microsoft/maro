@@ -62,6 +62,10 @@ class MyACNet(DiscreteACNet):
     def input_dim(self):
         return state_dim
 
+    @property
+    def num_actions(self):
+        return q_net_conf["output_dim"]
+
     def forward(self, states, actor: bool = True, critic: bool = True):
         return (self.actor(states) if actor else None), (self.critic(states) if critic else None)
 
@@ -87,6 +91,5 @@ class MyACNet(DiscreteACNet):
 
 
 policy_func_dict = {
-    "dqn": lambda name: DQN(name, QNet(), **dqn_conf),
-    "ac": lambda name: ActorCritic(name, MyACNet(), **ac_conf)
+    f"ac.{i}": lambda name: ActorCritic(name, MyACNet(), **ac_conf) for i in range(4)
 }

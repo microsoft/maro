@@ -6,7 +6,7 @@ from collections import defaultdict
 from multiprocessing import Pipe, Process
 from os import getcwd
 from random import choices
-from typing import Callable, List
+from typing import Callable, Dict, List, Tuple
 
 import numpy as np
 
@@ -23,72 +23,60 @@ def concat_batches(batch_list: List[dict]):
 
 
 class AbsRolloutManager(ABC):
-    """Controller for simulation data collection.
-
-    Args:
-        post_collect (Callable): Custom function to process whatever information is collected by each
-            environment wrapper (local or remote) at the end of ``collect`` calls. The function signature should
-            be (trackers, ep, segment) -> None, where tracker is a list of environment wrappers' ``tracker`` members.
-            Defaults to None.
-        post_evaluate (Callable): Custom function to process whatever information is collected by each
-            environment wrapper (local or remote) at the end of ``evaluate`` calls. The function signature should
-            be (trackers, ep) -> None, where tracker is a list of environment wrappers' ``tracker`` members. Defaults
-            to None.
-    """
-    def __init__(self, post_collect: Callable = None, post_evaluate: Callable = None):
+    """Controller for simulation data collection."""
+    def __init__(self):
         super().__init__()
-        self._post_collect = post_collect
-        self._post_evaluate = post_evaluate
-        self.episode_complete = False
+        self.end_of_episode = False
 
     @abstractmethod
-    def collect(self, ep: int, segment: int, policy_state_dict: dict, version: int):
+    def collect(self, ep: int, segment: int, policy_state_dict: dict, version: int) -> Tuple[Dict, List[Dict]]:
         """Collect simulation data, i.e., experiences for training.
 
         Args:
-            ep (int): Current episode index.
-            segment (int): Current segment index.
-            policy_state_dict (dict): Policy states to use for simulation.
-            version (int): Version index from the policy manager from which the ``policy_state_dict`` is obtained.
+            ep (int): Current episode.
+            segment (int): Current segment.
+            policy_state_dict (dict): Policy states to use for collecting training info.
+            version (int): Version for the policy states.
 
         Returns:
-            Experiences for policy training.
+            A 2-tuple consisting of a dictionary of roll-out information grouped by policy ID and a list of dictionaries
+            containing step-level information collected by the user-defined ``post_step`` callback in ``AbsEnvSampler``.
+            An RL policy's roll-out information must be either loss information or a data batch that can be passed to
+            the policy's ``update`` or ``learn``, respectively.
         """
         raise NotImplementedError
 
     @abstractmethod
     def evaluate(self, ep: int, policy_state_dict: dict):
-        """Evaluate the performance of ``policy_state_dict``.
+        """Evaluate policy performance.
 
         Args:
-            ep (int): Current training episode index.
-            policy_state_dict (dict): Policy states to use for simulation.
+            ep (int): Current training episode.
+            policy_state_dict (dict): Policy states to use for evaluation.
 
         Returns:
-            Environment summary.
+            A list of dictionaries containing step-level information collected by the user-defined ``post_step``
+            callback in ``AbsEnvSampler`` for evaluation purposes.
         """
         raise NotImplementedError
 
     def reset(self):
-        self.episode_complete = False
+        self.end_of_episode = False
+
+    def exit(self):
+        pass
 
 
-class SimpleRolloutManager(AbsRolloutManager):
+class MultiProcessRolloutManager(AbsRolloutManager):
     """Local roll-out controller.
 
     Args:
         get_env_sampler (Callable): Function to create an environment sampler for collecting training data. The function
             should take no parameters and return an ``AbsEnvSampler`` instance.
+        num_rollouts (int): Number of processes to spawn for parallel roll-out.
         num_steps (int): Number of environment steps to roll out in each call to ``collect``. Defaults to -1, in which
             case the roll-out will be executed until the end of the environment.
-        post_collect (Callable): Custom function to process whatever information is collected by each
-            environment wrapper (local or remote) at the end of ``collect`` calls. The function signature should
-            be (trackers, ep, segment) -> None, where tracker is a list of environment wrappers' ``tracker`` members.
-            Defaults to None.
-        post_evaluate (Callable): Custom function to process whatever information is collected by each
-            environment wrapper (local or remote) at the end of ``evaluate`` calls. The function signature should
-            be (trackers, ep) -> None, where tracker is a list of environment wrappers' ``tracker`` members. Defaults
-            to None.
+        num_eval_rollout (int): Number of roll-out processes to use for evaluation. Defaults to 1.
         log_dir (str): Directory to store logs in. A ``Logger`` with tag "ROLLOUT_MANAGER" will be created at init
             time and this directory will be used to save the log files generated by it. Defaults to the current
             working directory.
@@ -96,163 +84,122 @@ class SimpleRolloutManager(AbsRolloutManager):
     def __init__(
         self,
         get_env_sampler: Callable[[], AbsEnvSampler],
+        num_rollouts: int,
         num_steps: int = -1,
-        parallelism: int = 1,
-        eval_parallelism: int = 1,
-        post_collect: Callable = None,
-        post_evaluate: Callable = None,
+        num_eval_rollouts: int = 1,
         log_dir: str = getcwd()
     ):
         if num_steps == 0 or num_steps < -1:
             raise ValueError("num_steps must be a positive integer or -1.")
 
-        if parallelism < 1:
-            raise ValueError("'parallelism' must be equal to or greater than 1.")
+        if num_rollouts <= 1:
+            raise ValueError("'num_rollouts' must be greater than 1.")
 
-        if eval_parallelism > parallelism:
-            raise ValueError("'num_eval_workers' can not be greater than 'parallelism'.")
+        if num_eval_rollouts > num_rollouts:
+            raise ValueError("'num_eval_rollouts' can not be greater than 'num_rollouts'.")
 
-        super().__init__(post_collect=post_collect, post_evaluate=post_evaluate)
+        super().__init__()
         self._logger = Logger("ROLLOUT_MANAGER", dump_folder=log_dir)
         self._num_steps = num_steps if num_steps > 0 else float("inf")
-        self._exploration_step = False
-        self._parallelism = parallelism
-        self._eval_parallelism = eval_parallelism
-        if self._parallelism == 1:
-            self.env_sampler = get_env_sampler()
-        else:
-            self._worker_processes = []
-            self._manager_ends = []
+        self._num_rollouts = num_rollouts
+        self._num_eval_rollouts = num_eval_rollouts
+        self._worker_processes = []
+        self._manager_ends = []
 
-            def _rollout_worker(index, conn, get_env_sampler):
-                set_seeds(index)
-                env_sampler = get_env_sampler()
-                logger = Logger("ROLLOUT_WORKER", dump_folder=log_dir)
-                while True:
-                    msg = conn.recv()
-                    if msg["type"] == "sample":
-                        result = env_sampler.sample(
-                            policy_state_dict=msg["policy_state"],
-                            num_steps=self._num_steps,
-                            exploration_step=self._exploration_step
-                        )
-                        logger.info(get_rollout_finish_msg(
-                            msg["episode"], result["step_range"], exploration_params=result["exploration_params"]
-                        ))
-                        result["worker_index"] = index
-                        conn.send(result)
-                    elif msg["type"] == "test":
-                        tracker = env_sampler.test(msg["policy_state"])
-                        logger.info("Evaluation...")
-                        conn.send({"worker_id": index, "tracker": tracker})
-                    elif msg["type"] == "quit":
-                        break
+        def _rollout_worker(index, conn, get_env_sampler):
+            set_seeds(index)
+            env_sampler = get_env_sampler()
+            logger = Logger("ROLLOUT_WORKER", dump_folder=log_dir)
+            while True:
+                msg = conn.recv()
+                if msg["type"] == "sample":
+                    result = env_sampler.sample(policy_state_dict=msg["policy_state"], num_steps=self._num_steps)
+                    logger.info(get_rollout_finish_msg(
+                        msg["episode"], result["step_range"], exploration_params=result["exploration_params"]
+                    ))
+                    result["worker_index"] = index
+                    conn.send(result)
+                elif msg["type"] == "test":
+                    logger.info("Evaluating...")
+                    tracker = env_sampler.test(msg["policy_state"])
+                    conn.send({"worker_id": index, "tracker": tracker})
+                elif msg["type"] == "quit":
+                    break
 
-            for index in range(self._parallelism):
-                manager_end, worker_end = Pipe()
-                self._manager_ends.append(manager_end)
-                worker = Process(target=_rollout_worker, args=(index, worker_end, get_env_sampler))
-                self._worker_processes.append(worker)
-                worker.start()
+        for index in range(self._num_rollouts):
+            manager_end, worker_end = Pipe()
+            self._manager_ends.append(manager_end)
+            worker = Process(target=_rollout_worker, args=(index, worker_end, get_env_sampler))
+            self._worker_processes.append(worker)
+            worker.start()
 
-    def collect(self, ep: int, segment: int, policy_state_dict: dict, version: int):
+    def collect(self, ep: int, segment: int, policy_state_dict: dict, version: int) -> Tuple[Dict, List[Dict]]:
         """Collect simulation data, i.e., experiences for training.
 
         Args:
-            ep (int): Current episode index.
-            segment (int): Current segment index.
-            policy_state_dict (dict): Policy states to use for simulation.
-            version (int): Version index from the policy manager from which the ``policy_state_dict`` is obtained.
+            ep (int): Current episode.
+            segment (int): Current segment.
+            policy_state_dict (dict): Policy states to use for collecting training info.
+            version (int): Version for the policy states.
 
         Returns:
-            Experiences for policy training.
+            A 2-tuple consisting of a dictionary of roll-out information grouped by policy ID and a list of dictionaries
+            containing step-level information collected by the user-defined ``post_step`` callback in ``AbsEnvSampler``.
+            An RL policy's roll-out information must be either loss information or a data batch that can be passed to
+            the policy's ``update`` or ``learn``, respectively.
         """
         self._logger.info(f"Collecting simulation data (episode {ep}, policy version {version})")
 
         info_by_policy, trackers = defaultdict(list), []
-        if self._parallelism == 1:
-            result = self.env_sampler.sample(
-                policy_state_dict=policy_state_dict,
-                num_steps=self._num_steps,
-                exploration_step=self._exploration_step
-            )
-            self._logger.info(
-                get_rollout_finish_msg(ep, result["step_range"], exploration_params=result["exploration_params"])
-            )
+        rollout_req = {
+            "type": "sample",
+            "episode": ep,
+            "num_steps": self._num_steps,
+            "policy_state": policy_state_dict
+        }
 
+        for conn in self._manager_ends:
+            conn.send(rollout_req)
+
+        for conn in self._manager_ends:
+            result = conn.recv()
             for policy_id, info in result["rollout_info"].items():
                 info_by_policy[policy_id].append(info)
             trackers.append(result["tracker"])
-            self.episode_complete = result["end_of_episode"]
-        else:
-            rollout_req = {
-                "type": "sample",
-                "episode": ep,
-                "num_steps": self._num_steps,
-                "policy_state": policy_state_dict,
-                "exploration_step": self._exploration_step
-            }
-
-            for conn in self._manager_ends:
-                conn.send(rollout_req)
-
-            if self._exploration_step:
-                self._exploration_step = False
-
-            for conn in self._manager_ends:
-                result = conn.recv()
-                for policy_id, info in result["rollout_info"].items():
-                    info_by_policy[policy_id].append(info)
-                trackers.append(result["tracker"])
-                self.episode_complete = result["episode_end"]
-
-        if self.episode_complete:
-            self._exploration_step = True
-
-        if self._post_collect:
-            self._post_collect(trackers, ep, segment)
+            self.end_of_episode = result["end_of_episode"]
 
         # concat batches from different roll-out workers
         for policy_id, info_list in info_by_policy.items():
             if "loss" not in info_list[0]:
                 info_by_policy[policy_id] = concat_batches(info_list)
 
-        return info_by_policy
+        return info_by_policy, trackers
 
     def evaluate(self, ep: int, policy_state_dict: dict):
-        """Evaluate the performance of ``policy_state_dict``.
+        """Evaluate policy performance.
 
         Args:
-            ep (int): Current training episode index.
-            policy_state_dict (dict): Policy states to use for simulation.
+            ep (int): Current training episode.
+            policy_state_dict (dict): Policy states to use for evaluation.
 
         Returns:
-            Environment summary.
+            A list of dictionaries containing step-level information collected by the user-defined ``post_step``
+            callback in ``AbsEnvSampler`` for evaluation purposes.
         """
         trackers = []
-        if self._eval_parallelism == 1:
-            self._logger.info("Evaluating...")
-            tracker = self.env_sampler.test(policy_state_dict)
-            trackers.append(tracker)
-        else:
-            eval_worker_conns = choices(self._manager_ends, k=self._eval_parallelism)
-            for conn in eval_worker_conns:
-                conn.send({"type": "test", "episode": ep, "policy_state": policy_state_dict})
-
-            for conn in self._manager_ends:
-                result = conn.recv()
-                trackers.append(result["tracker"])
-
-        if self._post_evaluate:
-            self._post_evaluate(trackers, ep)
+        eval_worker_conns = choices(self._manager_ends, k=self._num_eval_rollouts)
+        for conn in eval_worker_conns:
+            conn.send({"type": "test", "policy_state": policy_state_dict})
+        for conn in eval_worker_conns:
+            result = conn.recv()
+            trackers.append(result["tracker"])
 
         return trackers
 
     def exit(self):
         """Tell the worker processes to exit."""
-        if self._parallelism > 1:
-            for conn in self._manager_ends:
-                conn.send({"type": "quit"})
+        for conn in self._manager_ends:
+            conn.send({"type": "quit"})
 
 
 class DistributedRolloutManager(AbsRolloutManager):
@@ -275,14 +222,6 @@ class DistributedRolloutManager(AbsRolloutManager):
             Experiences collected using policy versions older than (current_version - max_lag) will be discarded.
             Defaults to 0, in which case only experiences collected using the latest policy version will be returned.
         num_eval_workers (int): Number of workers for evaluation. Defaults to 1.
-        post_collect (Callable): Custom function to process whatever information is collected by each
-            environment wrapper (local or remote) at the end of ``collect`` calls. The function signature should
-            be (trackers, ep, step_range) -> None, where tracker is a list of environment wrappers' ``tracker`` members.
-            Defaults to None.
-        post_evaluate (Callable): Custom function to process whatever information is collected by each
-            environment wrapper (local or remote) at the end of ``evaluate`` calls. The function signature should
-            be (trackers, ep) -> None, where tracker is a list of environment wrappers' ``tracker`` members. Defaults
-            to None.
         proxy_kwargs: Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
             for details. Defaults to the empty dictionary.
         log_dir (str): Directory to store logs in. A ``Logger`` with tag "ROLLOUT_MANAGER" will be created at init
@@ -299,15 +238,13 @@ class DistributedRolloutManager(AbsRolloutManager):
         extra_recv_timeout: int = None,
         max_lag: int = 0,
         num_eval_workers: int = 1,
-        post_collect: Callable = None,
-        post_evaluate: Callable = None,
         proxy_kwargs: dict = {},
         log_dir: str = getcwd()
     ):
         if num_eval_workers > num_workers:
             raise ValueError("num_eval_workers cannot exceed the number of available workers")
 
-        super().__init__(post_collect=post_collect, post_evaluate=post_evaluate)
+        super().__init__()
         self._num_workers = num_workers
         peers = {"rollout_worker": num_workers}
         self._proxy = Proxy(group, "rollout_manager", peers, component_name="ROLLOUT_MANAGER", **proxy_kwargs)
@@ -330,34 +267,32 @@ class DistributedRolloutManager(AbsRolloutManager):
 
         self._max_lag = max_lag
         self._num_eval_workers = num_eval_workers
-        self._exploration_step = False
 
-    def collect(self, ep: int, segment: int, policy_state_dict: dict, version: int):
+    def collect(self, ep: int, segment: int, policy_state_dict: dict, version: int) -> Tuple[Dict, List[Dict]]:
         """Collect simulation data, i.e., experiences for training.
 
         Args:
-            ep (int): Current episode index.
-            segment (int): Current segment index.
-            policy_state_dict (dict): Policy states to use for simulation.
-            version (int): Version index from the policy manager from which the ``policy_state_dict`` is obtained.
+            ep (int): Current episode.
+            segment (int): Current segment.
+            policy_state_dict (dict): Policy states to use for collecting training info.
+            version (int): Version for the policy states.
 
         Returns:
-            Experiences for policy training.
+            A 2-tuple consisting of a dictionary of roll-out information grouped by policy ID and a list of dictionaries
+            containing step-level information collected by the user-defined ``post_step`` callback in ``AbsEnvSampler``.
+            An RL policy's roll-out information must be either loss information or a data batch that can be passed to
+            the policy's ``update`` or ``learn``, respectively.
         """
         msg_body = {
             MsgKey.EPISODE: ep,
             MsgKey.SEGMENT: segment,
             MsgKey.NUM_STEPS: self._num_steps,
             MsgKey.POLICY_STATE: policy_state_dict,
-            MsgKey.VERSION: version,
-            MsgKey.EXPLORATION_STEP: self._exploration_step
+            MsgKey.VERSION: version
         }
 
         self._proxy.iscatter(MsgTag.SAMPLE, SessionType.TASK, [(worker_id, msg_body) for worker_id in self._workers])
         self._logger.info(f"Collecting simulation data (episode {ep}, segment {segment}, policy version {version})")
-
-        if self._exploration_step:
-            self._exploration_step = False
 
         info_by_policy, trackers, num_finishes = defaultdict(list), [], 0
         # Ensure the minimum number of worker results are received.
@@ -386,18 +321,12 @@ class DistributedRolloutManager(AbsRolloutManager):
                 if num_finishes == self._num_workers:
                     break
 
-        if self.episode_complete:
-            self._exploration_step = True
-
-        if self._post_collect:
-            self._post_collect(trackers, ep, segment)
-
         # concat batches from different roll-out workers
         for policy_id, info_list in info_by_policy.items():
             if "loss" not in info_list[0]:
                 info_by_policy[policy_id] = concat_batches(info_list)
 
-        return info_by_policy
+        return info_by_policy, trackers
 
     def _handle_worker_result(self, msg, ep, segment, version):
         if msg.tag != MsgTag.SAMPLE_DONE:
@@ -416,20 +345,21 @@ class DistributedRolloutManager(AbsRolloutManager):
 
         # The message is what we expect
         if msg.body[MsgKey.EPISODE] == ep and msg.body[MsgKey.SEGMENT] == segment:
-            self.episode_complete = msg.body[MsgKey.END_OF_EPISODE]
+            self.end_of_episode = msg.body[MsgKey.END_OF_EPISODE]
             return msg.body[MsgKey.ROLLOUT_INFO], msg.body[MsgKey.TRACKER]
 
         return None, None
 
     def evaluate(self, ep: int, policy_state_dict: dict):
-        """Evaluate the performance of ``policy_state_dict``.
+        """Evaluate policy performance.
 
         Args:
-            ep (int): Current training episode index.
-            policy_state_dict (dict): Policy states to use for simulation.
+            ep (int): Current training episode.
+            policy_state_dict (dict): Policy states to use for evaluation.
 
         Returns:
-            Environment summary.
+            A list of dictionaries containing step-level information collected by the user-defined ``post_step``
+            callback in ``AbsEnvSampler`` for evaluation purposes.
         """
         msg_body = {MsgKey.EPISODE: ep, MsgKey.POLICY_STATE: policy_state_dict}
 
@@ -443,8 +373,8 @@ class DistributedRolloutManager(AbsRolloutManager):
         for msg in self._proxy.receive():
             if msg.tag != MsgTag.TEST_DONE or msg.body[MsgKey.EPISODE] != ep:
                 self._logger.info(
-                    f"Ignore a message of type {msg.tag} with episode index {msg.body[MsgKey.EPISODE]} "
-                    f"(expected message type {MsgTag.TEST_DONE} and episode index {ep})"
+                    f"Ignore a message of type {msg.tag} with episode {msg.body[MsgKey.EPISODE]} "
+                    f"(expected message type {MsgTag.TEST_DONE} and episode {ep})"
                 )
                 continue
 
@@ -453,9 +383,6 @@ class DistributedRolloutManager(AbsRolloutManager):
                 num_finishes += 1
                 if num_finishes == self._num_eval_workers:
                     break
-
-        if self._post_evaluate:
-            self._post_evaluate(trackers, ep)
 
         return trackers
 
