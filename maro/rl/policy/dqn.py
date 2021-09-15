@@ -407,11 +407,6 @@ class DQN(RLPolicy):
             _ = self.get_batch_loss(self._get_batch(), explicit_grad=True)
             self.update(loss_info_by_policy[self._name])
 
-    def set_state(self, policy_state):
-        self.q_net.load_state_dict(policy_state["eval"])
-        if "target" in policy_state:
-            self.target_q_net.load_state_dict(policy_state["target"])
-
     def exploration_step(self):
         """Update the exploration parameters according to the exploration scheduler."""
         for sch in self.exploration_schedulers:

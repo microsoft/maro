@@ -33,8 +33,7 @@ class WorkerAllocator(object):
     def allocate(self, **kwargs):
         if self.mode not in self._cached_mappings:
             if self.mode == AllocationMode.BY_POLICY.value:
-                policy_names = kwargs.get('policy_names', None)
-                self._cached_mappings[self.mode] = self.allocate_by_policy(policy_names=policy_names)
+                self._cached_mappings[self.mode] = self.allocate_by_policy()
             elif self.mode == AllocationMode.BY_AGENT.value:
                 self._cached_mappings[self.mode] = self.allocate_by_agent()
             elif self.mode == AllocationMode.BY_EXPERIENCE.value:
@@ -45,10 +44,9 @@ class WorkerAllocator(object):
                 raise NotImplementedError(f"{self.mode} is not implemented.")
         return self._cached_mappings[self.mode]
 
-    def allocate_by_policy(self, policy_names=None):
+    def allocate_by_policy(self):
         """Evenly allocate grad workers to each policy."""
-        if policy_names is None:
-            policy_names = self.policy_names
+        policy_names = self.policy_names
         num_workers = self.num_workers
         policy2workers = defaultdict(list)
         worker2policies = defaultdict(list)
@@ -66,10 +64,8 @@ class WorkerAllocator(object):
                     worker2policies[f"{self.worker_prefix}.{worker_id}"].append(name)
         return policy2workers, worker2policies
 
-    def allocate_by_agent(self, agent2policy=None):
-        if agent2policy is None:
-            agent2policy = self.agent2policy
-
+    def allocate_by_agent(self):
+        agent2policy = self.agent2policy
         num_agents_by_policy = {}
         for agent_id, policy_name in agent2policy.items():
             num_agents_by_policy[policy_name] = num_agents_by_policy.get(policy_name, 0) + 1

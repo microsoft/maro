@@ -147,8 +147,7 @@ class SimplePolicyManager(AbsPolicyManager):
         t0 = time.time()
         if self._data_parallel:
             # re-allocate grad workers before update.
-            self._policy2workers, self._worker2policies = self._worker_allocator.allocate(
-                policy_names=self._policy_ids, logger=self._logger)
+            self._policy2workers, self._worker2policies = self._worker_allocator.allocate()
 
         for policy_id, info_list in rollout_info.items():
             # in some cases e.g. Actor-Critic that get loss from rollout workers
@@ -281,8 +280,7 @@ class MultiProcessPolicyManager(AbsPolicyManager):
         t0 = time.time()
         if self._data_parallel:
             # re-allocate grad workers before update.
-            self._policy2workers, self._worker2policies = self._worker_allocator.allocate(
-                policy_names=self._policy_ids, logger=self._logger)
+            self._policy2workers, self._worker2policies = self._worker_allocator.allocate()
 
         for policy_id, info_list in rollout_info.items():
             self._manager_end[policy_id].send(
@@ -395,8 +393,7 @@ class DistributedPolicyManager(AbsPolicyManager):
         information dictionaries computed directly by roll-out workers.
         """
         if self._data_parallel:
-            self._policy2workers, self._worker2policies = self._worker_allocator.allocate(
-                policy_names=self._policy_ids, logger=self._logger)
+            self._policy2workers, self._worker2policies = self._worker_allocator.allocate()
 
         msg_dict = defaultdict(lambda: defaultdict(dict))
         for policy_id, info_list in rollout_info.items():
