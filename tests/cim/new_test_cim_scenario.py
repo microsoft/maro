@@ -47,7 +47,7 @@ class TestCimScenarios(unittest.TestCase):
             durations=200,
             options={"enable-dump-snapshot": tempfile.gettempdir()}
         )
-        self._business_engine = self._business_engine
+        self._business_engine = self._env.business_engine
 
     def test_load_from_config(self) -> None:
         for backend_name in backends_to_test:
@@ -350,7 +350,7 @@ class TestCimScenarios(unittest.TestCase):
             history = []
             while not is_done:
                 metric, decision_event, is_done = self._env.step(None)
-                assert isinstance(decision_event, DecisionEvent)
+                assert decision_event is None or isinstance(decision_event, DecisionEvent)
                 if decision_event is not None and decision_event.vessel_idx == 35:
                     v = self._business_engine.vessels[35]
                     history.append((v.full, v.empty, v.early_discharge))
