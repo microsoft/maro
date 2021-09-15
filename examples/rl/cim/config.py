@@ -1,11 +1,16 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import torch
+from torch.optim import Adam, RMSprop
+
+from maro.rl.exploration import MultiLinearExplorationScheduler, epsilon_greedy
+
 
 env_conf = {
     "scenario": "cim",
     "topology": "toy.4p_ssdd_l0.0",
-    "durations": 280
+    "durations": 560
 }
 
 port_attributes = ["empty", "full", "on_shipper", "on_consignee", "booking", "shortage", "fulfillment"]
@@ -37,22 +42,18 @@ state_dim = (
 
 # DQN settings
 q_net_conf = {
-    "network": {
-        "input_dim": state_dim,
-        "hidden_dims": [256, 128, 64, 32],
-        "output_dim": len(action_shaping_conf["action_space"]),
-        "activation": "leaky_relu",
-        "softmax": False,
-        "batch_norm": True,
-        "skip_connection": False,
-        "head": True,
-        "dropout_p": 0.0
-    },
-    "optimization": {
-        "optim_cls": "rmsprop",
-        "optim_params": {"lr": 0.05}
-    }
+    "input_dim": state_dim,
+    "hidden_dims": [256, 128, 64, 32],
+    "output_dim": len(action_shaping_conf["action_space"]),
+    "activation": torch.nn.LeakyReLU,
+    "softmax": False,
+    "batch_norm": True,
+    "skip_connection": False,
+    "head": True,
+    "dropout_p": 0.0
 }
+
+q_net_optim_conf = (RMSprop, {"lr": 0.05})
 
 dqn_conf = {
     "reward_discount": .0,
@@ -60,8 +61,18 @@ dqn_conf = {
     "num_epochs": 10,
     "soft_update_coeff": 0.1,
     "double": False,
+    "exploration_strategy": (epsilon_greedy, {"epsilon": 0.4}),
+    "exploration_scheduling_options": [(
+        "epsilon", MultiLinearExplorationScheduler, {
+            "splits": [(2, 0.32)],
+            "initial_value": 0.4,
+            "last_ep": 5,
+            "final_value": 0.0,
+        }
+    )],
     "replay_memory_capacity": 10000,
     "random_overwrite": False,
+    "warmup": 100,
     "rollout_batch_size": 128,
     "train_batch_size": 32,
     # "prioritized_replay_kwargs": {
@@ -72,56 +83,39 @@ dqn_conf = {
     # }
 }
 
-exploration_conf = {
-    "last_ep": 10,
-    "initial_value": 0.4,
-    "final_value": 0.0,
-    "splits": [(5, 0.32)]
-}
-
 
 # AC settings
-ac_net_conf = {
-    "network": {
-        "actor": {
-            "input_dim": state_dim,
-            "hidden_dims": [256, 128, 64],
-            "output_dim": len(action_shaping_conf["action_space"]),
-            "activation": "tanh",
-            "softmax": True,
-            "batch_norm": False,
-            "head": True
-        },
-        "critic": {
-            "input_dim": state_dim,
-            "hidden_dims": [256, 128, 64],
-            "output_dim": 1,
-            "activation": "leaky_relu",
-            "softmax": False,
-            "batch_norm": True,
-            "head": True
-        }
-    },
-    "optimization": {
-        "actor": {
-            "optim_cls": "adam",
-            "optim_params": {"lr": 0.001}
-        },
-        "critic": {
-            "optim_cls": "rmsprop",
-            "optim_params": {"lr": 0.001}
-        }
-    }
+actor_net_conf = {
+    "input_dim": state_dim,
+    "hidden_dims": [256, 128, 64],
+    "output_dim": len(action_shaping_conf["action_space"]),
+    "activation": torch.nn.Tanh,
+    "softmax": True,
+    "batch_norm": False,
+    "head": True
 }
+
+critic_net_conf = {
+    "input_dim": state_dim,
+    "hidden_dims": [256, 128, 64],
+    "output_dim": 1,
+    "activation": torch.nn.LeakyReLU,
+    "softmax": False,
+    "batch_norm": True,
+    "head": True
+}
+
+actor_optim_conf = (Adam, {"lr": 0.001})
+critic_optim_conf = (RMSprop, {"lr": 0.001})
 
 ac_conf = {
     "reward_discount": .0,
     "grad_iters": 10,
-    "critic_loss_cls": "smooth_l1",
+    "critic_loss_cls": torch.nn.SmoothL1Loss,
     "min_logp": None,
     "critic_loss_coeff": 0.1,
     "entropy_coeff": 0.01,
     # "clip_ratio": 0.8   # for PPO
-    "lam": 0.9,
-    "get_loss_on_rollout": True
+    "lam": .0,
+    "get_loss_on_rollout": False
 }

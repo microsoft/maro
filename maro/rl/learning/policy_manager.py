@@ -106,7 +106,7 @@ class SimplePolicyManager(AbsPolicyManager):
         log_dir: str = getcwd()
     ):
         super().__init__()
-        self._policy_names = list(create_policy_func_dict.keys())
+        self._policy_ids = list(create_policy_func_dict.keys())
         self._parallel = parallel
         self._logger = Logger("POLICY_MANAGER", dump_folder=log_dir)
         if parallel:
@@ -121,14 +121,11 @@ class SimplePolicyManager(AbsPolicyManager):
                 while True:
                     msg = conn.recv()
                     if msg["type"] == "learn":
-                        info_list = msg["rollout_info"]
-                        if not isinstance(info_list, list):
-                            info_list = [info_list]
-                        if "loss" in info_list[0]:
-                            policy.update(info_list)
+                        info = msg["rollout_info"]
+                        if isinstance(info, list):
+                            policy.update(info)
                         else:
-                            policy.learn(info_list)
-
+                            policy.learn(info)
                         conn.send({"type": "learn_done", "policy_state": policy.get_state()})
                     elif msg["type"] == "quit":
                         break
@@ -140,11 +137,11 @@ class SimplePolicyManager(AbsPolicyManager):
                 self._policy_hosts.append(host)
                 host.start()
 
-            for policy_name, conn in self._manager_end.items():
+            for policy_id, conn in self._manager_end.items():
                 msg = conn.recv()
                 if msg["type"] == "init":
-                    self._state_cache[policy_name] = msg["policy_state"]
-                    self._logger.info(f"Initial state for policy {policy_name} cached")
+                    self._state_cache[policy_id] = msg["policy_state"]
+                    self._logger.info(f"Initial state for policy {policy_id} cached")
         else:
             self._logger.info("Creating policy instances locally")
             self._policy_dict = {name: func(name) for name, func in create_policy_func_dict.items()}
@@ -159,19 +156,19 @@ class SimplePolicyManager(AbsPolicyManager):
         """
         t0 = time.time()
         if self._parallel:
-            for policy_name, info_list in rollout_info.items():
-                self._manager_end[policy_name].send({"type": "learn", "rollout_info": info_list})
-            for policy_name, conn in self._manager_end.items():
+            for policy_id, info in rollout_info.items():
+                self._manager_end[policy_id].send({"type": "learn", "rollout_info": info})
+            for policy_id, conn in self._manager_end.items():
                 msg = conn.recv()
                 if msg["type"] == "learn_done":
-                    self._state_cache[policy_name] = msg["policy_state"]
-                    self._logger.info(f"Cached state for policy {policy_name}")
+                    self._state_cache[policy_id] = msg["policy_state"]
+                    self._logger.info(f"Cached state for policy {policy_id}")
         else:
-            for policy_name, info in rollout_info.items():
+            for policy_id, info in rollout_info.items():
                 if isinstance(info, list):
-                    self._policy_dict[policy_name].update(info)
+                    self._policy_dict[policy_id].update(info)
                 else:
-                    self._policy_dict[policy_name].learn(info)
+                    self._policy_dict[policy_id].learn(info)
 
         self._logger.info(f"Updated policies {list(rollout_info.keys())}")
         self._version += 1
@@ -199,7 +196,7 @@ class DistributedPolicyManager(AbsPolicyManager):
     """Policy manager that communicates with a set of remote nodes that house the policy instances.
 
     Args:
-        policy_names (List[str]): Names of the registered policies.
+        policy_ids (List[str]): Names of the registered policies.
         group (str): Group name for the cluster consisting of the manager and all policy hosts.
         num_hosts (int): Number of hosts. The hosts will be identified by "POLICY_HOST.i", where 0 <= i < num_hosts.
         log_dir (str): Directory to store logs in. A ``Logger`` with tag "POLICY_MANAGER" will be created at init
@@ -210,14 +207,14 @@ class DistributedPolicyManager(AbsPolicyManager):
     """
     def __init__(
         self,
-        policy_names: List[str],
+        policy_ids: List[str],
         group: str,
         num_hosts: int,
         log_dir: str = getcwd(),
         proxy_kwargs: dict = {}
     ):
         super().__init__()
-        self._policy_names = policy_names
+        self._policy_ids = policy_ids
         peers = {"policy_host": num_hosts}
         self._proxy = Proxy(group, "policy_manager", peers, component_name="POLICY_MANAGER", **proxy_kwargs)
         self._logger = Logger("POLICY_MANAGER", dump_folder=log_dir)
@@ -226,7 +223,7 @@ class DistributedPolicyManager(AbsPolicyManager):
         self._host2policies = defaultdict(list)
 
         # assign policies to hosts
-        for i, name in enumerate(self._policy_names):
+        for i, name in enumerate(self._policy_ids):
             host_id = i % num_hosts
             self._policy2host[name] = f"POLICY_HOST.{host_id}"
             self._host2policies[f"POLICY_HOST.{host_id}"].append(name)
@@ -234,18 +231,18 @@ class DistributedPolicyManager(AbsPolicyManager):
         self._logger.info(f"Policy assignment: {self._policy2host}")
 
         # ask the hosts to initialize the assigned policies
-        for host_name, policy_names in self._host2policies.items():
+        for host_name, policy_ids in self._host2policies.items():
             self._proxy.isend(SessionMessage(
-                MsgTag.INIT_POLICIES, self._proxy.name, host_name, body={MsgKey.POLICY_NAMES: policy_names}
+                MsgTag.INIT_POLICIES, self._proxy.name, host_name, body={MsgKey.POLICY_IDS: policy_ids}
             ))
 
         # cache the initial policy states
         self._state_cache, dones = {}, 0
         for msg in self._proxy.receive():
             if msg.tag == MsgTag.INIT_POLICIES_DONE:
-                for policy_name, policy_state in msg.body[MsgKey.POLICY_STATE].items():
-                    self._state_cache[policy_name] = policy_state
-                    self._logger.info(f"Cached state for policy {policy_name}")
+                for policy_id, policy_state in msg.body[MsgKey.POLICY_STATE].items():
+                    self._state_cache[policy_id] = policy_state
+                    self._logger.info(f"Cached state for policy {policy_id}")
                 dones += 1
                 if dones == num_hosts:
                     break
@@ -259,17 +256,17 @@ class DistributedPolicyManager(AbsPolicyManager):
         information dictionaries computed directly by roll-out workers.
         """
         msg_dict = defaultdict(lambda: defaultdict(dict))
-        for policy_name, info in rollout_info.items():
-            host_id_str = self._policy2host[policy_name]
-            msg_dict[host_id_str][MsgKey.ROLLOUT_INFO][policy_name] = info
+        for policy_id, info in rollout_info.items():
+            host_id_str = self._policy2host[policy_id]
+            msg_dict[host_id_str][MsgKey.ROLLOUT_INFO][policy_id] = info
 
         dones = 0
         self._proxy.iscatter(MsgTag.LEARN, SessionType.TASK, list(msg_dict.items()))
         for msg in self._proxy.receive():
             if msg.tag == MsgTag.LEARN_DONE:
-                for policy_name, policy_state in msg.body[MsgKey.POLICY_STATE].items():
-                    self._state_cache[policy_name] = policy_state
-                    self._logger.info(f"Cached state for policy {policy_name}")
+                for policy_id, policy_state in msg.body[MsgKey.POLICY_STATE].items():
+                    self._state_cache[policy_id] = policy_state
+                    self._logger.info(f"Cached state for policy {policy_id}")
                 dones += 1
                 if dones == len(msg_dict):
                     break
@@ -322,10 +319,10 @@ def policy_host(
             break
 
         if msg.tag == MsgTag.INIT_POLICIES:
-            for name in msg.body[MsgKey.POLICY_NAMES]:
+            for name in msg.body[MsgKey.POLICY_IDS]:
                 policy_dict[name] = create_policy_func_dict[name](name)
 
-            logger.info(f"Initialized policies {msg.body[MsgKey.POLICY_NAMES]}")
+            logger.info(f"Initialized policies {msg.body[MsgKey.POLICY_IDS]}")
             proxy.reply(
                 msg,
                 tag=MsgTag.INIT_POLICIES_DONE,

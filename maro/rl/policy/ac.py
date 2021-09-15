@@ -9,20 +9,18 @@ import torch
 from torch.distributions import Categorical
 
 from maro.rl.modeling import DiscreteACNet
-from maro.rl.utils import discount_cumsum, get_torch_loss_cls
+from maro.rl.utils import average_grads, discount_cumsum
 
 from .policy import RLPolicy
 
 
 class ActorCritic(RLPolicy):
     class Buffer:
-        """Sequence of transitions for an agent.
+        """Store a sequence of transitions, i.e., a trajectory.
 
         Args:
-            states: Sequence of ``State`` objects traversed during simulation.
-            actions: Sequence of actions taken in response to the states.
-            rewards: Sequence of rewards received as a result of the actions.
-            info: Sequence of each transition's auxillary information.
+            state_dim (int): State vector dimension.
+            size (int): Buffer capacity, i.e., the maximum number of stored transitions.
         """
         def __init__(self, state_dim, size: int = 10000):
             self.states = np.zeros((size, state_dim), dtype=np.float32)
@@ -33,7 +31,7 @@ class ActorCritic(RLPolicy):
             self.terminals = np.zeros(size, dtype=np.bool)
             self.size = size
             self._ptr = 0
-            self._last_ptr = 0
+            self._prev_ptr = 0
 
         def put(self, state: np.ndarray, action: dict, reward: float, terminal: bool = False):
             self.states[self._ptr] = state
@@ -48,9 +46,14 @@ class ActorCritic(RLPolicy):
                 self._ptr = 0
 
         def get(self):
+            """Retrieve the latest trajectory segment."""
             terminal = self.terminals[self._ptr - 1]
-            traj_slice = slice(self._last_ptr, self._ptr - (not terminal))
-            self._last_ptr = self._ptr - (not terminal)
+            last = self._ptr - (not terminal)
+            if last > self._prev_ptr:
+                traj_slice = np.arange(self._prev_ptr, last)
+            else:  # wrap-around
+                traj_slice = np.concatenate([np.arange(self._prev_ptr, self.size), np.arange(last)])
+            self._prev_ptr = last
             return {
                 "states": self.states[traj_slice],
                 "actions": self.actions[traj_slice],
@@ -80,6 +83,15 @@ class ActorCritic(RLPolicy):
             total loss will not include an entropy term.
         clip_ratio (float): Clip ratio in the PPO algorithm (https://arxiv.org/pdf/1707.06347.pdf). Defaults to None,
             in which case the actor loss is calculated using the usual policy gradient theorem.
+        lambda (float): Lambda value for generalized advantage estimation (TD-Lambda). Defaults to 0.9.
+        max_trajectory_len (int): Maximum trajectory length that can be held by the buffer (for each agent that uses
+            this policy). Defaults to 10000.
+        get_loss_on_rollout (bool): If True, ``get_rollout_info`` will return the loss information (including gradients)
+            for the trajectories stored in the buffers. The loss information, along with that from other roll-out
+            instances, can be passed directly to ``update``. Otherwise, it will simply process the trajectories into a
+            single data batch that can be passed directly to ``learn``. Defaults to False.
+        device (str): Identifier for the torch device. The ``ac_net`` will be moved to the specified device. If it is
+            None, the device will be set to "cpu" if cuda is unavailable and "cuda" otherwise. Defaults to None.
     """
 
     def __init__(
@@ -91,46 +103,51 @@ class ActorCritic(RLPolicy):
         critic_loss_cls="mse",
         min_logp: float = None,
         critic_loss_coeff: float = 1.0,
-        entropy_coeff: float = None,
+        entropy_coeff: float = .0,
         clip_ratio: float = None,
         lam: float = 0.9,
-        buffer_size: int = 10000,
-        get_loss_on_rollout: bool = False
+        max_trajectory_len: int = 10000,
+        get_loss_on_rollout: bool = False,
+        device: str = None
     ):
         if not isinstance(ac_net, DiscreteACNet):
             raise TypeError("model must be an instance of 'DiscreteACNet'")
 
         super().__init__(name)
-        self.ac_net = ac_net
-        self.device = self.ac_net.device
+        if device is None:
+            self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        else:
+            self.device = torch.device(device)
+        self.ac_net = ac_net.to(self.device)
         self.reward_discount = reward_discount
         self.grad_iters = grad_iters
-        self.critic_loss_func = get_torch_loss_cls(critic_loss_cls)()
+        self.critic_loss_func = critic_loss_cls()
         self.min_logp = min_logp
         self.critic_loss_coeff = critic_loss_coeff
         self.entropy_coeff = entropy_coeff
         self.clip_ratio = clip_ratio
         self.lam = lam
-        self.buffer_size = buffer_size
+        self.max_trajectory_len = max_trajectory_len
         self.get_loss_on_rollout = get_loss_on_rollout
 
-        self._buffer = defaultdict(lambda: self.Buffer(self.ac_net.input_dim, size=self.buffer_size))
+        self._buffer = defaultdict(lambda: self.Buffer(self.ac_net.input_dim, size=self.max_trajectory_len))
 
-    def choose_action(self, states: np.ndarray):
-        """Return actions and log probabilities for given states."""
+    def __call__(self, states: np.ndarray):
+        """Return a list of action information dict given a batch of states.
+
+        An action information dict contains the action itself, the corresponding log-P value and the corresponding
+        state value.
+        """
         self.ac_net.eval()
         states = torch.from_numpy(states).to(self.device)
         if len(states.shape) == 1:
             states = states.unsqueeze(dim=0)
         with torch.no_grad():
-            actions, logps, values = self.ac_net.get_action(states)
+            actions, logps, values = self.ac_net.get_action(states, greedy=self.greedy)
         actions, logps, values = actions.cpu().numpy(), logps.cpu().numpy(), values.cpu().numpy()
-        if len(actions) == 1:
-            return {"action": actions[0], "logp": logps[0], "value": values[0]}
-        else:
-            return [
-                {"action": action, "logp": logp, "value": value} for action, logp, value in zip(actions, logps, values)
-            ]
+        return [
+            {"action": action, "logp": logp, "value": value} for action, logp, value in zip(actions, logps, values)
+        ]
 
     def record(
         self,
@@ -144,6 +161,12 @@ class ActorCritic(RLPolicy):
         self._buffer[key].put(state, action, reward, terminal)
 
     def get_rollout_info(self):
+        """Extract information from the recorded transitions.
+
+        Returns:
+            Loss (including gradients) for the latest trajectory segment in the replay buffer if ``get_loss_on_rollout``
+            is True or the latest trajectory segment with pre-computed return and advantage values.
+        """
         if self.get_loss_on_rollout:
             return self.get_batch_loss(self._get_batch(), explicit_grad=True)
         else:
@@ -167,7 +190,13 @@ class ActorCritic(RLPolicy):
         return {key: np.concatenate(vals) for key, vals in batch.items()}
 
     def get_batch_loss(self, batch: dict, explicit_grad: bool = False):
-        assert self.ac_net.trainable, "ac_net needs to have at least one optimizer registered."
+        """Compute AC loss for a data batch.
+
+        Args:
+            batch (dict): A batch containing "states", "actions", "logps", "returns" and "advantages" as keys.
+            explicit_grad (bool): If True, the gradients should be returned as part of the loss information. Defaults
+                to False.
+        """
         self.ac_net.train()
         states = torch.from_numpy(batch["states"]).to(self.device)
         actions = torch.from_numpy(batch["actions"]).to(self.device)
@@ -191,7 +220,7 @@ class ActorCritic(RLPolicy):
         # critic_loss
         critic_loss = self.critic_loss_func(state_values, returns)
         # entropy
-        entropy = -Categorical(action_probs).entropy().mean() if self.entropy_coeff is not None else 0
+        entropy = -Categorical(action_probs).entropy().mean() if self.entropy_coeff else 0
 
         # total loss
         loss = actor_loss + self.critic_loss_coeff * critic_loss + self.entropy_coeff * entropy
@@ -199,8 +228,8 @@ class ActorCritic(RLPolicy):
         loss_info = {
             "actor_loss": actor_loss.detach().cpu().numpy(),
             "critic_loss": critic_loss.detach().cpu().numpy(),
-            "entropy": entropy.detach().cpu().numpy(),
-            "loss": loss.detach().cpu().numpy()
+            "entropy": entropy.detach().cpu().numpy() if self.entropy_coeff else .0,
+            "loss": loss.detach().cpu().numpy() if explicit_grad else loss
         }
         if explicit_grad:
             loss_info["grad"] = self.ac_net.get_gradients(loss)
@@ -208,12 +237,26 @@ class ActorCritic(RLPolicy):
         return loss_info
 
     def update(self, loss_info_list: List[dict]):
-        """Apply gradients to the underlying parameterized model."""
-        self.ac_net.apply_gradients([loss_info["grad"] for loss_info in loss_info_list])
+        """Update the model parameters with gradients computed by multiple roll-out instances or gradient workers.
+
+        Args:
+            loss_info_list (List[dict]): A list of dictionaries containing loss information (including gradients)
+                computed by multiple roll-out instances or gradient workers.
+        """
+        self.ac_net.apply_gradients(average_grads([loss_info["grad"] for loss_info in loss_info_list]))
 
     def learn(self, batch: dict):
+        """Learn from a batch containing data required for policy improvement.
+
+        Args:
+            batch (dict): A batch containing "states", "actions", "logps", "returns" and "advantages" as keys.
+        """
         for _ in range(self.grad_iters):
             self.ac_net.step(self.get_batch_loss(batch)["loss"])
+
+    def improve(self):
+        """Learn using data from the buffer."""
+        self.learn(self._get_batch())
 
     def set_state(self, policy_state):
         self.ac_net.load_state_dict(policy_state)

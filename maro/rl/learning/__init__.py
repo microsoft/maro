@@ -1,16 +1,14 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from .early_stopper import AbsEarlyStopper
-from .env_sampler import EnvSampler
-from .learner import Learner, simple_learner
+from .env_sampler import AbsEnvSampler
+from .learning_loop import learn
 from .policy_manager import AbsPolicyManager, DistributedPolicyManager, SimplePolicyManager, policy_host
-from .rollout_manager import AbsRolloutManager, DistributedRolloutManager, SimpleRolloutManager
+from .rollout_manager import AbsRolloutManager, DistributedRolloutManager, MultiProcessRolloutManager
 
 __all__ = [
-    "AbsEarlyStopper",
-    "EnvSampler",
-    "Learner", "simple_learner",
+    "AbsEnvSampler",
+    "learn",
     "AbsPolicyManager", "DistributedPolicyManager", "SimplePolicyManager", "policy_host",
-    "AbsRolloutManager", "DistributedRolloutManager", "SimpleRolloutManager"
+    "AbsRolloutManager", "DistributedRolloutManager", "MultiProcessRolloutManager"
 ]

@@ -8,20 +8,18 @@ import numpy as np
 import torch
 
 from maro.rl.modeling import DiscretePolicyNet
-from maro.rl.utils import discount_cumsum
+from maro.rl.utils import average_grads, discount_cumsum
 
 from .policy import RLPolicy
 
 
 class PolicyGradient(RLPolicy):
     class Buffer:
-        """Sequence of transitions for an agent.
+        """Store a sequence of transitions, i.e., a trajectory.
 
         Args:
-            states: Sequence of ``State`` objects traversed during simulation.
-            actions: Sequence of actions taken in response to the states.
-            rewards: Sequence of rewards received as a result of the actions.
-            info: Sequence of each transition's auxillary information.
+            state_dim (int): State vector dimension.
+            size (int): Buffer capacity, i.e., the maximum number of stored transitions.
         """
         def __init__(self, state_dim, size: int = 10000):
             self.states = np.zeros((size, state_dim), dtype=np.float32)
@@ -60,6 +58,14 @@ class PolicyGradient(RLPolicy):
             It may or may not have a shared bottom stack.
         reward_discount (float): Reward decay as defined in standard RL terminology.
         grad_iters (int): Number of gradient steps for each batch or set of batches. Defaults to 1.
+        max_trajectory_len (int): Maximum trajectory length that can be held by the buffer (for each agent that uses
+            this policy). Defaults to 10000.
+        get_loss_on_rollout (bool): If True, ``get_rollout_info`` will return the loss information (including gradients)
+            for the trajectories stored in the buffers. The loss information, along with that from other roll-out
+            instances, can be passed directly to ``update``. Otherwise, it will simply process the trajectories into a
+            single data batch that can be passed directly to ``learn``. Defaults to False.
+        device (str): Identifier for the torch device. The ``policy net`` will be moved to the specified device. If it
+            is None, the device will be set to "cpu" if cuda is unavailable and "cuda" otherwise. Defaults to None.
     """
     def __init__(
         self,
@@ -67,28 +73,35 @@ class PolicyGradient(RLPolicy):
         policy_net: DiscretePolicyNet,
         reward_discount: float,
         grad_iters: int = 1,
-        buffer_size: int = 10000,
-        get_loss_on_rollout: bool = False
+        max_trajectory_len: int = 10000,
+        get_loss_on_rollout: bool = False,
+        device: str = None
     ):
         if not isinstance(policy_net, DiscretePolicyNet):
             raise TypeError("model must be an instance of 'DiscretePolicyNet'")
         super().__init__(name)
-        self.policy_net = policy_net
-        self.device = self.policy_net.device
+        if device is None:
+            self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        else:
+            self.device = torch.device(device)
+        self.policy_net = policy_net.to(self.device)
         self.reward_discount = reward_discount
         self.grad_iters = grad_iters
-        self.buffer_size = buffer_size
+        self.max_trajectory_len = max_trajectory_len
         self.get_loss_on_rollout = get_loss_on_rollout
 
-        self._buffer = defaultdict(lambda: self.Buffer(self.policy_net.input_dim, size=self.buffer_size))
+        self._buffer = defaultdict(lambda: self.Buffer(self.policy_net.input_dim, size=self.max_trajectory_len))
 
-    def choose_action(self, states: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
-        """Return actions and log probabilities for given states."""
+    def __call__(self, states: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+        """Return a list of action information dict given a batch of states.
+
+        An action information dict contains the action itself and the corresponding log-P value.
+        """
         self.policy_net.eval()
         with torch.no_grad():
-            actions, log_p = self.policy_net.get_action(states)
-        actions, log_p = actions.cpu().numpy(), log_p.cpu().numpy()
-        return (actions[0], log_p[0]) if len(actions) == 1 else actions, log_p
+            actions, logps = self.policy_net.get_action(states, greedy=self.greedy)
+        actions, logps = actions.cpu().numpy(), logps.cpu().numpy()
+        return [{"action": action, "logp": logp} for action, logp in zip(actions, logps)]
 
     def record(
         self,
@@ -102,7 +115,13 @@ class PolicyGradient(RLPolicy):
         self._buffer[key].put(state, action, reward, terminal)
 
     def get_rollout_info(self):
-        if self._get_loss_on_rollout_finish:
+        """Extract information from the recorded transitions.
+
+        Returns:
+            Loss (including gradients) for the latest trajectory segment in the replay buffer if ``get_loss_on_rollout``
+            is True or the latest trajectory segment with pre-computed return values.
+        """
+        if self.get_loss_on_rollout:
             return self.get_batch_loss(self._get_batch(), explicit_grad=True)
         else:
             return self._get_batch()
@@ -119,30 +138,44 @@ class PolicyGradient(RLPolicy):
         return {key: np.concatenate(vals) for key, vals in batch.items}
 
     def get_batch_loss(self, batch: dict, explicit_grad: bool = False):
-        """
-        This should be called at the end of a simulation episode and the experiences obtained from
-        the experience store's ``get`` method should be a sequential set, i.e., in the order in
-        which they are generated during the simulation. Otherwise, the return values may be meaningless.
-        """
-        assert self.policy_net.trainable, "policy_net needs to have at least one optimizer registered."
-        self.policy_net.train()
+        """Compute AC loss for a data batch.
 
-        returns = torch.from_numpy(np.asarray(batch.returns)).to(self.device)
+        Args:
+            batch (dict): A batch containing "states" and "returns" as keys.
+            explicit_grad (bool): If True, the gradients should be returned as part of the loss information. Defaults
+                to False.
+        """
+        self.policy_net.train()
+        returns = torch.from_numpy(np.asarray(batch["returns"])).to(self.device)
 
         _, logp = self.policy_net(batch["states"])
         loss = -(logp * returns).mean()
-        loss_info = {"loss": loss.detach().cpu().numpy()}
+        loss_info = {"loss": loss.detach().cpu().numpy() if explicit_grad else loss}
         if explicit_grad:
             loss_info["grad"] = self.policy_net.get_gradients(loss)
         return loss_info
 
     def update(self, loss_info_list: List[dict]):
-        """Apply gradients to the underlying parameterized model."""
-        self.policy_net.apply_gradients([loss_info["grad"] for loss_info in loss_info_list])
+        """Update the model parameters with gradients computed by multiple roll-out instances or gradient workers.
+
+        Args:
+            loss_info_list (List[dict]): A list of dictionaries containing loss information (including gradients)
+                computed by multiple roll-out instances or gradient workers.
+        """
+        self.policy_net.apply_gradients(average_grads([loss_info["grad"] for loss_info in loss_info_list]))
 
     def learn(self, batch: dict):
+        """Learn from a batch containing data required for policy improvement.
+
+        Args:
+            batch (dict): A batch containing "states" and "returns" as keys.
+        """
         for _ in range(self.grad_iters):
             self.policy_net.step(self.get_batch_loss(batch)["grad"])
+
+    def improve(self):
+        """Learn using data from the buffer."""
+        self.learn(self._get_batch())
 
     def set_state(self, policy_state):
         self.policy_net.load_state_dict(policy_state)
