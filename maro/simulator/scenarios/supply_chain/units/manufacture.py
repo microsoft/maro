@@ -2,8 +2,8 @@
 # Licensed under the MIT license.
 
 
-from .extendunitbase import ExtendUnitBase
 from .. import ManufactureDataModel
+from .extendunitbase import ExtendUnitBase
 
 
 class ManufactureUnit(ExtendUnitBase):
