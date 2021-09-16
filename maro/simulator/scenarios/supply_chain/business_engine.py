@@ -7,6 +7,7 @@ from typing import List, Tuple
 
 from maro.event_buffer import MaroEvents
 from maro.simulator.scenarios import AbsBusinessEngine
+
 from .parser import ConfigParser, SupplyChainConfiguration
 from .units import ProductUnit, UnitBase
 from .world import World
