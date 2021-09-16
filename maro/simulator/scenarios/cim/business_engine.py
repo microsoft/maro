@@ -4,19 +4,18 @@
 
 import os
 from math import ceil, floor
-from typing import Iterable, Optional
+from typing import Optional
 
 import numpy as np
+from maro.backends.frame import FrameBase, SnapshotList
 from yaml import safe_load
 
-from maro.backends.frame import FrameBase, SnapshotList
 from maro.data_lib.cim import CimDataContainerWrapper, Order, Stop
 from maro.event_buffer import AtomEvent, CascadeEvent, EventBuffer, MaroEvents
 from maro.simulator.scenarios import AbsBusinessEngine
 from maro.simulator.scenarios.helpers import DocableDict
 from maro.simulator.scenarios.matrix_accessor import MatrixAttributeAccessor
 from maro.streamit import streamit
-
 from .common import Action, ActionScope, ActionType, DecisionEvent
 from .event_payload import EmptyReturnPayload, LadenReturnPayload, VesselDischargePayload, VesselStatePayload
 from .events import Events
