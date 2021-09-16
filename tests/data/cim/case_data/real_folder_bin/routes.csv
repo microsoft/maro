@@ -1,0 +1,6 @@
+index,name,port_name,port_index,distance_to_next_port
+0,route_001,supply_port_001,2,60
+0,route_001,demand_port_001,0,60
+1,route_002,supply_port_001,2,60
+1,route_002,supply_port_002,3,60
+1,route_002,demand_port_002,1,60

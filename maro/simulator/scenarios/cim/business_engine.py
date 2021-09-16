@@ -666,7 +666,7 @@ class CimBusinessEngine(AbsBusinessEngine):
             event (CascadeEvent): Action event object with expected payload: {vessel_id: empty_number_to_move}}.
         """
         actions = event.payload
-        assert isinstance(actions, Iterable)
+        assert isinstance(actions, list)
 
         if actions:
             for action in actions:
