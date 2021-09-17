@@ -105,18 +105,6 @@ class CimBusinessEngine(AbsBusinessEngine):
         """SnapshotList: Snapshot list of current frame."""
         return self._snapshots
 
-    @property
-    def data_container(self) -> CimDataContainerWrapper:
-        return self._data_cntr
-
-    @property
-    def vessels(self) -> list:
-        return self._vessels
-
-    @property
-    def ports(self) -> list:
-        return self._ports
-
     def step(self, tick: int):
         """Called at each tick to generate orders and arrival events.
 
