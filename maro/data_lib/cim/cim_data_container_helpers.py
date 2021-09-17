@@ -9,7 +9,7 @@ from maro.cli.data_pipeline.utils import StaticParameter
 from maro.simulator.utils import random, seed
 
 from .cim_data_container import CimBaseDataContainer, CimRealDataContainer, CimSyntheticDataContainer
-from .cim_data_generator import CimDataGenerator
+from .cim_data_generator import gen_cim_data
 from .cim_data_loader import load_from_folder, load_real_data_from_folder
 from .utils import DATA_CONTAINER_INIT_SEED_LIMIT, ROUTE_INIT_RAND_KEY
 
@@ -40,11 +40,13 @@ class CimDataContainerWrapper:
                 config_path=config_path, max_tick=self._max_tick, start_tick=self._start_tick,
                 topology_seed=topology_seed
             )
+        elif os.path.exists(os.path.join(self._config_path, "order_proportion.csv")):
+            self._data_cntr = data_from_dumps(dumps_folder=self._config_path)
         else:
             # Real Data Mode: read data from input data files, no need for any config.yml.
             self._data_cntr = data_from_files(data_folder=self._config_path)
 
-    def reset(self, keep_seed):
+    def reset(self, keep_seed: bool):
         """Reset data container internal state"""
         if not keep_seed:
             self._init_data_container(random[ROUTE_INIT_RAND_KEY].randint(0, DATA_CONTAINER_INIT_SEED_LIMIT - 1))
@@ -88,7 +90,7 @@ def data_from_generator(config_path: str, max_tick: int, start_tick: int = 0,
     Returns:
         CimSyntheticDataContainer: Data container used to provide cim data related interfaces.
     """
-    data_collection = CimDataGenerator.gen_data(
+    data_collection = gen_cim_data(
         config_path, start_tick=start_tick, max_tick=max_tick, topology_seed=topology_seed)
 
     return CimSyntheticDataContainer(data_collection)

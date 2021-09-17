@@ -8,7 +8,7 @@ from typing import List
 import numpy as np
 from yaml import safe_dump
 
-from .cim_data_generator import CimDataGenerator
+from .cim_data_generator import gen_cim_data
 from .entities import CimSyntheticDataCollection, SyntheticPortSetting
 
 
@@ -248,7 +248,7 @@ def dump_from_config(config_file: str, output_folder: str, max_tick: int):
     assert output_folder is not None and os.path.exists(output_folder), f"Got output folder path: {output_folder}"
     assert max_tick is not None and max_tick > 0, f"Got max tick: {max_tick}"
 
-    data_collection = CimDataGenerator.gen_data(config_file, max_tick=max_tick, start_tick=0, topology_seed=None)
+    data_collection = gen_cim_data(config_file, max_tick=max_tick, start_tick=0, topology_seed=None)
 
     dump_util = CimDataDumpUtil(data_collection)
 

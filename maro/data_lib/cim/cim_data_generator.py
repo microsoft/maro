@@ -7,10 +7,9 @@ from typing import List
 from yaml import safe_load
 
 from maro.simulator.utils import random, seed
-from maro.utils.exception.data_lib_exception import CimGeneratorInvalidParkingDuration
 
 from .entities import CimSyntheticDataCollection, OrderGenerateMode, Stop
-from .parsers import GlobalOrderProportion, PortsParser, RoutesParser, VesselsParser
+from .parsers import parse_global_order_proportion, parse_ports, parse_routes, parse_vessels
 from .utils import ROUTE_INIT_RAND_KEY, apply_noise
 
 CIM_GENERATOR_VERSION = 0x000001
@@ -62,9 +61,7 @@ def _extend_route(
 
             # apply noise to parking duration
             parking_duration = ceil(apply_noise(duration, duration_noise, random[ROUTE_INIT_RAND_KEY]))
-
-            if parking_duration <= 0:
-                raise CimGeneratorInvalidParkingDuration()
+            assert parking_duration > 0
 
             # a new stop
             stop = Stop(
@@ -108,88 +105,81 @@ def _extend_route(
     return vessel_stops, vessel_period_without_noise
 
 
-class CimDataGenerator:
-    """Utility to generate cim data from configuration file."""
+def gen_cim_data(
+    config_file: str, max_tick: int,
+    start_tick: int = 0,
+    topology_seed: int = None
+) -> CimSyntheticDataCollection:
+    """Generate data with specified configurations.
 
-    def __init__(self) -> None:
-        pass
+    Args:
+        config_file(str): File of configuration (yaml).
+        max_tick(int): Max tick to generate.
+        start_tick(int): Start tick to generate.
+        topology_seed(int): Random seed of the business engine. \
+            'None' means using the seed in the configuration file.
 
-    @staticmethod
-    def gen_data(
-        config_file: str, max_tick: int,
-        start_tick: int = 0,
-        topology_seed: int = None
-    ) -> CimSyntheticDataCollection:
-        """Generate data with specified configurations.
+    Returns:
+        CimSyntheticDataCollection: Data collection contains all cim data.
+    """
 
-        Args:
-            config_file(str): File of configuration (yaml).
-            max_tick(int): Max tick to generate.
-            start_tick(int): Start tick to generate.
-            topology_seed(int): Random seed of the business engine. \
-                'None' means using the seed in the configuration file.
+    # read config
+    with open(config_file, "r") as fp:
+        conf: dict = safe_load(fp)
 
-        Returns:
-            CimSyntheticDataCollection: Data collection contains all cim data.
-        """
+    if topology_seed is None:
+        topology_seed = conf["seed"]
 
-        # read config
-        with open(config_file, "r") as fp:
-            conf: dict = safe_load(fp)
+    # set seed to generate data
+    seed(topology_seed)
 
-        if topology_seed is None:
-            topology_seed = conf["seed"]
+    # misc configurations
+    total_containers = conf["total_containers"]
+    past_stop_number, future_stop_number = conf["stop_number"]
+    container_volumes = conf["container_volumes"]
 
-        # set seed to generate data
-        seed(topology_seed)
+    # parse configurations
+    vessel_mapping, vessels_setting = parse_vessels(conf["vessels"])
+    port_mapping, ports_setting = parse_ports(conf["ports"], total_containers)
+    route_mapping, routes = parse_routes(conf["routes"])
+    global_order_proportion = parse_global_order_proportion(
+        conf["container_usage_proportion"],
+        total_containers, start_tick=start_tick, max_tick=max_tick)
 
-        # misc configurations
-        total_containers = conf["total_containers"]
-        past_stop_number, future_stop_number = conf["stop_number"]
-        container_volumes = conf["container_volumes"]
+    # extend routes with specified tick range
+    vessel_stops, vessel_period_without_noise = _extend_route(
+        future_stop_number, max_tick, vessels_setting, port_mapping, routes, route_mapping)
 
-        # parse configurations
-        vessel_mapping, vessels_setting = VesselsParser.parse(conf["vessels"])
-        port_mapping, ports_setting = PortsParser.parse(conf["ports"], total_containers)
-        route_mapping, routes = RoutesParser.parse(conf["routes"])
-        global_order_proportion = GlobalOrderProportion.parse(
-            conf["container_usage_proportion"],
-            total_containers, start_tick=start_tick, max_tick=max_tick)
-
-        # extend routes with specified tick range
-        vessel_stops, vessel_period_without_noise = _extend_route(
-            future_stop_number, max_tick, vessels_setting, port_mapping, routes, route_mapping)
-
-        return CimSyntheticDataCollection(
-            # Port
-            port_settings=ports_setting,
-            port_mapping=port_mapping,
-            # Vessel
-            vessel_settings=vessels_setting,
-            vessel_mapping=vessel_mapping,
-            # Stop
-            vessel_stops=vessel_stops,
-            # Route
-            routes=routes,
-            route_mapping=route_mapping,
-            # Vessel Period
-            vessel_period_without_noise=vessel_period_without_noise,
-            # Volume/Container
-            container_volume=container_volumes[0],
-            # Cost Factors
-            load_cost_factor=conf["load_cost_factor"],
-            dsch_cost_factor=conf["dsch_cost_factor"],
-            # Visible Voyage Window
-            past_stop_number=past_stop_number,
-            future_stop_number=future_stop_number,
-            # Time Length of the Data Collection
-            max_tick=max_tick,
-            # Random Seed for Data Generation
-            seed=topology_seed,
-            # For Order Generation
-            total_containers=total_containers,
-            order_mode=OrderGenerateMode(conf["order_generate_mode"]),
-            order_proportion=global_order_proportion,
-            # Data Generator Version
-            version=str(CIM_GENERATOR_VERSION)
-        )
+    return CimSyntheticDataCollection(
+        # Port
+        port_settings=ports_setting,
+        port_mapping=port_mapping,
+        # Vessel
+        vessel_settings=vessels_setting,
+        vessel_mapping=vessel_mapping,
+        # Stop
+        vessel_stops=vessel_stops,
+        # Route
+        routes=routes,
+        route_mapping=route_mapping,
+        # Vessel Period
+        vessel_period_without_noise=vessel_period_without_noise,
+        # Volume/Container
+        container_volume=container_volumes[0],
+        # Cost Factors
+        load_cost_factor=conf["load_cost_factor"],
+        dsch_cost_factor=conf["dsch_cost_factor"],
+        # Visible Voyage Window
+        past_stop_number=past_stop_number,
+        future_stop_number=future_stop_number,
+        # Time Length of the Data Collection
+        max_tick=max_tick,
+        # Random Seed for Data Generation
+        seed=topology_seed,
+        # For Order Generation
+        total_containers=total_containers,
+        order_mode=OrderGenerateMode(conf["order_generate_mode"]),
+        order_proportion=global_order_proportion,
+        # Data Generator Version
+        version=str(CIM_GENERATOR_VERSION)
+    )

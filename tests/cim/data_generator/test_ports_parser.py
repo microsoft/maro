@@ -5,7 +5,7 @@ import unittest
 
 from yaml import safe_load
 
-from maro.data_lib.cim.parsers import PortsParser
+from maro.data_lib.cim.parsers import parse_ports
 
 default_conf = """
 ports:
@@ -49,7 +49,7 @@ class TestPortParser(unittest.TestCase):
 
         conf = safe_load(default_conf)
 
-        port_mapping, ports = PortsParser.parse(conf["ports"], total_cntr)
+        port_mapping, ports = parse_ports(conf["ports"], total_cntr)
 
         # port number should be same with config
         self.assertEqual(2, len(ports))

@@ -151,7 +151,7 @@ class CimBaseDataContainer(ABC):
             .. code-block:: python
 
                 # Get full return buffer tick of port 0.
-                buffer_tick = data_cnr.full_return_buffers[0]
+                buffer_tick = data_cntr.full_return_buffers[0]
         """
         return self._full_return_buffer_wrapper
 
@@ -241,7 +241,7 @@ class CimBaseDataContainer(ABC):
         self._is_need_reset_seed = True
 
     def _reset_seed(self):
-        """Reset internal seed for generate reproduceable data"""
+        """Reset internal seed for generate reproduce-able data"""
         random.reset_seed(BUFFER_TICK_RAND_KEY)
 
     @abstractmethod
@@ -288,7 +288,7 @@ class CimSyntheticDataContainer(CimBaseDataContainer):
 
             self._is_need_reset_seed = False
 
-        if tick >= self._data_collection.max_tick:
+        if tick >= self._data_collection.max_tick:  # pragma: no cover
             warnings.warn(f"{tick} out of max tick {self._data_collection.max_tick}")
             return []
 
@@ -317,7 +317,7 @@ class CimSyntheticDataContainer(CimBaseDataContainer):
         orders_to_gen = int(order_proportion[tick])
 
         # if under unfixed mode, we will consider current empty container as factor
-        if order_mode == OrderGenerateMode.UNFIXED:
+        if order_mode == OrderGenerateMode.UNFIXED:  # pragma: no cover. TODO: remove this mark later
             delta = total_containers - total_empty_container
 
             if orders_to_gen <= delta:
@@ -428,11 +428,8 @@ class CimRealDataContainer(CimBaseDataContainer):
 
             self._is_need_reset_seed = False
 
-        if tick >= self._data_collection.max_tick:
+        if tick >= self._data_collection.max_tick:  # pragma: no cover
             warnings.warn(f"{tick} out of max tick {self._data_collection.max_tick}")
             return []
 
-        if tick not in self._orders:
-            return []
-
-        return self._orders[tick]
+        return self._orders[tick] if tick in self._orders else []

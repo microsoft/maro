@@ -22,7 +22,7 @@ from .entities import (
 def _load_misc(data_folder: str) -> dict:
     """Load misc items from yaml"""
     misc_file_path = os.path.join(data_folder, "misc.yml")
-    for _ in range(3):
+    for _ in range(3):  # pragma: no cover
         if not os.path.exists(misc_file_path):
             time.sleep(10)
     with open(misc_file_path, "rt") as fp:
@@ -31,7 +31,7 @@ def _load_misc(data_folder: str) -> dict:
 
 def _read_csv_lines(file_path: str):
     """Helper to read and yield line from csv file"""
-    for _ in range(3):
+    for _ in range(3):  # pragma: no cover
         if not os.path.exists(file_path):
             time.sleep(10)
     with open(file_path, "rt") as fp:
