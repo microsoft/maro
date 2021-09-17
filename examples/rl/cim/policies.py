@@ -49,6 +49,13 @@ class QNet(DiscreteQNet):
 
         self.optim.step()
 
+    def get_state(self):
+        return {"network": self.state_dict(), "optim": self.optim.state_dict()}
+
+    def set_state(self, state):
+        self.load_state_dict(state["network"])
+        self.optim.load_state_dict(state["optim"])
+
 
 class MyACNet(DiscreteACNet):
     def __init__(self):
@@ -88,6 +95,18 @@ class MyACNet(DiscreteACNet):
 
         self.actor_optim.step()
         self.critic_optim.step()
+
+    def get_state(self):
+        return {
+            "network": self.state_dict(),
+            "actor_optim": self.actor_optim.state_dict(),
+            "critic_optim": self.critic_optim.state_dict()
+        }
+
+    def set_state(self, state):
+        self.load_state_dict(state["network"])
+        self.actor_optim.load_state_dict(state["actor_optim"])
+        self.critic_optim.load_state_dict(state["critic_optim"])
 
 
 policy_func_dict = {
