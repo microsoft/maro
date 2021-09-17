@@ -252,7 +252,6 @@ class MultiProcessPolicyManager(AbsPolicyManager):
         if self._data_parallel:
             self._num_grad_workers = num_grad_workers
             self._worker_allocator = worker_allocator
-            
             self._worker_allocator.set_logger(self._logger)
             self._proxy = Proxy(
                 group, "policy_manager", {"grad_worker": self._num_grad_workers},
