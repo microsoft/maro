@@ -16,7 +16,9 @@ log_dir = join(rl_example_dir, "log", getenv("JOB", ""))
 
 module = importlib.import_module(f"{getenv('SCENARIO')}")
 
-get_env_sampler = getattr(module, "get_env_sampler")
 policy_func_dict = getattr(module, "policy_func_dict")
+agent2policy = getattr(module, "agent2policy")
+get_env_sampler = getattr(module, "get_env_sampler")
 post_collect = getattr(module, "post_collect", None)
 post_evaluate = getattr(module, "post_evaluate", None)
+agent2policy = getattr(module, "agent2policy", None)

@@ -27,6 +27,10 @@ policy_manager:
   distributed:
     group: learn
     num_hosts: 2
+data_parallel:
+  enable: false
+  num_workers: 2
+  allocation_mode: by-policy  # by-policy, by-agent, by-experience
 redis:
   host: redis-server
   port: 6379

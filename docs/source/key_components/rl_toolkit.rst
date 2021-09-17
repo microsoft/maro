@@ -64,6 +64,10 @@ provides various policy improvement interfaces to support single-threaded and di
 .. code-block:: python
 
   class AbsPolicy(ABC):
+      def __init__(self, name)
+          super().__init__()
+          self._name = name
+
       @abstractmethod
       def __call__(self, state):
           """Select an action based on a state."""
@@ -108,6 +112,27 @@ is present as a server process. The types of policy manager include:
   to reeeive roll-out information for update. This approach allows the policies to be updated in parallel and may be
   necessary when the combined size of the policies is too big to fit in a single node. 
 
+Moreover, in ``data-parallel`` mode, each policy manager has an additional worker(``grad_worker``)
+allocator, which provides a policy-to-worker mapping. The worker allocator performs auto-balance
+during training, by dynamically adjusting worker number for policies according to the
+experience/agent/policy number.
+
+.. image:: ../images/rl/policy_manager.svg
+   :target: ../images/rl/policy_manager.svg
+   :alt: PolicyManager
+
+The ``DistributedPolicyManager`` runs a set of ``policy_host`` and a ``TrainerAllocator``.
+``policy_host`` is a process/VM/node that hosts the update of a policy. The ``TrainerAllocator``
+dynamically adjusts worker node numbers for policies according to the experience/agent/policy
+number. Each ``policy_host`` independently updates its own policies for policy-level parallelism. 
+
+During training, the ``PolicyManager`` receives training data collected by the ``RolloutManager``,
+then send them to corresponding ``policy_host``. Each ``policy_host`` will send gradient tasks consist
+of policy state and experience batch, to several stateless ``grad_worker`` for gradient computation.
+The ``grad_worker`` is stateless, and computes gradients using the policy state and data
+batch provided in a task.
+Then ``policy_host`` aggregates the gradients from ``grad_worker`` s, and performs gradient descent
+on its parameters.
 
 Core Model
 ----------
