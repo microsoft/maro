@@ -26,18 +26,20 @@ class Action:
     Args:
         vessel_idx (int): Which vessel will take action.
         port_idx (int): Which port will take action.
-        action_type (Optional[ActionType]): Whether the action is a Load or a Discharge.
+        action_type (ActionType): Whether the action is a Load or a Discharge.
             If None, the action type will be automatically detected according to quantity.
         quantity (int): How many containers are loaded/discharged in this Action.
     """
 
     summary_key = ["port_idx", "vessel_idx", "action_type", "quantity"]
 
-    def __init__(self, vessel_idx: int, port_idx: int, quantity: int, action_type: Optional[ActionType]):
+    def __init__(self, vessel_idx: int, port_idx: int, quantity: int, action_type: ActionType):
+        assert action_type is not None
+
         self.vessel_idx: int = vessel_idx
         self.port_idx: int = port_idx
         self.quantity: int = quantity
-        self.action_type: Optional[ActionType] = action_type
+        self.action_type: ActionType = action_type
 
     def __repr__(self):
         return "%s {action_type: %r, port_idx: %r, vessel_idx: %r, quantity: %r}" % \
