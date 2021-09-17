@@ -29,14 +29,13 @@ class AbsRolloutManager(ABC):
         self.end_of_episode = False
 
     @abstractmethod
-    def collect(self, ep: int, segment: int, policy_state_dict: dict, version: int) -> Tuple[Dict, List[Dict]]:
+    def collect(self, ep: int, segment: int, policy_state_dict: dict) -> Tuple[Dict, List[Dict]]:
         """Collect simulation data, i.e., experiences for training.
 
         Args:
             ep (int): Current episode.
             segment (int): Current segment.
             policy_state_dict (dict): Policy states to use for collecting training info.
-            version (int): Version for the policy states.
 
         Returns:
             A 2-tuple consisting of a dictionary of roll-out information grouped by policy ID and a list of dictionaries
@@ -133,14 +132,13 @@ class MultiProcessRolloutManager(AbsRolloutManager):
             self._worker_processes.append(worker)
             worker.start()
 
-    def collect(self, ep: int, segment: int, policy_state_dict: dict, version: int) -> Tuple[Dict, List[Dict]]:
+    def collect(self, ep: int, segment: int, policy_state_dict: dict) -> Tuple[Dict, List[Dict]]:
         """Collect simulation data, i.e., experiences for training.
 
         Args:
             ep (int): Current episode.
             segment (int): Current segment.
             policy_state_dict (dict): Policy states to use for collecting training info.
-            version (int): Version for the policy states.
 
         Returns:
             A 2-tuple consisting of a dictionary of roll-out information grouped by policy ID and a list of dictionaries
@@ -148,7 +146,7 @@ class MultiProcessRolloutManager(AbsRolloutManager):
             An RL policy's roll-out information must be either loss information or a data batch that can be passed to
             the policy's ``update`` or ``learn``, respectively.
         """
-        self._logger.info(f"Collecting simulation data (episode {ep}, policy version {version})")
+        self._logger.info(f"Collecting simulation data (episode {ep}, segment {segment})")
 
         info_by_policy, trackers = defaultdict(list), []
         rollout_req = {
@@ -218,9 +216,6 @@ class DistributedRolloutManager(AbsRolloutManager):
             ``min_finished_workers``.
         extra_recv_timeout (int): Timeout (in milliseconds) for each attempt to receive from a worker after
             ``min_finished_workers`` have been received in ``collect``. Defaults to 100 (milliseconds).
-        max_lag (int): Maximum policy version lag allowed for experiences collected from remote roll-out workers.
-            Experiences collected using policy versions older than (current_version - max_lag) will be discarded.
-            Defaults to 0, in which case only experiences collected using the latest policy version will be returned.
         num_eval_workers (int): Number of workers for evaluation. Defaults to 1.
         proxy_kwargs: Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
             for details. Defaults to the empty dictionary.
@@ -236,7 +231,7 @@ class DistributedRolloutManager(AbsRolloutManager):
         min_finished_workers: int = None,
         max_extra_recv_tries: int = None,
         extra_recv_timeout: int = None,
-        max_lag: int = 0,
+        max_lag: Dict[str, int] = defaultdict(int),
         num_eval_workers: int = 1,
         proxy_kwargs: dict = {},
         log_dir: str = getcwd()
@@ -268,14 +263,13 @@ class DistributedRolloutManager(AbsRolloutManager):
         self._max_lag = max_lag
         self._num_eval_workers = num_eval_workers
 
-    def collect(self, ep: int, segment: int, policy_state_dict: dict, version: int) -> Tuple[Dict, List[Dict]]:
+    def collect(self, ep: int, segment: int, policy_state_dict: dict) -> Tuple[Dict, List[Dict]]:
         """Collect simulation data, i.e., experiences for training.
 
         Args:
             ep (int): Current episode.
             segment (int): Current segment.
             policy_state_dict (dict): Policy states to use for collecting training info.
-            version (int): Version for the policy states.
 
         Returns:
             A 2-tuple consisting of a dictionary of roll-out information grouped by policy ID and a list of dictionaries
@@ -287,17 +281,16 @@ class DistributedRolloutManager(AbsRolloutManager):
             MsgKey.EPISODE: ep,
             MsgKey.SEGMENT: segment,
             MsgKey.NUM_STEPS: self._num_steps,
-            MsgKey.POLICY_STATE: policy_state_dict,
-            MsgKey.VERSION: version
+            MsgKey.POLICY_STATE: policy_state_dict
         }
 
         self._proxy.iscatter(MsgTag.SAMPLE, SessionType.TASK, [(worker_id, msg_body) for worker_id in self._workers])
-        self._logger.info(f"Collecting simulation data (episode {ep}, segment {segment}, policy version {version})")
+        self._logger.info(f"Collecting simulation data (episode {ep}, segment {segment})")
 
         info_by_policy, trackers, num_finishes = defaultdict(list), [], 0
         # Ensure the minimum number of worker results are received.
         for msg in self._proxy.receive():
-            rollout_info, tracker = self._handle_worker_result(msg, ep, segment, version)
+            rollout_info, tracker = self._handle_worker_result(msg, ep, segment)
             if rollout_info:
                 num_finishes += 1
                 for policy_id, info in rollout_info.items():
@@ -312,7 +305,7 @@ class DistributedRolloutManager(AbsRolloutManager):
             if not msg:
                 self._logger.info(f"Receive timeout, {self._max_extra_recv_tries - i - 1} attempts left")
             else:
-                rollout_info, tracker = self._handle_worker_result(msg, ep, segment, version)
+                rollout_info, tracker = self._handle_worker_result(msg, ep, segment)
                 if rollout_info:
                     num_finishes += 1
                     for policy_id, info in rollout_info.items():
@@ -328,18 +321,10 @@ class DistributedRolloutManager(AbsRolloutManager):
 
         return info_by_policy, trackers
 
-    def _handle_worker_result(self, msg, ep, segment, version):
+    def _handle_worker_result(self, msg, ep, segment):
         if msg.tag != MsgTag.SAMPLE_DONE:
             self._logger.info(
                 f"Ignored a message of type {msg.tag} (expected message type {MsgTag.SAMPLE_DONE})"
-            )
-            return None, None
-
-        if version - msg.body[MsgKey.VERSION] > self._max_lag:
-            self._logger.info(
-                f"Ignored a message because it contains experiences generated using a stale policy version. "
-                f"Expected experiences generated using policy versions no earlier than {version - self._max_lag} "
-                f"got {msg.body[MsgKey.VERSION]}"
             )
             return None, None
 

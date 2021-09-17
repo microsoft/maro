@@ -83,8 +83,8 @@ def learn(
             # experience collection
             tc0 = time.time()
             if policy_manager:
-                policy_state_dict, version = policy_manager.get_state(), policy_manager.get_version()
-                rollout_info_by_policy, trackers = rollout_manager.collect(ep, segment, policy_state_dict, version)
+                policy_state_dict = policy_manager.get_state()
+                rollout_info_by_policy, trackers = rollout_manager.collect(ep, segment, policy_state_dict)
                 end_of_episode = rollout_manager.end_of_episode
             else:
                 result = rollout_manager.sample(num_steps=num_steps, return_rollout_info=False)

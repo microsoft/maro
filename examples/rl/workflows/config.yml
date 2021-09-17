@@ -3,6 +3,7 @@
 
 job: cim
 scenario: cim
+checkpoint_dir: "/maro/rl_examples/checkpoints"
 mode: sync  # single, sync, async
 num_episodes: 5
 eval_schedule: 5
@@ -21,9 +22,7 @@ async:
   group: async
   num_rollouts: 3
 policy_manager:
-  type: distributed   # simple, distributed
-  simple:
-    parallel: true
+  type: multi-process   # simple, multi-process, distributed
   distributed:
     group: learn
     num_hosts: 2

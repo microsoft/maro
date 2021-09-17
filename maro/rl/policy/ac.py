@@ -261,7 +261,6 @@ class ActorCritic(RLPolicy):
 
     def learn_with_data_parallel(self, batch: dict, worker_id_list: list):
         assert hasattr(self, '_proxy'), "learn_with_data_parallel is invalid before data_parallel is called."
-
         for _ in range(self.grad_iters):
             msg_dict = defaultdict(lambda: defaultdict(dict))
             for i, worker_id in enumerate(worker_id_list):

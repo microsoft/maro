@@ -128,20 +128,21 @@ class SimplePolicyManager(AbsPolicyManager):
     ):
         assert checkpoint_every == -1 or checkpoint_every > 0, "'checkpoint_every' can only be -1 or a positive integer"
         super().__init__()
-        self._policy_ids = list(create_policy_func_dict.keys())
+        self._logger = Logger("POLICY_MANAGER", dump_folder=log_dir)
+        self._policy_dict = {name: func(name) for name, func in create_policy_func_dict.items()}
+        for id_, path in load_path_dict.items():
+            self._policy_dict[id_].load(path)
+            self._logger.info(f"Loaded policy {id_} from {path}")
+
+        self._version = defaultdict(int)
+
+        # auto-checkpointing
         self.checkpoint_every = checkpoint_every
-        self.save_path = {id_: os.path.join(save_dir, id_) for id_ in self._policy_ids}
+        self.save_path = {id_: os.path.join(save_dir, id_) for id_ in create_policy_func_dict}
         if self.checkpoint_every > 0:
             checkpoint_thread = threading.Thread(target=self._checkpoint, daemon=True)
             checkpoint_thread.start()
-
-        self._logger = Logger("POLICY_MANAGER", dump_folder=log_dir)
-        self._logger.info("Creating policy instances locally")
-        self._policy_dict = {name: func(name) for name, func in create_policy_func_dict.items()}
-        for id_, path in load_path_dict.items():
-            self._policy_dict[id_].load(path) 
-
-        self._version = defaultdict(int)
+            self._logger.info(f"Auto-checkpoint policy state every {self.checkpoint_every} seconds")
 
         # data parallelism
         self._data_parallel = data_parallel
@@ -182,7 +183,7 @@ class SimplePolicyManager(AbsPolicyManager):
 
     def get_version(self):
         """Get the collective policy version."""
-        return self._version
+        return dict(self._version)
 
     def save(self):
         for id_, policy in self._policy_dict.items():
@@ -197,6 +198,8 @@ class SimplePolicyManager(AbsPolicyManager):
                     policy.save(self.save_path[id_])
                     self._logger.info(f"Saved policy {id_} to {self.save_path[id_]}")
                     last_checkpointed_version[id_] = self._version[id_]
+                else:
+                    self._logger.info(f"Latest version of policy {id_} already checkpointed")
             time.sleep(self.checkpoint_every)
 
     def exit(self):
@@ -241,7 +244,6 @@ class MultiProcessPolicyManager(AbsPolicyManager):
         log_dir: str = getcwd()
     ):
         super().__init__()
-        self._policy_ids = list(create_policy_func_dict.keys())
         self.auto_checkpoint = auto_checkpoint
         self._logger = Logger("POLICY_MANAGER", dump_folder=log_dir)
 
@@ -273,6 +275,7 @@ class MultiProcessPolicyManager(AbsPolicyManager):
 
             if initial_state_path:
                 policy.load(initial_state_path)
+                self._logger.info(f"Loaded policy {id_} from {initial_state_path}")
             conn.send({"type": "init", "policy_state": policy.get_state()})
             while True:
                 msg = conn.recv()
@@ -285,6 +288,7 @@ class MultiProcessPolicyManager(AbsPolicyManager):
                     else:
                         policy.learn(info)
                     conn.send({"type": "learn_done", "policy_state": policy.get_state()})
+                    self._logger.info("learning finished")
                     if self.auto_checkpoint:
                         policy.save(save_path)
                         self._logger.info(f"Saved policy {id_} to {save_path}")
@@ -323,9 +327,10 @@ class MultiProcessPolicyManager(AbsPolicyManager):
             self._policy2workers, self._worker2policies = self._worker_allocator.allocate()
 
         for policy_id, info in rollout_info.items():
-            self._manager_end[policy_id].send(
-                {"type": "learn", "rollout_info": info, "workers": self._policy2workers[policy_id]}
-            )
+            msg = {"type": "learn", "rollout_info": info}
+            if self._data_parallel:
+                msg["workers"] = self._policy2workers[policy_id]
+            self._manager_end[policy_id].send(msg)
         for policy_id, conn in self._manager_end.items():
             msg = conn.recv()
             if msg["type"] == "learn_done":
@@ -343,7 +348,7 @@ class MultiProcessPolicyManager(AbsPolicyManager):
 
     def get_version(self):
         """Get the collective policy version."""
-        return self._version
+        return dict(self._version)
 
     def exit(self):
         """Tell the policy host processes to exit."""
@@ -383,7 +388,6 @@ class DistributedPolicyManager(AbsPolicyManager):
         log_dir: str = getcwd()
     ):
         super().__init__()
-        self._policy_ids = policy_ids
         peers = {"policy_host": num_hosts}
         if data_parallel:
             peers["grad_worker"] = num_grad_workers
@@ -400,7 +404,7 @@ class DistributedPolicyManager(AbsPolicyManager):
         self._worker2policies = defaultdict(list)
 
         # assign policies to hosts
-        for i, name in enumerate(self._policy_ids):
+        for i, name in enumerate(policy_ids):
             host_id = i % num_hosts
             self._policy2host[name] = f"POLICY_HOST.{host_id}"
             self._host2policies[f"POLICY_HOST.{host_id}"].append(name)
@@ -461,7 +465,7 @@ class DistributedPolicyManager(AbsPolicyManager):
 
     def get_version(self):
         """Get the collective policy version."""
-        return self._version
+        return dict(self._version)
 
     def exit(self):
         """Tell the remote policy hosts to exit."""

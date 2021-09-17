@@ -414,7 +414,6 @@ class AbsEnvSampler(ABC):
                 return_info = {
                     MsgKey.EPISODE: ep,
                     MsgKey.SEGMENT: latest.body[MsgKey.SEGMENT],
-                    MsgKey.VERSION: latest.body[MsgKey.VERSION],
                     MsgKey.ROLLOUT_INFO: result["rollout_info"],
                     MsgKey.STEP_RANGE: result["step_range"],
                     MsgKey.TRACKER: result["tracker"],

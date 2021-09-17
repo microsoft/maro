@@ -62,7 +62,8 @@ if __name__ == "__main__":
             f"JOB={config['job']}",
             f"SCENARIO={config['scenario']}",
             f"MODE={config['mode']}",
-            f"POLICYMANAGERTYPE={config['policy_manager']['type']}"
+            f"POLICYMANAGERTYPE={config['policy_manager']['type']}",
+            f"CHECKPOINTDIR={config['checkpoint_dir']}"
         ]
 
         common_env.append(f"NUMROLLOUTS={config[config['mode']]['num_rollouts']}")
@@ -110,7 +111,6 @@ if __name__ == "__main__":
                         f"NUMEPISODES={config['num_episodes']}",
                         f"NUMSTEPS={config['num_steps']}",
                         f"EVALSCH={config['eval_schedule']}",
-                        f"PARALLEL={'1' if config['policy_manager']['simple']['parallel'] else '0'}",
                         f"NUMEVALROLLOUTS={config[config['mode']]['num_eval_rollouts']}",
                         f"ROLLOUTGROUP={config['sync']['distributed']['group']}",
                         f"MAXLAG={config['max_lag']}",
