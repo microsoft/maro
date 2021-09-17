@@ -412,13 +412,32 @@ class DQN(RLPolicy):
         for sch in self.exploration_schedulers:
             sch.step()
 
-    def get_state(self, inference: bool = True):
-        policy_state = {"eval": self.q_net.state_dict()}
-        if not inference and self.target_q_net:
-            policy_state["target"] = self.target_q_net.state_dict()
-        return policy_state
+    def get_state(self):
+        return self.q_net.get_state()
 
-    def set_state(self, policy_state):
-        self.q_net.load_state_dict(policy_state["eval"])
-        if "target" in policy_state:
-            self.target_q_net.load_state_dict(policy_state["target"])
+    def set_state(self, state):
+        self.q_net.set_state(state)
+
+    def load(self, path: str):
+        """Load the policy state from disk."""
+        checkpoint = torch.load(path)
+        self.q_net.set_state(checkpoint["q_net"])
+        self._q_net_version = checkpoint["q_net_version"]
+        self.target_q_net.set_state(checkpoint["target_q_net"])
+        self._target_q_net_version = checkpoint["target_q_net_version"]
+        self._replay_memory = checkpoint["replay_memory"]
+        if self.prioritized_replay:
+            self._per = checkpoint["prioritized_replay"]
+
+    def save(self, path: str):
+        """Save the policy state to disk."""
+        policy_state = {
+            "q_net": self.q_net.get_state(),
+            "q_net_version": self._q_net_version,
+            "target_q_net": self.target_q_net.get_state(),
+            "target_q_net_version": self._target_q_net_version,
+            "replay_memory": self._replay_memory
+        }
+        if self.prioritized_replay:
+            policy_state["prioritized_replay"] = self._per
+        torch.save(policy_state, path)

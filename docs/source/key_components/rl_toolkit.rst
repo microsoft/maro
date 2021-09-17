@@ -8,7 +8,7 @@ distributed learning workflows. The distributed workflow can be synchronous or a
 
 
 Synchronous Learning
-====================
+--------------------
 
 In synchronous mode, a main process executes 2-phase learning cycles consisting of simulation data collection and
 policy update. The data collection phase is controlled by a roll-out manager and the policy update phase is controlled
@@ -18,18 +18,20 @@ policy manager. On the other hand, the policy manager always waits until all pol
 policy states to the roll-out manager.
 
 
-.. image:: ../images/rl/learning_cycle.svg
-   :target: ../images/rl/learner.svg
+.. figure:: ../images/rl/learning_cycle.svg
    :alt: Overview
+   
+   Synchronous Learning Cycle
 
 
-.. image:: ../images/rl/rollout_manager.svg
-   :target: ../images/rl/rollout_manager.svg
+.. figure:: ../images/rl/rollout_manager.svg
    :alt: Overview
+
+   Roll-out Manager
 
 
 Asynchronous Learning
-=====================
+---------------------
 
 The asynchronous mode consists of a policy server and multiple actors in a client-server architecture. Each actor runs
 its own roll-out loop and periodically sends the collected data to the server. The server uses the data to update the
@@ -47,9 +49,10 @@ and reward shaping to collect roll-out information for learning and testing purp
 easily turned into a roll-out worker or an actor for synchronous and asynchronous learning, respectively.
 
 
-.. image:: ../images/rl/env_sampler.svg
-   :target: ../images/rl/env_sampler.svg
+.. figure:: ../images/rl/env_sampler.svg
    :alt: Overview
+
+   Environment Sampler
 
 
 Policy
@@ -94,6 +97,7 @@ provides various policy improvement interfaces to support single-threaded and di
 
       def improve(self):
           pass
+
 
 .. _policy-manager:
 
@@ -175,7 +179,7 @@ The code snippet below shows how to create a model for the actor-critic algorith
           self.actor_optim.zero_grad()
           self.critic_optim.zero_grad()
           loss.backward()
-          self.hsared_optim.step()
+          self.shared_optim.step()
           self.actor_optim.step()
           self.critic_optim.step()
 

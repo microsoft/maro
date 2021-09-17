@@ -275,9 +275,28 @@ class DDPG(RLPolicy):
         for sch in self.exploration_schedulers:
             sch.step()
 
-    def set_state(self, policy_state):
-        self.ac_net.load_state_dict(policy_state)
-        self.target_ac_net = self.ac_net.copy() if self.ac_net.trainable else None
-
     def get_state(self):
-        return self.ac_net.state_dict()
+        return self.ac_net.get_state()
+
+    def set_state(self, state):
+        self.ac_net.set_state(state)
+
+    def load(self, path: str):
+        """Load the policy state from disk."""
+        checkpoint = torch.load(path)
+        self.ac_net.set_state(checkpoint["ac_net"])
+        self._ac_net_version = checkpoint["ac_net_version"]
+        self.target_ac_net.set_state(checkpoint["target_ac_net"])
+        self._target_ac_net_version = checkpoint["target_ac_net_version"]
+        self._replay_memory = checkpoint["replay_memory"]
+
+    def save(self, path: str):
+        """Save the policy state to disk."""
+        policy_state = {
+            "ac_net": self.ac_net.get_state(),
+            "ac_net_version": self._ac_net_version,
+            "target_ac_net": self.target_ac_net.get_state(),
+            "target_ac_net_version": self._target_ac_net_version,
+            "replay_memory": self._replay_memory
+        }
+        torch.save(policy_state, path)

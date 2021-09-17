@@ -289,8 +289,16 @@ class ActorCritic(RLPolicy):
             _ = self.get_batch_loss(sub_batch, explicit_grad=True)
             self.update(loss_info_by_policy[self._name])
 
-    def set_state(self, policy_state):
-        self.ac_net.load_state_dict(policy_state)
-
     def get_state(self):
-        return self.ac_net.state_dict()
+        return self.ac_net.get_state()
+
+    def set_state(self, state):
+        self.ac_net.set_state(state)
+
+    def load(self, path: str):
+        """Load the policy state from disk."""
+        self.ac_net.set_state(torch.load(path))
+
+    def save(self, path: str):
+        """Save the policy state to disk."""
+        torch.save(self.ac_net.get_state(), path)

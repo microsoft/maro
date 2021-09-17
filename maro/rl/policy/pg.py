@@ -208,8 +208,16 @@ class PolicyGradient(RLPolicy):
             _ = self.get_batch_loss(sub_batch, explicit_grad=True)
             self.policy_net.step(loss_info_by_policy[self._name])
 
-    def set_state(self, policy_state):
-        self.policy_net.load_state_dict(policy_state)
-
     def get_state(self):
-        return self.policy_net.state_dict()
+        return self.policy_net.get_state()
+
+    def set_state(self, state):
+        self.policy_net.set_state(state)
+
+    def load(self, path: str):
+        """Load the policy state from disk."""
+        self.policy_net.set_state(torch.load(path))
+
+    def save(self, path: str):
+        """Save the policy state to disk."""
+        torch.save(self.policy_net.get_state(), path)
