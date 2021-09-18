@@ -666,14 +666,8 @@ class CimBusinessEngine(AbsBusinessEngine):
                 port_empty = port.empty
                 vessel_empty = vessel.empty
 
-                action_type: ActionType = getattr(action, "action_type", None)
-
-                # Make it compatible with previous action.
-                if action_type is None:
-                    action_type = ActionType.DISCHARGE if move_num > 0 else ActionType.LOAD
-
-                # Make sure the move number is positive, as we have the action type.
-                move_num = abs(move_num)
+                assert isinstance(action, Action)
+                action_type = action.action_type
 
                 if action_type == ActionType.DISCHARGE:
                     assert(move_num <= vessel_empty)

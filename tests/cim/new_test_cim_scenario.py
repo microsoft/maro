@@ -17,7 +17,7 @@ from maro.data_lib.cim import dump_from_config
 from maro.data_lib.cim.entities import PortSetting, Stop, SyntheticPortSetting, VesselSetting
 from maro.data_lib.cim.vessel_stop_wrapper import VesselStopsWrapper
 from maro.simulator import Env
-from maro.simulator.scenarios.cim.common import Action, DecisionEvent
+from maro.simulator.scenarios.cim.common import Action, ActionType, DecisionEvent
 from maro.simulator.scenarios.cim.ports_order_export import PortOrderExporter
 from tests.utils import backends_to_test, compare_dictionary
 
@@ -336,14 +336,14 @@ class TestCimScenarios(unittest.TestCase):
             load_action = Action(
                 vessel_idx=decision_event.vessel_idx,
                 port_idx=decision_event.port_idx,
-                quantity=-1201,
-                action_type=None  # Automatic type detection will be triggered
+                quantity=1201,
+                action_type=ActionType.LOAD
             )
             discharge_action = Action(
                 vessel_idx=decision_event.vessel_idx,
                 port_idx=decision_event.port_idx,
                 quantity=1,
-                action_type=None  # Automatic type detection will be triggered
+                action_type=ActionType.DISCHARGE
             )
             metric, decision_event, is_done = self._env.step([load_action, discharge_action])
 

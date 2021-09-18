@@ -572,7 +572,7 @@ Once we get a ``DecisionEvent`` from the environment, we should respond with an
   * **vessel_idx** (int): The id of the vessel/operation object of the port/agent.
   * **port_idx** (int): The id of the port/agent that take this action.
   * **action_type** (ActionType): Whether to load or discharge empty containers in this action.
-  * **quantity** (int): The quantity of empty containers to be loaded/discharged.
+  * **quantity** (int): The (non-negative) quantity of empty containers to be loaded/discharged.
 
 Example
 ^^^^^^^
