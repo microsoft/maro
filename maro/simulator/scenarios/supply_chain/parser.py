@@ -211,6 +211,9 @@ class ConfigParser:
             for sub_conf_name in ("skus", "topology", "grid"):
                 self._result.world[sub_conf_name] = world_def[sub_conf_name]
 
+            #
+            self._result.world["demands"] = world_def.get("demands", {})
+
             # . Copy facilities content different if without definition reference.
             # or copy from definition first, then override with current.
             self._result.world["facilities"] = []
