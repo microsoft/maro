@@ -33,25 +33,16 @@ class Action:
 
     def __init__(self, vessel_idx: int, port_idx: int, quantity: int, action_type: ActionType):
         assert action_type is not None
+        assert quantity >= 0
 
         self.vessel_idx: int = vessel_idx
         self.port_idx: int = port_idx
         self.quantity: int = quantity
         self.action_type: ActionType = action_type
 
-        assert self._is_valid_action_type()
-
     def __repr__(self):
         return "%s {action_type: %r, port_idx: %r, vessel_idx: %r, quantity: %r}" % \
             (self.__class__.__name__, str(self.action_type), self.port_idx, self.vessel_idx, self.quantity)
-
-    def _is_valid_action_type(self) -> bool:
-        if self.action_type == ActionType.DISCHARGE:
-            return self.quantity > 0
-        elif self.action_type == ActionType.LOAD:
-            return self.quantity <= 0
-        else:
-            raise ValueError(f"Invalid Action type: {self.action_type}")
 
 
 class ActionScope:

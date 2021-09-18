@@ -668,9 +668,6 @@ class CimBusinessEngine(AbsBusinessEngine):
 
                 action_type: ActionType = getattr(action, "action_type", None)
 
-                # Make sure the move number is positive, as we have the action type.
-                move_num = abs(move_num)
-
                 if action_type == ActionType.DISCHARGE:
                     assert(move_num <= vessel_empty)
 

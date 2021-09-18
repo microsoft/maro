@@ -336,7 +336,7 @@ class TestCimScenarios(unittest.TestCase):
             load_action = Action(
                 vessel_idx=decision_event.vessel_idx,
                 port_idx=decision_event.port_idx,
-                quantity=-1201,
+                quantity=1201,
                 action_type=ActionType.LOAD
             )
             discharge_action = Action(
