@@ -49,8 +49,10 @@ class Action:
     def _is_valid_action_type(self) -> bool:
         if self.action_type == ActionType.DISCHARGE:
             return self.quantity > 0
-        else:
+        elif self.action_type == ActionType.LOAD:
             return self.quantity <= 0
+        else:
+            raise ValueError(f"Invalid Action type: {self.action_type}")
 
 
 class ActionScope:
