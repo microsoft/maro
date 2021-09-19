@@ -53,7 +53,7 @@ class SimRandom:
 
             self._seed_dict[key] = seed
 
-    def _create_instance(self, key: str) -> None:
+    def create_instance(self, key: str) -> None:
         assert type(key) is str
 
         if key not in self._rand_instances:
@@ -66,7 +66,7 @@ class SimRandom:
         assert type(key) is str
 
         if key not in self._rand_instances:
-            self._create_instance(key)
+            self.create_instance(key)
 
         return self._rand_instances[key]
 
@@ -82,7 +82,7 @@ class SimRandom:
         assert type(key) is str
 
         if key not in self._seed_dict:
-            self._create_instance(key)
+            self.create_instance(key)
         rand = self._rand_instances[key]
         rand.seed(self._seed_dict[key])
 
