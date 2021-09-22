@@ -39,9 +39,10 @@ class TestCimScenarios(unittest.TestCase):
         self._reload_topology: str = TOPOLOGY_PATH_CONFIG
         self._business_engine: Optional[CimBusinessEngine] = None
 
+        random.clear()
+
     def _init_env(self, backend_name: str) -> None:
         os.environ["DEFAULT_BACKEND_NAME"] = backend_name
-        random.clear()
         self._env = Env(
             scenario="cim",
             topology=self._reload_topology,
