@@ -16,7 +16,7 @@ from maro.rl.utils import MsgKey, MsgTag
 from maro.utils import Logger
 
 # default group name for the cluster consisting of a policy manager and all policy hosts.
-# If data parallelism is enabled, the gradient workers will also belong in this group. 
+# If data parallelism is enabled, the gradient workers will also belong in this group.
 DEFAULT_POLICY_GROUP = "policy_group_default"
 
 
@@ -355,7 +355,7 @@ class DistributedPolicyManager(AbsPolicyManager):
             is provided, the gradient workers will also belong to the same cluster. Defaults to
             DEFAULT_POLICY_GROUP.
         worker_allocator (WorkerAllocator): Strategy to select gradient workers for policies for send gradient tasks to.
-            If not None, the policies will be trained in data-parallel mode. Defaults to None. 
+            If not None, the policies will be trained in data-parallel mode. Defaults to None.
         proxy_kwargs: Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
             for details. Defaults to an empty dictionary.
         log_dir (str): Directory to store logs in. A ``Logger`` with tag "POLICY_MANAGER" will be created at init
