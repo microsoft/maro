@@ -5,8 +5,6 @@ from random import Random
 from typing import List, Union
 
 # we keep 4 random generator to make the result is reproduce-able with same seed(s), no matter if agent passed actions
-from maro.simulator.utils import random
-
 ORDER_INIT_RAND_KEY = "order_init"
 ROUTE_INIT_RAND_KEY = "route_init"
 ORDER_NUM_RAND_KEY = "order_number"
