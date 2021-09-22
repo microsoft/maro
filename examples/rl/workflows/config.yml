@@ -14,20 +14,17 @@ sync:
   num_eval_rollouts: 1
   rollout_type: distributed   # multi-process, distributed
   distributed:
-    group: rollout
     min_finished_workers: 2
     max_extra_recv_tries: 1
     extra_recv_timeout: 200
 async:
-  group: async
   num_rollouts: 3
 policy_manager:
   type: multi-process   # simple, multi-process, distributed
   distributed:
-    group: learn
     num_hosts: 2
 data_parallel:
-  enable: false
+  enable: true
   num_workers: 2
   allocation_mode: by-policy  # by-policy, by-agent, by-experience
 redis:

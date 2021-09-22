@@ -24,7 +24,7 @@ if __name__ == "__main__":
     if num_grad_workers is None:
         num_grad_workers = 0
 
-    group = getenv("LEARNGROUP", default="learn")
+    group = getenv("POLICYGROUP", default="learn")
     policy_host(
         policy_func_dict,
         int(host_id),

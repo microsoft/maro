@@ -11,7 +11,6 @@ workflow_dir = dirname(dirname((realpath(__file__))))
 if workflow_dir not in sys.path:
     sys.path.insert(0, workflow_dir)
 
-from policy_manager import get_policy_manager
 from general import post_collect, post_evaluate, get_env_sampler, log_dir
 
 
@@ -66,6 +65,8 @@ if __name__ == "__main__":
     if num_episodes is None:
         raise ValueError("Missing environment variable: NUMEPISODES")
 
+    if getenv("MODE") != "single":
+        from policy_manager import get_policy_manager
     learn(
         get_rollout_manager if getenv("MODE") != "single" else get_env_sampler,
         int(num_episodes),

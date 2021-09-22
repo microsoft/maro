@@ -44,7 +44,7 @@ if __name__ == "__main__":
                         f"MODE=single",
                         f"NUMEPISODES={config['num_episodes']}",
                         f"NUMSTEPS={config['num_steps']}",
-                        f"EVALSCH={config['eval_schedule']}",
+                        f"EVALSCH={config['eval_schedule']}"
                     ]
                 }
             }
@@ -56,6 +56,7 @@ if __name__ == "__main__":
             "services": {"redis": {"image": "redis:6", "container_name": f"{namespace}.{redis_host}"}}
         }
 
+        policy_group = "-".join([config['job'], 'policies'])
         common_env = [
             f"REDISHOST={namespace}.{redis_host}",
             f"REDISPORT={config['redis']['port']}",
@@ -63,7 +64,8 @@ if __name__ == "__main__":
             f"SCENARIO={config['scenario']}",
             f"MODE={config['mode']}",
             f"POLICYMANAGERTYPE={config['policy_manager']['type']}",
-            f"CHECKPOINTDIR={config['checkpoint_dir']}"
+            f"CHECKPOINTDIR={config['checkpoint_dir']}",
+            f"POLICYGROUP={policy_group}"
         ]
 
         common_env.append(f"NUMROLLOUTS={config[config['mode']]['num_rollouts']}")
@@ -73,7 +75,6 @@ if __name__ == "__main__":
             common_env.append(f"NUMGRADWORKERS={config['data_parallel']['num_workers']}")
             common_env.append(f"ALLOCATIONMODE={config['data_parallel']['allocation_mode']}")
         if config["policy_manager"]["type"] == "distributed":
-            common_env.append(f"LEARNGROUP={config['policy_manager']['distributed']['group']}")
             common_env.append(f"NUMHOSTS={config['policy_manager']['distributed']['num_hosts']}")
 
         # grad worker config
@@ -101,6 +102,7 @@ if __name__ == "__main__":
         mode = config["mode"]
         if mode == "sync":
             # main process spec
+            rollout_group = "-".join([config['job'], 'rollout'])
             docker_compose_manifest["services"]["main"] = {
                 **common_spec, 
                 **{
@@ -112,7 +114,7 @@ if __name__ == "__main__":
                         f"NUMSTEPS={config['num_steps']}",
                         f"EVALSCH={config['eval_schedule']}",
                         f"NUMEVALROLLOUTS={config[config['mode']]['num_eval_rollouts']}",
-                        f"ROLLOUTGROUP={config['sync']['distributed']['group']}",
+                        f"ROLLOUTGROUP={rollout_group}",
                         f"MAXLAG={config['max_lag']}",
                         f"MINFINISH={config['sync']['distributed']['min_finished_workers']}",
                         f"MAXEXRECV={config['sync']['distributed']['max_extra_recv_tries']}",
@@ -130,7 +132,7 @@ if __name__ == "__main__":
                     worker_spec["container_name"] = f"{namespace}.{str_id}"
                     worker_spec["environment"] = [
                         f"WORKERID={worker_id}",
-                        f"ROLLOUTGROUP={config['sync']['distributed']['group']}"
+                        f"ROLLOUTGROUP={rollout_group}"
                     ] + common_env
                     docker_compose_manifest["services"][str_id] = worker_spec
         elif mode == "async":
@@ -141,7 +143,7 @@ if __name__ == "__main__":
                     "container_name": f"{namespace}.policy_server",
                     "command": "python3 /maro/rl_examples/workflows/policy_manager.py",
                     "environment": [
-                        f"GROUP={config['async']['group']}",
+                        f"GROUP={config['job']}",
                         f"MAXLAG={config['max_lag']}"
                     ] + common_env
                 }
@@ -155,7 +157,7 @@ if __name__ == "__main__":
                 actor_spec["container_name"] = f"{namespace}.{str_id}"
                 actor_spec["environment"] = [
                     f"ACTORID={actor_id}",
-                    f"GROUP={config['async']['group']}",
+                    f"GROUP={config['job']}",
                     f"NUMEPISODES={config['num_episodes']}",
                     f"NUMSTEPS={config['num_steps']}"
                 ] + common_env

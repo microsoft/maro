@@ -21,7 +21,6 @@ def get_policy_manager():
     manager_type = getenv("POLICYMANAGERTYPE", default="simple")
     data_parallel = getenv("DATAPARALLEL") == "True"
     num_grad_workers = int(getenv("NUMGRADWORKERS", default=1))
-    group = getenv("LEARNGROUP", default="learn")
     allocation_mode = getenv("ALLOCATIONMODE", default="by-policy")
     if data_parallel:
         allocator = WorkerAllocator(allocation_mode, num_grad_workers, list(policy_func_dict.keys()), agent2policy)
@@ -37,8 +36,8 @@ def get_policy_manager():
             load_path_dict={id_: join(checkpoint_dir, id_) for id_ in policy_func_dict},
             checkpoint_every=7,
             save_dir=checkpoint_dir,
-            group=group,
             worker_allocator=allocator,
+            group=getenv("POLICYGROUP"),
             proxy_kwargs=proxy_kwargs,
             log_dir=log_dir
         )
@@ -48,21 +47,24 @@ def get_policy_manager():
             load_path_dict={id_: join(checkpoint_dir, id_) for id_ in policy_func_dict},
             auto_checkpoint=True,
             save_dir=checkpoint_dir,
-            group=group,
             worker_allocator=allocator,
+            group=getenv("POLICYGROUP"),
             proxy_kwargs=proxy_kwargs,
             log_dir=log_dir
         )
     elif manager_type == "distributed":
         num_hosts = int(getenv("NUMHOSTS", default=5))
         return DistributedPolicyManager(
-            list(policy_func_dict.keys()), group, num_hosts,
+            list(policy_func_dict.keys()), num_hosts,
+            group=getenv("POLICYGROUP"),
             worker_allocator=allocator,
             proxy_kwargs=proxy_kwargs,
             log_dir=log_dir
         )
 
-    raise ValueError(f"Unsupported policy manager type: {manager_type}. Supported modes: simple, distributed")
+    raise ValueError(
+        f"Unsupported policy manager type: {manager_type}. Supported modes: simple, multi-process, distributed"
+    )
 
 
 if __name__ == "__main__":

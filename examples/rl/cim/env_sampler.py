@@ -23,6 +23,10 @@ from policies import policy_func_dict
 
 class CIMEnvSampler(AbsEnvSampler):
     def get_state(self, tick=None):
+        """
+        The state vector includes shortage and remaining vessel space over the past k days (where k is the "look_back"
+        value in ``state_shaping_conf``), as well as all downstream port features.
+        """
         if tick is None:
             tick = self.env.tick
         vessel_snapshots, port_snapshots = self.env.snapshot_list["vessels"], self.env.snapshot_list["ports"]
@@ -36,6 +40,12 @@ class CIMEnvSampler(AbsEnvSampler):
         return {port_idx: state}
 
     def get_env_actions(self, action_by_agent):
+        """
+        The policy output is an integer from [0, 20] which is to be interpreted as the index of ``action_space`` in
+        ``action_shaping_conf``. For example, action 5 corresponds to -0.5, which means loading 50% of the containers
+        available at the current port to the vessel, while action 18 corresponds to 0.8, which means loading 80% of the
+        containers on the vessel to the port. Note that action 10 corresponds 0.0, which means doing nothing.
+        """
         action_space = action_shaping_conf["action_space"]
         finite_vsl_space = action_shaping_conf["finite_vessel_space"]
         has_early_discharge = action_shaping_conf["has_early_discharge"]
@@ -62,7 +72,13 @@ class CIMEnvSampler(AbsEnvSampler):
         return [Action(port_idx=port_idx, vessel_idx=vsl_idx, quantity=actual_action, action_type=action_type)]
 
     def get_reward(self, actions, tick):
-        """Delayed reward evaluation."""
+        """
+        The reward is defined as a linear combination of fulfillment and shortage measures. The fulfillment and
+        shortage measures are the sums of fulfillment and shortage values over the next k days, respectively, each
+        adjusted with exponential decay factors (using the "time_decay" value in ``reward_shaping_conf``) to put more
+        emphasis on the near future. Here k is the "time_window" value in ``reward_shaping_conf``. The linear
+        combination coefficients are given by "fulfillment_factor" and "shortage_factor" in ``reward_shaping_conf``.
+        """
         start_tick = tick + 1
         ticks = list(range(start_tick, start_tick + reward_shaping_conf["time_window"]))
 

@@ -27,7 +27,7 @@ if __name__ == "__main__":
         else:
             num_hosts = 0
 
-    group = getenv("LEARNGROUP", default="learn")
+    group = getenv("POLICYGROUP", default="learn")
     grad_worker(
         policy_func_dict,
         int(worker_id),

@@ -1,10 +1,9 @@
 # Container Inventory Management
 
-Container inventory management (CIM) is a scenario where reinforcement learning (RL) can potentially prove useful. In this folder you can find:
-* ``env_wrapper.py``, which contains a function to generate an environment wrapper to interact
-with our "agent" (see below);
-* ``agent_wrapper.py``, which contains a function to generate an agent wrapper to interact
-with the environment wrapper;
-* ``policy_index``, which maps policy names to functions that create them; the functions to create DQN and Actor-Critic policies are defined in ``dqn.py`` and ``ac.py``, respectively.
+This example demonstrates the use of MARO's RL toolkit to optimize container inventory management. The scenario consists of a set of ports, each acting as a learning agent, and vessels that transfer empty containers among them. Each port must decide 1) whether to load or discharge containers when a vessel arrives and 2) how many containers to be loaded or discharged. The objective is to minimize the overall container shortage over a certain period of time. In this folder you can find:
+* ``config.py``, which contains environment and policy configurations for the scenario.
+* ``env_sampler.py``, which contains definitions of state, action and reward shaping.
+* ``policies.py``, which contains definitions of DQN and Actor-Critic.
+* ``callbacks.py``, which contains processing logic to be executed at the step and episode levels.
 
-The code for the actual learning workflows (e.g., learner, roll-out worker and trainer) can be found under ``examples/rl/workflows``. The reason for putting it in a separate folder is that these workflows apply to any scenario, so long as the necessary component generators, such as the ones listed above, are provided. See ``README`` under ``examples/rl`` for details. We recommend that you follow this example to write your own scenarios.
+The scripts for running the learning workflows can be found under ``examples/rl/workflows``. See ``README`` under ``examples/rl`` for details about the general applicability of these scripts. We recommend that you follow this example to write your own scenarios.

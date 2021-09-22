@@ -111,7 +111,7 @@ def learn(
 
     for ep in range(1, num_episodes + 1):
         collect_and_update()
-        if ep == eval_schedule[eval_point_index]:
+        if eval_schedule and ep == eval_schedule[eval_point_index]:
             eval_point_index += 1
             if isinstance(rollout_manager, AbsEnvSampler):
                 trackers = [rollout_manager.test()]
