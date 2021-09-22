@@ -23,7 +23,10 @@ def get_policy_manager():
     num_grad_workers = int(getenv("NUMGRADWORKERS", default=1))
     group = getenv("LEARNGROUP", default="learn")
     allocation_mode = getenv("ALLOCATIONMODE", default="by-policy")
-    allocator = WorkerAllocator(allocation_mode, num_grad_workers, list(policy_func_dict.keys()), agent2policy)
+    if data_parallel:
+        allocator = WorkerAllocator(allocation_mode, num_grad_workers, list(policy_func_dict.keys()), agent2policy)
+    else:
+        allocator = None
     proxy_kwargs = {
         "redis_address": (getenv("REDISHOST", default="maro-redis"), int(getenv("REDISPORT", default=6379))),
         "max_peer_discovery_retries": 50
@@ -35,8 +38,6 @@ def get_policy_manager():
             checkpoint_every=7,
             save_dir=checkpoint_dir,
             group=group,
-            data_parallel=data_parallel,
-            num_grad_workers=num_grad_workers,
             worker_allocator=allocator,
             proxy_kwargs=proxy_kwargs,
             log_dir=log_dir
@@ -48,8 +49,6 @@ def get_policy_manager():
             auto_checkpoint=True,
             save_dir=checkpoint_dir,
             group=group,
-            data_parallel=data_parallel,
-            num_grad_workers=num_grad_workers,
             worker_allocator=allocator,
             proxy_kwargs=proxy_kwargs,
             log_dir=log_dir
@@ -58,8 +57,6 @@ def get_policy_manager():
         num_hosts = int(getenv("NUMHOSTS", default=5))
         return DistributedPolicyManager(
             list(policy_func_dict.keys()), group, num_hosts,
-            data_parallel=data_parallel,
-            num_grad_workers=num_grad_workers,
             worker_allocator=allocator,
             proxy_kwargs=proxy_kwargs,
             log_dir=log_dir
