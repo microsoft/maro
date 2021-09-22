@@ -8,6 +8,8 @@ from typing import List, Optional
 
 import yaml
 
+from maro.simulator.utils import random
+
 os.environ["MARO_STREAMIT_ENABLED"] = "true"
 os.environ["MARO_STREAMIT_EXPERIMENT_NAME"] = "cim_testing"
 
@@ -39,6 +41,7 @@ class TestCimScenarios(unittest.TestCase):
 
     def _init_env(self, backend_name: str) -> None:
         os.environ["DEFAULT_BACKEND_NAME"] = backend_name
+        random.clear()
         self._env = Env(
             scenario="cim",
             topology=self._reload_topology,
