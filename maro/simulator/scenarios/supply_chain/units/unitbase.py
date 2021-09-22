@@ -5,8 +5,10 @@ from __future__ import annotations
 import typing
 from typing import Optional, Union
 
+from maro.simulator.scenarios.supply_chain.actions import SupplyChainAction
+
 if typing.TYPE_CHECKING:
-    from maro.simulator.scenarios.supply_chain import ConsumerAction, FacilityBase, ManufactureAction
+    from maro.simulator.scenarios.supply_chain import FacilityBase
     from maro.simulator.scenarios.supply_chain.datamodels.base import DataModelBase
     from maro.simulator.scenarios.supply_chain.world import World
 
@@ -54,7 +56,7 @@ class UnitBase:
     data_model: Optional[DataModelBase] = None
 
     # Current action.
-    action: Optional[Union[ManufactureAction, ConsumerAction]] = None
+    action: Optional[SupplyChainAction] = None
 
     # Current unit configurations.
     config: Optional[dict] = None
@@ -106,7 +108,7 @@ class UnitBase:
         if self.data_model is not None:
             self.data_model.set_id(self.id, self.facility.id)
 
-    def set_action(self, action: Union[ManufactureAction, ConsumerAction]):
+    def set_action(self, action: SupplyChainAction):
         """Set action for this agent.
 
         Args:
