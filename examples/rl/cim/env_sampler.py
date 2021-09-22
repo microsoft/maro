@@ -16,7 +16,8 @@ if cim_path not in sys.path:
 
 from callbacks import post_step
 from config import (
-    action_shaping_conf, env_conf, port_attributes, reward_shaping_conf, state_shaping_conf, vessel_attributes
+    action_shaping_conf, algorithm, env_conf, port_attributes, reward_shaping_conf, state_shaping_conf,
+    vessel_attributes
 )
 from policies import policy_func_dict
 
@@ -96,7 +97,7 @@ class CIMEnvSampler(AbsEnvSampler):
         return {agent_id: reward for agent_id, reward in zip(ports, rewards)}
 
 
-agent2policy = {agent: f"ac.{agent}" for agent in Env(**env_conf).agent_idx_list}
+agent2policy = {agent: f"{algorithm}.{agent}" for agent in Env(**env_conf).agent_idx_list}
 
 def get_env_sampler():
     return CIMEnvSampler(

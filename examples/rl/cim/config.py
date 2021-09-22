@@ -40,6 +40,10 @@ state_dim = (
     + len(vessel_attributes)
 )
 
+############################################## POLICIES ###############################################
+
+algorithm = "ac"
+
 # DQN settings
 q_net_conf = {
     "input_dim": state_dim,
