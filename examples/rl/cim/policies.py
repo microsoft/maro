@@ -11,12 +11,12 @@ cim_path = os.path.dirname(os.path.realpath(__file__))
 if cim_path not in sys.path:
     sys.path.insert(0, cim_path)
 from config import (
-    ac_conf, actor_net_conf, actor_optim_conf, critic_net_conf, critic_optim_conf, dqn_conf, q_net_conf,
+    ac_conf, actor_net_conf, actor_optim_conf, algorithm, critic_net_conf, critic_optim_conf, dqn_conf, q_net_conf,
     q_net_optim_conf, state_dim
 )
 
 
-class QNet(DiscreteQNet):
+class MyQNet(DiscreteQNet):
     def __init__(self):
         super().__init__()
         self.fc = FullyConnected(**q_net_conf)
@@ -109,6 +109,11 @@ class MyACNet(DiscreteACNet):
         self.critic_optim.load_state_dict(state["critic_optim"])
 
 
-policy_func_dict = {
-    f"ac.{i}": lambda name: ActorCritic(name, MyACNet(), **ac_conf) for i in range(4)
-}
+if algorithm == "dqn":
+    policy_func_dict = {
+        f"dqn.{i}": lambda name: DQN(name, MyQNet(), **dqn_conf) for i in range(4)
+    }
+else:
+    policy_func_dict = {
+        f"ac.{i}": lambda name: ActorCritic(name, MyACNet(), **ac_conf) for i in range(4)
+    }

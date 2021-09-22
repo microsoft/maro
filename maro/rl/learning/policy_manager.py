@@ -129,8 +129,14 @@ class SimplePolicyManager(AbsPolicyManager):
         self._logger = Logger("POLICY_MANAGER", dump_folder=log_dir)
         self._policy_dict = {name: func(name) for name, func in create_policy_func_dict.items()}
         for id_, path in load_path_dict.items():
-            self._policy_dict[id_].load(path)
-            self._logger.info(f"Loaded policy {id_} from {path}")
+            try:
+                self._policy_dict[id_].load(path)
+                self._logger.info(f"Loaded policy {id_} from {path}")
+            except FileNotFoundError:
+                self._logger.warn(
+                    f"Failed to load state for policy {id_} from path {path}..."
+                    f"using the current policy state as the initial state"
+                )
 
         self._version = defaultdict(int)
 
@@ -261,8 +267,14 @@ class MultiProcessPolicyManager(AbsPolicyManager):
                     **proxy_kwargs)
 
             if initial_state_path:
-                policy.load(initial_state_path)
-                self._logger.info(f"Loaded policy {id_} from {initial_state_path}")
+                try:
+                    policy.load(initial_state_path)
+                    self._logger.info(f"Loaded policy {id_} from {initial_state_path}")
+                except FileNotFoundError:
+                    self._logger.warn(
+                        f"Failed to load state for policy {id_} from path {initial_state_path}..."
+                        f"using the current policy state as the initial state"
+                    )
             conn.send({"type": "init", "policy_state": policy.get_state()})
             while True:
                 msg = conn.recv()
