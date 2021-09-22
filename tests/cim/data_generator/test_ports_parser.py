@@ -5,7 +5,7 @@ import unittest
 
 from yaml import safe_load
 
-from maro.data_lib.cim.port_parser import PortsParser
+from maro.data_lib.cim.parsers import parse_ports
 
 default_conf = """
 ports:
@@ -41,6 +41,7 @@ ports:
         proportion: 0.67
 """
 
+
 class TestPortParser(unittest.TestCase):
 
     def test_port_parser(self):
@@ -48,14 +49,12 @@ class TestPortParser(unittest.TestCase):
 
         conf = safe_load(default_conf)
 
-        ppr = PortsParser()
-
-        port_mapping, ports = ppr.parse(conf["ports"], total_cntr)
+        port_mapping, ports = parse_ports(conf["ports"], total_cntr)
 
         # port number should be same with config
         self.assertEqual(2, len(ports))
 
-        # all empty sould be used
+        # all empty should be used
         self.assertEqual(total_cntr, sum([p.empty for p in ports]))
 
         # capacity should same with config
@@ -70,6 +69,7 @@ class TestPortParser(unittest.TestCase):
 
         #
         self.assertEqual(len(port_mapping), len(ports))
+
 
 if __name__ == "__main__":
     unittest.main()

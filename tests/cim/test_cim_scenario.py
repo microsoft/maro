@@ -1,500 +1,383 @@
-# Copyright (c) Microsoft Corporation.
-# Licensed under the MIT license.
-
-
 import csv
-import unittest
 import os
+import pickle
 import tempfile
-
+import unittest
 from collections import namedtuple
-from maro.event_buffer import EventBuffer, EventState
-from maro.simulator.scenarios.cim.business_engine import CimBusinessEngine, Events
+from typing import List, Optional
+
+import yaml
+
+os.environ["MARO_STREAMIT_ENABLED"] = "true"
+os.environ["MARO_STREAMIT_EXPERIMENT_NAME"] = "cim_testing"
+
+from maro.data_lib.cim import dump_from_config
+from maro.data_lib.cim.entities import PortSetting, Stop, SyntheticPortSetting, VesselSetting
+from maro.data_lib.cim.vessel_stop_wrapper import VesselStopsWrapper
+from maro.simulator import Env
+from maro.simulator.scenarios.cim.business_engine import CimBusinessEngine
+from maro.simulator.scenarios.cim.common import Action, ActionType, DecisionEvent
 from maro.simulator.scenarios.cim.ports_order_export import PortOrderExporter
-from tests.utils import next_step
-from .mock_data_container import MockDataContainer
+from tests.utils import backends_to_test, compare_dictionary
 
-from tests.utils import next_step, backends_to_test
-
-MAX_TICK = 20
-
-
-def setup_case(case_name: str):
-    eb = EventBuffer()
-    case_folder = os.path.join("tests", "data", "cim", case_name)
-
-    CimBusinessEngine.__init__ = mock_cim_init_func
-
-    be = CimBusinessEngine(eb, case_folder, MAX_TICK)
-
-    return eb, be
-
-
-def mock_cim_init_func(self, event_buffer, topology_path, max_tick):
-
-    self._start_tick = 0
-    self._max_tick = max_tick
-    self._topology_path = topology_path
-    self._event_buffer = event_buffer
-    self._max_snapshots = None
-    self._snapshot_resolution = 1
-
-    self._data_cntr = MockDataContainer(topology_path)
-
-    self._vessels = []
-    self._ports = []
-    self._frame = None
-    self._port_orders_exporter = PortOrderExporter(False)
-    self._init_frame()
-
-    self._snapshots = self._frame.snapshots
-
-    self._register_events()
-
-    self._load_departure_events()
-
-    self._init_vessel_plans()
+TOPOLOGY_PATH_CONFIG = "tests/data/cim/case_data/config_folder"
+TOPOLOGY_PATH_DUMP = "tests/data/cim/case_data/dump_folder"
+TOPOLOGY_PATH_REAL_BIN = "tests/data/cim/case_data/real_folder_bin"
+TOPOLOGY_PATH_REAL_CSV = "tests/data/cim/case_data/real_folder_csv"
 
 
 class TestCimScenarios(unittest.TestCase):
-    def setUp(self):
-        pass
+    def __init__(self, *args, **kwargs):
+        super(TestCimScenarios, self).__init__(*args, **kwargs)
 
-    def test_init_state(self):
+        with open(os.path.join(TOPOLOGY_PATH_CONFIG, "config.yml"), "r") as input_stream:
+            self._raw_topology = yaml.safe_load(input_stream)
+
+        self._env: Optional[Env] = None
+        self._reload_topology: str = TOPOLOGY_PATH_CONFIG
+        self._business_engine: Optional[CimBusinessEngine] = None
+
+    def _init_env(self, backend_name: str) -> None:
+        os.environ["DEFAULT_BACKEND_NAME"] = backend_name
+        self._env = Env(
+            scenario="cim",
+            topology=self._reload_topology,
+            start_tick=0,
+            durations=200,
+            options={"enable-dump-snapshot": tempfile.gettempdir()}
+        )
+        self._business_engine = self._env.business_engine
+
+    def test_load_from_config(self) -> None:
         for backend_name in backends_to_test:
-            os.environ["DEFAULT_BACKEND_NAME"] = backend_name
+            self._init_env(backend_name)
 
-            eb: EventBuffer = None
-            be: CimBusinessEngine = None
-            eb, be = setup_case("case_01")
+            #########################################################
+            if len(self._business_engine.configs) > 0:  # Env will not have `configs` if loaded from dump/real.
+                self.assertTrue(compare_dictionary(self._business_engine.configs, self._raw_topology))
 
-            # check frame
-            self.assertEqual(3, len(be.frame.ports), "static node number should be same with port number after "
-                             "initialization")
-            self.assertEqual(2, len(be.frame.vessels), "dynamic node number should be same with vessel number "
-                             "after initialization")
+            self.assertEqual(len(getattr(self._business_engine.frame, "ports")), 22)
+            self.assertEqual(self._business_engine._data_cntr.port_number, 22)
+            self.assertEqual(len(getattr(self._business_engine.frame, "vessels")), 46)
+            self.assertEqual(self._business_engine._data_cntr.vessel_number, 46)
+            self.assertEqual(len(self._business_engine.snapshots), 0)
 
-            # check snapshot
-            self.assertEqual(0, len(be.snapshots), f"snapshots should be 0 after initialization")
+            #########################################################
+            # Vessel
+            vessels: List[VesselSetting] = self._business_engine._data_cntr.vessels
+            for i, vessel in enumerate(vessels):
+                vessel_config = self._raw_topology["vessels"][vessel.name]
+                self.assertEqual(vessel.index, i)
+                self.assertEqual(vessel.capacity, vessel_config["capacity"])
+                self.assertEqual(vessel.parking_duration, vessel_config["parking"]["duration"])
+                self.assertEqual(vessel.parking_noise, vessel_config["parking"]["noise"])
+                self.assertEqual(vessel.start_port_name, vessel_config["route"]["initial_port_name"])
+                self.assertEqual(vessel.route_name, vessel_config["route"]["route_name"])
+                self.assertEqual(vessel.sailing_noise, vessel_config["sailing"]["noise"])
+                self.assertEqual(vessel.sailing_speed, vessel_config["sailing"]["speed"])
 
-    def test_vessel_moving_correct(self):
+            for name, idx in self._business_engine.get_node_mapping()["vessels"].items():
+                self.assertEqual(vessels[idx].name, name)
+
+            #########################################################
+            # Port
+            ports: List[PortSetting] = self._business_engine._data_cntr.ports
+            port_names = [port.name for port in ports]
+            for i, port in enumerate(ports):
+                assert isinstance(port, SyntheticPortSetting)
+                port_config = self._raw_topology["ports"][port.name]
+                self.assertEqual(port.index, i)
+                self.assertEqual(port.capacity, port_config["capacity"])
+                self.assertEqual(port.empty_return_buffer.noise, port_config["empty_return"]["noise"])
+                self.assertEqual(port.full_return_buffer.noise, port_config["full_return"]["noise"])
+                self.assertEqual(port.source_proportion.noise, port_config["order_distribution"]["source"]["noise"])
+                for target in port.target_proportions:
+                    self.assertEqual(
+                        target.noise,
+                        port_config["order_distribution"]["targets"][port_names[target.index]]["noise"]
+                    )
+
+            for name, idx in self._business_engine.get_node_mapping()["ports"].items():
+                self.assertEqual(ports[idx].name, name)
+
+    def test_load_from_real(self) -> None:
+        for topology in [TOPOLOGY_PATH_REAL_BIN, TOPOLOGY_PATH_REAL_CSV]:
+            self._reload_topology = topology
+            for backend_name in backends_to_test:
+                self._init_env(backend_name)
+
+                for i, port in enumerate(self._business_engine._ports):
+                    self.assertEqual(port.booking, 0)
+                    self.assertEqual(port.shortage, 0)
+
+                hard_coded_truth = [556, 0, 20751], [1042, 0, 17320], [0, 0, 25000], [0, 0, 25000]
+
+                self._env.step(action=None)
+                for i, port in enumerate(self._business_engine._ports):
+                    self.assertEqual(port.booking, hard_coded_truth[i][0])
+                    self.assertEqual(port.shortage, hard_coded_truth[i][1])
+                    self.assertEqual(port.empty, hard_coded_truth[i][2])
+
+                self._env.reset(keep_seed=True)
+                self._env.step(action=None)
+                for i, port in enumerate(self._business_engine._ports):
+                    self.assertEqual(port.booking, hard_coded_truth[i][0])
+                    self.assertEqual(port.shortage, hard_coded_truth[i][1])
+                    self.assertEqual(port.empty, hard_coded_truth[i][2])
+
+        self._reload_topology = TOPOLOGY_PATH_CONFIG
+
+    def test_dump_and_load(self) -> None:
+        dump_from_config(os.path.join(TOPOLOGY_PATH_CONFIG, "config.yml"), TOPOLOGY_PATH_DUMP, 200)
+
+        self._reload_topology = TOPOLOGY_PATH_DUMP
+
+        # The reloaded Env should have same behaviors
+        self.test_load_from_config()
+        self.test_vessel_movement()
+        self.test_order_state()
+        self.test_order_export()
+        self.test_early_discharge()
+
+        self._reload_topology = TOPOLOGY_PATH_CONFIG
+
+    def test_vessel_movement(self) -> None:
         for backend_name in backends_to_test:
-            os.environ["DEFAULT_BACKEND_NAME"] = backend_name
-            eb, be = setup_case("case_01")
-            tick = 0
+            self._init_env(backend_name)
 
-            #####################################
-            # STEP : beginning
-            v = be._vessels[0]
+            hard_coded_period = [
+                67, 75, 84, 67, 53, 58, 51, 58, 61, 49, 164, 182, 146, 164, 182, 146, 90, 98, 79, 95, 104, 84, 87, 97,
+                78, 154, 169, 136, 154, 169, 94, 105, 117, 94, 189, 210, 167, 189, 210, 167, 141, 158, 125, 141, 158,
+                125
+            ]
+            self.assertListEqual(self._business_engine._data_cntr.vessel_period, hard_coded_period)
 
-            self.assertEqual(
-                0, v.next_loc_idx, "next_loc_idx of vessel 0 should be 0 at beginning")
-            self.assertEqual(
-                0, v.last_loc_idx, "last_loc_idx of vessel 0 should be 0 at beginning")
+            ports: List[PortSetting] = self._business_engine._data_cntr.ports
+            port_names: List[str] = [port.name for port in ports]
+            vessel_stops: VesselStopsWrapper = self._business_engine._data_cntr.vessel_stops
+            vessels: List[VesselSetting] = self._business_engine._data_cntr.vessels
 
-            stop = be._data_cntr.vessel_stops[0, v.next_loc_idx]
+            # Test invalid argument
+            self.assertIsNone(vessel_stops[None])
 
-            self.assertEqual(0, stop.port_idx,
-                             "vessel 0 should parking at port 0 at beginning")
+            #########################################################
+            for i, vessel in enumerate(vessels):
+                start_port_index = port_names.index(vessel.start_port_name)
+                self.assertEqual(vessel_stops[i, 0].port_idx, start_port_index)
 
-            v = be._vessels[1]
+            #########################################################
+            for i, vessel in enumerate(vessels):
+                stop_port_indices = [stop.port_idx for stop in vessel_stops[i]]
 
-            self.assertEqual(
-                0, v.next_loc_idx, "next_loc_idx of vessel 1 should be 0 at beginning")
-            self.assertEqual(
-                0, v.last_loc_idx, "last_loc_idx of vessel 1 should be 0 at beginning")
+                raw_route = self._raw_topology["routes"][vessel.route_name]
+                route_stop_names = [stop["port_name"] for stop in raw_route]
+                route_stop_indices = [port_names.index(name) for name in route_stop_names]
+                start_offset = route_stop_indices.index(port_names.index(vessel.start_port_name))
 
-            stop = be._data_cntr.vessel_stops[1, v.next_loc_idx]
+                for j, stop_port_index in enumerate(stop_port_indices):
+                    self.assertEqual(stop_port_index, route_stop_indices[(j + start_offset) % len(route_stop_indices)])
 
-            self.assertEqual(1, stop.port_idx,
-                             "vessel 1 should parking at port 1 at beginning")
+            #########################################################
+            # STEP: beginning
+            for i, vessel in enumerate(self._business_engine._vessels):
+                self.assertEqual(vessel.idx, i)
+                self.assertEqual(vessel.next_loc_idx, 0)
+                self.assertEqual(vessel.last_loc_idx, 0)
 
-            #####################################
-            # STEP : tick = 2
-            for i in range(3):
-                next_step(eb, be, tick)
+            #########################################################
+            self._env.step(action=None)
+            self.assertEqual(self._env.tick, 5)  # Vessel 35 will trigger the first arrival event at tick 5
+            for i, vessel in enumerate(self._business_engine._vessels):
+                if i == 35:
+                    self.assertEqual(vessel.next_loc_idx, 1)
+                    self.assertEqual(vessel.last_loc_idx, 1)
+                else:
+                    self.assertEqual(vessel.next_loc_idx, 1)
+                    self.assertEqual(vessel.last_loc_idx, 0)
 
-                tick += 1
+            #########################################################
+            self._env.step(action=None)
+            self.assertEqual(self._env.tick, 6)  # Vessel 27 will trigger the second arrival event at tick 6
+            for i, vessel in enumerate(self._business_engine._vessels):
+                if i == 27:  # Vessel 27 just arrives
+                    self.assertEqual(vessel.next_loc_idx, 1)
+                    self.assertEqual(vessel.last_loc_idx, 1)
+                elif i == 35:  # Vessel 35 has already departed
+                    self.assertEqual(vessel.next_loc_idx, 2)
+                    self.assertEqual(vessel.last_loc_idx, 1)
+                else:
+                    self.assertEqual(vessel.next_loc_idx, 1)
+                    self.assertEqual(vessel.last_loc_idx, 0)
 
-            v = be._vessels[0]
+            #########################################################
+            while self._env.tick < 100:
+                self._env.step(action=None)
+            self.assertEqual(self._env.tick, 100)
+            for i, vessel in enumerate(self._business_engine._vessels):
+                expected_next_loc_idx = expected_last_loc_idx = -1
+                for j, stop in enumerate(vessel_stops[i]):
+                    if stop.arrival_tick == self._env.tick:
+                        expected_next_loc_idx = expected_last_loc_idx = j
+                        break
+                    if stop.arrival_tick > self._env.tick:
+                        expected_next_loc_idx = j
+                        expected_last_loc_idx = j - 1
+                        break
 
-            # if these 2 idx not equal, then means at sailing state
-            self.assertEqual(1, v.next_loc_idx,
-                             "next_loc_idx of vessel 0 should be 1 at tick 2")
-            self.assertEqual(0, v.last_loc_idx,
-                             "last_loc_idx of vessel 0 should be 0 at tick 2")
+                self.assertEqual(vessel.next_loc_idx, expected_next_loc_idx)
+                self.assertEqual(vessel.last_loc_idx, expected_last_loc_idx)
 
-            v = be._vessels[1]
-
-            self.assertEqual(1, v.next_loc_idx,
-                             "next_loc_idx of vessel 1 should be 1 at tick 2")
-            self.assertEqual(0, v.last_loc_idx,
-                             "last_loc_idx of vessel 1 should be 0 at tick 2")
-
-            v = be.snapshots["matrices"][2::"vessel_plans"].flatten()
-
-            # since we already fixed the vessel plans, we just check the value
-            for i in range(2):
-                self.assertEqual(11, v[i*3+0])
-                self.assertEqual(-1, v[i*3+1])
-                self.assertEqual(13, v[i*3+2])
-
-            #####################################
-            # STEP : tick = 8
-            for i in range(6):
-                next_step(eb, be, tick)
-
-                tick += 1
-
-            v = be._vessels[0]
-
-            # vessel 0 parking
-            self.assertEqual(1, v.next_loc_idx,
-                             "next_loc_idx of vessel 0 should be 1 at tick 8")
-            self.assertEqual(1, v.last_loc_idx,
-                             "last_loc_idx of vessel 0 should be 1 at tick 8")
-
-            stop = be._data_cntr.vessel_stops[0, v.next_loc_idx]
-
-            self.assertEqual(1, stop.port_idx,
-                             "vessel 0 should parking at port 1 at tick 8")
-
-            v = be._vessels[1]
-
-            # vessel 1 sailing
-            self.assertEqual(1, v.next_loc_idx,
-                             "next_loc_idx of vessel 1 should be 1 at tick 8")
-            self.assertEqual(0, v.last_loc_idx,
-                             "last_loc_idx of vessel 1 should be 0 at tick 8")
-
-            #####################################
-            # STEP : tick = 10
-            for i in range(2):
-                next_step(eb, be, tick)
-
-                tick += 1
-
-            v = be._vessels[0]
-
-            # vessel 0 parking
-            self.assertEqual(1, v.next_loc_idx,
-                             "next_loc_idx of vessel 0 should be 1 at tick 10")
-            self.assertEqual(1, v.last_loc_idx,
-                             "last_loc_idx of vessel 0 should be 1 at tick 10")
-
-            v = be._vessels[1]
-
-            # vessel 1 parking
-            self.assertEqual(1, v.next_loc_idx,
-                             "next_loc_idx of vessel 1 should be 1 at tick 10")
-            self.assertEqual(1, v.last_loc_idx,
-                             "last_loc_idx of vessel 1 should be 1 at tick 10")
-
-            #####################################
-            # STEP : tick = 11
-            for i in range(1):
-                next_step(eb, be, tick)
-
-                tick += 1
-
-            v = be._vessels[0]
-
-            # vessel 0 parking
-            self.assertEqual(2, v.next_loc_idx,
-                             "next_loc_idx of vessel 0 should be 2 at tick 11")
-            self.assertEqual(1, v.last_loc_idx,
-                             "last_loc_idx of vessel 0 should be 1 at tick 11")
-
-            v = be._vessels[1]
-
-            # vessel 1 parking
-            self.assertEqual(1, v.next_loc_idx,
-                             "next_loc_idx of vessel 1 should be 1 at tick 11")
-            self.assertEqual(1, v.last_loc_idx,
-                             "last_loc_idx of vessel 1 should be 1 at tick 11")
-
-            # move the env to next step, so it will take snapshot for current tick 11
-            next_step(eb, be, tick)
-
-            # we have hard coded the future stops, here we just check if the value correct at each tick
-            for i in range(tick - 1):
-                # check if the future stop at tick 8 (vessel 0 arrive at port 1)
-                stop_list = be.snapshots["vessels"][i:0:[
-                    "past_stop_list", "past_stop_tick_list"]].flatten()
-
-                self.assertEqual(-1, stop_list[0])
-                self.assertEqual(-1, stop_list[2])
-
-                stop_list = be.snapshots["vessels"][i:0:[
-                    "future_stop_list", "future_stop_tick_list"]].flatten()
-
-                self.assertEqual(2, stop_list[0])
-                self.assertEqual(3, stop_list[1])
-                self.assertEqual(4, stop_list[2])
-                self.assertEqual(4, stop_list[3])
-                self.assertEqual(10, stop_list[4])
-                self.assertEqual(20, stop_list[5])
-
-                # check if statistics data correct
-                order_states = be.snapshots["ports"][i:0:[
-                    "shortage", "acc_shortage", "booking", "acc_booking"]].flatten()
-
-                # all the value should be 0 for this case
-                self.assertEqual(
-                    0, order_states[0], f"shortage of port 0 should be 0 at tick {i}")
-                self.assertEqual(
-                    0, order_states[1], f"acc_shortage of port 0 should be 0 until tick {i}")
-                self.assertEqual(
-                    0, order_states[2], f"booking of port 0 should be 0 at tick {i}")
-                self.assertEqual(
-                    0, order_states[3], f"acc_booking of port 0 should be 0 until tick {i}")
-
-                # check fulfillment
-                fulfill_states = be.snapshots["ports"][i:0:[
-                    "fulfillment", "acc_fulfillment"]].flatten()
-
-                self.assertEqual(
-                    0, fulfill_states[0], f"fulfillment of port 0 should be 0 at tick {i}")
-                self.assertEqual(
-                    0, fulfill_states[1], f"acc_fulfillment of port 0 should be 0 until tick {i}")
-
-            v = be.snapshots["matrices"][2:: "vessel_plans"].flatten()
-
-            # since we already fixed the vessel plans, we just check the value
-            for i in range(2):
-                self.assertEqual(11, v[i*3+0])
-                self.assertEqual(-1, v[i*3+1])
-                self.assertEqual(13, v[i*3+2])
-
-    def test_order_state(self):
+    def test_order_state(self) -> None:
         for backend_name in backends_to_test:
-            os.environ["DEFAULT_BACKEND_NAME"] = backend_name
+            self._init_env(backend_name)
 
-            eb, be = setup_case("case_02")
-            tick = 0
+            for i, port in enumerate(self._business_engine._ports):
+                total_containers = self._raw_topology['total_containers']
+                initial_container_proportion = self._raw_topology['ports'][port.name]['initial_container_proportion']
 
-            p = be._ports[0]
+                self.assertEqual(port.booking, 0)
+                self.assertEqual(port.shortage, 0)
+                self.assertEqual(port.empty, int(total_containers * initial_container_proportion))
 
-            self.assertEqual(
-                0, p.booking, "port 0 have no booking at beginning")
-            self.assertEqual(
-                0, p.shortage, "port 0 have no shortage at beginning")
-            self.assertEqual(
-                100, p.empty, "port 0 have 100 empty containers at beginning")
+            #########################################################
+            self._env.step(action=None)
+            self.assertEqual(self._env.tick, 5)
 
-            #####################################
-            # STEP : tick = 0
-            for i in range(1):
-                next_step(eb, be, tick)
-                tick += 1
+            hard_coded_truth = [  # Should get same results under default random seed
+                [223, 0, 14726], [16, 0, 916], [18, 0, 917], [89, 0, 5516], [84, 0, 4613], [72, 0, 4603],
+                [26, 0, 1374], [24, 0, 1378], [48, 0, 2756], [54, 0, 2760], [26, 0, 1379], [99, 0, 5534],
+                [137, 0, 7340], [19, 0, 912], [13, 0, 925], [107, 0, 6429], [136, 0, 9164], [64, 0, 3680],
+                [24, 0, 1377], [31, 0, 1840], [109, 0, 6454], [131, 0, 7351]
+            ]
+            for i, port in enumerate(self._business_engine._ports):
+                self.assertEqual(port.booking, hard_coded_truth[i][0])
+                self.assertEqual(port.shortage, hard_coded_truth[i][1])
+                self.assertEqual(port.empty, hard_coded_truth[i][2])
 
-            # there should be 10 order generated at tick 0
-            self.assertEqual(
-                10, p.booking, "port 0 should have 10 bookings at tick 0")
-            self.assertEqual(
-                0, p.shortage, "port 0 have no shortage at tick 0")
-            self.assertEqual(
-                90, p.empty, "port 0 have 90 empty containers at tick 0")
-
-            #####################################
-            # STEP : tick = 1
-            for i in range(1):
-                next_step(eb, be, tick)
-                tick += 1
-
-            # we have 0 booking, so no shortage
-            self.assertEqual(
-                0, p.booking, "port 0 should have 0 bookings at tick 1")
-            self.assertEqual(
-                0, p.shortage, "port 0 have no shortage at tick 1")
-            self.assertEqual(
-                90, p.empty, "port 0 have 90 empty containers at tick 1")
-
-            #####################################
-            # STEP : tick = 3
-            for i in range(2):
-                next_step(eb, be, tick)
-                tick += 1
-
-            # there is an order that take 40 containers
-            self.assertEqual(
-                40, p.booking, "port 0 should have 40 booking at tick 3")
-            self.assertEqual(
-                0, p.shortage, "port 0 have no shortage at tick 3")
-            self.assertEqual(
-                50, p.empty, "port 0 have 90 empty containers at tick 3")
-
-            #####################################
-            # STEP : tick = 7
-            for i in range(4):
-                next_step(eb, be, tick)
-                tick += 1
-
-            # there is an order that take 51 containers
-            self.assertEqual(
-                51, p.booking, "port 0 should have 51 booking at tick 7")
-            self.assertEqual(1, p.shortage, "port 0 have 1 shortage at tick 7")
-            self.assertEqual(
-                0, p.empty, "port 0 have 0 empty containers at tick 7")
-
-            # push the simulator to next tick to update snapshot
-            next_step(eb, be, tick)
-
-            # check if there is any container missing
-            total_cntr_number = sum([port.empty for port in be._ports]) + \
-                sum([vessel.empty for vessel in be._vessels]) + \
-                sum([port.full for port in be._ports]) + \
-                sum([vessel.full for vessel in be._vessels])
-
-            # NOTE: we flatten here, as raw backend query result has 4dim shape
-            # check if statistics data correct
-            order_states = be.snapshots["ports"][7:0:[
-                "shortage", "acc_shortage", "booking", "acc_booking"]].flatten()
-
-            # all the value should be 0 for this case
-            self.assertEqual(
-                1, order_states[0], f"shortage of port 0 should be 0 at tick {i}")
-            self.assertEqual(
-                1, order_states[1], f"acc_shortage of port 0 should be 0 until tick {i}")
-            self.assertEqual(
-                51, order_states[2], f"booking of port 0 should be 0 at tick {i}")
-            self.assertEqual(
-                101, order_states[3], f"acc_booking of port 0 should be 0 until tick {i}")
-
-            # check fulfillment
-            fulfill_states = be.snapshots["ports"][7:0:[
-                "fulfillment", "acc_fulfillment"]].flatten()
-
-            self.assertEqual(
-                50, fulfill_states[0], f"fulfillment of port 0 should be 50 at tick {i}")
-            self.assertEqual(
-                100, fulfill_states[1], f"acc_fulfillment of port 0 should be 100 until tick {i}")
-
-    def test_order_load_discharge_state(self):
+    def test_keep_seed(self) -> None:
         for backend_name in backends_to_test:
-            os.environ["DEFAULT_BACKEND_NAME"] = backend_name
+            self._init_env(backend_name)
 
-            eb, be = setup_case("case_03")
-            tick = 0
+            vessel_stops_1: List[List[Stop]] = self._business_engine._data_cntr.vessel_stops
+            self._env.step(action=None)
+            port_info_1 = [(port.booking, port.shortage, port.empty) for port in self._business_engine._ports]
 
-            #####################################
-            # STEP : tick = 5
-            for i in range(6):
-                next_step(eb, be, tick)
-                tick += 1
+            self._env.reset(keep_seed=True)
+            vessel_stops_2: List[List[Stop]] = self._business_engine._data_cntr.vessel_stops
+            self._env.step(action=None)
+            port_info_2 = [(port.booking, port.shortage, port.empty) for port in self._business_engine._ports]
 
-            # check if we have load all 50 full container
-            p = be._ports[0]
-            v = be._vessels[0]
+            self._env.reset(keep_seed=False)
+            vessel_stops_3: List[List[Stop]] = self._business_engine._data_cntr.vessel_stops
+            self._env.step(action=None)
+            port_info_3 = [(port.booking, port.shortage, port.empty) for port in self._business_engine._ports]
 
-            self.assertEqual(0, p.full, "port 0 should have no full at tick 5")
-            self.assertEqual(
-                50, v.full, "all 50 full container should be loaded on vessel 0")
-            self.assertEqual(
-                50, p.empty, "remaining empty should be 50 after order generated at tick 5")
-            self.assertEqual(0, p.shortage, "no shortage at tick 5 for port 0")
-            self.assertEqual(0, p.booking, "no booking at tick 5 for pot 0")
+            # Vessel
+            for i in range(self._business_engine._data_cntr.vessel_number):
+                # 1 and 2 should be totally equal
+                self.assertListEqual(vessel_stops_1[i], vessel_stops_2[i])
 
-            #####################################
-            # STEP : tick = 10
-            for i in range(5):
-                next_step(eb, be, tick)
-                tick += 1
+                # 1 and 3 should have difference
+                flag = True
+                for stop1, stop3 in zip(vessel_stops_1[i], vessel_stops_3[i]):
+                    self.assertListEqual(
+                        [stop1.index, stop1.port_idx, stop1.vessel_idx],
+                        [stop3.index, stop3.port_idx, stop3.vessel_idx]
+                    )
+                    if (stop1.arrival_tick, stop1.leave_tick) != (stop3.arrival_tick, stop3.leave_tick):
+                        flag = False
+                self.assertFalse(flag)
 
-            # at tick 10 vessel 0 arrive at port 1, it should discharge all the full containers
-            p1 = be._ports[1]
+            # Port
+            self.assertListEqual(port_info_1, port_info_2)
+            self.assertFalse(all(port1 == port3 for port1, port3 in zip(port_info_1, port_info_3)))
 
-            self.assertEqual(
-                0, v.full, "all 0 full container on vessel 0 after arrive at port 1 at tick 10")
-            self.assertEqual(50, p1.on_consignee,
-                             "there should be 50 full containers pending to be empty at tick 10 after discharge")
-            self.assertEqual(0, p1.empty, "no empty for port 1 at tick 10")
-            self.assertEqual(0, p1.full, "no full for port 1 at tick 10")
-
-            #####################################
-            # STEP : tick = 12
-            for i in range(2):
-                next_step(eb, be, tick)
-                tick += 1
-
-            # we hard coded the buffer time to 2, so
-            self.assertEqual(0, p1.on_consignee,
-                             "all the full become empty at tick 12 for port 1")
-            self.assertEqual(
-                50, p1.empty, "there will be 50 empty at tick 12 for port 1")
-
-    def test_early_discharge(self):
-        for backend_name in backends_to_test:
-            os.environ["DEFAULT_BACKEND_NAME"] = backend_name
-
-            eb, be = setup_case("case_04")
-            tick = 0
-
-            p0 = be._ports[0]
-            p1 = be._ports[1]
-            p2 = be._ports[2]
-            v = be._vessels[0]
-
-            #####################################
-            # STEP : tick = 10
-            for i in range(11):
-                next_step(eb, be, tick)
-                tick += 1
-
-            # at tick 10, vessel 0 arrive port 2, it already loaded 50 full, it need to load 50 at port 2, so it will early dicharge 10 empty
-            self.assertEqual(
-                0, v.empty, "vessel 0 should early discharge all the empty at tick 10")
-            self.assertEqual(
-                100, v.full, "vessel 0 should have 100 full on-board at tick 10")
-            self.assertEqual(
-                10, p2.empty, "port 2 have 10 more empty due to early discharge at tick 10")
-            self.assertEqual(0, p2.full, "no full at port 2 at tick 10")
-
-            #####################################
-            # STEP : tick = 18
-            for i in range(8):
-                next_step(eb, be, tick)
-                tick += 1
-
-            # at tick 18, vessel 0 arrive at port 1, it will discharge all the full
-            self.assertEqual(
-                0, v.empty, "vessel 0 should have no empty at tick 18")
-            self.assertEqual(
-                0, v.full, "vessel 0 should discharge all full on-board at tick 18")
-            self.assertEqual(
-                100, p1.on_consignee, "100 full pending to become empty at port 1 at tick 18")
-            self.assertEqual(0, p1.empty, "no empty for port 1 at tick 18")
-
-            #####################################
-            # STEP : tick = 20
-            for i in range(2):
-                next_step(eb, be, tick)
-                tick += 1
-
-            self.assertEqual(
-                100, p1.empty, "there should be 100 empty at tick 20 at port 1")
-
-    def test_order_export(self):
+    def test_order_export(self) -> None:
         """order.tick, order.src_port_idx, order.dest_port_idx, order.quantity"""
         Order = namedtuple("Order", ["tick", "src_port_idx", "dest_port_idx", "quantity"])
 
-        exportor = PortOrderExporter(True)
+        #
+        for enabled in [False, True]:
+            exporter = PortOrderExporter(enabled)
 
-        for i in range(5):
-            exportor.add(Order(0, 0, 1, i + 1))
+            for i in range(5):
+                exporter.add(Order(0, 0, 1, i + 1))
 
-        out_folder = tempfile.gettempdir()
+            out_folder = tempfile.gettempdir()
+            if os.path.exists(f"{out_folder}/orders.csv"):
+                os.remove(f"{out_folder}/orders.csv")
 
-        exportor.dump(out_folder)
+            exporter.dump(out_folder)
 
-        with open(f"{out_folder}/orders.csv") as fp:
-            reader = csv.DictReader(fp)
+            if enabled:
+                with open(f"{out_folder}/orders.csv") as fp:
+                    reader = csv.DictReader(fp)
+                    row = 0
+                    for line in reader:
+                        self.assertEqual(row + 1, int(line["quantity"]))
+                        row += 1
+            else:  # Should done nothing
+                self.assertFalse(os.path.exists(f"{out_folder}/orders.csv"))
 
-            row = 0
-            for line in reader:
-                self.assertEqual(row+1, int(line["quantity"]))
+    def test_early_discharge(self) -> None:
+        for backend_name in backends_to_test:
+            self._init_env(backend_name)
 
-                row += 1
+            metric, decision_event, is_done = self._env.step(None)
+            assert isinstance(decision_event, DecisionEvent)
+
+            self.assertEqual(decision_event.action_scope.load, 1240)
+            self.assertEqual(decision_event.action_scope.discharge, 0)
+            self.assertEqual(decision_event.early_discharge, 0)
+
+            decision_event = pickle.loads(pickle.dumps(decision_event))  # Test serialization
+
+            load_action = Action(
+                vessel_idx=decision_event.vessel_idx,
+                port_idx=decision_event.port_idx,
+                quantity=1201,
+                action_type=ActionType.LOAD
+            )
+            discharge_action = Action(
+                vessel_idx=decision_event.vessel_idx,
+                port_idx=decision_event.port_idx,
+                quantity=1,
+                action_type=ActionType.DISCHARGE
+            )
+            metric, decision_event, is_done = self._env.step([load_action, discharge_action])
+
+            history = []
+            while not is_done:
+                metric, decision_event, is_done = self._env.step(None)
+                assert decision_event is None or isinstance(decision_event, DecisionEvent)
+                if decision_event is not None and decision_event.vessel_idx == 35:
+                    v = self._business_engine._vessels[35]
+                    history.append((v.full, v.empty, v.early_discharge))
+
+            hard_coded_benchmark = [
+                (465, 838, 362), (756, 547, 291), (1261, 42, 505), (1303, 0, 42), (1303, 0, 0), (1303, 0, 0),
+                (803, 0, 0)
+            ]
+            self.assertListEqual(history, hard_coded_benchmark)
+
+            #
+            payload_detail_benchmark = {
+                'ORDER': ['tick', 'src_port_idx', 'dest_port_idx', 'quantity'],
+                'RETURN_FULL': ['src_port_idx', 'dest_port_idx', 'quantity'],
+                'VESSEL_ARRIVAL': ['port_idx', 'vessel_idx'],
+                'LOAD_FULL': ['port_idx', 'vessel_idx'],
+                'DISCHARGE_FULL': ['vessel_idx', 'port_idx', 'from_port_idx', 'quantity'],
+                'PENDING_DECISION': [
+                    'tick', 'port_idx', 'vessel_idx', 'snapshot_list', 'action_scope', 'early_discharge'],
+                'LOAD_EMPTY': ['port_idx', 'vessel_idx', 'action_type', 'quantity'],
+                'DISCHARGE_EMPTY': ['port_idx', 'vessel_idx', 'action_type', 'quantity'],
+                'VESSEL_DEPARTURE': ['port_idx', 'vessel_idx'], 'RETURN_EMPTY': ['port_idx', 'quantity']
+            }
+            self.assertTrue(
+                compare_dictionary(self._business_engine.get_event_payload_detail(), payload_detail_benchmark))
+            port_number = self._business_engine._data_cntr.port_number
+            self.assertListEqual(self._business_engine.get_agent_idx_list(), list(range(port_number)))
+
 
 if __name__ == "__main__":
     unittest.main()

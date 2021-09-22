@@ -3,7 +3,7 @@
 
 import datetime
 import os
-from typing import List
+from typing import List, Optional
 
 import holidays
 import numpy as np
@@ -46,8 +46,8 @@ operation_number (int): Accumulative operation cost until now.
 
 class CitibikeBusinessEngine(AbsBusinessEngine):
     def __init__(
-        self, event_buffer: EventBuffer, topology: str, start_tick: int,
-        max_tick: int, snapshot_resolution: int, max_snapshots: int, additional_options: dict = {}
+        self, event_buffer: EventBuffer, topology: Optional[str], start_tick: int,
+        max_tick: int, snapshot_resolution: int, max_snapshots: Optional[int], additional_options: dict = {}
     ):
         super().__init__(
             "citi_bike", event_buffer, topology, start_tick, max_tick,
@@ -178,7 +178,7 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         """
         return [station.index for station in self._stations]
 
-    def get_metrics(self) -> dict:
+    def get_metrics(self) -> DocableDict:
         """Get current metrics information.
 
         Note:
@@ -189,9 +189,11 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         """
         return DocableDict(
             metrics_desc,
-            trip_requirements=self._total_trips,
-            bike_shortage=self._total_shortages,
-            operation_number=self._total_operate_num
+            {
+                'trip_requirements': self._total_trips,
+                'bike_shortage': self._total_shortages,
+                'operation_number': self._total_operate_num
+            }
         )
 
     def __del__(self):

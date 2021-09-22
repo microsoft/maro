@@ -69,7 +69,7 @@ in the roll-out loop. In this example,
                 plan_action = percent * (scope.discharge + early_discharge) - early_discharge
                 actual_action = round(plan_action) if plan_action > 0 else round(percent * scope.discharge)
             else:
-                actual_action, action_type = 0, None
+                actual_action, action_type = 0, ActionType.LOAD
 
             return {port: Action(vessel, port, actual_action, action_type)}
 

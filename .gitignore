@@ -22,6 +22,5 @@ data/
 maro_venv/
 pyvenv.cfg
 htmlcov/
-.coverage
-
-.coveragerc
+.coverage 
+.coveragerc 

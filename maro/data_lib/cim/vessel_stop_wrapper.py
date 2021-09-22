@@ -21,7 +21,7 @@ class VesselStopsWrapper:
             stops = data_cntr.vessel_stops[:]
     """
 
-    def __init__(self, data: CimBaseDataCollection):
+    def __init__(self, data: CimBaseDataCollection) -> None:
         self._stops = data.vessel_stops
 
     def __getitem__(self, key):
@@ -36,7 +36,7 @@ class VesselStopsWrapper:
             loc_idx = key[1]
 
             return self._stops[vessel_idx][loc_idx]
-        elif key_type == slice and key.start is None and key.step is None and key.stop is None:
+        elif key_type == slice and all([key.start is None, key.step is None, key.stop is None]):
             return self._stops
 
         return None

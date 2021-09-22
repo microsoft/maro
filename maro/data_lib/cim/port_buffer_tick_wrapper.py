@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
-
 from math import ceil
+from typing import Callable
 
 from maro.simulator.utils import random
 
@@ -21,7 +21,7 @@ class PortBufferTickWrapper:
         attribute_func (callable): Function to get attribute, used to switch between empty and full.
     """
 
-    def __init__(self, data: CimBaseDataCollection, attribute_func: callable):
+    def __init__(self, data: CimBaseDataCollection, attribute_func: Callable[[PortSetting], NoisedItem]) -> None:
         self._ports = data.port_settings
         self._attribute_func = attribute_func
 

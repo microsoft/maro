@@ -1,0 +1,5 @@
+index,name,capacity,empty,empty_return_buffer,empty_return_buffer_noise,full_return_buffer,full_return_buffer_noise
+0,demand_port_001,100000,25000,1,1,1,1
+1,demand_port_002,100000,25000,1,1,1,1
+2,supply_port_001,1000000,25000,1,1,1,1
+3,supply_port_002,100000,25000,1,1,1,1
