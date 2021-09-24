@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 
 import sys
+from collections import defaultdict
 from os.path import dirname, realpath
 
 import numpy as np
@@ -19,22 +20,9 @@ from config import (
 from policies import policy_func_dict
 
 
-def post_step(env, tracker: dict, state, action, env_actions, reward, tick):
-    tracker["env_metric"] = {key: metric for key, metric in env.metrics.items() if key != "total_latency"}
-    tracker["env_metric"]["latency_due_to_agent"] = env.metrics["total_latency"].due_to_agent
-    tracker["env_metric"]["latency_due_to_resource"] = env.metrics["total_latency"].due_to_resource
-    if "vm_cpu_cores_requirement" not in tracker:
-        tracker["vm_cpu_cores_requirement"] = []
-    if "action_sequence" not in tracker:
-        tracker["action_sequence"] = []
-
-    tracker["vm_cpu_cores_requirement"].append([action, state[num_features:]])
-    tracker["action_sequence"].append(action)
-
-
 class VMEnvSampler(AbsEnvSampler):
-    def __init__(self, get_env, get_policy_func_dict, agent2policy, get_test_env=None, post_step=None):
-        super().__init__(get_env, get_policy_func_dict, agent2policy, get_test_env=get_test_env, post_step=post_step)
+    def __init__(self, get_env, get_policy_func_dict, agent2policy, get_test_env=None):
+        super().__init__(get_env, get_policy_func_dict, agent2policy, get_test_env=get_test_env)
         self._learn_env.set_seed(seed)
         self._test_env.set_seed(test_seed)
 
@@ -123,12 +111,27 @@ class VMEnvSampler(AbsEnvSampler):
             )
         ])
 
+    def post_step(self, state, action, env_actions, reward, tick):
+        self.tracker["env_metric"] = {key: metric for key, metric in self.env.metrics.items() if key != "total_latency"}
+        self.tracker["env_metric"]["latency_due_to_agent"] = self.env.metrics["total_latency"].due_to_agent
+        self.tracker["env_metric"]["latency_due_to_resource"] = self.env.metrics["total_latency"].due_to_resource
+        if "actions_by_core_requirement" not in self.tracker:
+            self.tracker["actions_by_core_requirement"] = defaultdict(list)
+        if "action_sequence" not in self.tracker:
+            self.tracker["action_sequence"] = []
+
+        if self.event:
+            mask = state[num_features:]
+            self.tracker["actions_by_core_requirement"][self.event.vm_cpu_cores_requirement].append([action, mask])
+        self.tracker["action_sequence"].append(action["action"] if isinstance(action, dict) else action)
+
+
+agent2policy = {"AGENT": algorithm}
 
 def get_env_sampler():
     return VMEnvSampler(
         get_env=lambda: Env(**env_conf),
         get_policy_func_dict=policy_func_dict,
-        agent2policy={"AGENT": algorithm},
-        get_test_env=lambda: Env(**test_env_conf),
-        post_step=post_step
+        agent2policy=agent2policy,
+        get_test_env=lambda: Env(**test_env_conf)
     )

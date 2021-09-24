@@ -3,9 +3,9 @@
 A virtual machine (VM) scheduler is a cloud computing service component responsible for providing compute resources to satisfy user demands. A good resource allocation policy should aim to optimize several metrics at the same time, such as user wait time, profit, energy consumption and physical machine (PM) overload. Many commercial cloud providers use rule-based policies. Alternatively, the policy can also be optimized using reinforcement learning (RL) techniques, which involves simulating with historical data. This example demonstrates how DQN and Actor-Critic algorithms can be applied to this scenario. In this folder, you can find:  
 
 * ``config.py``, which contains environment and policy configurations.
-* ``env_sampler.py``, which defines state, action and reward shaping pertinent to the policies.
-* ``policies.py``, which defines the neural network components of DQN and Actor-Critic.
-* ``callbacks.py``, which contains processing logic to be executed at step and episode levels.
+* ``env_sampler.py``, which defines state, action and reward shaping in the ``VMEnvSampler`` class;
+* ``policies.py``, which defines the Q-net for DQN and the network components for Actor-Critic.
+* ``callbacks.py``, which contains routines to be invoked at the end of a training or evaluation episode.
 
 The scripts to run the learning workflows can be found under ``examples/rl/workflows``. See ``README`` under ``examples/rl`` for details about the general applicability of these scripts. We recommend that you follow this example to write your own scenarios.
 

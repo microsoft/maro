@@ -37,8 +37,8 @@ def post_evaluate(trackers, ep):
         avg_metric = {key: sum(tr["env_metric"][key] for tr in trackers) / num_trackers for key in metric_keys}
         print(f"average env metric (evaluation episode {ep}): {avg_metric}")
 
-    for i, tracker in enumerate(trackers):
-        core_requirement = tracker["vm_core_requirement"]
+    for tracker in trackers:
+        core_requirement = tracker["actions_by_core_requirement"]
         action_sequence = tracker["action_sequence"]
         # plot action sequence
         fig = plt.figure(figsize=(40, 32))

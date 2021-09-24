@@ -75,8 +75,8 @@ class MyACNet(DiscreteACNet):
         return num_features + num_pms + 1
 
     def forward(self, states, actor: bool = True, critic: bool = True):
-        features = states[:, :num_features].to()
-        masks = states[:, num_features:]
+        features, masks = states[:, :num_features], states[:, num_features:]
+        masks += 1e-8  # this is to prevent zero probability and infinite logP. 
         return (self.actor(features) * masks if actor else None), (self.critic(features) if critic else None)
 
     def step(self, loss):

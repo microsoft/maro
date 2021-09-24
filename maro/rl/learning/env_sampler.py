@@ -195,11 +195,6 @@ class AbsEnvSampler(ABC):
         reward_eval_delay (int): Number of ticks required after a decision event to evaluate the reward
             for the action taken for that event. Defaults to 0, which means rewards are evaluated immediately
             after executing an action.
-        post_step (Callable): Custom function to gather information about a transition and the evolvement of the
-            environment. The function signature should be (env, tracker, transition) -> None, where env is the ``Env``
-            instance in the wrapper, tracker is a dictionary where the gathered information is stored and transition
-            is a ``Transition`` object. For example, this callback can be used to collect various statistics on the
-            simulation. Defaults to None.
         policies_to_parallelize (List[str]): Policies to be placed in separate processes so that inference can be
             performed in parallel to speed up simulation. This is useful if some policies are big and takes long times
             to compute actions. Defaults to an empty list.
@@ -211,7 +206,6 @@ class AbsEnvSampler(ABC):
         agent2policy: Dict[str, str],
         get_test_env: Callable[[], Env] = None,
         reward_eval_delay: int = 0,
-        post_step: Callable = None,
         policies_to_parallelize: List[str] = []
     ):
         self._learn_env = get_env()
@@ -223,8 +217,6 @@ class AbsEnvSampler(ABC):
         )
 
         self.reward_eval_delay = reward_eval_delay
-        self._post_step = post_step
-
         self._state = None
         self._event = None
         self._step_index = 0
@@ -265,12 +257,7 @@ class AbsEnvSampler(ABC):
         """
         raise NotImplementedError
 
-    def sample(
-        self,
-        policy_state_dict: dict = None,
-        num_steps: int = -1,
-        return_rollout_info: bool = True
-    ):
+    def sample(self, policy_state_dict: dict = None, num_steps: int = -1, return_rollout_info: bool = True):
         self.env = self._learn_env
         if not self._state:
             # reset and get initial state
@@ -306,10 +293,7 @@ class AbsEnvSampler(ABC):
             while cache and (not self._state or self.env.tick - cache[0][-1] >= self.reward_eval_delay):
                 state, action, env_actions, tick = cache.popleft()
                 reward = self.get_reward(env_actions, tick)
-                if self._post_step:
-                    # put things you want to track in the tracker attribute
-                    self._post_step(self.env, self.tracker, state, action, env_actions, reward, tick)
-
+                self.post_step(state, action, env_actions, reward, tick)
                 self.agent_wrapper.record_transition(
                     agent, state, action, reward[agent], cache[0][0] if cache else self._state,
                     not cache and not self._state
@@ -350,6 +334,12 @@ class AbsEnvSampler(ABC):
                 state = self.get_state()
 
         return self.tracker
+
+    def post_step(self, state, action, env_actions, reward, tick):
+        """
+        Gather any information you wish to track during a roll-out episode and store it in the ``tracker`` attribute.
+        """
+        pass
 
     def worker(
         self,
