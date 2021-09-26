@@ -3,11 +3,12 @@
 
 import numpy as np
 
+from ..datamodels import ProductDataModel
 from .consumer import ConsumerUnit
 from .distribution import DistributionUnit
+from .extendunitbase import ExtendUnitBase
 from .manufacture import ManufactureUnit
 from .seller import SellerUnit
-from .extendunitbase import ExtendUnitBase
 from .storage import StorageUnit
 
 
@@ -39,6 +40,7 @@ class ProductUnit(ExtendUnitBase):
 
         facility_sku = self.facility.skus[self.product_id]
 
+        assert isinstance(self.data_model, ProductDataModel)
         self.data_model.initialize(facility_sku.price)
 
     def step(self, tick: int):

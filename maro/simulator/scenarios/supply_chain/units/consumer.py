@@ -1,13 +1,12 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
-
-
 from collections import Counter, defaultdict
 
 from scipy.ndimage.interpolation import shift
 
-from .order import Order
+from .. import ConsumerDataModel
 from .extendunitbase import ExtendUnitBase
+from .order import Order
 
 
 class ConsumerUnit(ExtendUnitBase):
@@ -57,7 +56,9 @@ class ConsumerUnit(ExtendUnitBase):
         sku = self.facility.skus[self.product_id]
 
         order_cost = self.facility.get_config("order_cost")
+        assert isinstance(order_cost, int)
 
+        assert isinstance(self.data_model, ConsumerDataModel)
         self.data_model.initialize(sku.price, order_cost)
 
         if self.facility.upstreams is not None:
@@ -66,7 +67,7 @@ class ConsumerUnit(ExtendUnitBase):
 
             if sources is not None:
                 # Is we are a supplier facility?
-                is_supplier = self.parent.manufacture is not None
+                is_supplier = getattr(self.parent, "manufacture", None) is not None
 
                 # Current sku information.
                 sku = self.world.get_sku_by_id(self.product_id)
@@ -103,9 +104,6 @@ class ConsumerUnit(ExtendUnitBase):
         self.order_product_cost = source_facility.distribution.place_order(order)
 
         self.purchased = self.action.quantity
-
-        if order.vlt < len(self.pending_order_daily):
-            self.pending_order_daily[order.vlt - 1] += order.quantity
 
     def flush_states(self):
         if self.received > 0:

@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 
 
+from .. import ManufactureDataModel
 from .extendunitbase import ExtendUnitBase
 
 
@@ -29,6 +30,7 @@ class ManufactureUnit(ExtendUnitBase):
         facility_sku_info = self.facility.skus[self.product_id]
         product_unit_cost = facility_sku_info.product_unit_cost
 
+        assert isinstance(self.data_model, ManufactureDataModel)
         self.data_model.initialize(product_unit_cost)
 
         global_sku_info = self.world.get_sku_by_id(self.product_id)

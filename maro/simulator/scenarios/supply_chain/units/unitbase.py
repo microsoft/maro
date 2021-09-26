@@ -1,5 +1,16 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
+from __future__ import annotations
+
+import typing
+from typing import Optional, Union
+
+from maro.simulator.scenarios.supply_chain.actions import SupplyChainAction
+
+if typing.TYPE_CHECKING:
+    from maro.simulator.scenarios.supply_chain import FacilityBase
+    from maro.simulator.scenarios.supply_chain.datamodels.base import DataModelBase
+    from maro.simulator.scenarios.supply_chain.world import World
 
 
 class UnitBase:
@@ -24,31 +35,31 @@ class UnitBase:
     id: int = 0
 
     # Which this unit belongs to.
-    facility = None
+    facility: Optional[FacilityBase] = None
 
     # Which world this unit belongs to.
-    world = None
+    world: Optional[World] = None
 
     # Parent of this unit, it can be a facility or another unit.
-    parent: object = None
+    parent: Optional[Union[FacilityBase, UnitBase]] = None
 
     # Child units, extended unit can add their own child as property, this is used as a collection.
-    children: list = None
+    children: Optional[list] = None
 
     # Data model name in the frame, used to query binding data model instance.
-    data_model_name: str = None
+    data_model_name: Optional[str] = None
 
     # Data model instance index in the frame, used to query binding data model instance.
-    data_model_index: int = None
+    data_model_index: Optional[int] = None
 
     # Real data model binding with this unit.
-    data_model = None
+    data_model: Optional[DataModelBase] = None
 
     # Current action.
-    action: object = None
+    action: Optional[SupplyChainAction] = None
 
     # Current unit configurations.
-    config: dict = None
+    config: Optional[dict] = None
 
     def __init__(self):
         pass
@@ -97,7 +108,7 @@ class UnitBase:
         if self.data_model is not None:
             self.data_model.set_id(self.id, self.facility.id)
 
-    def set_action(self, action: object):
+    def set_action(self, action: SupplyChainAction):
         """Set action for this agent.
 
         Args:

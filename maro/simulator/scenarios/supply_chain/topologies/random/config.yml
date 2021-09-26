@@ -7,7 +7,7 @@ facility_definitions:
           agent_type: productstore
           consumer:
             class: ConsumerUnit
-            config: 
+            config:
               agent_type: consumerstore
           seller:
             class: SellerUnit

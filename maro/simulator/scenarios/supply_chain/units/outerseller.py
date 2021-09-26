@@ -1,10 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
-
 import warnings
 from abc import ABC, abstractmethod
 from collections import namedtuple
 from csv import DictReader
+from datetime import datetime
+from typing import Optional, Union
 
 from dateutil import parser
 
@@ -59,7 +60,7 @@ class DataFileDemandSampler(SellerDemandSampler):
         self._file_path = configs["file_path"]
 
         # If start date time is None, then will use first row as start date time (tick 0).
-        self._start_date_time = self._world.configs.settings["start_date_time"]
+        self._start_date_time: Optional[Union[str, datetime]] = self._world.configs.settings["start_date_time"]
 
         if self._start_date_time is not None:
             self._start_date_time = parser.parse(self._start_date_time, ignoretz=True)

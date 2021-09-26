@@ -2,8 +2,7 @@
 # Licensed under the MIT license.
 
 
-from collections import namedtuple
-from typing import List, Tuple, Union
+from typing import List, NamedTuple, Optional, Tuple, Union
 
 import networkx as nx
 
@@ -15,7 +14,14 @@ from .frame_builder import build_frame
 from .parser import DataModelDef, FacilityDef, SupplyChainConfiguration, UnitDef
 from .units import ExtendUnitBase, UnitBase
 
-AgentInfo = namedtuple("AgentInfo", ("id", "agent_type", "is_facility", "sku", "facility_id", "parent_id"))
+
+class AgentInfo(NamedTuple):
+    id: int
+    agent_type: object
+    is_facility: bool
+    sku: Optional[SkuInfo]
+    facility_id: int
+    parent_id: Optional[int]
 
 
 class World:
@@ -23,10 +29,10 @@ class World:
 
     def __init__(self):
         # Frame for current world configuration.
-        self.frame: FrameBase = None
+        self.frame: Optional[FrameBase] = None
 
         # Current configuration.
-        self.configs: SupplyChainConfiguration = None
+        self.configs: Optional[SupplyChainConfiguration] = None
 
         # Durations of current simulation.
         self.durations = 0
@@ -41,7 +47,7 @@ class World:
         self._id_counter = 1
 
         # Grid of the world
-        self._graph: nx.Graph = None
+        self._graph: Optional[nx.Graph] = None
 
         # Sku id to name mapping, used for querying.
         self._sku_id2name_mapping = {}
