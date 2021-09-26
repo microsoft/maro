@@ -5,19 +5,12 @@ from random import Random
 from typing import List, Union
 
 # we keep 4 random generator to make the result is reproduce-able with same seed(s), no matter if agent passed actions
-from maro.simulator.utils import random
-
 ORDER_INIT_RAND_KEY = "order_init"
 ROUTE_INIT_RAND_KEY = "route_init"
 ORDER_NUM_RAND_KEY = "order_number"
 BUFFER_TICK_RAND_KEY = "buffer_time"
 
 DATA_CONTAINER_INIT_SEED_LIMIT = 4096
-
-random.create_instance(ORDER_INIT_RAND_KEY)
-random.create_instance(ROUTE_INIT_RAND_KEY)
-random.create_instance(ORDER_NUM_RAND_KEY)
-random.create_instance(BUFFER_TICK_RAND_KEY)
 
 
 def clip(min_val: Union[int, float], max_val: Union[int, float], value: Union[int, float]) -> Union[int, float]:
