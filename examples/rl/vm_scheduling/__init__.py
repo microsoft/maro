@@ -2,10 +2,7 @@
 # Licensed under the MIT license.
 
 from .callbacks import post_collect, post_evaluate
-from .env_wrapper import get_env_sampler, get_test_env_wrapper
-from .policy_index import agent2policy, rl_policy_func_index, update_trigger, warmup
+from .env_sampler import agent2policy, get_env_sampler
+from .policies import policy_func_dict
 
-__all__ = [
-    "agent2policy", "post_collect", "post_evaluate", "get_env_sampler", "get_test_env_wrapper",
-    "rl_policy_func_index", "update_trigger", "warmup"
-]
+__all__ = ["agent2policy", "post_collect", "post_evaluate", "get_env_sampler", "policy_func_dict"]
