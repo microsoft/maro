@@ -23,6 +23,7 @@ class WorkerAllocator(object):
         self.policy_names = policy_names
         self.agent2policy = agent2policy
         self.worker_prefix = "GRAD_WORKER"
+        self.worker_list = [f"{self.worker_prefix}.{i}" for i in range(self.num_workers)]
         self.logger = None
 
         self._cached_mappings = dict()

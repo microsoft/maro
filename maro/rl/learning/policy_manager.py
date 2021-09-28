@@ -248,7 +248,7 @@ class MultiProcessPolicyManager(AbsPolicyManager):
             self._worker_allocator = worker_allocator
             self._worker_allocator.set_logger(self._logger)
             self._proxy = Proxy(
-                group, "policy_manager", {"grad_worker": self._num_grad_workers},
+                group, "policy_manager", {"grad_worker": self._num_grad_workers, "task_queue": 1},
                 component_name="POLICY_MANAGER", **proxy_kwargs
             )
 
@@ -263,8 +263,8 @@ class MultiProcessPolicyManager(AbsPolicyManager):
             if self._worker_allocator:
                 self._logger.info("========== data parallel mode ==========")
                 policy.data_parallel(
-                    group, "policy_host", {"grad_worker": self._num_grad_workers}, component_name=f"POLICY_HOST.{id_}",
-                    **proxy_kwargs)
+                    group, "policy_host", {"grad_worker": self._num_grad_workers, "task_queue": 1},
+                    component_name=f"POLICY_HOST.{id_}", **proxy_kwargs)
 
             if initial_state_path:
                 try:
@@ -283,7 +283,8 @@ class MultiProcessPolicyManager(AbsPolicyManager):
                     if isinstance(info, list):
                         policy.update(info)
                     elif self._worker_allocator:
-                        policy.learn_with_data_parallel(info, msg["workers"])
+                        # TODO: remove msg["workers"]
+                        policy.learn_with_data_parallel(info)
                     else:
                         policy.learn(info)
                     conn.send({"type": "learn_done", "policy_state": policy.get_state()})
@@ -354,6 +355,8 @@ class MultiProcessPolicyManager(AbsPolicyManager):
         for conn in self._manager_end.values():
             conn.send({"type": "quit"})
         if self._worker_allocator:
+            self._proxy.ibroadcast("grad_worker", MsgTag.EXIT, SessionType.NOTIFICATION)
+            self._proxy.ibroadcast("task_queue", MsgTag.EXIT, SessionType.NOTIFICATION)
             self._proxy.close()
 
 
@@ -384,6 +387,7 @@ class DistributedPolicyManager(AbsPolicyManager):
         log_dir: str = getcwd()
     ):
         super().__init__()
+        # TODO: remove worker allocator
         self._worker_allocator = worker_allocator
         peers = {"policy_host": num_hosts}
         if self._worker_allocator:
@@ -498,6 +502,7 @@ def policy_host(
     peers = {"policy_manager": 1}
     if data_parallel:
         peers["grad_worker"] = num_grad_workers
+        peers["task_queue"] = 1
 
     proxy = Proxy(
         group, "policy_host", peers,
@@ -507,6 +512,8 @@ def policy_host(
     for msg in proxy.receive():
         if msg.tag == MsgTag.EXIT:
             logger.info("Exiting...")
+            proxy.ibroadcast("grad_worker", MsgTag.EXIT, SessionType.NOTIFICATION)
+            proxy.ibroadcast("task_queue", MsgTag.EXIT, SessionType.NOTIFICATION)
             proxy.close()
             break
         elif msg.tag == MsgTag.INIT_POLICIES:
@@ -531,8 +538,7 @@ def policy_host(
                 else:
                     if data_parallel:
                         logger.info("learning on remote grad workers")
-                        policy2workers = msg.body[MsgKey.WORKER_INFO][name]
-                        policy_dict[name].learn_with_data_parallel(info, policy2workers[name])
+                        policy_dict[name].learn_with_data_parallel(info)
                     else:
                         logger.info("learning from batch")
                         policy_dict[name].learn(info)
@@ -576,8 +582,9 @@ def grad_worker(
     if num_hosts == 0:
         # no remote nodes for policy hosts
         num_hosts = len(create_policy_func_dict)
-    peers = {"policy_manager": 1, "policy_host": num_hosts}
-    proxy = Proxy(group, "grad_worker", peers, component_name=f"GRAD_WORKER.{worker_idx}", **proxy_kwargs)
+    str_id = f"GRAD_WORKER.{worker_idx}"
+    peers = {"policy_manager": 1, "policy_host": num_hosts, "task_queue": 1}
+    proxy = Proxy(group, "grad_worker", peers, component_name=str_id, **proxy_kwargs)
     logger = Logger(proxy.name, dump_folder=log_dir)
 
     for msg in proxy.receive():
@@ -608,6 +615,10 @@ def grad_worker(
 
             logger.debug(f"total policy update time: {time.time() - t0}")
             proxy.reply(msg, tag=MsgTag.COMPUTE_GRAD_DONE, body=msg_body)
+            # release worker at task queue
+            proxy.isend(SessionMessage(
+                MsgTag.RELEASE_WORKER, proxy.name, "TASK_QUEUE", body={MsgKey.WORKER_ID: str_id}
+            ))
         else:
             logger.info(f"Wrong message tag: {msg.tag}")
             raise TypeError

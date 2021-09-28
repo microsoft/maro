@@ -79,6 +79,16 @@ if __name__ == "__main__":
 
         # grad worker config
         if config["data_parallel"]["enable"]:
+            # task queue
+            str_id = "task_queue"
+            task_queue_spec = deepcopy(common_spec)
+            del task_queue_spec["build"]
+            task_queue_spec["command"] = "python3 /maro/rl_examples/workflows/task_queue.py"
+            task_queue_spec["container_name"] = f"{namespace}.{str_id}"
+            task_queue_spec["environment"] = common_env
+            docker_compose_manifest["services"][str_id] = task_queue_spec
+            
+            # grad worker
             for worker_id in range(config['data_parallel']['num_workers']):
                 str_id = f"grad_worker.{worker_id}"
                 grad_worker_spec = deepcopy(common_spec)

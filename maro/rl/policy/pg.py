@@ -178,11 +178,12 @@ class PolicyGradient(RLPolicy):
         """Learn using data from the buffer."""
         self.learn(self._get_batch())
 
-    def learn_with_data_parallel(self, batch: dict, worker_id_list: list):
+    def learn_with_data_parallel(self, batch: dict):
         assert hasattr(self, '_proxy'), "learn_with_data_parallel is invalid before data_parallel is called."
 
         for _ in range(self.grad_iters):
             msg_dict = defaultdict(lambda: defaultdict(dict))
+            worker_id_list = self.request_workers()
             for i, worker_id in enumerate(worker_id_list):
                 sub_batch = {key: batch[key][i::len(worker_id_list)] for key in batch}
                 msg_dict[worker_id][MsgKey.GRAD_TASK][self._name] = sub_batch

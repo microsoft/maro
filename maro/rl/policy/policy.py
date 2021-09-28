@@ -6,7 +6,8 @@ from typing import List
 
 import numpy as np
 
-from maro.communication import Proxy
+from maro.communication import Proxy, SessionMessage
+from maro.rl.utils import MsgKey, MsgTag
 
 
 class AbsPolicy(ABC):
@@ -101,6 +102,12 @@ class RLPolicy(AbsPolicy):
     def data_parallel_with_existing_proxy(self, proxy):
         """"Initialize a proxy in the policy with an existing one, for data-parallel training."""
         self._proxy = proxy
+
+    def request_workers(self, task_queue_name="TASK_QUEUE"):
+        """Request remote gradient workers from task queue to perform data parallelism."""
+        worker_req = self._proxy.send(SessionMessage(MsgTag.REQUEST_WORKER, self._proxy.name, task_queue_name))
+        worker_list = worker_req[0].body[MsgKey.WORKER_LIST]
+        return worker_list
 
     def exit_data_parallel(self):
         if hasattr(self, '_proxy'):

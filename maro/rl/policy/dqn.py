@@ -374,7 +374,7 @@ class DQN(RLPolicy):
         self.target_q_net.soft_update(self.q_net, self.soft_update_coeff)
         self._target_q_net_version = self._q_net_version
 
-    def learn_with_data_parallel(self, batch: dict, worker_id_list: list):
+    def learn_with_data_parallel(self, batch: dict):
         assert hasattr(self, '_proxy'), "learn_with_data_parallel is invalid before data_parallel is called."
 
         self._replay_memory.put(
@@ -382,6 +382,7 @@ class DQN(RLPolicy):
         )
         for _ in range(self.num_epochs):
             msg_dict = defaultdict(lambda: defaultdict(dict))
+            worker_id_list = self.request_workers()
             for worker_id in worker_id_list:
                 msg_dict[worker_id][MsgKey.GRAD_TASK][self._name] = self._get_batch(
                     self.train_batch_size // len(worker_id_list))
