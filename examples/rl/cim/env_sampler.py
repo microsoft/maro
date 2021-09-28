@@ -14,7 +14,6 @@ cim_path = os.path.dirname(os.path.realpath(__file__))
 if cim_path not in sys.path:
     sys.path.insert(0, cim_path)
 
-from callbacks import post_step
 from config import (
     action_shaping_conf, algorithm, env_conf, port_attributes, reward_shaping_conf, state_shaping_conf,
     vessel_attributes
@@ -96,6 +95,14 @@ class CIMEnvSampler(AbsEnvSampler):
         )
         return {agent_id: reward for agent_id, reward in zip(ports, rewards)}
 
+    def post_step(self, state, action, env_action, reward, tick):
+        """
+        The environment sampler contains a "tracker" dict inherited from the "AbsEnvSampler" base class, which can
+        be used to record any information one wishes to keep track of during a roll-out episode. Here we simply record
+        the latest env metric without keeping the history for logging purposes.
+        """
+        self.tracker["env_metric"] = self.env.metrics
+
 
 agent2policy = {agent: f"{algorithm}.{agent}" for agent in Env(**env_conf).agent_idx_list}
 
@@ -105,6 +112,5 @@ def get_env_sampler():
         get_policy_func_dict=policy_func_dict,
         agent2policy=agent2policy,
         reward_eval_delay=reward_shaping_conf["time_window"],
-        post_step=post_step,
         policies_to_parallelize=[]
     )
