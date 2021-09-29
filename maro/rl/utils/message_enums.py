@@ -26,6 +26,7 @@ class MsgTag(Enum):
     RELEASE_WORKER = "release_worker"
     ASSIGN_WORKER = "assign_worker"
 
+
 class MsgKey(Enum):
     ACTION = "action"
     AGENT_ID = "agent_id"
@@ -46,4 +47,4 @@ class MsgKey(Enum):
     STEP_RANGE = "step_range"
     END_OF_EPISODE = "end_of_episode"
     WORKER_ID = "worker_id"
-    WORKER_LIST = "worker_list"
+    WORKER_ID_LIST = "worker_id_list"

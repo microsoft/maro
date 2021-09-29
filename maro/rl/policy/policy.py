@@ -106,7 +106,7 @@ class RLPolicy(AbsPolicy):
     def request_workers(self, task_queue_name="TASK_QUEUE"):
         """Request remote gradient workers from task queue to perform data parallelism."""
         worker_req = self._proxy.send(SessionMessage(MsgTag.REQUEST_WORKER, self._proxy.name, task_queue_name))
-        worker_list = worker_req[0].body[MsgKey.WORKER_LIST]
+        worker_list = worker_req[0].body[MsgKey.WORKER_ID_LIST]
         return worker_list
 
     def exit_data_parallel(self):
