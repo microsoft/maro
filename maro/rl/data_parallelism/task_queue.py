@@ -1,17 +1,67 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from collections import defaultdict
 from multiprocessing import Manager, Process, Queue
 from os import getcwd
 from typing import Dict, List
 
-from maro.communication import Proxy
+from maro.communication import Proxy, SessionMessage
 from maro.rl.utils import MsgKey, MsgTag
 from maro.utils import Logger
 
 # default group name for the cluster consisting of a policy manager and all policy hosts.
 # If data parallelism is enabled, the gradient workers will also belong in this group.
 DEFAULT_POLICY_GROUP = "policy_group_default"
+
+
+class TaskQueueClient(object):
+    """Task queue client for policies to interact with task queue."""
+    def __init__(self):
+        # TODO
+        self._proxy = None
+
+    def set_proxy(self, proxy):
+        self._proxy = proxy
+
+    def create_proxy(self, *args, **kwargs):
+        self._proxy = Proxy(*args, **kwargs)
+
+    def request_workers(self, task_queue_server_name="TASK_QUEUE"):
+        """Request remote gradient workers from task queue to perform data parallelism."""
+        worker_req = self._proxy.send(SessionMessage(MsgTag.REQUEST_WORKER, self._proxy.name, task_queue_server_name))
+        worker_list = worker_req[0].body[MsgKey.WORKER_ID_LIST]
+        return worker_list
+
+    # TODO: rename this method
+    def remote_learn(self, worker_id_list: List, batch_list: List, policy_state: Dict, policy_name: str):
+        """Learn a batch of data on several grad workers."""
+        msg_dict = defaultdict(lambda: defaultdict(dict))
+        loss_info_by_policy = {policy_name: []}
+        for worker_id, batch in zip(worker_id_list, batch_list):
+            msg_dict[worker_id][MsgKey.GRAD_TASK][policy_name] = batch
+            msg_dict[worker_id][MsgKey.POLICY_STATE][policy_name] = policy_state
+            # data-parallel by multiple remote gradient workers
+            self._proxy.isend(SessionMessage(
+                MsgTag.COMPUTE_GRAD, self._proxy.name, worker_id, body=msg_dict[worker_id]))
+        dones = 0
+        for msg in self._proxy.receive():
+            if msg.tag == MsgTag.COMPUTE_GRAD_DONE:
+                for policy_name, loss_info in msg.body[MsgKey.LOSS_INFO].items():
+                    if isinstance(loss_info, list):
+                        loss_info_by_policy[policy_name] += loss_info
+                    elif isinstance(loss_info, dict):
+                        loss_info_by_policy[policy_name].append(loss_info)
+                    else:
+                        raise TypeError(f"Wrong type of loss_info: {type(loss_info)}")
+                dones += 1
+                if dones == len(msg_dict):
+                    break
+        return loss_info_by_policy
+
+    def exit(self):
+        if hasattr(self, '_proxy'):
+            self._proxy.close()
 
 
 def task_queue(
@@ -50,11 +100,6 @@ def task_queue(
 
             if len(worker_id_list) == 0:
                 continue
-
-            num_idle = 0
-            for worker_id in dict(worker_status):
-                if worker_status[worker_id]:
-                    num_idle += 1
 
             msg = task_waiting.get()
             task_done.put({"msg": msg, "worker_id_list": worker_id_list})

@@ -5,7 +5,7 @@ import sys
 from os import getenv
 from os.path import dirname, realpath
 
-from maro.rl.learning.task_queue import task_queue
+from maro.rl.data_parallelism import task_queue
 
 workflow_dir = dirname(dirname(realpath(__file__)))  # template directory
 if workflow_dir not in sys.path:

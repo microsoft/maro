@@ -11,7 +11,7 @@ from os import getcwd
 from typing import Callable, Dict, List
 
 from maro.communication import Proxy, SessionMessage, SessionType
-from maro.rl.policy import RLPolicy, WorkerAllocator
+from maro.rl.policy import RLPolicy
 from maro.rl.utils import MsgKey, MsgTag
 from maro.utils import Logger
 
@@ -104,8 +104,9 @@ class SimplePolicyManager(AbsPolicyManager):
             only if there are updates since the last checkpoint. This must be a positive integer or -1, with -1 meaning
             no checkpointing. Defaults to -1.
         save_dir (str): The directory under which to checkpoint the policy states.
-        worker_allocator (WorkerAllocator): Strategy to select gradient workers for policies for send gradient tasks to.
-            If not None, the policies will be trained in data-parallel mode. Defaults to None.
+        data_parallel (bool): Whether to train policy on remote gradient workers to perform data-parallel.
+            Defaults to False.
+        num_grad_workers (int): The number of gradient worker nodes in data-parallel mode. Defaults to 1.
         group (str): Group name for the cluster consisting of the manager and all policy hosts. Ignored if
             ``worker_allocator`` is None. Defaults to DEFAULT_POLICY_GROUP.
         proxy_kwargs (dict): Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class for details.
@@ -119,7 +120,8 @@ class SimplePolicyManager(AbsPolicyManager):
         load_path_dict: Dict[str, str] = {},
         checkpoint_every: int = -1,
         save_dir: str = None,
-        worker_allocator: WorkerAllocator = None,
+        data_parallel: bool = False,
+        num_grad_workers: int = 1,
         group: str = DEFAULT_POLICY_GROUP,
         proxy_kwargs: dict = {},
         log_dir: str = getcwd()
@@ -149,10 +151,9 @@ class SimplePolicyManager(AbsPolicyManager):
             self._logger.info(f"Auto-checkpoint policy state every {self.checkpoint_every} seconds")
 
         # data parallelism
-        self._worker_allocator = worker_allocator
-        if self._worker_allocator:
-            self._num_grad_workers = worker_allocator.num_workers
-            self._worker_allocator.set_logger(self._logger)
+        self._data_parallel = data_parallel
+        if self._data_parallel:
+            self._num_grad_workers = num_grad_workers
             self._proxy = Proxy(
                 group, "policy_manager", {"grad_worker": self._num_grad_workers},
                 component_name="POLICY_MANAGER", **proxy_kwargs)
@@ -217,8 +218,9 @@ class MultiProcessPolicyManager(AbsPolicyManager):
         auto_checkpoint (bool): If True, the policies will be checkpointed (i.e., persisted to disk) every time they are
             updated. Defaults to -1.
         save_dir (str): The directory under which to checkpoint the policy states.
-        worker_allocator (WorkerAllocator): Strategy to select gradient workers for policies for send gradient tasks to.
-            If not None, the policies will be trained in data-parallel mode. Defaults to None.
+        data_parallel (bool): Whether to train policy on remote gradient workers to perform data-parallel.
+            Defaults to False.
+        num_grad_workers (int): The number of gradient worker nodes in data-parallel mode. Defaults to 1.
         group (str): Group name for the cluster consisting of the manager and all policy hosts. Ignored if
             ``worker_allocator`` is None. Defaults to DEFAULT_POLICY_GROUP.
         proxy_kwargs (dict): Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class for details.
@@ -232,7 +234,8 @@ class MultiProcessPolicyManager(AbsPolicyManager):
         load_path_dict: Dict[str, str] = {},
         auto_checkpoint: bool = False,
         save_dir: str = None,
-        worker_allocator: WorkerAllocator = None,
+        data_parallel: bool = False,
+        num_grad_workers: int = 1,
         group: str = DEFAULT_POLICY_GROUP,
         proxy_kwargs: dict = {},
         log_dir: str = getcwd()
@@ -242,11 +245,9 @@ class MultiProcessPolicyManager(AbsPolicyManager):
         self._logger = Logger("POLICY_MANAGER", dump_folder=log_dir)
 
         # data parallelism
-        self._worker_allocator = worker_allocator is not None
-        if self._worker_allocator:
-            self._num_grad_workers = worker_allocator.num_workers
-            self._worker_allocator = worker_allocator
-            self._worker_allocator.set_logger(self._logger)
+        self._data_parallel = data_parallel
+        if self._data_parallel:
+            self._num_grad_workers = num_grad_workers
             self._proxy = Proxy(
                 group, "policy_manager", {"grad_worker": self._num_grad_workers, "task_queue": 1},
                 component_name="POLICY_MANAGER", **proxy_kwargs
@@ -260,7 +261,7 @@ class MultiProcessPolicyManager(AbsPolicyManager):
         def policy_host(id_, create_policy_func, conn, initial_state_path):
             policy = create_policy_func(id_)
             save_path = os.path.join(save_dir, id_)
-            if self._worker_allocator:
+            if self._data_parallel:
                 self._logger.info("========== data parallel mode ==========")
                 policy.data_parallel(
                     group, "policy_host", {"grad_worker": self._num_grad_workers, "task_queue": 1},
@@ -282,8 +283,7 @@ class MultiProcessPolicyManager(AbsPolicyManager):
                     info = msg["rollout_info"]
                     if isinstance(info, list):
                         policy.update(info)
-                    elif self._worker_allocator:
-                        # TODO: remove msg["workers"]
+                    elif self._data_parallel:
                         policy.learn_with_data_parallel(info)
                     else:
                         policy.learn(info)
@@ -293,7 +293,7 @@ class MultiProcessPolicyManager(AbsPolicyManager):
                         policy.save(save_path)
                         self._logger.info(f"Saved policy {id_} to {save_path}")
                 elif msg["type"] == "quit":
-                    if self._worker_allocator:
+                    if self._data_parallel:
                         policy.exit_data_parallel()
                     policy.save(save_path)
                     self._logger.info(f"Saved policy {id_} to {save_path}")
@@ -322,14 +322,8 @@ class MultiProcessPolicyManager(AbsPolicyManager):
         The roll-out information is grouped by policy name and may be either a training batch or a list of loss
         information dictionaries computed directly by roll-out workers.
         """
-        if self._worker_allocator:
-            # re-allocate grad workers before update.
-            self._policy2workers, self._worker2policies = self._worker_allocator.allocate()
-
         for policy_id, info in rollout_info.items():
             msg = {"type": "learn", "rollout_info": info}
-            if self._worker_allocator:
-                msg["workers"] = self._policy2workers[policy_id]
             self._manager_end[policy_id].send(msg)
         for policy_id, conn in self._manager_end.items():
             msg = conn.recv()
@@ -354,7 +348,7 @@ class MultiProcessPolicyManager(AbsPolicyManager):
         """Tell the policy host processes to exit."""
         for conn in self._manager_end.values():
             conn.send({"type": "quit"})
-        if self._worker_allocator:
+        if self._data_parallel:
             self._proxy.ibroadcast("grad_worker", MsgTag.EXIT, SessionType.NOTIFICATION)
             self._proxy.ibroadcast("task_queue", MsgTag.EXIT, SessionType.NOTIFICATION)
             self._proxy.close()
@@ -369,8 +363,9 @@ class DistributedPolicyManager(AbsPolicyManager):
         group (str): Group name for the cluster consisting of the manager and all policy hosts. If ``worker_allocator``
             is provided, the gradient workers will also belong to the same cluster. Defaults to
             DEFAULT_POLICY_GROUP.
-        worker_allocator (WorkerAllocator): Strategy to select gradient workers for policies for send gradient tasks to.
-            If not None, the policies will be trained in data-parallel mode. Defaults to None.
+        data_parallel (bool): Whether to train policy on remote gradient workers to perform data-parallel.
+            Defaults to False.
+        num_grad_workers (int): The number of gradient worker nodes in data-parallel mode. Defaults to 1.
         proxy_kwargs: Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
             for details. Defaults to an empty dictionary.
         log_dir (str): Directory to store logs in. A ``Logger`` with tag "POLICY_MANAGER" will be created at init
@@ -382,26 +377,21 @@ class DistributedPolicyManager(AbsPolicyManager):
         policy_ids: List[str],
         num_hosts: int,
         group: str = DEFAULT_POLICY_GROUP,
-        worker_allocator: WorkerAllocator = None,
+        data_parallel: bool = False,
+        num_grad_workers: int = 1,
         proxy_kwargs: dict = {},
         log_dir: str = getcwd()
     ):
         super().__init__()
-        # TODO: remove worker allocator
-        self._worker_allocator = worker_allocator
+        self._data_parallel = data_parallel
         peers = {"policy_host": num_hosts}
-        if self._worker_allocator:
-            peers["grad_worker"] = worker_allocator.num_workers
+        if self._data_parallel:
+            peers["grad_worker"] = num_grad_workers
         self._proxy = Proxy(group, "policy_manager", peers, component_name="POLICY_MANAGER", **proxy_kwargs)
         self._logger = Logger("POLICY_MANAGER", dump_folder=log_dir)
-        self._worker_allocator = worker_allocator
-
-        self._worker_allocator.set_logger(self._logger)
 
         self._policy2host = {}
-        self._policy2workers = {}
         self._host2policies = defaultdict(list)
-        self._worker2policies = defaultdict(list)
 
         # assign policies to hosts
         for i, name in enumerate(policy_ids):
@@ -436,14 +426,10 @@ class DistributedPolicyManager(AbsPolicyManager):
         The roll-out information is grouped by policy name and may be either a training batch or a list if loss
         information dictionaries computed directly by roll-out workers.
         """
-        if self._worker_allocator:
-            self._policy2workers, self._worker2policies = self._worker_allocator.allocate()
-
         msg_dict = defaultdict(lambda: defaultdict(dict))
         for policy_id, info_list in rollout_info.items():
             host_id_str = self._policy2host[policy_id]
             msg_dict[host_id_str][MsgKey.ROLLOUT_INFO][policy_id] = info_list
-            msg_dict[host_id_str][MsgKey.WORKER_INFO][policy_id] = self._policy2workers
 
         dones = 0
         self._proxy.iscatter(MsgTag.LEARN, SessionType.TASK, list(msg_dict.items()))
@@ -548,77 +534,6 @@ def policy_host(
             }
             logger.info(f"total policy update time: {time.time() - t0}")
             proxy.reply(msg, tag=MsgTag.LEARN_DONE, body=msg_body)
-        else:
-            logger.info(f"Wrong message tag: {msg.tag}")
-            raise TypeError
-
-
-def grad_worker(
-    create_policy_func_dict: Dict[str, Callable[[str], RLPolicy]],
-    worker_idx: int,
-    num_hosts: int,
-    group: str = DEFAULT_POLICY_GROUP,
-    proxy_kwargs: dict = {},
-    max_policy_number: int = 10,
-    log_dir: str = getcwd()
-):
-    """Stateless gradient workers that excute gradient computation tasks.
-
-    Args:
-        create_policy_func_dict (dict): A dictionary mapping policy names to functions that create them. The policy
-            creation function should have policy name as the only parameter and return an ``RLPolicy`` instance.
-        worker_idx (int): Integer worker index. The worker's ID in the cluster will be "GRAD_WORKER.{worker_idx}".
-        num_hosts (int): Number of policy hosts, which is required to find peers in proxy initialization.
-            num_hosts=0 means policy hosts are hosted by policy manager while no remote nodes for them.
-        group (str): Group name for the training cluster, which includes all policy hosts and a policy manager that
-            manages them.
-        proxy_kwargs: Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
-            for details. Defaults to an empty dictionary.
-        max_policy_number (int): Maximum policy number in a single worker node. Defaults to 10.
-        log_dir (str): Directory to store logs in. Defaults to the current working directory.
-    """
-    policy_dict = {}
-    active_policies = []
-    if num_hosts == 0:
-        # no remote nodes for policy hosts
-        num_hosts = len(create_policy_func_dict)
-    str_id = f"GRAD_WORKER.{worker_idx}"
-    peers = {"policy_manager": 1, "policy_host": num_hosts, "task_queue": 1}
-    proxy = Proxy(group, "grad_worker", peers, component_name=str_id, **proxy_kwargs)
-    logger = Logger(proxy.name, dump_folder=log_dir)
-
-    for msg in proxy.receive():
-        if msg.tag == MsgTag.EXIT:
-            logger.info("Exiting...")
-            proxy.close()
-            break
-        elif msg.tag == MsgTag.COMPUTE_GRAD:
-            t0 = time.time()
-            msg_body = {MsgKey.LOSS_INFO: dict(), MsgKey.POLICY_IDS: list()}
-            for name, batch in msg.body[MsgKey.GRAD_TASK].items():
-                if name not in policy_dict:
-                    if len(policy_dict) > max_policy_number:
-                        # remove the oldest one when size exceeds.
-                        policy_to_remove = active_policies.pop()
-                        policy_dict.pop(policy_to_remove)
-                    policy_dict[name] = create_policy_func_dict[name](name)
-                    active_policies.insert(0, name)
-                    logger.info(f"Initialized policies {name}")
-
-                policy_dict[name].set_state(msg.body[MsgKey.POLICY_STATE][name])
-                loss_info = policy_dict[name].get_batch_loss(batch, explicit_grad=True)
-                msg_body[MsgKey.LOSS_INFO][name] = loss_info
-                msg_body[MsgKey.POLICY_IDS].append(name)
-                # put the latest one to queue head
-                active_policies.remove(name)
-                active_policies.insert(0, name)
-
-            logger.debug(f"total policy update time: {time.time() - t0}")
-            proxy.reply(msg, tag=MsgTag.COMPUTE_GRAD_DONE, body=msg_body)
-            # release worker at task queue
-            proxy.isend(SessionMessage(
-                MsgTag.RELEASE_WORKER, proxy.name, "TASK_QUEUE", body={MsgKey.WORKER_ID: str_id}
-            ))
         else:
             logger.info(f"Wrong message tag: {msg.tag}")
             raise TypeError

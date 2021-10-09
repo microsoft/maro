@@ -38,7 +38,6 @@ class MsgKey(Enum):
     ROLLOUT_INFO = "rollout_info"
     TRACKER = "tracker"
     GRAD_TASK = "grad_task"
-    WORKER_INFO = "worker_info"
     LOSS_INFO = "loss_info"
     STATE = "state"
     POLICY_STATE = "policy_state"
