@@ -4,7 +4,7 @@
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from multiprocessing import Pipe, Process
-from os import getcwd
+from os import getcwd, getpid
 from random import choices
 from typing import Callable, Dict, List, Tuple
 
@@ -109,6 +109,7 @@ class MultiProcessRolloutManager(AbsRolloutManager):
             set_seeds(index)
             env_sampler = get_env_sampler()
             logger = Logger("ROLLOUT_WORKER", dump_folder=log_dir)
+            logger.info(f"Roll-out worker {index} started with PID {getpid()}")
             while True:
                 msg = conn.recv()
                 if msg["type"] == "sample":
@@ -212,8 +213,7 @@ class DistributedRolloutManager(AbsRolloutManager):
         min_finished_workers (int): Minimum number of finished workers required for a ``collect`` call. Defaults to
             None, in which case it will be set to ``num_workers``.
         max_extra_recv_tries (int): Maximum number of attempts to receive worker results after ``min_finished_workers``
-            have been received in ``collect``. Defaults to None, in which case it is set to ``num_workers`` -
-            ``min_finished_workers``.
+            have been received in ``collect``. Defaults to 0.
         extra_recv_timeout (int): Timeout (in milliseconds) for each attempt to receive from a worker after
             ``min_finished_workers`` have been received in ``collect``. Defaults to 100 (milliseconds).
         num_eval_workers (int): Number of workers for evaluation. Defaults to 1.
@@ -229,8 +229,8 @@ class DistributedRolloutManager(AbsRolloutManager):
         num_workers: int,
         num_steps: int = -1,
         min_finished_workers: int = None,
-        max_extra_recv_tries: int = None,
-        extra_recv_timeout: int = None,
+        max_extra_recv_tries: int = 0,
+        extra_recv_timeout: int = 100,
         max_lag: Dict[str, int] = defaultdict(int),
         num_eval_workers: int = 1,
         proxy_kwargs: dict = {},

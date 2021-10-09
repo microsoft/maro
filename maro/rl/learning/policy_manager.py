@@ -2,12 +2,11 @@
 # Licensed under the MIT license.
 
 import os
-import threading
 import time
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from multiprocessing import Pipe, Process
-from os import getcwd
+from os import getcwd, getpid
 from typing import Callable, Dict, List
 
 from maro.communication import Proxy, SessionMessage, SessionType
@@ -98,12 +97,12 @@ class SimplePolicyManager(AbsPolicyManager):
     Args:
         create_policy_func_dict (dict): Dictionary that maps policy names to policy creators. A policy creator is a
             function that takes policy name as the only parameter and return an ``RLPolicy`` instance.
-        load_path_dict (Dict[str, str]): If provided, policies whose IDs are in the dictionary keys will load the states
-            from the corresponding path. Defaults to an empty dictionary.
+        load_dir (str): If provided, policies whose IDs are in the dictionary keys will load the states
+            from the corresponding path. Defaults to None.
         checkpoint_every (int): The policies will be checkpointed (i.e., persisted to disk) every this number of seconds
             only if there are updates since the last checkpoint. This must be a positive integer or -1, with -1 meaning
             no checkpointing. Defaults to -1.
-        save_dir (str): The directory under which to checkpoint the policy states.
+        checkpoint_dir (str): The directory under which to checkpoint the policy states.
         worker_allocator (WorkerAllocator): Strategy to select gradient workers for policies for send gradient tasks to.
             If not None, the policies will be trained in data-parallel mode. Defaults to None.
         group (str): Group name for the cluster consisting of the manager and all policy hosts. Ignored if
@@ -116,37 +115,30 @@ class SimplePolicyManager(AbsPolicyManager):
     def __init__(
         self,
         create_policy_func_dict: Dict[str, Callable[[str], RLPolicy]],
-        load_path_dict: Dict[str, str] = {},
-        checkpoint_every: int = -1,
-        save_dir: str = None,
+        load_dir: str = None,
+        checkpoint_dir: str = None,
         worker_allocator: WorkerAllocator = None,
         group: str = DEFAULT_POLICY_GROUP,
         proxy_kwargs: dict = {},
         log_dir: str = getcwd()
     ):
-        assert checkpoint_every == -1 or checkpoint_every > 0, "'checkpoint_every' can only be -1 or a positive integer"
         super().__init__()
         self._logger = Logger("POLICY_MANAGER", dump_folder=log_dir)
         self._policy_dict = {name: func(name) for name, func in create_policy_func_dict.items()}
-        for id_, path in load_path_dict.items():
-            try:
-                self._policy_dict[id_].load(path)
-                self._logger.info(f"Loaded policy {id_} from {path}")
-            except FileNotFoundError:
-                self._logger.warn(
-                    f"Failed to load state for policy {id_} from path {path}..."
-                    f"using the current policy state as the initial state"
-                )
+        if load_dir:
+            for id_, policy in self._policy_dict.items():
+                path = os.path.join(load_dir, id_)
+                if os.path.exists(path):
+                    policy.load(path)
+                    self._logger.info(f"Loaded policy {id_} from {path}")
 
-        self._version = defaultdict(int)
+        self._version = 0
 
         # auto-checkpointing
-        self.checkpoint_every = checkpoint_every
-        self.save_path = {id_: os.path.join(save_dir, id_) for id_ in create_policy_func_dict}
-        if self.checkpoint_every > 0:
-            checkpoint_thread = threading.Thread(target=self._checkpoint, daemon=True)
-            checkpoint_thread.start()
-            self._logger.info(f"Auto-checkpoint policy state every {self.checkpoint_every} seconds")
+        if checkpoint_dir:
+            self.checkpoint_path = {id_: os.path.join(checkpoint_dir, id_) for id_ in self._policy_dict}
+        else:
+            self.checkpoint_path = None
 
         # data parallelism
         self._worker_allocator = worker_allocator
@@ -155,7 +147,8 @@ class SimplePolicyManager(AbsPolicyManager):
             self._worker_allocator.set_logger(self._logger)
             self._proxy = Proxy(
                 group, "policy_manager", {"grad_worker": self._num_grad_workers},
-                component_name="POLICY_MANAGER", **proxy_kwargs)
+                component_name="POLICY_MANAGER", **proxy_kwargs
+            )
 
             for name in create_policy_func_dict:
                 self._policy_dict[name].data_parallel(
@@ -174,7 +167,12 @@ class SimplePolicyManager(AbsPolicyManager):
                 self._policy_dict[policy_id].update(info)
             else:
                 self._policy_dict[policy_id].learn(info)
-            self._version[policy_id] += 1
+
+            if self.checkpoint_path:
+                self._policy_dict[policy_id].save(self.checkpoint_path[policy_id])
+                self._logger.info(f"Saved policy {policy_id} to {self.checkpoint_path[policy_id]}")
+
+            self._version += 1
 
         self._logger.info(f"Updated policies {list(rollout_info.keys())}")
         self._logger.info(f"policy update time: {time.time() - t0}")
@@ -185,22 +183,7 @@ class SimplePolicyManager(AbsPolicyManager):
 
     def get_version(self):
         """Get the collective policy version."""
-        return dict(self._version)
-
-    def save(self):
-        for id_, policy in self._policy_dict.items():
-            policy.save(self.save_path[id_])
-            self._logger.info(f"Saved policy {id_} to {self.save_path[id_]}")
-
-    def _checkpoint(self):
-        last_checkpointed_version = defaultdict(lambda: -1)
-        while True:
-            for id_, policy in self._policy_dict.items():
-                if self._version[id_] > last_checkpointed_version[id_]:
-                    policy.save(self.save_path[id_])
-                    self._logger.info(f"Saved policy {id_} to {self.save_path[id_]}")
-                    last_checkpointed_version[id_] = self._version[id_]
-            time.sleep(self.checkpoint_every)
+        return self._version
 
     def exit(self):
         pass
@@ -212,11 +195,10 @@ class MultiProcessPolicyManager(AbsPolicyManager):
     Args:
         create_policy_func_dict (dict): Dictionary that maps policy names to policy creators. A policy creator is a
             function that takes policy name as the only parameter and return an ``RLPolicy`` instance.
-        load_path_dict (Dict[str, str]): If provided, policies whose IDs are in the dictionary keys will load the states
-            from the corresponding path. Defaults to an empty dictionary.
-        auto_checkpoint (bool): If True, the policies will be checkpointed (i.e., persisted to disk) every time they are
-            updated. Defaults to -1.
-        save_dir (str): The directory under which to checkpoint the policy states.
+        load_dir (str): If provided, policies whose IDs are in the dictionary keys will load the states
+            from the corresponding path. Defaults to None.
+        checkpoint_dir (str): The directory under which to checkpoint the policy states. Defaults to None, in which case
+            no checkpointing will be performed.
         worker_allocator (WorkerAllocator): Strategy to select gradient workers for policies for send gradient tasks to.
             If not None, the policies will be trained in data-parallel mode. Defaults to None.
         group (str): Group name for the cluster consisting of the manager and all policy hosts. Ignored if
@@ -229,16 +211,14 @@ class MultiProcessPolicyManager(AbsPolicyManager):
     def __init__(
         self,
         create_policy_func_dict: Dict[str, Callable[[str], RLPolicy]],
-        load_path_dict: Dict[str, str] = {},
-        auto_checkpoint: bool = False,
-        save_dir: str = None,
+        load_dir: Dict[str, str] = None,
+        checkpoint_dir: str = None,
         worker_allocator: WorkerAllocator = None,
         group: str = DEFAULT_POLICY_GROUP,
         proxy_kwargs: dict = {},
         log_dir: str = getcwd()
     ):
         super().__init__()
-        self.auto_checkpoint = auto_checkpoint
         self._logger = Logger("POLICY_MANAGER", dump_folder=log_dir)
 
         # data parallelism
@@ -257,24 +237,22 @@ class MultiProcessPolicyManager(AbsPolicyManager):
         self._manager_end = {}
         self._logger.info("Spawning policy host processes")
 
-        def policy_host(id_, create_policy_func, conn, initial_state_path):
+        def policy_host(id_, create_policy_func, conn):
+            self._logger.info(f"Host for policy {id_} started with PID {getpid()}")
             policy = create_policy_func(id_)
-            save_path = os.path.join(save_dir, id_)
+            checkpoint_path = os.path.join(checkpoint_dir, id_) if checkpoint_dir else None
             if self._worker_allocator:
                 self._logger.info("========== data parallel mode ==========")
                 policy.data_parallel(
                     group, "policy_host", {"grad_worker": self._num_grad_workers}, component_name=f"POLICY_HOST.{id_}",
                     **proxy_kwargs)
 
-            if initial_state_path:
-                try:
-                    policy.load(initial_state_path)
-                    self._logger.info(f"Loaded policy {id_} from {initial_state_path}")
-                except FileNotFoundError:
-                    self._logger.warn(
-                        f"Failed to load state for policy {id_} from path {initial_state_path}..."
-                        f"using the current policy state as the initial state"
-                    )
+            if load_dir:
+                load_path = os.path.join(load_dir, id_) if load_dir else None
+                if os.path.exists(load_path):
+                    policy.load(load_path)
+                    self._logger.info(f"Loaded policy {id_} from {load_path}")
+
             conn.send({"type": "init", "policy_state": policy.get_state()})
             while True:
                 msg = conn.recv()
@@ -288,22 +266,20 @@ class MultiProcessPolicyManager(AbsPolicyManager):
                         policy.learn(info)
                     conn.send({"type": "learn_done", "policy_state": policy.get_state()})
                     self._logger.info("learning finished")
-                    if self.auto_checkpoint:
-                        policy.save(save_path)
-                        self._logger.info(f"Saved policy {id_} to {save_path}")
+                    if checkpoint_path:
+                        policy.save(checkpoint_path)
+                        self._logger.info(f"Saved policy {id_} to {checkpoint_path}")
                 elif msg["type"] == "quit":
                     if self._worker_allocator:
                         policy.exit_data_parallel()
-                    policy.save(save_path)
-                    self._logger.info(f"Saved policy {id_} to {save_path}")
+                    policy.save(checkpoint_path)
+                    self._logger.info(f"Saved policy {id_} to {checkpoint_path}")
                     break
 
         for id_, create_policy_func in create_policy_func_dict.items():
             manager_end, host_end = Pipe()
             self._manager_end[id_] = manager_end
-            host = Process(
-                target=policy_host, args=(id_, create_policy_func, host_end, load_path_dict.get(id_, None))
-            )
+            host = Process(target=policy_host, args=(id_, create_policy_func, host_end))
             self._policy_hosts.append(host)
             host.start()
 
@@ -313,7 +289,7 @@ class MultiProcessPolicyManager(AbsPolicyManager):
                 self._state_cache[policy_id] = msg["policy_state"]
                 self._logger.info(f"Initial state for policy {policy_id} cached")
 
-        self._version = defaultdict(int)
+        self._version = 0
 
     def update(self, rollout_info: Dict[str, list]):
         """Update policies using roll-out information.
@@ -335,7 +311,7 @@ class MultiProcessPolicyManager(AbsPolicyManager):
             if msg["type"] == "learn_done":
                 self._state_cache[policy_id] = msg["policy_state"]
                 self._logger.info(f"Cached state for policy {policy_id}")
-                self._version[policy_id] += 1
+                self._version += 1
             else:
                 self._logger.info(f"Warning: Wrong message type: {msg['type']}")
 
@@ -347,7 +323,7 @@ class MultiProcessPolicyManager(AbsPolicyManager):
 
     def get_version(self):
         """Get the collective policy version."""
-        return dict(self._version)
+        return self._version
 
     def exit(self):
         """Tell the policy host processes to exit."""
@@ -392,7 +368,8 @@ class DistributedPolicyManager(AbsPolicyManager):
         self._logger = Logger("POLICY_MANAGER", dump_folder=log_dir)
         self._worker_allocator = worker_allocator
 
-        self._worker_allocator.set_logger(self._logger)
+        if self._worker_allocator:
+            self._worker_allocator.set_logger(self._logger)
 
         self._policy2host = {}
         self._policy2workers = {}
@@ -461,153 +438,10 @@ class DistributedPolicyManager(AbsPolicyManager):
 
     def get_version(self):
         """Get the collective policy version."""
-        return dict(self._version)
+        return self._version
 
     def exit(self):
         """Tell the remote policy hosts to exit."""
         self._proxy.ibroadcast("policy_host", MsgTag.EXIT, SessionType.NOTIFICATION)
         self._proxy.close()
-        self._logger.info("Exiting...")
-
-
-def policy_host(
-    create_policy_func_dict: Dict[str, Callable[[str], RLPolicy]],
-    host_idx: int,
-    group: str = DEFAULT_POLICY_GROUP,
-    proxy_kwargs: dict = {},
-    data_parallel: bool = False,
-    num_grad_workers: int = 1,
-    log_dir: str = getcwd()
-):
-    """Policy host process that can be launched on separate computation nodes.
-
-    Args:
-        create_policy_func_dict (dict): A dictionary mapping policy names to functions that create them. The policy
-            creation function should have policy name as the only parameter and return an ``RLPolicy`` instance.
-        host_idx (int): Integer host index. The host's ID in the cluster will be "POLICY_HOST.{host_idx}".
-        group (str): Group name for the training cluster, which includes all policy hosts and a policy manager that
-            manages them. Defaults to DEFAULT_POLICY_GROUP.
-        proxy_kwargs: Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
-            for details. Defaults to an empty dictionary.
-        data_parallel (bool): Whether to train policy on remote gradient workers to perform data-parallel.
-            Defaults to False.
-        num_grad_workers (int): The number of gradient worker nodes in data-parallel mode. Defaults to 1.
-        log_dir (str): Directory to store logs in. Defaults to the current working directory.
-    """
-    policy_dict = {}
-    peers = {"policy_manager": 1}
-    if data_parallel:
-        peers["grad_worker"] = num_grad_workers
-
-    proxy = Proxy(
-        group, "policy_host", peers,
-        component_name=f"POLICY_HOST.{host_idx}", **proxy_kwargs)
-    logger = Logger(proxy.name, dump_folder=log_dir)
-
-    for msg in proxy.receive():
-        if msg.tag == MsgTag.EXIT:
-            logger.info("Exiting...")
-            proxy.close()
-            break
-        elif msg.tag == MsgTag.INIT_POLICIES:
-            for name in msg.body[MsgKey.POLICY_IDS]:
-                policy_dict[name] = create_policy_func_dict[name](name)
-                if data_parallel:
-                    policy_dict[name].data_parallel_with_existing_proxy(proxy)
-
-            logger.info(f"Initialized policies {msg.body[MsgKey.POLICY_IDS]}")
-            proxy.reply(
-                msg,
-                tag=MsgTag.INIT_POLICIES_DONE,
-                body={MsgKey.POLICY_STATE: {name: policy.get_state() for name, policy in policy_dict.items()}}
-            )
-        elif msg.tag == MsgTag.LEARN:
-            t0 = time.time()
-            for name, info in msg.body[MsgKey.ROLLOUT_INFO].items():
-                # in some cases e.g. Actor-Critic that get loss from rollout workers
-                if isinstance(info, list):
-                    logger.info("updating with loss info")
-                    policy_dict[name].update(info)
-                else:
-                    if data_parallel:
-                        logger.info("learning on remote grad workers")
-                        policy2workers = msg.body[MsgKey.WORKER_INFO][name]
-                        policy_dict[name].learn_with_data_parallel(info, policy2workers[name])
-                    else:
-                        logger.info("learning from batch")
-                        policy_dict[name].learn(info)
-
-            msg_body = {
-                MsgKey.POLICY_STATE: {name: policy_dict[name].get_state() for name in msg.body[MsgKey.ROLLOUT_INFO]}
-            }
-            logger.info(f"total policy update time: {time.time() - t0}")
-            proxy.reply(msg, tag=MsgTag.LEARN_DONE, body=msg_body)
-        else:
-            logger.info(f"Wrong message tag: {msg.tag}")
-            raise TypeError
-
-
-def grad_worker(
-    create_policy_func_dict: Dict[str, Callable[[str], RLPolicy]],
-    worker_idx: int,
-    num_hosts: int,
-    group: str = DEFAULT_POLICY_GROUP,
-    proxy_kwargs: dict = {},
-    max_policy_number: int = 10,
-    log_dir: str = getcwd()
-):
-    """Stateless gradient workers that excute gradient computation tasks.
-
-    Args:
-        create_policy_func_dict (dict): A dictionary mapping policy names to functions that create them. The policy
-            creation function should have policy name as the only parameter and return an ``RLPolicy`` instance.
-        worker_idx (int): Integer worker index. The worker's ID in the cluster will be "GRAD_WORKER.{worker_idx}".
-        num_hosts (int): Number of policy hosts, which is required to find peers in proxy initialization.
-            num_hosts=0 means policy hosts are hosted by policy manager while no remote nodes for them.
-        group (str): Group name for the training cluster, which includes all policy hosts and a policy manager that
-            manages them.
-        proxy_kwargs: Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
-            for details. Defaults to an empty dictionary.
-        max_policy_number (int): Maximum policy number in a single worker node. Defaults to 10.
-        log_dir (str): Directory to store logs in. Defaults to the current working directory.
-    """
-    policy_dict = {}
-    active_policies = []
-    if num_hosts == 0:
-        # no remote nodes for policy hosts
-        num_hosts = len(create_policy_func_dict)
-    peers = {"policy_manager": 1, "policy_host": num_hosts}
-    proxy = Proxy(group, "grad_worker", peers, component_name=f"GRAD_WORKER.{worker_idx}", **proxy_kwargs)
-    logger = Logger(proxy.name, dump_folder=log_dir)
-
-    for msg in proxy.receive():
-        if msg.tag == MsgTag.EXIT:
-            logger.info("Exiting...")
-            proxy.close()
-            break
-        elif msg.tag == MsgTag.COMPUTE_GRAD:
-            t0 = time.time()
-            msg_body = {MsgKey.LOSS_INFO: dict(), MsgKey.POLICY_IDS: list()}
-            for name, batch in msg.body[MsgKey.GRAD_TASK].items():
-                if name not in policy_dict:
-                    if len(policy_dict) > max_policy_number:
-                        # remove the oldest one when size exceeds.
-                        policy_to_remove = active_policies.pop()
-                        policy_dict.pop(policy_to_remove)
-                    policy_dict[name] = create_policy_func_dict[name](name)
-                    active_policies.insert(0, name)
-                    logger.info(f"Initialized policies {name}")
-
-                policy_dict[name].set_state(msg.body[MsgKey.POLICY_STATE][name])
-                loss_info = policy_dict[name].get_batch_loss(batch, explicit_grad=True)
-                msg_body[MsgKey.LOSS_INFO][name] = loss_info
-                msg_body[MsgKey.POLICY_IDS].append(name)
-                # put the latest one to queue head
-                active_policies.remove(name)
-                active_policies.insert(0, name)
-
-            logger.debug(f"total policy update time: {time.time() - t0}")
-            proxy.reply(msg, tag=MsgTag.COMPUTE_GRAD_DONE, body=msg_body)
-        else:
-            logger.info(f"Wrong message tag: {msg.tag}")
-            raise TypeError
+        self._logger.info("Exiting...")    
