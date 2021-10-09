@@ -153,7 +153,7 @@ class ParallelAgentWrapper:
             host.start()
 
     def load(self, dir: str):
-        for conn in self._conn.items():
+        for conn in self._conn.values():
             conn.send({"type": "load", "dir": dir})
 
     def choose_action(self, state_by_agent: Dict[str, np.ndarray]):
