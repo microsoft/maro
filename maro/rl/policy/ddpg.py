@@ -1,14 +1,16 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from collections import defaultdict
 from typing import Callable, List, Tuple, Union
 
 import numpy as np
 import torch
 
+from maro.communication import SessionMessage
 from maro.rl.exploration import gaussian_noise
 from maro.rl.modeling import ContinuousACNet
-from maro.rl.utils import average_grads
+from maro.rl.utils import MsgKey, MsgTag, average_grads
 from maro.utils import clone
 
 from .policy import RLPolicy
@@ -230,6 +232,40 @@ class DDPG(RLPolicy):
             if self._ac_net_version - self._target_ac_net_version == self.update_target_every:
                 self._update_target()
 
+    def learn_with_data_parallel(self, batch: dict, worker_id_list: list):
+        assert hasattr(self, '_proxy'), "learn_with_data_parallel is invalid before data_parallel is called."
+
+        self._replay_memory.put(
+            batch["states"], batch["actions"], batch["rewards"], batch["next_states"], batch["terminals"]
+        )
+        for _ in range(self.num_epochs):
+            msg_dict = defaultdict(lambda: defaultdict(dict))
+            for worker_id in worker_id_list:
+                msg_dict[worker_id][MsgKey.GRAD_TASK][self._name] = self._replay_memory.sample(
+                    self.train_batch_size // len(worker_id_list))
+                msg_dict[worker_id][MsgKey.POLICY_STATE][self._name] = self.get_state()
+                # data-parallel by multiple hosts/workers
+                self._proxy.isend(SessionMessage(
+                    MsgTag.COMPUTE_GRAD, self._proxy.name, worker_id, body=msg_dict[worker_id]))
+            dones = 0
+            loss_info_by_policy = {self._name: []}
+            for msg in self._proxy.receive():
+                if msg.tag == MsgTag.COMPUTE_GRAD_DONE:
+                    for policy_name, loss_info in msg.body[MsgKey.LOSS_INFO].items():
+                        if isinstance(loss_info, list):
+                            loss_info_by_policy[policy_name] += loss_info
+                        elif isinstance(loss_info, dict):
+                            loss_info_by_policy[policy_name].append(loss_info["grad"])
+                        else:
+                            raise TypeError(f"Wrong type of loss_info: {type(loss_info)}")
+                    dones += 1
+                    if dones == len(msg_dict):
+                        break
+            # build dummy computation graph by `get_batch_loss` before apply gradients.
+            # batch_size=2 because torch.nn.functional.batch_norm doesn't support batch_size=1.
+            _ = self.get_batch_loss(self._replay_memory.sample(2), explicit_grad=True)
+            self.update(loss_info_by_policy[self._name])
+
     def _update_target(self):
         # soft-update target network
         self.target_ac_net.soft_update(self.ac_net, self.soft_update_coeff)
@@ -239,9 +275,28 @@ class DDPG(RLPolicy):
         for sch in self.exploration_schedulers:
             sch.step()
 
-    def set_state(self, policy_state):
-        self.ac_net.load_state_dict(policy_state)
-        self.target_ac_net = self.ac_net.copy() if self.ac_net.trainable else None
-
     def get_state(self):
-        return self.ac_net.state_dict()
+        return self.ac_net.get_state()
+
+    def set_state(self, state):
+        self.ac_net.set_state(state)
+
+    def load(self, path: str):
+        """Load the policy state from disk."""
+        checkpoint = torch.load(path)
+        self.ac_net.set_state(checkpoint["ac_net"])
+        self._ac_net_version = checkpoint["ac_net_version"]
+        self.target_ac_net.set_state(checkpoint["target_ac_net"])
+        self._target_ac_net_version = checkpoint["target_ac_net_version"]
+        self._replay_memory = checkpoint["replay_memory"]
+
+    def save(self, path: str):
+        """Save the policy state to disk."""
+        policy_state = {
+            "ac_net": self.ac_net.get_state(),
+            "ac_net_version": self._ac_net_version,
+            "target_ac_net": self.target_ac_net.get_state(),
+            "target_ac_net_version": self._target_ac_net_version,
+            "replay_memory": self._replay_memory
+        }
+        torch.save(policy_state, path)

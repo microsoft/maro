@@ -10,7 +10,7 @@ path = realpath(__file__)
 k8s_script_dir = dirname(path)
 rl_example_dir = dirname(dirname(k8s_script_dir))
 root_dir = dirname(dirname(rl_example_dir))
-config_path = join(rl_example_dir, "workflows", "config.yml")
+config_path = join(rl_example_dir, "config.yml")
 mnt_path = "/rltest"
 
 k8s_manifest_dir = join(k8s_script_dir, "manifests")
@@ -98,21 +98,57 @@ common_container_spec = {
     ]
 }
 
-common_env = [
+common_envs = [
     {"name": "REDISHOST", "value": config["redis"]["host"]},
     {"name": "REDISPORT", "value": redis_port_str},
     {"name": "JOB", "value": config["job"]},
+    {"name": "SCENARIODIR", "value": config["scenario_dir"]},
     {"name": "SCENARIO", "value": config["scenario"]},
     {"name": "MODE", "value": config["mode"]},
     {"name": "POLICYMANAGERTYPE", "value": config['policy_manager']['type']}
 ]
 
-common_env.append({"name": "NUMROLLOUTS", "value": str(config[config['mode']]['num_rollouts'])})
+if "load_policy_dir" in config:
+    common_envs.append({"name": "LOADDIR", "value": config["load_policy_dir"]})
+if "checkpoint_dir" in config:
+    common_envs.append({"name": "CHECKPOINTDIR", "value": config["checkpoint_dir"]})
+if "log_dir" in config:
+    common_envs.append({"name": "LOGDIR", "value": config["log_dir"]})
+
+if config["policy_manager"]["type"] == "distributed":
+    common_envs.append({"name": "POLICYGROUP", "value": "-".join([config["job"], "policies"])})
+    common_envs.append({"name": "NUMHOSTS", "value": config["policy_manager"]["distributed"]["num_hosts"]})
+
+workflow_dir_in_container = "/maro/maro/rl/workflows"
+# get script paths
+if "scripts" in config and "main" in config["scripts"]:
+    main_path = config["scripts"]["main"]
+else:
+    main_path = join(workflow_dir_in_container, "main.py")
+
+if "scripts" in config and "rollout_worker" in config["scripts"]:
+    rollout_worker_path = config["scripts"]["rollout_worker"]
+else:
+    rollout_worker_path = join(workflow_dir_in_container, "rollout.py")
+
+if "scripts" in config and "policy_host" in config["scripts"]:
+    policy_host_path = config["scripts"]["policy_host"]
+else:
+    policy_host_path = join(workflow_dir_in_container, "policy_host.py")
+
+if "scripts" in config and "policy_server" in config["scripts"]:
+    policy_server_path = config["scripts"]["policy_server"]
+else:
+    policy_server_path = join(workflow_dir_in_container, "policy_manager.py")
+
+if "scripts" in config and "actor" in config["scripts"]:
+    actor_path = config["scripts"]["actor"]
+else:
+    actor_path = join(workflow_dir_in_container, "rollout.py")
+
 
 # policy host spec
 if config["policy_manager"]["type"] == "distributed":
-    common_env.append(f"LEARNGROUP={config['policy_manager']['distributed']['group']}")
-    common_env.append(f"NUMHOSTS={config['policy_manager']['distributed']['num_hosts']}")
     for host_id in range(config["policy_manager"]["distributed"]["num_hosts"]):
         job_name = f"policy-host-{host_id}"
         host_manifest = deepcopy(common)
@@ -122,8 +158,8 @@ if config["policy_manager"]["type"] == "distributed":
                 **deepcopy(common_container_spec),
                 **{
                     "name": job_name,
-                    "command": ["python3", join(mnt_path, 'workflows/policy_host.py')],
-                    "env": [{"name": "HOSTID", "value": str(host_id)}] + common_env
+                    "command": ["python3", policy_host_path],
+                    "env": [{"name": "HOSTID", "value": str(host_id)}] + common_envs
                 }
             }
         ]
@@ -133,33 +169,35 @@ if config["policy_manager"]["type"] == "distributed":
 
 mode = config["mode"]
 if mode == "sync":
-    # learner_spec
-    learner_manifest = deepcopy(common)
-    learner_manifest["metadata"] = {"name": "learner"}
-    learner_manifest["spec"]["template"]["spec"]["containers"] = [
+    # main process spec
+    main_manifest = deepcopy(common)
+    main_manifest["metadata"] = {"name": "learner"}
+    rollout_group = "-".join([config["job"], "rollout"])
+    envs = [
+        {"name": "ROLLOUTTYPE", "value": config["sync"]["rollout_type"]},
+        {"name": "NUMEPISODES", "value": str(config["num_episodes"])},
+        {"name": "EVALSCH", "value": str(config["eval_schedule"])},
+        {"name": "NUMROLLOUTS", "value": config["sync"]["num_rollouts"]},
+        {"name": "NUMEVALROLLOUTS", "value": config["sync"]["num_eval_rollouts"]},
+        {"name": "ROLLOUTGROUP", "value": rollout_group},
+        {"name": "MINFINISH", "value": config["sync"]["distributed"]["min_finished_workers"]},
+        {"name": "MAXEXRECV", "value": config["sync"]["distributed"]["max_extra_recv_tries"]},
+        {"name": "MAXRECVTIMEO", "value": config["sync"]["distributed"]["extra_recv_timeout"]},
+    ]
+    if "num_steps" in config:
+        envs.append(f"NUMSTEPS={config['num_steps']}")
+    main_manifest["spec"]["template"]["spec"]["containers"] = [
         {   
             **deepcopy(common_container_spec),
             **{
                 "name": "learner",
-                "command": ["python3", join(mnt_path, 'workflows/synchronous/learner.py')],
-                "env": [
-                    {"name": "ROLLOUTTYPE", "value": config['sync']['rollout_type']},
-                    {"name": "NUMEPISODES", "value": str(config["num_episodes"])},
-                    {"name": "NUMSTEPS", "value": str(config["num_steps"])},
-                    {"name": "EVALSCH", "value": str(config["eval_schedule"])},
-                    {"name": "PARALLEL", "value": '1' if config['policy_manager']['simple']['parallel'] else '0'},
-                    {"name": "NUMEVALROLLOUTS", "value": config[config['mode']]['num_eval_rollouts']},
-                    {"name": "ROLLOUTGROUP", "value": config['sync']['distributed']['group']},
-                    {"name": "MAXLAG", "value": str(config["max_lag"])},
-                    {"name": "MINFINISH", "value": str(config['sync']['distributed']['min_finished_workers'])},
-                    {"name": "MAXEXRECV", "value": str(config['sync']['distributed']['max_extra_recv_tries'])},
-                    {"name": "MAXRECVTIMEO", "value": str(config['sync']['distributed']['extra_recv_timeout'])}
-                ] + common_env
+                "command": ["python3", main_path],
+                "env": envs + common_envs
             }
         }
     ]
     with open(join(k8s_manifest_dir, "learner.yml"), "w") as fp:
-        yaml.safe_dump(learner_manifest, fp)
+        yaml.safe_dump(main_manifest, fp)
 
     # rollout worker spec
     if config["sync"]["rollout_type"] == "distributed":
@@ -172,11 +210,11 @@ if mode == "sync":
                     **deepcopy(common_container_spec),
                     **{
                         "name": job_name,
-                        "command": ["python3", join(mnt_path, 'workflows/synchronous/rollout_worker.py')],
+                        "command": ["python3", rollout_worker_path],
                         "env": [
                             {"name": "WORKERID", "value": str(worker_id)},
-                            {"name": "ROLLOUTGROUP", "value": config['sync']['distributed']['group']}
-                        ] + common_env
+                            {"name": "ROLLOUTGROUP", "value": rollout_group}
+                        ] + common_envs
                     }
                 }
             ]
@@ -186,16 +224,19 @@ elif mode == "async":
     # policy server spec
     server_manifest = deepcopy(common)
     server_manifest["metadata"]= {"name": "policy-server"}
+    envs = [
+        {"name": "GROUP", "value": config["job"]},
+        {"name": "NUMROLLOUTS", "value": config["async"]["num_rollouts"]},
+    ]
+    if "max_lag" in config["async"]:
+        envs.append({"name": "MAXLAG", "value": config["async"]["max_lag"]})
     server_manifest["spec"]["template"]["spec"]["containers"] = [
         {
             **deepcopy(common_container_spec),
             **{
                 "name": "policy-server",
-                "command": ["python3", join(mnt_path, 'workflows/asynchronous/policy_server.py')],
-                "env": [
-                    {"name": "GROUP", "value": config["async"]["group"]},
-                    {"name": "MAXLAG", "value": str(config["max_lag"])}
-                ] + common_env
+                "command": ["python3", policy_server_path],
+                "env": envs + common_envs
             }
         }
     ]
@@ -206,18 +247,20 @@ elif mode == "async":
     for actor_id in range(config["async"]["num_actors"]):
         actor_manifest = deepcopy(common)
         actor_manifest["metadata"] = {"name": "actor"}
+        envs = [
+            {"name": "ACTORID", "value": str(actor_id)},
+            {"name": "GROUP", "value": config["job"]},
+            {"name": "NUMEPISODES", "value": str(config["num_episodes"])}
+        ]
+        if "num_steps" in config:
+            envs.append({"name": "NUMSTEPS", "value": config["num_steps"]})
         actor_manifest["spec"]["template"]["spec"]["containers"] = [
             {
                 **deepcopy(common_container_spec),
                 **{
                     "name": f"actor.{actor_id}",
-                    "command": ["python3", join(mnt_path, 'workflows/asynchronous/actor.py')],
-                    "env": [
-                        {"name": "ACTORID", "value": str(actor_id)},
-                        {"name": "GROUP", "value": config["async"]["group"]},
-                        {"name": "NUMEPISODES", "value": str(config["num_episodes"])},
-                        {"name": "NUMSTEPS", "value": str(config["num_steps"])}
-                    ] + common_env
+                    "command": ["python3", actor_path],
+                    "env": envs + common_envs
                 }
             }
         ]

@@ -8,8 +8,9 @@ import numpy as np
 import torch
 from torch.distributions import Categorical
 
+from maro.communication import SessionMessage
 from maro.rl.modeling import DiscreteACNet
-from maro.rl.utils import average_grads, discount_cumsum
+from maro.rl.utils import MsgKey, MsgTag, average_grads, discount_cumsum
 
 from .policy import RLPolicy
 
@@ -258,8 +259,45 @@ class ActorCritic(RLPolicy):
         """Learn using data from the buffer."""
         self.learn(self._get_batch())
 
-    def set_state(self, policy_state):
-        self.ac_net.load_state_dict(policy_state)
+    def learn_with_data_parallel(self, batch: dict, worker_id_list: list):
+        assert hasattr(self, '_proxy'), "learn_with_data_parallel is invalid before data_parallel is called."
+        for _ in range(self.grad_iters):
+            msg_dict = defaultdict(lambda: defaultdict(dict))
+            for i, worker_id in enumerate(worker_id_list):
+                sub_batch = {key: batch[key][i::len(worker_id_list)] for key in batch}
+                msg_dict[worker_id][MsgKey.GRAD_TASK][self._name] = sub_batch
+                msg_dict[worker_id][MsgKey.POLICY_STATE][self._name] = self.get_state()
+                # data-parallel
+                self._proxy.isend(SessionMessage(
+                    MsgTag.COMPUTE_GRAD, self._proxy.name, worker_id, body=msg_dict[worker_id]))
+            dones = 0
+            loss_info_by_policy = {self._name: []}
+            for msg in self._proxy.receive():
+                if msg.tag == MsgTag.COMPUTE_GRAD_DONE:
+                    for policy_name, loss_info in msg.body[MsgKey.LOSS_INFO].items():
+                        if isinstance(loss_info, list):
+                            loss_info_by_policy[policy_name] += loss_info
+                        elif isinstance(loss_info, dict):
+                            loss_info_by_policy[policy_name].append(loss_info)
+                        else:
+                            raise TypeError(f"Wrong type of loss_info: {type(loss_info)}")
+                    dones += 1
+                    if dones == len(msg_dict):
+                        break
+            # build dummy computation graph by `get_batch_loss` before apply gradients.
+            _ = self.get_batch_loss(sub_batch, explicit_grad=True)
+            self.update(loss_info_by_policy[self._name])
 
     def get_state(self):
-        return self.ac_net.state_dict()
+        return self.ac_net.get_state()
+
+    def set_state(self, state):
+        self.ac_net.set_state(state)
+
+    def load(self, path: str):
+        """Load the policy state from disk."""
+        self.ac_net.set_state(torch.load(path))
+
+    def save(self, path: str):
+        """Save the policy state to disk."""
+        torch.save(self.ac_net.get_state(), path)

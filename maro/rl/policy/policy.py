@@ -6,6 +6,8 @@ from typing import List
 
 import numpy as np
 
+from maro.communication import Proxy
+
 
 class AbsPolicy(ABC):
     """Abstract policy class.
@@ -89,6 +91,22 @@ class RLPolicy(AbsPolicy):
             batch (dict): Data batch to compute the policy improvement information for.
             explicit_grad (bool): If True, the gradients should be explicitly returned. Defaults to False.
         """
+        pass
+
+    def data_parallel(self, *args, **kwargs):
+        """"Initialize a proxy in the policy, for data-parallel training.
+        Using the same arguments as `Proxy`."""
+        self._proxy = Proxy(*args, **kwargs)
+
+    def data_parallel_with_existing_proxy(self, proxy):
+        """"Initialize a proxy in the policy with an existing one, for data-parallel training."""
+        self._proxy = proxy
+
+    def exit_data_parallel(self):
+        if hasattr(self, '_proxy'):
+            self._proxy.close()
+
+    def learn_with_data_parallel(self):
         pass
 
     def update(self, loss_info_list: List[dict]):

@@ -8,7 +8,7 @@ distributed learning workflows. The distributed workflow can be synchronous or a
 
 
 Synchronous Learning
-====================
+--------------------
 
 In synchronous mode, a main process executes 2-phase learning cycles consisting of simulation data collection and
 policy update. The data collection phase is controlled by a roll-out manager and the policy update phase is controlled
@@ -18,18 +18,20 @@ policy manager. On the other hand, the policy manager always waits until all pol
 policy states to the roll-out manager.
 
 
-.. image:: ../images/rl/learning_cycle.svg
-   :target: ../images/rl/learner.svg
+.. figure:: ../images/rl/learning_cycle.svg
    :alt: Overview
+   
+   Synchronous Learning Cycle
 
 
-.. image:: ../images/rl/rollout_manager.svg
-   :target: ../images/rl/rollout_manager.svg
+.. figure:: ../images/rl/rollout_manager.svg
    :alt: Overview
+
+   Roll-out Manager
 
 
 Asynchronous Learning
-=====================
+---------------------
 
 The asynchronous mode consists of a policy server and multiple actors in a client-server architecture. Each actor runs
 its own roll-out loop and periodically sends the collected data to the server. The server uses the data to update the
@@ -47,9 +49,10 @@ and reward shaping to collect roll-out information for learning and testing purp
 easily turned into a roll-out worker or an actor for synchronous and asynchronous learning, respectively.
 
 
-.. image:: ../images/rl/env_sampler.svg
-   :target: ../images/rl/env_sampler.svg
+.. figure:: ../images/rl/env_sampler.svg
    :alt: Overview
+
+   Environment Sampler
 
 
 Policy
@@ -64,6 +67,10 @@ provides various policy improvement interfaces to support single-threaded and di
 .. code-block:: python
 
   class AbsPolicy(ABC):
+      def __init__(self, name)
+          super().__init__()
+          self._name = name
+
       @abstractmethod
       def __call__(self, state):
           """Select an action based on a state."""
@@ -91,6 +98,7 @@ provides various policy improvement interfaces to support single-threaded and di
       def improve(self):
           pass
 
+
 .. _policy-manager:
 
 Policy Manager
@@ -108,6 +116,27 @@ is present as a server process. The types of policy manager include:
   to reeeive roll-out information for update. This approach allows the policies to be updated in parallel and may be
   necessary when the combined size of the policies is too big to fit in a single node. 
 
+Moreover, in ``data-parallel`` mode, each policy manager has an additional worker(``grad_worker``)
+allocator, which provides a policy-to-worker mapping. The worker allocator performs auto-balance
+during training, by dynamically adjusting worker number for policies according to the
+experience/agent/policy number.
+
+.. image:: ../images/rl/policy_manager.svg
+   :target: ../images/rl/policy_manager.svg
+   :alt: PolicyManager
+
+The ``DistributedPolicyManager`` runs a set of ``policy_host`` and a ``TrainerAllocator``.
+``policy_host`` is a process/VM/node that hosts the update of a policy. The ``TrainerAllocator``
+dynamically adjusts worker node numbers for policies according to the experience/agent/policy
+number. Each ``policy_host`` independently updates its own policies for policy-level parallelism. 
+
+During training, the ``PolicyManager`` receives training data collected by the ``RolloutManager``,
+then send them to corresponding ``policy_host``. Each ``policy_host`` will send gradient tasks consist
+of policy state and experience batch, to several stateless ``grad_worker`` for gradient computation.
+The ``grad_worker`` is stateless, and computes gradients using the policy state and data
+batch provided in a task.
+Then ``policy_host`` aggregates the gradients from ``grad_worker`` s, and performs gradient descent
+on its parameters.
 
 Core Model
 ----------
@@ -150,7 +179,7 @@ The code snippet below shows how to create a model for the actor-critic algorith
           self.actor_optim.zero_grad()
           self.critic_optim.zero_grad()
           loss.backward()
-          self.hsared_optim.step()
+          self.shared_optim.step()
           self.actor_optim.step()
           self.critic_optim.step()
 

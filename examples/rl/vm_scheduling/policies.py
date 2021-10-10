@@ -1,37 +1,42 @@
-# Copyright (c) Microsoft Corporation.
-# Licensed under the MIT license.
 
-import os
 import sys
+from os.path import dirname, realpath
+
+import torch
 
 from maro.rl.modeling import DiscreteACNet, DiscreteQNet, FullyConnected
 from maro.rl.policy import DQN, ActorCritic
 
-cim_path = os.path.dirname(os.path.realpath(__file__))
-if cim_path not in sys.path:
-    sys.path.insert(0, cim_path)
+vm_path = dirname(realpath(__file__))
+sys.path.insert(0, vm_path)
 from config import (
     ac_conf, actor_net_conf, actor_optim_conf, algorithm, critic_net_conf, critic_optim_conf, dqn_conf, q_net_conf,
-    q_net_optim_conf, state_dim
+    num_features, num_pms, q_net_optim_conf
 )
 
 
 class MyQNet(DiscreteQNet):
     def __init__(self):
         super().__init__()
+        for mdl in self.modules():
+            if isinstance(mdl, torch.nn.Linear):
+                torch.nn.init.xavier_uniform_(mdl.weight, gain=torch.nn.init.calculate_gain('leaky_relu'))
+
         self.fc = FullyConnected(**q_net_conf)
         self.optim = q_net_optim_conf[0](self.fc.parameters(), **q_net_optim_conf[1])
 
     @property
     def input_dim(self):
-        return state_dim
+        return num_features + num_pms + 1
 
     @property
     def num_actions(self):
         return q_net_conf["output_dim"]
 
-    def forward(self, states):
-        return self.fc(states)
+    def forward(self, states): 
+        masks = states[:, num_features:]
+        q_for_all_actions = self.fc(states[:, :num_features])
+        return q_for_all_actions + (masks - 1) * 1e8
 
     def step(self, loss):
         self.optim.zero_grad()
@@ -48,7 +53,7 @@ class MyQNet(DiscreteQNet):
             param.grad = grad[name]
 
         self.optim.step()
-
+    
     def get_state(self):
         return {"network": self.state_dict(), "optim": self.optim.state_dict()}
 
@@ -67,14 +72,12 @@ class MyACNet(DiscreteACNet):
 
     @property
     def input_dim(self):
-        return state_dim
-
-    @property
-    def num_actions(self):
-        return q_net_conf["output_dim"]
+        return num_features + num_pms + 1
 
     def forward(self, states, actor: bool = True, critic: bool = True):
-        return (self.actor(states) if actor else None), (self.critic(states) if critic else None)
+        features, masks = states[:, :num_features], states[:, num_features:]
+        masks += 1e-8  # this is to prevent zero probability and infinite logP. 
+        return (self.actor(features) * masks if actor else None), (self.critic(features) if critic else None)
 
     def step(self, loss):
         self.actor_optim.zero_grad()
@@ -110,10 +113,6 @@ class MyACNet(DiscreteACNet):
 
 
 if algorithm == "dqn":
-    policy_func_dict = {
-        f"dqn.{i}": lambda name: DQN(name, MyQNet(), **dqn_conf) for i in range(4)
-    }
+    policy_func_dict = {"dqn": lambda name: DQN(name, MyQNet(), **dqn_conf)}
 else:
-    policy_func_dict = {
-        f"ac.{i}": lambda name: ActorCritic(name, MyACNet(), **ac_conf) for i in range(4)
-    }
+    policy_func_dict = {"ac": lambda name: ActorCritic(name, MyACNet(), **ac_conf)}

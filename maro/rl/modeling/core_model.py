@@ -8,7 +8,12 @@ import torch.nn as nn
 
 
 class AbsCoreModel(nn.Module):
-    """General model abstraction for use in deep RL algorithms."""
+    """Model abstraction for use in deep RL algorithms.
+
+    This can be viewed as a container of one or more network components with embedded optimizers. This abstraction
+    exposes simple and unified interfaces to decouple model inference and optimization from the algorithmic aspects
+    of the policy that uses it.
+    """
     def __init__(self):
         super().__init__()
 
@@ -40,5 +45,24 @@ class AbsCoreModel(nn.Module):
         """Apply gradients to the model parameters.
 
         This needs to be implemented together with ``get_gradients``.
+        """
+        pass
+
+    @abstractmethod
+    def get_state(self):
+        """Return the current model state.
+
+        Ths model state usually involves the "state_dict" of the module as well as those of the embedded optimizers.
+        """
+        pass
+
+    @abstractmethod
+    def set_state(self, state):
+        """Set model state.
+
+        Args:
+            state: Model state to be applied to the instance. Ths model state is either the result of a previous call
+            to ``get_state`` or something loaded from disk and involves the "state_dict" of the module as well as those
+            of the embedded optimizers.
         """
         pass

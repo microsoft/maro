@@ -21,8 +21,8 @@ from policies import or_policy_func_dict, policy_func_dict
 
 
 class SCEnvSampler(AbsEnvSampler):
-    def __init__(self, get_env, get_policy_func_dict, agent2policy, policies_to_parallelize=[]):
-        super().__init__(get_env, get_policy_func_dict, agent2policy, policies_to_parallelize=policies_to_parallelize)
+    def __init__(self, get_env, get_policy_func_dict, agent2policy):
+        super().__init__(get_env, get_policy_func_dict, agent2policy)
         self.env = self._learn_env
         self.balance_cal = BalanceSheetCalculator(self.env)
         self.cur_balance_sheet_reward = None
@@ -839,5 +839,4 @@ def get_env_sampler():
         lambda: Env(**env_conf),
         {**or_policy_func_dict, **policy_func_dict},
         agent2policy,
-        policies_to_parallelize=[f"consumer-{i}" for i in range(NUM_RL_POLICIES)]
     )
