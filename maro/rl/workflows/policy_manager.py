@@ -41,7 +41,7 @@ def get_policy_manager():
             load_dir=load_policy_dir,
             checkpoint_dir=checkpoint_dir,
             worker_allocator=allocator,
-            group=from_env("POLICYGROUP"),
+            group=from_env("POLICYGROUP", required=False, default=None),
             proxy_kwargs=proxy_kwargs,
             log_dir=log_dir
         )
@@ -56,9 +56,8 @@ def get_policy_manager():
             log_dir=log_dir
         )
     elif manager_type == "distributed":
-        num_hosts = from_env("NUMHOSTS")
         return DistributedPolicyManager(
-            list(policy_func_dict.keys()), num_hosts,
+            list(policy_func_dict.keys()), from_env("NUMHOSTS"),
             group=from_env("POLICYGROUP"),
             worker_allocator=allocator,
             proxy_kwargs=proxy_kwargs,
@@ -73,7 +72,7 @@ def get_policy_manager():
 if __name__ == "__main__":
     policy_manager = get_policy_manager()
     policy_manager.server(
-        from_env("GROUP", default="ASYNC"),
+        from_env("GROUP"),
         from_env("NUMROLLOUTS"),
         max_lag=from_env("MAXLAG", required=False, default=0),
         proxy_kwargs={

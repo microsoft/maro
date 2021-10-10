@@ -1,13 +1,13 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-job: cim4
+job: cim
 scenario_dir: "/maro/examples"
 scenario: cim
-load_policy_dir: "/maro/examples/checkpoints/cim4"
-checkpoint_dir: "/maro/examples/checkpoints/cim4"
-log_dir: "/maro/examples/logs/cim4"
-mode: single  # single, sync, async
+load_policy_dir: "/maro/examples/checkpoints/cim"
+checkpoint_dir: "/maro/examples/checkpoints/cim"
+log_dir: "/maro/examples/logs/cim"
+mode: sync  # single, sync, async
 num_episodes: 10
 eval_schedule: 5
 sync:
@@ -19,6 +19,7 @@ sync:
     max_extra_recv_tries: 1
     extra_recv_timeout: 200
 async:
+  max_lag: 3
   num_rollouts: 3
 policy_manager:
   type: distributed   # simple, multi-process, distributed

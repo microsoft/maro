@@ -488,10 +488,11 @@ class AbsEnvSampler(ABC):
         if num_steps == 0 or num_steps < -1:
             raise ValueError("num_steps must be a positive integer or -1")
 
+        name = f"ACTOR.{index}"
+        logger = Logger(name, dump_folder=log_dir)
         peers = {"policy_server": 1}
-        proxy = Proxy(group, "actor", peers, component_name=f"ACTOR.{index}", **proxy_kwargs)
+        proxy = Proxy(group, "actor", peers, component_name=name, **proxy_kwargs)
         server_address = proxy.peers["policy_server"][0]
-        logger = Logger(proxy.name, dump_folder=log_dir)
 
         # get initial policy states from the policy manager
         msg = SessionMessage(MsgTag.GET_INITIAL_POLICY_STATE, proxy.name, server_address)
