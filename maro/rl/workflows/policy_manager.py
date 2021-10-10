@@ -9,7 +9,6 @@ from maro.rl.learning import DistributedPolicyManager, MultiProcessPolicyManager
 from maro.rl.policy import WorkerAllocator
 from maro.rl.workflows.helpers import from_env, get_default_log_dir
 
-
 sys.path.insert(0, from_env("SCENARIODIR"))
 module = importlib.import_module(from_env("SCENARIO"))
 policy_func_dict = getattr(module, "policy_func_dict")

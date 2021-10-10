@@ -43,5 +43,3 @@ def get_eval_schedule(sch: Union[int, List[int]], num_episodes: int):
         schedule = sorted(sch)
 
     return schedule
-
-
