@@ -6,7 +6,6 @@ import os
 import sys
 
 from maro.rl.workflows.helpers import from_env, get_default_log_dir
-from maro.utils import Logger
 
 sys.path.insert(0, from_env("SCENARIODIR"))
 module = importlib.import_module(from_env("SCENARIO"))
