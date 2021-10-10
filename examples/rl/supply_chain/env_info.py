@@ -306,4 +306,4 @@ def get_env_info(env):
     }
 
 
-q_net_conf["network"]["input_dim"] = get_env_info(Env(**env_conf))["state_dim"]
+q_net_conf["input_dim"] = get_env_info(Env(**env_conf))["state_dim"]

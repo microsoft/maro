@@ -11,7 +11,7 @@ import numpy as np
 
 from maro.rl.learning import AbsEnvSampler
 from maro.simulator import Env
-from maro.simulator.scenarios.supply_chain.actions import ConsumerAction, ManufactureAction 
+from maro.simulator.scenarios.supply_chain import ConsumerAction, ManufactureAction 
 
 sc_path = dirname(__file__)
 sys.path.insert(0, sc_path)

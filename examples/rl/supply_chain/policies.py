@@ -8,44 +8,62 @@ import sys
 import numpy as np
 import scipy.stats as st
 
-from maro.rl.exploration import EpsilonGreedyExploration, LinearExplorationScheduler
-from maro.rl.modeling import FullyConnected, OptimOption, DiscreteQNet
-from maro.rl.policy import DQN, AbsPolicy, NullPolicy
+from maro.rl.modeling import DiscreteQNet, FullyConnected
+from maro.rl.policy import DQN, AbsPolicy, DummyPolicy
 
-cim_path = os.path.dirname(os.path.realpath(__file__))
-if cim_path not in sys.path:
-    sys.path.insert(0, cim_path)
-from config import NUM_CONSUMER_ACTIONS, NUM_RL_POLICIES, dqn_conf, exploration_conf, q_net_conf
+sc_path = os.path.dirname(os.path.realpath(__file__))
+if sc_path not in sys.path:
+    sys.path.insert(0, sc_path)
+from config import NUM_RL_POLICIES, dqn_conf, q_net_conf, q_net_optim_conf
 
 
 ######################################## DQN #################################################
-class QNet(DiscreteQNet):
-    def __init__(self, component, optim_option=None, device=None):
-        super().__init__(component, optim_option=optim_option, device=device)
+
+class MyQNet(DiscreteQNet):
+    def __init__(self):
+        super().__init__()
+        self.fc = FullyConnected(**q_net_conf)
+        self.optim = q_net_optim_conf[0](self.fc.parameters(), **q_net_optim_conf[1])
 
     @property
     def input_dim(self):
-        return self.component.input_dim
+        return q_net_conf["input_dim"]
+
+    @property
+    def num_actions(self):
+        return q_net_conf["output_dim"]
 
     def forward(self, states):
-        return self.component(states)
+        return self.fc(states)
 
+    def step(self, loss):
+        self.optim.zero_grad()
+        loss.backward()
+        self.optim.step()
 
-def get_dqn(name: str):
-    qnet = QNet(FullyConnected(**q_net_conf["network"]), optim_option=OptimOption(**q_net_conf["optimization"]))
-    exploration = EpsilonGreedyExploration()
-    exploration.register_schedule(
-        scheduler_cls=LinearExplorationScheduler,
-        param_name="epsilon",
-        **exploration_conf
-    )
-    return DQN(name, qnet, exploration=exploration, **dqn_conf)
+    def get_gradients(self, loss):
+        self.optim.zero_grad()
+        loss.backward()
+        return {name: param.grad for name, param in self.named_parameters()}
+
+    def apply_gradients(self, grad):
+        for name, param in self.named_parameters():
+            param.grad = grad[name]
+
+        self.optim.step()
+
+    def get_state(self):
+        return {"network": self.state_dict(), "optim": self.optim.state_dict()}
+
+    def set_state(self, state):
+        self.load_state_dict(state["network"])
+        self.optim.load_state_dict(state["optim"])
 
 
 ######################################## Rule-based / OR #################################################
 
 class ProducerBaselinePolicy(AbsPolicy):
-    def choose_action(self, state):
+    def __call__(self, state):
         return state.get('product_rate', 500)
 
 
@@ -54,7 +72,7 @@ class ConsumerBaselinePolicy(AbsPolicy):
         super().__init__(name)
         self.num_actions = num_actions
 
-    def choose_action(self, state):
+    def __call__(self, state):
         if state['is_facility']:
             return 0
         # consumer_source_inventory
@@ -93,7 +111,7 @@ class ConsumerEOQPolicy(AbsPolicy):
         consumer_quantity = int(np.sqrt(2*sale_gamma*order_cost / holding_cost) / sale_gamma)
         return consumer_quantity
 
-    def choose_action(self, state):
+    def __call__(self, state):
         if state['is_facility']:
             return 0
         # consumer_source_inventory
@@ -122,7 +140,7 @@ class ConsumerEOQPolicy(AbsPolicy):
 # replenish R - S units whenever the current stock is less than r
 # S denotes the number of units in stock
 class ConsumerMinMaxPolicy(AbsPolicy):
-    def choose_action(self, state):
+    def __call__(self, state):
         if state['is_facility']:
             return 0
         # consumer_source_inventory
@@ -158,8 +176,8 @@ class ConsumerMinMaxPolicy(AbsPolicy):
 or_policy_func_dict = {
     # "consumer": lambda: ConsumerMinMaxPolicy(),
     "producer": lambda name: ProducerBaselinePolicy(name),
-    "facility": lambda name: NullPolicy(name),
-    "product": lambda name: NullPolicy(name),
-    "productstore": lambda name: NullPolicy(name)
+    "facility": lambda name: DummyPolicy(name),
+    "product": lambda name: DummyPolicy(name),
+    "productstore": lambda name: DummyPolicy(name)
 }
-policy_func_dict = {f"consumer-{i}": get_dqn for i in range(NUM_RL_POLICIES)}
+policy_func_dict = {f"consumer-{i}": lambda name: DQN(name, MyQNet(), **dqn_conf) for i in range(NUM_RL_POLICIES)}
