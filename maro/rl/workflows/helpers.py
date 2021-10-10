@@ -8,7 +8,7 @@ from typing import List, Union
 def from_env(var_name, required=True, default=None):
     if var_name not in os.environ:
         if required:
-            raise KeyError(f"Missing environment variable: {var_name}") 
+            raise KeyError(f"Missing environment variable: {var_name}")
         else:
             return default
 

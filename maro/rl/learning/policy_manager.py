@@ -444,4 +444,4 @@ class DistributedPolicyManager(AbsPolicyManager):
         """Tell the remote policy hosts to exit."""
         self._proxy.ibroadcast("policy_host", MsgTag.EXIT, SessionType.NOTIFICATION)
         self._proxy.close()
-        self._logger.info("Exiting...")    
+        self._logger.info("Exiting...")

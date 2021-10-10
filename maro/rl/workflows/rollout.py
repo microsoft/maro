@@ -23,7 +23,7 @@ if __name__ == "__main__":
             from_env("ROLLOUTGROUP"), index,
             proxy_kwargs={
                 "redis_address": (from_env("REDISHOST"), from_env("REDISPORT")),
-                "max_peer_discovery_retries": 50    
+                "max_peer_discovery_retries": 50
             },
             log_dir=log_dir
         )

@@ -6,8 +6,9 @@ import os
 import sys
 
 from maro.rl.learning import DistributedPolicyManager, MultiProcessPolicyManager, SimplePolicyManager
-from maro.rl.workflows.helpers import from_env, get_default_log_dir
 from maro.rl.policy import WorkerAllocator
+from maro.rl.workflows.helpers import from_env, get_default_log_dir
+
 
 sys.path.insert(0, from_env("SCENARIODIR"))
 module = importlib.import_module(from_env("SCENARIO"))
@@ -37,7 +38,7 @@ def get_policy_manager():
     }
     if manager_type == "simple":
         return SimplePolicyManager(
-            policy_func_dict, 
+            policy_func_dict,
             load_dir=load_policy_dir,
             checkpoint_dir=checkpoint_dir,
             worker_allocator=allocator,
@@ -47,7 +48,7 @@ def get_policy_manager():
         )
     elif manager_type == "multi-process":
         return MultiProcessPolicyManager(
-            policy_func_dict, 
+            policy_func_dict,
             load_dir=load_policy_dir,
             checkpoint_dir=checkpoint_dir,
             worker_allocator=allocator,

@@ -24,24 +24,23 @@ log_dir = from_env("LOGDIR", required=False, default=get_default_log_dir(from_en
 os.makedirs(log_dir, exist_ok=True)
 
 
-if __name__ == "__main__": 
+if __name__ == "__main__":
     mode = from_env("MODE")
     num_episodes = from_env("NUMEPISODES")
     num_steps = from_env("NUMSTEPS", required=False, default=-1)
 
+    logger = Logger("MAIN", dump_folder=log_dir)
+    # evaluation schedule
+    eval_schedule = get_eval_schedule(from_env("EVALSCH", required=False, default=None), num_episodes)
+    logger.info(f"Policy will be evaluated at the end of episodes {eval_schedule}")
+    eval_point_index = 0
     if mode == "single":
-        logger = Logger("LEARNER", dump_folder=log_dir)
         env_sampler = get_env_sampler()
         if load_policy_dir:
             env_sampler.agent_wrapper.load(load_policy_dir)
             logger.info(f"Loaded policy states from {load_policy_dir}")
 
-        # evaluation schedule
-        eval_schedule = get_eval_schedule(from_env("EVALSCH", required=False, default=None), num_episodes)
-        logger.info(f"Policy will be evaluated at the end of episodes {eval_schedule}")
-        eval_point_index = 0
-
-        def collect_and_update():
+        for ep in range(1, num_episodes + 1):
             collect_time = policy_update_time = 0
             segment, end_of_episode = 1, False
             while not end_of_episode:
@@ -67,26 +66,18 @@ if __name__ == "__main__":
 
             # performance details
             logger.info(f"ep {ep} summary - collect time: {collect_time}, policy update time: {policy_update_time}")
-
-        for ep in range(1, num_episodes + 1):
-            collect_and_update()
             if eval_schedule and ep == eval_schedule[eval_point_index]:
                 eval_point_index += 1
                 trackers = [env_sampler.test()]
                 if post_evaluate:
                     post_evaluate(trackers, ep)
     else:
-        from rollout_manager import get_rollout_manager
         from policy_manager import get_policy_manager
+        from rollout_manager import get_rollout_manager
+
         rollout_manager = get_rollout_manager()
         policy_manager = get_policy_manager()
-        logger = Logger("LEARNER", dump_folder=log_dir)
-        # evaluation schedule
-        eval_schedule = get_eval_schedule(from_env("EVALSCH", required=False, default=None), num_episodes)
-        logger.info(f"Policy will be evaluated at the end of episodes {eval_schedule}")
-        eval_point_index = 0
-
-        def collect_and_update():
+        for ep in range(1, num_episodes + 1):
             collect_time = policy_update_time = 0
             rollout_manager.reset()
             segment, end_of_episode = 1, False
@@ -108,9 +99,6 @@ if __name__ == "__main__":
 
             # performance details
             logger.info(f"ep {ep} summary - collect time: {collect_time}, policy update time: {policy_update_time}")
-
-        for ep in range(1, num_episodes + 1):
-            collect_and_update()
             if eval_schedule and ep == eval_schedule[eval_point_index]:
                 eval_point_index += 1
                 trackers = rollout_manager.evaluate(ep, policy_manager.get_state())

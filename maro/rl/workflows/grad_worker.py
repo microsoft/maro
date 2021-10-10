@@ -19,7 +19,7 @@ os.makedirs(log_dir, exist_ok=True)
 
 
 if __name__ == "__main__":
-    # TODO: WORKERID in docker compose script. 
+    # TODO: WORKERID in docker compose script.
     worker_id = from_env("WORKERID")
     num_hosts = from_env("NUMHOSTS") if from_env("POLICYMANAGERTYPE") == "distributed" else 0
     max_cached_policies = from_env("MAXCACHED", required=False, default=10)

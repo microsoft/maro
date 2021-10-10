@@ -91,7 +91,7 @@ class SimpleAgentWrapper:
 
 class ParallelAgentWrapper:
     """Wrapper for multiple agents using multiple policies to expose simple single-agent interfaces.
-    
+
     The policy instances are distributed across multiple processes to achieve parallel inference.
     """
     def __init__(self, get_policy_func_dict: Dict[str, Callable], agent2policy: Dict[str, str]):
