@@ -2,19 +2,18 @@
 # Licensed under the MIT license.
 
 import os
-import random
 import sys
 
 import numpy as np
 import scipy.stats as st
 
 from maro.rl.modeling import DiscreteQNet, FullyConnected
-from maro.rl.policy import DQN, AbsPolicy, DummyPolicy
+from maro.rl.policy import DQN, AbsPolicy
 
 sc_path = os.path.dirname(os.path.realpath(__file__))
 if sc_path not in sys.path:
     sys.path.insert(0, sc_path)
-from config import NUM_RL_POLICIES, dqn_conf, q_net_conf, q_net_optim_conf
+from config import NUM_CONSUMER_ACTIONS, NUM_RL_POLICIES, dqn_conf, q_net_conf, q_net_optim_conf
 
 
 ######################################## DQN #################################################
@@ -80,42 +79,42 @@ OR_STATE_OFFSET_INDEX = {
 def get_element(np_state, key):
     offsets = np_state[-len(OR_STATE_OFFSET_INDEX):]
     idx = OR_STATE_OFFSET_INDEX[key]
-    prev_idx = offsets[idx - 1] if idx > 0 else 0 
-    return np_state[:, prev_idx : offsets[idx]]
+    prev_idx = offsets[idx - 1] if idx > 0 else 0
+    return np_state[:, prev_idx : offsets[idx]].squeeze()
+
+
+class DummyPolicy(AbsPolicy):
+    def __call__(self, states):
+        return [None] * states.shape[0]
 
 
 class ProducerBaselinePolicy(AbsPolicy):
-    def __call__(self, state):
-        return 500
+    def __call__(self, states):
+        return 500 * np.ones(states.shape[0])
 
 
 class ConsumerBaselinePolicy(AbsPolicy):
-    def __init__(self, name, num_actions: int):
-        super().__init__(name)
-        self.num_actions = num_actions
-
-    def __call__(self, state):
-        if get_element(state, "is_facility"):
-            return 0
+    def __call__(self, states):
+        batch_size = len(states)
+        res = np.random.randint(0, high=NUM_CONSUMER_ACTIONS, size=batch_size)
         # consumer_source_inventory
-        available_inventory = get_element(state, "storage_levels")
-        inflight_orders = get_element(state, "consumer_in_transit_orders")
+        available_inventory = get_element(states, "storage_levels")
+        inflight_orders = get_element(states, "consumer_in_transit_orders")
         booked_inventory = available_inventory + inflight_orders
-
-        # stop placing orders when the facility runs out of capacity
-        if np.sum(booked_inventory) > get_element(state, "storage_capacity"):
-            return 0
-
-        most_needed_product_id = get_element(state, "product_idx")
-        sale_mean, sale_std = get_element(state, "sale_mean"), get_element(state, "sale_std")
-        service_level = get_element(state, "service_level")
+        most_needed_product_id = get_element(states, "product_idx")
+        sale_mean, sale_std = get_element(states, "sale_mean"), get_element(states, "sale_std")
+        service_level = get_element(states, "service_level")
         vlt_buffer_days = 7
-        vlt = vlt_buffer_days + get_element(state, "vlt")
-        if booked_inventory[most_needed_product_id] > vlt*sale_mean + np.sqrt(vlt)*sale_std*st.norm.ppf(service_level):
-            return 0
-        consumer_action_space_size = self.num_actions
-        consumer_quantity = random.randint(0, consumer_action_space_size-1)
-        return consumer_quantity
+        vlt = vlt_buffer_days + get_element(states, "vlt")
+
+        non_facility_mask = ~(get_element(states, "is_facility").astype(np.bool))
+        capacity_mask = np.sum(booked_inventory, axis=1) <= get_element(states, "storage_capacity")
+        replenishment_mask = (
+            booked_inventory[:, most_needed_product_id] <=
+            vlt*sale_mean + np.sqrt(vlt) * sale_std * st.norm.ppf(service_level)
+        )
+
+        return res * (non_facility_mask & capacity_mask & replenishment_mask)
 
 
 # Q = \sqrt{2DK/h}
@@ -126,74 +125,63 @@ class ConsumerBaselinePolicy(AbsPolicy):
 #     also known as carrying cost or storage cost (capital cost, warehouse space,
 #     refrigeration, insurance, etc. usually not related to the unit production cost)
 class ConsumerEOQPolicy(AbsPolicy):
-    def _get_consumer_quantity(self, state):
-        order_cost = state['order_cost']
-        holding_cost = state['unit_storage_cost']
-        sale_gamma = state['sale_mean']
-        consumer_quantity = int(np.sqrt(2*sale_gamma*order_cost / holding_cost) / sale_gamma)
-        return consumer_quantity
+    def _get_consumer_quantity(self, states):
+        order_cost = get_element(states, "order_cost")
+        holding_cost = get_element(states, "unit_storage_cost")
+        sale_gamma = get_element(states, "sale_mean")
+        consumer_quantity = np.sqrt(2 * sale_gamma * order_cost / holding_cost) / sale_gamma
+        return consumer_quantity.astype(np.int32)
 
-    def __call__(self, state):
-        if state['is_facility']:
-            return 0
+    def __call__(self, states):
         # consumer_source_inventory
-        available_inventory = np.array(state['storage_levels'])
-        inflight_orders = np.array(state['consumer_in_transit_orders'])
+        available_inventory = get_element(states, "storage_levels")
+        inflight_orders = get_element(states, "consumer_in_transit_orders")
         booked_inventory = available_inventory + inflight_orders
 
-        # stop placing orders when the facilty runs out of capacity
-        if np.sum(booked_inventory) > state['storage_capacity']:
-            return 0
-
-        most_needed_product_id = state['product_idx']
+        most_needed_product_id = get_element(states, "product_idx")
+        sale_mean, sale_std = get_element(states, "sale_mean"), get_element(states, "sale_std")
+        service_level = get_element(states, "service_level")
         vlt_buffer_days = 7
-        vlt = vlt_buffer_days + state['vlt']
-        sale_mean, sale_std = state['sale_mean'], state['sale_std']
-        service_level = state['service_level']
+        vlt = vlt_buffer_days + get_element(states, "vlt")
 
+        non_facility_mask = ~(get_element(states, "is_facility").astype(np.bool))
+        # stop placing orders when the facilty runs out of capacity
+        capacity_mask = np.sum(booked_inventory, axis=1) <= get_element(states, "storage_capacity")
         # whether replenishment point is reached
-        if booked_inventory[most_needed_product_id] > vlt*sale_mean + np.sqrt(vlt)*sale_std*st.norm.ppf(service_level):
-            return 0
-        consumer_quantity = self._get_consumer_quantity(state)
-        return consumer_quantity
+        replenishment_mask = (
+            booked_inventory[:, most_needed_product_id] <=
+            vlt*sale_mean + np.sqrt(vlt) * sale_std * st.norm.ppf(service_level)
+        )
+        return self._get_consumer_quantity(states) * (non_facility_mask & capacity_mask & replenishment_mask)
 
 
 # parameters: (r, R), calculate according to VLT, demand variances, and service level
 # replenish R - S units whenever the current stock is less than r
 # S denotes the number of units in stock
 class ConsumerMinMaxPolicy(AbsPolicy):
-    def __call__(self, state):
-        if state['is_facility']:
-            return 0
+    def __call__(self, states):
         # consumer_source_inventory
-        available_inventory = np.array(state['storage_levels'])
-        inflight_orders = np.array(state['consumer_in_transit_orders'])
+        available_inventory = get_element(states, "storage_levels")
+        inflight_orders = get_element(states, "consumer_in_transit_orders")
         booked_inventory = available_inventory + inflight_orders
 
-        # stop placing orders when the facility runs out of capacity
-        if np.sum(booked_inventory) > state['storage_capacity']:
-            return 0
-
-        most_needed_product_id = state['product_idx']
-        # stop placing orders if no risk of out of stock
+        # stop placing orders if no risk of out of 
+        most_needed_product_id = get_element(states, "product_idx")
+        sale_mean, sale_std = get_element(states, "sale_mean"), get_element(states, "sale_std")
+        service_level = get_element(states, "service_level")
         vlt_buffer_days = 10
-        vlt = state['vlt'] + vlt_buffer_days
-        sale_mean, sale_std = state['sale_mean'], state['sale_std']
-        service_level = state['service_level']
-        r = (vlt*sale_mean + np.sqrt(vlt)*sale_std*st.norm.ppf(service_level))
+        vlt = vlt_buffer_days + get_element(states, "vlt")
+        r = vlt * sale_mean + np.sqrt(vlt) * sale_std * st.norm.ppf(service_level)
         # print(booked_inventory, most_needed_product_id, r)
-        if booked_inventory[most_needed_product_id] > r:
-            return 0
-        R = 3*r
-        consumer_quantity = int((R - r) / sale_mean)
-        return consumer_quantity
 
+        non_facility_mask = ~(get_element(states, "is_facility").astype(np.bool))
+        # stop placing orders when the facilty runs out of capacity
+        capacity_mask = np.sum(booked_inventory, axis=1) <= get_element(states, "storage_capacity")
+        sales_mask = booked_inventory[:, most_needed_product_id] <= r
+        R = 3 * r
+        consumer_action = (R - r) / sale_mean
+        return consumer_action.astype(np.int32) * (non_facility_mask & capacity_mask & sales_mask)
 
-# def get_consumer_baseline_policy():
-#     return ConsumerBaselinePolicy(NUM_CONSUMER_ACTIONS)
-
-# def get_consumer_eoq_policy():
-#     return ConsumerEOQPolicy()
 
 or_policy_func_dict = {
     # "consumer": lambda: ConsumerMinMaxPolicy(),

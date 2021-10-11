@@ -1,18 +1,18 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-job: cim
+job: sc
 aks:
   image: marorl.azurecr.cn/marorl
   storage_account: maro
   file_share: rltest
-scenario_dir: /maro/examples
-scenario: cim
-load_policy_dir: "/maro/examples/checkpoints/cim"
-checkpoint_dir: "/maro/examples/checkpoints/cim"
-log_dir: "/maro/examples//logs/cim"
+scenario_dir: /rltest
+scenario: supply_chain
+load_policy_dir: "/rltest/checkpoints/sc"
+checkpoint_dir: "/rltest/checkpoints/sc"
+log_dir: "/rltest/logs/sc"
 mode: sync  # single, sync, async
-num_episodes: 2
+num_episodes: 4
 eval_schedule: 2
 sync:
   num_rollouts: 3
