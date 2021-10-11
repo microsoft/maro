@@ -29,8 +29,9 @@ def get_policy_manager():
         allocator = WorkerAllocator(
             from_env("ALLOCATIONMODE"), from_env("NUMGRADWORKERS"), list(policy_func_dict.keys()), agent2policy
         )
+        group = from_env("POLICYGROUP")
     else:
-        allocator = None
+        allocator, group = None, None
     proxy_kwargs = {
         "redis_address": (from_env("REDISHOST"), from_env("REDISPORT")),
         "max_peer_discovery_retries": 50
@@ -41,7 +42,7 @@ def get_policy_manager():
             load_dir=load_policy_dir,
             checkpoint_dir=checkpoint_dir,
             worker_allocator=allocator,
-            group=from_env("POLICYGROUP", required=False, default=None),
+            group=group,
             proxy_kwargs=proxy_kwargs,
             log_dir=log_dir
         )
@@ -51,7 +52,7 @@ def get_policy_manager():
             load_dir=load_policy_dir,
             checkpoint_dir=checkpoint_dir,
             worker_allocator=allocator,
-            group=from_env("POLICYGROUP"),
+            group=group,
             proxy_kwargs=proxy_kwargs,
             log_dir=log_dir
         )

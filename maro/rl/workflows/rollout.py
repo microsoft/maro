@@ -19,9 +19,8 @@ if __name__ == "__main__":
     mode = from_env("MODE")
     env_sampler = get_env_sampler()
     if mode == "sync":
-        worker_id = from_env("WORKERID")
         env_sampler.worker(
-            from_env("ROLLOUTGROUP"), worker_id,
+            from_env("ROLLOUTGROUP"), from_env("WORKERID"),
             proxy_kwargs={
                 "redis_address": (from_env("REDISHOST"), from_env("REDISPORT")),
                 "max_peer_discovery_retries": 50
@@ -29,11 +28,10 @@ if __name__ == "__main__":
             log_dir=log_dir
         )
     elif mode == "async":
-        actor_id = from_env("ACTORID")
         num_episodes = from_env("NUMEPISODES")
         num_steps = from_env("NUMSTEPS", required=False, default=-1)
         env_sampler.actor(
-            from_env("GROUP"), actor_id, num_episodes,
+            from_env("GROUP"), from_env("ACTORID"), num_episodes,
             num_steps=num_steps,
             proxy_kwargs={
                 "redis_address": (from_env("REDISHOST"), from_env("REDISPORT")),
