@@ -73,7 +73,9 @@ class SCEnvSampler(AbsEnvSampler):
     def get_or_policy_state(self, state, agent_info):
         state = {'is_facility': not (agent_info.agent_type in sku_agent_types)}
         if agent_info.is_facility:
-            return state
+            return np.array([state["is_facility"]])
+
+        np_state, offsets = [int(state["is_facility"])], [1]
 
         if agent_info.agent_type in ["product", "productstore"]:
             product_unit_id = agent_info.id
@@ -82,23 +84,35 @@ class SCEnvSampler(AbsEnvSampler):
         unit_storage_cost = self.balance_cal.products[self.balance_cal.product_id2index_dict[product_unit_id]][4]
 
         product_metrics = self._cur_metrics["products"][product_unit_id]
-        state['sale_mean'] = product_metrics["sale_mean"]
-        state['sale_std'] = product_metrics["sale_std"]
+        np_state.append(product_metrics["sale_mean"])
+        offsets.append(len(np_state))
+        np_state.append(product_metrics["sale_std"])
+        offsets.append(len(np_state))
 
         facility = self._env_info["facility_levels"][agent_info.facility_id]
-        state['unit_storage_cost'] = unit_storage_cost
-        state['order_cost'] = 1
+        np_state.append(unit_storage_cost)
+        offsets.append(len(np_state))
+        np_state.append(1)  # order_cost
+        offsets.append(len(np_state))
         product_info = facility[agent_info.sku.id]
+
         if "consumer" in product_info:
             idx = product_info["consumer"].node_index
-            state['order_cost'] = self.env.snapshot_list["consumer"][self.env.tick:idx:"order_cost"].flatten()[0]
-        state['storage_capacity'] = facility['storage'].config["capacity"]
-        state['storage_levels'] = self._env_info["storage_product_num"][agent_info.facility_id]
-        state['consumer_in_transit_orders'] = self._facility_in_transit_orders[agent_info.facility_id]
-        state['product_idx'] = self._env_info["storage_product_indexes"][agent_info.facility_id][agent_info.sku.id] + 1
-        state['vlt'] = agent_info.sku.vlt
-        state['service_level'] = agent_info.sku.service_level
-        return state
+            np_state[-1] = self.env.snapshot_list["consumer"][self.env.tick:idx:"order_cost"].flatten()[0]
+
+        np_state.append(facility['storage'].config["capacity"])
+        offsets.append(len(np_state))
+        np_state.extend(self._env_info["storage_product_num"][agent_info.facility_id])
+        offsets.append(len(np_state))
+        np_state.extend(self._facility_in_transit_orders[agent_info.facility_id])
+        offsets.append(len(np_state))
+        np_state.append(self._env_info["storage_product_indexes"][agent_info.facility_id][agent_info.sku.id] + 1)
+        offsets.append(len(np_state))
+        np_state.append(agent_info.sku.vlt)
+        offsets.append(len(np_state))
+        np_state.append(agent_info.sku.service_level)
+        offsets.append(len(np_state))
+        return np.array(np_state + offsets)
 
     def get_rl_policy_state(self, state, agent_info):
         self._update_facility_features(state, agent_info)

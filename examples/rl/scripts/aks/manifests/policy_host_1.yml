@@ -1,0 +1,53 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: policy-host-1
+spec:
+  template:
+    spec:
+      containers:
+      - command:
+        - python3
+        - /maro/maro/rl/workflows/policy_host.py
+        env:
+        - name: HOSTID
+          value: '1'
+        - name: REDISHOST
+          value: maro
+        - name: REDISPORT
+          value: '6379'
+        - name: JOB
+          value: cim
+        - name: SCENARIODIR
+          value: /rltest
+        - name: SCENARIO
+          value: cim
+        - name: MODE
+          value: sync
+        - name: POLICYMANAGERTYPE
+          value: distributed
+        - name: LOADDIR
+          value: /rltest/checkpoints/cim
+        - name: CHECKPOINTDIR
+          value: /rltest/checkpoints/cim
+        - name: LOGDIR
+          value: /rltest/logs/cim
+        - name: POLICYGROUP
+          value: cim-policies
+        - name: NUMHOSTS
+          value: '2'
+        image: marorl.azurecr.cn/marorl
+        imagePullPolicy: Always
+        name: policy-host-1
+        volumeMounts:
+        - mountPath: rltest
+          name: maro
+      nodeSelector:
+        agentpool: sc
+      restartPolicy: Never
+      volumes:
+      - azureFile:
+          readOnly: false
+          secretName: azure-secret
+          shareName: rltest
+        name: maro

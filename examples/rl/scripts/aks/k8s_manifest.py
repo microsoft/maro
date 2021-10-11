@@ -1,20 +1,24 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import shutil
 import yaml
 from copy import deepcopy
 from os import makedirs
-from os.path import dirname, join, realpath
+from os.path import dirname, exists, join, realpath
+
 
 path = realpath(__file__)
 k8s_script_dir = dirname(path)
 rl_example_dir = dirname(dirname(k8s_script_dir))
 root_dir = dirname(dirname(rl_example_dir))
 config_path = join(rl_example_dir, "config.yml")
-mnt_path = "/rltest"
 
 k8s_manifest_dir = join(k8s_script_dir, "manifests")
-makedirs(k8s_manifest_dir, exist_ok=True)
+if exists(k8s_manifest_dir):
+    shutil.rmtree(k8s_manifest_dir)
+
+makedirs(k8s_manifest_dir)
 
 with open(config_path, "r") as fp:
     config = yaml.safe_load(fp)
@@ -81,7 +85,7 @@ common = {
                     "name": "maro",
                     "azureFile": {
                         "secretName": "azure-secret",
-                        "shareName": "rltest",
+                        "shareName": config["aks"]["file_share"],
                         "readOnly": False
                     }
                 }]
@@ -91,10 +95,10 @@ common = {
 }
 
 common_container_spec = {
-    "image": "marorl.azurecr.cn/marorl",
+    "image": config["aks"]["image"],
     "imagePullPolicy": "Always",
     "volumeMounts": [
-        {"name": "maro", "mountPath": mnt_path}
+        {"name": config["aks"]["storage_account"], "mountPath": config["aks"]["file_share"]}
     ]
 }
 
@@ -105,7 +109,7 @@ common_envs = [
     {"name": "SCENARIODIR", "value": config["scenario_dir"]},
     {"name": "SCENARIO", "value": config["scenario"]},
     {"name": "MODE", "value": config["mode"]},
-    {"name": "POLICYMANAGERTYPE", "value": config['policy_manager']['type']}
+    {"name": "POLICYMANAGERTYPE", "value": config["policy_manager"]["type"]}
 ]
 
 if "load_policy_dir" in config:
@@ -117,7 +121,7 @@ if "log_dir" in config:
 
 if config["policy_manager"]["type"] == "distributed":
     common_envs.append({"name": "POLICYGROUP", "value": "-".join([config["job"], "policies"])})
-    common_envs.append({"name": "NUMHOSTS", "value": config["policy_manager"]["distributed"]["num_hosts"]})
+    common_envs.append({"name": "NUMHOSTS", "value": str(config["policy_manager"]["distributed"]["num_hosts"])})
 
 workflow_dir_in_container = "/maro/maro/rl/workflows"
 # get script paths
@@ -171,37 +175,44 @@ mode = config["mode"]
 if mode == "sync":
     # main process spec
     main_manifest = deepcopy(common)
-    main_manifest["metadata"] = {"name": "learner"}
+    main_manifest["metadata"] = {"name": "main"}
     rollout_group = "-".join([config["job"], "rollout"])
     envs = [
         {"name": "ROLLOUTTYPE", "value": config["sync"]["rollout_type"]},
         {"name": "NUMEPISODES", "value": str(config["num_episodes"])},
-        {"name": "EVALSCH", "value": str(config["eval_schedule"])},
-        {"name": "NUMROLLOUTS", "value": config["sync"]["num_rollouts"]},
-        {"name": "NUMEVALROLLOUTS", "value": config["sync"]["num_eval_rollouts"]},
-        {"name": "ROLLOUTGROUP", "value": rollout_group},
-        {"name": "MINFINISH", "value": config["sync"]["distributed"]["min_finished_workers"]},
-        {"name": "MAXEXRECV", "value": config["sync"]["distributed"]["max_extra_recv_tries"]},
-        {"name": "MAXRECVTIMEO", "value": config["sync"]["distributed"]["extra_recv_timeout"]},
+        {"name": "NUMROLLOUTS", "value": str(config["sync"]["num_rollouts"])}
     ]
     if "num_steps" in config:
-        envs.append(f"NUMSTEPS={config['num_steps']}")
+        envs.append({"NUMSTEPS": str(config["num_steps"])})
+    if "eval_schedule" in config:
+        envs.append({"name": "EVALSCH", "value": str(config["eval_schedule"])})
+    if config["sync"]["rollout_type"] == "distributed":
+        envs.append({"name": "ROLLOUTGROUP", "value": rollout_group})
+        if "min_finished_workers" in config["sync"]["distributed"]:
+            envs.append({"name": "MINFINISH", "value": str(config["sync"]["distributed"]["min_finished_workers"])})
+        if "max_extra_recv_tries" in config["sync"]["distributed"]:
+            envs.append({"name": "MAXEXRECV", "value": str(config["sync"]["distributed"]["max_extra_recv_tries"])})
+        if "extra_recv_timeout" in config["sync"]["distributed"]:
+            envs.append({"name": "MAXRECVTIMEO", "value": str(config["sync"]["distributed"]["extra_recv_timeout"])})
+
+    if "num_eval_rollouts" in config["sync"]:
+        envs.append({"name": "NUMEVALROLLOUTS", "value": str(config["sync"]["num_eval_rollouts"])})
     main_manifest["spec"]["template"]["spec"]["containers"] = [
         {   
             **deepcopy(common_container_spec),
             **{
-                "name": "learner",
+                "name": "main",
                 "command": ["python3", main_path],
                 "env": envs + common_envs
             }
         }
     ]
-    with open(join(k8s_manifest_dir, "learner.yml"), "w") as fp:
+    with open(join(k8s_manifest_dir, "main.yml"), "w") as fp:
         yaml.safe_dump(main_manifest, fp)
 
     # rollout worker spec
     if config["sync"]["rollout_type"] == "distributed":
-        for worker_id in range(config["sync"]["num_rollout_workers"]):
+        for worker_id in range(config["sync"]["num_rollouts"]):
             job_name = f"rollout-worker-{worker_id}"
             worker_manifest = deepcopy(common)
             worker_manifest["metadata"] = {"name": job_name}
@@ -226,10 +237,10 @@ elif mode == "async":
     server_manifest["metadata"]= {"name": "policy-server"}
     envs = [
         {"name": "GROUP", "value": config["job"]},
-        {"name": "NUMROLLOUTS", "value": config["async"]["num_rollouts"]},
+        {"name": "NUMROLLOUTS", "value": str(config["async"]["num_rollouts"])},
     ]
     if "max_lag" in config["async"]:
-        envs.append({"name": "MAXLAG", "value": config["async"]["max_lag"]})
+        envs.append({"name": "MAXLAG", "value": str(config["async"]["max_lag"])})
     server_manifest["spec"]["template"]["spec"]["containers"] = [
         {
             **deepcopy(common_container_spec),
@@ -244,7 +255,7 @@ elif mode == "async":
         yaml.safe_dump(server_manifest, fp)
 
     # actor spec
-    for actor_id in range(config["async"]["num_actors"]):
+    for actor_id in range(config["async"]["num_rollouts"]):
         actor_manifest = deepcopy(common)
         actor_manifest["metadata"] = {"name": "actor"}
         envs = [
@@ -253,7 +264,7 @@ elif mode == "async":
             {"name": "NUMEPISODES", "value": str(config["num_episodes"])}
         ]
         if "num_steps" in config:
-            envs.append({"name": "NUMSTEPS", "value": config["num_steps"]})
+            envs.append({"name": "NUMSTEPS", "value": str(config["num_steps"])})
         actor_manifest["spec"]["template"]["spec"]["containers"] = [
             {
                 **deepcopy(common_container_spec),

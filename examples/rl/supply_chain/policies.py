@@ -62,9 +62,31 @@ class MyQNet(DiscreteQNet):
 
 ######################################## Rule-based / OR #################################################
 
+OR_STATE_OFFSET_INDEX = {
+    "is_facility": 0,
+    "sale_mean": 1,
+    "sale_std": 2,
+    "unit_storage_cost": 3,
+    "order_cost": 4,
+    "storage_capacity": 5,
+    "storage_levels": 6,
+    "consumer_in_transit_orders": 7,
+    "product_idx": 8,
+    "vlt": 9,
+    "service_level": 10
+}
+
+
+def get_element(np_state, key):
+    offsets = np_state[-len(OR_STATE_OFFSET_INDEX):]
+    idx = OR_STATE_OFFSET_INDEX[key]
+    prev_idx = offsets[idx - 1] if idx > 0 else 0 
+    return np_state[:, prev_idx : offsets[idx]]
+
+
 class ProducerBaselinePolicy(AbsPolicy):
     def __call__(self, state):
-        return state.get('product_rate', 500)
+        return 500
 
 
 class ConsumerBaselinePolicy(AbsPolicy):
@@ -73,22 +95,22 @@ class ConsumerBaselinePolicy(AbsPolicy):
         self.num_actions = num_actions
 
     def __call__(self, state):
-        if state['is_facility']:
+        if get_element(state, "is_facility"):
             return 0
         # consumer_source_inventory
-        available_inventory = np.array(state['storage_levels'])
-        inflight_orders = np.array(state['consumer_in_transit_orders'])
+        available_inventory = get_element(state, "storage_levels")
+        inflight_orders = get_element(state, "consumer_in_transit_orders")
         booked_inventory = available_inventory + inflight_orders
 
         # stop placing orders when the facility runs out of capacity
-        if np.sum(booked_inventory) > state['storage_capacity']:
+        if np.sum(booked_inventory) > get_element(state, "storage_capacity"):
             return 0
 
-        most_needed_product_id = state['product_idx']
-        sale_mean, sale_std = state['sale_mean'], state['sale_std']
-        service_level = state['service_level']
+        most_needed_product_id = get_element(state, "product_idx")
+        sale_mean, sale_std = get_element(state, "sale_mean"), get_element(state, "sale_std")
+        service_level = get_element(state, "service_level")
         vlt_buffer_days = 7
-        vlt = vlt_buffer_days + state['vlt']
+        vlt = vlt_buffer_days + get_element(state, "vlt")
         if booked_inventory[most_needed_product_id] > vlt*sale_mean + np.sqrt(vlt)*sale_std*st.norm.ppf(service_level):
             return 0
         consumer_action_space_size = self.num_actions

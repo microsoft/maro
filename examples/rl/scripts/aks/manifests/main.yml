@@ -1,0 +1,69 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: main
+spec:
+  template:
+    spec:
+      containers:
+      - command:
+        - python3
+        - /maro/maro/rl/workflows/main.py
+        env:
+        - name: ROLLOUTTYPE
+          value: distributed
+        - name: NUMEPISODES
+          value: '10'
+        - name: NUMROLLOUTS
+          value: '3'
+        - name: ROLLOUTGROUP
+          value: cim-rollout
+        - name: EVALSCH
+          value: '5'
+        - name: MINFINISH
+          value: '2'
+        - name: MAXEXRECV
+          value: '1'
+        - name: MAXRECVTIMEO
+          value: '200'
+        - name: NUMEVALROLLOUTS
+          value: '1'
+        - name: REDISHOST
+          value: maro
+        - name: REDISPORT
+          value: '6379'
+        - name: JOB
+          value: cim
+        - name: SCENARIODIR
+          value: /rltest
+        - name: SCENARIO
+          value: cim
+        - name: MODE
+          value: sync
+        - name: POLICYMANAGERTYPE
+          value: distributed
+        - name: LOADDIR
+          value: /rltest/checkpoints/cim
+        - name: CHECKPOINTDIR
+          value: /rltest/checkpoints/cim
+        - name: LOGDIR
+          value: /rltest/logs/cim
+        - name: POLICYGROUP
+          value: cim-policies
+        - name: NUMHOSTS
+          value: '2'
+        image: marorl.azurecr.cn/marorl
+        imagePullPolicy: Always
+        name: main
+        volumeMounts:
+        - mountPath: rltest
+          name: maro
+      nodeSelector:
+        agentpool: sc
+      restartPolicy: Never
+      volumes:
+      - azureFile:
+          readOnly: false
+          secretName: azure-secret
+          shareName: rltest
+        name: maro

@@ -51,7 +51,7 @@ def get_policy_manager():
             load_dir=load_policy_dir,
             checkpoint_dir=checkpoint_dir,
             worker_allocator=allocator,
-            group=from_env("POLICYGROUP"),
+            group=from_env("POLICYGROUP", required=False, default=None),
             proxy_kwargs=proxy_kwargs,
             log_dir=log_dir
         )
