@@ -84,9 +84,10 @@ class SimpleAgentWrapper:
 
     def improve(self, checkpoint_dir: str = None):
         for id_, policy in self.policy_dict.items():
-            policy.improve()
-            if checkpoint_dir:
-                policy.save(path.join(checkpoint_dir, id_))
+            if hasattr(policy, "improve"):
+                policy.improve()
+                if checkpoint_dir:
+                    policy.save(path.join(checkpoint_dir, id_))
 
 
 class ParallelAgentWrapper:
