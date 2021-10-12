@@ -17,6 +17,7 @@ if __name__ == "__main__":
     example_dir = dirname(dirname(docker_script_dir))
     root_dir = dirname(dirname(example_dir))
     maro_rl_dir = join(root_dir, "maro", "rl")
+    sc_dir = join(root_dir, "maro", "simulator", "scenarios", "supply_chain")
 
     with open(join(example_dir, "config.yml"), "r") as fp:
         config = yaml.safe_load(fp)
@@ -26,7 +27,8 @@ if __name__ == "__main__":
         "image": "marorl",
         "volumes": [
             f"{example_dir}:/maro/examples",
-            f"{maro_rl_dir}:/maro/maro/rl"
+            f"{maro_rl_dir}:/maro/maro/rl",
+            f"{sc_dir}:/maro/maro/simulator/scenarios/supply_chain"
         ]
     }
 
@@ -151,16 +153,23 @@ if __name__ == "__main__":
             envs = [
                 f"ROLLOUTTYPE={config['sync']['rollout_type']}",
                 f"NUMEPISODES={config['num_episodes']}",
-                f"EVALSCH={config['eval_schedule']}",
-                f"NUMROLLOUTS={config['sync']['num_rollouts']}",
-                f"NUMEVALROLLOUTS={config['sync']['num_eval_rollouts']}",
-                f"ROLLOUTGROUP={rollout_group}",
-                f"MINFINISH={config['sync']['distributed']['min_finished_workers']}",
-                f"MAXEXRECV={config['sync']['distributed']['max_extra_recv_tries']}",
-                f"MAXRECVTIMEO={config['sync']['distributed']['extra_recv_timeout']}",
+                f"NUMROLLOUTS={config['sync']['num_rollouts']}"
             ]
             if "num_steps" in config:
                 envs.append(f"NUMSTEPS={config['num_steps']}")
+            if "eval_schedule" in config:
+                envs.append(f"EVALSCH={config['eval_schedule']}")
+            if config["sync"]["rollout_type"] == "distributed":
+                envs.append(f"ROLLOUTGROUP={rollout_group}")
+                if "min_finished_workers" in config["sync"]["distributed"]:
+                    envs.append(f"MINFINISH={config['sync']['distributed']['min_finished_workers']}")
+                if "max_extra_recv_tries" in config["sync"]["distributed"]:
+                    envs.append(f"MAXEXRECV={config['sync']['distributed']['max_extra_recv_tries']}")
+                if "extra_recv_timeout" in config["sync"]["distributed"]:
+                    envs.append(f"MAXRECVTIMEO={config['sync']['distributed']['extra_recv_timeout']}")
+
+            if "num_eval_rollouts" in config["sync"]:
+                envs.append(f"NUMEVALROLLOUTS={config['sync']['num_eval_rollouts']}")
 
             docker_compose_manifest["services"]["main"] = {
                 **common_spec, 
