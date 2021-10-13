@@ -49,7 +49,7 @@ facility_definitions:
             config:
               agent_type: "consumer"
           manufacture:
-            class: "ManufactureUnit"
+            class: "SimpleManufactureUnit"
             config:
               agent_type: "producer"
     config:
@@ -115,11 +115,7 @@ huge_storage: &huge_storage
 skus: &sku_definitions
   - id: 1
     name: "sku1"
-    output_units_per_lot: 12
-    # bill of material that used produce current sku, empty means do not need source material
-    bom:
-      # key is the source sku name, value is quantity needed to use per time to produce current sku
-      sku3: 10
+    output_units_per_lot: 1
 
   - id: 2
     name: "sku2"
@@ -177,10 +173,10 @@ world:
           cost: 10
           price: 100
           vlt: 1
-        sku3:
+        sku2:
           init_stock: 100
           production_rate: 1
-          type: "material"
+          type: "production"
           cost: 10
           price: 100
           vlt: 1
@@ -222,21 +218,21 @@ world:
         sku1:
           price: 300
           cost: 10
-          init_stock: 100
+          init_stock: 800
           sale_gamma: 100
           backlog_ratio: 0.1 # optional
           vlt: 1
         sku3:
           price: 200
           cost: 10
-          init_stock: 100
+          init_stock: 800
           sale_gamma: 100
           backlog_ratio: 0.1
           vlt: 1
         sku2:
           price: 100
           cost: 10
-          init_stock: 100
+          init_stock: 800
           sale_gamma: 100
           backlog_ratio: 0.1
           vlt: 1
@@ -252,18 +248,17 @@ world:
   # TODO: change the name?
   topology:
     # key is current facility, value if upstream facilities that will provide a certain sku
-    Supplier_002:
-      # this config means "Supplier1" will purchase "sku3" from facility "Supplier3",
-      # or any other facility in the list
-      sku3:
-        - "Supplier_001"
     Warehouse_001:
       sku1:
+        - "Supplier_002"
+      sku2:
         - "Supplier_002"
       sku3:
         - "Supplier_001"
     Retailer_001:
       sku1:
+        - "Supplier_002"
+      sku2:
         - "Supplier_002"
       sku3:
         - "Supplier_001"

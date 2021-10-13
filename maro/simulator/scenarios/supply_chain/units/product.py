@@ -10,6 +10,7 @@ from .extendunitbase import ExtendUnitBase
 from .manufacture import ManufactureUnit
 from .seller import SellerUnit
 from .storage import StorageUnit
+from ..datamodels import ProductDataModel
 
 
 class ProductUnit(ExtendUnitBase):

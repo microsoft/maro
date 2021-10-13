@@ -38,7 +38,7 @@ small_storage: &small_storage
     capacity: 100
     unit_storage_cost: 1
 
-midium_storage: &midium_storage
+medium_storage: &medium_storage
   config:
     capacity: 200
     unit_storage_cost: 1
@@ -107,7 +107,7 @@ world:
           cost: 10
           price: 100
       children:
-        storage: *midium_storage
+        storage: *medium_storage
         distribution: *normal_distribution
       config:
         delay_order_penalty: 10
@@ -127,7 +127,7 @@ world:
           cost: 10
           price: 100
       children:
-        storage: *midium_storage
+        storage: *medium_storage
         distribution: *normal_distribution
       config:
         delay_order_penalty: 10
@@ -147,7 +147,7 @@ world:
           cost: 10
           price: 100
       children:
-        storage: *midium_storage
+        storage: *medium_storage
         distribution: *normal_distribution
       config:
         delay_order_penalty: 10

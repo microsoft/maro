@@ -4,6 +4,7 @@
 
 from .. import ManufactureAction, ManufactureDataModel
 from .extendunitbase import ExtendUnitBase
+from .. import ManufactureDataModel
 
 
 class ManufactureUnit(ExtendUnitBase):
