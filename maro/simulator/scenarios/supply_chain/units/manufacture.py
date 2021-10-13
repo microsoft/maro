@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 
-from .. import ManufactureDataModel
+from .. import ManufactureAction, ManufactureDataModel
 from .extendunitbase import ExtendUnitBase
 
 
@@ -42,6 +42,8 @@ class ManufactureUnit(ExtendUnitBase):
             self.input_units_per_lot = sum(self.bom.values())
 
     def step(self, tick: int):
+        assert isinstance(self.action, ManufactureAction)
+
         # Try to produce production if we have positive rate.
         if self.action is not None and self.action.production_rate > 0:
             sku_num = len(self.facility.skus)

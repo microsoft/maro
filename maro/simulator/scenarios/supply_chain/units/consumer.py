@@ -4,9 +4,9 @@ from collections import Counter, defaultdict
 
 from scipy.ndimage.interpolation import shift
 
-from .. import ConsumerDataModel
 from .extendunitbase import ExtendUnitBase
 from .order import Order
+from .. import ConsumerAction, ConsumerDataModel
 
 
 class ConsumerUnit(ExtendUnitBase):
@@ -89,6 +89,8 @@ class ConsumerUnit(ExtendUnitBase):
     def step(self, tick: int):
         self._update_pending_order()
 
+        assert isinstance(self.action, ConsumerAction)
+
         # NOTE: id == 0 means invalid,as our id is 1 based.
         if not self.action or self.action.quantity <= 0 or self.action.product_id <= 0 or self.action.source_id == 0:
             return
@@ -106,6 +108,8 @@ class ConsumerUnit(ExtendUnitBase):
         self.purchased = self.action.quantity
 
     def flush_states(self):
+        assert isinstance(self.action, ConsumerAction)
+
         if self.received > 0:
             self.data_model.received = self.received
             self.data_model.total_received += self.received
@@ -123,6 +127,8 @@ class ConsumerUnit(ExtendUnitBase):
             self.data_model.reward_discount = self.action.reward_discount
 
     def post_step(self, tick: int):
+        assert isinstance(self.action, ConsumerAction)
+
         # Clear the action states per step.
         if self.action is not None:
             self.data_model.latest_consumptions = 0

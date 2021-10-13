@@ -5,10 +5,8 @@ from __future__ import annotations
 import typing
 from typing import Optional, Union
 
-from maro.simulator.scenarios.supply_chain.actions import SupplyChainAction
-
 if typing.TYPE_CHECKING:
-    from maro.simulator.scenarios.supply_chain import FacilityBase
+    from maro.simulator.scenarios.supply_chain import FacilityBase, SupplyChainAction
     from maro.simulator.scenarios.supply_chain.datamodels.base import DataModelBase
     from maro.simulator.scenarios.supply_chain.world import World
 

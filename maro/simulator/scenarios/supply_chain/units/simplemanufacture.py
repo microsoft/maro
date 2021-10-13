@@ -3,6 +3,7 @@
 
 
 from .manufacture import ManufactureUnit
+from .. import ManufactureAction
 
 
 class SimpleManufactureUnit(ManufactureUnit):
@@ -11,6 +12,8 @@ class SimpleManufactureUnit(ManufactureUnit):
     def step(self, tick: int):
         # Try to produce production if we have positive rate.
         self.manufacture_number = 0
+
+        assert isinstance(self.action, ManufactureAction)
 
         if self.action is not None and self.action.production_rate > 0:
             production_rate = self.action.production_rate

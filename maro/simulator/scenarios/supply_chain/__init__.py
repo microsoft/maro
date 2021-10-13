@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 
-from .actions import ConsumerAction, ManufactureAction
+from .actions import ConsumerAction, ManufactureAction, SupplyChainAction
 from .datamodels import (
     ConsumerDataModel, DistributionDataModel, ManufactureDataModel, SellerDataModel, StorageDataModel, VehicleDataModel
 )
