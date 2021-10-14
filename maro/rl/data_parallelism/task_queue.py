@@ -34,7 +34,7 @@ class TaskQueueClient(object):
         return worker_list
 
     # TODO: rename this method
-    def remote_learn(self, worker_id_list: List, batch_list: List, policy_state: Dict, policy_name: str):
+    def submit(self, worker_id_list: List, batch_list: List, policy_state: Dict, policy_name: str):
         """Learn a batch of data on several grad workers."""
         msg_dict = defaultdict(lambda: defaultdict(dict))
         loss_info_by_policy = {policy_name: []}
@@ -78,7 +78,7 @@ def task_queue(
         num_hosts = num_policies
 
     # Proxy
-    peers = {"policy_host": num_hosts, "grad_worker": num_workers}
+    peers = {"policy_host": num_hosts, "grad_worker": num_workers, "policy_manager": 1}
     proxy = Proxy(group, "task_queue", peers, component_name="TASK_QUEUE", **proxy_kwargs)
     logger = Logger(proxy.name, dump_folder=log_dir)
 

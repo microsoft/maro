@@ -241,7 +241,7 @@ class DDPG(RLPolicy):
             batch_list = [
                 self._replay_memory.sample(self.train_batch_size // len(worker_id_list))
                 for i in range(len(worker_id_list))]
-            loss_info_by_policy = self.task_queue_client.remote_learn(
+            loss_info_by_policy = self.task_queue_client.submit(
                 worker_id_list, batch_list, self.get_state(), self._name)
             # build dummy computation graph by `get_batch_loss` before apply gradients.
             # batch_size=2 because torch.nn.functional.batch_norm doesn't support batch_size=1.

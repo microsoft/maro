@@ -17,7 +17,7 @@ from general import log_dir, policy_func_dict
 if __name__ == "__main__":
     host_id = getenv("HOSTID")
     data_parallel = getenv("DATAPARALLEL") == "True"
-    num_grad_workers = getenv("NUMGRADWORKERS")
+    num_grad_workers = getenv("NUMGRADWORKERS") if data_parallel else 1
 
     if host_id is None:
         raise ValueError("missing environment variable: HOSTID")
@@ -33,7 +33,6 @@ if __name__ == "__main__":
             "redis_address": (getenv("REDISHOST", default="maro-redis"), int(getenv("REDISPORT", default=6379))),
             "max_peer_discovery_retries": 50
         },
-        data_parallel=data_parallel,
-        num_grad_workers=int(num_grad_workers),
+        data_parallelism=int(num_grad_workers),
         log_dir=log_dir
     )

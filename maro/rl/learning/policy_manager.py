@@ -104,9 +104,8 @@ class SimplePolicyManager(AbsPolicyManager):
             only if there are updates since the last checkpoint. This must be a positive integer or -1, with -1 meaning
             no checkpointing. Defaults to -1.
         save_dir (str): The directory under which to checkpoint the policy states.
-        data_parallel (bool): Whether to train policy on remote gradient workers to perform data-parallel.
-            Defaults to False.
-        num_grad_workers (int): The number of gradient worker nodes in data-parallel mode. Defaults to 1.
+        data_parallelism (int): If this is greater than 1, the gradient steps for each policy will be performed on a set
+            of data_parallelism remote gradient workers. Defaults to 1.
         group (str): Group name for the cluster consisting of the manager and all policy hosts. Ignored if
             ``worker_allocator`` is None. Defaults to DEFAULT_POLICY_GROUP.
         proxy_kwargs (dict): Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class for details.
@@ -120,8 +119,7 @@ class SimplePolicyManager(AbsPolicyManager):
         load_path_dict: Dict[str, str] = {},
         checkpoint_every: int = -1,
         save_dir: str = None,
-        data_parallel: bool = False,
-        num_grad_workers: int = 1,
+        data_parallelism: int = 1,
         group: str = DEFAULT_POLICY_GROUP,
         proxy_kwargs: dict = {},
         log_dir: str = getcwd()
@@ -151,9 +149,11 @@ class SimplePolicyManager(AbsPolicyManager):
             self._logger.info(f"Auto-checkpoint policy state every {self.checkpoint_every} seconds")
 
         # data parallelism
-        self._data_parallel = data_parallel
+        assert data_parallelism > 0, f"data_parallelism should be a positive integer, rather than {data_parallelism}."
+        self._data_parallel = data_parallelism > 1
         if self._data_parallel:
-            self._num_grad_workers = num_grad_workers
+            self._num_grad_workers = data_parallelism
+            # TODO: support data-parallel and add peer taskQ
             self._proxy = Proxy(
                 group, "policy_manager", {"grad_worker": self._num_grad_workers},
                 component_name="POLICY_MANAGER", **proxy_kwargs)
@@ -218,9 +218,8 @@ class MultiProcessPolicyManager(AbsPolicyManager):
         auto_checkpoint (bool): If True, the policies will be checkpointed (i.e., persisted to disk) every time they are
             updated. Defaults to -1.
         save_dir (str): The directory under which to checkpoint the policy states.
-        data_parallel (bool): Whether to train policy on remote gradient workers to perform data-parallel.
-            Defaults to False.
-        num_grad_workers (int): The number of gradient worker nodes in data-parallel mode. Defaults to 1.
+        data_parallelism (int): If this is greater than 1, the gradient steps for each policy will be performed on a set
+            of data_parallelism remote gradient workers. Defaults to 1.
         group (str): Group name for the cluster consisting of the manager and all policy hosts. Ignored if
             ``worker_allocator`` is None. Defaults to DEFAULT_POLICY_GROUP.
         proxy_kwargs (dict): Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class for details.
@@ -234,8 +233,7 @@ class MultiProcessPolicyManager(AbsPolicyManager):
         load_path_dict: Dict[str, str] = {},
         auto_checkpoint: bool = False,
         save_dir: str = None,
-        data_parallel: bool = False,
-        num_grad_workers: int = 1,
+        data_parallelism: int = 1,
         group: str = DEFAULT_POLICY_GROUP,
         proxy_kwargs: dict = {},
         log_dir: str = getcwd()
@@ -245,9 +243,10 @@ class MultiProcessPolicyManager(AbsPolicyManager):
         self._logger = Logger("POLICY_MANAGER", dump_folder=log_dir)
 
         # data parallelism
-        self._data_parallel = data_parallel
+        assert data_parallelism > 0, f"data_parallelism should be a positive integer, rather than {data_parallelism}."
+        self._data_parallel = data_parallelism > 1
         if self._data_parallel:
-            self._num_grad_workers = num_grad_workers
+            self._num_grad_workers = data_parallelism
             self._proxy = Proxy(
                 group, "policy_manager", {"grad_worker": self._num_grad_workers, "task_queue": 1},
                 component_name="POLICY_MANAGER", **proxy_kwargs
@@ -363,9 +362,8 @@ class DistributedPolicyManager(AbsPolicyManager):
         group (str): Group name for the cluster consisting of the manager and all policy hosts. If ``worker_allocator``
             is provided, the gradient workers will also belong to the same cluster. Defaults to
             DEFAULT_POLICY_GROUP.
-        data_parallel (bool): Whether to train policy on remote gradient workers to perform data-parallel.
-            Defaults to False.
-        num_grad_workers (int): The number of gradient worker nodes in data-parallel mode. Defaults to 1.
+        data_parallelism (int): If this is greater than 1, the gradient steps for each policy will be performed on a set
+            of data_parallelism remote gradient workers. Defaults to 1.
         proxy_kwargs: Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
             for details. Defaults to an empty dictionary.
         log_dir (str): Directory to store logs in. A ``Logger`` with tag "POLICY_MANAGER" will be created at init
@@ -377,16 +375,18 @@ class DistributedPolicyManager(AbsPolicyManager):
         policy_ids: List[str],
         num_hosts: int,
         group: str = DEFAULT_POLICY_GROUP,
-        data_parallel: bool = False,
-        num_grad_workers: int = 1,
+        data_parallelism: int = 1,
         proxy_kwargs: dict = {},
         log_dir: str = getcwd()
     ):
         super().__init__()
-        self._data_parallel = data_parallel
+        # data-parallel
+        assert data_parallelism > 0, f"data_parallelism should be a positive integer, rather than {data_parallelism}."
+        self._data_parallel = data_parallelism > 1
         peers = {"policy_host": num_hosts}
         if self._data_parallel:
-            peers["grad_worker"] = num_grad_workers
+            peers["grad_worker"] = data_parallelism
+            peers["task_queue"] = 1
         self._proxy = Proxy(group, "policy_manager", peers, component_name="POLICY_MANAGER", **proxy_kwargs)
         self._logger = Logger("POLICY_MANAGER", dump_folder=log_dir)
 
@@ -456,6 +456,9 @@ class DistributedPolicyManager(AbsPolicyManager):
     def exit(self):
         """Tell the remote policy hosts to exit."""
         self._proxy.ibroadcast("policy_host", MsgTag.EXIT, SessionType.NOTIFICATION)
+        if self._data_parallel:
+            self._proxy.ibroadcast("grad_worker", MsgTag.EXIT, SessionType.NOTIFICATION)
+            self._proxy.ibroadcast("task_queue", MsgTag.EXIT, SessionType.NOTIFICATION)
         self._proxy.close()
         self._logger.info("Exiting...")
 
@@ -465,8 +468,7 @@ def policy_host(
     host_idx: int,
     group: str = DEFAULT_POLICY_GROUP,
     proxy_kwargs: dict = {},
-    data_parallel: bool = False,
-    num_grad_workers: int = 1,
+    data_parallelism: int = 1,
     log_dir: str = getcwd()
 ):
     """Policy host process that can be launched on separate computation nodes.
@@ -479,15 +481,15 @@ def policy_host(
             manages them. Defaults to DEFAULT_POLICY_GROUP.
         proxy_kwargs: Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
             for details. Defaults to an empty dictionary.
-        data_parallel (bool): Whether to train policy on remote gradient workers to perform data-parallel.
-            Defaults to False.
-        num_grad_workers (int): The number of gradient worker nodes in data-parallel mode. Defaults to 1.
+        data_parallelism (int): If this is greater than 1, the gradient steps for each policy will be performed on a set
+            of data_parallelism remote gradient workers. Defaults to 1.
         log_dir (str): Directory to store logs in. Defaults to the current working directory.
     """
     policy_dict = {}
     peers = {"policy_manager": 1}
+    data_parallel = data_parallelism > 1
     if data_parallel:
-        peers["grad_worker"] = num_grad_workers
+        peers["grad_worker"] = data_parallelism
         peers["task_queue"] = 1
 
     proxy = Proxy(
@@ -498,8 +500,6 @@ def policy_host(
     for msg in proxy.receive():
         if msg.tag == MsgTag.EXIT:
             logger.info("Exiting...")
-            proxy.ibroadcast("grad_worker", MsgTag.EXIT, SessionType.NOTIFICATION)
-            proxy.ibroadcast("task_queue", MsgTag.EXIT, SessionType.NOTIFICATION)
             proxy.close()
             break
         elif msg.tag == MsgTag.INIT_POLICIES:

@@ -382,7 +382,7 @@ class DQN(RLPolicy):
             worker_id_list = self.task_queue_client.request_workers()
             batch_list = [
                 self._get_batch(self.train_batch_size // len(worker_id_list)) for i in range(len(worker_id_list))]
-            loss_info_by_policy = self.task_queue_client.remote_learn(
+            loss_info_by_policy = self.task_queue_client.submit(
                 worker_id_list, batch_list, self.get_state(), self._name)
             # build dummy computation graph before apply gradients.
             _ = self.get_batch_loss(self._get_batch(), explicit_grad=True)

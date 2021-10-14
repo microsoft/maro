@@ -19,7 +19,7 @@ makedirs(checkpoint_dir, exist_ok=True)
 def get_policy_manager():
     manager_type = getenv("POLICYMANAGERTYPE", default="simple")
     data_parallel = getenv("DATAPARALLEL") == "True"
-    num_grad_workers = int(getenv("NUMGRADWORKERS", default=1))
+    num_grad_workers = int(getenv("NUMGRADWORKERS", default=1)) if data_parallel else 1
     proxy_kwargs = {
         "redis_address": (getenv("REDISHOST", default="maro-redis"), int(getenv("REDISPORT", default=6379))),
         "max_peer_discovery_retries": 50
@@ -30,8 +30,7 @@ def get_policy_manager():
             load_path_dict={id_: join(checkpoint_dir, id_) for id_ in policy_func_dict},
             checkpoint_every=7,
             save_dir=checkpoint_dir,
-            data_parallel=data_parallel,
-            num_grad_workers=num_grad_workers,
+            data_parallelism=num_grad_workers,
             group=getenv("POLICYGROUP"),
             proxy_kwargs=proxy_kwargs,
             log_dir=log_dir
@@ -42,8 +41,7 @@ def get_policy_manager():
             load_path_dict={id_: join(checkpoint_dir, id_) for id_ in policy_func_dict},
             auto_checkpoint=True,
             save_dir=checkpoint_dir,
-            data_parallel=data_parallel,
-            num_grad_workers=num_grad_workers,
+            data_parallelism=num_grad_workers,
             group=getenv("POLICYGROUP"),
             proxy_kwargs=proxy_kwargs,
             log_dir=log_dir
@@ -53,8 +51,7 @@ def get_policy_manager():
         return DistributedPolicyManager(
             list(policy_func_dict.keys()), num_hosts,
             group=getenv("POLICYGROUP"),
-            data_parallel=data_parallel,
-            num_grad_workers=num_grad_workers,
+            data_parallelism=num_grad_workers,
             proxy_kwargs=proxy_kwargs,
             log_dir=log_dir
         )

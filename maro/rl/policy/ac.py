@@ -264,7 +264,7 @@ class ActorCritic(RLPolicy):
             worker_id_list = self.task_queue_client.request_workers()
             batch_list = [
                 {key: batch[key][i::len(worker_id_list)] for key in batch} for i in range(len(worker_id_list))]
-            loss_info_by_policy = self.task_queue_client.remote_learn(
+            loss_info_by_policy = self.task_queue_client.submit(
                 worker_id_list, batch_list, self.get_state(), self._name)
             # build dummy computation graph by `get_batch_loss` before apply gradients.
             _ = self.get_batch_loss(batch_list[0], explicit_grad=True)
