@@ -122,7 +122,7 @@ if __name__ == "__main__":
         if "log_dir" in config:
             common_envs.append(f"LOGDIR={config['log_dir']}")
         if "data_parallel" in config:
-            common_envs.append(f"DATAPARALLEL=1")
+            common_envs.append(f"DATAPARALLEL={config['data_parallel']['enable']}")
             common_envs.append(f"NUMGRADWORKERS={config['data_parallel']['num_workers']}")
         if config["policy_manager"]["type"] == "distributed":
             common_envs.append(f"POLICYGROUP={policy_group}")

@@ -79,8 +79,7 @@ if __name__ == "__main__":
                 else:
                     if data_parallel:
                         logger.info("learning on remote grad workers")
-                        policy2workers = msg.body[MsgKey.WORKER_INFO][id_]
-                        policy_dict[id_].learn_with_data_parallel(info, policy2workers[id_])
+                        policy_dict[id_].learn_with_data_parallel(info)
                     else:
                         logger.info("learning from batch")
                         policy_dict[id_].learn(info)

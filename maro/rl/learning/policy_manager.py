@@ -147,13 +147,13 @@ class SimplePolicyManager(AbsPolicyManager):
             self._num_grad_workers = data_parallelism
             # TODO: support data-parallel and add peer taskQ
             self._proxy = Proxy(
-                group, "policy_manager", {"grad_worker": self._num_grad_workers},
+                group, "policy_manager", {"grad_worker": self._num_grad_workers, "task_queue": 1},
                 component_name="POLICY_MANAGER", **proxy_kwargs
             )
 
             for name in create_policy_func_dict:
                 self._policy_dict[name].data_parallel(
-                    group, "policy_host", {"grad_worker": self._num_grad_workers},
+                    group, "policy_host", {"grad_worker": self._num_grad_workers, "task_queue": 1},
                     component_name=f"POLICY_HOST.{name}", **proxy_kwargs)
 
     def update(self, rollout_info: Dict[str, list]):
@@ -166,6 +166,8 @@ class SimplePolicyManager(AbsPolicyManager):
         for policy_id, info in rollout_info.items():
             if isinstance(info, list):
                 self._policy_dict[policy_id].update(info)
+            elif self._data_parallel:
+                self._policy_dict[policy_id].learn_with_data_parallel(info)
             else:
                 self._policy_dict[policy_id].learn(info)
 
@@ -187,7 +189,11 @@ class SimplePolicyManager(AbsPolicyManager):
         return self._version
 
     def exit(self):
-        pass
+        if self._data_parallel:
+            self._proxy.ibroadcast("grad_worker", MsgTag.EXIT, SessionType.NOTIFICATION)
+            self._proxy.ibroadcast("task_queue", MsgTag.EXIT, SessionType.NOTIFICATION)
+        self._proxy.close()
+        self._logger.info("Exiting...")
 
 
 class MultiProcessPolicyManager(AbsPolicyManager):

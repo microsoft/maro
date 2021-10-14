@@ -26,7 +26,7 @@ def get_policy_manager():
     data_parallel = os.getenv("DATAPARALLEL") == "True"
     if data_parallel:
         num_grad_workers = int(os.getenv("NUMGRADWORKERS", default=1))
-        group = from_env("POLICYGROUP")
+        group = from_env("POLICYGROUP", required=False, default="learn")
     else:
         num_grad_workers = 1
         group = None

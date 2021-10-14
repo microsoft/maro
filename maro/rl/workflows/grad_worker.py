@@ -24,7 +24,7 @@ if __name__ == "__main__":
     num_hosts = from_env("NUMHOSTS") if from_env("POLICYMANAGERTYPE") == "distributed" else 0
     max_cached_policies = from_env("MAXCACHED", required=False, default=10)
 
-    group = os.getenv("POLICYGROUP", default="learn")
+    group = from_env("POLICYGROUP", required=False, default="learn")
     policy_dict = {}
     active_policies = []
     if num_hosts == 0:
