@@ -1,18 +1,20 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import importlib
+import os
 import sys
 from os import getenv
-from os.path import dirname, realpath
 
 from maro.rl.data_parallelism import task_queue
+from maro.rl.workflows.helpers import from_env, get_default_log_dir
 
-workflow_dir = dirname(dirname(realpath(__file__)))  # template directory
-if workflow_dir not in sys.path:
-    sys.path.insert(0, workflow_dir)
+sys.path.insert(0, from_env("SCENARIODIR"))
+module = importlib.import_module(from_env("SCENARIO"))
+policy_func_dict = getattr(module, "policy_func_dict")
 
-from general import log_dir, policy_func_dict
-
+log_dir = from_env("LOGDIR", required=False, default=get_default_log_dir(from_env("JOB")))
+os.makedirs(log_dir, exist_ok=True)
 
 if __name__ == "__main__":
     num_hosts = getenv("NUMHOSTS")

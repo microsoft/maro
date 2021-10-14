@@ -27,6 +27,7 @@ class PolicyGradient(RLPolicy):
             self.rewards = np.zeros(size, dtype=np.float32)
             self.terminals = np.zeros(size, dtype=np.bool)
             self.size = size
+            self._ptr = 0
 
         def put(self, state: np.ndarray, action: dict, reward: float, terminal: bool = False):
             self.states[self._ptr] = state

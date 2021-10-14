@@ -112,5 +112,5 @@ def get_env_sampler():
         get_policy_func_dict=policy_func_dict,
         agent2policy=agent2policy,
         reward_eval_delay=reward_shaping_conf["time_window"],
-        policies_to_parallelize=[]
+        parallel_inference=True
     )

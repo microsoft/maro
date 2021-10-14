@@ -1,0 +1,81 @@
+
+datamodels:
+  modules:
+    - path: "maro.simulator.scenarios.supply_chain.datamodels"
+      definitions:
+        StorageDataModel:
+          class: "StorageDataModel"
+          name_in_frame: "storage"
+        VehicleDataModel:
+          class: "VehicleDataModel"
+          name_in_frame: "vehicle"
+        DistributionDataModel:
+          class: "DistributionDataModel"
+          name_in_frame: "distribution"
+        ConsumerDataModel:
+          class: "ConsumerDataModel"
+          name_in_frame: "consumer"
+        SellerDataModel:
+          class: "SellerDataModel"
+          name_in_frame: "seller"
+        ManufactureDataModel:
+          class: "ManufactureDataModel"
+          name_in_frame: "manufacture"
+        ProductDataModel:
+          class: "ProductDataModel"
+          name_in_frame: "product"
+        FacilityDataModel:
+          class: "FacilityDataModel"
+          name_in_frame: "facility"
+
+units:
+  modules:
+    - path: "maro.simulator.scenarios.supply_chain.units"
+      definitions:
+        StorageUnit:
+          class: "StorageUnit"
+          datamodel: "StorageDataModel"
+        VehicleUnit:
+          class: "VehicleUnit"
+          datamodel: "VehicleDataModel"
+        DistributionUnit:
+          class: "DistributionUnit"
+          datamodel: "DistributionDataModel"
+        ConsumerUnit:
+          class: "ConsumerUnit"
+          datamodel: "ConsumerDataModel"
+        SellerUnit:
+          class: "SellerUnit"
+          datamodel: "SellerDataModel"
+        OuterSellerUnit:
+          class: "OuterSellerUnit"
+          datamodel: "SellerDataModel"
+        ManufactureUnit:
+          class: "ManufactureUnit"
+          datamodel: "ManufactureDataModel"
+        SimpleManufactureUnit:
+          class: "SimpleManufactureUnit"
+          datamodel: "ManufactureDataModel"
+        ProductUnit:
+          class: "ProductUnit"
+          datamodel: "ProductDataModel"
+        StoreProductUnit:
+          class: "StoreProductUnit"
+          datamodel: "ProductDataModel"
+
+facilities:
+  modules:
+    - path: "maro.simulator.scenarios.supply_chain.facilities"
+      definitions:
+        WarehouseFacility:
+          class: "WarehouseFacility"
+          datamodel: "FacilityDataModel"
+        SupplierFacility:
+          class: "SupplierFacility"
+          datamodel: "FacilityDataModel"
+        RetailerFacility:
+          class: "RetailerFacility"
+          datamodel: "FacilityDataModel"
+        OuterRetailerFacility:
+          class: "OuterRetailerFacility"
+          datamodel: "FacilityDataModel"
