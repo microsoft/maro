@@ -78,6 +78,9 @@ extensions.append(
         extra_compile_args=[compile_flag])
 )
 
+specific_requires = []
+if sys.version.startswith("3.6"):
+    specific_requires.append("dataclasses>=0.5")
 
 readme = io.open("./maro/README.rst", encoding="utf-8").read()
 
@@ -124,6 +127,7 @@ setup(
     install_requires=[
         # TODO: use a helper function to collect these
         "numpy<1.20.0",
+        "scipy<=1.7.0",
         "torch<1.8.0",
         "holidays>=0.10.3",
         "pyaml>=20.4.0",
@@ -141,9 +145,7 @@ setup(
         "kubernetes>=12.0.1",
         "prompt_toolkit<3.1.0",
         "stringcase>=1.2.0",
-        "networkx>=2.4",
-        "scipy>=1.5.2"
-    ],
+    ] + specific_requires,
     entry_points={
         "console_scripts": [
             "maro=maro.cli.maro:main",

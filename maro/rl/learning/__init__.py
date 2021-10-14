@@ -1,9 +1,12 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from .agent_wrapper import AgentWrapper
-from .early_stopper import AbsEarlyStopper
-from .env_wrapper import AbsEnvWrapper, Transition
-from .simple_learner import SimpleLearner
+from .env_sampler import AbsEnvSampler
+from .policy_manager import AbsPolicyManager, DistributedPolicyManager, MultiProcessPolicyManager, SimplePolicyManager
+from .rollout_manager import AbsRolloutManager, DistributedRolloutManager, MultiProcessRolloutManager
 
-__all__ = ["AbsEarlyStopper", "AbsEnvWrapper", "AgentWrapper", "SimpleLearner", "Transition"]
+__all__ = [
+    "AbsEnvSampler",
+    "AbsPolicyManager", "DistributedPolicyManager", "MultiProcessPolicyManager", "SimplePolicyManager",
+    "AbsRolloutManager", "DistributedRolloutManager", "MultiProcessRolloutManager"
+]

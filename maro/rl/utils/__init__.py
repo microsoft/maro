@@ -1,13 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from .gradient_averaging import average_grads
 from .message_enums import MsgKey, MsgTag
-from .torch_cls_index import (
-    get_torch_activation_cls, get_torch_loss_cls, get_torch_lr_scheduler_cls, get_torch_optim_cls
-)
-from .trajectory_utils import get_k_step_returns, get_lambda_returns, get_truncated_cumulative_reward
+from .trajectory_computation import discount_cumsum
 
-__all__ = [
-    "MsgKey", "MsgTag", "get_torch_activation_cls", "get_torch_loss_cls", "get_torch_lr_scheduler_cls",
-    "get_torch_optim_cls", "get_k_step_returns", "get_lambda_returns", "get_truncated_cumulative_reward"
-]
+__all__ = ["MsgKey", "MsgTag", "average_grads", "discount_cumsum"]
