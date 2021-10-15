@@ -78,7 +78,7 @@ common = {
     "spec": {
         "template": {
             "spec": {
-                "nodeSelector": {"agentpool": "sc"},
+                "nodeSelector": {"agentpool": config["aks"]["agent_pool"]},
                 "restartPolicy": "Never",
                 # "imagePullSecrets": [{"name": "emptysecret"}],
                 "volumes": [{

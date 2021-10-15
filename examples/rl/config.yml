@@ -6,6 +6,7 @@ aks:
   image: marorl.azurecr.cn/marorl
   storage_account: maro
   file_share: rltest
+  agent_pool: sc
 scenario_dir: /rltest
 scenario: supply_chain
 load_policy_dir: "/rltest/checkpoints/sc"
