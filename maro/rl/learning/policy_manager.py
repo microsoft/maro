@@ -345,7 +345,7 @@ class DistributedPolicyManager(AbsPolicyManager):
             is greater than 1, the gradient workers will also belong to the same cluster. Defaults to
             DEFAULT_POLICY_GROUP.
         data_parallelism (int): If this is greater than 1, the gradient steps for each policy will be performed on a set
-            of data_parallelism remote gradient workers. Defaults to 1.
+            of ``data_parallelism`` remote gradient workers. Defaults to 1.
         proxy_kwargs: Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
             for details. Defaults to an empty dictionary.
         log_dir (str): Directory to store logs in. A ``Logger`` with tag "POLICY_MANAGER" will be created at init

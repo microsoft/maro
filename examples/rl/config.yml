@@ -25,9 +25,7 @@ policy_manager:
   type: distributed   # simple, multi-process, distributed
   distributed:
     num_hosts: 2
-data_parallel:
-  enable: True
-  num_workers: 2
+data_parallelism: 2
 redis:
   host: maro
   port: 6379

@@ -23,13 +23,8 @@ os.makedirs(log_dir, exist_ok=True)
 
 def get_policy_manager():
     manager_type = from_env("POLICYMANAGERTYPE")
-    data_parallel = os.getenv("DATAPARALLEL") == "True"
-    if data_parallel:
-        num_grad_workers = int(os.getenv("NUMGRADWORKERS", default=1))
-        group = from_env("POLICYGROUP", required=False, default="learn")
-    else:
-        num_grad_workers = 1
-        group = None
+    data_parallelism = from_env("DATAPARALLELISM", required=False, default=1)
+    group = from_env("POLICYGROUP", required=False, default="learn") if data_parallelism > 1 else None
     proxy_kwargs = {
         "redis_address": (from_env("REDISHOST"), from_env("REDISPORT")),
         "max_peer_discovery_retries": 50
@@ -39,7 +34,7 @@ def get_policy_manager():
             policy_func_dict,
             load_dir=load_policy_dir,
             checkpoint_dir=checkpoint_dir,
-            data_parallelism=num_grad_workers,
+            data_parallelism=data_parallelism,
             group=group,
             proxy_kwargs=proxy_kwargs,
             log_dir=log_dir
@@ -49,7 +44,7 @@ def get_policy_manager():
             policy_func_dict,
             load_dir=load_policy_dir,
             checkpoint_dir=checkpoint_dir,
-            data_parallelism=num_grad_workers,
+            data_parallelism=data_parallelism,
             group=group,
             proxy_kwargs=proxy_kwargs,
             log_dir=log_dir
@@ -58,7 +53,7 @@ def get_policy_manager():
         return DistributedPolicyManager(
             list(policy_func_dict.keys()), from_env("NUMHOSTS"),
             group=from_env("POLICYGROUP"),
-            data_parallelism=num_grad_workers,
+            data_parallelism=data_parallelism,
             proxy_kwargs=proxy_kwargs,
             log_dir=log_dir
         )

@@ -18,7 +18,7 @@ DEFAULT_POLICY_GROUP = "policy_group_default"
 class TaskQueueClient(object):
     """Task queue client for policies to interact with task queue."""
     def __init__(self):
-        # TODO
+        # TODO: singleton
         self._proxy = None
 
     def set_proxy(self, proxy):
@@ -82,42 +82,51 @@ def task_queue(
     proxy = Proxy(group, "task_queue", peers, component_name="TASK_QUEUE", **proxy_kwargs)
     logger = Logger(proxy.name, dump_folder=log_dir)
 
-    def consume(task_waiting: Queue, task_done: Queue, worker_status: Dict, signal: Dict):
+    def consume(task_pending: Queue, task_assigned: Queue, worker_available_status: Dict, signal: Dict):
+        recent_used_workers = []
         while not signal["EXIT"]:
-            if task_waiting.qsize() == 0:
+            if task_pending.qsize() == 0:
                 continue
 
             # allow 50% workers to a single task at most.
-            max_worker_num = 1 + num_workers // max(2, task_waiting.qsize())
+            max_worker_num = 1 + num_workers // max(2, task_pending.qsize())
 
             worker_id_list = []
-            for worker_id, idle in worker_status.items():
-                if idle:
+            # select from recent used workers first
+            for worker_id in recent_used_workers + list(set(worker_available_status.keys()) - set(recent_used_workers)):
+                if worker_id not in worker_available_status:  # outdated worker
+                    recent_used_workers.remove(worker_id)
+                    continue
+                if worker_available_status[worker_id]:
                     worker_id_list.append(worker_id)
-                    worker_status[worker_id] = False
+                    worker_available_status[worker_id] = False
+                    # update recent used workers
+                    if worker_id in recent_used_workers:
+                        recent_used_workers.remove(worker_id)
+                    recent_used_workers.insert(0, worker_id)
                 if len(worker_id_list) >= max_worker_num:
                     break
 
-            if len(worker_id_list) == 0:
+            if not worker_id_list:
                 continue
 
-            msg = task_waiting.get()
-            task_done.put({"msg": msg, "worker_id_list": worker_id_list})
+            msg = task_pending.get()
+            task_assigned.put({"msg": msg, "worker_id_list": worker_id_list})
 
     # Process
     manager = Manager()
     signal = manager.dict()
-    worker_status = manager.dict()
-    task_waiting = Queue()
-    task_done = Queue()
+    worker_available_status = manager.dict()  # workers are available or not.
+    task_pending = Queue()
+    task_assigned = Queue()
 
     for worker_id in worker_ids:
-        worker_status[worker_id] = True
+        worker_available_status[worker_id] = True
 
     signal["EXIT"] = False
 
-    c = Process(target=consume, args=(task_waiting, task_done, worker_status, signal))
-    c.start()
+    cons = Process(target=consume, args=(task_pending, task_assigned, worker_available_status, signal))
+    cons.start()
 
     while not signal["EXIT"]:
         # receive message with time limit 10ms
@@ -128,28 +137,28 @@ def task_queue(
                 signal["EXIT"] = True
                 break
             elif msg.tag == MsgTag.REQUEST_WORKER:
-                task_waiting.put(msg)
+                task_pending.put(msg)
             elif msg.tag == MsgTag.RELEASE_WORKER:
                 worker_id = msg.body[MsgKey.WORKER_ID]
-                worker_status[worker_id] = True
+                worker_available_status[worker_id] = True
             # TODO: support add/remove workers
             elif msg.tag == MsgTag.ADD_WORKER:
                 worker_id = msg.body[MsgKey.WORKER_ID]
-                worker_status[worker_id] = True
+                worker_available_status[worker_id] = True
                 num_workers += 1
             elif msg.tag == MsgTag.REMOVE_WORKER:
                 worker_id = msg.body[MsgKey.WORKER_ID]
-                if worker_id in worker_status:
-                    worker_status.pop(worker_id)
+                if worker_id in worker_available_status:
+                    worker_available_status.pop(worker_id)
                     num_workers -= 1
             else:
                 raise TypeError
 
         # dequeue finished tasks
-        while task_done.qsize() > 0:
-            task = task_done.get()
+        while task_assigned.qsize() > 0:
+            task = task_assigned.get()
             _msg, worker_id_list = task["msg"], task["worker_id_list"]
             msg_body = {MsgKey.WORKER_ID_LIST: worker_id_list}
             proxy.reply(_msg, tag=MsgTag.ASSIGN_WORKER, body=msg_body)
 
-    c.join()
+    cons.join()

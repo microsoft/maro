@@ -3,6 +3,4 @@
 
 from .task_queue import TaskQueueClient, task_queue
 
-__all__ = [
-    'TaskQueueClient', 'task_queue'
-]
+__all__ = ['TaskQueueClient', 'task_queue']
