@@ -148,7 +148,8 @@ class ParallelAgentWrapper:
             self._conn[policy_id] = conn1
             host = Process(
                 target=_inference_service,
-                args=(policy_id, get_policy_func_dict[policy_id], conn2)
+                args=(policy_id, get_policy_func_dict[policy_id], conn2),
+                daemon=True
             )
             self._inference_services.append(host)
             host.start()

@@ -129,7 +129,7 @@ class MultiProcessRolloutManager(AbsRolloutManager):
         for index in range(self._num_rollouts):
             manager_end, worker_end = Pipe()
             self._manager_ends.append(manager_end)
-            worker = Process(target=_rollout_worker, args=(index, worker_end, get_env_sampler))
+            worker = Process(target=_rollout_worker, args=(index, worker_end, get_env_sampler), daemon=True)
             self._worker_processes.append(worker)
             worker.start()
 

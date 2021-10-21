@@ -279,7 +279,7 @@ class MultiProcessPolicyManager(AbsPolicyManager):
         for id_, create_policy_func in create_policy_func_dict.items():
             manager_end, host_end = Pipe()
             self._manager_end[id_] = manager_end
-            host = Process(target=policy_host, args=(id_, create_policy_func, host_end))
+            host = Process(target=policy_host, args=(id_, create_policy_func, host_end), daemon=True)
             self._policy_hosts.append(host)
             host.start()
 
