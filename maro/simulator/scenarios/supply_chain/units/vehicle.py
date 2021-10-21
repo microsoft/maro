@@ -1,8 +1,15 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
+from __future__ import annotations
 
+import math
+import typing
+from typing import Optional
 
 from .unitbase import UnitBase
+
+if typing.TYPE_CHECKING:
+    from .. import FacilityBase
 
 
 class VehicleUnit(UnitBase):
@@ -11,13 +18,13 @@ class VehicleUnit(UnitBase):
     def __init__(self):
         super().__init__()
         # Max patient of current vehicle.
-        self.max_patient: int = None
+        self.max_patient: Optional[int] = None
 
         # Current products' destination.
-        self.destination = None
+        self.destination: Optional[FacilityBase] = None
 
         # Path to destination.
-        self.path: list = None
+        self.path: Optional[list] = None
 
         # Product to load
         self.product_id = 0
@@ -41,7 +48,7 @@ class VehicleUnit(UnitBase):
         self.cost = 0
         self.unit_transport_cost = 0
 
-    def schedule(self, destination: object, product_id: int, quantity: int, vlt: int):
+    def schedule(self, destination: FacilityBase, product_id: int, quantity: int, vlt: int):
         """Schedule a job for this vehicle.
 
         Args:
@@ -66,8 +73,10 @@ class VehicleUnit(UnitBase):
             raise Exception(f"Destination {destination} is unreachable")
 
         # Steps to destination.
-        # self.steps = len(self.path) // vlt
-        self.steps = vlt
+        self.steps = int(math.ceil(float(len(self.path) - 1) / float(vlt)))
+        dest_consumer = destination.products[product_id].consumer
+        if self.steps < len(dest_consumer.pending_order_daily):
+            dest_consumer.pending_order_daily[self.steps] += quantity
 
         # We are waiting for product loading.
         self.location = 0
@@ -167,9 +176,9 @@ class VehicleUnit(UnitBase):
                 self.try_unload()
 
             # Back to source if we unload all.
-            # if self.payload == 0:
-            self._reset_internal_states()
-            self._reset_data_model()
+            if self.payload == 0:
+                self._reset_internal_states()
+                self._reset_data_model()
 
         self.cost = self.payload * self.unit_transport_cost
 

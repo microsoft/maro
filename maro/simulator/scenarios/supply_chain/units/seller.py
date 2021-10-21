@@ -4,6 +4,7 @@
 
 import numpy as np
 
+from .. import SellerDataModel
 from .extendunitbase import ExtendUnitBase
 
 
@@ -44,6 +45,7 @@ class SellerUnit(ExtendUnitBase):
 
         self.gamma = sku.sale_gamma
 
+        assert isinstance(self.data_model, SellerDataModel)
         self.data_model.initialize(sku.price, sku.backlog_ratio)
 
         self.sale_hist = [self.gamma] * self.config["sale_hist_len"]

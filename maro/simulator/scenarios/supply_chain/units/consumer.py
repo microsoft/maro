@@ -1,13 +1,12 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
-
-
 from collections import Counter, defaultdict
 
 from scipy.ndimage.interpolation import shift
 
-from .order import Order
 from .extendunitbase import ExtendUnitBase
+from .order import Order
+from .. import ConsumerAction, ConsumerDataModel
 
 
 class ConsumerUnit(ExtendUnitBase):
@@ -57,7 +56,9 @@ class ConsumerUnit(ExtendUnitBase):
         sku = self.facility.skus[self.product_id]
 
         order_cost = self.facility.get_config("order_cost")
+        assert isinstance(order_cost, int)
 
+        assert isinstance(self.data_model, ConsumerDataModel)
         self.data_model.initialize(sku.price, order_cost)
 
         if self.facility.upstreams is not None:
@@ -66,7 +67,7 @@ class ConsumerUnit(ExtendUnitBase):
 
             if sources is not None:
                 # Is we are a supplier facility?
-                is_supplier = self.parent.manufacture is not None
+                is_supplier = getattr(self.parent, "manufacture", None) is not None
 
                 # Current sku information.
                 sku = self.world.get_sku_by_id(self.product_id)
@@ -88,6 +89,8 @@ class ConsumerUnit(ExtendUnitBase):
     def step(self, tick: int):
         self._update_pending_order()
 
+        assert isinstance(self.action, ConsumerAction)
+
         # NOTE: id == 0 means invalid,as our id is 1 based.
         if not self.action or self.action.quantity <= 0 or self.action.product_id <= 0 or self.action.source_id == 0:
             return
@@ -104,10 +107,9 @@ class ConsumerUnit(ExtendUnitBase):
 
         self.purchased = self.action.quantity
 
-        if order.vlt < len(self.pending_order_daily):
-            self.pending_order_daily[order.vlt - 1] += order.quantity
-
     def flush_states(self):
+        assert isinstance(self.action, ConsumerAction)
+
         if self.received > 0:
             self.data_model.received = self.received
             self.data_model.total_received += self.received
@@ -125,6 +127,8 @@ class ConsumerUnit(ExtendUnitBase):
             self.data_model.reward_discount = self.action.reward_discount
 
     def post_step(self, tick: int):
+        assert isinstance(self.action, ConsumerAction)
+
         # Clear the action states per step.
         if self.action is not None:
             self.data_model.latest_consumptions = 0

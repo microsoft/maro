@@ -84,7 +84,7 @@ if __name__ == "__main__":
 
         docker_compose_manifest = {"services": {
             "main": {
-                **common_spec, 
+                **common_spec,
                 **{
                     "container_name": f"{namespace}.main",
                     "command": f"python3 {main_path}",
@@ -172,7 +172,7 @@ if __name__ == "__main__":
                 envs.append(f"NUMEVALROLLOUTS={config['sync']['num_eval_rollouts']}")
 
             docker_compose_manifest["services"]["main"] = {
-                **common_spec, 
+                **common_spec,
                 **{
                     "container_name": f"{namespace}.main",
                     "command": f"python3 {main_path}",
