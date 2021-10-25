@@ -29,8 +29,9 @@ class TaskQueueClient(object):
 
     def request_workers(self, task_queue_server_name="TASK_QUEUE"):
         """Request remote gradient workers from task queue to perform data parallelism."""
-        worker_req = self._proxy.send(SessionMessage(MsgTag.REQUEST_WORKER, self._proxy.name, task_queue_server_name))
-        worker_list = worker_req[0].body[MsgKey.WORKER_ID_LIST]
+        worker_req = self._proxy.send(
+            SessionMessage(MsgTag.REQUEST_WORKER, self._proxy.name, task_queue_server_name))[0]
+        worker_list = worker_req.body[MsgKey.WORKER_ID_LIST]
         return worker_list
 
     # TODO: rename this method
@@ -93,10 +94,9 @@ def task_queue(
 
             worker_id_list = []
             # select from recent used workers first
-            for worker_id in recent_used_workers + list(set(worker_available_status.keys()) - set(recent_used_workers)):
-                if worker_id not in worker_available_status:  # outdated worker
-                    recent_used_workers.remove(worker_id)
-                    continue
+            worker_candidates = [worker_id for worker_id in recent_used_workers if worker_id in worker_available_status]
+            worker_candidates += list(set(worker_available_status.keys()) - set(recent_used_workers))
+            for worker_id in worker_candidates:
                 if worker_available_status[worker_id]:
                     worker_id_list.append(worker_id)
                     worker_available_status[worker_id] = False
