@@ -83,14 +83,14 @@ def task_queue(
     proxy = Proxy(group, "task_queue", peers, component_name="TASK_QUEUE", **proxy_kwargs)
     logger = Logger(proxy.name, dump_folder=log_dir)
 
-    def consume(task_pending: Queue, task_assigned: Queue, worker_available_status: Dict, signal: Dict):
+    def consume(task_pending: Manager.list, task_assigned: Queue, worker_available_status: Dict, signal: Dict):
         recent_used_workers = []
         while not signal["EXIT"]:
-            if task_pending.qsize() == 0:
+            if len(task_pending) == 0:
                 continue
 
             # allow 50% workers to a single task at most.
-            max_worker_num = 1 + num_workers // max(2, task_pending.qsize())
+            max_worker_num = 1 + num_workers // max(2, len(task_pending))
 
             worker_id_list = []
             # select from recent used workers first
@@ -110,14 +110,15 @@ def task_queue(
             if not worker_id_list:
                 continue
 
-            msg = task_pending.get()
+            task_pending.sort(key=get_priority, reverse=True)  # sort in descending priority
+            msg, priority = task_pending.pop(0)
             task_assigned.put({"msg": msg, "worker_id_list": worker_id_list})
 
     # Process
     manager = Manager()
     signal = manager.dict()
     worker_available_status = manager.dict()  # workers are available or not.
-    task_pending = Queue()
+    task_pending = manager.list()
     task_assigned = Queue()
 
     for worker_id in worker_ids:
@@ -137,7 +138,8 @@ def task_queue(
                 signal["EXIT"] = True
                 break
             elif msg.tag == MsgTag.REQUEST_WORKER:
-                task_pending.put(msg)
+                priority = 1.0
+                task_pending.append((msg, priority))
             elif msg.tag == MsgTag.RELEASE_WORKER:
                 worker_id = msg.body[MsgKey.WORKER_ID]
                 worker_available_status[worker_id] = True
@@ -162,3 +164,8 @@ def task_queue(
             proxy.reply(_msg, tag=MsgTag.ASSIGN_WORKER, body=msg_body)
 
     cons.join()
+
+
+# magic methods like lambda is not supported in multiprocessing
+def get_priority(x):
+    return x[1]
