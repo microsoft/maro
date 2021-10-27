@@ -103,8 +103,9 @@ class SimplePolicyManager(AbsPolicyManager):
             only if there are updates since the last checkpoint. This must be a positive integer or -1, with -1 meaning
             no checkpointing. Defaults to -1.
         checkpoint_dir (str): The directory under which to checkpoint the policy states.
-        data_parallelism (int): If this is greater than 1, the gradient steps for each policy will be performed on a set
-            of data_parallelism remote gradient workers. Defaults to 1.
+        data_parallelism (int): The degree of data parallelism in the policy manager. If this is greater than 1,
+            the gradient steps will be performed on a set of ``data_parallelism`` remote gradient workers, and
+            for each policy maximum ``data_parallelism`` workers will be assigned. Defaults to 1.
         group (str): Group name for the cluster consisting of the manager and all policy hosts. Ignored if
             ``data_parallelism`` is 1. Defaults to DEFAULT_POLICY_GROUP.
         proxy_kwargs (dict): Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class for details.
@@ -206,8 +207,9 @@ class MultiProcessPolicyManager(AbsPolicyManager):
             from the corresponding path. Defaults to None.
         checkpoint_dir (str): The directory under which to checkpoint the policy states. Defaults to None, in which case
             no checkpointing will be performed.
-        data_parallelism (int): If this is greater than 1, the gradient steps for each policy will be performed on a set
-            of data_parallelism remote gradient workers. Defaults to 1.
+        data_parallelism (int): The degree of data parallelism in the policy manager. If this is greater than 1,
+            the gradient steps will be performed on a set of ``data_parallelism`` remote gradient workers, and
+            for each policy maximum ``data_parallelism`` workers will be assigned. Defaults to 1.
         group (str): Group name for the cluster consisting of the manager and all policy hosts. Ignored if
             ``data_parallelism`` is 1. Defaults to DEFAULT_POLICY_GROUP.
         proxy_kwargs (dict): Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class for details.
@@ -344,8 +346,9 @@ class DistributedPolicyManager(AbsPolicyManager):
         group (str): Group name for the cluster consisting of the manager and all policy hosts. If ``data_parallelism``
             is greater than 1, the gradient workers will also belong to the same cluster. Defaults to
             DEFAULT_POLICY_GROUP.
-        data_parallelism (int): If this is greater than 1, the gradient steps for each policy will be performed on a set
-            of ``data_parallelism`` remote gradient workers. Defaults to 1.
+        data_parallelism (int): The degree of data parallelism in the policy manager. If this is greater than 1,
+            the gradient steps will be performed on a set of ``data_parallelism`` remote gradient workers, and
+            for each policy maximum ``data_parallelism`` workers will be assigned. Defaults to 1.
         proxy_kwargs: Keyword parameters for the internal ``Proxy`` instance. See ``Proxy`` class
             for details. Defaults to an empty dictionary.
         log_dir (str): Directory to store logs in. A ``Logger`` with tag "POLICY_MANAGER" will be created at init

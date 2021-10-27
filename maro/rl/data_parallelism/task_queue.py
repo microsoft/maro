@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 from collections import defaultdict
-from multiprocessing import Manager, Process, Queue
+from multiprocessing import Manager, Process, Queue, managers
 from os import getcwd
 from typing import Dict, List
 
@@ -69,6 +69,7 @@ def task_queue(
     worker_ids: List[str],
     num_hosts: int,
     num_policies: int,
+    single_task_limit: float = 0.5,
     group: str = DEFAULT_POLICY_GROUP,
     proxy_kwargs: dict = {},
     log_dir: str = getcwd()
@@ -83,36 +84,40 @@ def task_queue(
     proxy = Proxy(group, "task_queue", peers, component_name="TASK_QUEUE", **proxy_kwargs)
     logger = Logger(proxy.name, dump_folder=log_dir)
 
-    def consume(task_pending: Manager.list, task_assigned: Queue, worker_available_status: Dict, signal: Dict):
+    assert single_task_limit > 0.0 and single_task_limit <= 1.0, "single_task_limit" \
+        f"should be greater than 0.0 and less than 1.0, but {single_task_limit} instead."
+    MAX_WORKER_SINGLE_TASK = max(1, int(single_task_limit * num_workers))
+
+    def consume(task_pending: managers.ListProxy, task_assigned: Queue, worker_available_status: Dict, signal: Dict):
         recent_used_workers = []
         while not signal["EXIT"]:
             if len(task_pending) == 0:
                 continue
 
-            # allow 50% workers to a single task at most.
-            max_worker_num = 1 + num_workers // max(2, len(task_pending))
+            # limit the worker number of a single task.
+            max_worker_num = min(1 + num_workers // len(task_pending), MAX_WORKER_SINGLE_TASK)
 
-            worker_id_list = []
+            assigned_workers = []
             # select from recent used workers first
             worker_candidates = [worker_id for worker_id in recent_used_workers if worker_id in worker_available_status]
             worker_candidates += list(set(worker_available_status.keys()) - set(recent_used_workers))
             for worker_id in worker_candidates:
                 if worker_available_status[worker_id]:
-                    worker_id_list.append(worker_id)
+                    assigned_workers.append(worker_id)
                     worker_available_status[worker_id] = False
                     # update recent used workers
                     if worker_id in recent_used_workers:
                         recent_used_workers.remove(worker_id)
                     recent_used_workers.insert(0, worker_id)
-                if len(worker_id_list) >= max_worker_num:
+                if len(assigned_workers) >= max_worker_num:
                     break
 
-            if not worker_id_list:
+            if not assigned_workers:
                 continue
 
             task_pending.sort(key=get_priority, reverse=True)  # sort in descending priority
             msg, priority = task_pending.pop(0)
-            task_assigned.put({"msg": msg, "worker_id_list": worker_id_list})
+            task_assigned.put({"msg": msg, "worker_id_list": assigned_workers})
 
     # Process
     manager = Manager()
