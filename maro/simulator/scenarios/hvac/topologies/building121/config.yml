@@ -1,0 +1,21 @@
+ahu:
+  - name: ahu01
+    mat_path: ~/maro/maro/simulator/scenarios/hvac/topologies/building121/datasets/train_data_MAT.csv
+    initial_values:
+      dat: 61 # Dust Air Temperature
+      avg_dat: 75.1
+      at: 15 # Air tonnage
+      kw: 52.8 # kW
+      mat: 40
+      sps: 0.7 # Dust Static Pressure Setpoint
+      das: -1 # Discharge Air Temperature Setpoint
+    transition: # TODO: Add module imported
+      model_path: /home/Jinyu/maro/maro/simulator/scenarios/hvac/topologies/building121/checkpoints/best_model_ep1412_loss0.023_val0.0237.pt
+      input_attributes: # Not used now
+        - sps
+        - das
+        - delta_mat_das
+      output_attributes:
+        - kw
+        - at
+        - dat

@@ -48,11 +48,25 @@ def convert_dottable(natural_dict: dict) -> DottableDict:
     Returns:
         DottableDict: Dottable object.
     """
+
+    def convert_list(natural_list: list):
+        converted_list = []
+        for item in natural_list:
+            if type(item) is dict:
+                converted_list.append(convert_dottable(item))
+            elif type(item) is list:
+                converted_list.append(convert_list(item))
+            else:
+                converted_list.append(item)
+        return converted_list
+
     dottable_dict = DottableDict(natural_dict)
     for k, v in natural_dict.items():
         if type(v) is dict:
             v = convert_dottable(v)
             dottable_dict[k] = v
+        elif type(v) is list:
+            dottable_dict[k] = convert_list(v)
     return dottable_dict
 
 
