@@ -16,13 +16,12 @@ if __name__ == "__main__":
     for ep in range(1):
         metrics, pending_decision_payload, is_done = env.step(None)
         info = env.snapshot_list["ahus"][::attributes].reshape(env.tick + 1, -1)
-        print(env.tick, info)
 
         while not is_done:
             dummy_action = Action(
                 ahu_idx=pending_decision_payload.ahu_idx,
-                sps=10,
-                das=10
+                sps=0.7,
+                das=56
             )
 
             metrics, pending_decision_payload, is_done = env.step(dummy_action)

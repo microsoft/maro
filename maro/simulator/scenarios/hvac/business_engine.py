@@ -2,9 +2,14 @@
 # Licensed under the MIT license.
 
 import os
-from typing import List
+from typing import List, Tuple
 
+import joblib
+import numpy as np
 import pandas as pd
+import torch
+import torch.nn as nn
+from sklearn.preprocessing import MinMaxScaler
 from yaml import safe_load
 
 from maro.backends.frame import FrameBase, SnapshotList
@@ -14,6 +19,7 @@ from maro.simulator.scenarios.helpers import DocableDict
 from maro.utils.utils import convert_dottable
 
 from .ahu import AHU
+from .ahu_prediction import ahu_pred_model
 from .common import Action, PendingDecisionPayload
 from .events import Events
 from .event_payload import AHUSetPayload
@@ -46,7 +52,7 @@ class HvacBusinessEngine(AbsBusinessEngine):
 
         self._init_frame()
         self._ahus: List[AHU] = self._frame.ahus
-        self._ahu_mat_path_list = self._init_ahus()
+        self._ahu_mat_path_list, self._ahu_predictor = self._init_ahus()
 
         self._init_data_reader()
 
@@ -68,6 +74,7 @@ class HvacBusinessEngine(AbsBusinessEngine):
 
     def _init_ahus(self) -> List[str]:
         ahu_mat_path_list: List[str] = []
+        ahu_predictor: List[Tuple[nn.Module, MinMaxScaler, MinMaxScaler]] = []
 
         for ahu, ahu_setting in zip(self._ahus, self._config.ahu):
             ahu.set_init_state(
@@ -79,10 +86,18 @@ class HvacBusinessEngine(AbsBusinessEngine):
                 sps=ahu_setting.initial_values.sps,
                 das=ahu_setting.initial_values.das
             )
-            # TODO: avg_dat: 75.1
             ahu_mat_path_list.append(ahu_setting.mat_path)
 
-        return ahu_mat_path_list
+            predictor = ahu_pred_model()
+            predictor.load_state_dict(torch.load(ahu_setting.transition.paths.model))
+            predictor.eval()
+
+            x_scaler = joblib.load(ahu_setting.transition.paths.x_scaler)
+            y_scaler = joblib.load(ahu_setting.transition.paths.y_scaler)
+
+            ahu_predictor.append((predictor, x_scaler, y_scaler))
+
+        return ahu_mat_path_list, ahu_predictor
 
     def _init_data_reader(self):
         # TODO: replaced with binary reader
@@ -105,18 +120,24 @@ class HvacBusinessEngine(AbsBusinessEngine):
         register_handler(event_type=Events.AHU_SET, handler=self._on_ahu_set)
 
     def _on_ahu_set(self, event: AtomEvent):
-        ahu: AHU = self._ahus[event.payload.ahu_idx]
+        payload: Action = event.payload
+        ahu: AHU = self._ahus[payload.ahu_idx]
+        ahu.sps = payload.sps
+        ahu.das = payload.das
 
-        ahu.kw = ahu.kw + 0.1
-        ahu.at = ahu.at + 0.2
-        ahu.dat = ahu.dat + 0.5
+        predictor, x_scaler, y_scaler = self._ahu_predictor[ahu.idx]
+
+        x = np.array([ahu.sps, ahu.das, ahu.mat - ahu.das]).reshape(1, -1)
+        x = torch.tensor(x_scaler.transform(x))
+        y_pred = predictor(x).detach().numpy()
+        y_pred = y_scaler.inverse_transform(y_pred)[0]
+
+        ahu.kw, ahu.at, ahu.dat = y_pred
 
     def _on_action_received(self, event: CascadeEvent):
         for action in event.payload:
-            self._ahus[action.ahu_idx].sps = action.sps
-            self._ahus[action.ahu_idx].das = action.das
-
-            ahu_set_payload = AHUSetPayload(ahu_idx=action.ahu_idx)
+            # Set SPS and DAS at next tick to align with the logic used by Bonsai
+            ahu_set_payload = action
             ahu_set_event = self._event_buffer.gen_atom_event(tick=event.tick + 1, event_type=Events.AHU_SET, payload=ahu_set_payload)
             self._event_buffer.insert_event(event=ahu_set_event)
 
@@ -141,9 +162,10 @@ class HvacBusinessEngine(AbsBusinessEngine):
         Args:
             tick (int): Current tick from simulator.
         """
-        # print("Set mat:", event.tick, self._mat_list[ahu.idx][event.tick])
-        for ahu in self._ahus:
-            ahu.mat = self._mat_list[ahu.idx][tick]
+        if tick > 0:
+            for ahu in self._ahus:
+                # TODO: to align with the logic used for Bonsai, tick - 1 as index here
+                ahu.mat = self._mat_list[ahu.idx][tick-1]
 
         for ahu in self._ahus:
             pending_decision_payload = PendingDecisionPayload(ahu_idx=ahu.idx)
