@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: maro-azurefile
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: maro-azurefile
+  resources:
+    requests:
+      storage: 512Mi
