@@ -116,18 +116,19 @@ is present as a server process. The types of policy manager include:
   to reeeive roll-out information for update. This approach allows the policies to be updated in parallel and may be
   necessary when the combined size of the policies is too big to fit in a single node. 
 
-Moreover, in ``data-parallel`` mode, there will be an additional ``task_queue`` to perform auto-balance.
-For each training iteration, policies first send requests to ``task_queue``, then ``task_queue`` assigns
-workers according to the idle status. After assigned a set of ``grad_worker`` IDs, policies submit training
-tasks to their own workers. The ``task_queue`` actually processes task requests as a queue.
+Moreover, in ``data-parallel`` mode, each policy manager has an additional worker(``grad_worker``)
+allocator, which provides a policy-to-worker mapping. The worker allocator performs auto-balance
+during training, by dynamically adjusting worker number for policies according to the
+experience/agent/policy number.
 
 .. image:: ../images/rl/policy_manager.svg
    :target: ../images/rl/policy_manager.svg
    :alt: PolicyManager
 
-The ``DistributedPolicyManager`` runs a set of ``policy_host``.
-``policy_host`` is a process/VM/node that hosts the update of a policy.
-Each ``policy_host`` independently updates its own policies for policy-level parallelism.
+The ``DistributedPolicyManager`` runs a set of ``policy_host`` and a ``TrainerAllocator``.
+``policy_host`` is a process/VM/node that hosts the update of a policy. The ``TrainerAllocator``
+dynamically adjusts worker node numbers for policies according to the experience/agent/policy
+number. Each ``policy_host`` independently updates its own policies for policy-level parallelism. 
 
 During training, the ``PolicyManager`` receives training data collected by the ``RolloutManager``,
 then send them to corresponding ``policy_host``. Each ``policy_host`` will send gradient tasks consist

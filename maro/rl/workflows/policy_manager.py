@@ -6,6 +6,7 @@ import os
 import sys
 
 from maro.rl.learning import DistributedPolicyManager, MultiProcessPolicyManager, SimplePolicyManager
+from maro.rl.policy import WorkerAllocator
 from maro.rl.workflows.helpers import from_env, get_default_log_dir
 
 sys.path.insert(0, from_env("SCENARIODIR"))
@@ -23,8 +24,14 @@ os.makedirs(log_dir, exist_ok=True)
 
 def get_policy_manager():
     manager_type = from_env("POLICYMANAGERTYPE")
-    data_parallelism = from_env("DATAPARALLELISM", required=False, default=1)
-    group = from_env("POLICYGROUP", required=False, default="learn") if data_parallelism > 1 else None
+    data_parallel = from_env("DATAPARALLEL", required=False, default=False)
+    if data_parallel:
+        allocator = WorkerAllocator(
+            from_env("ALLOCATIONMODE"), from_env("NUMGRADWORKERS"), list(policy_func_dict.keys()), agent2policy
+        )
+        group = from_env("POLICYGROUP")
+    else:
+        allocator, group = None, None
     proxy_kwargs = {
         "redis_address": (from_env("REDISHOST"), from_env("REDISPORT")),
         "max_peer_discovery_retries": 50
@@ -34,7 +41,7 @@ def get_policy_manager():
             policy_func_dict,
             load_dir=load_policy_dir,
             checkpoint_dir=checkpoint_dir,
-            data_parallelism=data_parallelism,
+            worker_allocator=allocator,
             group=group,
             proxy_kwargs=proxy_kwargs,
             log_dir=log_dir
@@ -44,7 +51,7 @@ def get_policy_manager():
             policy_func_dict,
             load_dir=load_policy_dir,
             checkpoint_dir=checkpoint_dir,
-            data_parallelism=data_parallelism,
+            worker_allocator=allocator,
             group=group,
             proxy_kwargs=proxy_kwargs,
             log_dir=log_dir
@@ -53,7 +60,7 @@ def get_policy_manager():
         return DistributedPolicyManager(
             list(policy_func_dict.keys()), from_env("NUMHOSTS"),
             group=from_env("POLICYGROUP"),
-            data_parallelism=data_parallelism,
+            worker_allocator=allocator,
             proxy_kwargs=proxy_kwargs,
             log_dir=log_dir
         )

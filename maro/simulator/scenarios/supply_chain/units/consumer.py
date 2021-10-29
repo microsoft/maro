@@ -4,9 +4,9 @@ from collections import Counter, defaultdict
 
 from scipy.ndimage.interpolation import shift
 
-from .. import ConsumerAction, ConsumerDataModel
 from .extendunitbase import ExtendUnitBase
 from .order import Order
+from .. import ConsumerAction, ConsumerDataModel
 
 
 class ConsumerUnit(ExtendUnitBase):

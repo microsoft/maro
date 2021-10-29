@@ -26,10 +26,10 @@ os.makedirs(log_dir, exist_ok=True)
 if __name__ == "__main__":
     host_id = from_env("HOSTID")
     peers = {"policy_manager": 1}
-    data_parallelism = from_env("DATAPARALLELISM", required=False, default=1)
-    if data_parallelism > 1:
-        peers["grad_worker"] = data_parallelism
-        peers["task_queue"] = 1
+    data_parallel = from_env("DATAPARALLEL", required=False, default=False)
+    if data_parallel:
+        num_grad_workers = from_env("NUMGRADWORKERS")
+        peers["grad_worker"] = num_grad_workers
 
     if host_id is None:
         raise ValueError("missing environment variable: HOSTID")
@@ -59,7 +59,7 @@ if __name__ == "__main__":
                     if os.path.exists(path):
                         policy_dict[id_].load(path)
                         logger.info(f"Loaded policy {id_} from {path}")
-                if data_parallelism > 1:
+                if data_parallel:
                     policy_dict[id_].data_parallel_with_existing_proxy(proxy)
 
             logger.info(f"Initialized policies {msg.body[MsgKey.POLICY_IDS]}")
@@ -76,9 +76,10 @@ if __name__ == "__main__":
                     logger.info("updating with loss info")
                     policy_dict[id_].update(info)
                 else:
-                    if data_parallelism > 1:
+                    if data_parallel:
                         logger.info("learning on remote grad workers")
-                        policy_dict[id_].learn_with_data_parallel(info)
+                        policy2workers = msg.body[MsgKey.WORKER_INFO][id_]
+                        policy_dict[id_].learn_with_data_parallel(info, policy2workers[id_])
                     else:
                         logger.info("learning from batch")
                         policy_dict[id_].learn(info)

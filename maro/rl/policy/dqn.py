@@ -1,14 +1,16 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from collections import defaultdict
 from typing import Callable, List, Tuple, Union
 
 import numpy as np
 import torch
 
+from maro.communication import SessionMessage
 from maro.rl.exploration import epsilon_greedy
 from maro.rl.modeling import DiscreteQNet
-from maro.rl.utils import average_grads
+from maro.rl.utils import MsgKey, MsgTag, average_grads
 from maro.utils import clone
 
 from .policy import RLPolicy
@@ -372,18 +374,35 @@ class DQN(RLPolicy):
         self.target_q_net.soft_update(self.q_net, self.soft_update_coeff)
         self._target_q_net_version = self._q_net_version
 
-    def learn_with_data_parallel(self, batch: dict):
-        assert hasattr(self, 'task_queue_client'), "learn_with_data_parallel is invalid before data_parallel is called."
+    def learn_with_data_parallel(self, batch: dict, worker_id_list: list):
+        assert hasattr(self, '_proxy'), "learn_with_data_parallel is invalid before data_parallel is called."
 
         self._replay_memory.put(
             batch["states"], batch["actions"], batch["rewards"], batch["next_states"], batch["terminals"]
         )
         for _ in range(self.num_epochs):
-            worker_id_list = self.task_queue_client.request_workers()
-            batch_list = [
-                self._get_batch(self.train_batch_size // len(worker_id_list)) for i in range(len(worker_id_list))]
-            loss_info_by_policy = self.task_queue_client.submit(
-                worker_id_list, batch_list, self.get_state(), self._name)
+            msg_dict = defaultdict(lambda: defaultdict(dict))
+            for worker_id in worker_id_list:
+                msg_dict[worker_id][MsgKey.GRAD_TASK][self._name] = self._get_batch(
+                    self.train_batch_size // len(worker_id_list))
+                msg_dict[worker_id][MsgKey.POLICY_STATE][self._name] = self.get_state()
+                # data-parallel by multiple remote gradient workers
+                self._proxy.isend(SessionMessage(
+                    MsgTag.COMPUTE_GRAD, self._proxy.name, worker_id, body=msg_dict[worker_id]))
+            dones = 0
+            loss_info_by_policy = {self._name: []}
+            for msg in self._proxy.receive():
+                if msg.tag == MsgTag.COMPUTE_GRAD_DONE:
+                    for policy_name, loss_info in msg.body[MsgKey.LOSS_INFO].items():
+                        if isinstance(loss_info, list):
+                            loss_info_by_policy[policy_name] += loss_info
+                        elif isinstance(loss_info, dict):
+                            loss_info_by_policy[policy_name].append(loss_info)
+                        else:
+                            raise TypeError(f"Wrong type of loss_info: {type(loss_info)}")
+                    dones += 1
+                    if dones == len(msg_dict):
+                        break
             # build dummy computation graph before apply gradients.
             _ = self.get_batch_loss(self._get_batch(), explicit_grad=True)
             self.update(loss_info_by_policy[self._name])
