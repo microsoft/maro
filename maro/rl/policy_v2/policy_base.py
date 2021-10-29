@@ -16,6 +16,7 @@ class AbsPolicy(object):
         name (str): Unique identifier for the policy.
 
     """
+
     def __init__(self, name: str) -> None:
         super().__init__()
         print(f"Initializing {self.__class__.__module__}.{self.__class__.__name__}")
@@ -30,7 +31,7 @@ class AbsPolicy(object):
         """Get actions and other auxiliary information based on states.
 
         Args:
-            states: environment states.
+            states (object): environment states.
 
         Returns:
             Actions and other auxiliary information based on states.
@@ -52,6 +53,7 @@ class DummyPolicy(AbsPolicy):
 
     Note that the meaning of a "None" action may depend on the scenario.
     """
+
     def __init__(self, name: str) -> None:
         super(DummyPolicy, self).__init__(name)
 
@@ -63,9 +65,11 @@ class DummyPolicy(AbsPolicy):
 
 
 class RuleBasedPolicy(AbsPolicy):
-    """Rule-based policy that generates actions according to a fixed rule.
+    """
+    Rule-based policy that generates actions according to a fixed rule.
     The rule is immutable, which means a rule-based policy is not trainable.
     """
+
     def __init__(self, name: str) -> None:
         super(RuleBasedPolicy, self).__init__(name)
 
@@ -74,8 +78,7 @@ class RuleBasedPolicy(AbsPolicy):
 
     @abstractmethod
     def _rule(self, state: object) -> object:
-        """The rule that should be implemented by inheritors.
-        """
+        """The rule that should be implemented by inheritors."""
         pass
 
 
@@ -102,13 +105,11 @@ class RLPolicy(ShapeCheckMixin, AbsPolicy):
         return self._exploration_params
 
     def explore(self) -> None:
-        """Switch the policy to the exploration mode.
-        """
+        """Switch the policy to the exploring mode."""
         self._exploring = True
 
     def exploit(self) -> None:
-        """Switch the policy to the exploitation mode.
-        """
+        """Switch the policy to the exploiting mode."""
         self._exploring = False
 
     def __call__(self, states: np.ndarray) -> Iterable:
@@ -117,12 +118,13 @@ class RLPolicy(ShapeCheckMixin, AbsPolicy):
 
     @abstractmethod
     def _call_impl(self, states: np.ndarray) -> Iterable:
+        """The implementation of `__call__` method. Actual logic should be implemented under this method."""
         pass
 
     def _shape_check(self, states: np.ndarray, actions: Optional[np.ndarray]) -> bool:
         return all([
-            match_shape(states, (None, self.state_dim)),
-            actions is None or match_shape(actions, (None, 1)),
+            states.shape[0] > 0 and match_shape(states, (None, self.state_dim)),
+            actions is None or (actions.shape[0] > 0 and match_shape(actions, (None, 1))),
             actions is None or states.shape[0] == actions.shape[0]
         ])
 

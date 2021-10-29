@@ -16,6 +16,37 @@ from .policy_interfaces import DiscreteActionMixin, VNetworkMixin
 
 
 class DiscreteActorCritic(VNetworkMixin, DiscreteActionMixin, RLPolicy):
+    """
+    Actor Critic algorithm with separate policy and value models.
+
+    References:
+        https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch.
+        https://towardsdatascience.com/understanding-actor-critic-methods-931b97b6df3f
+
+    Args:
+        name (str): Unique identifier for the policy.
+        ac_net (DiscreteACNet): Multi-task model that computes action distributions and state values.
+        reward_discount (float): Reward decay as defined in standard RL terminology.
+        grad_iters (int): Number of gradient steps for each batch or set of batches. Defaults to 1.
+        critic_loss_cls: A string indicating a loss class provided by torch.nn or a custom loss class for computing
+            the critic loss. If it is a string, it must be a key in ``TORCH_LOSS``. Defaults to "mse".
+        min_logp (float): Lower bound for clamping logP values during learning. This is to prevent logP from becoming
+            very large in magnitude and causing stability issues. Defaults to None, which means no lower bound.
+        critic_loss_coef (float): Coefficient for critic loss in total loss. Defaults to 1.0.
+        entropy_coef (float): Coefficient for the entropy term in total loss. Defaults to None, in which case the
+            total loss will not include an entropy term.
+        clip_ratio (float): Clip ratio in the PPO algorithm (https://arxiv.org/pdf/1707.06347.pdf). Defaults to None,
+            in which case the actor loss is calculated using the usual policy gradient theorem.
+        lam (float): Lambda value for generalized advantage estimation (TD-Lambda). Defaults to 0.9.
+        max_trajectory_len (int): Maximum trajectory length that can be held by the buffer (for each agent that uses
+            this policy). Defaults to 10000.
+        get_loss_on_rollout (bool): If True, ``get_rollout_info`` will return the loss information (including gradients)
+            for the trajectories stored in the buffers. The loss information, along with that from other roll-out
+            instances, can be passed directly to ``update``. Otherwise, it will simply process the trajectories into a
+            single data batch that can be passed directly to ``learn``. Defaults to False.
+        device (str): Identifier for the torch device. The ``ac_net`` will be moved to the specified device. If it is
+            None, the device will be set to "cpu" if cuda is unavailable and "cuda" otherwise. Defaults to None.
+    """
     def __init__(
         self,
         name: str,
