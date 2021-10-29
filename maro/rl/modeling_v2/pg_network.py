@@ -8,11 +8,13 @@ from .base_model import DiscreteProbPolicyNetworkMixin, PolicyNetwork
 
 
 class DiscretePolicyGradientNetwork(DiscreteProbPolicyNetworkMixin, PolicyNetwork, metaclass=ABCMeta):
+    """Model framework for the policy gradient networks."""
+
     def __init__(self, state_dim: int, action_num: int) -> None:
         super(DiscretePolicyGradientNetwork, self).__init__(state_dim, 1)
         self._action_num = action_num
 
-    def _get_actions_and_logps_exploration_impl(self, states: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    def _get_actions_and_logps_exploring_impl(self, states: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         action_probs = Categorical(self.get_probs(states))
         actions = action_probs.sample()
         logps = action_probs.log_prob(actions)
