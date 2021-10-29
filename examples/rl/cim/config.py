@@ -9,7 +9,7 @@ from maro.rl.exploration import MultiLinearExplorationScheduler, epsilon_greedy
 
 env_conf = {
     "scenario": "cim",
-    "topology": "toy.4p_ssdd_l0.0",
+    "topology": "global_trade.22p_l0.0",
     "durations": 560
 }
 
@@ -42,7 +42,8 @@ state_dim = (
 
 ############################################## POLICIES ###############################################
 
-algorithm = "ac"
+algorithm = "ac"  # "dqn" or "ac"
+num_policies = 22
 
 # DQN settings
 q_net_conf = {
