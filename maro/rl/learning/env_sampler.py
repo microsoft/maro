@@ -341,8 +341,9 @@ class AbsEnvSampler(ABC):
                 reward = self.get_reward(env_actions, tick)
                 self.post_step(state, action, env_actions, reward, tick)
                 self.agent_wrapper.record_transition(
-                    agent, state, action, reward[agent], cache[0][0] if cache else self._state,
-                    not cache and not self._state
+                    agent=agent, state=state, action=action, reward=reward[agent],
+                    next_state=cache[0][0] if cache else self._state,
+                    terminal=not cache and not self._state
                 )
 
         result = {

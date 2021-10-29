@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 from abc import abstractmethod
-from typing import Union
+from typing import List, Union
 
 import numpy as np
 import torch
@@ -153,21 +153,27 @@ class DiscreteQNet(AbsCoreModel):
 
 class ContinuousACNet(AbsCoreModel):
     """Model container for the actor-critic architecture for continuous action spaces."""
-    def __init__(self, out_min: Union[float, np.ndarray] = None, out_max: Union[float, np.ndarray] = None):
+    def __init__(self, out_min: Union[float, List[float]] = None, out_max: Union[float, List[float]] = None):
         super().__init__()
-        if out_min:
-            assert isinstance(out_min, (float, np.ndarray)), "out_min must be a float or a numpy array"
-        if out_max:
-            assert isinstance(out_max, (float, np.ndarray)), "out_max must be a float or a numpy array"
 
-        if isinstance(out_min, np.ndarray) and isinstance(out_max, np.ndarray):
+        def type_assert(name: str, value):
+            if value is not None:
+                assert isinstance(value, (int, float, list)), f"{name} must be float or List[float]"
+                if isinstance(value, list):
+                    for element in value:
+                        assert isinstance(element, (int, float)), f"{value} must be float or List[float]"
+
+        type_assert("out_min", out_min)
+        type_assert("out_max", out_max)
+
+        if isinstance(out_min, list) and isinstance(out_max, list):
             assert len(out_min) == len(out_max), "out_min and out_max should have the same dimension."
 
         self.out_min = out_min
         self.out_max = out_max
         # For torch clamping
-        self._min = torch.from_numpy(out_min) if isinstance(out_min, np.ndarray) else out_min
-        self._max = torch.from_numpy(out_max) if isinstance(out_max, np.ndarray) else out_max
+        self._min = torch.tensor(out_min) if isinstance(out_min, list) else out_min
+        self._max = torch.tensor(out_max) if isinstance(out_max, list) else out_max
 
     @property
     @abstractmethod
@@ -193,9 +199,12 @@ class ContinuousACNet(AbsCoreModel):
 
     def get_action(self, states: torch.tensor) -> torch.tensor:
         """Compute actions given a batch of states."""
-        if self._min is None and self._max is None:
-            return self.forward(states)
-        return torch.clamp(self.forward(states), min=self._min, max=self._max)
+        action = self.forward(states)
+        if self._min is not None:
+            action = torch.max(action, self._min)
+        if self._max is not None:
+            action = torch.min(action, self._max)
+        return action
 
     def value(self, states: torch.tensor):
         """Compute the Q-values for a batch of states using the actions computed from them."""

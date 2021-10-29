@@ -66,7 +66,7 @@ class DDPG(RLPolicy):
         reward_discount: float,
         num_epochs: int = 1,
         update_target_every: int = 5,
-        q_value_loss_cls="mse",
+        q_value_loss_cls=torch.nn.MSELoss,
         q_value_loss_coeff: float = 1.0,
         soft_update_coeff: float = 1.0,
         exploration_strategy: Tuple[Callable, dict] = (gaussian_noise, {"mean": .0, "stddev": 1.0, "relative": False}),
@@ -106,7 +106,10 @@ class DDPG(RLPolicy):
         self._target_ac_net_version = 0
 
         self._replay_memory = ReplayMemory(
-            replay_memory_capacity, self.ac_net.input_dim, action_dim=1, random_overwrite=random_overwrite
+            replay_memory_capacity,
+            self.ac_net.input_dim,
+            action_dim=self.ac_net.action_dim,
+            random_overwrite=random_overwrite
         )
         self.warmup = warmup
         self.rollout_batch_size = rollout_batch_size
@@ -174,7 +177,7 @@ class DDPG(RLPolicy):
         """
         self.ac_net.train()
         states = torch.from_numpy(batch["states"]).to(self.device)
-        next_states = torch.from_numpy(["next_states"]).to(self.device)
+        next_states = torch.from_numpy(batch["next_states"]).to(self.device)
         actual_actions = torch.from_numpy(batch["actions"]).to(self.device)
         rewards = torch.from_numpy(batch["rewards"]).to(self.device)
         terminals = torch.from_numpy(batch["terminals"]).float().to(self.device)
