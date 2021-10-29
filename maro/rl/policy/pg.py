@@ -7,9 +7,8 @@ from typing import List, Tuple
 import numpy as np
 import torch
 
-from maro.communication import SessionMessage
 from maro.rl.modeling import DiscretePolicyNet
-from maro.rl.utils import MsgKey, MsgTag, average_grads, discount_cumsum
+from maro.rl.utils import average_grads, discount_cumsum
 
 from .policy import RLPolicy
 
@@ -179,34 +178,17 @@ class PolicyGradient(RLPolicy):
         """Learn using data from the buffer."""
         self.learn(self._get_batch())
 
-    def learn_with_data_parallel(self, batch: dict, worker_id_list: list):
-        assert hasattr(self, '_proxy'), "learn_with_data_parallel is invalid before data_parallel is called."
+    def learn_with_data_parallel(self, batch: dict):
+        assert hasattr(self, 'task_queue_client'), "learn_with_data_parallel is invalid before data_parallel is called."
 
         for _ in range(self.grad_iters):
-            msg_dict = defaultdict(lambda: defaultdict(dict))
-            for i, worker_id in enumerate(worker_id_list):
-                sub_batch = {key: batch[key][i::len(worker_id_list)] for key in batch}
-                msg_dict[worker_id][MsgKey.GRAD_TASK][self._name] = sub_batch
-                msg_dict[worker_id][MsgKey.POLICY_STATE][self._name] = self.get_state()
-                # data-parallel
-                self._proxy.isend(SessionMessage(
-                    MsgTag.COMPUTE_GRAD, self._proxy.name, worker_id, body=msg_dict[worker_id]))
-            dones = 0
-            loss_info_by_policy = {self._name: []}
-            for msg in self._proxy.receive():
-                if msg.tag == MsgTag.COMPUTE_GRAD_DONE:
-                    for policy_name, loss_info in msg.body[MsgKey.LOSS_INFO].items():
-                        if isinstance(loss_info, list):
-                            loss_info_by_policy[policy_name] += loss_info
-                        elif isinstance(loss_info, dict):
-                            loss_info_by_policy[policy_name].append(loss_info["grad"])
-                        else:
-                            raise TypeError(f"Wrong type of loss_info: {type(loss_info)}")
-                    dones += 1
-                    if dones == len(msg_dict):
-                        break
+            worker_id_list = self.task_queue_client.request_workers()
+            batch_list = [
+                {key: batch[key][i::len(worker_id_list)] for key in batch} for i in range(len(worker_id_list))]
+            loss_info_by_policy = self.task_queue_client.submit(
+                worker_id_list, batch_list, self.get_state(), self._name)
             # build dummy computation graph before apply gradients.
-            _ = self.get_batch_loss(sub_batch, explicit_grad=True)
+            _ = self.get_batch_loss(batch_list[0], explicit_grad=True)
             self.policy_net.step(loss_info_by_policy[self._name])
 
     def get_state(self):

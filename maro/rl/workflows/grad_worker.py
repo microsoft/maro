@@ -6,7 +6,7 @@ import os
 import sys
 import time
 
-from maro.communication import Proxy
+from maro.communication import Proxy, SessionMessage
 from maro.rl.utils import MsgKey, MsgTag
 from maro.rl.workflows.helpers import from_env, get_default_log_dir
 from maro.utils import Logger
@@ -24,14 +24,14 @@ if __name__ == "__main__":
     num_hosts = from_env("NUMHOSTS") if from_env("POLICYMANAGERTYPE") == "distributed" else 0
     max_cached_policies = from_env("MAXCACHED", required=False, default=10)
 
-    group = from_env("POLICYGROUP")
+    group = from_env("POLICYGROUP", required=False, default="learn")
     policy_dict = {}
     active_policies = []
     if num_hosts == 0:
         # no remote nodes for policy hosts
         num_hosts = len(policy_func_dict)
 
-    peers = {"policy_manager": 1, "policy_host": num_hosts}
+    peers = {"policy_manager": 1, "policy_host": num_hosts, "task_queue": 1}
     proxy = Proxy(
         group, "grad_worker", peers, component_name=f"GRAD_WORKER.{worker_id}",
         redis_address=(from_env("REDISHOST"), from_env("REDISPORT")),
@@ -67,6 +67,10 @@ if __name__ == "__main__":
 
             logger.debug(f"total policy update time: {time.time() - t0}")
             proxy.reply(msg, tag=MsgTag.COMPUTE_GRAD_DONE, body=msg_body)
+            # release worker at task queue
+            proxy.isend(SessionMessage(
+                MsgTag.RELEASE_WORKER, proxy.name, "TASK_QUEUE", body={MsgKey.WORKER_ID: f"GRAD_WORKER.{worker_id}"}
+            ))
         else:
             logger.info(f"Wrong message tag: {msg.tag}")
             raise TypeError

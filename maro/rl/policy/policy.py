@@ -6,7 +6,7 @@ from typing import List
 
 import numpy as np
 
-from maro.communication import Proxy
+from maro.rl.data_parallelism.task_queue import TaskQueueClient
 
 
 class AbsPolicy(ABC):
@@ -96,15 +96,17 @@ class RLPolicy(AbsPolicy):
     def data_parallel(self, *args, **kwargs):
         """"Initialize a proxy in the policy, for data-parallel training.
         Using the same arguments as `Proxy`."""
-        self._proxy = Proxy(*args, **kwargs)
+        self.task_queue_client = TaskQueueClient()
+        self.task_queue_client.create_proxy(*args, **kwargs)
 
     def data_parallel_with_existing_proxy(self, proxy):
         """"Initialize a proxy in the policy with an existing one, for data-parallel training."""
-        self._proxy = proxy
+        self.task_queue_client = TaskQueueClient()
+        self.task_queue_client.set_proxy(proxy)
 
     def exit_data_parallel(self):
-        if hasattr(self, '_proxy'):
-            self._proxy.close()
+        if hasattr(self, "task_queue_client"):
+            self.task_queue_client.exit()
 
     def learn_with_data_parallel(self):
         pass
