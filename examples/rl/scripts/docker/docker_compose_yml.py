@@ -64,6 +64,11 @@ if __name__ == "__main__":
     else:
         grad_worker_path = join(workflow_dir_in_container, "grad_worker.py")
 
+    if "scripts" in config and "task_queue" in config["scripts"]:
+        task_queue_path = config["scripts"]["task_queue"]
+    else:
+        task_queue_path = join(workflow_dir_in_container, "task_queue.py")
+
     if config["mode"] == "single":
         envs = [
             f"JOB={config['job']}",
@@ -116,17 +121,25 @@ if __name__ == "__main__":
             common_envs.append(f"CHECKPOINTDIR={config['checkpoint_dir']}")
         if "log_dir" in config:
             common_envs.append(f"LOGDIR={config['log_dir']}")
-        if "data_parallel" in config:
-            common_envs.append(f"DATAPARALLEL=1")
-            common_envs.append(f"NUMGRADWORKERS={config['data_parallel']['num_workers']}")
-            common_envs.append(f"ALLOCATIONMODE={config['data_parallel']['allocation_mode']}")
+        if "data_parallelism" in config:
+            common_envs.append(f"DATAPARALLELISM={config['data_parallelism']}")
         if config["policy_manager"]["type"] == "distributed":
             common_envs.append(f"POLICYGROUP={policy_group}")
             common_envs.append(f"NUMHOSTS={config['policy_manager']['distributed']['num_hosts']}")
 
         # grad worker config
-        if "data_parallel" in config:
-            for worker_id in range(config['data_parallel']['num_workers']):
+        if "data_parallelism" in config and config["data_parallelism"] > 1:
+            # task queue
+            str_id = "task_queue"
+            task_queue_spec = deepcopy(common_spec)
+            del task_queue_spec["build"]
+            task_queue_spec["command"] = f"python3 {task_queue_path}"
+            task_queue_spec["container_name"] = f"{namespace}.{str_id}"
+            task_queue_spec["environment"] = common_envs
+            docker_compose_manifest["services"][str_id] = task_queue_spec
+            
+            # grad worker
+            for worker_id in range(config['data_parallelism']):
                 str_id = f"grad_worker.{worker_id}"
                 grad_worker_spec = deepcopy(common_spec)
                 del grad_worker_spec["build"]

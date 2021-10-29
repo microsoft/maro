@@ -2,8 +2,8 @@
 # Licensed under the MIT license.
 
 
-from .manufacture import ManufactureUnit
 from .. import ManufactureAction
+from .manufacture import ManufactureUnit
 
 
 class SimpleManufactureUnit(ManufactureUnit):
