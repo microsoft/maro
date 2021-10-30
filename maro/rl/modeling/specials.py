@@ -221,3 +221,22 @@ class ContinuousACNet(AbsCoreModel):
         """
         for params, other_params in zip(self.parameters(), other_model.parameters()):
             params.data = (1 - tau) * params.data + tau * other_params.data
+
+    @abstractmethod
+    def get_state(self):    # ?: Here the state indicates the NN state
+        """Return the current model state.
+
+        Ths model state usually involves the "state_dict" of the module as well as those of the embedded optimizers.
+        """
+        pass
+
+    @abstractmethod
+    def set_state(self, state):
+        """Set model state.
+
+        Args:
+            state: Model state to be applied to the instance. Ths model state is either the result of a previous call
+            to ``get_state`` or something loaded from disk and involves the "state_dict" of the module as well as those
+            of the embedded optimizers.
+        """
+        pass

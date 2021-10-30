@@ -4,13 +4,15 @@
 import torch
 import numpy as np
 
+experiment_name = "test"
 
 env_config = {
     "topology": "building121",
-    "durations": 4630
+    "durations": 4629
 }
 
 training_config = {
+    "load_model": False,
     "num_episodes": 500,
     "evaluate_interval": 10,
     "checkpoint_path": "/home/Jinyu/maro/examples/hvac/ddpg/checkpoints",
@@ -34,5 +36,27 @@ ac_net_config = {
     "critic_optimizer": torch.optim.RMSprop,
     "actor_lr": 0.01,
     "critic_lr": 0.01
+}
+
+#### DDPG
+
+exploration_strategy = {
+    "mean": 0,
+    "stddev": 0.1,
+    "min_action": ac_net_config["output_lower_bound"],
+    "max_action": ac_net_config["output_upper_bound"],
+}
+
+exploration_mean_scheduler_options = {
+    "start_ep": 0,
+    "initial_value": exploration_strategy["stddev"],
+    "splits": [(int(training_config["num_episodes"] * 0.6), exploration_strategy["stddev"])],
+    "last_ep": training_config["num_episodes"] - 1,
+    "final_value": 0,
+}
+
+ddpg_config = {
+    "exploration_strategy": exploration_strategy,
+    "exploration_mean_scheduler_options": exploration_mean_scheduler_options,
 }
 
