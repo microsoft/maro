@@ -2,12 +2,11 @@
 # Licensed under the MIT license.
 
 job: cim
-scenario_dir: "/maro/examples"
-scenario: cim_v2
+scenario_dir: "/maro/examples/cim"
 load_policy_dir: "/maro/examples/checkpoints/cim"
 checkpoint_dir: "/maro/examples/checkpoints/cim"
 log_dir: "/maro/examples/logs/cim"
-mode: single  # single, sync, async
+mode: sync  # single, sync, async
 num_episodes: 50
 eval_schedule: 5
 sync:

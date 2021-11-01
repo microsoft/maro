@@ -73,7 +73,6 @@ if __name__ == "__main__":
         envs = [
             f"JOB={config['job']}",
             f"SCENARIODIR={config['scenario_dir']}",
-            f"SCENARIO={config['scenario']}",
             f"MODE=single",
             f"NUMEPISODES={config['num_episodes']}",
             f"EVALSCH={config['eval_schedule']}"
@@ -110,7 +109,6 @@ if __name__ == "__main__":
             f"REDISPORT={config['redis']['port']}",
             f"JOB={config['job']}",
             f"SCENARIODIR={config['scenario_dir']}",
-            f"SCENARIO={config['scenario']}",
             f"MODE={config['mode']}",
             f"POLICYMANAGERTYPE={config['policy_manager']['type']}"
         ]
