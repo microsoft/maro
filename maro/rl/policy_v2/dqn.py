@@ -12,6 +12,7 @@ from maro.rl.exploration import epsilon_greedy
 from maro.rl.modeling_v2 import DiscreteQNetwork
 from maro.rl.utils import MsgKey, MsgTag, average_grads
 from maro.utils import clone
+
 from .policy_base import RLPolicy
 from .policy_interfaces import DiscreteQNetworkMixin
 from .replay import ReplayMemory
