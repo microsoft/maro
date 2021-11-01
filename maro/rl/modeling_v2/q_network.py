@@ -3,6 +3,7 @@ from abc import abstractmethod
 import torch
 
 from maro.rl.utils import match_shape
+
 from .base_model import DiscretePolicyNetworkMixin, PolicyNetwork
 
 
