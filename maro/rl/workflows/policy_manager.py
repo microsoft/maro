@@ -1,34 +1,24 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import importlib
 import os
-import sys
 
 from maro.rl.learning import DistributedPolicyManager, MultiProcessPolicyManager, SimplePolicyManager
-from maro.rl.workflows.helpers import from_env, get_default_log_dir
-
-sys.path.insert(0, from_env("SCENARIODIR"))
-module = importlib.import_module(from_env("SCENARIO"))
-policy_func_dict = getattr(module, "policy_func_dict")
-agent2policy = getattr(module, "agent2policy")
-
-checkpoint_dir = from_env("CHECKPOINTDIR", required=False, default=None)
-if checkpoint_dir:
-    os.makedirs(checkpoint_dir, exist_ok=True)
-load_policy_dir = from_env("LOADDIR", required=False, default=None)
-log_dir = from_env("LOGDIR", required=False, default=get_default_log_dir(from_env("JOB")))
-os.makedirs(log_dir, exist_ok=True)
+from maro.rl.workflows.helpers import from_env, get_log_dir, get_scenario_module
 
 
 def get_policy_manager():
+    policy_func_dict = getattr(get_scenario_module(from_env("SCENARIODIR")), "policy_func_dict")
     manager_type = from_env("POLICYMANAGERTYPE")
     data_parallelism = from_env("DATAPARALLELISM", required=False, default=1)
+    load_policy_dir = from_env("LOADDIR", required=False, default=None)
     group = from_env("POLICYGROUP", required=False, default="learn") if data_parallelism > 1 else None
     proxy_kwargs = {
         "redis_address": (from_env("REDISHOST"), from_env("REDISPORT")),
         "max_peer_discovery_retries": 50
     }
+    checkpoint_dir = from_env("CHECKPOINTDIR", required=False, default=None)
+    log_dir = get_log_dir(from_env("LOGDIR", required=False, default=os.getcwd()), from_env("JOB"))
     if manager_type == "simple":
         return SimplePolicyManager(
             policy_func_dict,
@@ -72,6 +62,5 @@ if __name__ == "__main__":
         proxy_kwargs={
             "redis_address": (from_env("REDISHOST"), from_env("REDISPORT")),
             "max_peer_discovery_retries": 50
-        },
-        log_dir=log_dir
+        }
     )

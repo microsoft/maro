@@ -1,26 +1,13 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import importlib
 import os
-import sys
 import time
 
 from maro.communication import Proxy
 from maro.rl.utils import MsgKey, MsgTag
-from maro.rl.workflows.helpers import from_env, get_default_log_dir
+from maro.rl.workflows.helpers import from_env, get_log_dir, get_scenario_module
 from maro.utils import Logger
-
-sys.path.insert(0, from_env("SCENARIODIR"))
-module = importlib.import_module(from_env("SCENARIO"))
-policy_func_dict = getattr(module, "policy_func_dict")
-
-checkpoint_dir = from_env("CHECKPOINTDIR", required=False, default=None)
-if checkpoint_dir:
-    os.makedirs(checkpoint_dir, exist_ok=True)
-load_policy_dir = from_env("LOADDIR", required=False, default=None)
-log_dir = from_env("LOGDIR", required=False, default=get_default_log_dir(from_env("JOB")))
-os.makedirs(log_dir, exist_ok=True)
 
 
 if __name__ == "__main__":
@@ -34,6 +21,7 @@ if __name__ == "__main__":
     if host_id is None:
         raise ValueError("missing environment variable: HOSTID")
 
+    policy_func_dict = getattr(get_scenario_module(from_env("SCENARIODIR")), "policy_func_dict")
     group = from_env("POLICYGROUP")
     policy_dict, checkpoint_path = {}, {}
 
@@ -43,6 +31,12 @@ if __name__ == "__main__":
         redis_address=(from_env("REDISHOST"), from_env("REDISPORT")),
         max_peer_discovery_retries=50
     )
+    load_policy_dir = from_env("LOADDIR", required=False, default=None)
+    checkpoint_dir = from_env("CHECKPOINTDIR", required=False, default=None)
+    if checkpoint_dir:
+        os.makedirs(checkpoint_dir, exist_ok=True)
+
+    log_dir = get_log_dir(from_env("LOGDIR", required=False, default=os.getcwd()), from_env("JOB"))
     logger = Logger(proxy.name, dump_folder=log_dir)
 
     for msg in proxy.receive():

@@ -1,29 +1,19 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import importlib
 import os
-import sys
 
 from maro.rl.learning import DistributedRolloutManager, MultiProcessRolloutManager
-from maro.rl.workflows.helpers import from_env, get_default_log_dir
-
-sys.path.insert(0, from_env("SCENARIODIR"))
-module = importlib.import_module(from_env("SCENARIO"))
-get_env_sampler = getattr(module, "get_env_sampler")
-post_collect = getattr(module, "post_collect", None)
-post_evaluate = getattr(module, "post_evaluate", None)
-
-log_dir = from_env("LOGDIR", required=False, default=get_default_log_dir(from_env("JOB")))
-os.makedirs(log_dir, exist_ok=True)
+from maro.rl.workflows.helpers import from_env, get_log_dir, get_scenario_module
 
 
 def get_rollout_manager():
     rollout_type = from_env("ROLLOUTTYPE")
     num_steps = from_env("NUMSTEPS", required=False, default=-1)
+    log_dir = get_log_dir(from_env("LOGDIR", required=False, default=os.getcwd()), from_env("JOB"))
     if rollout_type == "multi-process":
         return MultiProcessRolloutManager(
-            get_env_sampler,
+            getattr(get_scenario_module(from_env("SCENARIODIR")), "get_env_sampler"),
             num_steps=num_steps,
             num_rollouts=from_env("NUMROLLOUTS"),
             num_eval_rollouts=from_env("NUMEVALROLLOUTS", required=False, default=1),
@@ -49,6 +39,7 @@ def get_rollout_manager():
                 "redis_address": (from_env("REDISHOST"), from_env("REDISPORT")),
                 "max_peer_discovery_retries": 50
             },
+            log_dir=log_dir
         )
 
     raise ValueError(f"Unsupported roll-out type: {rollout_type}. Supported: multi-process, distributed")

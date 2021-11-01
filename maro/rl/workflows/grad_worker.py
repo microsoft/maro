@@ -1,25 +1,18 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import importlib
 import os
-import sys
 import time
 
 from maro.communication import Proxy, SessionMessage
 from maro.rl.utils import MsgKey, MsgTag
-from maro.rl.workflows.helpers import from_env, get_default_log_dir
+from maro.rl.workflows.helpers import from_env, get_log_dir, get_scenario_module
 from maro.utils import Logger
-
-sys.path.insert(0, from_env("SCENARIODIR"))
-module = importlib.import_module(from_env("SCENARIO"))
-policy_func_dict = getattr(module, "policy_func_dict")
-log_dir = from_env("LOGDIR", required=False, default=get_default_log_dir(from_env("JOB")))
-os.makedirs(log_dir, exist_ok=True)
 
 
 if __name__ == "__main__":
     # TODO: WORKERID in docker compose script.
+    policy_func_dict = getattr(get_scenario_module(from_env("SCENARIODIR")), "policy_func_dict")
     worker_id = from_env("WORKERID")
     num_hosts = from_env("NUMHOSTS") if from_env("POLICYMANAGERTYPE") == "distributed" else 0
     max_cached_policies = from_env("MAXCACHED", required=False, default=10)
@@ -37,6 +30,7 @@ if __name__ == "__main__":
         redis_address=(from_env("REDISHOST"), from_env("REDISPORT")),
         max_peer_discovery_retries=50
     )
+    log_dir = get_log_dir(from_env("LOGDIR", required=False, default=os.getcwd()), from_env("JOB"))
     logger = Logger(proxy.name, dump_folder=log_dir)
 
     for msg in proxy.receive():

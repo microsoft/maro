@@ -1,7 +1,9 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import importlib
 import os
+import sys
 from typing import List, Union
 
 
@@ -13,11 +15,13 @@ def from_env(var_name, required=True, default=None):
             return default
 
     var = os.getenv(var_name)
-    return int(var) if var.isnumeric() or var[0] == "-" and var[1:].isnumeric() else var
+    if var.isnumeric() or var[0] == "-" and var[1:].isnumeric():
+        return int(var)
 
-
-def get_default_log_dir(job):
-    return os.path.join(os.getcwd(), "logs", job)
+    try:
+        return float(var)
+    except ValueError:
+        return var
 
 
 def get_eval_schedule(sch: Union[int, List[int]], num_episodes: int):
@@ -43,3 +47,23 @@ def get_eval_schedule(sch: Union[int, List[int]], num_episodes: int):
         schedule = sorted(sch)
 
     return schedule
+
+
+def get_scenario_module(scenario_path):
+    scenario_dir = os.path.normpath(scenario_path)
+    sys.path.insert(0, os.path.dirname(scenario_dir))
+    return importlib.import_module(os.path.basename(scenario_dir))
+
+
+def get_log_dir(dir: str, job_name: str):
+    return os.path.join(dir, job_name)
+
+
+def get_checkpoint_dir(dir: str = None):
+    if dir:
+        os.makedirs(dir, exist_ok=True)
+    return dir
+
+
+def get_load_policy_dir(dir: str):
+    return from_env("LOADDIR", required=False, default=None)

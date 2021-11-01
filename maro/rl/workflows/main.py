@@ -1,35 +1,30 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import importlib
 import os
-import sys
 import time
 
 from maro.rl.learning.helpers import get_rollout_finish_msg
-from maro.rl.workflows.helpers import from_env, get_default_log_dir, get_eval_schedule
+from maro.rl.workflows.helpers import from_env, get_eval_schedule, get_log_dir, get_scenario_module
 from maro.utils import Logger
-
-sys.path.insert(0, from_env("SCENARIODIR"))
-module = importlib.import_module(from_env("SCENARIO"))
-get_env_sampler = getattr(module, "get_env_sampler")
-post_collect = getattr(module, "post_collect", None)
-post_evaluate = getattr(module, "post_evaluate", None)
-
-checkpoint_dir = from_env("CHECKPOINTDIR", required=False, default=None)
-if checkpoint_dir:
-    os.makedirs(checkpoint_dir, exist_ok=True)
-load_policy_dir = from_env("LOADDIR", required=False, default=None)
-log_dir = from_env("LOGDIR", required=False, default=get_default_log_dir(from_env("JOB")))
-os.makedirs(log_dir, exist_ok=True)
 
 
 if __name__ == "__main__":
+    # get user-defined scenario ingredients
+    scenario = get_scenario_module(from_env("SCENARIODIR"))
+    get_env_sampler = getattr(scenario, "get_env_sampler")
+    post_collect = getattr(scenario, "post_collect", None)
+    post_evaluate = getattr(scenario, "post_evaluate", None)
+
     mode = from_env("MODE")
     num_episodes = from_env("NUMEPISODES")
     num_steps = from_env("NUMSTEPS", required=False, default=-1)
 
+    load_policy_dir = from_env("LOADDIR", required=False, default=None)
+    checkpoint_dir = from_env("CHECKPOINTDIR", required=False, default=None)
+    log_dir = get_log_dir(from_env("LOGDIR", required=False, default=os.getcwd()), from_env("JOB"))
     logger = Logger("MAIN", dump_folder=log_dir)
+
     # evaluation schedule
     eval_schedule = get_eval_schedule(from_env("EVALSCH", required=False, default=None), num_episodes)
     logger.info(f"Policy will be evaluated at the end of episodes {eval_schedule}")
