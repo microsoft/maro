@@ -7,7 +7,19 @@ from ..utils import match_shape
 
 
 class QNetwork(PolicyNetwork):
-    """Q-network for value-based policies. The action could be either continuous or discrete."""
+    """
+    Q-network for value-based policies. The action could be either continuous or discrete.
+
+    All concrete classes that inherit `QNetwork` should implement the following abstract methods:
+    - Declared in `AbsCoreModel`:
+        - step(self, loss: torch.tensor) -> None:
+        - get_gradients(self, loss: torch.tensor) -> torch.tensor:
+        - apply_gradients(self, grad: dict) -> None:
+        - get_state(self) -> object:
+        - set_state(self, state: object) -> None:
+    - Declared in `QNetwork`:
+        - _get_q_values(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
+    """
 
     def __init__(self, state_dim: int, action_dim: int) -> None:
         super(QNetwork, self).__init__(state_dim=state_dim, action_dim=action_dim)
@@ -36,7 +48,19 @@ class QNetwork(PolicyNetwork):
 
 
 class DiscreteQNetwork(DiscretePolicyNetworkMixin, QNetwork):
-    """Q-network for discrete value-based policies"""
+    """
+    Q-network for discrete value-based policies.
+
+    All concrete classes that inherit `DiscreteQNetwork` should implement the following abstract methods:
+    - Declared in `AbsCoreModel`:
+        - step(self, loss: torch.tensor) -> None:
+        - get_gradients(self, loss: torch.tensor) -> torch.tensor:
+        - apply_gradients(self, grad: dict) -> None:
+        - get_state(self) -> object:
+        - set_state(self, state: object) -> None:
+    - Declared in `DiscreteQNetwork`:
+        - _get_q_values_for_all_actions(self, states: torch.Tensor) -> torch.Tensor:
+    """
     def __init__(self, state_dim: int, action_num: int) -> None:
         super(DiscreteQNetwork, self).__init__(state_dim=state_dim, action_dim=1)
         self._action_num = action_num

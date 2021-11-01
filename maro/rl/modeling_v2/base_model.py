@@ -10,7 +10,17 @@ from maro.rl.utils import match_shape
 
 
 class AbsCoreModel(torch.nn.Module):
-    """The ancestor of all Torch models in MARO."""
+    """
+    The ancestor of all Torch models in MARO.
+
+    All concrete classes that inherit `AbsCoreModel` should implement all abstract methods
+    declared in `AbsCoreModel`, includes:
+    - step(self, loss: torch.tensor) -> None:
+    - get_gradients(self, loss: torch.tensor) -> torch.tensor:
+    - apply_gradients(self, grad: dict) -> None:
+    - get_state(self) -> object:
+    - set_state(self, state: object) -> None:
+    """
 
     def __init__(self) -> None:
         super(AbsCoreModel, self).__init__()
@@ -83,6 +93,16 @@ class SimpleNetwork(AbsCoreModel):
     `SimpleNetwork` does not contain any semantics and therefore can be used for any purpose. However, we recommend
     users to use `PolicyNetwork` if the network is used for generating actions according to states. `PolicyNetwork`
     has better supports for these functionalities.
+
+    All concrete classes that inherit `SimpleNetwork` should implement the following abstract methods:
+    - Declared in `AbsCoreModel`:
+        - step(self, loss: torch.tensor) -> None:
+        - get_gradients(self, loss: torch.tensor) -> torch.tensor:
+        - apply_gradients(self, grad: dict) -> None:
+        - get_state(self) -> object:
+        - set_state(self, state: object) -> None:
+    - Declared in `SimpleNetwork`:
+        - _forward_impl(self, x: torch.Tensor) -> torch.Tensor:
     """
     def __init__(self, input_dim: int, output_dim: int) -> None:
         super(SimpleNetwork, self).__init__()
@@ -129,6 +149,16 @@ class ShapeCheckMixin:
 class PolicyNetwork(ShapeCheckMixin, AbsCoreModel):
     """
     Neural networks for policies.
+
+    All concrete classes that inherit `PolicyNetwork` should implement the following abstract methods:
+    - Declared in `AbsCoreModel`:
+        - step(self, loss: torch.tensor) -> None:
+        - get_gradients(self, loss: torch.tensor) -> torch.tensor:
+        - apply_gradients(self, grad: dict) -> None:
+        - get_state(self) -> object:
+        - set_state(self, state: object) -> None:
+    - Declared in `PolicyNetwork`:
+        - _get_actions_impl(self, states: torch.Tensor, exploring: bool) -> torch.Tensor:
     """
     def __init__(self, state_dim: int, action_dim: int) -> None:
         super(PolicyNetwork, self).__init__()
@@ -208,6 +238,9 @@ class DiscreteProbPolicyNetworkMixin(DiscretePolicyNetworkMixin, ShapeCheckMixin
     Mixin for discrete policy networks that have the concept of 'probability'. Policy networks that extend this mixin
     should first calculate the probability for each potential action, and then choose the action according to the
     probabilities.
+
+    Notice: any concrete class that inherits `DiscreteProbPolicyNetworkMixin` should also implement
+    `_get_action_num(self) -> int:` defined in `DiscretePolicyNetworkMixin`.
     """
     def get_probs(self, states: torch.Tensor) -> torch.Tensor:
         """

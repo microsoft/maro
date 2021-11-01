@@ -9,7 +9,19 @@ from .critic_model import CriticMixin, VCriticMixin
 
 
 class DiscreteActorCriticNet(CriticMixin, DiscreteProbPolicyNetworkMixin, PolicyNetwork, metaclass=ABCMeta):
-    """Model framework for the actor-critic architecture."""
+    """
+    Model framework for the actor-critic architecture.
+
+    All concrete classes that inherit `DiscreteActorCriticNet` should implement the following abstract methods:
+    - Declared in `AbsCoreModel`:
+        - step(self, loss: torch.tensor) -> None:
+        - get_gradients(self, loss: torch.tensor) -> torch.tensor:
+        - apply_gradients(self, grad: dict) -> None:
+        - get_state(self) -> object:
+        - set_state(self, state: object) -> None:
+    - Declared in `DiscreteProbPolicyNetworkMixin`:
+        - _get_probs_impl(self, states: torch.Tensor) -> torch.Tensor:
+    """
 
     def __init__(self, state_dim: int, action_num: int) -> None:
         super(DiscreteActorCriticNet, self).__init__(state_dim=state_dim, action_dim=1)
@@ -32,6 +44,20 @@ class DiscreteActorCriticNet(CriticMixin, DiscreteProbPolicyNetworkMixin, Policy
 
 
 class DiscreteVActorCriticNet(VCriticMixin, DiscreteActorCriticNet, metaclass=ABCMeta):
-    """Model framework for the actor-critic architecture for finite and discrete action spaces."""
+    """
+    Model framework for the actor-critic architecture for finite and discrete action spaces.
+
+    All concrete classes that inherit `DiscreteVActorCriticNet` should implement the following abstract methods:
+    - Declared in `AbsCoreModel`:
+        - step(self, loss: torch.tensor) -> None:
+        - get_gradients(self, loss: torch.tensor) -> torch.tensor:
+        - apply_gradients(self, grad: dict) -> None:
+        - get_state(self) -> object:
+        - set_state(self, state: object) -> None:
+    - Declared in `DiscreteProbPolicyNetworkMixin`:
+        - _get_probs_impl(self, states: torch.Tensor) -> torch.Tensor:
+    - Declared in `VCriticMixin`:
+        - _get_v_critic(self, states: torch.Tensor) -> torch.Tensor:
+    """
     def __init__(self, state_dim: int, action_num: int) -> None:
         super(DiscreteVActorCriticNet, self).__init__(state_dim=state_dim, action_num=action_num)

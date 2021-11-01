@@ -34,6 +34,12 @@ class CriticMixin:
 class VCriticMixin(CriticMixin):
     """
     Mixin for all networks that used as V-value based critic models.
+
+    All concrete classes that inherit `VCriticMixin` should implement the following abstract methods:
+    - Declared in `CriticMixin`:
+        - _critic_net_shape_check(self, states: torch.Tensor, actions: Optional[torch.Tensor]) -> bool:
+    - Declared in `VCriticMixin`:
+        - _get_v_critic(self, states: torch.Tensor) -> torch.Tensor:
     """
     def v_critic(self, states: torch.Tensor) -> torch.Tensor:
         """
@@ -59,8 +65,13 @@ class VCriticMixin(CriticMixin):
 class QCriticMixin(CriticMixin):
     """
     Mixin for all networks that used as Q-value based critic models.
+
+    All concrete classes that inherit `QCriticMixin` should implement the following abstract methods:
+    - Declared in `CriticMixin`:
+        - _critic_net_shape_check(self, states: torch.Tensor, actions: Optional[torch.Tensor]) -> bool:
+    - Declared in `QCriticMixin`:
+        - _get_q_critic(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
     """
-    @abstractmethod
     def q_critic(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
         """
         Get Q-values according to the given states and actions.
@@ -87,6 +98,14 @@ class QCriticMixin(CriticMixin):
 class CriticNetwork(AbsCoreModel, metaclass=ABCMeta):
     """
     Neural networks for critic models.
+
+    All concrete classes that inherit `CriticNetwork` should implement the following abstract methods:
+    - Declared in `AbsCoreModel`:
+        - step(self, loss: torch.tensor) -> None:
+        - get_gradients(self, loss: torch.tensor) -> torch.tensor:
+        - apply_gradients(self, grad: dict) -> None:
+        - get_state(self) -> object:
+        - set_state(self, state: object) -> None:
     """
     def __init__(self, state_dim: int) -> None:
         super(CriticNetwork, self).__init__()
@@ -103,6 +122,16 @@ class CriticNetwork(AbsCoreModel, metaclass=ABCMeta):
 class VCriticNetwork(VCriticMixin, CriticNetwork, metaclass=ABCMeta):
     """
     Neural networks for V-value based critic models.
+
+    All concrete classes that inherit `VCriticNetwork` should implement the following abstract methods:
+    - Declared in `AbsCoreModel`:
+        - step(self, loss: torch.tensor) -> None:
+        - get_gradients(self, loss: torch.tensor) -> torch.tensor:
+        - apply_gradients(self, grad: dict) -> None:
+        - get_state(self) -> object:
+        - set_state(self, state: object) -> None:
+    - Declared in `VCriticMixin`:
+        - _get_v_critic(self, states: torch.Tensor) -> torch.Tensor:
     """
     def __init__(self, state_dim: int) -> None:
         super(VCriticNetwork, self).__init__(state_dim=state_dim)
@@ -114,6 +143,16 @@ class VCriticNetwork(VCriticMixin, CriticNetwork, metaclass=ABCMeta):
 class QCriticNetwork(QCriticMixin, CriticNetwork, metaclass=ABCMeta):
     """
     Neural networks for Q-value based critic models.
+
+    All concrete classes that inherit `QCriticNetwork` should implement the following abstract methods:
+    - Declared in `AbsCoreModel`:
+        - step(self, loss: torch.tensor) -> None:
+        - get_gradients(self, loss: torch.tensor) -> torch.tensor:
+        - apply_gradients(self, grad: dict) -> None:
+        - get_state(self) -> object:
+        - set_state(self, state: object) -> None:
+    - Declared in `QCriticMixin`:
+        - _get_q_critic(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
     """
     def __init__(self, state_dim: int, action_dim: int) -> None:
         super(QCriticNetwork, self).__init__(state_dim=state_dim)
@@ -137,6 +176,18 @@ class QCriticNetwork(QCriticMixin, CriticNetwork, metaclass=ABCMeta):
 class DiscreteQCriticNetwork(QCriticNetwork):
     """
     Neural networks for Q-value based critic models that take discrete actions as inputs.
+
+    All concrete classes that inherit `DiscreteQCriticNetwork` should implement the following abstract methods:
+    - Declared in `AbsCoreModel`:
+        - step(self, loss: torch.tensor) -> None:
+        - get_gradients(self, loss: torch.tensor) -> torch.tensor:
+        - apply_gradients(self, grad: dict) -> None:
+        - get_state(self) -> object:
+        - set_state(self, state: object) -> None:
+    - Declared in `QCriticMixin`:
+        - _get_q_critic(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
+    - Declared in `DiscreteQCriticNetwork`:
+        - _get_q_critic_for_all_actions(self, states: torch.Tensor) -> torch.Tensor:
     """
     def __init__(self, state_dim: int, action_num: int) -> None:
         super(DiscreteQCriticNetwork, self).__init__(state_dim=state_dim, action_dim=1)
@@ -177,6 +228,16 @@ class MultiQCriticNetwork(QCriticMixin, CriticNetwork, metaclass=ABCMeta):
     """
     Neural networks for Q-value based critic models that takes multiple actions as inputs.
     This is used for multi-agent RL scenarios.
+
+    All concrete classes that inherit `MultiQCriticNetwork` should implement the following abstract methods:
+    - Declared in `AbsCoreModel`:
+        - step(self, loss: torch.tensor) -> None:
+        - get_gradients(self, loss: torch.tensor) -> torch.tensor:
+        - apply_gradients(self, grad: dict) -> None:
+        - get_state(self) -> object:
+        - set_state(self, state: object) -> None:
+    - Declared in `QCriticMixin`:
+        - _get_q_critic(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
     """
     def __init__(self, state_dim: int, action_dim: int, agent_num: int) -> None:
         super(MultiQCriticNetwork, self).__init__(state_dim=state_dim)
@@ -205,6 +266,16 @@ class MultiQCriticNetwork(QCriticMixin, CriticNetwork, metaclass=ABCMeta):
 class MultiDiscreteQCriticNetwork(MultiQCriticNetwork, metaclass=ABCMeta):
     """
     Neural networks for Q-value based critic models that take multiple discrete actions as inputs.
+
+    All concrete classes that inherit `MultiDiscreteQCriticNetwork` should implement the following abstract methods:
+    - Declared in `AbsCoreModel`:
+        - step(self, loss: torch.tensor) -> None:
+        - get_gradients(self, loss: torch.tensor) -> torch.tensor:
+        - apply_gradients(self, grad: dict) -> None:
+        - get_state(self) -> object:
+        - set_state(self, state: object) -> None:
+    - Declared in `QCriticMixin`:
+        - _get_q_critic(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
     """
     def __init__(self, state_dim: int, action_nums: List[int]) -> None:
         super(MultiDiscreteQCriticNetwork, self).__init__(state_dim=state_dim, action_dim=1, agent_num=len(action_nums))
