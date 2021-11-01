@@ -17,7 +17,12 @@ of this policy.
 
 
 class DiscreteActionMixin:
-    """Mixin for policies that generate discrete actions."""
+    """
+    Mixin for policies that generate discrete actions.
+
+    All concrete classes that inherit `DiscreteActionMixin` should implement the following abstract methods:
+    - _get_action_num(self) -> int:
+    """
 
     @property
     def action_num(self) -> int:
@@ -29,7 +34,12 @@ class DiscreteActionMixin:
 
 
 class MultiDiscreteActionMixin:
-    """Mixin for multi-agent policies that generate discrete actions."""
+    """
+    Mixin for multi-agent policies that generate discrete actions.
+
+    All concrete classes that inherit `MultiDiscreteActionMixin` should implement the following abstract methods:
+    - _get_action_nums(self) -> List[int]:
+    """
 
     @property
     def action_nums(self) -> List[int]:
@@ -41,14 +51,18 @@ class MultiDiscreteActionMixin:
 
 
 class ContinuousActionMixin:
-    """Mixin for policies that generate continuous actions."""
+    """
+    Mixin for policies that generate continuous actions.
 
-    @abstractmethod
-    def action_range(self) -> Tuple[Union[float, np.ndarray], Union[float, np.ndarray]]:
+    All concrete classes that inherit `ContinuousActionMixin` should implement the following abstract methods:
+    - _get_action_range(self) -> Tuple[Union[int, float, np.ndarray], Union[int, float, np.ndarray]]:
+    """
+
+    def action_range(self) -> Tuple[Union[int, float, np.ndarray], Union[int, float, np.ndarray]]:
         return self._get_action_range()
 
     @abstractmethod
-    def _get_action_range(self) -> Tuple[Union[float, np.ndarray], Union[float, np.ndarray]]:
+    def _get_action_range(self) -> Tuple[Union[int, float, np.ndarray], Union[int, float, np.ndarray]]:
         pass
 
 
@@ -72,6 +86,12 @@ class QNetworkMixin(ShapeCheckMixin):
     """
     Mixin for policies that have a Q-network in it, no matter how it is used. For example,
     both DQN policies and Actor-Critic policies that use a Q-network as the critic should inherit this mixin.
+
+    All concrete classes that inherit `ContinuousActionMixin` should implement the following abstract methods:
+    - Declared in `ShapeCheckMixin`:
+        - _shape_check(self, states: np.ndarray, actions: Optional[np.ndarray]) -> bool:
+    - Declared in `QNetworkMixin`:
+        - _get_q_values(self, states: np.ndarray, actions: np.ndarray) -> np.ndarray:
     """
 
     def q_values(self, states: np.ndarray, actions: np.ndarray) -> np.ndarray:
@@ -97,7 +117,19 @@ class QNetworkMixin(ShapeCheckMixin):
 
 
 class DiscreteQNetworkMixin(DiscreteActionMixin, QNetworkMixin):
-    """Combination of DiscreteActionMixin and QNetworkMixin."""
+    """
+    Combination of DiscreteActionMixin and QNetworkMixin.
+
+    All concrete classes that inherit `DiscreteQNetworkMixin` should implement the following abstract methods:
+    - Declared in `ShapeCheckMixin`:
+        - _shape_check(self, states: np.ndarray, actions: Optional[np.ndarray]) -> bool:
+    - Declared in `QNetworkMixin`:
+        - _get_q_values(self, states: np.ndarray, actions: np.ndarray) -> np.ndarray:
+    - Declared in `DiscreteActionMixin`:
+        - _get_action_num(self) -> int:
+    - Declared in `DiscreteQNetworkMixin`:
+        - _get_q_values_for_all_actions(self, states: np.ndarray) -> np.ndarray:
+    """
 
     def q_values_for_all_actions(self, states: np.ndarray) -> np.ndarray:
         """
@@ -122,7 +154,15 @@ class DiscreteQNetworkMixin(DiscreteActionMixin, QNetworkMixin):
 
 
 class VNetworkMixin(ShapeCheckMixin):
-    """Mixin for policies that have a V-network in it. Similar to QNetworkMixin."""
+    """
+    Mixin for policies that have a V-network in it. Similar to QNetworkMixin.
+
+    All concrete classes that inherit `VNetworkMixin` should implement the following abstract methods:
+    - Declared in `ShapeCheckMixin`:
+        - _shape_check(self, states: np.ndarray, actions: Optional[np.ndarray]) -> bool:
+    - Declared in `VNetworkMixin`:
+        - _get_v_values(self, states: np.ndarray) -> np.ndarray:
+    """
 
     def v_values(self, states: np.ndarray) -> np.ndarray:
         """

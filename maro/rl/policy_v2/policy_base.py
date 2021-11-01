@@ -12,12 +12,17 @@ from maro.rl.utils import match_shape
 class AbsPolicy(object):
     """Abstract policy class.
 
-    Args:
-        name (str): Unique identifier for the policy.
-
+    All concrete classes that inherit `AbsPolicy` should implement the following abstract methods:
+    - __call__(self, states: object) -> object:
+    - _get_state_dim(self) -> int:
     """
 
     def __init__(self, name: str) -> None:
+        """
+
+        Args:
+            name (str): Unique identifier for the policy.
+        """
         super().__init__()
         print(f"Initializing {self.__class__.__module__}.{self.__class__.__name__}")
         self._name = name
@@ -68,6 +73,12 @@ class RuleBasedPolicy(AbsPolicy):
     """
     Rule-based policy that generates actions according to a fixed rule.
     The rule is immutable, which means a rule-based policy is not trainable.
+
+    All concrete classes that inherit `RuleBasedPolicy` should implement the following abstract methods:
+    - Declared in `AbsPolicy`:
+        - _get_state_dim(self) -> int:
+    - Declared in `RuleBasedPolicy`:
+        - _rule(self, state: object) -> object:
     """
 
     def __init__(self, name: str) -> None:
@@ -84,14 +95,32 @@ class RuleBasedPolicy(AbsPolicy):
 
 class RLPolicy(ShapeCheckMixin, AbsPolicy):
     """Policy that learns from simulation experiences.
-
     Reinforcement learning (RL) policies should inherit from this.
 
-    Args:
-        name (str): Name of the policy.
-        device (str): Device that uses to train the Torch model.
+    All concrete classes that inherit `RLPolicy` should implement the following abstract methods:
+    - Declared in `AbsPolicy`:
+        - _get_state_dim(self) -> int:
+    - Declared in `RLPolicy`:
+        - _call_impl(self, states: np.ndarray) -> Iterable:
+        - record(self, ...) -> None:
+        - get_rollout_info(self) -> object:
+        - get_batch_loss(self, batch: dict, explicit_grad: bool = False) -> object:
+        - data_parallel(self, *args, **kwargs) -> None:
+        - learn_with_data_parallel(self, batch: dict, worker_id_list: list) -> None:
+        - update(self, loss_info_list: List[dict]) -> None:
+        - learn(self, batch: dict) -> None:
+        - improve(self) -> None:
+        - get_state(self) -> object:
+        - set_state(self, policy_state: object) -> None:
+        - load(self, path: str) -> None:
+        - save(self, path: str) -> None:
     """
     def __init__(self, name: str, device: str) -> None:
+        """
+        Args:
+            name (str): Name of the policy.
+            device (str): Device that uses to train the Torch model.
+        """
         super(RLPolicy, self).__init__(name)
         self._exploration_params = {}
         self._exploring = True
