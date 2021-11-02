@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import csv
 import os
 
 import matplotlib.pyplot as plt
@@ -43,6 +44,13 @@ def post_evaluate(trackers: dict, episode: int, path: str, prefix: str="Eval"):
 
     fig.savefig(os.path.join(path, f"{prefix}_{episode}.png"))
     plt.close(fig)
+
+    with open(os.path.join(path, f"data_{prefix}_{episode}.csv"), 'w') as fp:
+        writer = csv.writer(fp)
+        writer.writerow(["kw", "dat", "at", "mat", "sps", "das", "total_kw", "reward", "total_reward"])
+        for kw, dat, at, mat, sps, das, total_kw, reward, total_reward in zip(trackers["kw"], trackers["dat"], trackers["at"], trackers["mat"], trackers["sps"], trackers["das"], trackers["total_kw"], trackers["reward"], trackers["total_reward"]):
+            writer.writerow([kw, dat, at, mat, sps, das, total_kw, reward, total_reward])
+
 
 def post_collect(trackers: dict, episode: int, path: str):
     post_evaluate(trackers, episode, path, prefix="Train")

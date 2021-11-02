@@ -12,6 +12,7 @@ env_config = {
 }
 
 training_config = {
+    "test": False,
     "load_model": False,
     "num_episodes": 500,
     "evaluate_interval": 10,

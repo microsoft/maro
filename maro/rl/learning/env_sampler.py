@@ -380,6 +380,7 @@ class AbsEnvSampler(ABC):
             if not terminal:
                 state = self.get_state()
 
+        # ?: Do not call function like post_step(), the tracker is still the one in the sample()
         return self.tracker
 
     def post_step(self, state, action, env_actions, reward, tick):
