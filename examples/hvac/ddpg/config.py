@@ -1,8 +1,12 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import os
+
 import numpy as np
 import torch
+
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 experiment_name = "ddpg_ori_reward"
 
@@ -16,8 +20,8 @@ training_config = {
     "load_model": False,
     "num_episodes": 200,
     "evaluate_interval": 10,
-    "checkpoint_path": "/home/Jinyu/maro/examples/hvac/ddpg/checkpoints",
-    "log_path": "/home/Jinyu/maro/examples/hvac/ddpg/logs",
+    "checkpoint_path": os.path.join(CURRENT_DIR, "checkpoints"),
+    "log_path": os.path.join(CURRENT_DIR, "logs"),
 }
 
 state_config = {

@@ -39,7 +39,7 @@ def train():
             result = env_sampler.sample(return_rollout_info=False)
             logger.info(f"Ep {ep}: Collection finished")
 
-            env_sampler.agent_wrapper.improve(checkpoint_dir=checkpoint_dir)
+            env_sampler.agent_wrapper.improve(checkpoint_dir, ep if (ep % 50 == 49) else None)
 
             if result["end_of_episode"]:
                 break
