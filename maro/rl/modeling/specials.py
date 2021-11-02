@@ -240,3 +240,72 @@ class ContinuousACNet(AbsCoreModel):
             of the embedded optimizers.
         """
         pass
+
+
+class ContinuousSACNet(AbsCoreModel):
+    """Model container for the soft-actor-critic architecture for continuous action spaces."""
+    def __init__(self):
+        super().__init__()
+
+    @property
+    @abstractmethod
+    def input_dim(self):
+        raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def action_dim(self):
+        raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def action_min(self):
+        raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def action_max(self):
+        raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def policy_params(self):
+        raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def q_params(self):
+        raise NotImplementedError
+
+    @abstractmethod
+    def forward(self, states: torch.tensor, deterministic: bool = False) -> torch.tensor:
+        """Compute actions for a batch of states or Q-values for a batch of states and actions.
+
+        Args:
+            states (torch.tensor): State batch to compute the Q-values for.
+        """
+        raise NotImplementedError
+
+    def get_action(self, states: torch.tensor, deterministic: bool = False) -> torch.tensor:
+        """Compute actions given a batch of states."""
+        return self.forward(states, deterministic=deterministic)[0]
+
+    @abstractmethod
+    def get_q1_values(self, states: torch.tensor, actions: torch.tensor):
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_q2_values(self, states: torch.tensor, actions: torch.tensor):
+        raise NotImplementedError
+
+    def soft_update(self, other_model: nn.Module, tau: float):
+        """Soft-update model parameters using another model.
+
+        Update formulae: param = (1 - tau) * param + tau * other_param.
+
+        Args:
+            other_model: The model to update the current model with.
+            tau (float): Soft-update coefficient.
+        """
+        for params, other_params in zip(self.parameters(), other_model.parameters()):
+            params.data = (1 - tau) * params.data + tau * other_params.data

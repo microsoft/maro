@@ -12,12 +12,15 @@
 .vs/
 build/
 log/
+logs/
+checkpoints/
 dist/
 *.egg-info/
 tools/schedule
 docs/_build
 test/
 data/
+datasets/
 .eggs/
 maro_venv/
 pyvenv.cfg

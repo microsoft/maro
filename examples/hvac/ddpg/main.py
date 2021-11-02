@@ -8,7 +8,7 @@ from shutil import copy2
 
 from maro.utils import LogFormat, Logger
 
-from examples.hvac.ddpg.callbacks import post_collect, post_evaluate
+from examples.hvac.ddpg.callbacks import post_evaluate
 from examples.hvac.ddpg.config import experiment_name, training_config
 from examples.hvac.ddpg.env_sampler import get_env_sampler
 

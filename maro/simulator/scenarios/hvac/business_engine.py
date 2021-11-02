@@ -153,7 +153,7 @@ class HvacBusinessEngine(AbsBusinessEngine):
 
         predictor, x_scaler, y_scaler = self._ahu_predictor[ahu.idx]
 
-        x = np.array([ahu.sps, ahu.das, ahu.mat - ahu.das]).reshape(1, -1)
+        x = np.array([ahu.sps, ahu.das, ahu.mat - ahu.das]).astype(np.float32).reshape(1, -1)
         x = torch.tensor(x_scaler.transform(x))
         y_pred = predictor(x).detach().numpy()
         y_pred = y_scaler.inverse_transform(y_pred)[0]

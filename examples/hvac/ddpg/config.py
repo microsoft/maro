@@ -1,8 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import torch
 import numpy as np
+import torch
 
 experiment_name = "ddpg_ori_reward"
 
@@ -36,15 +36,25 @@ reward_config = {
     "V2_constraints_factor": -0.5,
     "V2_lower_bound": None, # -2.5
     # V3
-    "normalize": True,
     "V3_threshold": -5,
 }
 
+state_dim = len(state_config["attributes"])
+action_dim = 2
+action_lower_bound = np.array([0.6, 53])
+action_upper_bound = np.array([1.1, 65])
+
+############################################## POLICIES ###############################################
+
+algorithm = "sac"
+
+#### DDPG
+
 ac_net_config = {
-    "input_dim": len(state_config["attributes"]),
-    "output_dim": 2,
-    "output_lower_bound": [0.6, 53],    # Action lower bound, the one for Bonsai
-    "output_upper_bound": [1.1, 65],    # Action upper bound, the one for Bonsai
+    "input_dim": state_dim,
+    "output_dim": action_dim,
+    "output_lower_bound": action_lower_bound,    # Action lower bound, the one for Bonsai
+    "output_upper_bound": action_upper_bound,    # Action upper bound, the one for Bonsai
     "actor_hidden_dims": [256, 256, 64],
     "critic_hidden_dims": [256, 256, 64],
     "actor_activation": torch.nn.Tanh,
@@ -55,7 +65,6 @@ ac_net_config = {
     "critic_lr": 0.01
 }
 
-#### DDPG
 
 exploration_strategy = {
     "mean": 0,
@@ -77,3 +86,46 @@ ddpg_config = {
     "exploration_mean_scheduler_options": exploration_mean_scheduler_options,
 }
 
+
+####  SAC
+
+sac_policy_net_config = {
+    "input_dim": state_dim,
+    "hidden_dims": [256, 256],
+    "output_dim": 64,
+    "activation": torch.nn.LeakyReLU,
+    "softmax": False,
+    "batch_norm": True,
+    "skip_connection": False,
+    "head": True,
+    "dropout_p": 0.0
+}
+
+
+sac_policy_net_optim_config = (torch.optim.Adam, {"lr": 0.01})
+
+sac_q_net_config = {
+    "input_dim": state_dim + action_dim,
+    "hidden_dims": [256, 256, 64],
+    "output_dim": 1,
+    "activation": torch.nn.LeakyReLU,
+    "softmax": False,
+    "batch_norm": False,
+    "skip_connection": False,
+    "head": True,
+    "dropout_p": 0.0
+}
+
+sac_q_net_optim_config = (torch.optim.Adam, {"lr": 0.01})
+
+sac_config = {
+    "reward_discount": 0.0,
+    "soft_update_coeff": 0.1,
+    "alpha": 0.2,
+    "replay_memory_capacity": 10000,
+    "random_overwrite": False,
+    "warmup": 100,
+    "update_target_every": 5,
+    "rollout_batch_size": 128,
+    "train_batch_size": 32
+}

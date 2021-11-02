@@ -24,6 +24,7 @@ class SimpleAgentWrapper:
         self.policy_dict = {policy_id: func(policy_id) for policy_id, func in get_policy_func_dict.items()}
         self.agent2policy = agent2policy
         self.policy_by_agent = {agent: self.policy_dict[policy_id] for agent, policy_id in agent2policy.items()}
+        self._is_exploiting = True
 
     def load(self, dir: str):
         for id_, policy in self.policy_dict.items():
@@ -51,12 +52,22 @@ class SimpleAgentWrapper:
         for policy_id, policy_state in policy_state_dict.items():
             self.policy_dict[policy_id].set_state(policy_state)
 
+    @property
+    def exploit_mode(self):
+        return self._is_exploiting
+
+    @property
+    def explore_mode(self):
+        return not self._is_exploiting
+
     def explore(self):
+        self._is_exploiting = False
         for policy in self.policy_dict.values():
             if hasattr(policy, "greedy"):
                 policy.greedy = False
 
     def exploit(self):
+        self._is_exploiting = True
         for policy in self.policy_dict.values():
             if hasattr(policy, "greedy"):
                 policy.greedy = True
@@ -82,12 +93,14 @@ class SimpleAgentWrapper:
         if isinstance(self.policy_by_agent[agent], RLPolicy):
             self.policy_by_agent[agent].record(agent, state, action, reward, next_state, terminal)
 
-    def improve(self, checkpoint_dir: str = None):
+    def improve(self, checkpoint_dir: str = None, ep: int=None):
         for id_, policy in self.policy_dict.items():
             if hasattr(policy, "improve"):
                 policy.improve()
                 if checkpoint_dir:
                     policy.save(path.join(checkpoint_dir, id_))
+                    if ep is not None:
+                        policy.save(path.join(checkpoint_dir, f"{id_}_{ep}"))
 
 
 class ParallelAgentWrapper:
@@ -99,6 +112,8 @@ class ParallelAgentWrapper:
         self.agent2policy = agent2policy
         self._inference_services = []
         self._conn = {}
+        self._is_exploiting = True
+
 
         def _inference_service(id_, get_policy, conn):
             policy = get_policy(id_)
@@ -179,11 +194,21 @@ class ParallelAgentWrapper:
         for policy_id, conn in self._conn.items():
             conn.send({"type": "set_state", "policy_state": policy_state_dict[policy_id]})
 
+    @property
+    def exploit_mode(self):
+        return self._is_exploiting
+
+    @property
+    def explore_mode(self):
+        return not self._is_exploiting
+
     def explore(self):
+        self._is_exploiting = False
         for conn in self._conn.values():
             conn.send({"type": "explore"})
 
     def exploit(self):
+        self._is_exploiting = True
         for conn in self._conn.values():
             conn.send({"type": "exploit"})
 
@@ -222,6 +247,7 @@ class ParallelAgentWrapper:
         })
 
     def improve(self, checkpoint_dir: str = None):
+        # TODO: need the similar save like SingleAgent?
         for conn in self._conn.values():
             conn.send({"type": "improve", "checkpoint_dir": checkpoint_dir})
 
@@ -268,6 +294,7 @@ class AbsEnvSampler(ABC):
         self._step_index = 0
 
         self._transition_cache = defaultdict(deque)  # for caching transitions whose rewards have yet to be evaluated
+        self._test_transition_cache = defaultdict(deque)
         self.tracker = {}  # User-defined tracking information is placed here.
 
     @property
@@ -353,6 +380,7 @@ class AbsEnvSampler(ABC):
             "exploration_params": self.agent_wrapper.get_exploration_params()
         }
         if return_rollout_info:
+            # ?: means like the experiences, but it is policy actually?
             result["rollout_info"] = self.agent_wrapper.get_rollout_info()
 
         if not self._state:
@@ -370,15 +398,24 @@ class AbsEnvSampler(ABC):
 
         self.env.reset()
         terminal = False
+        self._test_transition_cache.clear()
         # get initial state
         _, self._event, _ = self.env.step(None)
         state = self.get_state()
         while not terminal:
             action = self.agent_wrapper.choose_action(state)
             env_actions = self.get_env_actions(action)
+            for agent, state in state.items():
+                self._test_transition_cache[agent].append((state, action[agent], env_actions, self.env.tick))   # ?: Why all env_actions? for MARL?
             _, self._event, terminal = self.env.step(env_actions)
             if not terminal:
                 state = self.get_state()
+
+        for agent, cache in self._test_transition_cache.items():
+            while cache and (not self._state or self.env.tick - cache[0][-1] >= self.reward_eval_delay):
+                state, action, env_actions, tick = cache.popleft()
+                reward = self.get_reward(env_actions, tick)
+                self.post_step(state, action, env_actions, reward, tick)
 
         # ?: Do not call function like post_step(), the tracker is still the one in the sample()
         return self.tracker
