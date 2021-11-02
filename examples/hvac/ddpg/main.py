@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 
 import os
+import time
 
 from shutil import copy2
 
@@ -10,6 +11,10 @@ from maro.utils import LogFormat, Logger
 from examples.hvac.ddpg.callbacks import post_collect, post_evaluate
 from examples.hvac.ddpg.config import experiment_name, training_config
 from examples.hvac.ddpg.env_sampler import get_env_sampler
+
+os.environ['TZ'] = "Asia/Shanghai"
+time.tzset()
+experiment_name = f"{time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())} {experiment_name}"
 
 checkpoint_dir = os.path.join(training_config["checkpoint_path"], experiment_name)
 os.makedirs(checkpoint_dir, exist_ok=True)
@@ -20,6 +25,7 @@ os.makedirs(log_dir, exist_ok=True)
 
 def train():
     copy2(os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.py"), log_dir)
+    copy2(os.path.join(os.path.dirname(os.path.abspath(__file__)), "env_sampler.py"), log_dir)
     logger = Logger(tag="Train", dump_folder=log_dir, format_=LogFormat.simple)
 
     env_sampler = get_env_sampler()

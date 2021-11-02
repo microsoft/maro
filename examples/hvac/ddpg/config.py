@@ -4,7 +4,7 @@
 import torch
 import numpy as np
 
-experiment_name = "ddpg_bonsai_setting_bonsai_reward"
+experiment_name = "ddpg_ori_reward"
 
 env_config = {
     "topology": "building121",
@@ -22,7 +22,22 @@ training_config = {
 
 state_config = {
     # "attributes": ["kw", "at", "dat", "mat"]
-    "attributes": ["kw", "at", "mat"]   # The one for Bonsai
+    "attributes": ["kw", "at", "mat"],   # The one for Bonsai
+    "normalize": False,
+}
+
+reward_config = {
+    "type": "Bonsai",  # Bonsai, V2, V3
+    # Bonsai
+    # V2
+    "V2_efficiency_factor": 10,
+    "V2_das_diff_factor": -2,
+    "V2_sps_diff_factor": 0,
+    "V2_constraints_factor": -0.5,
+    "V2_lower_bound": None, # -2.5
+    # V3
+    "normalize": True,
+    "V3_threshold": -5,
 }
 
 ac_net_config = {
