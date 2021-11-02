@@ -45,12 +45,12 @@ reward_config = {
 
 state_dim = len(state_config["attributes"])
 action_dim = 2
-action_lower_bound = np.array([0.6, 53])
-action_upper_bound = np.array([1.1, 65])
+action_lower_bound = [0.6, 53]
+action_upper_bound = [1.1, 65]
 
 ############################################## POLICIES ###############################################
 
-algorithm = "sac"
+algorithm = "ddpg"
 
 #### DDPG
 

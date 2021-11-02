@@ -222,12 +222,13 @@ if algorithm == "ddpg":
         "ddpg": lambda name: DDPG(
             name=name,
             ac_net=AhuACNet(**ac_net_config),
-            reward_discount=0,
-            warmup=0,            # ?: Is 5000 reasonable?
+            reward_discount=0.99,
+            warmup=5000,
             exploration_strategy=(relative_gaussian_noise, ddpg_config["exploration_strategy"]),
             exploration_scheduling_options=[
                 ("mean", MultiLinearExplorationScheduler, ddpg_config["exploration_mean_scheduler_options"]),
             ],
+            train_batch_size=256,
         )
     }
 elif algorithm == "sac":

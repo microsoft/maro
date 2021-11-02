@@ -399,6 +399,7 @@ class AbsEnvSampler(ABC):
         self.env.reset()
         terminal = False
         self._test_transition_cache.clear()
+        self.tracker.clear()
         # get initial state
         _, self._event, _ = self.env.step(None)
         state = self.get_state()

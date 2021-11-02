@@ -175,7 +175,6 @@ class DDPG(RLPolicy):
             explicit_grad (bool): If True, the gradients should be returned as part of the loss information. Defaults
                 to False.
         """
-        self.ac_net.train()
         states = torch.from_numpy(batch["states"]).to(self.device)
         next_states = torch.from_numpy(batch["next_states"]).to(self.device)
         actual_actions = torch.from_numpy(batch["actions"]).to(self.device)
@@ -183,15 +182,21 @@ class DDPG(RLPolicy):
         terminals = torch.from_numpy(batch["terminals"]).float().to(self.device)
         if len(actual_actions.shape) == 1:
             actual_actions = actual_actions.unsqueeze(dim=1)  # (N, 1)
+        if rewards.ndim == 1:
+            rewards = rewards.unsqueeze(dim=1)
+        if terminals.ndim == 1:
+            terminals = terminals.unsqueeze(dim=1)
 
+        self.ac_net.train()
         with torch.no_grad():
             next_q_values = self.target_ac_net.value(next_states)
-        target_q_values = (rewards + self.reward_discount * (1 - terminals) * next_q_values).detach()  # (N,)
+        target_q_values = (rewards + self.reward_discount * (1 - terminals) * next_q_values).detach()  # (N, 1)
 
         # loss info
         loss_info = {}
-        q_values = self.ac_net(states, actions=actual_actions).squeeze(dim=1)  # (N,)
+        q_values = self.ac_net(states, actions=actual_actions) # (N, 1)
         q_loss = self.q_value_loss_func(q_values, target_q_values)
+        # ?: Q network should be updated before the Pi loss computation
         policy_loss = -self.ac_net.value(states).mean()
         loss = policy_loss + self.q_value_loss_coeff * q_loss
         loss_info = {
@@ -230,7 +235,47 @@ class DDPG(RLPolicy):
         """Learn using data from the replay memory."""
         for _ in range(self.num_epochs):
             train_batch = self._replay_memory.sample(self.train_batch_size)
+
             self.ac_net.step(self.get_batch_loss(train_batch)["loss"])
+            ####################################################################
+            states = torch.from_numpy(train_batch["states"]).to(self.device)
+            next_states = torch.from_numpy(train_batch["next_states"]).to(self.device)
+            actual_actions = torch.from_numpy(train_batch["actions"]).to(self.device)
+            rewards = torch.from_numpy(train_batch["rewards"]).to(self.device)
+            terminals = torch.from_numpy(train_batch["terminals"]).float().to(self.device)
+            if len(actual_actions.shape) == 1:
+                actual_actions = actual_actions.unsqueeze(dim=1)  # (N, 1)
+            if rewards.ndim == 1:
+                rewards = rewards.unsqueeze(dim=1)
+            if terminals.ndim == 1:
+                terminals = terminals.unsqueeze(dim=1)
+
+            self.ac_net.train()
+
+            # Update Q / critic
+            self.ac_net.critic_optimizer.zero_grad()
+            q_values = self.ac_net(states, actions=actual_actions) # (N, 1)
+            with torch.no_grad():
+                next_q_values = self.target_ac_net.value(next_states)
+            target_q_values = (rewards + self.reward_discount * (1 - terminals) * next_q_values).detach()  # (N, 1)
+            q_loss = self.q_value_loss_func(q_values, target_q_values)
+            q_loss.backward()
+            self.ac_net.critic_optimizer.step()
+
+            # Update Pi / actor
+            for param in self.ac_net.critic.parameters():
+                param.requires_grad = False
+
+            self.ac_net.actor_optimizer.zero_grad()
+            policy_loss = -self.ac_net.value(states).mean()
+            policy_loss.backward()
+            self.ac_net.actor_optimizer.step()
+
+            for param in self.ac_net.critic.parameters():
+                param.requires_grad = True
+
+            ####################################################################
+
             self._ac_net_version += 1
             if self._ac_net_version - self._target_ac_net_version == self.update_target_every:
                 self._update_target()

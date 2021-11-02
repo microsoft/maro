@@ -62,12 +62,10 @@ def test():
         env_sampler.agent_wrapper.load(checkpoint_dir)
         logger.info(f"Load model state from {checkpoint_dir}")
 
-    env_sampler.agent_wrapper.exploit()
-
-    result = env_sampler.sample(return_rollout_info=False)
+    tracker = env_sampler.test()
     logger.info(f"Exploitation finished")
 
-    post_evaluate(result["tracker"], episode=-1, path=log_dir, prefix="Eval" if env_sampler.agent_wrapper.exploit_mode else "Train")
+    post_evaluate(tracker, episode=-1, path=log_dir, prefix="Eval" if env_sampler.agent_wrapper.exploit_mode else "Train")
 
 
 if __name__ == "__main__":
