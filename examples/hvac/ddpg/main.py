@@ -3,6 +3,8 @@
 
 import os
 
+from shutil import copy2
+
 from maro.utils import LogFormat, Logger
 
 from examples.hvac.ddpg.callbacks import post_collect, post_evaluate
@@ -17,6 +19,7 @@ os.makedirs(log_dir, exist_ok=True)
 
 
 def train():
+    copy2(os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.py"), log_dir)
     logger = Logger(tag="Train", dump_folder=log_dir, format_=LogFormat.simple)
 
     env_sampler = get_env_sampler()

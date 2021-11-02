@@ -4,7 +4,7 @@
 import torch
 import numpy as np
 
-experiment_name = "test"
+experiment_name = "ddpg_bonsai_setting_bonsai_reward"
 
 env_config = {
     "topology": "building121",
@@ -14,25 +14,26 @@ env_config = {
 training_config = {
     "test": False,
     "load_model": False,
-    "num_episodes": 500,
+    "num_episodes": 200,
     "evaluate_interval": 10,
     "checkpoint_path": "/home/Jinyu/maro/examples/hvac/ddpg/checkpoints",
     "log_path": "/home/Jinyu/maro/examples/hvac/ddpg/logs",
 }
 
 state_config = {
-    "attributes": ["kw", "at", "dat", "mat"]
+    # "attributes": ["kw", "at", "dat", "mat"]
+    "attributes": ["kw", "at", "mat"]   # The one for Bonsai
 }
 
 ac_net_config = {
     "input_dim": len(state_config["attributes"]),
     "output_dim": 2,
-    "output_lower_bound": [0.6, 40],    # Action lower bound
-    "output_upper_bound": [1.3, 70],    # Action upper bound
-    "actor_hidden_dims": [128, 128, 64],
-    "critic_hidden_dims": [128, 128, 64],
-    "actor_activation": torch.nn.ReLU,
-    "critic_activation": torch.nn.ReLU,
+    "output_lower_bound": [0.6, 53],    # Action lower bound, the one for Bonsai
+    "output_upper_bound": [1.1, 65],    # Action upper bound, the one for Bonsai
+    "actor_hidden_dims": [256, 256, 64],
+    "critic_hidden_dims": [256, 256, 64],
+    "actor_activation": torch.nn.Tanh,
+    "critic_activation": torch.nn.Tanh,
     "actor_optimizer": torch.optim.Adam,
     "critic_optimizer": torch.optim.RMSprop,
     "actor_lr": 0.01,

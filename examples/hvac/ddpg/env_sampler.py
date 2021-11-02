@@ -45,7 +45,6 @@ class HVACEnvSampler(AbsEnvSampler):
         def get_attribute(name: str, idx: int=0, t: int=tick+1):
             return self.env.snapshot_list["ahus"][t:idx:name]
 
-        """
         # Align with Bonsai
         reward = -5
         diff_sps = abs(get_attribute("sps") - get_attribute("sps", t=tick))
@@ -62,24 +61,24 @@ class HVACEnvSampler(AbsEnvSampler):
                     * max(0, get_attribute("dat") - 57) # dat is better to <= 57
                 )
             )
-        """
 
-        diff_sps = abs(get_attribute("sps") - get_attribute("sps", t=tick))
-        diff_das = abs(get_attribute("das") - get_attribute("das", t=tick))
+        # # Reward V2
+        # diff_sps = abs(get_attribute("sps") - get_attribute("sps", t=tick))
+        # diff_das = abs(get_attribute("das") - get_attribute("das", t=tick))
 
-        efficiency_ratio = abs(get_attribute("kw") / get_attribute("at"))
+        # efficiency_ratio = abs(get_attribute("kw") / get_attribute("at"))
 
-        reward = (
-            10 * math.exp(-efficiency_ratio)
-            - 2 * diff_das
-            - 5 * diff_sps
-            - 0.5 * (
-                max(0, get_attribute("mat") - 68)   # mat is better to <= 68
-                * max(0, get_attribute("dat") - 57) # dat is better to <= 57
-            )
-        )
+        # reward = (
+        #     10 * math.exp(-efficiency_ratio)
+        #     - 2 * diff_das
+        #     - 5 * diff_sps
+        #     - 0.5 * (
+        #         max(0, get_attribute("mat") - 68)   # mat is better to <= 68
+        #         * max(0, get_attribute("dat") - 57) # dat is better to <= 57
+        #     )
+        # )
 
-        reward = max(reward, -2.5)
+        # reward = max(reward, -2.5)
 
         return {agent_name: reward}
 
@@ -88,7 +87,7 @@ class HVACEnvSampler(AbsEnvSampler):
             self.tracker["reward"] = []
         self.tracker["reward"].append(reward[agent_name][0] if isinstance(reward[agent_name], np.ndarray) else reward[agent_name])
         if tick == self.env._start_tick + self.env._durations - 1:
-            for attribute in attributes + ["sps", "das"]:
+            for attribute in ["kw", "at", "dat", "mat"] + ["sps", "das"]:
                 self.tracker[attribute] = self.env.snapshot_list["ahus"][::attribute][1:]
             self.tracker["total_kw"] = np.cumsum(self.tracker["kw"])
             self.tracker["reward"] = self.tracker["reward"][1:]
