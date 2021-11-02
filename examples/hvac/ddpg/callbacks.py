@@ -20,7 +20,7 @@ def get_baseline():
         "kw": df["KW"].to_numpy(),
         "dat": df["DAT"].to_numpy(),
         "at": df["air_ton"].to_numpy(),
-        # "mat": df["DAS"].to_numpy() + df["delta_MAT_DAS"].to_numpy(),
+        "mat": df["DAS"].to_numpy() + df["delta_MAT_DAS"].to_numpy(),
         "sps": df["SPS"].to_numpy(),
         "das": df["DAS"].to_numpy(),
         "total_kw": np.cumsum(df["KW"].to_numpy())

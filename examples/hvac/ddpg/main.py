@@ -49,7 +49,7 @@ def train():
             or ep == training_config["num_episodes"] - 1
         ):
             trackers = env_sampler.test()
-            post_evaluate(trackers, episode=ep, path=log_dir, prefix="Train")   # Train due to the implementation
+            post_evaluate(trackers, episode=ep, path=log_dir, prefix="Eval" if env_sampler.agent_wrapper.exploit_mode else "Train")
             logger.info(f"Ep {ep}: Evaluation finished")
 
 

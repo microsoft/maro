@@ -96,12 +96,12 @@ class HVACEnvSampler(AbsEnvSampler):
             # The one Lei used
             if diff_sps <= 0.3:
                 reward = (
-                    2 * (self._statistics["kw"]["max"] - get_attributes("kw")) / self._statistics["kw"]["range"]
-                    + (get_attributes("at") - self._statistics["at"]["min"]) / self._statistics["at"]["range"]
+                    2 * (self._statistics["kw"]["max"] - get_attribute("kw")) / self._statistics["kw"]["range"]
+                    + (get_attribute("at") - self._statistics["at"]["min"]) / self._statistics["at"]["range"]
                     - 0.05 * diff_das
                     + 10 * (
-                        np.max(0.0, 0.05 * (get_attributes("mat") - self._statistics["mat"]["mean"]))
-                        * np.min(0.0, self._statistics["mat"]["mean"] - 11 - get_attributes("dat"))
+                        max(0, 0.05 * (get_attribute("mat") - self._statistics["mat"]["mean"]))
+                        * min(0, self._statistics["mat"]["mean"] - 11 - get_attribute("dat"))
                     )
                 )
             else:
