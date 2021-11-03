@@ -26,7 +26,13 @@ class SimpleAgentWrapper:
         self.policy_by_agent = {agent: self.policy_dict[policy_id] for agent, policy_id in agent2policy.items()}
         self._is_exploiting = True
 
-    def load(self, dir: str):
+    def load(self, dir: str, is_file: bool=False):
+        # TODO: support load from specific path
+        if is_file:
+            assert len(self.policy_dict.items()) == 1
+            list(self.policy_dict.values())[0].load(dir)
+            return
+
         for id_, policy in self.policy_dict.items():
             pth = path.join(dir, id_)
             if path.exists(pth):

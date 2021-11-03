@@ -67,8 +67,8 @@ class HVACEnvSampler(AbsEnvSampler):
                 reward = (
                     math.exp(-efficiency_ratio)
                     - 0.2 * diff_das
-                    - 0.05 * (
-                        max(0, get_attribute("mat") - 68)   # mat is better to <= 68
+                    - (
+                        max(0, 0.05 * (get_attribute("mat") - 68))   # mat is better to <= 68
                         * max(0, get_attribute("dat") - 57) # dat is better to <= 57
                     )
                 )
@@ -78,8 +78,8 @@ class HVACEnvSampler(AbsEnvSampler):
                 reward_config["V2_efficiency_factor"] * math.exp(-efficiency_ratio)
                 + reward_config["V2_das_diff_factor"] * diff_das
                 + reward_config["V2_sps_diff_factor"] * diff_sps
-                + reward_config["V2_constraints_factor"] * (
-                    max(0, get_attribute("mat") - 68)   # mat is better to <= 68
+                + (
+                    max(0, reward_config["V2_constraints_factor"] * (get_attribute("mat") - 68))   # mat is better to <= 68
                     * max(0, get_attribute("dat") - 57) # dat is better to <= 57
                 )
             )

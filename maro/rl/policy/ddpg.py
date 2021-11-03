@@ -236,7 +236,7 @@ class DDPG(RLPolicy):
         for _ in range(self.num_epochs):
             train_batch = self._replay_memory.sample(self.train_batch_size)
 
-            self.ac_net.step(self.get_batch_loss(train_batch)["loss"])
+            # self.ac_net.step(self.get_batch_loss(train_batch)["loss"])
             ####################################################################
             states = torch.from_numpy(train_batch["states"]).to(self.device)
             next_states = torch.from_numpy(train_batch["next_states"]).to(self.device)

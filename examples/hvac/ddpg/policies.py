@@ -142,8 +142,8 @@ class AhuSACNet(ContinuousSACNet):
         self.logp_softplus = nn.Softplus()
         self.q_optim = sac_q_net_optim_config[0](self.q_params, **sac_q_net_optim_config[1])
 
-        self._min_action = torch.from_numpy(action_lower_bound)
-        self._max_action = torch.from_numpy(action_upper_bound)
+        self._min_action = torch.tensor(action_lower_bound)
+        self._max_action = torch.tensor(action_upper_bound)
 
     @property
     def input_dim(self):

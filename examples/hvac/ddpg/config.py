@@ -8,7 +8,8 @@ import torch
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-experiment_name = "ddpg_ori_reward"
+experiment_name = "ddpg_Bonsai_env+"
+algorithm = "ddpg"
 
 env_config = {
     "topology": "building121",
@@ -16,7 +17,11 @@ env_config = {
 }
 
 training_config = {
+    # Test
     "test": False,
+    # "model_path": "/home/Jinyu/maro/examples/hvac/ddpg/checkpoints/2021-11-03 04:33:20 ddpg_rewrite_Bonsai_env_positive/ddpg_49",
+    "model_path": "/home/Jinyu/maro/examples/hvac/ddpg/checkpoints/2021-11-03 04:32:29 ddpg_rewrite_V2_env_positive/ddpg_49",
+    # Train
     "load_model": False,
     "num_episodes": 200,
     "evaluate_interval": 10,
@@ -50,8 +55,6 @@ action_upper_bound = [1.1, 65]
 
 ############################################## POLICIES ###############################################
 
-algorithm = "ddpg"
-
 #### DDPG
 
 ac_net_config = {
@@ -59,14 +62,14 @@ ac_net_config = {
     "output_dim": action_dim,
     "output_lower_bound": action_lower_bound,    # Action lower bound, the one for Bonsai
     "output_upper_bound": action_upper_bound,    # Action upper bound, the one for Bonsai
-    "actor_hidden_dims": [256, 256, 64],
-    "critic_hidden_dims": [256, 256, 64],
+    "actor_hidden_dims": [256, 256],
+    "critic_hidden_dims": [256, 256],
     "actor_activation": torch.nn.Tanh,
     "critic_activation": torch.nn.Tanh,
     "actor_optimizer": torch.optim.Adam,
     "critic_optimizer": torch.optim.RMSprop,
-    "actor_lr": 0.01,
-    "critic_lr": 0.01
+    "actor_lr": 0.001,
+    "critic_lr": 0.001
 }
 
 
