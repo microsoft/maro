@@ -56,7 +56,7 @@ def post_evaluate(trackers: dict, episode: int, path: str, prefix: str="Eval"):
         )
         axs_hist[idx//3, idx%3].hist(trackers[att], bins=bins, density=True, color='r', alpha=0.4)
         axs_hist[idx//3, idx%3].hist(baseline[att], bins=bins, density=True, color='b', alpha=0.4)
-        axs_plot[idx//3, idx%3].set_title(att)
+        axs_hist[idx//3, idx%3].set_title(att)
 
     axs_plot[0, 3].plot(trackers["reward"], c='r')
     axs_plot[0, 3].set_title(get_title("reward"))
