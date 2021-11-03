@@ -158,12 +158,12 @@ class HvacBusinessEngine(AbsBusinessEngine):
         y_pred = predictor(x).detach().numpy()
         y_pred = y_scaler.inverse_transform(y_pred)[0]
 
-        # ahu.kw, ahu.at, ahu.dat = y_pred
+        ahu.kw, ahu.at, ahu.dat = y_pred
 
         ########################################################################
-        ahu.kw = max(y_pred[0], self._statistics["kw"]["min"])
-        ahu.at = max(y_pred[1], self._statistics["at"]["min"])
-        ahu.dat = max(y_pred[2], self._statistics["dat"]["min"])
+        # ahu.kw = max(y_pred[0], self._statistics["kw"]["min"])
+        # ahu.at = max(y_pred[1], self._statistics["at"]["min"])
+        # ahu.dat = max(y_pred[2], self._statistics["dat"]["min"])
 
     def _on_action_received(self, event: CascadeEvent):
         for action in event.payload:

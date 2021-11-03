@@ -18,13 +18,13 @@ def transform_data(scaler_x: MinMaxScaler(), scaler_y: MinMaxScaler(), x, y):
     return x_transformed, y_transformed
 
 def generate_dataset(
-    dataset_path: str, input_filename: str, input_dim: int,
+    dataset_dir: str, input_filename: str, input_dim: int,
     seed: int=123, split_random: bool=True,
     train_fraction: float=0.6, validation_fraction: float=0.2,
     lower_rescale_bound: float=-1, upper_rescale_bound: float=1,
 ):
     # Read the CSV input CSV file under the dataset dir
-    filepath = os.path.join(dataset_path, input_filename)
+    filepath = os.path.join(dataset_dir, input_filename)
     df = pd.read_csv(filepath, sep=',', delimiter=None, header='infer')
     df = df.dropna()
 
@@ -57,16 +57,16 @@ def generate_dataset(
 
     # Dump to files
     for subname in ["train", "val", "test", "scaler"]:
-        os.makedirs(os.path.join(dataset_path, subname), exist_ok=True)
+        os.makedirs(os.path.join(dataset_dir, subname), exist_ok=True)
 
     for x, y, subname in zip([x_train, x_val, x_test], [y_train, y_val, y_test], ["train", "val", "test"]):
-        with open(os.path.join(dataset_path, subname, f"{subname}_data.pickle"), "wb") as fp:
+        with open(os.path.join(dataset_dir, subname, f"{subname}_data.pickle"), "wb") as fp:
             pickle.dump(x, fp)
-        with open(os.path.join(dataset_path, subname, f"{subname}_target.pickle"), "wb") as fp:
+        with open(os.path.join(dataset_dir, subname, f"{subname}_target.pickle"), "wb") as fp:
             pickle.dump(y, fp)
 
-    joblib.dump(scaler_x, os.path.join(dataset_path, "scaler", "x_scaler.joblib"))
-    joblib.dump(scaler_y, os.path.join(dataset_path, "scaler", "y_scaler.joblib"))
+    joblib.dump(scaler_x, os.path.join(dataset_dir, "scaler", "x_scaler.joblib"))
+    joblib.dump(scaler_y, os.path.join(dataset_dir, "scaler", "y_scaler.joblib"))
 
     return x_train, y_train, x_val, y_val
 
