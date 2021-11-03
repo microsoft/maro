@@ -8,13 +8,13 @@ import torch
 
 from maro.rl.modeling_v2 import DiscretePolicyGradientNetwork
 from maro.rl.modeling_v2.critic_model import MultiDiscreteQCriticNetwork
-from maro.rl.policy_v2 import RLPolicy
+from maro.rl.policy_v2 import RLPolicyV2
 from maro.rl.policy_v2.buffer import MultiBuffer
 from maro.rl.policy_v2.policy_interfaces import MultiDiscreteActionMixin
 from maro.rl.utils import average_grads
 
 
-class MultiDiscreteActorCritic(MultiDiscreteActionMixin, RLPolicy):
+class MultiDiscreteActorCritic(MultiDiscreteActionMixin, RLPolicyV2):
     """
     References:
         MADDPG paper: https://arxiv.org/pdf/1706.02275.pdf

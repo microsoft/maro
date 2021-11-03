@@ -12,11 +12,11 @@ from maro.rl.modeling_v2 import DiscreteVActorCriticNet
 from maro.rl.utils import MsgKey, MsgTag, average_grads, discount_cumsum
 
 from .buffer import Buffer
-from .policy_base import RLPolicy
+from .policy_base import RLPolicyV2
 from .policy_interfaces import DiscreteActionMixin, VNetworkMixin
 
 
-class DiscreteActorCritic(VNetworkMixin, DiscreteActionMixin, RLPolicy):
+class DiscreteActorCritic(VNetworkMixin, DiscreteActionMixin, RLPolicyV2):
     """
     Actor Critic algorithm with separate policy and value models.
 

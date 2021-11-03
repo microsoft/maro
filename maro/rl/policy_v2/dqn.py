@@ -13,7 +13,7 @@ from maro.rl.modeling_v2 import DiscreteQNetwork
 from maro.rl.utils import MsgKey, MsgTag, average_grads
 from maro.utils import clone
 
-from .policy_base import RLPolicy
+from .policy_base import RLPolicyV2
 from .policy_interfaces import DiscreteQNetworkMixin
 from .replay import ReplayMemory
 
@@ -120,7 +120,7 @@ class PrioritizedExperienceReplay:
             return self._get(right, sampled_val - self._sum_tree[left])
 
 
-class DQN(DiscreteQNetworkMixin, RLPolicy):
+class DQN(DiscreteQNetworkMixin, RLPolicyV2):
     """The Deep-Q-Networks algorithm.
 
     See https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf for details.

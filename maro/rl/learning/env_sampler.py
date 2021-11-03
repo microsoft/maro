@@ -10,21 +10,75 @@ from typing import Callable, Dict
 import numpy as np
 
 from maro.communication import Proxy, SessionMessage, SessionType
-from maro.rl.policy import RLPolicy
+from maro.rl.policy import RLPolicy 
+from maro.rl.policy_v2 import RLPolicyV2
 from maro.rl.utils import MsgKey, MsgTag
 from maro.simulator import Env
-from maro.utils import Logger, clone
+from maro.utils import Logger
 
 from .helpers import get_rollout_finish_msg
 
 
-class SimpleAgentWrapper:
+class AbsAgentWrapper:
+    def __init__(self, agent2policy: Dict[str, str]) -> None:
+        self._agent2policy = agent2policy
+
+    @abstractmethod
+    def load(self, dir: str) -> None:
+        pass
+
+    @abstractmethod
+    def choose_action(self, states_by_agent: Dict[str, np.ndarray]) -> dict:
+        pass
+
+    @abstractmethod
+    def set_policy_states(self, policy_state_dict: dict) -> None:
+        pass
+
+    @abstractmethod
+    def explore(self) -> None:
+        pass
+
+    @abstractmethod
+    def exploit(self) -> None:
+        pass
+
+    @abstractmethod
+    def exploration_step(self) -> None:
+        pass
+
+    @abstractmethod
+    def get_rollout_info(self) -> dict:
+        pass
+
+    @abstractmethod
+    def get_exploration_params(self) -> dict:
+        pass
+
+    @abstractmethod
+    def record_transition(
+        self, agent: str, state: np.ndarray, action: dict, reward: float, next_state: np.ndarray, terminal: bool
+    ) -> None:
+        pass
+
+    @abstractmethod
+    def improve(self) -> None:
+        pass
+
+    @abstractmethod
+    def save(self, checkpoint_dir: str) -> None:
+        pass
+
+
+class SimpleAgentWrapper(AbsAgentWrapper):
     """Wrapper for multiple agents using multiple policies to expose simple single-agent interfaces."""
     def __init__(self, get_policy_func_dict: Dict[str, Callable], agent2policy: Dict[str, str]):
+        super().__init__(agent2policy)
         self.policy_dict = {policy_id: func(policy_id) for policy_id, func in get_policy_func_dict.items()}
-        self.agent2policy = agent2policy
         self.policy_by_agent = {agent: self.policy_dict[policy_id] for agent, policy_id in agent2policy.items()}
-        self._rl_policy_dict = {id_: policy for id_, policy in self.policy_dict.items() if isinstance(policy, RLPolicy)}
+        self._rl_policy_dict = {
+            id_: policy for id_, policy in self.policy_dict.items() if isinstance(policy, (RLPolicy, RLPolicyV2))
+        }
 
     def load(self, dir: str):
         for id_, policy in self.policy_dict.items():
@@ -35,8 +89,8 @@ class SimpleAgentWrapper:
     def choose_action(self, state_by_agent: Dict[str, np.ndarray]):
         states_by_policy, agents_by_policy = defaultdict(list), defaultdict(list)
         for agent, state in state_by_agent.items():
-            states_by_policy[self.agent2policy[agent]].append(state)
-            agents_by_policy[self.agent2policy[agent]].append(agent)
+            states_by_policy[self._agent2policy[agent]].append(state)
+            agents_by_policy[self._agent2policy[agent]].append(agent)
 
         action_by_agent = {}
         # compute the actions for local policies first while the inferences processes do their work.
@@ -70,8 +124,10 @@ class SimpleAgentWrapper:
     def get_exploration_params(self):
         return {id_: policy.get_exploration_params() for id_, policy in self._rl_policy_dict.items()}
 
-    def record_transition(self, agent: str, state, action, reward, next_state, terminal: bool):
-        if isinstance(self.policy_by_agent[agent], RLPolicy):
+    def record_transition(
+        self, agent: str, state: np.ndarray, action: dict, reward: float, next_state: np.ndarray, terminal: bool
+    ):
+        if isinstance(self.policy_by_agent[agent], (RLPolicy, RLPolicyV2)):
             self.policy_by_agent[agent].record(agent, state, action, reward, next_state, terminal)
 
     def improve(self):
@@ -83,20 +139,20 @@ class SimpleAgentWrapper:
             policy.save(path.join(checkpoint_dir, id_))
 
 
-class ParallelAgentWrapper:
+class ParallelAgentWrapper(AbsAgentWrapper):
     """Wrapper for multiple agents using multiple policies to expose simple single-agent interfaces.
 
     The policy instances are distributed across multiple processes to achieve parallel inference.
     """
     def __init__(self, get_policy_func_dict: Dict[str, Callable], agent2policy: Dict[str, str]):
-        self.agent2policy = agent2policy
+        super().__init__(agent2policy)
         self._inference_services = []
         self._conn = {}
         self._rl_conn = {}
 
         def _inference_service(id_, get_policy, conn):
             policy = get_policy(id_)
-            conn.send(isinstance(policy, RLPolicy))
+            conn.send(isinstance(policy, (RLPolicy, RLPolicyV2)))
             while True:
                 msg = conn.recv()
                 conn.send(getattr(policy, msg["type"])(*msg.get("args", ())))
@@ -123,8 +179,8 @@ class ParallelAgentWrapper:
     def choose_action(self, state_by_agent: Dict[str, np.ndarray]):
         states_by_policy, agents_by_policy = defaultdict(list), defaultdict(list)
         for agent, state in state_by_agent.items():
-            states_by_policy[self.agent2policy[agent]].append(state)
-            agents_by_policy[self.agent2policy[agent]].append(agent)
+            states_by_policy[self._agent2policy[agent]].append(state)
+            agents_by_policy[self._agent2policy[agent]].append(agent)
 
         # send state batch to inference processes for parallelized inference.
         for policy_id, conn in self._conn.items():
@@ -185,10 +241,10 @@ class ParallelAgentWrapper:
         return exploration_params
 
     def record_transition(self, agent: str, state, action, reward, next_state, terminal: bool):
-        self._conn[self.agent2policy[agent]].send(
+        self._conn[self._agent2policy[agent]].send(
             {"type": "record", "args": (agent, state, action, reward, next_state, terminal)}
         )
-        self._conn[self.agent2policy[agent]].recv()
+        self._conn[self._agent2policy[agent]].recv()
 
     def improve(self):
         for conn in self._rl_conn.values():
@@ -237,7 +293,7 @@ class AbsEnvSampler(ABC):
         self.env = None
 
         agent_wrapper_cls = ParallelAgentWrapper if parallel_inference else SimpleAgentWrapper
-        self.agent_wrapper = agent_wrapper_cls(get_policy_func_dict, agent2policy)
+        self.agent_wrapper: AbsAgentWrapper = agent_wrapper_cls(get_policy_func_dict, agent2policy)
 
         self.reward_eval_delay = reward_eval_delay
         self._state = None

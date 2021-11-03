@@ -93,14 +93,14 @@ class RuleBasedPolicy(AbsPolicy):
         pass
 
 
-class RLPolicy(ShapeCheckMixin, AbsPolicy):
+class RLPolicyV2(ShapeCheckMixin, AbsPolicy):
     """Policy that learns from simulation experiences.
     Reinforcement learning (RL) policies should inherit from this.
 
-    All concrete classes that inherit `RLPolicy` should implement the following abstract methods:
+    All concrete classes that inherit `RLPolicyV2` should implement the following abstract methods:
     - Declared in `AbsPolicy`:
         - _get_state_dim(self) -> int:
-    - Declared in `RLPolicy`:
+    - Declared in `RLPolicyV2`:
         - _call_impl(self, states: np.ndarray) -> Iterable:
         - record(self, ...) -> None:
         - get_rollout_info(self) -> object:
@@ -121,7 +121,7 @@ class RLPolicy(ShapeCheckMixin, AbsPolicy):
             name (str): Name of the policy.
             device (str): Device that uses to train the Torch model.
         """
-        super(RLPolicy, self).__init__(name)
+        super(RLPolicyV2, self).__init__(name)
         self._exploration_params = {}
         self._exploring = True
         self._proxy = Optional[Proxy]

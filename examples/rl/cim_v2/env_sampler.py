@@ -6,7 +6,7 @@ import sys
 
 import numpy as np
 
-from maro.rl.learning.env_sampler_v2 import AbsEnvSampler
+from maro.rl.learning import AbsEnvSampler
 from maro.simulator import Env
 from maro.simulator.scenarios.cim.common import Action, ActionType
 

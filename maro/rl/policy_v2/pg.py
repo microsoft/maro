@@ -12,11 +12,11 @@ from maro.rl.modeling_v2 import DiscretePolicyGradientNetwork
 from maro.rl.utils import MsgKey, MsgTag, average_grads, discount_cumsum
 
 from .buffer import Buffer
-from .policy_base import RLPolicy
+from .policy_base import RLPolicyV2
 from .policy_interfaces import DiscreteActionMixin
 
 
-class DiscretePolicyGradient(DiscreteActionMixin, RLPolicy):
+class DiscretePolicyGradient(DiscreteActionMixin, RLPolicyV2):
     """The vanilla Policy Gradient (VPG) algorithm, a.k.a., REINFORCE.
 
     Reference: https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch.
