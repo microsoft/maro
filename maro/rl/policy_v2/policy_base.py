@@ -141,6 +141,12 @@ class RLPolicyV2(ShapeCheckMixin, AbsPolicy):
         """Switch the policy to the exploiting mode."""
         self._exploring = False
 
+    def get_exploration_params(self):
+        pass
+
+    def exploration_step(self):
+        pass
+
     def __call__(self, states: np.ndarray) -> Iterable:
         assert self._shape_check(states, None)
         return self._call_impl(states)

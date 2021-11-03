@@ -30,10 +30,10 @@ class DDPG(RLPolicy):
         update_target_every (int): Number of training rounds between policy target model updates.
         q_value_loss_cls: A string indicating a loss class provided by torch.nn or a custom loss class for
             the Q-value loss. If it is a string, it must be a key in ``TORCH_LOSS``. Defaults to "mse".
-        q_value_loss_coeff (float): Coefficient for policy loss in the total loss function, e.g.,
-            loss = policy_loss + ``q_value_loss_coeff`` * q_value_loss. Defaults to 1.0.
-        soft_update_coeff (float): Soft update coefficient, e.g., target_model = (soft_update_coeff) * eval_model +
-            (1-soft_update_coeff) * target_model. Defaults to 1.0.
+        q_value_loss_coef (float): Coefficient for policy loss in the total loss function, e.g.,
+            loss = policy_loss + ``q_value_loss_coef`` * q_value_loss. Defaults to 1.0.
+        soft_update_coef (float): Soft update coeficient, e.g., target_model = (soft_update_coef) * eval_model +
+            (1-soft_update_coef) * target_model. Defaults to 1.0.
         exploration_strategy (Tuple[Callable, dict]): A 2-tuple that consists of a) a function that takes a state
             (single or batch), an action (single or batch), the total number of possible actions and a set of keyword
             arguments, and returns an exploratory action (single or batch depending on the input), and b) a dictionary
@@ -65,8 +65,8 @@ class DDPG(RLPolicy):
         num_epochs: int = 1,
         update_target_every: int = 5,
         q_value_loss_cls="mse",
-        q_value_loss_coeff: float = 1.0,
-        soft_update_coeff: float = 1.0,
+        q_value_loss_coef: float = 1.0,
+        soft_update_coef: float = 1.0,
         exploration_strategy: Tuple[Callable, dict] = (gaussian_noise, {"mean": .0, "stddev": 1.0, "relative": False}),
         exploration_scheduling_options: List[tuple] = [],
         replay_memory_capacity: int = 1000000,
@@ -97,8 +97,8 @@ class DDPG(RLPolicy):
         self.num_epochs = num_epochs
         self.update_target_every = update_target_every
         self.q_value_loss_func = q_value_loss_cls()
-        self.q_value_loss_coeff = q_value_loss_coeff
-        self.soft_update_coeff = soft_update_coeff
+        self.q_value_loss_coef = q_value_loss_coef
+        self.soft_update_coef = soft_update_coef
 
         self._ac_net_version = 0
         self._target_ac_net_version = 0
@@ -188,7 +188,7 @@ class DDPG(RLPolicy):
         q_values = self.ac_net(states, actions=actual_actions).squeeze(dim=1)  # (N,)
         q_loss = self.q_value_loss_func(q_values, target_q_values)
         policy_loss = -self.ac_net.value(states).mean()
-        loss = policy_loss + self.q_value_loss_coeff * q_loss
+        loss = policy_loss + self.q_value_loss_coef * q_loss
         loss_info = {
             "policy_loss": policy_loss.detach().cpu().numpy(),
             "q_loss": q_loss.detach().cpu().numpy(),
@@ -250,7 +250,7 @@ class DDPG(RLPolicy):
 
     def _update_target(self):
         # soft-update target network
-        self.target_ac_net.soft_update(self.ac_net, self.soft_update_coeff)
+        self.target_ac_net.soft_update(self.ac_net, self.soft_update_coef)
         self._target_ac_net_version = self._ac_net_version
 
     def get_exploration_params(self):

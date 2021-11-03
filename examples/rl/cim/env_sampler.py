@@ -18,7 +18,7 @@ from config import (
     action_shaping_conf, algorithm, env_conf, port_attributes, reward_shaping_conf, state_shaping_conf,
     vessel_attributes
 )
-from policies import policy_func_dict
+from policies_v2 import policy_func_dict
 
 
 class CIMEnvSampler(AbsEnvSampler):

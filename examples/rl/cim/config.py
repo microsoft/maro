@@ -63,7 +63,7 @@ dqn_conf = {
     "reward_discount": .0,
     "update_target_every": 5,
     "num_epochs": 10,
-    "soft_update_coeff": 0.1,
+    "soft_update_coef": 0.1,
     "double": False,
     "exploration_strategy": (epsilon_greedy, {"epsilon": 0.4}),
     "exploration_scheduling_options": [(
@@ -117,8 +117,8 @@ ac_conf = {
     "grad_iters": 10,
     "critic_loss_cls": torch.nn.SmoothL1Loss,
     "min_logp": None,
-    "critic_loss_coeff": 0.1,
-    "entropy_coeff": 0.01,
+    "critic_loss_coef": 0.1,
+    "entropy_coef": 0.01,
     # "clip_ratio": 0.8   # for PPO
     "lam": .0,
     "get_loss_on_rollout": False

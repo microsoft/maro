@@ -132,7 +132,7 @@ class DQN(DiscreteQNetworkMixin, RLPolicyV2):
         num_epochs (int): Number of training epochs per call to ``learn``. Defaults to 1.
         update_target_every (int): Number of gradient steps between target model updates.
         soft_update_coef (float): Soft update coefficient, e.g.,
-            target_model = (soft_update_coeff) * eval_model + (1-soft_update_coeff) * target_model.
+            target_model = (soft_update_coef) * eval_model + (1-soft_update_coef) * target_model.
             Defaults to 1.0.
         double (bool): If True, the next Q values will be computed according to the double DQN algorithm,
             i.e., q_next = Q_target(s, argmax(Q_eval(s, a))). Otherwise, q_next = max(Q_target(s, a)).
@@ -424,6 +424,9 @@ class DQN(DiscreteQNetworkMixin, RLPolicyV2):
             # build dummy computation graph before apply gradients.
             _ = self.get_batch_loss(self._get_batch(), explicit_grad=True)
             self.update(loss_info_by_policy[self._name])
+
+    def get_exploration_params(self):
+        return clone(self._exploration_params)
 
     def exploration_step(self) -> None:
         """Update the exploration parameters according to the exploration scheduler."""

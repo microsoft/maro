@@ -78,8 +78,8 @@ class ActorCritic(RLPolicy):
             the critic loss. If it is a string, it must be a key in ``TORCH_LOSS``. Defaults to "mse".
         min_logp (float): Lower bound for clamping logP values during learning. This is to prevent logP from becoming
             very large in magnitude and causing stability issues. Defaults to None, which means no lower bound.
-        critic_loss_coeff (float): Coefficient for critic loss in total loss. Defaults to 1.0.
-        entropy_coeff (float): Coefficient for the entropy term in total loss. Defaults to None, in which case the
+        critic_loss_coef (float): Coefficient for critic loss in total loss. Defaults to 1.0.
+        entropy_coef (float): Coefficient for the entropy term in total loss. Defaults to None, in which case the
             total loss will not include an entropy term.
         clip_ratio (float): Clip ratio in the PPO algorithm (https://arxiv.org/pdf/1707.06347.pdf). Defaults to None,
             in which case the actor loss is calculated using the usual policy gradient theorem.
@@ -102,8 +102,8 @@ class ActorCritic(RLPolicy):
         grad_iters: int = 1,
         critic_loss_cls="mse",
         min_logp: float = None,
-        critic_loss_coeff: float = 1.0,
-        entropy_coeff: float = .0,
+        critic_loss_coef: float = 1.0,
+        entropy_coef: float = .0,
         clip_ratio: float = None,
         lam: float = 0.9,
         max_trajectory_len: int = 10000,
@@ -123,8 +123,8 @@ class ActorCritic(RLPolicy):
         self.grad_iters = grad_iters
         self.critic_loss_func = critic_loss_cls()
         self.min_logp = min_logp
-        self.critic_loss_coeff = critic_loss_coeff
-        self.entropy_coeff = entropy_coeff
+        self.critic_loss_coef = critic_loss_coef
+        self.entropy_coef = entropy_coef
         self.clip_ratio = clip_ratio
         self.lam = lam
         self.max_trajectory_len = max_trajectory_len
@@ -197,6 +197,7 @@ class ActorCritic(RLPolicy):
             explicit_grad (bool): If True, the gradients should be returned as part of the loss information. Defaults
                 to False.
         """
+        print(f"{self.name} training...")
         self.ac_net.train()
         states = torch.from_numpy(batch["states"]).to(self.device)
         actions = torch.from_numpy(batch["actions"]).to(self.device)
@@ -220,15 +221,15 @@ class ActorCritic(RLPolicy):
         # critic_loss
         critic_loss = self.critic_loss_func(state_values, returns)
         # entropy
-        entropy = -Categorical(action_probs).entropy().mean() if self.entropy_coeff else 0
+        entropy = -Categorical(action_probs).entropy().mean() if self.entropy_coef else 0
 
         # total loss
-        loss = actor_loss + self.critic_loss_coeff * critic_loss + self.entropy_coeff * entropy
+        loss = actor_loss + self.critic_loss_coef * critic_loss + self.entropy_coef * entropy
 
         loss_info = {
             "actor_loss": actor_loss.detach().cpu().numpy(),
             "critic_loss": critic_loss.detach().cpu().numpy(),
-            "entropy": entropy.detach().cpu().numpy() if self.entropy_coeff else .0,
+            "entropy": entropy.detach().cpu().numpy() if self.entropy_coef else .0,
             "loss": loss.detach().cpu().numpy() if explicit_grad else loss
         }
         if explicit_grad:

@@ -75,7 +75,7 @@ ac_conf = {
     "reward_discount": 0.9,
     "grad_iters": 100,
     "critic_loss_cls": torch.nn.MSELoss,
-    "critic_loss_coeff": 0.1,
+    "critic_loss_coef": 0.1,
     "min_logp": -20,
     "max_trajectory_len": 10000,
     "get_loss_on_rollout": False
@@ -109,7 +109,7 @@ dqn_conf = {
     "reward_discount": 0.9,
     "update_target_every": 5,
     "num_epochs": 100,
-    "soft_update_coeff": 0.1,
+    "soft_update_coef": 0.1,
     "double": False,
     "exploration_strategy": (masked_eps_greedy, {"epsilon": 0.4}),
     "exploration_scheduling_options": [(

@@ -128,8 +128,8 @@ class DQN(RLPolicy):
         reward_discount (float): Reward decay as defined in standard RL terminology.
         num_epochs (int): Number of training epochs per call to ``learn``. Defaults to 1.
         update_target_every (int): Number of gradient steps between target model updates.
-        soft_update_coeff (float): Soft update coefficient, e.g.,
-            target_model = (soft_update_coeff) * eval_model + (1-soft_update_coeff) * target_model.
+        soft_update_coef (float): Soft update coeficient, e.g.,
+            target_model = (soft_update_coef) * eval_model + (1-soft_update_coef) * target_model.
             Defaults to 1.0.
         double (bool): If True, the next Q values will be computed according to the double DQN algorithm,
             i.e., q_next = Q_target(s, argmax(Q_eval(s, a))). Otherwise, q_next = max(Q_target(s, a)).
@@ -167,7 +167,7 @@ class DQN(RLPolicy):
         reward_discount: float = 0.9,
         num_epochs: int = 1,
         update_target_every: int = 5,
-        soft_update_coeff: float = 0.1,
+        soft_update_coef: float = 0.1,
         double: bool = False,
         exploration_strategy: Tuple[Callable, dict] = (epsilon_greedy, {"epsilon": 0.1}),
         exploration_scheduling_options: List[tuple] = [],
@@ -203,7 +203,7 @@ class DQN(RLPolicy):
         self.reward_discount = reward_discount
         self.num_epochs = num_epochs
         self.update_target_every = update_target_every
-        self.soft_update_coeff = soft_update_coeff
+        self.soft_update_coef = soft_update_coef
         self.double = double
 
         self._replay_memory = ReplayMemory(
@@ -369,7 +369,7 @@ class DQN(RLPolicy):
                 self._update_target()
 
     def _update_target(self):
-        self.target_q_net.soft_update(self.q_net, self.soft_update_coeff)
+        self.target_q_net.soft_update(self.q_net, self.soft_update_coef)
         self._target_q_net_version = self._q_net_version
 
     def learn_with_data_parallel(self, batch: dict):
