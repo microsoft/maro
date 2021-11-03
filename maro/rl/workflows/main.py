@@ -8,7 +8,6 @@ from maro.rl.learning.helpers import get_rollout_finish_msg
 from maro.rl.workflows.helpers import from_env, get_eval_schedule, get_log_dir, get_scenario_module
 from maro.utils import Logger
 
-
 if __name__ == "__main__":
     # get user-defined scenario ingredients
     scenario = get_scenario_module(from_env("SCENARIODIR"))

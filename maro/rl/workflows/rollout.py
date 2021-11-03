@@ -5,7 +5,6 @@ import os
 
 from maro.rl.workflows.helpers import from_env, get_log_dir, get_scenario_module
 
-
 if __name__ == "__main__":
     mode = from_env("MODE")
     env_sampler = getattr(get_scenario_module(from_env("SCENARIODIR")), "get_env_sampler")()

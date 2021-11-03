@@ -9,7 +9,6 @@ from maro.rl.utils import MsgKey, MsgTag
 from maro.rl.workflows.helpers import from_env, get_log_dir, get_scenario_module
 from maro.utils import Logger
 
-
 if __name__ == "__main__":
     # TODO: WORKERID in docker compose script.
     policy_func_dict = getattr(get_scenario_module(from_env("SCENARIODIR")), "policy_func_dict")

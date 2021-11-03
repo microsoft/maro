@@ -6,7 +6,6 @@ import os
 from maro.rl.data_parallelism import task_queue
 from maro.rl.workflows.helpers import from_env, get_log_dir, get_scenario_module
 
-
 if __name__ == "__main__":
     num_hosts = from_env("NUMHOSTS", required=False, default=0)
     policy_func_dict = getattr(get_scenario_module(from_env("SCENARIODIR")), "policy_func_dict")

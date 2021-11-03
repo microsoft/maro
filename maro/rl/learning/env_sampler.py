@@ -10,7 +10,7 @@ from typing import Callable, Dict
 import numpy as np
 
 from maro.communication import Proxy, SessionMessage, SessionType
-from maro.rl.policy import RLPolicy 
+from maro.rl.policy import RLPolicy
 from maro.rl.policy_v2 import RLPolicyV2
 from maro.rl.utils import MsgKey, MsgTag
 from maro.simulator import Env
