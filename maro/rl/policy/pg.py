@@ -100,7 +100,7 @@ class PolicyGradient(RLPolicy):
         """
         self.policy_net.eval()
         with torch.no_grad():
-            actions, logps = self.policy_net.get_action(states, greedy=self.greedy)
+            actions, logps = self.policy_net.get_action(states, greedy=not self._exploring)
         actions, logps = actions.cpu().numpy(), logps.cpu().numpy()
         return [{"action": action, "logp": logp} for action, logp in zip(actions, logps)]
 

@@ -24,6 +24,7 @@ class SimpleAgentWrapper:
         self.policy_dict = {policy_id: func(policy_id) for policy_id, func in get_policy_func_dict.items()}
         self.agent2policy = agent2policy
         self.policy_by_agent = {agent: self.policy_dict[policy_id] for agent, policy_id in agent2policy.items()}
+        self._rl_policy_dict = {id_: policy for id_, policy in self.policy_dict.items() if isinstance(policy, RLPolicy)}
 
     def load(self, dir: str):
         for id_, policy in self.policy_dict.items():
@@ -52,42 +53,34 @@ class SimpleAgentWrapper:
             self.policy_dict[policy_id].set_state(policy_state)
 
     def explore(self):
-        for policy in self.policy_dict.values():
-            if hasattr(policy, "greedy"):
-                policy.greedy = False
+        for policy in self._rl_policy_dict.values():
+            policy.explore()
 
     def exploit(self):
-        for policy in self.policy_dict.values():
-            if hasattr(policy, "greedy"):
-                policy.greedy = True
+        for policy in self._rl_policy_dict.values():
+            policy.exploit()
 
     def exploration_step(self):
-        for policy in self.policy_dict.values():
-            if hasattr(policy, "exploration_step"):
-                policy.exploration_step()
+        for policy in self._rl_policy_dict.values():
+            policy.exploration_step()
 
     def get_rollout_info(self):
-        return {
-            policy_id: policy.get_rollout_info() for policy_id, policy in self.policy_dict.items()
-            if isinstance(policy, RLPolicy)
-        }
+        return {id_: policy.get_rollout_info() for id_, policy in self._rl_policy_dict.items()}
 
     def get_exploration_params(self):
-        return {
-            policy_id: clone(policy.exploration_params) for policy_id, policy in self.policy_dict.items()
-            if isinstance(policy, RLPolicy)
-        }
+        return {id_: policy.get_exploration_params() for id_, policy in self._rl_policy_dict.items()}
 
     def record_transition(self, agent: str, state, action, reward, next_state, terminal: bool):
         if isinstance(self.policy_by_agent[agent], RLPolicy):
             self.policy_by_agent[agent].record(agent, state, action, reward, next_state, terminal)
 
-    def improve(self, checkpoint_dir: str = None):
-        for id_, policy in self.policy_dict.items():
-            if hasattr(policy, "improve"):
-                policy.improve()
-                if checkpoint_dir:
-                    policy.save(path.join(checkpoint_dir, id_))
+    def improve(self):
+        for policy in self._rl_policy_dict.values():
+            policy.improve()
+
+    def save(self, checkpoint_dir: str):
+        for id_, policy in self._rl_policy_dict.items():
+            policy.save(path.join(checkpoint_dir, id_))
 
 
 class ParallelAgentWrapper:
@@ -99,49 +92,14 @@ class ParallelAgentWrapper:
         self.agent2policy = agent2policy
         self._inference_services = []
         self._conn = {}
+        self._rl_conn = {}
 
         def _inference_service(id_, get_policy, conn):
             policy = get_policy(id_)
+            conn.send(isinstance(policy, RLPolicy))
             while True:
                 msg = conn.recv()
-                if msg["type"] == "load":
-                    if hasattr(policy, "load"):
-                        policy.load(path.join(msg["dir"], id_))
-                elif msg["type"] == "choose_action":
-                    actions = policy(msg["states"])
-                    conn.send(actions)
-                elif msg["type"] == "set_state":
-                    if hasattr(policy, "set_state"):
-                        policy.set_state(msg["policy_state"])
-                elif msg["type"] == "explore":
-                    if hasattr(policy, "greedy"):
-                        policy.greedy = False
-                elif msg["type"] == "exploit":
-                    if hasattr(policy, "greedy"):
-                        policy.greedy = True
-                elif msg["type"] == "exploration_step":
-                    if hasattr(policy, "exploration_step"):
-                        policy.exploration_step()
-                elif msg["type"] == "rollout_info":
-                    conn.send(policy.get_rollout_info() if hasattr(policy, "get_rollout_info") else None)
-                elif msg["type"] == "exploration_params":
-                    conn.send(policy.exploration_params if hasattr(policy, "exploration_params") else None)
-                elif msg["type"] == "record":
-                    if hasattr(policy, "record"):
-                        policy.record(
-                            msg["agent"], msg["state"], msg["action"], msg["reward"], msg["next_state"], msg["terminal"]
-                        )
-                elif msg["type"] == "update":
-                    if hasattr(policy, "update"):
-                        policy.update(msg["loss_info"])
-                elif msg["type"] == "learn":
-                    if hasattr(policy, "learn"):
-                        policy.learn(msg["batch"])
-                elif msg["type"] == "improve":
-                    if hasattr(policy, "improve"):
-                        policy.improve()
-                        if msg["checkpoint_dir"]:
-                            policy.save(path.join(msg["checkpoint_dir"], id_))
+                conn.send(getattr(policy, msg["type"])(*msg.get("args", ())))
 
         for policy_id in get_policy_func_dict:
             conn1, conn2 = Pipe()
@@ -153,10 +111,14 @@ class ParallelAgentWrapper:
             )
             self._inference_services.append(host)
             host.start()
+            if conn1.recv():
+                self._rl_conn[policy_id] = conn1
 
     def load(self, dir: str):
-        for conn in self._conn.values():
-            conn.send({"type": "load", "dir": dir})
+        for id_, conn in self._rl_conn.items():
+            conn.send({"type": "load", "args": (path.join(dir, id_),)})
+        for conn in self._rl_conn.values():
+            conn.recv()
 
     def choose_action(self, state_by_agent: Dict[str, np.ndarray]):
         states_by_policy, agents_by_policy = defaultdict(list), defaultdict(list)
@@ -167,7 +129,7 @@ class ParallelAgentWrapper:
         # send state batch to inference processes for parallelized inference.
         for policy_id, conn in self._conn.items():
             if states_by_policy[policy_id]:
-                conn.send({"type": "choose_action", "states": np.vstack(states_by_policy[policy_id])})
+                conn.send({"type": "__call__", "args": (np.vstack(states_by_policy[policy_id]),)})
 
         action_by_agent = {}
         for policy_id, conn in self._conn.items():
@@ -177,39 +139,45 @@ class ParallelAgentWrapper:
         return action_by_agent
 
     def set_policy_states(self, policy_state_dict: dict):
-        for policy_id, conn in self._conn.items():
-            conn.send({"type": "set_state", "policy_state": policy_state_dict[policy_id]})
+        for policy_id, conn in self._rl_conn.items():
+            conn.send({"type": "set_state", "args": (policy_state_dict[policy_id],)})
+        for conn in self._rl_conn.values():
+            conn.recv()
 
     def explore(self):
-        for conn in self._conn.values():
+        for conn in self._rl_conn.values():
             conn.send({"type": "explore"})
+        for conn in self._rl_conn.values():
+            conn.recv()
 
     def exploit(self):
-        for conn in self._conn.values():
+        for conn in self._rl_conn.values():
             conn.send({"type": "exploit"})
+        for conn in self._rl_conn.values():
+            conn.recv()
 
     def exploration_step(self):
-        for conn in self._conn.values():
+        for conn in self._rl_conn.values():
             conn.send({"type": "exploration_step"})
+        for conn in self._rl_conn.values():
+            conn.recv()
 
     def get_rollout_info(self):
         rollout_info = {}
-        for conn in self._conn.values():
+        for conn in self._rl_conn.values():
             conn.send({"type": "rollout_info"})
 
-        for policy_id, conn in self._conn.items():
-            info = conn.recv()
-            if info:
-                rollout_info[policy_id] = info
+        for policy_id, conn in self._rl_conn.items():
+            rollout_info[policy_id] = conn.recv()
 
         return rollout_info
 
     def get_exploration_params(self):
         exploration_params = {}
-        for conn in self._conn.values():
-            conn.send({"type": "exploration_params"})
+        for conn in self._rl_conn.values():
+            conn.send({"type": "get_exploration_params"})
 
-        for policy_id, conn in self._conn.items():
+        for policy_id, conn in self._rl_conn.items():
             params = conn.recv()
             if params:
                 exploration_params[policy_id] = params
@@ -217,14 +185,22 @@ class ParallelAgentWrapper:
         return exploration_params
 
     def record_transition(self, agent: str, state, action, reward, next_state, terminal: bool):
-        self._conn[self.agent2policy[agent]].send({
-            "type": "record", "agent": agent, "state": state, "action": action, "reward": reward,
-            "next_state": next_state, "terminal": terminal
-        })
+        self._conn[self.agent2policy[agent]].send(
+            {"type": "record", "args": (agent, state, action, reward, next_state, terminal)}
+        )
+        self._conn[self.agent2policy[agent]].recv()
 
-    def improve(self, checkpoint_dir: str = None):
-        for conn in self._conn.values():
-            conn.send({"type": "improve", "checkpoint_dir": checkpoint_dir})
+    def improve(self):
+        for conn in self._rl_conn.values():
+            conn.send({"type": "improve"})
+        for conn in self._rl_conn.values():
+            conn.recv()
+
+    def save(self, checkpoint_dir: str):
+        for id_, conn in self._rl_conn.items():
+            conn.send({"type": "save", "args": (path.join(checkpoint_dir, id_),)})
+        for conn in self._rl_conn.values():
+            conn.recv()
 
 
 class AbsEnvSampler(ABC):
@@ -265,42 +241,57 @@ class AbsEnvSampler(ABC):
 
         self.reward_eval_delay = reward_eval_delay
         self._state = None
-        self._event = None
         self._step_index = 0
 
         self._transition_cache = defaultdict(deque)  # for caching transitions whose rewards have yet to be evaluated
         self.tracker = {}  # User-defined tracking information is placed here.
 
-    @property
-    def event(self):
-        return self._event
-
     @abstractmethod
-    def get_state(self, tick: int = None) -> dict:
-        """Compute the state for a given tick.
+    def get_state(self, event, tick: int = None) -> dict:
+        """Extract state for an event.
+
+        It may be necessary to obtain extra information from the ``env`` attribute, i.e., ``self.env`` to construct
+        the state required for your algorithm in addition to the information contained in ``event``.
 
         Args:
-            tick (int): The tick for which to compute the environmental state. If computing the current state,
-                use tick=self.env.tick.
+            event: The decision event that prompts an action.
+            tick (int): The tick at which the event occurred. If computing the current state, this may be ignored as
+                you can always get the current tick from ``self.env.tick()``.
+
         Returns:
-            A dictionary with (agent ID, state) as key-value pairs.
+            A dictionary of (agent ID, state) that contains the constructed states for the agents in question.
         """
         raise NotImplementedError
 
     @abstractmethod
-    def get_env_actions(self, action) -> dict:
-        """Convert policy outputs to an action that can be executed by ``self.env.step()``."""
+    def get_env_action(self, action: dict, event) -> dict:
+        """Convert policy outputs to an action that can be executed by ``self.env.step()``.
+
+        Args:
+            action (dict): A dictionary of (agent ID, policy output) where "policy output" is the output of the policy
+                to which the agent is mapped.
+            event: The decision event to which the action corresponds
+
+        Returns:
+            A dictionary of (agent ID, action obj) where "action obj" is an action object that can be executed by
+                the environment, i.e., ``env.step()``.
+        """
         raise NotImplementedError
 
     @abstractmethod
-    def get_reward(self, actions: list, tick: int):
+    def get_reward(self, env_action: dict, tick: int) -> Dict[str, float]:
         """Evaluate the reward for an action.
+
         Args:
-            tick (int): Evaluate the reward for the actions that occured at the given tick. Each action in
-                ``actions`` must be an Action object defined for the environment in question.
+            env_action: The action to assign rewards to. This should be the result of a previous call to
+                ``get_env_action`` and contain actual action objects.
+            tick (int): The tick at which ``env_action`` was taken. This is needed for delayed reward evaluation.
+                If computing the current state, this may be ignored as you can always get the current tick from
+                ``self.env.tick()``.
 
         Returns:
-            A dictionary with (agent ID, reward) as key-value pairs.
+            A dictionary of (agent ID, reward) that contains the scalar rewards for the agents involved in
+                ``env_action``.
         """
         raise NotImplementedError
 
@@ -312,8 +303,8 @@ class AbsEnvSampler(ABC):
             self._step_index = 0
             self._transition_cache.clear()
             self.tracker.clear()
-            _, self._event, _ = self.env.step(None)
-            self._state = self.get_state()
+            _, event, _ = self.env.step(None)
+            self._state = self.get_state(event)
 
         # set policy states
         if policy_state_dict:
@@ -324,11 +315,11 @@ class AbsEnvSampler(ABC):
         steps_to_go = float("inf") if num_steps == -1 else num_steps
         while self._state and steps_to_go > 0:
             action = self.agent_wrapper.choose_action(self._state)
-            env_actions = self.get_env_actions(action)
+            env_action = self.get_env_action(action, event)
             for agent, state in self._state.items():
-                self._transition_cache[agent].append((state, action[agent], env_actions, self.env.tick))
-            _, self._event, done = self.env.step(env_actions)
-            self._state = None if done else self.get_state()
+                self._transition_cache[agent].append((state, action[agent], env_action, self.env.tick))
+            _, event, done = self.env.step(list(env_action.values()))
+            self._state = None if done else self.get_state(event)
             self._step_index += 1
             steps_to_go -= 1
 
@@ -338,9 +329,9 @@ class AbsEnvSampler(ABC):
         """
         for agent, cache in self._transition_cache.items():
             while cache and (not self._state or self.env.tick - cache[0][-1] >= self.reward_eval_delay):
-                state, action, env_actions, tick = cache.popleft()
-                reward = self.get_reward(env_actions, tick)
-                self.post_step(state, action, env_actions, reward, tick)
+                state, action, env_action, tick = cache.popleft()
+                reward = self.get_reward(env_action, tick)
+                self.post_step(state, action, env_action, reward, tick)
                 self.agent_wrapper.record_transition(
                     agent, state, action, reward[agent], cache[0][0] if cache else self._state,
                     not cache and not self._state
@@ -371,14 +362,14 @@ class AbsEnvSampler(ABC):
         self.env.reset()
         terminal = False
         # get initial state
-        _, self._event, _ = self.env.step(None)
-        state = self.get_state()
+        _, event, _ = self.env.step(None)
+        state = self.get_state(event)
         while not terminal:
             action = self.agent_wrapper.choose_action(state)
-            env_actions = self.get_env_actions(action)
-            _, self._event, terminal = self.env.step(env_actions)
+            env_action = self.get_env_action(action, event)
+            _, event, terminal = self.env.step(list(env_action.values()))
             if not terminal:
-                state = self.get_state()
+                state = self.get_state(event)
 
         return self.tracker
 

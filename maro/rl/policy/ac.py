@@ -143,7 +143,7 @@ class ActorCritic(RLPolicy):
         if len(states.shape) == 1:
             states = states.unsqueeze(dim=0)
         with torch.no_grad():
-            actions, logps, values = self.ac_net.get_action(states, greedy=self.greedy)
+            actions, logps, values = self.ac_net.get_action(states, greedy=not self._exploring)
         actions, logps, values = actions.cpu().numpy(), logps.cpu().numpy(), values.cpu().numpy()
         return [
             {"action": action, "logp": logp, "value": value} for action, logp, value in zip(actions, logps, values)

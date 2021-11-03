@@ -236,10 +236,10 @@ class DQN(RLPolicy):
             q_for_all_actions = self.q_net(states)  # (batch_size, num_actions)
             _, actions = q_for_all_actions.max(dim=1)
 
-        if self.greedy:
-            return actions.cpu().numpy()
-        else:
+        if self._exploring:
             return self.exploration_func(states, actions.cpu().numpy(), self._num_actions, **self._exploration_params)
+        else:
+            return actions.cpu().numpy()
 
     def record(
         self,
@@ -387,6 +387,9 @@ class DQN(RLPolicy):
             # build dummy computation graph before apply gradients.
             _ = self.get_batch_loss(self._get_batch(), explicit_grad=True)
             self.update(loss_info_by_policy[self._name])
+
+    def get_exploration_params(self):
+        return clone(self._exploration_params)
 
     def exploration_step(self):
         """Update the exploration parameters according to the exploration scheduler."""

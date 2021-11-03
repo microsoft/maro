@@ -22,15 +22,14 @@ from policies import policy_func_dict
 
 
 class CIMEnvSampler(AbsEnvSampler):
-    def get_state(self, tick=None):
+    def get_state(self, event, tick=None):
         """
         The state vector includes shortage and remaining vessel space over the past k days (where k is the "look_back"
         value in ``state_shaping_conf``), as well as all downstream port features.
         """
-        if tick is None:
-            tick = self.env.tick
+        tick = self.env.tick
         vessel_snapshots, port_snapshots = self.env.snapshot_list["vessels"], self.env.snapshot_list["ports"]
-        port_idx, vessel_idx = self.event.port_idx, self.event.vessel_idx
+        port_idx, vessel_idx = event.port_idx, event.vessel_idx
         ticks = [max(0, tick - rt) for rt in range(state_shaping_conf["look_back"] - 1)]
         future_port_list = vessel_snapshots[tick: vessel_idx: 'future_stop_list'].astype('int')
         state = np.concatenate([
@@ -39,7 +38,7 @@ class CIMEnvSampler(AbsEnvSampler):
         ])
         return {port_idx: state}
 
-    def get_env_actions(self, action_by_agent):
+    def get_env_action(self, action_by_agent, event):
         """
         The policy output is an integer from [0, 20] which is to be interpreted as the index of ``action_space`` in
         ``action_shaping_conf``. For example, action 5 corresponds to -0.5, which means loading 50% of the containers
@@ -51,7 +50,7 @@ class CIMEnvSampler(AbsEnvSampler):
         has_early_discharge = action_shaping_conf["has_early_discharge"]
 
         port_idx, action = list(action_by_agent.items()).pop()
-        vsl_idx, action_scope = self.event.vessel_idx, self.event.action_scope
+        vsl_idx, action_scope = event.vessel_idx, event.action_scope
         vsl_snapshots = self.env.snapshot_list["vessels"]
         vsl_space = vsl_snapshots[self.env.tick:vsl_idx:vessel_attributes][2] if finite_vsl_space else float("inf")
 
@@ -69,9 +68,9 @@ class CIMEnvSampler(AbsEnvSampler):
         else:
             actual_action, action_type = 0, None
 
-        return [Action(port_idx=port_idx, vessel_idx=vsl_idx, quantity=actual_action, action_type=action_type)]
+        return {port_idx: Action(vsl_idx, port_idx, actual_action, action_type)}
 
-    def get_reward(self, actions, tick):
+    def get_reward(self, env_action, tick):
         """
         The reward is defined as a linear combination of fulfillment and shortage measures. The fulfillment and
         shortage measures are the sums of fulfillment and shortage values over the next k days, respectively, each
@@ -83,7 +82,7 @@ class CIMEnvSampler(AbsEnvSampler):
         ticks = list(range(start_tick, start_tick + reward_shaping_conf["time_window"]))
 
         # Get the ports that took actions at the given tick
-        ports = [action.port_idx for action in actions]
+        ports = list(env_action.keys())
         port_snapshots = self.env.snapshot_list["ports"]
         future_fulfillment = port_snapshots[ticks:ports:"fulfillment"].reshape(len(ticks), -1)
         future_shortage = port_snapshots[ticks:ports:"shortage"].reshape(len(ticks), -1)

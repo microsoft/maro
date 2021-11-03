@@ -48,12 +48,21 @@ class RLPolicy(AbsPolicy):
     """
     def __init__(self, name: str):
         super().__init__(name)
-        self._exploration_params = {}
-        self.greedy = True
+        self._exploring = True
 
-    @property
-    def exploration_params(self):
-        return self._exploration_params
+    def explore(self) -> None:
+        """Switch the policy to the exploring mode."""
+        self._exploring = True
+
+    def exploit(self) -> None:
+        """Switch the policy to the exploiting mode."""
+        self._exploring = False
+
+    def get_exploration_params(self):
+        pass
+
+    def exploration_step(self):
+        pass
 
     @abstractmethod
     def __call__(self, states: np.ndarray):

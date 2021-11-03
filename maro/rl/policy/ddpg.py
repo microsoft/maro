@@ -130,7 +130,7 @@ class DDPG(RLPolicy):
         with torch.no_grad():
             actions = self.ac_net.get_action(states).cpu().numpy()
 
-        if not self.greedy:
+        if self._exploring:
             actions = self.exploration_func(states, actions, **self._exploration_params)
         return actions
 
@@ -252,6 +252,9 @@ class DDPG(RLPolicy):
         # soft-update target network
         self.target_ac_net.soft_update(self.ac_net, self.soft_update_coeff)
         self._target_ac_net_version = self._ac_net_version
+
+    def get_exploration_params(self):
+        return clone(self._exploration_params)
 
     def exploration_step(self):
         for sch in self.exploration_schedulers:

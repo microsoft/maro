@@ -30,6 +30,8 @@ if __name__ == "__main__":
     logger.info(f"Policy will be evaluated at the end of episodes {eval_schedule}")
     eval_point_index = 0
     if mode == "single":
+        if checkpoint_dir:
+            os.makedirs(checkpoint_dir, exist_ok=True)
         env_sampler = get_env_sampler()
         if load_policy_dir:
             env_sampler.agent_wrapper.load(load_policy_dir)
@@ -53,8 +55,9 @@ if __name__ == "__main__":
 
                 collect_time += time.time() - tc0
                 tu0 = time.time()
-                env_sampler.agent_wrapper.improve(checkpoint_dir=checkpoint_dir)
+                env_sampler.agent_wrapper.improve()
                 if checkpoint_dir:
+                    env_sampler.agent_wrapper.save(checkpoint_dir)
                     logger.info(f"Saved policy states to {checkpoint_dir}")
                 policy_update_time += time.time() - tu0
                 segment += 1
