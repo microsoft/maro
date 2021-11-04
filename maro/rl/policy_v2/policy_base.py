@@ -97,10 +97,10 @@ class AbsRLPolicy(ShapeCheckMixin, AbsPolicy):
     """Policy that learns from simulation experiences.
     Reinforcement learning (RL) policies should inherit from this.
 
-    All concrete classes that inherit `RLPolicyV2` should implement the following abstract methods:
+    All concrete classes that inherit `AbsRLPolicy` should implement the following abstract methods:
     - Declared in `AbsPolicy`:
         - _get_state_dim(self) -> int:
-    - Declared in `RLPolicyV2`:
+    - Declared in `AbsRLPolicy`:
         - _call_impl(self, states: np.ndarray) -> Iterable:
         - record(self, ...) -> None:
         - get_rollout_info(self) -> object:
