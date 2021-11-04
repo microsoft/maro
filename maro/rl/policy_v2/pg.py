@@ -12,11 +12,11 @@ from maro.rl.modeling_v2 import DiscretePolicyGradientNetwork
 from maro.rl.utils import MsgKey, MsgTag, average_grads, discount_cumsum
 
 from .buffer import Buffer
-from .policy_base import RLPolicyV2
+from .policy_base import SingleRLPolicy
 from .policy_interfaces import DiscreteActionMixin
 
 
-class DiscretePolicyGradient(DiscreteActionMixin, RLPolicyV2):
+class DiscretePolicyGradient(DiscreteActionMixin, SingleRLPolicy):
     """The vanilla Policy Gradient (VPG) algorithm, a.k.a., REINFORCE.
 
     Reference: https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch.
@@ -67,12 +67,25 @@ class DiscretePolicyGradient(DiscreteActionMixin, RLPolicyV2):
         actions, logps = self.get_actions_with_logps(states)
         return [{"action": action, "logp": logp} for action, logp in zip(actions, logps)]
 
+    def _call_post_check(self, states: np.ndarray, ret: List[dict]) -> bool:
+        return len(ret) == states.shape[0]
+
+    def _get_actions_impl(self, states: np.ndarray) -> np.ndarray:
+        return self.get_actions_with_logps(states)[0].reshape(-1, self.action_dim)
+
     def get_actions_with_logps(self, states: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
-        """Return actions an log-P value based on states.
+        """
+        Return actions an log-P value based on states.
+
+        Args:
+            states (np.ndarray): States with shape [batch_size, state_dim].
+
+        Returns:
+            Actions and log-P values, both with shape [batch_size].
         """
         self._policy_net.eval()
         with torch.no_grad():
-            states: torch.Tensor = torch.from_numpy(states).to(self._device)
+            states: torch.Tensor = self.ndarray_to_tensor(states)
             actions, logps = self._policy_net.get_actions_and_logps(states, exploring=self._exploring)
         actions, logps = actions.cpu().numpy(), logps.cpu().numpy()
         return actions, logps
@@ -85,6 +98,9 @@ class DiscretePolicyGradient(DiscreteActionMixin, RLPolicyV2):
 
     def _get_state_dim(self) -> int:
         return self._policy_net.state_dim
+
+    def _get_action_dim(self) -> int:
+        return 1
 
     def record(
         self,
@@ -129,7 +145,7 @@ class DiscretePolicyGradient(DiscreteActionMixin, RLPolicyV2):
                 to False.
         """
         self._policy_net.train()
-        returns = torch.from_numpy(np.asarray(batch["returns"])).to(self._device)
+        returns = self.ndarray_to_tensor(np.asarray(batch["returns"]))
 
         logps = self._policy_net.get_logps(batch["states"])
         loss = -(logps * returns).mean()

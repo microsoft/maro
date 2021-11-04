@@ -12,11 +12,11 @@ from maro.rl.modeling_v2 import DiscreteVActorCriticNet
 from maro.rl.utils import MsgKey, MsgTag, average_grads, discount_cumsum
 
 from .buffer import Buffer
-from .policy_base import RLPolicyV2
+from .policy_base import SingleRLPolicy
 from .policy_interfaces import DiscreteActionMixin, VNetworkMixin
 
 
-class DiscreteActorCritic(VNetworkMixin, DiscreteActionMixin, RLPolicyV2):
+class DiscreteActorCritic(VNetworkMixin, DiscreteActionMixin, SingleRLPolicy):
     """
     Actor Critic algorithm with separate policy and value models.
 
@@ -94,11 +94,18 @@ class DiscreteActorCritic(VNetworkMixin, DiscreteActionMixin, RLPolicyV2):
             {"action": action, "logp": logp, "value": value} for action, logp, value in zip(actions, logps, values)
         ]
 
+    def _call_post_check(self, states: np.ndarray, ret: List[dict]) -> bool:
+        return len(ret) == states.shape[0]
+
+    def _get_actions_impl(self, states: np.ndarray) -> np.ndarray:
+        return self.get_actions_with_logps_and_values(states)[0].reshape(-1, self.action_dim)
+
     def get_actions_with_logps_and_values(self, states: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """
+        [batch_size, state_dim] => [batch_size], [batch_size], [batch_size]
+        """
         self._ac_net.eval()
-        states = torch.from_numpy(states).to(self._device)
-        if len(states.shape) == 1:
-            states = states.unsqueeze(dim=0)
+        states = self.ndarray_to_tensor(states)
         with torch.no_grad():
             actions, logps = self._ac_net.get_actions_and_logps(states, exploring=self._exploring)
             values = self._get_v_critic(states)
@@ -109,7 +116,7 @@ class DiscreteActorCritic(VNetworkMixin, DiscreteActionMixin, RLPolicyV2):
         return self._ac_net.v_critic(states)
 
     def _get_v_values(self, states: np.ndarray) -> np.ndarray:
-        return self._get_v_critic(torch.Tensor(states)).numpy()
+        return self._get_v_critic(self.ndarray_to_tensor(states)).numpy()
 
     def learn_with_data_parallel(self, batch: dict, worker_id_list: list) -> None:
         assert hasattr(self, '_proxy'), "learn_with_data_parallel is invalid before data_parallel is called."
@@ -147,6 +154,9 @@ class DiscreteActorCritic(VNetworkMixin, DiscreteActionMixin, RLPolicyV2):
     def _get_state_dim(self) -> int:
         return self._ac_net.state_dim
 
+    def _get_action_dim(self) -> int:
+        return 1
+
     def record(
         self,
         key: str,
@@ -183,11 +193,11 @@ class DiscreteActorCritic(VNetworkMixin, DiscreteActionMixin, RLPolicyV2):
 
     def get_batch_loss(self, batch: dict, explicit_grad: bool = False) -> dict:
         self._ac_net.train()
-        states = torch.from_numpy(batch["states"]).to(self._device)
-        actions = torch.from_numpy(batch["actions"]).to(self._device).long()
-        logp_old = torch.from_numpy(batch["logps"]).to(self._device)
-        returns = torch.from_numpy(batch["returns"]).to(self._device)
-        advantages = torch.from_numpy(batch["advantages"]).to(self._device)
+        states = self.ndarray_to_tensor(batch["states"])
+        actions = self.ndarray_to_tensor(batch["actions"]).long()
+        logp_old = self.ndarray_to_tensor(batch["logps"])
+        returns = self.ndarray_to_tensor(batch["returns"])
+        advantages = self.ndarray_to_tensor(batch["advantages"])
 
         action_probs = self._ac_net.get_probs(states)
         state_values = self._get_v_critic(states)

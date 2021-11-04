@@ -1,5 +1,5 @@
-from abc import abstractmethod
-from typing import Iterable, List, Optional
+from abc import ABCMeta, abstractmethod
+from typing import Iterable, List, Optional, Union
 
 import numpy as np
 import torch
@@ -93,7 +93,7 @@ class RuleBasedPolicy(AbsPolicy):
         pass
 
 
-class RLPolicyV2(ShapeCheckMixin, AbsPolicy):
+class AbsRLPolicy(ShapeCheckMixin, AbsPolicy):
     """Policy that learns from simulation experiences.
     Reinforcement learning (RL) policies should inherit from this.
 
@@ -114,6 +114,8 @@ class RLPolicyV2(ShapeCheckMixin, AbsPolicy):
         - set_state(self, policy_state: object) -> None:
         - load(self, path: str) -> None:
         - save(self, path: str) -> None:
+    - Declared in `ShapeCheckMixin`:
+        - _shape_check(self, states: np.ndarray, actions: Optional[np.ndarray]) -> bool:
     """
     def __init__(self, name: str, device: str) -> None:
         """
@@ -121,7 +123,7 @@ class RLPolicyV2(ShapeCheckMixin, AbsPolicy):
             name (str): Name of the policy.
             device (str): Device that uses to train the Torch model.
         """
-        super(RLPolicyV2, self).__init__(name)
+        super(AbsRLPolicy, self).__init__(name)
         self._exploration_params = {}
         self._exploring = True
         self._proxy = Optional[Proxy]
@@ -147,21 +149,23 @@ class RLPolicyV2(ShapeCheckMixin, AbsPolicy):
     def exploration_step(self):
         pass
 
+    def ndarray_to_tensor(self, array: np.ndarray) -> torch.Tensor:
+        return torch.from_numpy(array).to(self._device)
+
     def __call__(self, states: np.ndarray) -> Iterable:
-        assert self._shape_check(states, None)
-        return self._call_impl(states)
+        assert self._shape_check(states=states, actions=None)
+        ret = self._call_impl(states)
+        assert self._call_post_check(states=states, ret=ret)
+        return ret
 
     @abstractmethod
     def _call_impl(self, states: np.ndarray) -> Iterable:
         """The implementation of `__call__` method. Actual logic should be implemented under this method."""
         pass
 
-    def _shape_check(self, states: np.ndarray, actions: Optional[np.ndarray]) -> bool:
-        return all([
-            states.shape[0] > 0 and match_shape(states, (None, self.state_dim)),
-            actions is None or (actions.shape[0] > 0 and match_shape(actions, (None, 1))),
-            actions is None or states.shape[0] == actions.shape[0]
-        ])
+    @abstractmethod
+    def _call_post_check(self, states: np.ndarray, ret: Iterable) -> bool:
+        pass
 
     @abstractmethod
     def record(
@@ -295,4 +299,134 @@ class RLPolicyV2(ShapeCheckMixin, AbsPolicy):
     @abstractmethod
     def save(self, path: str) -> None:
         """Save the policy state to disk."""
+        pass
+
+
+class SingleRLPolicy(AbsRLPolicy, metaclass=ABCMeta):
+    """Single-agent policy that learns from simulation experiences.
+
+    All concrete classes that inherit `SingleRLPolicy` should implement the following abstract methods:
+    - Declared in `AbsPolicy`:
+        - _get_state_dim(self) -> int:
+    - Declared in `RLPolicy`:
+        - _call_impl(self, states: np.ndarray) -> Iterable:
+        - record(self, ...) -> None:
+        - get_rollout_info(self) -> object:
+        - get_batch_loss(self, batch: dict, explicit_grad: bool = False) -> object:
+        - data_parallel(self, *args, **kwargs) -> None:
+        - learn_with_data_parallel(self, batch: dict, worker_id_list: list) -> None:
+        - update(self, loss_info_list: List[dict]) -> None:
+        - learn(self, batch: dict) -> None:
+        - improve(self) -> None:
+        - get_state(self) -> object:
+        - set_state(self, policy_state: object) -> None:
+        - load(self, path: str) -> None:
+        - save(self, path: str) -> None:
+    - Declared in `SingleRLPolicy`:
+        - _get_action_dim(self) -> int:
+        - _get_actions_impl(self, states: np.ndarray) -> np.ndarray:
+    """
+    def __init__(self, name: str, device: str) -> None:
+        """
+        Args:
+            name (str): Name of the policy.
+            device (str): Device that uses to train the Torch model.
+        """
+        super(SingleRLPolicy, self).__init__(name=name, device=device)
+
+    def _shape_check(self, states: np.ndarray, actions: Union[None, np.ndarray]) -> bool:
+        return all([
+            states.shape[0] > 0 and match_shape(states, (None, self.state_dim)),
+            actions is None or (actions.shape[0] > 0 and match_shape(actions, (None, self.action_dim))),
+            actions is None or states.shape[0] == actions.shape[0]
+        ])
+
+    @property
+    def action_dim(self) -> int:
+        return self._get_action_dim()
+
+    @abstractmethod
+    def _get_action_dim(self) -> int:
+        pass
+
+    def get_actions(self, states: np.ndarray) -> np.ndarray:
+        assert self._shape_check(states=states, actions=None)
+        actions = self._get_actions_impl(states)
+        assert self._shape_check(states=states, actions=actions)
+        return actions
+
+    @abstractmethod
+    def _get_actions_impl(self, states: np.ndarray) -> np.ndarray:
+        pass
+
+
+class MultiRLPolicy(AbsRLPolicy, metaclass=ABCMeta):
+    """Multi-agent policy that learns from simulation experiences.
+
+    All concrete classes that inherit `MultiRLPolicy` should implement the following abstract methods:
+    - Declared in `AbsPolicy`:
+        - _get_state_dim(self) -> int:
+    - Declared in `RLPolicy`:
+        - _call_impl(self, states: np.ndarray) -> Iterable:
+        - record(self, ...) -> None:
+        - get_rollout_info(self) -> object:
+        - get_batch_loss(self, batch: dict, explicit_grad: bool = False) -> object:
+        - data_parallel(self, *args, **kwargs) -> None:
+        - learn_with_data_parallel(self, batch: dict, worker_id_list: list) -> None:
+        - update(self, loss_info_list: List[dict]) -> None:
+        - learn(self, batch: dict) -> None:
+        - improve(self) -> None:
+        - get_state(self) -> object:
+        - set_state(self, policy_state: object) -> None:
+        - load(self, path: str) -> None:
+        - save(self, path: str) -> None:
+    - Declared in `MultiRLPolicy`:
+        - _get_action_dims(self) -> List[int]:
+        - _get_agent_num(self) -> int:
+    """
+    def __init__(self, name: str, device: str) -> None:
+        """
+        Args:
+            name (str): Name of the policy.
+            device (str): Device that uses to train the Torch model.
+        """
+        super(MultiRLPolicy, self).__init__(name=name, device=device)
+
+    def _shape_check(self, states: np.ndarray, actions: Union[None, List[np.ndarray]]) -> bool:
+        if not (states.shape[0] > 0 and match_shape(states, (None, self.state_dim))):
+            return False
+
+        if actions is not None:
+            if len(actions) != self.agent_num:
+                return False
+            for action, action_dim in zip(actions, self.action_dims):
+                if not match_shape(action, (states.shape[0], action_dim)):
+                    return False
+
+        return True
+
+    @property
+    def action_dims(self) -> List[int]:
+        return self._get_action_dims()
+
+    @abstractmethod
+    def _get_action_dims(self) -> List[int]:
+        pass
+
+    @property
+    def agent_num(self) -> int:
+        return self._get_agent_num()
+
+    @abstractmethod
+    def _get_agent_num(self) -> int:
+        pass
+
+    def get_actions(self, states: Union[np.ndarray, List[np.ndarray]]) -> List[np.ndarray]:
+        assert self._shape_check(states=states, actions=None)
+        actions = self._get_actions_impl(states)
+        assert self._shape_check(states=states, actions=actions)
+        return actions
+
+    @abstractmethod
+    def _get_actions_impl(self, states: Union[np.ndarray, List[np.ndarray]]) -> List[np.ndarray]:
         pass

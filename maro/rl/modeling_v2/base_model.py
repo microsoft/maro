@@ -318,3 +318,23 @@ class DiscreteProbPolicyNetworkMixin(DiscretePolicyNetworkMixin, ShapeCheckMixin
             Actions and log-P values, both with shape [batch_size].
         """
         pass
+
+
+class ContinuousPolicyNetworkMixin:
+    """
+    Mixin for continuous policy networks. All policy networks that generate continuous actions should extend this mixin
+    and implemented all methods inherited from this mixin.
+    """
+    @property
+    def action_range(self) -> Tuple[float, float]:
+        """
+        Returns the range of actions.
+        """
+        return self._get_action_range()
+
+    @abstractmethod
+    def _get_action_range(self) -> Tuple[float, float]:
+        """
+        Implementation of `action_range`.
+        """
+        pass

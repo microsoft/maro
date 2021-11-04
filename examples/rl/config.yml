@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 job: cim
-scenario_dir: "/maro/examples/cim"
+scenario_dir: "/maro/examples/cim_v2"
 load_policy_dir: "/maro/examples/checkpoints/cim"
 checkpoint_dir: "/maro/examples/checkpoints/cim"
 log_dir: "/maro/examples/logs/cim"

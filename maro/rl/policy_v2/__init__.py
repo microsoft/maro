@@ -4,11 +4,11 @@
 from .ac import DiscreteActorCritic
 from .dqn import DQN, PrioritizedExperienceReplay
 from .pg import DiscretePolicyGradient
-from .policy_base import AbsPolicy, DummyPolicy, RLPolicyV2, RuleBasedPolicy
+from .policy_base import AbsPolicy, DummyPolicy, AbsRLPolicy, RuleBasedPolicy
 
 __all__ = [
     "DiscreteActorCritic",
     "DQN", "PrioritizedExperienceReplay",
     "DiscretePolicyGradient",
-    "AbsPolicy", "DummyPolicy", "RLPolicyV2", "RuleBasedPolicy"
+    "AbsPolicy", "DummyPolicy", "AbsRLPolicy", "RuleBasedPolicy"
 ]

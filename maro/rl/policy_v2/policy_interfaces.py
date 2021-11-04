@@ -55,14 +55,14 @@ class ContinuousActionMixin:
     Mixin for policies that generate continuous actions.
 
     All concrete classes that inherit `ContinuousActionMixin` should implement the following abstract methods:
-    - _get_action_range(self) -> Tuple[Union[int, float, np.ndarray], Union[int, float, np.ndarray]]:
+    - _get_action_range(self) -> Tuple[float, float]:
     """
 
-    def action_range(self) -> Tuple[Union[int, float, np.ndarray], Union[int, float, np.ndarray]]:
+    def action_range(self) -> Tuple[float, float]:
         return self._get_action_range()
 
     @abstractmethod
-    def _get_action_range(self) -> Tuple[Union[int, float, np.ndarray], Union[int, float, np.ndarray]]:
+    def _get_action_range(self) -> Tuple[float, float]:
         pass
 
 
@@ -78,7 +78,7 @@ class ShapeCheckMixin:
     """
 
     @abstractmethod
-    def _shape_check(self, states: np.ndarray, actions: Optional[np.ndarray]) -> bool:
+    def _shape_check(self, states: np.ndarray, actions: Union[None, np.ndarray, List[np.ndarray]]) -> bool:
         pass
 
 

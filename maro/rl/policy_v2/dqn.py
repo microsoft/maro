@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 from collections import defaultdict
-from typing import Callable, Iterable, List, Tuple, Union
+from typing import Callable, List, Tuple, Union
 
 import numpy as np
 import torch
@@ -13,7 +13,7 @@ from maro.rl.modeling_v2 import DiscreteQNetwork
 from maro.rl.utils import MsgKey, MsgTag, average_grads
 from maro.utils import clone
 
-from .policy_base import RLPolicyV2
+from .policy_base import SingleRLPolicy
 from .policy_interfaces import DiscreteQNetworkMixin
 from .replay import ReplayMemory
 
@@ -120,7 +120,7 @@ class PrioritizedExperienceReplay:
             return self._get(right, sampled_val - self._sum_tree[left])
 
 
-class DQN(DiscreteQNetworkMixin, RLPolicyV2):
+class DQN(DiscreteQNetworkMixin, SingleRLPolicy):
     """The Deep-Q-Networks algorithm.
 
     See https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf for details.
@@ -227,12 +227,12 @@ class DQN(DiscreteQNetworkMixin, RLPolicyV2):
             opt[1](self._exploration_params, opt[0], **opt[2]) for opt in exploration_scheduling_options
         ]
 
-    def _call_impl(self, states: np.ndarray) -> Iterable:
+    def _call_impl(self, states: np.ndarray) -> np.ndarray:
         if self._replay_memory.size < self._warmup:
             return np.random.randint(self._num_actions, size=(states.shape[0] if len(states.shape) > 1 else 1,))
 
         self._q_net.eval()
-        states: torch.Tensor = torch.from_numpy(states).to(self._device)
+        states: torch.Tensor = self.ndarray_to_tensor(states)
         if len(states.shape) == 1:
             states = states.unsqueeze(dim=0)
         with torch.no_grad():
@@ -244,11 +244,17 @@ class DQN(DiscreteQNetworkMixin, RLPolicyV2):
         else:
             return self._exploration_func(states, actions.cpu().numpy(), self._num_actions, **self._exploration_params)
 
+    def _call_post_check(self, states: np.ndarray, ret: np.ndarray) -> bool:
+        return self._shape_check(states, ret.reshape(-1, self.action_dim))
+
+    def _get_actions_impl(self, states: np.ndarray) -> np.ndarray:
+        return self._call_impl(states).reshape(-1, self.action_dim)
+
     def data_parallel(self, *args, **kwargs) -> None:
         raise NotImplementedError  # TODO
 
     def _get_q_values_for_all_actions(self, states: np.ndarray) -> np.ndarray:
-        return self._q_net.q_values_for_all_actions(torch.Tensor(states)).numpy()
+        return self._q_net.q_values_for_all_actions(self.ndarray_to_tensor(states)).numpy()
 
     def _get_q_values(self, states: np.ndarray, actions: np.ndarray) -> np.ndarray:
         q_matrix = self.q_values_for_all_actions(states)  # [batch_size, action_num]
@@ -259,6 +265,9 @@ class DQN(DiscreteQNetworkMixin, RLPolicyV2):
 
     def _get_state_dim(self) -> int:
         return self._q_net.state_dim
+
+    def _get_action_dim(self) -> int:
+        return 1
 
     def record(
         self,
@@ -316,11 +325,11 @@ class DQN(DiscreteQNetworkMixin, RLPolicyV2):
                 to False.
         """
         self._q_net.train()
-        states: torch.Tensor = torch.from_numpy(batch["states"]).to(self._device)
-        next_states: torch.Tensor = torch.from_numpy(batch["next_states"]).to(self._device)
-        actions: torch.Tensor = torch.from_numpy(batch["actions"]).to(self._device)
-        rewards: torch.Tensor = torch.from_numpy(batch["rewards"]).to(self._device)
-        terminals: torch.Tensor = torch.from_numpy(batch["terminals"]).float().to(self._device)
+        states: torch.Tensor = self.ndarray_to_tensor(batch["states"])
+        next_states: torch.Tensor = self.ndarray_to_tensor(batch["next_states"])
+        actions: torch.Tensor = self.ndarray_to_tensor(batch["actions"])
+        rewards: torch.Tensor = self.ndarray_to_tensor(batch["rewards"])
+        terminals: torch.Tensor = self.ndarray_to_tensor(batch["terminals"]).float()
 
         # get target Q values
         with torch.no_grad():
@@ -338,7 +347,7 @@ class DQN(DiscreteQNetworkMixin, RLPolicyV2):
         q_values = self._q_net.q_values(states, actions)
         td_errors = target_q_values - q_values
         if self._prioritized_replay:
-            is_weights = torch.from_numpy(batch["is_weights"]).to(self._device)
+            is_weights = self.ndarray_to_tensor(batch["is_weights"])
             loss = (td_errors * is_weights).mean()
             loss_info["td_errors"], loss_info["indexes"] = td_errors.detach().cpu().numpy(), batch["indexes"]
         else:

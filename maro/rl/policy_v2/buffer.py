@@ -51,7 +51,17 @@ class Buffer:
             # TODO: erase the older elements or raise MLE error?
 
     def get(self) -> dict:
-        """Retrieve the latest trajectory segment."""
+        """
+        Retrieve the latest trajectory segment.
+
+        Returns:
+            States: [batch_size, state_dim].
+            Actions: [batch_size]
+            Log-Ps: [batch_size]
+            Values: [batch_size]
+            Rewards: [batch_size]
+            Last value: Scalar
+        """
         if len(self._pool) == 0:
             return {}
 

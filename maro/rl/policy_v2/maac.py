@@ -8,13 +8,13 @@ import torch
 
 from maro.rl.modeling_v2 import DiscretePolicyGradientNetwork
 from maro.rl.modeling_v2.critic_model import MultiDiscreteQCriticNetwork
-from maro.rl.policy_v2 import RLPolicyV2
+from maro.rl.policy_v2 import AbsRLPolicy
 from maro.rl.policy_v2.buffer import MultiBuffer
 from maro.rl.policy_v2.policy_interfaces import MultiDiscreteActionMixin
 from maro.rl.utils import average_grads
 
 
-class MultiDiscreteActorCritic(MultiDiscreteActionMixin, RLPolicyV2):
+class MultiDiscreteActorCritic(MultiDiscreteActionMixin, AbsRLPolicy):
     """
     References:
         MADDPG paper: https://arxiv.org/pdf/1706.02275.pdf
@@ -118,7 +118,7 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, RLPolicyV2):
             offset += local_state_dim
 
             complete_state = np.concatenate([local_state, global_state], axis=1)  # [batch_size, complete_state_dim]
-            complete_state = torch.from_numpy(complete_state).to(self._device)
+            complete_state = self.ndarray_to_tensor(complete_state)
             if len(complete_state.shape) == 1:
                 complete_state = complete_state.unsqueeze(dim=0)
             state_list.append(complete_state)
@@ -146,7 +146,7 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, RLPolicyV2):
                 action, logp = net.get_actions_and_logps(state, self._exploring)  # [batch_size], [batch_size]
                 actions.append(action)
                 logps.append(logp)
-            values = self._get_values_by_states_and_actions(torch.from_numpy(input_states).to(self._device), actions)
+            values = self._get_values_by_states_and_actions(self.ndarray_to_tensor(input_states), actions)
 
         actions = np.stack([action.cpu().numpy() for action in actions], axis=1)  # [batch_size, num_sub_agent]
         logps = np.stack([logp.cpu().numpy() for logp in logps], axis=1)  # [batch_size, num_sub_agent]
@@ -194,13 +194,14 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, RLPolicyV2):
             net.train()
         self._critic_net.train()
 
-        states = torch.from_numpy(batch["states"]).to(self._device)  # [batch_size, total_state_dim]
-        actions = [torch.from_numpy(elem).to(self._device).long() for elem in batch["actions"]]
-        next_states = torch.from_numpy(["next_states"]).to(self._device)  # [batch_size, total_state_dim]
-        next_actions = [torch.from_numpy(elem).to(self._device).long() for elem in batch["next_actions"]]
+        states_ndarray = batch["states"]
+        states = self.ndarray_to_tensor(batch["states"])  # [batch_size, total_state_dim]
+        actions = [self.ndarray_to_tensor(elem).long() for elem in batch["actions"]]
+        next_states = self.ndarray_to_tensor(batch["next_states"])  # [batch_size, total_state_dim]
+        next_actions = [self.ndarray_to_tensor(elem).long() for elem in batch["next_actions"]]
 
-        rewards = torch.from_numpy(batch["rewards"]).to(self._device)  # [batch_size]
-        terminals = torch.from_numpy(batch["terminals"]).float().to(self._device)  # [batch_size]
+        rewards = self.ndarray_to_tensor(batch["rewards"])  # [batch_size]
+        terminals = self.ndarray_to_tensor(batch["terminals"]).float()  # [batch_size]
 
         # critic loss
         with torch.no_grad():
@@ -210,7 +211,7 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, RLPolicyV2):
         critic_loss = self._critic_loss_func(q_values, target_q_values)
 
         # actor losses
-        state_list = self._get_state_list(states)
+        state_list = self._get_state_list(states_ndarray)
         actor_losses = []
         for i in range(self._num_sub_agents):
             net = self._agent_nets[i]
