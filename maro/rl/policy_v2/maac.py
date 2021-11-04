@@ -25,11 +25,14 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, AbsRLPolicy):
         critic_net (MultiDiscreteQCriticNetwork): Critic's network.
         reward_discount (float): Reward decay as defined in standard RL terminology.
         num_epochs (int): Number of training epochs per call to ``learn``. Defaults to 1.
+        update_target_every (int): Number of training rounds between policy target model updates.
         min_logp (float): Lower bound for clamping logP values during learning. This is to prevent logP from becoming
             very large in magnitude and causing stability issues. Defaults to None, which means no lower bound.
         critic_loss_cls: A string indicating a loss class provided by torch.nn or a custom loss class for computing
             the critic loss. If it is a string, it must be a key in ``TORCH_LOSS``. Defaults to "mse".
         critic_loss_coef (float): Coefficient of critic loss.
+        soft_update_coef (float): Soft update coeficient, e.g., target_model = (soft_update_coef) * eval_model +
+            (1-soft_update_coef) * target_model. Defaults to 1.0.
         clip_ratio (float): Clip ratio in the PPO algorithm (https://arxiv.org/pdf/1707.06347.pdf). Defaults to None,
             in which case the actor loss is calculated using the usual policy gradient theorem.
         lam (float): Lambda value for generalized advantage estimation (TD-Lambda). Defaults to 0.9.
@@ -39,6 +42,13 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, AbsRLPolicy):
             for the trajectories stored in the buffers. The loss information, along with that from other roll-out
             instances, can be passed directly to ``update``. Otherwise, it will simply process the trajectories into a
             single data batch that can be passed directly to ``learn``. Defaults to False.
+        replay_memory_capacity (int): Capacity of the replay memory. Defaults to 10000.
+        random_overwrite (bool): This specifies overwrite behavior when the replay memory capacity is reached. If True,
+            overwrite positions will be selected randomly. Otherwise, overwrites will occur sequentially with
+            wrap-around. Defaults to False.
+        rollout_batch_size (int): Size of the experience batch to use as roll-out information by calling
+            ``get_rollout_info``. Defaults to 1000.
+        train_batch_size (int): Batch size for training the Q-net. Defaults to 32.
         device (str): Identifier for the torch device. The ``ac_net`` will be moved to the specified device. If it is
             None, the device will be set to "cpu" if cuda is unavailable and "cuda" otherwise. Defaults to None.
     """
@@ -50,9 +60,11 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, AbsRLPolicy):
         critic_net: MultiDiscreteQCriticNetwork,
         reward_discount: float,
         num_epochs: int = 1,
+        update_target_every: int = 5,
         min_logp: float = None,
         critic_loss_cls: Callable = None,
         critic_loss_coef: float = 1.0,
+        soft_update_coef: float = 1.0,
         clip_ratio: float = None,
         lam: float = 0.9,
         max_trajectory_len: int = 10000,
@@ -72,6 +84,7 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, AbsRLPolicy):
 
         self._agent_nets = agent_nets
         self._num_sub_agents = len(self._agent_nets)
+        # for each agent, individual state = local state + shared state
         self._local_state_dims = [net.state_dim - self._shared_state_dim for net in self._agent_nets]
         assert all(dim >= 0 for dim in self._local_state_dims)
         assert self._total_state_dim == sum(self._local_state_dims) + self._shared_state_dim
@@ -85,9 +98,11 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, AbsRLPolicy):
 
         self._reward_discount = reward_discount
         self.num_epochs = num_epochs
+        self.update_target_every = update_target_every
         self._min_logp = min_logp
         self._critic_loss_func = critic_loss_cls() if critic_loss_cls is not None else torch.nn.MSELoss()
         self._critic_loss_coef = critic_loss_coef
+        self._soft_update_coef = soft_update_coef
         self._clip_ratio = clip_ratio
         self._lam = lam
         self._max_trajectory_len = max_trajectory_len
@@ -100,6 +115,7 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, AbsRLPolicy):
         self._replay_memory = [ReplayMemory(
             replay_memory_capacity, self._local_state_dims, action_dim=1, random_overwrite=random_overwrite)
             for i in range(self._num_sub_agents)]
+        self._agent_id_to_idx = dict()
         self.warmup = warmup
         self.rollout_batch_size = rollout_batch_size
         self.train_batch_size = train_batch_size
@@ -204,40 +220,31 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, AbsRLPolicy):
         return self._critic_net.q_critic(states, action_tensor)
 
     def record(
-        self, key: str, state: np.ndarray, action: dict, reward: float,
+        self, key: str, state: np.ndarray, action: np.ndarray, reward: float,
         next_state: np.ndarray, terminal: bool
     ) -> None:
-        """TODO: check the input size. The input should align with the output of `get_rollout_info`.
+        """Record experience information of a single agent. The info would be saved by the key(agent ID).
         """
-        # Decompose the joint state/action.
         if next_state is None:
             next_state = np.zeros(state.shape, dtype=np.float32)
 
-        state_list = self._get_state_list(state)
-        next_state_list = self._get_state_list(next_state)
-        action_offsets = np.cumsum([0] + self._get_action_nums())
-        action_list = [action[:, action_offsets[i]: action_offsets[i + 1]] for i in range(len(action_offsets) - 1)]
-        reward_list = [reward[:, i] for i in range(self._num_sub_agents)]
-        terminal_list = [terminal[:, i] for i in range(self._num_sub_agents)]
-
-        for idx in range(self._num_sub_agents):
-            self._replay_memory[idx].put(
-                np.expand_dims(state_list[idx], axis=0),
-                np.expand_dims(action_list[idx], axis=0),
-                np.expand_dims(reward_list[idx], axis=0),
-                np.expand_dims(next_state_list[idx], axis=0),
-                np.expand_dims(terminal_list[idx], axis=0)
-            )
+        idx = self._agent_id_to_idx.get(key, len(self._agent_id_to_idx))
+        self._replay_memory[idx].put(
+            np.expand_dims(state, axis=0),
+            np.expand_dims(action, axis=0),
+            np.expand_dims(reward, axis=0),
+            np.expand_dims(next_state, axis=0),
+            np.expand_dims(terminal, axis=0)
+        )
 
     def get_rollout_info(self) -> dict:
-        """Randomly sample a batch of transitions from the replay memory.
+        """Randomly sample a batch of transitions from all the replay memories.
 
         This is used in a distributed learning setting and the returned data will be sent to its parent instance
         on the learning side (serving as the source of the latest model parameters) for training.
         """
         rollout_infos = [sub_agent_memory.sample(self.rollout_batch_size) for sub_agent_memory in self._replay_memory]
-        return {key: np.concatenate([rollout_info[key] for rollout_info in rollout_infos])
-                for key in rollout_infos[0].keys()}  # batch_size = sum(buffer_length)
+        return rollout_infos
 
     def get_batch_loss(self, batch: List[Dict[np.ndarray]], explicit_grad: bool = False) -> dict:
         """Compute loss for all subagents.
@@ -316,6 +323,9 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, AbsRLPolicy):
         for i, net in enumerate(self._agent_nets):
             net.apply_gradients(average_grads([loss_info["actor_grads"][i] for loss_info in loss_info_list]))
         self._critic_net.apply_gradients(average_grads([loss_info["critic_grad"] for loss_info in loss_info_list]))
+        self._critic_net_version += 1
+        if self._critic_net_version - self._target_critic_net_version == self.update_target_every:
+            self._update_target()
 
     def learn(self, batch: List[dict]) -> None:
         for i, sub_batch in enumerate(batch):
@@ -339,7 +349,7 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, AbsRLPolicy):
 
     def _update_target(self):
         # soft-update target network
-        self._target_critic_net.soft_update(self._critic_net, self.soft_update_coeff)
+        self._target_critic_net.soft_update(self._critic_net, self._soft_update_coef)
         self._target_critic_net_version = self._critic_net_version
 
     def get_state(self) -> object:
