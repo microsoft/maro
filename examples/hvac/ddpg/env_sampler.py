@@ -8,6 +8,7 @@ import numpy as np
 from maro.rl.learning import AbsEnvSampler
 from maro.simulator import Env
 from maro.simulator.scenarios.hvac.common import Action
+from maro.utils import Logger
 
 from .callbacks import baseline
 from .config import algorithm, env_config, reward_config, state_config
@@ -19,8 +20,25 @@ agent_name = "ahu01"
 
 
 class HVACEnvSampler(AbsEnvSampler):
-    def __init__(self, get_env, get_policy_func_dict, agent2policy, get_test_env=None, reward_eval_delay=0, parallel_inference=False):
-        super().__init__(get_env, get_policy_func_dict, agent2policy, get_test_env=get_test_env, reward_eval_delay=reward_eval_delay, parallel_inference=parallel_inference)
+    def __init__(
+        self,
+        get_env,
+        get_policy_func_dict,
+        agent2policy,
+        get_test_env=None,
+        reward_eval_delay=0,
+        parallel_inference=False,
+        logger: Logger=None,
+    ):
+        super().__init__(
+            get_env,
+            get_policy_func_dict,
+            agent2policy,
+            get_test_env=get_test_env,
+            reward_eval_delay=reward_eval_delay,
+            parallel_inference=parallel_inference
+        )
+
         self._statistics = {
             key: {
                 "mean": np.mean(baseline[key]),
@@ -30,6 +48,10 @@ class HVACEnvSampler(AbsEnvSampler):
             }
             for key in baseline.keys()
         }
+
+        self._logger = logger
+        if self._logger:
+            self._logger.info(f"efficiency,kw,das_diff,dat_penalty,reward")
 
     def get_state(self, tick: int = None) -> dict:
         if tick is not None:
@@ -102,6 +124,30 @@ class HVACEnvSampler(AbsEnvSampler):
             else:
                 reward = reward_config["V3_threshold"]
 
+        elif reward_config["type"] == "V4":
+            reward = -5
+            if diff_sps <= 0.3:
+                kw_line = (self._statistics["kw"]["mean"] + self._statistics["kw"]["min"]) / 2
+                kw_gap = (kw_line - get_attribute("kw")) / self._statistics["kw"]["range"]
+
+                diff_das /= self._statistics["das"]["range"]
+
+                reward = 10 * (
+                    math.exp(-efficiency_ratio)
+                    + reward_config["V4_kw_factor"] * kw_gap * (2 if kw_gap > 0 else 1)
+                    + reward_config["V4_das_diff_penalty_factor"] * diff_das * (1 if diff_das > 0.1 else 0)
+                    + reward_config["V4_dat_penalty_factor"] * max(0, get_attribute("dat") - 57)
+                )
+
+                if self._logger:
+                    self._logger.debug(
+                        f"{math.exp(-efficiency_ratio)},"
+                        f"{(kw_line - get_attribute('kw')[0]) / self._statistics['kw']['range']},"
+                        f"{diff_das[0]},"
+                        f"{get_attribute('dat')[0] - 57},"
+                        f"{reward[0]/10}"
+                    )
+
         return {agent_name: reward}
 
     def post_step(self, state, action, env_actions, reward, tick):
@@ -116,10 +162,11 @@ class HVACEnvSampler(AbsEnvSampler):
             self.tracker["total_reward"] = np.cumsum(self.tracker["reward"])
 
 
-def get_env_sampler():
+def get_env_sampler(logger: Logger):
     return HVACEnvSampler(
         get_env=lambda: Env(scenario="hvac", **env_config),
         get_policy_func_dict=policy_func_dict,
         agent2policy={agent_name: algorithm},
-        get_test_env=lambda: Env(scenario="hvac", **env_config)
+        get_test_env=lambda: Env(scenario="hvac", **env_config),
+        logger=logger
     )

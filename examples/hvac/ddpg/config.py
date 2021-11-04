@@ -46,6 +46,10 @@ reward_config = {
     "V2_lower_bound": None, # -2.5
     # V3
     "V3_threshold": -5,
+    # V4
+    "V4_kw_factor": 1,
+    "V4_das_diff_penalty_factor": -0.05,
+    "V4_dat_penalty_factor": -0.2,
 }
 
 state_dim = len(state_config["attributes"])

@@ -64,6 +64,9 @@ def post_evaluate(trackers: dict, episode: int, path: str, prefix: str="Eval"):
     axs_plot[1, 3].plot(trackers["total_reward"], c='r')
     axs_plot[1, 3].set_title(get_title("total_reward"))
 
+    axs_hist[1, 2].hist(trackers["reward"], bins=15, density=True, color='r', alpha=0.4)
+    axs_hist[1, 2].set_title("reward")
+
     fig_plot.savefig(os.path.join(path, f"{prefix}_{episode}_plot.png"))
     plt.close(fig_plot)
 
