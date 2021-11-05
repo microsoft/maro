@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-job: cim2
+job: cim
 scenario_dir: "/maro/examples/cim"
 load_policy_dir: "/maro/examples/checkpoints/cim"
 checkpoint_dir: "/maro/examples/checkpoints/cim"
@@ -24,7 +24,7 @@ policy_manager:
   type: distributed   # simple, multi-process, distributed
   distributed:
     num_hosts: 2
-data_parallelism: 2
+data_parallelism: 1
 redis:
   host: maro
   port: 6379

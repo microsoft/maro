@@ -58,7 +58,7 @@ def get_scenario_module(scenario_path):
 
 
 def get_logger(dir: str, job_name: str, tag: str):
-    return Logger(tag, dump_path=os.path.join(dir, job_name), dump_mode="a")
+    return Logger(tag, dump_path=os.path.join(dir, f"{job_name}.log"), dump_mode="a")
 
 
 def get_checkpoint_dir(dir: str = None):
