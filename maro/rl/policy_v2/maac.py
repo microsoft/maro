@@ -36,12 +36,6 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, AbsRLPolicy):
         clip_ratio (float): Clip ratio in the PPO algorithm (https://arxiv.org/pdf/1707.06347.pdf). Defaults to None,
             in which case the actor loss is calculated using the usual policy gradient theorem.
         lam (float): Lambda value for generalized advantage estimation (TD-Lambda). Defaults to 0.9.
-        max_trajectory_len (int): Maximum trajectory length that can be held by the buffer (for each agent that uses
-            this policy). Defaults to 10000.
-        get_loss_on_rollout (bool): If True, ``get_rollout_info`` will return the loss information (including gradients)
-            for the trajectories stored in the buffers. The loss information, along with that from other roll-out
-            instances, can be passed directly to ``update``. Otherwise, it will simply process the trajectories into a
-            single data batch that can be passed directly to ``learn``. Defaults to False.
         replay_memory_capacity (int): Capacity of the replay memory. Defaults to 10000.
         random_overwrite (bool): This specifies overwrite behavior when the replay memory capacity is reached. If True,
             overwrite positions will be selected randomly. Otherwise, overwrites will occur sequentially with
@@ -67,8 +61,6 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, AbsRLPolicy):
         soft_update_coef: float = 1.0,
         clip_ratio: float = None,
         lam: float = 0.9,
-        max_trajectory_len: int = 10000,
-        get_loss_on_rollout: bool = False,
         replay_memory_capacity: int = 1000000,
         random_overwrite: bool = False,
         warmup: int = 50000,
@@ -105,11 +97,9 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, AbsRLPolicy):
         self._soft_update_coef = soft_update_coef
         self._clip_ratio = clip_ratio
         self._lam = lam
-        self._max_trajectory_len = max_trajectory_len
-        self._get_loss_on_rollout = get_loss_on_rollout
 
         self._critic_net_version = 0
-        self._target_critic_net_version = 0
+        self._target_net_version = 0
 
         # List of single agent replay memory for multi-agent scenario.
         self._replay_memory = [ReplayMemory(
@@ -238,7 +228,7 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, AbsRLPolicy):
         )
 
     def get_rollout_info(self) -> dict:
-        """Randomly sample a batch of transitions from all the replay memories.
+        """Randomly sample a batch of transitions from all agents' replay memories.
 
         This is used in a distributed learning setting and the returned data will be sent to its parent instance
         on the learning side (serving as the source of the latest model parameters) for training.
@@ -266,9 +256,8 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, AbsRLPolicy):
         # batch formatting
         states = self._get_global_states([sub_batch["states"] for sub_batch in batch])
         next_states = self._get_global_states([sub_batch["next_states"] for sub_batch in batch])
-        # TODO: how to handle the reward/terminal from multiple sub-agents?
-        rewards = np.concatenate([sub_batch["rewards"] for sub_batch in batch], axis=1)
-        terminals = np.concatenate([sub_batch["terminals"] for sub_batch in batch], axis=1)
+        rewards = np.concatenate([sub_batch["rewards"] for sub_batch in batch], axis=1).sum(axis=1)  # coorperative
+        terminals = np.all(np.concatenate([sub_batch["terminals"] for sub_batch in batch], axis=1), axis=1)
 
         # type converting
         states = torch.from_numpy(states).to(self._device)  # [batch_size, total_state_dim]
@@ -324,10 +313,15 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, AbsRLPolicy):
             net.apply_gradients(average_grads([loss_info["actor_grads"][i] for loss_info in loss_info_list]))
         self._critic_net.apply_gradients(average_grads([loss_info["critic_grad"] for loss_info in loss_info_list]))
         self._critic_net_version += 1
-        if self._critic_net_version - self._target_critic_net_version == self.update_target_every:
+        if self._critic_net_version - self._target_net_version == self.update_target_every:
             self._update_target()
 
     def learn(self, batch: List[dict]) -> None:
+        """Learn from a batch of experience data.
+
+        Args:
+            batch (List[dict]): A list of experience data batch collected from all sub-agents.
+        """
         for i, sub_batch in enumerate(batch):
             self._replay_memory[i].put(
                 sub_batch["states"], sub_batch["actions"], sub_batch["rewards"],
@@ -344,16 +338,21 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, AbsRLPolicy):
                 net.step(loss)
             self._critic_net.step(loss)
             self._critic_net_version += 1
-            if self._critic_net_version - self._target_critic_net_version == self.update_target_every:
+            if self._critic_net_version - self._target_net_version == self.update_target_every:
                 self._update_target()
 
     def _update_target(self):
         # soft-update target network
         self._target_critic_net.soft_update(self._critic_net, self._soft_update_coef)
-        self._target_critic_net_version = self._critic_net_version
+        for target_agent, agent in zip(self._target_agent_nets, self._agent_nets):
+            target_agent.soft_update(agent, self._soft_update_coef)
+        self._target_net_version = self._critic_net_version
 
     def get_state(self) -> object:
-        return [net.get_state() for net in self._agent_nets]
+        return {
+            "agent_nets": [net.get_state() for net in self._agent_nets],
+            "critic_net": self._critic_net.get_state()
+        }
 
     def set_state(self, policy_state: object) -> None:
         assert isinstance(policy_state, list)
@@ -361,7 +360,29 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, AbsRLPolicy):
             net.set_state(state)
 
     def load(self, path: str) -> None:
-        self.set_state(torch.load(path))
+        checkpoint = torch.load(path)
+        self._critic_net.set_state(checkpoint["critic_net"])
+        self._critic_net_version = checkpoint["critic_net_version"]
+        self._target_critic_net.set_state(checkpoint["target_critic_net"])
+        self._target_net_version = checkpoint["target_net_version"]
+        self._replay_memory = checkpoint["replay_memory"]
+
+        for net, ckpt in zip(self._agent_nets, checkpoint["agent_nets"]):
+            net.set_state(ckpt)
+
+        for net, ckpt in zip(self._target_agent_nets, checkpoint["target_agent_nets"]):
+            net.set_state(ckpt)
 
     def save(self, path: str) -> None:
-        torch.save(self.get_state(), path)
+        """Save the policy state to disk."""
+        net_states = self.get_state()
+        policy_state = {
+            "critic_net": net_states["critic_net"],
+            "agent_nets": net_states["agent_nets"],
+            "critic_net_version": self._critic_net_version,
+            "target_critic_net": self._target_critic_net.get_state(),
+            "target_agent_nets": [agent.get_state() for agent in self._target_agent_nets],
+            "target_net_version": self._target_net_version,
+            "replay_memory": self._replay_memory
+        }
+        torch.save(policy_state, path)
