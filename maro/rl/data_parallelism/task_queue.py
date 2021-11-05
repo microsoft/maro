@@ -3,7 +3,6 @@
 
 from collections import defaultdict
 from multiprocessing import Manager, Process, Queue, managers
-from os import getcwd
 from typing import Dict, List
 
 from maro.communication import Proxy, SessionMessage

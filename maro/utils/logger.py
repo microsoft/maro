@@ -125,7 +125,7 @@ class Logger(object):
         sh = logging.StreamHandler(sys.stdout)
         sh.setLevel(self._stdout_level)
         if self._stdout_format is not None:
-            sh.setFormatter(self._stdout_format)   
+            sh.setFormatter(self._stdout_format)
         self._logger.addHandler(sh)
 
         self._extra = {'host': socket.gethostname(), 'user': getpass.getuser(), 'tag': tag}
