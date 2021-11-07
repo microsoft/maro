@@ -217,7 +217,60 @@ class SoftActorCritic(RLPolicy):
         """Learn using data from the replay memory."""
         for _ in range(self.num_epochs):
             train_batch = self._replay_memory.sample(self.train_batch_size)
-            self.sac_net.step(self.get_batch_loss(train_batch)["loss"])
+
+            # self.sac_net.step(self.get_batch_loss(train_batch)["loss"])
+            ####################################################################
+            states = torch.from_numpy(train_batch["states"]).to(self.device)
+            next_states = torch.from_numpy(train_batch["next_states"]).to(self.device)
+            actual_actions = torch.from_numpy(train_batch["actions"]).to(self.device)
+            rewards = torch.from_numpy(train_batch["rewards"]).to(self.device)
+            terminals = torch.from_numpy(train_batch["terminals"]).float().to(self.device)
+            if len(actual_actions.shape) == 1:
+                actual_actions = actual_actions.unsqueeze(dim=1)  # (N, 1)
+
+            self.sac_net.train()
+
+            # Update Q1 & Q2
+            self.sac_net.q_optim.zero_grad()
+
+            q1 = self.sac_net.get_q1_values(states, actual_actions)
+            q2 = self.sac_net.get_q2_values(states, actual_actions)
+
+            with torch.no_grad():
+                next_actions, next_logps = self.sac_net(next_states)
+                target_next_q = torch.min(
+                    self.target_sac_net.get_q1_values(next_states, next_actions),
+                    self.target_sac_net.get_q2_values(next_states, next_actions)
+                )
+                q_target = rewards + self.reward_discount * (1 - terminals) * (target_next_q - self.alpha * next_logps)
+                # q_target = q_target.detach()  # (N,)
+
+            q_loss = self.q_value_loss_func(q1, q_target) + self.q_value_loss_func(q2, q_target)
+
+            q_loss.backward()
+            self.sac_net.q_optim.step()
+
+            # Update policy
+            for param in self.sac_net.q_params:
+                param.requires_grad = False
+
+            self.sac_net.policy_optim.zero_grad()
+
+            hypo_actions, hypo_logps = self.sac_net(states)
+            q_hypo = torch.min(
+                self.sac_net.get_q1_values(states, hypo_actions),
+                self.sac_net.get_q2_values(states, hypo_actions)
+            )
+            policy_loss = (self.alpha * hypo_logps - q_hypo).mean()
+
+            policy_loss.backward()
+            self.sac_net.policy_optim.step()
+
+            for param in self.sac_net.q_params:
+                param.requires_grad = True
+
+            ####################################################################
+
             self._sac_net_version += 1
             if self._sac_net_version - self._target_sac_net_version == self.update_target_every:
                 self._update_target()

@@ -8,9 +8,9 @@ from shutil import copy2
 
 from maro.utils import LogFormat, Logger
 
-from examples.hvac.ddpg.callbacks import post_evaluate
-from examples.hvac.ddpg.config import experiment_name, training_config
-from examples.hvac.ddpg.env_sampler import get_env_sampler
+from examples.hvac.rl.callbacks import post_evaluate
+from examples.hvac.rl.config import experiment_name, training_config
+from examples.hvac.rl.env_sampler import get_env_sampler
 
 os.environ['TZ'] = "Asia/Shanghai"
 time.tzset()
@@ -28,8 +28,9 @@ def train():
     copy2(os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.py"), log_dir)
     copy2(os.path.join(os.path.dirname(os.path.abspath(__file__)), "env_sampler.py"), log_dir)
     logger = Logger(tag="Train", dump_folder=log_dir, format_=LogFormat.simple)
+    env_logger = Logger(tag="EnvSampler", dump_folder=log_dir, format_=LogFormat.none)
 
-    env_sampler = get_env_sampler()
+    env_sampler = get_env_sampler(logger=env_logger)
 
     if training_config["load_model"]:
         env_sampler.agent_wrapper.load(checkpoint_dir)
@@ -50,7 +51,7 @@ def train():
             or ep == training_config["num_episodes"] - 1
         ):
             trackers = env_sampler.test()
-            post_evaluate(trackers, episode=ep, path=log_dir, prefix="Eval" if env_sampler.agent_wrapper.exploit_mode else "Train")
+            post_evaluate(trackers, episode=ep, path=log_dir, prefix="Eval")
             logger.info(f"Ep {ep}: Evaluation finished")
 
 

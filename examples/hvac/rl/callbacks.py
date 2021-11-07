@@ -35,8 +35,11 @@ def post_evaluate(trackers: dict, episode: int, path: str, prefix: str="Eval"):
         if not isinstance(data, np.ndarray):
             data = np.array(data)
         if "total" in att:
-            return f"{att}_[{np.min(data):.5}, {np.max(data):.5}]"
-        return f"{att}_[{np.min(data):.3}, {np.max(data):.3}]_({np.mean(data):.3}, {np.std(data):.3})"
+            if "kw" in att:
+                baseline_total = np.max(baseline[att][:len(data)])
+                return f"{att}_[{np.min(data):.5f}, {np.max(data):.5f}]_{(baseline_total - np.max(data))/np.max(data):.2%}"
+            return f"{att}_[{np.min(data):.5f}, {np.max(data):.5f}]"
+        return f"{att}_[{np.min(data):.3f}, {np.max(data):.3f}]_({np.mean(data):.3f}, {np.std(data):.3f})"
 
     fig_plot, axs_plot = plt.subplots(2, 4, figsize=(20, 9))
     fig_hist, axs_hist = plt.subplots(2, 3, figsize=(20, 9))

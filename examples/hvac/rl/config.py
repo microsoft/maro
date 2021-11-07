@@ -8,19 +8,19 @@ import torch
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-experiment_name = "ddpg_Bonsai_env+"
 algorithm = "ddpg"
+experiment_name = f"{algorithm}_test"
 
 env_config = {
     "topology": "building121",
-    "durations": 4629
+    "durations": 500
 }
 
 training_config = {
     # Test
     "test": False,
-    # "model_path": "/home/Jinyu/maro/examples/hvac/ddpg/checkpoints/2021-11-03 04:33:20 ddpg_rewrite_Bonsai_env_positive/ddpg_49",
-    "model_path": "/home/Jinyu/maro/examples/hvac/ddpg/checkpoints/2021-11-03 04:32:29 ddpg_rewrite_V2_env_positive/ddpg_49",
+    # "model_path": "/home/Jinyu/maro/examples/hvac/rl/checkpoints/2021-11-03 04:33:20 ddpg_rewrite_Bonsai_env_positive/ddpg_49",
+    "model_path": "/home/Jinyu/maro/examples/hvac/rl/checkpoints/2021-11-03 04:32:29 ddpg_rewrite_V2_env_positive/ddpg_49",
     # Train
     "load_model": False,
     "num_episodes": 200,
@@ -30,14 +30,14 @@ training_config = {
 }
 
 state_config = {
-    # "attributes": ["kw", "at", "dat", "mat"]
-    "attributes": ["kw", "at", "mat"],   # The one for Bonsai
-    "normalize": False,
+    "attributes": ["kw", "at", "dat", "mat"],
+    # "attributes": ["kw", "at", "mat"],   # The one for Bonsai
+    "normalize": True,
 }
 
 reward_config = {
-    "type": "Bonsai",  # Bonsai, V2, V3
     # Bonsai
+    "type": "Bonsai",  # Bonsai, V2, V3, V4, V5
     # V2
     "V2_efficiency_factor": 10,
     "V2_das_diff_factor": -2,
@@ -50,6 +50,9 @@ reward_config = {
     "V4_kw_factor": 1,
     "V4_das_diff_penalty_factor": -0.05,
     "V4_dat_penalty_factor": -0.2,
+    # V5
+    "V5_kw_factor": 4,
+    "V5_dat_penalty_factor": -0.06,
 }
 
 state_dim = len(state_config["attributes"])
@@ -104,7 +107,7 @@ sac_policy_net_config = {
     "input_dim": state_dim,
     "hidden_dims": [256, 256],
     "output_dim": 64,
-    "activation": torch.nn.LeakyReLU,
+    "activation": torch.nn.Tanh,
     "softmax": False,
     "batch_norm": True,
     "skip_connection": False,
@@ -113,13 +116,13 @@ sac_policy_net_config = {
 }
 
 
-sac_policy_net_optim_config = (torch.optim.Adam, {"lr": 0.01})
+sac_policy_net_optim_config = (torch.optim.Adam, {"lr": 0.001})
 
 sac_q_net_config = {
     "input_dim": state_dim + action_dim,
-    "hidden_dims": [256, 256, 64],
+    "hidden_dims": [256, 256],
     "output_dim": 1,
-    "activation": torch.nn.LeakyReLU,
+    "activation": torch.nn.Tanh,
     "softmax": False,
     "batch_norm": False,
     "skip_connection": False,
@@ -127,16 +130,16 @@ sac_q_net_config = {
     "dropout_p": 0.0
 }
 
-sac_q_net_optim_config = (torch.optim.Adam, {"lr": 0.01})
+sac_q_net_optim_config = (torch.optim.Adam, {"lr": 0.001})
 
 sac_config = {
-    "reward_discount": 0.0,
-    "soft_update_coeff": 0.1,
+    "reward_discount": 0.99,
+    "soft_update_coeff": 0.9,
     "alpha": 0.2,
     "replay_memory_capacity": 10000,
     "random_overwrite": False,
-    "warmup": 100,
+    "warmup": 5000,
     "update_target_every": 5,
-    "rollout_batch_size": 128,
-    "train_batch_size": 32
+    "rollout_batch_size": 256,
+    "train_batch_size": 256
 }

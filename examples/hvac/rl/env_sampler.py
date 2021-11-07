@@ -148,6 +148,27 @@ class HVACEnvSampler(AbsEnvSampler):
                         f"{reward[0]/10}"
                     )
 
+        elif reward_config["type"] == "V5":
+            reward = -20
+            if diff_sps <= 0.3 and get_attribute("das") < 60:
+                kw_line = 70
+                kw_gap = (kw_line - get_attribute("kw")) / self._statistics["kw"]["range"]
+
+                reward = 10 * (
+                    math.exp(-efficiency_ratio)
+                    + reward_config["V5_kw_factor"] * kw_gap * (2 if kw_gap > 0 else 1)
+                    + reward_config["V5_dat_penalty_factor"] * max(0, get_attribute("dat") - 57)
+                )
+
+                if self._logger:
+                    self._logger.debug(
+                        f"{math.exp(-efficiency_ratio)},"
+                        f"{(kw_line - get_attribute('kw')[0]) / self._statistics['kw']['range']},"
+                        f","
+                        f"{get_attribute('dat')[0] - 57},"
+                        f"{reward[0]/10}"
+                    )
+
         return {agent_name: reward}
 
     def post_step(self, state, action, env_actions, reward, tick):
