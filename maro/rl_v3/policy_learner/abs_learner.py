@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Optional
+from typing import Dict, Optional
 
 import numpy as np
 
@@ -13,6 +13,18 @@ class AbsLearner(object):
     @property
     def name(self) -> str:
         return self._name
+
+    @abstractmethod
+    def train_step(self) -> None:
+        pass
+
+    @abstractmethod
+    def get_policy_state_dict(self) -> Dict[str, object]:
+        pass
+
+    @abstractmethod
+    def set_policy_state_dict(self, policy_state_dict: Dict[str, object]) -> None:
+        pass
 
 
 class SingleLearner(AbsLearner):
@@ -61,12 +73,16 @@ class SingleLearner(AbsLearner):
         pass
 
     @abstractmethod
-    def train_step(self) -> None:
-        pass
-
-    @abstractmethod
     def register_policy(self, policy: RLPolicy) -> None:
         pass
+
+    def get_policy_state_dict(self) -> Dict[str, object]:
+        return {self._policy.name: self._policy.get_policy_state()}
+
+    def set_policy_state_dict(self, policy_state_dict: Dict[str, object]) -> None:
+        assert len(policy_state_dict) == 1 and self._policy.name in policy_state_dict
+        self._policy.set_policy_state(policy_state_dict[self._policy.name])
+
 #
 #
 # class MultiLearner(AbsLearner):
