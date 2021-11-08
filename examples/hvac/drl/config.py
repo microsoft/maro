@@ -68,7 +68,7 @@ dqn_agent_hyperparameters =   {
 
 class Config(object):
     def __init__(self):
-        self.num_episodes_to_run = 20
+        self.num_episodes_to_run = 30
         self.algorithm = "ddpg"  # ddpg, sac
         self.experiment_name = f"{self.algorithm}_test"
 
