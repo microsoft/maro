@@ -73,6 +73,9 @@ class HvacBusinessEngine(AbsBusinessEngine):
         self._snapshots = self._frame.snapshots
 
     def _init_ahus(self) -> List[str]:
+        # TODO: replace the path parser with data deployment
+        CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+
         ahu_mat_path_list: List[str] = []
         ahu_predictor: List[Tuple[nn.Module, MinMaxScaler, MinMaxScaler]] = []
 
@@ -86,14 +89,14 @@ class HvacBusinessEngine(AbsBusinessEngine):
                 sps=ahu_setting.initial_values.sps,
                 das=ahu_setting.initial_values.das
             )
-            ahu_mat_path_list.append(ahu_setting.mat_path)
+            ahu_mat_path_list.append(os.path.join(CURRENT_DIR, ahu_setting.mat_path))
 
             predictor = ahu_pred_model()
-            predictor.load_state_dict(torch.load(ahu_setting.transition.paths.model))
+            predictor.load_state_dict(torch.load(os.path.join(CURRENT_DIR, ahu_setting.transition.paths.model)))
             predictor.eval()
 
-            x_scaler = joblib.load(ahu_setting.transition.paths.x_scaler)
-            y_scaler = joblib.load(ahu_setting.transition.paths.y_scaler)
+            x_scaler = joblib.load(os.path.join(CURRENT_DIR, ahu_setting.transition.paths.x_scaler))
+            y_scaler = joblib.load(os.path.join(CURRENT_DIR, ahu_setting.transition.paths.y_scaler))
 
             ahu_predictor.append((predictor, x_scaler, y_scaler))
 

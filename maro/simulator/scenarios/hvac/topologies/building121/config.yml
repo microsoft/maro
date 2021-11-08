@@ -1,6 +1,6 @@
 ahu:
   - name: ahu01
-    mat_path: ~/maro/maro/simulator/scenarios/hvac/topologies/building121/datasets/train_data_MAT.csv
+    mat_path: topologies/building121/datasets/train_data_MAT.csv
     initial_values:
       dat: 54.7 # Dust Air Temperature, 75.1, TODO: confirm with the one for Bonsai
       at: 51 # Air tonnage, 51
@@ -10,9 +10,9 @@ ahu:
       das: 54.3 # Discharge Air Temperature Setpoint, 61, TODO: confirm with the one for Bonsai
     transition: # TODO: Add module imported
       paths:
-        model: ~/maro/maro/simulator/scenarios/hvac/ahu_prediction/checkpoints/building121/best_model.pt
-        x_scaler: ~/maro/maro/simulator/scenarios/hvac/topologies/building121/datasets/scaler/x_scaler.joblib
-        y_scaler: ~/maro/maro/simulator/scenarios/hvac/topologies/building121/datasets/scaler/y_scaler.joblib
+        model: ahu_prediction/checkpoints/building121/best_model.pt
+        x_scaler: topologies/building121/datasets/scaler/x_scaler.joblib
+        y_scaler: topologies/building121/datasets/scaler/y_scaler.joblib
       input_attributes: # Not used now
         - sps
         - das
