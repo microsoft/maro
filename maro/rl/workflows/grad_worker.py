@@ -22,13 +22,14 @@ if __name__ == "__main__":
         # no remote nodes for policy hosts
         num_hosts = len(policy_func_dict)
 
+    logger = get_logger(from_env("LOGDIR", required=False, default=os.getcwd()), from_env("JOB"), worker_id)
+
     peers = {"policy_manager": 1, "policy_host": num_hosts, "task_queue": 1}
     proxy = Proxy(
-        group, "grad_worker", peers, component_name=worker_id,
+        group, "grad_worker", peers, component_name=worker_id, logger=logger,
         redis_address=(from_env("REDISHOST"), from_env("REDISPORT")),
         max_peer_discovery_retries=50
     )
-    logger = get_logger(from_env("LOGDIR", required=False, default=os.getcwd()), from_env("JOB"), worker_id)
 
     for msg in proxy.receive():
         if msg.tag == MsgTag.EXIT:

@@ -66,7 +66,7 @@ class AbsPolicyManager(ABC):
         """
         peers = {"actor": num_actors}
         name = "POLICY_SERVER"
-        proxy = Proxy(group, "policy_server", peers, component_name=name, **proxy_kwargs)
+        proxy = Proxy(group, "policy_server", peers, component_name=name, logger=self._logger, **proxy_kwargs)
 
         num_active_actors = num_actors
         for msg in proxy.receive():
@@ -152,7 +152,7 @@ class SimplePolicyManager(AbsPolicyManager):
             # TODO: support data-parallel and add peer taskQ
             self._proxy = Proxy(
                 group, "policy_manager", {"grad_worker": self._num_grad_workers, "task_queue": 1},
-                component_name="POLICY_MANAGER", **proxy_kwargs
+                component_name="POLICY_MANAGER", logger=self._logger, **proxy_kwargs
             )
 
             for name in create_policy_func_dict:
@@ -238,7 +238,7 @@ class MultiProcessPolicyManager(AbsPolicyManager):
             self._num_grad_workers = data_parallelism
             self._proxy = Proxy(
                 group, "policy_manager", {"grad_worker": self._num_grad_workers, "task_queue": 1},
-                component_name="POLICY_MANAGER", **proxy_kwargs
+                component_name="POLICY_MANAGER", logger=self._logger, **proxy_kwargs
             )
 
         if checkpoint_dir:
@@ -375,7 +375,9 @@ class DistributedPolicyManager(AbsPolicyManager):
         if self._data_parallel:
             peers["grad_worker"] = data_parallelism
             peers["task_queue"] = 1
-        self._proxy = Proxy(group, "policy_manager", peers, component_name="POLICY_MANAGER", **proxy_kwargs)
+        self._proxy = Proxy(
+            group, "policy_manager", peers, component_name="POLICY_MANAGER", logger=self._logger, **proxy_kwargs
+        )
 
         self._policy2host = {}
         self._host2policies = defaultdict(list)

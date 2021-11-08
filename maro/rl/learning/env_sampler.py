@@ -461,7 +461,8 @@ class AbsEnvSampler(ABC):
                 which logs nothing.
         """
         proxy = Proxy(
-            group, "rollout_worker", {"rollout_manager": 1}, component_name=f"ROLLOUT_WORKER.{index}", **proxy_kwargs
+            group, "rollout_worker", {"rollout_manager": 1}, component_name=f"ROLLOUT_WORKER.{index}", logger=logger,
+            **proxy_kwargs
         )
         """
         The event loop handles 3 types of messages from the roll-out manager:
@@ -537,7 +538,7 @@ class AbsEnvSampler(ABC):
 
         name = f"ACTOR.{index}"
         peers = {"policy_server": 1}
-        proxy = Proxy(group, "actor", peers, component_name=name, **proxy_kwargs)
+        proxy = Proxy(group, "actor", peers, component_name=name, logger=logger, **proxy_kwargs)
         server_address = proxy.peers["policy_server"][0]
 
         # get initial policy states from the policy manager

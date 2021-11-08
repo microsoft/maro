@@ -230,7 +230,9 @@ class DistributedRolloutManager(AbsRolloutManager):
 
         self._num_workers = num_workers
         peers = {"rollout_worker": num_workers}
-        self._proxy = Proxy(group, "rollout_manager", peers, component_name="ROLLOUT_MANAGER", **proxy_kwargs)
+        self._proxy = Proxy(
+            group, "rollout_manager", peers, component_name="ROLLOUT_MANAGER", logger=logger, **proxy_kwargs
+        )
         self._workers = self._proxy.peers["rollout_worker"]  # remote roll-out worker ID's
         self._logger = logger
 

@@ -17,6 +17,7 @@ if __name__ == "__main__":
     example_dir = dirname(dirname(docker_script_dir))
     root_dir = dirname(dirname(example_dir))
     maro_rl_dir = join(root_dir, "maro", "rl")
+    maro_comm_dir = join(root_dir, "maro", "communication")
 
     with open(join(example_dir, "config.yml"), "r") as fp:
         config = yaml.safe_load(fp)
@@ -27,6 +28,7 @@ if __name__ == "__main__":
         "volumes": [
             f"{example_dir}:/maro/examples",
             f"{maro_rl_dir}:/maro/maro/rl",
+            f"{maro_comm_dir}:/maro/maro/communication"
         ]
     }
 

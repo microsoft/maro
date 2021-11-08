@@ -80,7 +80,7 @@ def task_queue(
 
     # Proxy
     peers = {"policy_host": num_hosts, "grad_worker": num_workers, "policy_manager": 1}
-    proxy = Proxy(group, "task_queue", peers, component_name="TASK_QUEUE", **proxy_kwargs)
+    proxy = Proxy(group, "task_queue", peers, component_name="TASK_QUEUE", logger=logger, **proxy_kwargs)
 
     assert single_task_limit > 0.0 and single_task_limit <= 1.0, "single_task_limit" \
         f"should be greater than 0.0 and less than 1.0, but {single_task_limit} instead."

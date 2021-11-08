@@ -20,9 +20,12 @@ if __name__ == "__main__":
     group = from_env("POLICYGROUP")
     policy_dict, checkpoint_path = {}, {}
 
+    logger = get_logger(from_env("LOGDIR", required=False, default=os.getcwd()), from_env("JOB"), host_id)
+
     proxy = Proxy(
         group, "policy_host", peers,
         component_name=host_id,
+        logger=logger,
         redis_address=(from_env("REDISHOST"), from_env("REDISPORT")),
         max_peer_discovery_retries=50
     )
@@ -30,8 +33,6 @@ if __name__ == "__main__":
     checkpoint_dir = from_env("CHECKPOINTDIR", required=False, default=None)
     if checkpoint_dir:
         os.makedirs(checkpoint_dir, exist_ok=True)
-
-    logger = get_logger(from_env("LOGDIR", required=False, default=os.getcwd()), from_env("JOB"), host_id)
 
     for msg in proxy.receive():
         if msg.tag == MsgTag.EXIT:

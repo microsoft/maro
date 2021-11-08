@@ -19,6 +19,7 @@ import redis
 from maro.utils import Logger
 from maro.utils.exception.communication_exception import InformationUncompletedError, PeersMissError, PendingToSend
 from maro.utils.exit_code import KILL_ALL_EXIT_CODE, NON_RESTART_EXIT_CODE
+from maro.utils.logger import DummyLogger
 
 from .driver import DriverType, ZmqDriver
 from .message import Message, NotificationSessionStage, SessionMessage, SessionType, TaskSessionStage
@@ -93,7 +94,8 @@ class Proxy:
         max_length_for_message_cache: int = MAX_LENGTH_FOR_MESSAGE_CACHE,
         timeout_for_minimal_peer_number: int = TIMEOUT_FOR_MINIMAL_PEER_NUMBER,
         is_remove_failed_container: bool = IS_REMOVE_FAILED_CONTAINER,
-        max_rejoin_times: int = MAX_REJOIN_TIMES
+        max_rejoin_times: int = MAX_REJOIN_TIMES,
+        logger: Logger = DummyLogger()
     ):
         self._group_name = group_name
         self._component_type = component_type
@@ -107,7 +109,7 @@ class Proxy:
         self._max_redis_connect_retries = max_redis_connect_retries
         self._initial_peer_discovery_retry_interval = initial_peer_discovery_retry_interval
         self._max_peer_discovery_retries = max_peer_discovery_retries
-        self._logger = Logger(".".join([self._name, "proxy"]))
+        self._logger = logger
 
         # TODO:In multiprocess with spawn start method, the driver must be initiated before the Redis.
         # Otherwise it will cause Error 9: Bad File Descriptor in proxy.__del__(). Root cause not found.
