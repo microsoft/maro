@@ -16,6 +16,8 @@ env_config = {
     "durations": 500
 }
 
+baseline_path = os.path.join(CURRENT_DIR, "../../../maro/simulator/scenarios/hvac/topologies/building121/datasets/train_data_AHU_MAT.csv")
+
 training_config = {
     # Test
     "test": False,

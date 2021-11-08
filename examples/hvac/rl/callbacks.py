@@ -8,11 +8,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+from .config import baseline_path
+
 attributes = ["kw", "dat", "at", "sps", "das", "total_kw"]
 
 def get_baseline():
-    data_path = "/home/Jinyu/maro/maro/simulator/scenarios/hvac/topologies/building121/datasets/train_data_AHU_MAT.csv"
-    df = pd.read_csv(data_path, sep=',', delimiter=None, header='infer')
+    df = pd.read_csv(baseline_path, sep=',', delimiter=None, header='infer')
     df = df.dropna()
     df = df.reset_index()
 
