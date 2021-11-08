@@ -21,29 +21,8 @@ class Trainer(object):
     def create_agent_to_agent_group_dictionary(self):
         """Creates a dictionary that maps an agent to their wider agent group"""
         agent_to_agent_group_dictionary = {
-            "DQN": "DQN_Agents",
-            "DQN-HER": "DQN_Agents",
-            "DDQN": "DQN_Agents",
-            "DDQN with Prioritised Replay": "DQN_Agents",
-            "DQN with Fixed Q Targets": "DQN_Agents",
-            "Duelling DQN": "DQN_Agents",
-            "PPO": "Policy_Gradient_Agents",
-            "REINFORCE": "Policy_Gradient_Agents",
-            "Genetic_Agent": "Stochastic_Policy_Search_Agents",
-            "Hill Climbing": "Stochastic_Policy_Search_Agents",
             "DDPG": "Actor_Critic_Agents",
-            "DDPG-HER": "Actor_Critic_Agents",
-            "TD3": "Actor_Critic_Agents",
-            "A2C": "Actor_Critic_Agents",
-            "A3C": "Actor_Critic_Agents",
-            "h-DQN": "h_DQN",
-            "SNN-HRL": "SNN_HRL",
-            "HIRO": "HIRO",
             "SAC": "Actor_Critic_Agents",
-            "HRL": "HRL",
-            "Model_HRL": "HRL",
-            "DIAYN": "DIAYN",
-            "Dueling DDQN": "DQN_Agents"
         }
         return agent_to_agent_group_dictionary
 
@@ -51,23 +30,8 @@ class Trainer(object):
         """Creates a dictionary that maps an agent to a hex color (for plotting purposes)
         See https://en.wikipedia.org/wiki/Web_colors and https://htmlcolorcodes.com/ for hex colors"""
         agent_to_color_dictionary = {
-            "DQN": "#0000FF",
-            "DQN with Fixed Q Targets": "#1F618D",
-            "DDQN": "#2980B9",
-            "DDQN with Prioritised Replay": "#7FB3D5",
-            "Dueling DDQN": "#22DAF3",
-            "PPO": "#5B2C6F",
             "DDPG": "#800000",
-            "DQN-HER": "#008000",
-            "DDPG-HER": "#008000",
-            "TD3": "#E74C3C",
-            "h-DQN": "#D35400",
-            "SNN-HRL": "#800000",
-            "A3C": "#E74C3C",
-            "A2C": "#F1948A",
             "SAC": "#1C2833",
-            "DIAYN": "#F322CD",
-            "HRL": "#0E0F0F"
         }
         return agent_to_color_dictionary
 
@@ -113,41 +77,23 @@ class Trainer(object):
         agent_name = agent_class.agent_name
         agent_group = self.agent_to_agent_group[agent_name]
         agent_round = 1
-        for run in range(self.config.runs_per_agent):
-            agent_config = copy.deepcopy(self.config)
-            # agent_config.environment.reload_model()
-            self.env.reset()
-            # if self.environment_has_changeable_goals(agent_config.environment) and self.agent_cant_handle_changeable_goals_without_flattening(agent_name):
-            #     print("Flattening changeable-goal environment for agent {}".format(agent_name))
-            #     agent_config.environment = gym.wrappers.FlattenDictWrapper(agent_config.environment,
-            #                                                                dict_keys=["observation", "desired_goal"])
-
-            if self.config.randomise_random_seed: agent_config.seed = random.randint(0, 2**32 - 2)
-            agent_config.hyperparameters = agent_config.hyperparameters[agent_group]
-            print("AGENT NAME: {}".format(agent_name))
-            print("\033[1m" + "{}.{}: {}".format(agent_number, agent_round, agent_name) + "\033[0m", flush=True)
-            agent = agent_class(agent_config, env)
-            agent.agent_number = agent_number
-            self.environment_name = agent.environment_title
-            print(agent.hyperparameters)
-            print("RANDOM SEED " , agent_config.seed)
-            game_scores, rolling_scores, time_taken = agent.run_n_episodes()
-            print("Time taken: {}".format(time_taken), flush=True)
-            self.print_two_empty_lines()
-            agent_results.append([game_scores, rolling_scores, len(rolling_scores), -1 * max(rolling_scores), time_taken])
-            if self.config.visualise_individual_results:
-                self.visualise_overall_agent_results([rolling_scores], agent_name, show_each_run=True)
-                plt.show()
-            agent_round += 1
+        agent_config = copy.deepcopy(self.config)
+        self.env.reset()
+        if self.config.randomise_random_seed: agent_config.seed = random.randint(0, 2**32 - 2)
+        agent_config.hyperparameters = agent_config.hyperparameters[agent_group]
+        print("AGENT NAME: {}".format(agent_name))
+        print("\033[1m" + "{}.{}: {}".format(agent_number, agent_round, agent_name) + "\033[0m", flush=True)
+        agent = agent_class(agent_config, env)
+        agent.agent_number = agent_number
+        self.environment_name = agent.environment_title
+        print(agent.hyperparameters)
+        print("RANDOM SEED " , agent_config.seed)
+        game_scores, rolling_scores, time_taken = agent.run_n_episodes()
+        print("Time taken: {}".format(time_taken), flush=True)
+        self.print_two_empty_lines()
+        agent_results.append([game_scores, rolling_scores, len(rolling_scores), -1 * max(rolling_scores), time_taken])
+        agent_round += 1
         self.results[agent_name] = agent_results
-
-    def environment_has_changeable_goals(self, env):
-        """Determines whether environment is such that for each episode there is a different goal or not"""
-        return isinstance(env.reset(), dict)
-
-    def agent_cant_handle_changeable_goals_without_flattening(self, agent_name):
-        """Boolean indicating whether the agent is set up to handle changeable goals"""
-        return "HER" not in agent_name
 
     def visualise_overall_agent_results(self, agent_results, agent_name, show_mean_and_std_range=False, show_each_run=False,
                                         color=None, ax=None, title=None, y_limits=None):
@@ -194,10 +140,6 @@ class Trainer(object):
 
         ax.set_ylim([y_min, y_max])
 
-        # if self.config.show_solution_score:
-        #     self.draw_horizontal_line_with_label(ax, y_value=self.config.environment.get_score_to_win(), x_min=0,
-        #                                 x_max=self.config.num_episodes_to_run * 1.02, label="Target \n score")
-
     def get_y_limits(self, results):
         """Extracts the minimum and maximum seen y_values from a set of results"""
         min_result = float("inf")
@@ -239,13 +181,6 @@ class Trainer(object):
         for spine in spines_to_hide:
             ax.spines[spine].set_visible(False)
 
-    def ignore_points_after_game_solved(self, mean_minus_x_std, mean_results, mean_plus_x_std):
-        """Removes the datapoints after the mean result achieves the score required to solve the game"""
-        for ix in range(len(mean_results)):
-            if mean_results[ix] >= self.config.environment.get_score_to_win():
-                break
-        return mean_minus_x_std[:ix], mean_results[:ix], mean_plus_x_std[:ix]
-
     def draw_horizontal_line_with_label(self, ax, y_value, x_min, x_max, label):
         """Draws a dotted horizontal line on the given image at the given point and with the given label"""
         ax.hlines(y=y_value, xmin=x_min, xmax=x_max,
@@ -281,28 +216,4 @@ class Trainer(object):
             self.visualise_overall_agent_results(agent_rolling_score_results, agent, show_mean_and_std_range=True,
                                                  color=color, ax=ax, title=title, y_limits=y_limits)
         if save_image_path: plt.savefig(save_image_path, bbox_inches="tight")
-        if show_image: plt.show()
-
-    def visualise_set_of_preexisting_results(self, results_data_paths, save_image_path=None, show_image=True, plot_titles=None,
-                                             y_limits=[None,None]):
-        """Visualises a set of preexisting results on 1 plot by making subplots"""
-        assert isinstance(results_data_paths, list), "all_results must be a list of data paths"
-
-        num_figures = len(results_data_paths)
-        col_width = 15
-        row_height = 6
-
-        if num_figures <= 2:
-            fig, axes = plt.subplots(1, num_figures, figsize=(col_width, row_height ))
-        elif num_figures <= 4:
-            fig, axes = plt.subplots(2, num_figures, figsize=(row_height, col_width))
-        else:
-            raise ValueError("Need to tell this method how to deal with more than 4 plots")
-        for ax_ix in range(len(results_data_paths)):
-            self.visualise_preexisting_results(show_image=False, data_path=results_data_paths[ax_ix], ax=axes[ax_ix],
-                                               title=plot_titles[ax_ix], y_limits=y_limits[ax_ix])
-        fig.tight_layout()
-        fig.subplots_adjust(bottom=0.25)
-
-        if save_image_path: plt.savefig(save_image_path) #, bbox_inches="tight")
         if show_image: plt.show()

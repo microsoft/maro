@@ -13,22 +13,19 @@ class Base_Agent(object):
     def __init__(self, config, env):
         self.config = config
         self.logger = self.setup_logger()
-        self.debug_mode = config.debug_mode
-        # if self.debug_mode: self.tensorboard = SummaryWriter()
         self.set_random_seeds(config.seed)
         self.environment = env
-        self.environment_title = self.get_environment_title()
+        self.environment_title = self.environment.unwrapped.id
         self.action_types = "DISCRETE" if self.environment.action_space.dtype == np.int64 else "CONTINUOUS"
         self.action_size = int(self.get_action_size())
         self.config.action_size = self.action_size
 
-        self.lowest_possible_episode_score = self.get_lowest_possible_episode_score()
+        self.lowest_possible_episode_score = None
 
         self.state_size =  int(self.get_state_size())
         self.hyperparameters = config.hyperparameters
         self.average_score_required_to_win = self.get_score_required_to_win()
-        self.rolling_score_window = self.get_trials()
-        # self.max_steps_per_episode = self.environment.spec.max_episode_steps
+        self.rolling_score_window = 10
         self.total_episode_score_so_far = 0
         self.game_full_episode_scores = []
         self.rolling_results = []
@@ -36,7 +33,6 @@ class Base_Agent(object):
         self.max_episode_score_seen = -10e8 # float("-inf")
         self.episode_number = 0
         self.device = "cuda:0" if config.use_GPU else "cpu"
-        self.visualise_results_boolean = config.visualise_individual_results
         self.global_step_number = 0
         self.turn_off_exploration = False
         self.agent_number = 0
@@ -47,31 +43,6 @@ class Base_Agent(object):
     def step(self):
         """Takes a step in the game. This method must be overriden by any agent"""
         raise ValueError("Step needs to be implemented by the agent")
-
-    def get_environment_title(self):
-        """Extracts name of environment from it"""
-        try:
-            name = self.environment.unwrapped.id
-        except AttributeError:
-            try:
-                if str(self.environment.unwrapped)[1:11] == "FetchReach": return "FetchReach"
-                elif str(self.environment.unwrapped)[1:8] == "AntMaze": return "AntMaze"
-                elif str(self.environment.unwrapped)[1:7] == "Hopper": return "Hopper"
-                elif str(self.environment.unwrapped)[1:9] == "Walker2d": return "Walker2d"
-                else:
-                    name = self.environment.spec.id.split("-")[0]
-            except AttributeError:
-                name = str(self.environment.env)
-                if name[0:10] == "TimeLimit<": name = name[10:]
-                name = name.split(" ")[0]
-                if name[0] == "<": name = name[1:]
-                if name[-3:] == "Env": name = name[:-3]
-        return name
-
-    def get_lowest_possible_episode_score(self):
-        """Returns the lowest possible episode score you can get in an environment"""
-        if self.environment_title == "Taxi": return -800
-        return None
 
     def get_action_size(self):
         """Gets the action_size for the gym env into the correct shape for a neural network"""
@@ -92,22 +63,12 @@ class Base_Agent(object):
     def get_score_required_to_win(self):
         """Gets average score required to win game"""
         print("TITLE ", self.environment_title)
-        if self.environment_title == "FetchReach": return -5
-        if self.environment_title in ["AntMaze", "Hopper", "Walker2d"]:
-            print("Score required to win set to infinity therefore no learning rate annealing will happen")
-            return float("inf")
         try: return self.environment.unwrapped.reward_threshold
         except AttributeError:
             try:
                 return self.environment.spec.reward_threshold
             except AttributeError:
                 return self.environment.unwrapped.spec.reward_threshold
-
-    def get_trials(self):
-        """Gets the number of trials to average a score over"""
-        if self.environment_title in ["AntMaze", "FetchReach", "Hopper", "Walker2d", "CartPole"]: return 100
-        try: return self.environment.unwrapped.trials
-        except AttributeError: return self.environment.spec.trials
 
     def setup_logger(self):
         """Sets up the logger"""
@@ -170,14 +131,6 @@ class Base_Agent(object):
         self.episode_observations = []
         if "exploration_strategy" in self.__dict__.keys(): self.exploration_strategy.reset()
         self.logger.info("Reseting game -- New start state {}".format(self.state))
-
-    def track_episodes_data(self):
-        """Saves the data from the recent episodes"""
-        self.episode_states.append(self.state)
-        self.episode_actions.append(self.action)
-        self.episode_rewards.append(self.reward)
-        self.episode_next_states.append(self.next_state)
-        self.episode_dones.append(self.done)
 
     def run_n_episodes(self, num_episodes=None, show_whether_achieved_goal=True, save_and_print_results=True):
         """Runs game to completion n times and then summarises results and saves model (if asked to)"""
@@ -287,7 +240,6 @@ class Base_Agent(object):
         optimizer.zero_grad() #reset gradients to 0
         loss.backward(retain_graph=retain_graph) #this calculates the gradients
         self.logger.info("Loss -- {}".format(loss.item()))
-        if self.debug_mode: self.log_gradient_and_weight_information(network, optimizer)
         if clipping_norm is not None:
             for net in network:
                 torch.nn.utils.clip_grad_norm_(net.parameters(), clipping_norm) #clip gradients to help stabilise training

@@ -113,12 +113,9 @@ class Config(object):
         self.standard_deviation_results = 1.0
 
         self.use_GPU = False
-        self.runs_per_agent = 1
 
-        self.debug_mode = False
         self.show_solution_score = False
         self.visualise_overall_agent_results = True
-        self.visualise_individual_results = False
 
         self.overwrite_existing_results_file = True
         self.save_model = True
