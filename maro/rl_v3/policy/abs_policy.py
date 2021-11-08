@@ -69,7 +69,7 @@ class RLPolicy(AbsPolicy):
         self._action_dim = action_dim
         self._device = torch.device(device) if device is not None \
             else torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self._exploring = False
+        self._is_exploring = False
 
     @property
     def state_dim(self) -> int:
@@ -79,11 +79,15 @@ class RLPolicy(AbsPolicy):
     def action_dim(self) -> int:
         return self._action_dim
 
+    @property
+    def is_exploring(self) -> bool:
+        return self._is_exploring
+
     def explore(self) -> None:
-        self._exploring = True
+        self._is_exploring = True
 
     def exploit(self) -> None:
-        self._exploring = False
+        self._is_exploring = False
 
     def ndarray_to_tensor(self, array: np.ndarray) -> torch.Tensor:
         return torch.from_numpy(array).to(self._device)
@@ -118,7 +122,7 @@ class RLPolicy(AbsPolicy):
         self, states: torch.Tensor, require_logps: bool = True
     ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
         assert self._shape_check(states=states)
-        actions, logps = self._get_actions_with_logps_impl(states, self._exploring, require_logps)
+        actions, logps = self._get_actions_with_logps_impl(states, self._is_exploring, require_logps)
         assert self._shape_check(states=states, actions=actions)  # [B, action_dim]
         assert logps is None or match_shape(logps, (states.shape[0],))  # [B]
         if SHAPE_CHECK_FLAG:
