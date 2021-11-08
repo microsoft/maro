@@ -5,7 +5,6 @@ import numpy as np
 
 from maro.rl.utils import match_shape
 
-
 """
 Mixins for policies.
 
