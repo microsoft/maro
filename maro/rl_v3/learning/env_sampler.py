@@ -6,8 +6,9 @@ from typing import Callable, Deque, Dict, List, Optional, Tuple, Type
 import numpy as np
 
 from maro.rl_v3.policy import RLPolicy
-from maro.rl_v3.policy_learner import AbsLearner
-from maro.rl_v3.policy_learner.abs_learner import SingleLearner
+from maro.rl_v3.policy_trainer import AbsTrainer
+from maro.rl_v3.policy_trainer.abs_trainer import SingleTrainer
+from maro.rl_v3.utils.transition_batch import TransitionBatch
 from maro.simulator import Env
 
 
@@ -62,9 +63,9 @@ class AbsEnvSampler(object):
         get_env_func: Callable[[], Env],
         #
         get_policy_func_dict: Dict[str, Callable[[str], RLPolicy]],
-        get_learner_func_dict: Dict[str, Callable[[str], AbsLearner]],
+        get_trainer_func_dict: Dict[str, Callable[[str], AbsTrainer]],
         agent2policy: Dict[str, str],  # {agent_name: policy_name}
-        policy2learner: Dict[str, str],  # {policy_name: learner_name}
+        policy2trainer: Dict[str, str],  # {policy_name: trainer_name}
         #
         agent_wrapper_cls: Type[AbsAgentWrapper],
         reward_eval_delay: int = 0
@@ -72,11 +73,11 @@ class AbsEnvSampler(object):
         self._learn_env = get_env_func()
         self._agent_wrapper = agent_wrapper_cls(get_policy_func_dict, agent2policy)
 
-        self._learner_dict: Dict[str, AbsLearner] = {
-            learner_name: func(learner_name) for learner_name, func in get_learner_func_dict.items()
+        self._trainer_dict: Dict[str, AbsTrainer] = {
+            trainer_name: func(trainer_name) for trainer_name, func in get_trainer_func_dict.items()
         }
         self._agent2policy = agent2policy
-        self._policy2learner = policy2learner
+        self._policy2trainer = policy2trainer
 
         self._env: Optional[Env] = None
         self._global_state: Optional[np.ndarray] = None
@@ -149,7 +150,7 @@ class AbsEnvSampler(object):
             self._global_state, self._agent_state_dict = None, {} if done else self._get_global_and_agent_state(event)
             steps_to_go -= 1
 
-        # Dispatch experience to learners
+        # Dispatch experience to trainers
         tick_bound = self._env.tick - self._reward_eval_delay
         while len(self._trans_cache) > 0 and self._trans_cache[0].tick <= tick_bound:
             cache_element = self._trans_cache.popleft()
@@ -175,31 +176,31 @@ class AbsEnvSampler(object):
         next_global_state: np.ndarray = None,
         next_agent_state_dict: Dict[str, np.ndarray] = None
     ) -> None:
-        learner_buffer = defaultdict(List[Tuple[str, np.ndarray, ActionWithAux, float]])
+        trainer_buffer = defaultdict(List[Tuple[str, np.ndarray, ActionWithAux, float]])
         for agent_name, agent_state in cache_element.agent_state_dict.items():
             policy_name = self._agent2policy[agent_name]
-            learner_name = self._policy2learner[policy_name]
+            trainer_name = self._policy2trainer[policy_name]
 
             action_with_aux = cache_element.action_with_aux_dict[agent_name]
             reward = reward_dict[agent_name]
 
-            learner_buffer[learner_name].append((policy_name, agent_state, action_with_aux, reward))
+            trainer_buffer[trainer_name].append((policy_name, agent_state, action_with_aux, reward))
 
-        for learner_name, exps in learner_buffer.items():
-            learner = self._learner_dict[learner_name]
-            if isinstance(learner, SingleLearner):
+        for trainer_name, exps in trainer_buffer.items():
+            trainer = self._trainer_dict[trainer_name]
+            if isinstance(trainer, SingleTrainer):
                 assert len(exps) == 1
                 policy_name, agent_state, action_with_aux, reward = exps[0]
-                learner.record(
-                    policy_name=policy_name,
-                    state=agent_state,
-                    action=action_with_aux.action,
-                    reward=reward,
-                    terminal=terminal,
-                    next_state=next_global_state,
-                    value=action_with_aux.value,
-                    logp=action_with_aux.logp
+                batch = TransitionBatch(
+                    states=np.expand_dims(agent_state, axis=0),
+                    actions=np.expand_dims(action_with_aux.action, axis=0),
+                    rewards=np.array([reward]),
+                    terminals=np.array([terminal]),
+                    next_states=None if next_global_state is None else np.expand_dims(next_global_state, axis=0),
+                    values=None if action_with_aux.value is None else np.array([action_with_aux.value]),
+                    logps=None if action_with_aux.logp is None else np.array([action_with_aux.logp]),
                 )
+                trainer.record(policy_name=policy_name, transition_batch=batch)
             else:  # TODO: MultiLearner case. To be implemented.
                 pass
 

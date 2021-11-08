@@ -8,7 +8,7 @@ from typing import Optional, Tuple
 import numpy as np
 import torch
 
-from maro.rl_v3.policy_learner import AbsLearner
+from maro.rl_v3.policy_trainer import AbsTrainer
 from maro.rl_v3.utils import SHAPE_CHECK_FLAG, match_shape
 
 
@@ -70,7 +70,6 @@ class RLPolicy(AbsPolicy):
         self._device = torch.device(device) if device is not None \
             else torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self._exploring = False
-        self._learner: Optional[AbsLearner] = None
 
     @property
     def state_dim(self) -> int:
@@ -96,13 +95,6 @@ class RLPolicy(AbsPolicy):
     @abstractmethod  # TODO
     def get_gradients(self, loss: torch.Tensor) -> torch.Tensor:
         pass
-
-    def register_learner(self, algo: AbsLearner) -> None:
-        self._learner = algo
-
-    @property
-    def learner(self) -> AbsLearner:
-        return self._learner
 
     def get_actions(self, states: np.ndarray) -> np.ndarray:
         return self.get_actions_with_logps(states, require_logps=False)[0]
