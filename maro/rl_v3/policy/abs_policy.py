@@ -9,7 +9,7 @@ import numpy as np
 import torch
 
 from maro.rl_v3.policy_learner import AbsLearner
-from maro.rl_v3.utils import match_shape
+from maro.rl_v3.utils import SHAPE_CHECK_FLAG, match_shape
 
 
 class AbsPolicy(object):
@@ -129,7 +129,8 @@ class RLPolicy(AbsPolicy):
         actions, logps = self._get_actions_with_logps_impl(states, self._exploring, require_logps)
         assert self._shape_check(states=states, actions=actions)  # [B, action_dim]
         assert logps is None or match_shape(logps, (states.shape[0],))  # [B]
-        assert self._post_check(states=states, actions=actions)
+        if SHAPE_CHECK_FLAG:
+            assert self._post_check(states=states, actions=actions)
         return actions, logps
 
     @abstractmethod
@@ -165,15 +166,18 @@ class RLPolicy(AbsPolicy):
         states: torch.Tensor,
         actions: Optional[torch.Tensor] = None
     ) -> bool:
-        if states.shape[0] == 0:
-            return False
-        if not match_shape(states, (None, self.state_dim)):
-            return False
-
-        if actions is not None:
-            if not match_shape(actions, (states.shape[0], self.action_dim)):
+        if not SHAPE_CHECK_FLAG:
+            return True
+        else:
+            if states.shape[0] == 0:
                 return False
-        return True
+            if not match_shape(states, (None, self.state_dim)):
+                return False
+
+            if actions is not None:
+                if not match_shape(actions, (states.shape[0], self.action_dim)):
+                    return False
+            return True
 
     @abstractmethod
     def _post_check(self, states: torch.Tensor, actions: torch.Tensor) -> bool:

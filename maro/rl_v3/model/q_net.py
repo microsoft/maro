@@ -4,7 +4,7 @@ from typing import Optional
 import torch
 
 from maro.rl_v3.model.abs_net import AbsNet
-from maro.rl_v3.utils import match_shape
+from maro.rl_v3.utils import SHAPE_CHECK_FLAG, match_shape
 
 
 class QNet(AbsNet):
@@ -22,12 +22,15 @@ class QNet(AbsNet):
         return self._action_dim
 
     def _shape_check(self, states: torch.Tensor, actions: Optional[torch.Tensor] = None) -> bool:
-        if states.shape[0] == 0 or not match_shape(states, (None, self.state_dim)):
-            return False
-        if actions is not None:
-            if not match_shape(actions, (states.shape[0], self.action_dim)):
+        if not SHAPE_CHECK_FLAG:
+            return True
+        else:
+            if states.shape[0] == 0 or not match_shape(states, (None, self.state_dim)):
                 return False
-        return True
+            if actions is not None:
+                if not match_shape(actions, (states.shape[0], self.action_dim)):
+                    return False
+            return True
 
     def q_values(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
         assert self._shape_check(states=states, actions=actions)

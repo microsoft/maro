@@ -1,11 +1,11 @@
 from typing import Optional
 
-import numpy as np
 import torch
 
 from maro.rl_v3.policy.discrete_rl_policy import ValueBasedPolicy
 from maro.rl_v3.policy_learner.abs_learner import SingleLearner
-from maro.rl_v3.policy_learner.replay_memory import Batch, RandomReplayMemory
+from maro.rl_v3.policy_learner.replay_memory import RandomReplayMemory
+from maro.rl_v3.utils.transition_batch import TransitionBatch
 from maro.utils import clone
 
 
@@ -43,30 +43,17 @@ class DQN(SingleLearner):
         self._soft_update_coef = soft_update_coef
         self._double = double
 
-    def _record_impl(
-        self,
-        policy_name: str,
-        states: np.ndarray,
-        actions: np.ndarray,
-        rewards: np.ndarray,
-        terminals: np.ndarray,
-        next_states: np.ndarray = None,
-        values: np.ndarray = None,
-        logps: np.ndarray = None
-    ) -> None:
-        self._replay_memory.put(
-            states=states, actions=actions, rewards=rewards, terminals=terminals,
-            next_states=next_states, values=values, logps=logps
-        )
+    def _record_impl(self, policy_name: str, transition_batch: TransitionBatch) -> None:
+        self._replay_memory.put(transition_batch)
 
-    def _get_batch(self, batch_size: int = None) -> Batch:
+    def _get_batch(self, batch_size: int = None) -> TransitionBatch:
         return self._replay_memory.sample(batch_size if batch_size is not None else self._train_batch_size)
 
     def train_step(self) -> None:
         for _ in range(self._num_epochs):
             self.improve(self._get_batch())
 
-    def improve(self, batch: Batch) -> None:
+    def improve(self, batch: TransitionBatch) -> None:
         self._policy.train()
         states = self._policy.ndarray_to_tensor(batch.states)
         next_states = self._policy.ndarray_to_tensor(batch.next_states)

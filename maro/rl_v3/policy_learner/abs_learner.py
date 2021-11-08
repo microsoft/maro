@@ -1,9 +1,8 @@
 from abc import abstractmethod
 from typing import Dict, Optional
 
-import numpy as np
-
 from maro.rl_v3.policy import RLPolicy
+from maro.rl_v3.utils.transition_batch import TransitionBatch
 
 
 class AbsLearner(object):
@@ -35,41 +34,15 @@ class SingleLearner(AbsLearner):
     def record(
         self,
         policy_name: str,  # TODO: need this?
-        state: np.ndarray,
-        action: np.ndarray,
-        reward: float,
-        terminal: bool,
-        next_state: np.ndarray = None,
-        value: float = None,
-        logp: float = None
+        transition_batch: TransitionBatch
     ) -> None:
-        assert len(state.shape) == 1 and state.shape[0] != 0
-        assert len(action.shape) == 1 and action.shape[0] != 0
-        assert next_state is None or state.shape == next_state.shape
-
         self._record_impl(
             policy_name=policy_name,
-            states=np.expand_dims(state, axis=0),
-            actions=np.expand_dims(action, axis=0),
-            rewards=np.array([reward]),
-            terminals=np.array([terminal]),
-            next_states=None if next_state is None else np.expand_dims(next_state, axis=0),
-            values=None if value is None else np.array([value]),
-            logps=None if logp is None else np.array([logp])
+            transition_batch=transition_batch
         )
 
     @abstractmethod
-    def _record_impl(
-        self,
-        policy_name: str,
-        states: np.ndarray,
-        actions: np.ndarray,
-        rewards: np.ndarray,
-        terminals: np.ndarray,
-        next_states: np.ndarray = None,
-        values: np.ndarray = None,
-        logps: np.ndarray = None
-    ) -> None:
+    def _record_impl(self, policy_name: str, transition_batch: TransitionBatch) -> None:
         pass
 
     @abstractmethod

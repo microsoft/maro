@@ -4,7 +4,7 @@ from typing import Optional, Tuple
 import torch.nn
 
 from maro.rl_v3.model.abs_net import AbsNet
-from maro.rl_v3.utils import match_shape
+from maro.rl_v3.utils import SHAPE_CHECK_FLAG, match_shape
 
 
 class PolicyNet(AbsNet):
@@ -30,15 +30,18 @@ class PolicyNet(AbsNet):
         return actions, logps
 
     def _shape_check(self, states: torch.Tensor, actions: Optional[torch.Tensor] = None) -> bool:
-        if states.shape[0] == 0:
-            return False
-        if not match_shape(states, (None, self.state_dim)):
-            return False
-
-        if actions is not None:
-            if not match_shape(actions, (states.shape[0], self.action_dim)):
+        if not SHAPE_CHECK_FLAG:
+            return True
+        else:
+            if states.shape[0] == 0:
                 return False
-        return True
+            if not match_shape(states, (None, self.state_dim)):
+                return False
+
+            if actions is not None:
+                if not match_shape(actions, (states.shape[0], self.action_dim)):
+                    return False
+            return True
 
     @abstractmethod
     def _get_actions_impl(
@@ -46,13 +49,21 @@ class PolicyNet(AbsNet):
     ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
         pass
 
-    def freeze(self) -> None:
+    def freeze_all_parameters(self) -> None:
         for p in self.parameters():
             p.requires_grad = False
 
-    def unfreeze(self) -> None:
+    def unfreeze_all_parameters(self) -> None:
         for p in self.parameters():
             p.requires_grad = True
+
+    @abstractmethod
+    def freeze(self) -> None:
+        pass
+
+    @abstractmethod
+    def unfreeze(self) -> None:
+        pass
 
 
 class DiscretePolicyNet(PolicyNet, metaclass=ABCMeta):

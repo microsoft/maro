@@ -3,6 +3,8 @@ from typing import Union
 import numpy as np
 import torch
 
+from maro.rl_v3.utils import SHAPE_CHECK_FLAG
+
 
 def match_shape(tensor: Union[torch.Tensor, np.ndarray], shape: tuple) -> bool:
     """Check if a torch.Tensor/np.ndarray could match the expected shape.
@@ -15,9 +17,12 @@ def match_shape(tensor: Union[torch.Tensor, np.ndarray], shape: tuple) -> bool:
     Returns:
         Whether the tensor could match the expected shape.
     """
-    if len(tensor.shape) != len(shape):
-        return False
-    for val, expected in zip(tensor.shape, shape):
-        if expected is not None and expected != val:
+    if not SHAPE_CHECK_FLAG:
+        return True
+    else:
+        if len(tensor.shape) != len(shape):
             return False
-    return True
+        for val, expected in zip(tensor.shape, shape):
+            if expected is not None and expected != val:
+                return False
+        return True

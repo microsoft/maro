@@ -1,33 +1,10 @@
 from abc import abstractmethod
-from dataclasses import dataclass
 from typing import List
 
 import numpy as np
 
-from maro.rl_v3.utils import match_shape
-
-
-@dataclass
-class Batch:
-    states: np.ndarray  # 2D
-    actions: np.ndarray  # 2D
-    rewards: np.ndarray  # 1D
-    terminals: np.ndarray  # 1D
-    next_states: np.ndarray  # 2D
-    values: np.ndarray  # 1D
-    logps: np.ndarray  # 1D
-
-
-@dataclass
-class MultiBatch:
-    states: np.ndarray  # 2D
-    actions: List[np.ndarray]  # 2D
-    rewards: List[np.ndarray]  # 1D
-    terminals: np.ndarray  # 1D
-    local_states: List[np.ndarray]  # 2D
-    next_states: np.ndarray  # 2D
-    values: np.ndarray  # 1D
-    logps: np.ndarray  # 1D
+from maro.rl_v3.utils import SHAPE_CHECK_FLAG, match_shape
+from maro.rl_v3.utils.transition_batch import TransitionBatch, MultiTransitionBatch
 
 
 class AbsIndexScheduler(object):
@@ -168,61 +145,41 @@ class ReplayMemory(AbsReplayMemory):
     def action_dim(self) -> int:
         return self._action_dim
 
-    def put(
-        self,
-        states: np.ndarray,
-        actions: np.ndarray,
-        rewards: np.ndarray,
-        terminals: np.ndarray,
-        next_states: np.ndarray = None,
-        values: np.ndarray = None,
-        logps: np.ndarray = None
-    ) -> None:
-        batch_size = len(states)
-        assert 0 < batch_size <= self._capacity
-        assert match_shape(states, (batch_size, self._state_dim))
-        assert match_shape(actions, (batch_size, self._action_dim))
-        assert match_shape(rewards, (batch_size,))
-        assert match_shape(terminals, (batch_size,))
-        assert not self._enable_next_states or match_shape(next_states, (batch_size, self._state_dim))
-        assert not self._enable_values or match_shape(values, (batch_size,))
-        assert not self._enable_logps or match_shape(logps, (batch_size,))
+    def put(self, transition_batch: TransitionBatch) -> None:
+        batch_size = len(transition_batch.states)
+        if SHAPE_CHECK_FLAG:
+            assert 0 < batch_size <= self._capacity
+            assert match_shape(transition_batch.states, (batch_size, self._state_dim))
+            assert match_shape(transition_batch.actions, (batch_size, self._action_dim))
+            assert match_shape(transition_batch.rewards, (batch_size,))
+            assert match_shape(transition_batch.terminals, (batch_size,))
+            assert not self._enable_next_states or match_shape(
+                transition_batch.next_states, (batch_size, self._state_dim))
+            assert not self._enable_values or match_shape(transition_batch.values, (batch_size,))
+            assert not self._enable_logps or match_shape(transition_batch.logps, (batch_size,))
 
-        self._put_by_indexes(
-            self._get_put_indexes(batch_size),
-            states, actions, rewards, terminals, next_states, values, logps
-        )
+        self._put_by_indexes(self._get_put_indexes(batch_size), transition_batch)
 
-    def _put_by_indexes(
-        self,
-        indexes: np.ndarray,
-        states: np.ndarray,
-        actions: np.ndarray,
-        rewards: np.ndarray,
-        terminals: np.ndarray,
-        next_states: np.ndarray = None,
-        values: np.ndarray = None,
-        logps: np.ndarray = None
-    ):
-        self._states[indexes] = states
-        self._actions[indexes] = actions
-        self._rewards[indexes] = rewards
-        self._terminals[indexes] = terminals
-        if next_states is not None:
-            self._next_states[indexes] = next_states
-        if values is not None:
-            self._values[indexes] = values
-        if logps is not None:
-            self._logps[indexes] = logps
+    def _put_by_indexes(self, indexes: np.ndarray, transition_batch: TransitionBatch):
+        self._states[indexes] = transition_batch.states
+        self._actions[indexes] = transition_batch.actions
+        self._rewards[indexes] = transition_batch.rewards
+        self._terminals[indexes] = transition_batch.terminals
+        if transition_batch.next_states is not None:
+            self._next_states[indexes] = transition_batch.next_states
+        if transition_batch.values is not None:
+            self._values[indexes] = transition_batch.values
+        if transition_batch.logps is not None:
+            self._logps[indexes] = transition_batch.logps
 
-    def sample(self, batch_size: int = None) -> Batch:
+    def sample(self, batch_size: int = None) -> TransitionBatch:
         indexes = self._get_sample_indexes(batch_size, self._get_forbid_last())
         return self.sample_by_indexes(indexes)
 
-    def sample_by_indexes(self, indexes: np.ndarray) -> Batch:
+    def sample_by_indexes(self, indexes: np.ndarray) -> TransitionBatch:
         assert all([0 <= idx < self._capacity for idx in indexes])
 
-        return Batch(
+        return TransitionBatch(
             states=self._states[indexes],
             actions=self._actions[indexes],
             rewards=self._rewards[indexes],
@@ -329,77 +286,56 @@ class MultiReplayMemory(AbsReplayMemory):
     def agent_num(self) -> int:
         return self._agent_num
 
-    def put(
-        self,
-        states: np.ndarray,
-        actions: List[np.ndarray],
-        rewards: List[np.ndarray],
-        terminals: np.ndarray,
-        local_states: List[np.ndarray] = None,
-        next_states: np.ndarray = None,
-        values: np.ndarray = None,
-        logps: np.ndarray = None
-    ) -> None:
-        batch_size = len(states)
-        assert 0 < batch_size <= self._capacity
-        assert match_shape(states, (batch_size, self._state_dim))
+    def put(self, transition_batch: MultiTransitionBatch) -> None:
+        batch_size = len(transition_batch.states)
+        if SHAPE_CHECK_FLAG:
+            assert 0 < batch_size <= self._capacity
+            assert match_shape(transition_batch.states, (batch_size, self._state_dim))
 
-        assert len(actions) == len(rewards) == self.agent_num
-        for i in range(self.agent_num):
-            assert match_shape(actions[i], (batch_size, self.action_dims[i]))
-            assert match_shape(rewards[i], (batch_size,))
-
-        assert match_shape(terminals, (batch_size,))
-
-        if self._enable_local_states:
-            assert local_states is not None and len(local_states) == self.agent_num
+            assert len(transition_batch.actions) == len(transition_batch.rewards) == self.agent_num
             for i in range(self.agent_num):
-                assert match_shape(local_states[i], (batch_size, self._local_states_dims[i]))
+                assert match_shape(transition_batch.actions[i], (batch_size, self.action_dims[i]))
+                assert match_shape(transition_batch.rewards[i], (batch_size,))
 
-        assert not self._enable_next_states or match_shape(next_states, (batch_size, self._state_dim))
-        assert not self._enable_values or match_shape(values, (batch_size,))
-        assert not self._enable_logps or match_shape(logps, (batch_size,))
+            assert match_shape(transition_batch.terminals, (batch_size,))
 
-        self._put_by_indexes(
-            self._get_put_indexes(batch_size),
-            states, actions, rewards, terminals, next_states, values, logps
-        )
+            if self._enable_local_states:
+                assert transition_batch.local_states is not None
+                assert len(transition_batch.local_states) == self.agent_num
+                for i in range(self.agent_num):
+                    assert match_shape(transition_batch.local_states[i], (batch_size, self._local_states_dims[i]))
 
-    def _put_by_indexes(
-        self,
-        indexes: np.ndarray,
-        states: np.ndarray,
-        actions: List[np.ndarray],
-        rewards: List[np.ndarray],
-        terminals: np.ndarray,
-        local_states: List[np.ndarray] = None,
-        next_states: np.ndarray = None,
-        values: np.ndarray = None,
-        logps: np.ndarray = None
-    ):
-        self._states[indexes] = states
+            assert not self._enable_next_states or match_shape(
+                transition_batch.next_states, (batch_size, self._state_dim))
+            assert not self._enable_values or match_shape(transition_batch.values, (batch_size,))
+            assert not self._enable_logps or match_shape(transition_batch.logps, (batch_size,))
+
+        self._put_by_indexes(self._get_put_indexes(batch_size), transition_batch=transition_batch)
+
+    def _put_by_indexes(self, indexes: np.ndarray, transition_batch: MultiTransitionBatch):
+        self._states[indexes] = transition_batch.states
         for i in range(self.agent_num):
-            self._actions[i][indexes] = actions[i]
-            self._rewards[i][indexes] = rewards[i]
-        self._terminals[indexes] = terminals
-        if local_states is not None:
+            self._actions[i][indexes] = transition_batch.actions[i]
+            self._rewards[i][indexes] = transition_batch.rewards[i]
+        self._terminals[indexes] = transition_batch.terminals
+        if transition_batch.local_states is not None:
             for i in range(self.agent_num):
-                self._local_states[i][indexes] = local_states[i]
-        if next_states is not None:
-            self._next_states[indexes] = next_states
-        if values is not None:
-            self._values[indexes] = values
-        if logps is not None:
-            self._logps[indexes] = logps
+                self._local_states[i][indexes] = transition_batch.local_states[i]
+        if transition_batch.next_states is not None:
+            self._next_states[indexes] = transition_batch.next_states
+        if transition_batch.values is not None:
+            self._values[indexes] = transition_batch.values
+        if transition_batch.logps is not None:
+            self._logps[indexes] = transition_batch.logps
 
-    def sample(self, batch_size: int = None) -> MultiBatch:
+    def sample(self, batch_size: int = None) -> MultiTransitionBatch:
         indexes = self._get_sample_indexes(batch_size, self._get_forbid_last())
         return self.sample_by_indexes(indexes)
 
-    def sample_by_indexes(self, indexes: np.ndarray) -> MultiBatch:
+    def sample_by_indexes(self, indexes: np.ndarray) -> MultiTransitionBatch:
         assert all([0 <= idx < self._capacity for idx in indexes])
 
-        return MultiBatch(
+        return MultiTransitionBatch(
             states=self._states[indexes],
             actions=[action[indexes] for action in self._actions],
             rewards=[reward[indexes] for reward in self._rewards],
