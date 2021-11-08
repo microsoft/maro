@@ -10,9 +10,9 @@ ahu:
       das: 54.3 # Discharge Air Temperature Setpoint, 61, TODO: confirm with the one for Bonsai
     transition: # TODO: Add module imported
       paths:
-        model: /home/Jinyu/maro/maro/simulator/scenarios/hvac/ahu_prediction/checkpoints/building121/best_model.pt
-        x_scaler: /home/Jinyu/maro/maro/simulator/scenarios/hvac/topologies/building121/datasets/scaler/x_scaler.joblib
-        y_scaler: /home/Jinyu/maro/maro/simulator/scenarios/hvac/topologies/building121/datasets/scaler/y_scaler.joblib
+        model: ~/maro/maro/simulator/scenarios/hvac/ahu_prediction/checkpoints/building121/best_model.pt
+        x_scaler: ~/maro/maro/simulator/scenarios/hvac/topologies/building121/datasets/scaler/x_scaler.joblib
+        y_scaler: ~/maro/maro/simulator/scenarios/hvac/topologies/building121/datasets/scaler/y_scaler.joblib
       input_attributes: # Not used now
         - sps
         - das

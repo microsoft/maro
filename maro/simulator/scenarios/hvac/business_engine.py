@@ -110,30 +110,30 @@ class HvacBusinessEngine(AbsBusinessEngine):
         self._mat_list = [read_in_mat_list(mat_path) for mat_path in self._ahu_mat_path_list]
 
         ########################################################################
-        data_path = "/home/Jinyu/maro/maro/simulator/scenarios/hvac/topologies/building121/datasets/train_data_AHU_MAT.csv"
-        df = pd.read_csv(data_path, sep=',', delimiter=None, header='infer')
-        df = df.dropna()
-        df = df.reset_index()
+        # data_path = "/home/Jinyu/maro/maro/simulator/scenarios/hvac/topologies/building121/datasets/train_data_AHU_MAT.csv"
+        # df = pd.read_csv(data_path, sep=',', delimiter=None, header='infer')
+        # df = df.dropna()
+        # df = df.reset_index()
 
-        baseline = {
-            "kw": df["KW"].to_numpy(),
-            "dat": df["DAT"].to_numpy(),
-            "at": df["air_ton"].to_numpy(),
-            "mat": df["DAS"].to_numpy() + df["delta_MAT_DAS"].to_numpy(),
-            "sps": df["SPS"].to_numpy(),
-            "das": df["DAS"].to_numpy(),
-            "total_kw": np.cumsum(df["KW"].to_numpy())
-        }
+        # baseline = {
+        #     "kw": df["KW"].to_numpy(),
+        #     "dat": df["DAT"].to_numpy(),
+        #     "at": df["air_ton"].to_numpy(),
+        #     "mat": df["DAS"].to_numpy() + df["delta_MAT_DAS"].to_numpy(),
+        #     "sps": df["SPS"].to_numpy(),
+        #     "das": df["DAS"].to_numpy(),
+        #     "total_kw": np.cumsum(df["KW"].to_numpy())
+        # }
 
-        self._statistics = {
-            key: {
-                "mean": np.mean(baseline[key]),
-                "min": np.min(baseline[key]),
-                "max": np.max(baseline[key]),
-                "range": np.max(baseline[key]) - np.min(baseline[key]),
-            }
-            for key in baseline.keys()
-        }
+        # self._statistics = {
+        #     key: {
+        #         "mean": np.mean(baseline[key]),
+        #         "min": np.min(baseline[key]),
+        #         "max": np.max(baseline[key]),
+        #         "range": np.max(baseline[key]) - np.min(baseline[key]),
+        #     }
+        #     for key in baseline.keys()
+        # }
 
     def _init_metrics(self):
         self._total_ahu_kw: float = 0
@@ -142,7 +142,6 @@ class HvacBusinessEngine(AbsBusinessEngine):
         register_handler = self._event_buffer.register_event_handler
 
         register_handler(event_type=MaroEvents.TAKE_ACTION, handler=self._on_action_received)
-        # Use the fake one now
         register_handler(event_type=Events.AHU_SET, handler=self._on_ahu_set)
 
     def _on_ahu_set(self, event: AtomEvent):
@@ -159,11 +158,6 @@ class HvacBusinessEngine(AbsBusinessEngine):
         y_pred = y_scaler.inverse_transform(y_pred)[0]
 
         ahu.kw, ahu.at, ahu.dat = y_pred
-
-        ########################################################################
-        # ahu.kw = max(y_pred[0], self._statistics["kw"]["min"])
-        # ahu.at = max(y_pred[1], self._statistics["at"]["min"])
-        # ahu.dat = max(y_pred[2], self._statistics["dat"]["min"])
 
     def _on_action_received(self, event: CascadeEvent):
         for action in event.payload:

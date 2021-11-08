@@ -38,37 +38,37 @@ data_config = {
     "input_filename": "train_data_AHU_MAT.csv",
 }
 
-# test_config = {
-#     # For test func
-#     "model_path": os.path.join(training_config["checkpoint_dir"], "best_model.pt"),
-#     "x_scaler_path": os.path.join(data_config["dataset_dir"], "scaler/x_scaler.joblib"),
-#     "y_scaler_path": os.path.join(data_config["dataset_dir"], "scaler/y_scaler.joblib"),
-#     # For baseline
-#     "is_baseline": True,
-#     "filepath": os.path.join(data_config["dataset_dir"], "train_data_AHU_MAT.csv"),
-#     "key_map": {
-#         "sps": "SPS",
-#         "das": "DAS",
-#         "mat_das_delta": "delta_MAT_DAS",
-#         "kw": "KW",
-#         "at": "air_ton",
-#         "dat": "DAT",
-#     },
-#     # Images
-#     "image_dir": training_config["checkpoint_dir"],
-#     "image_prefix": "baseline_comparison",
-# }
-
 test_config = {
     # For test func
     "model_path": os.path.join(training_config["checkpoint_dir"], "best_model.pt"),
     "x_scaler_path": os.path.join(data_config["dataset_dir"], "scaler/x_scaler.joblib"),
     "y_scaler_path": os.path.join(data_config["dataset_dir"], "scaler/y_scaler.joblib"),
-    # For rollout data
+    # For baseline
     "is_baseline": True,
-    "filepath": "/home/Jinyu/maro/examples/hvac/ddpg/logs/2021-11-02 22:41:29 ddpg_V3/data_Train_0.csv",
-    "key_map": {key: key for key in ["sps", "das", "mat", "kw", "at", "dat"]},
+    "filepath": os.path.join(data_config["dataset_dir"], "train_data_AHU_MAT.csv"),
+    "key_map": {
+        "sps": "SPS",
+        "das": "DAS",
+        "mat_das_delta": "delta_MAT_DAS",
+        "kw": "KW",
+        "at": "air_ton",
+        "dat": "DAT",
+    },
     # Images
     "image_dir": training_config["checkpoint_dir"],
-    "image_prefix": "rollout_data_ep0",
+    "image_prefix": "baseline_comparison",
 }
+
+# test_config = {
+#     # For test func
+#     "model_path": os.path.join(training_config["checkpoint_dir"], "best_model.pt"),
+#     "x_scaler_path": os.path.join(data_config["dataset_dir"], "scaler/x_scaler.joblib"),
+#     "y_scaler_path": os.path.join(data_config["dataset_dir"], "scaler/y_scaler.joblib"),
+#     # For rollout data
+#     "is_baseline": True,
+#     "filepath": "/home/Jinyu/maro/examples/hvac/ddpg/logs/2021-11-02 22:41:29 ddpg_V3/data_Train_0.csv",
+#     "key_map": {key: key for key in ["sps", "das", "mat", "kw", "at", "dat"]},
+#     # Images
+#     "image_dir": training_config["checkpoint_dir"],
+#     "image_prefix": "rollout_data_ep0",
+# }
