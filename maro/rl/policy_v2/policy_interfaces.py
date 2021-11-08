@@ -1,9 +1,10 @@
 from abc import abstractmethod
-from typing import List, Optional, Tuple, Union
+from typing import List, Tuple, Union
 
 import numpy as np
 
 from maro.rl.utils import match_shape
+
 
 """
 Mixins for policies.

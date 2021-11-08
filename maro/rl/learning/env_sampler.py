@@ -11,7 +11,7 @@ import numpy as np
 
 from maro.communication import Proxy, SessionMessage, SessionType
 from maro.rl.policy import RLPolicy
-from maro.rl.policy_v2 import RLPolicyV2
+from maro.rl.policy_v2 import AbsRLPolicy
 from maro.rl.utils import MsgKey, MsgTag
 from maro.simulator import Env
 from maro.utils import Logger
@@ -77,7 +77,7 @@ class SimpleAgentWrapper(AbsAgentWrapper):
         self.policy_dict = {policy_id: func(policy_id) for policy_id, func in get_policy_func_dict.items()}
         self.policy_by_agent = {agent: self.policy_dict[policy_id] for agent, policy_id in agent2policy.items()}
         self._rl_policy_dict = {
-            id_: policy for id_, policy in self.policy_dict.items() if isinstance(policy, (RLPolicy, RLPolicyV2))
+            id_: policy for id_, policy in self.policy_dict.items() if isinstance(policy, (RLPolicy, AbsRLPolicy))
         }
 
     def load(self, dir: str):
@@ -127,7 +127,7 @@ class SimpleAgentWrapper(AbsAgentWrapper):
     def record_transition(
         self, agent: str, state: np.ndarray, action: dict, reward: float, next_state: np.ndarray, terminal: bool
     ):
-        if isinstance(self.policy_by_agent[agent], (RLPolicy, RLPolicyV2)):
+        if isinstance(self.policy_by_agent[agent], (RLPolicy, AbsRLPolicy)):
             self.policy_by_agent[agent].record(agent, state, action, reward, next_state, terminal)
 
     def improve(self):
@@ -152,7 +152,7 @@ class ParallelAgentWrapper(AbsAgentWrapper):
 
         def _inference_service(id_, get_policy, conn):
             policy = get_policy(id_)
-            conn.send(isinstance(policy, (RLPolicy, RLPolicyV2)))
+            conn.send(isinstance(policy, (RLPolicy, AbsRLPolicy)))
             while True:
                 msg = conn.recv()
                 conn.send(getattr(policy, msg["type"])(*msg.get("args", ())))
