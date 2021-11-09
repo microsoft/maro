@@ -4,20 +4,20 @@
 import os
 
 from maro.rl.learning import DistributedRolloutManager, MultiProcessRolloutManager
-from maro.rl.workflows.helpers import from_env, get_log_dir, get_scenario_module
+from maro.rl.workflows.helpers import from_env, get_logger, get_scenario_module
 
 
 def get_rollout_manager():
     rollout_type = from_env("ROLLOUTTYPE")
     num_steps = from_env("NUMSTEPS", required=False, default=-1)
-    log_dir = get_log_dir(from_env("LOGDIR", required=False, default=os.getcwd()), from_env("JOB"))
+    logger = get_logger(from_env("LOGDIR", required=False, default=os.getcwd()), from_env("JOB"), "ROLLOUT_MANAGER")
     if rollout_type == "multi-process":
         return MultiProcessRolloutManager(
             getattr(get_scenario_module(from_env("SCENARIODIR")), "get_env_sampler"),
             num_steps=num_steps,
             num_rollouts=from_env("NUMROLLOUTS"),
             num_eval_rollouts=from_env("NUMEVALROLLOUTS", required=False, default=1),
-            log_dir=log_dir
+            logger=logger
         )
 
     if rollout_type == "distributed":
@@ -39,7 +39,7 @@ def get_rollout_manager():
                 "redis_address": (from_env("REDISHOST"), from_env("REDISPORT")),
                 "max_peer_discovery_retries": 50
             },
-            log_dir=log_dir
+            logger=logger
         )
 
     raise ValueError(f"Unsupported roll-out type: {rollout_type}. Supported: multi-process, distributed")

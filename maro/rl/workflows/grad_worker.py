@@ -6,13 +6,12 @@ import time
 
 from maro.communication import Proxy, SessionMessage
 from maro.rl.utils import MsgKey, MsgTag
-from maro.rl.workflows.helpers import from_env, get_log_dir, get_scenario_module
-from maro.utils import Logger
+from maro.rl.workflows.helpers import from_env, get_logger, get_scenario_module
 
 if __name__ == "__main__":
     # TODO: WORKERID in docker compose script.
     policy_func_dict = getattr(get_scenario_module(from_env("SCENARIODIR")), "policy_func_dict")
-    worker_id = from_env("WORKERID")
+    worker_id = f"GRAD_WORKER.{from_env('WORKERID')}"
     num_hosts = from_env("NUMHOSTS") if from_env("POLICYMANAGERTYPE") == "distributed" else 0
     max_cached_policies = from_env("MAXCACHED", required=False, default=10)
 
@@ -23,14 +22,14 @@ if __name__ == "__main__":
         # no remote nodes for policy hosts
         num_hosts = len(policy_func_dict)
 
+    logger = get_logger(from_env("LOGDIR", required=False, default=os.getcwd()), from_env("JOB"), worker_id)
+
     peers = {"policy_manager": 1, "policy_host": num_hosts, "task_queue": 1}
     proxy = Proxy(
-        group, "grad_worker", peers, component_name=f"GRAD_WORKER.{worker_id}",
+        group, "grad_worker", peers, component_name=worker_id, logger=logger,
         redis_address=(from_env("REDISHOST"), from_env("REDISPORT")),
         max_peer_discovery_retries=50
     )
-    log_dir = get_log_dir(from_env("LOGDIR", required=False, default=os.getcwd()), from_env("JOB"))
-    logger = Logger(proxy.name, dump_folder=log_dir)
 
     for msg in proxy.receive():
         if msg.tag == MsgTag.EXIT:
@@ -62,7 +61,7 @@ if __name__ == "__main__":
             proxy.reply(msg, tag=MsgTag.COMPUTE_GRAD_DONE, body=msg_body)
             # release worker at task queue
             proxy.isend(SessionMessage(
-                MsgTag.RELEASE_WORKER, proxy.name, "TASK_QUEUE", body={MsgKey.WORKER_ID: f"GRAD_WORKER.{worker_id}"}
+                MsgTag.RELEASE_WORKER, proxy.name, "TASK_QUEUE", body={MsgKey.WORKER_ID: worker_id}
             ))
         else:
             logger.info(f"Wrong message tag: {msg.tag}")

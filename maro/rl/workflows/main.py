@@ -5,8 +5,7 @@ import os
 import time
 
 from maro.rl.learning.helpers import get_rollout_finish_msg
-from maro.rl.workflows.helpers import from_env, get_eval_schedule, get_log_dir, get_scenario_module
-from maro.utils import Logger
+from maro.rl.workflows.helpers import from_env, get_eval_schedule, get_logger, get_scenario_module
 
 if __name__ == "__main__":
     # get user-defined scenario ingredients
@@ -21,8 +20,7 @@ if __name__ == "__main__":
 
     load_policy_dir = from_env("LOADDIR", required=False, default=None)
     checkpoint_dir = from_env("CHECKPOINTDIR", required=False, default=None)
-    log_dir = get_log_dir(from_env("LOGDIR", required=False, default=os.getcwd()), from_env("JOB"))
-    logger = Logger("MAIN", dump_folder=log_dir)
+    logger = get_logger(from_env("LOGDIR", required=False, default=os.getcwd()), from_env("JOB"), "MAIN")
 
     # evaluation schedule
     eval_schedule = get_eval_schedule(from_env("EVALSCH", required=False, default=None), num_episodes)

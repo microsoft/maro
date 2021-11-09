@@ -3,12 +3,11 @@
 
 from collections import defaultdict
 from multiprocessing import Manager, Process, Queue, managers
-from os import getcwd
 from typing import Dict, List
 
 from maro.communication import Proxy, SessionMessage
 from maro.rl.utils import MsgKey, MsgTag
-from maro.utils import Logger
+from maro.utils import DummyLogger, Logger
 
 # default group name for the cluster consisting of a policy manager and all policy hosts.
 # If data parallelism is enabled, the gradient workers will also belong in this group.
@@ -72,7 +71,7 @@ def task_queue(
     single_task_limit: float = 0.5,
     group: str = DEFAULT_POLICY_GROUP,
     proxy_kwargs: dict = {},
-    log_dir: str = getcwd()
+    logger: Logger = DummyLogger()
 ):
     num_workers = len(worker_ids)
     if num_hosts == 0:
@@ -81,8 +80,7 @@ def task_queue(
 
     # Proxy
     peers = {"policy_host": num_hosts, "grad_worker": num_workers, "policy_manager": 1}
-    proxy = Proxy(group, "task_queue", peers, component_name="TASK_QUEUE", **proxy_kwargs)
-    logger = Logger(proxy.name, dump_folder=log_dir)
+    proxy = Proxy(group, "task_queue", peers, component_name="TASK_QUEUE", logger=logger, **proxy_kwargs)
 
     assert single_task_limit > 0.0 and single_task_limit <= 1.0, "single_task_limit" \
         f"should be greater than 0.0 and less than 1.0, but {single_task_limit} instead."
