@@ -2,7 +2,7 @@ from abc import abstractmethod
 from typing import Dict, Optional
 
 from maro.rl_v3.policy import RLPolicy
-from maro.rl_v3.utils.transition_batch import TransitionBatch
+from maro.rl_v3.utils import TransitionBatch
 
 
 class AbsTrainer(object):

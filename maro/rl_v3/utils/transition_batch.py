@@ -3,7 +3,7 @@ from typing import List
 
 import numpy as np
 
-from maro.rl_v3.utils import SHAPE_CHECK_FLAG
+from .objects import SHAPE_CHECK_FLAG
 
 
 @dataclass

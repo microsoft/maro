@@ -3,7 +3,7 @@ from typing import Union
 import numpy as np
 import torch
 
-from maro.rl_v3.utils import SHAPE_CHECK_FLAG
+from .objects import SHAPE_CHECK_FLAG
 
 
 def match_shape(tensor: Union[torch.Tensor, np.ndarray], shape: tuple) -> bool:

@@ -1,5 +1,5 @@
+from .objects import ActionWithAux, SHAPE_CHECK_FLAG
 from .torch_util import match_shape
+from .transition_batch import MultiTransitionBatch, TransitionBatch
 
-SHAPE_CHECK_FLAG = True
-
-__all__ = ["match_shape", "SHAPE_CHECK_FLAG"]
+__all__ = ["ActionWithAux", "SHAPE_CHECK_FLAG", "match_shape", "MultiTransitionBatch", "TransitionBatch"]

@@ -7,15 +7,8 @@ import numpy as np
 
 from maro.rl_v3.policy import RLPolicy
 from maro.rl_v3.policy_trainer import AbsTrainer, SingleTrainer
-from maro.rl_v3.utils.transition_batch import TransitionBatch
+from maro.rl_v3.utils import ActionWithAux, TransitionBatch
 from maro.simulator import Env
-
-
-@dataclass
-class ActionWithAux:
-    action: np.ndarray
-    value: float = None
-    logp: float = None
 
 
 class AbsAgentWrapper(object):
@@ -94,7 +87,7 @@ class CacheElement:
 class ExpElement(CacheElement):
     reward_dict: Dict[str, float]
     terminal: bool
-    next_global_state: np.ndarray = None,
+    next_global_state: np.ndarray = None
     next_agent_state_dict: Dict[str, np.ndarray] = None
 
 
@@ -136,7 +129,7 @@ class AbsEnvSampler(object):
                 trainer_name: func(trainer_name) for trainer_name, func in get_trainer_func_dict.items()
             }
             self._policy2trainer = policy2trainer
-            for policy_name, trainer_name in self._policy2trainer:
+            for policy_name, trainer_name in self._policy2trainer.items():
                 policy = self._policy_dict[policy_name]
                 trainer = self._trainer_dict[trainer_name]
                 assert isinstance(trainer, SingleTrainer)  # TODO: extend for multi trainer

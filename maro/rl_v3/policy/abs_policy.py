@@ -8,8 +8,9 @@ from typing import Dict, List, Optional, Tuple
 import numpy as np
 import torch
 
-from maro.rl_v3.learning import ActionWithAux
-from maro.rl_v3.utils import SHAPE_CHECK_FLAG, match_shape
+from maro.rl_v3.utils import ActionWithAux
+from maro.rl_v3.utils import match_shape
+from maro.rl_v3.utils.objects import SHAPE_CHECK_FLAG
 
 
 class AbsPolicy(object):

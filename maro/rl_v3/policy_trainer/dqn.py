@@ -3,9 +3,10 @@ from typing import Optional
 import torch
 
 from maro.rl_v3.policy import ValueBasedPolicy
-from maro.rl_v3.policy_trainer import RandomReplayMemory, SingleTrainer
-from maro.rl_v3.utils.transition_batch import TransitionBatch
+from maro.rl_v3.utils import TransitionBatch
 from maro.utils import clone
+from .abs_trainer import SingleTrainer
+from .replay_memory import RandomReplayMemory
 
 
 class DQN(SingleTrainer):
@@ -27,11 +28,8 @@ class DQN(SingleTrainer):
         self._target_policy: Optional[ValueBasedPolicy] = None
         if policy is not None:
             self.register_policy(policy)
-
-        self._replay_memory = RandomReplayMemory(
-            capacity=replay_memory_capacity, state_dim=policy.state_dim,
-            action_dim=policy.action_dim, random_overwrite=True
-        )
+        self._replay_memory: Optional[RandomReplayMemory] = None  # Will be created in `register_policy`
+        self._replay_memory_capacity = replay_memory_capacity
 
         self._train_batch_size = train_batch_size
         self._num_epochs = num_epochs
@@ -83,3 +81,8 @@ class DQN(SingleTrainer):
         self._policy = policy
         self._target_policy: ValueBasedPolicy = clone(policy)
         self._target_policy.eval()
+
+        self._replay_memory = RandomReplayMemory(
+            capacity=self._replay_memory_capacity, state_dim=policy.state_dim,
+            action_dim=policy.action_dim, random_overwrite=True
+        )

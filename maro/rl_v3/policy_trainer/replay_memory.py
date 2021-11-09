@@ -3,8 +3,8 @@ from typing import List
 
 import numpy as np
 
-from maro.rl_v3.utils import SHAPE_CHECK_FLAG, match_shape
-from maro.rl_v3.utils.transition_batch import MultiTransitionBatch, TransitionBatch
+from maro.rl_v3.utils import MultiTransitionBatch, TransitionBatch, match_shape
+from maro.rl_v3.utils.objects import SHAPE_CHECK_FLAG
 
 
 class AbsIndexScheduler(object):

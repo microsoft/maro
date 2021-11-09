@@ -11,7 +11,7 @@ class MyQNet(DiscreteQNet):
     def __init__(self) -> None:
         super(MyQNet, self).__init__(state_dim=q_net_conf["input_dim"], action_num=q_net_conf["output_dim"])
         self._fc = FullyConnected(**q_net_conf)
-        self._optim = q_net_optim_conf[0](self.fc.parameters(), **q_net_optim_conf[1])
+        self._optim = q_net_optim_conf[0](self._fc.parameters(), **q_net_optim_conf[1])
 
     def _get_q_values_for_all_actions(self, states: torch.Tensor) -> torch.Tensor:
         return self._fc(states)
