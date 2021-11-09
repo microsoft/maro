@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Callable, Deque, Dict, List, Optional, Tuple, Type
 
 import numpy as np
+import torch
 
 from maro.rl_v3.policy import RLPolicy
 from maro.rl_v3.policy_trainer import AbsTrainer, SingleTrainer
@@ -25,8 +26,13 @@ class AbsAgentWrapper(object):
             policy = self._policy_dict[policy_name]
             policy.set_policy_state(policy_state)
 
-    @abstractmethod
     def choose_action_with_aux(self, state_by_agent: Dict[str, np.ndarray]) -> Dict[str, ActionWithAux]:
+        with torch.no_grad():
+            ret = self._choose_action_with_aux_impl(state_by_agent)
+        return ret
+
+    @abstractmethod
+    def _choose_action_with_aux_impl(self, state_by_agent: Dict[str, np.ndarray]) -> Dict[str, ActionWithAux]:
         pass
 
     @abstractmethod
@@ -46,7 +52,7 @@ class SimpleAgentWrapper(AbsAgentWrapper):
     ) -> None:
         super(SimpleAgentWrapper, self).__init__(policy_dict=policy_dict, agent2policy=agent2policy)
 
-    def choose_action_with_aux(self, state_by_agent: Dict[str, np.ndarray]) -> Dict[str, ActionWithAux]:
+    def _choose_action_with_aux_impl(self, state_by_agent: Dict[str, np.ndarray]) -> Dict[str, ActionWithAux]:
         # Aggregate states by policy
         states_by_policy = defaultdict(list)  # {str: list of np.ndarray}
         agents_by_policy = defaultdict(list)  # {str: list of str}
@@ -59,6 +65,7 @@ class SimpleAgentWrapper(AbsAgentWrapper):
         for policy_name in agents_by_policy:
             policy = self._policy_dict[policy_name]
             states = np.vstack(states_by_policy[policy_name])  # np.ndarray
+            policy.eval()
             action_with_aux_dict.update(zip(
                 agents_by_policy[policy_name],  # list of str (agent name)
                 policy.get_actions_with_aux(states)  # list of action_with_aux
@@ -105,9 +112,10 @@ class AbsEnvSampler(object):
         agent_wrapper_cls: Type[AbsAgentWrapper],
         reward_eval_delay: int = 0,
         #
-        return_experiences: bool = False
+        get_test_env_func: Callable[[], Env] = None
     ) -> None:
         self._learn_env = get_env_func()
+        self._test_env = get_test_env_func() if get_test_env_func is not None else self._learn_env
 
         self._policy_dict: Dict[str, RLPolicy] = {
             policy_name: func(policy_name) for policy_name, func in get_policy_func_dict.items()
@@ -120,20 +128,19 @@ class AbsEnvSampler(object):
 
         self._trans_cache: Deque[CacheElement] = deque()
         self._reward_eval_delay = reward_eval_delay
-        self._return_experiences = return_experiences
 
         self._tracker = {}
 
-        if not return_experiences:  # Build and init trainers inside env_sampler
-            self._trainer_dict: Dict[str, AbsTrainer] = {
-                trainer_name: func(trainer_name) for trainer_name, func in get_trainer_func_dict.items()
-            }
-            self._policy2trainer = policy2trainer
-            for policy_name, trainer_name in self._policy2trainer.items():
-                policy = self._policy_dict[policy_name]
-                trainer = self._trainer_dict[trainer_name]
-                assert isinstance(trainer, SingleTrainer)  # TODO: extend for multi trainer
-                trainer.register_policy(policy)  # TODO: extend for multi trainer
+        # if not return_experiences:  # Build and init trainers inside env_sampler
+        #     self._trainer_dict: Dict[str, AbsTrainer] = {
+        #         trainer_name: func(trainer_name) for trainer_name, func in get_trainer_func_dict.items()
+        #     }
+        #     self._policy2trainer = policy2trainer
+        #     for policy_name, trainer_name in self._policy2trainer.items():
+        #         policy = self._policy_dict[policy_name]
+        #         trainer = self._trainer_dict[trainer_name]
+        #         assert isinstance(trainer, SingleTrainer)  # TODO: extend for multi trainer
+        #         trainer.register_policy(policy)  # TODO: extend for multi trainer
 
     @abstractmethod
     def _get_global_and_agent_state(
@@ -164,7 +171,7 @@ class AbsEnvSampler(object):
         self,
         policy_state_dict: Dict[str, object] = None,
         num_steps: int = -1
-    ) -> Optional[List[ExpElement]]:  # TODO: return typehint
+    ) -> List[Dict[str, TransitionBatch]]:
         # Init the env
         self._env = self._learn_env
         if not self._agent_state_dict:
@@ -198,7 +205,8 @@ class AbsEnvSampler(object):
             )
             # Update env and get new states (global & agent)
             _, event, done = self._env.step(list(env_action_dict.values()))
-            self._global_state, self._agent_state_dict = None, {} if done else self._get_global_and_agent_state(event)
+            self._global_state, self._agent_state_dict = (None, {}) if done \
+                else self._get_global_and_agent_state(event)
             steps_to_go -= 1
 
         # Dispatch experience to trainers
@@ -206,30 +214,54 @@ class AbsEnvSampler(object):
         experiences = []
         while len(self._trans_cache) > 0 and self._trans_cache[0].tick <= tick_bound:
             cache_element = self._trans_cache.popleft()
-            reward_dict = self._get_reward(cache_element.env_action_dict, cache_element.tick)
+            env_action_dict = cache_element.env_action_dict
+            agent_state_dict = cache_element.agent_state_dict
+            action_with_aux_dict = cache_element.action_with_aux_dict
+
+            reward_dict = self._get_reward(env_action_dict, cache_element.tick)
             self._post_step(cache_element, reward_dict)
 
             next_global_state = self._trans_cache[0].global_state if len(self._trans_cache) > 0 else self._global_state
             next_agent_state_dict = self._trans_cache[0].agent_state_dict if len(self._trans_cache) > 0 \
                 else self._agent_state_dict
+            terminal = not self._global_state and len(self._trans_cache) == 0
 
-            experiences.append(ExpElement(
-                tick=cache_element.tick,
-                global_state=cache_element.global_state,
-                agent_state_dict=cache_element.agent_state_dict,
-                action_with_aux_dict=cache_element.action_with_aux_dict,
-                env_action_dict=cache_element.env_action_dict,
-                reward_dict=reward_dict,
-                terminal=not self._global_state and len(self._trans_cache) == 0,
-                next_global_state=next_global_state,
-                next_agent_state_dict=next_agent_state_dict
-            ))
+            #
+            trainer_buffer = defaultdict(list)
+            for agent_name, agent_state in agent_state_dict.items():
+                policy_name = self._agent2policy[agent_name]
+                trainer_name = self._policy2trainer[policy_name]
 
-        if self._return_experiences:
-            return experiences
-        else:
-            for exp_element in experiences:
-                self._dispatch_experience(exp_element)
+                action_with_aux = action_with_aux_dict[agent_name]
+                reward = reward_dict[agent_name]
+
+                trainer_buffer[trainer_name].append((policy_name, agent_state, action_with_aux, reward))
+
+            #
+            trainer_batch_dict = {}
+            for trainer_name, exps in trainer_buffer.items():
+                trainer = self._trainer_dict[trainer_name]
+                if isinstance(trainer, SingleTrainer):
+                    assert len(exps) == 1
+                    policy_name: str = exps[0][0]
+                    agent_state: np.ndarray = exps[0][1]
+                    action_with_aux: ActionWithAux = exps[0][2]
+                    reward: float = exps[0][3]
+                    batch = TransitionBatch(
+                        policy_name=policy_name,
+                        states=np.expand_dims(agent_state, axis=0),
+                        actions=np.expand_dims(action_with_aux.action, axis=0),
+                        rewards=np.array([reward]),
+                        terminals=np.array([terminal]),
+                        next_states=None if next_global_state is None else np.expand_dims(next_global_state, axis=0),
+                        values=None if action_with_aux.value is None else np.array([action_with_aux.value]),
+                        logps=None if action_with_aux.logp is None else np.array([action_with_aux.logp]),
+                    )
+                    trainer_batch_dict[trainer_name] = batch
+                else:  # TODO: MultiLearner case. To be implemented.
+                    pass
+            experiences.append(trainer_batch_dict)
+        return experiences
 
     def _dispatch_experience(
         self,
@@ -241,7 +273,7 @@ class AbsEnvSampler(object):
         terminal = exp_element.terminal
         next_global_state = exp_element.next_global_state
 
-        trainer_buffer = defaultdict(List[Tuple[str, np.ndarray, ActionWithAux, float]])
+        trainer_buffer = defaultdict(list)
         for agent_name, agent_state in agent_state_dict.items():
             policy_name = self._agent2policy[agent_name]
             trainer_name = self._policy2trainer[policy_name]
@@ -255,7 +287,10 @@ class AbsEnvSampler(object):
             trainer = self._trainer_dict[trainer_name]
             if isinstance(trainer, SingleTrainer):
                 assert len(exps) == 1
-                policy_name, agent_state, action_with_aux, reward = exps[0]
+                policy_name: str = exps[0][0]
+                agent_state: np.ndarray = exps[0][1]
+                action_with_aux: ActionWithAux = exps[0][2]
+                reward: float = exps[0][3]
                 batch = TransitionBatch(
                     states=np.expand_dims(agent_state, axis=0),
                     actions=np.expand_dims(action_with_aux.action, axis=0),
@@ -268,6 +303,23 @@ class AbsEnvSampler(object):
                 trainer.record(policy_name=policy_name, transition_batch=batch)
             else:  # TODO: MultiLearner case. To be implemented.
                 pass
+
+    def test(self, policy_state_dict: Dict[str, object] = None) -> None:  # TODO: should we return self._tracker?
+        self._env = self._test_env
+        if policy_state_dict is not None:
+            self._agent_wrapper.set_policy_states(policy_state_dict)
+
+        self._agent_wrapper.exploit()
+        self._env.reset()
+        terminal = False
+        _, event, _ = self._env.step(None)
+        _, agent_state_dict = self._get_global_and_agent_state(event)
+        while not terminal:
+            action_with_aux_dict = self._agent_wrapper.choose_action_with_aux(agent_state_dict)
+            env_action_dict = self._translate_to_env_action(action_with_aux_dict, event)
+            _, event, terminal = self._env.step(list(env_action_dict.values()))
+            if not terminal:
+                _, agent_state_dict = self._get_global_and_agent_state(event)
 
     @abstractmethod
     def _post_step(

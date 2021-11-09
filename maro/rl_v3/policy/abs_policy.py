@@ -69,7 +69,7 @@ class RLPolicy(AbsPolicy):
         self._state_dim = state_dim
         self._action_dim = action_dim
         self._device = torch.device(device) if device is not None \
-            else torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+            else torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self._is_exploring = False
 
     @property

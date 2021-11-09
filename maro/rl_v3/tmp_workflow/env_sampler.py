@@ -27,7 +27,7 @@ class CIMEnvSampler(AbsEnvSampler):
             port_snapshots[ticks: [port_idx] + list(future_port_list): port_attributes],
             vessel_snapshots[tick: vessel_idx: vessel_attributes]
         ])
-        return np.zeros(0), {port_idx: state}
+        return None, {port_idx: state}
 
     def _translate_to_env_action(self, action_with_aux_dict: Dict[str, ActionWithAux], event) -> Dict[str, object]:
         action_space = action_shaping_conf["action_space"]
@@ -35,7 +35,6 @@ class CIMEnvSampler(AbsEnvSampler):
         has_early_discharge = action_shaping_conf["has_early_discharge"]
 
         port_idx, action_with_aux = list(action_with_aux_dict.items()).pop()
-        assert isinstance(port_idx, str)
         assert isinstance(action_with_aux, ActionWithAux)
 
         vsl_idx, action_scope = event.vessel_idx, event.action_scope
@@ -43,7 +42,7 @@ class CIMEnvSampler(AbsEnvSampler):
         vsl_space = vsl_snapshots[self._env.tick:vsl_idx:vessel_attributes][2] if finite_vsl_space else float("inf")
 
         model_action = action_with_aux.action
-        percent = abs(action_space[model_action])
+        percent = abs(action_space[model_action[0]])
         zero_action_idx = len(action_space) / 2  # index corresponding to value zero.
         if model_action < zero_action_idx:
             action_type = ActionType.LOAD
@@ -79,7 +78,7 @@ class CIMEnvSampler(AbsEnvSampler):
         self._tracker["env_metric"] = self._env.metrics
 
 
-def get_env_sampler():
+def cim_get_env_sampler_func():
     algorithm = "dqn"
     return CIMEnvSampler(
         get_env_func=lambda: Env(**env_conf),
@@ -93,4 +92,4 @@ def get_env_sampler():
 
 
 if __name__ == "__main__":
-    env_sampler = get_env_sampler()
+    env_sampler = cim_get_env_sampler_func()

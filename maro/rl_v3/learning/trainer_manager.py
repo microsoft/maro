@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Dict, List
+from typing import Callable, Dict, List
 
 from maro.rl_v3.policy_trainer import AbsTrainer
 
@@ -20,10 +20,10 @@ class AbsTrainerManager(object):
 class SimpleTrainerManager(AbsTrainerManager):
     def __init__(
         self,
-        trainers: List[AbsTrainer]
+        get_trainer_func_dict: Dict[str, Callable[[str], AbsTrainer]]
     ) -> None:
         super(SimpleTrainerManager, self).__init__()
-        self._trainers = trainers
+        self._trainers = [func(name) for name, func in get_trainer_func_dict.items()]
 
     def train(self) -> None:
         for trainer in self._trainers:

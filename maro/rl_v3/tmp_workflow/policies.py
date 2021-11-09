@@ -37,5 +37,5 @@ class MyQNet(DiscreteQNet):
 
 algorithm = "dqn"
 get_policy_func_dict = {
-    f"{algorithm}.{i}": lambda name: ValueBasedPolicy(name=name, q_net=MyQNet()) for i in range(4)
+    f"{algorithm}.{i}": lambda name: ValueBasedPolicy(name=name, q_net=MyQNet(), device="cpu") for i in range(4)
 }

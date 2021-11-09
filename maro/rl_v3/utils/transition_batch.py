@@ -8,6 +8,7 @@ from .objects import SHAPE_CHECK_FLAG
 
 @dataclass
 class TransitionBatch:
+    policy_name: str
     states: np.ndarray  # 2D
     actions: np.ndarray  # 2D
     rewards: np.ndarray  # 1D
@@ -31,6 +32,7 @@ class TransitionBatch:
 
 @dataclass
 class MultiTransitionBatch:
+    policy_name: str
     states: np.ndarray  # 2D
     actions: List[np.ndarray]  # 2D
     rewards: List[np.ndarray]  # 1D

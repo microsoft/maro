@@ -71,11 +71,11 @@ class ValueBasedPolicy(DiscreteRLPolicy):
     def q_values_tensor(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
         assert self._shape_check(states=states, actions=actions)  # actions: [B, 1]
         q_values = self._q_net.q_values(states, actions)
-        assert match_shape(q_values, (states.shape[0], 1))  # [B, 1]
+        assert match_shape(q_values, (states.shape[0],))  # [B]
         return q_values
 
     def explore(self) -> None:
-        raise NotImplementedError
+        pass  # Overwrite the base method and turn off explore mode.
 
     def get_values_by_states_and_actions(self, states: np.ndarray, actions: np.ndarray) -> Optional[np.ndarray]:
         return self.q_values(states, actions)

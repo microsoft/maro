@@ -36,7 +36,7 @@ class QNet(AbsNet):
     def q_values(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
         assert self._shape_check(states=states, actions=actions)
         q = self._get_q_values(states, actions)
-        assert match_shape(q, (states.shape[0], 1))  # [B, 1]
+        assert match_shape(q, (states.shape[0],))  # [B]
         return q
 
     @abstractmethod
@@ -61,7 +61,7 @@ class DiscreteQNet(QNet):
 
     def _get_q_values(self, states: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
         q = self.q_values_for_all_actions(states)  # [B, action_num]
-        return q.gather(1, actions)  # [B, action_num] + [B, 1] => [B, 1]
+        return q.gather(1, actions).reshape(-1)  # [B, action_num] + [B, 1] => [B]
 
     @abstractmethod
     def _get_q_values_for_all_actions(self, states: torch.Tensor) -> torch.Tensor:

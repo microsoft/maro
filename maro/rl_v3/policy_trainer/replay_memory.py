@@ -153,10 +153,12 @@ class ReplayMemory(AbsReplayMemory):
             assert match_shape(transition_batch.actions, (batch_size, self._action_dim))
             assert match_shape(transition_batch.rewards, (batch_size,))
             assert match_shape(transition_batch.terminals, (batch_size,))
-            assert not self._enable_next_states or match_shape(
-                transition_batch.next_states, (batch_size, self._state_dim))
-            assert not self._enable_values or match_shape(transition_batch.values, (batch_size,))
-            assert not self._enable_logps or match_shape(transition_batch.logps, (batch_size,))
+            if transition_batch.next_states is not None:
+                assert match_shape(transition_batch.next_states, (batch_size, self._state_dim))
+            if transition_batch.values is not None:
+                assert match_shape(transition_batch.values, (batch_size,))
+            if transition_batch.logps is not None:
+                assert match_shape(transition_batch.logps, (batch_size,))
 
         self._put_by_indexes(self._get_put_indexes(batch_size), transition_batch)
 
@@ -305,10 +307,12 @@ class MultiReplayMemory(AbsReplayMemory):
                 for i in range(self.agent_num):
                     assert match_shape(transition_batch.local_states[i], (batch_size, self._local_states_dims[i]))
 
-            assert not self._enable_next_states or match_shape(
-                transition_batch.next_states, (batch_size, self._state_dim))
-            assert not self._enable_values or match_shape(transition_batch.values, (batch_size,))
-            assert not self._enable_logps or match_shape(transition_batch.logps, (batch_size,))
+            if transition_batch.next_states is not None:
+                assert match_shape(transition_batch.next_states, (batch_size, self._state_dim))
+            if transition_batch.values is not None:
+                assert match_shape(transition_batch.values, (batch_size,))
+            if transition_batch.logps is not None:
+                assert match_shape(transition_batch.logps, (batch_size,))
 
         self._put_by_indexes(self._get_put_indexes(batch_size), transition_batch=transition_batch)
 
