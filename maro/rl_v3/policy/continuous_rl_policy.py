@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import torch
@@ -32,22 +32,19 @@ class ContinuousRLPolicy(RLPolicy):
     def __init__(
         self,
         name: str,
-        state_dim: int,
-        action_dim: int,
         action_range: Tuple[Union[float, List[float]], Union[float, List[float]]],
         policy_net: ContinuousPolicyNet,
-        device: str,
+        device: str = None,
         trainable: bool = True
     ) -> None:
         assert isinstance(policy_net, ContinuousPolicyNet)
-        assert policy_net.state_dim == self.state_dim
-        assert policy_net.action_dim == self.action_dim
 
         super(ContinuousRLPolicy, self).__init__(
-            name=name, state_dim=state_dim, action_dim=action_dim, device=device, trainable=trainable
+            name=name, state_dim=policy_net.state_dim, action_dim=policy_net.action_dim,
+            device=device, trainable=trainable
         )
 
-        self._lbounds, self._ubounds = _parse_action_range(action_dim, action_range)
+        self._lbounds, self._ubounds = _parse_action_range(self.action_dim, action_range)
         assert self._lbounds is not None and self._ubounds is not None
 
         self._policy_net = policy_net
@@ -66,6 +63,9 @@ class ContinuousRLPolicy(RLPolicy):
             (actions.cpu().numpy() < np.array(self._ubounds)).all()
         ])
 
+    def get_values_by_states_and_actions(self, states: np.ndarray, actions: np.ndarray) -> Optional[np.ndarray]:
+        return None  # PG policy does not have state values
+
     def _get_actions_with_logps_impl(
         self, states: torch.Tensor, exploring: bool, require_logps: bool
     ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
@@ -74,7 +74,7 @@ class ContinuousRLPolicy(RLPolicy):
     def step(self, loss: torch.Tensor) -> None:
         self._policy_net.step(loss)
 
-    def get_gradients(self, loss: torch.Tensor) -> torch.Tensor:
+    def get_gradients(self, loss: torch.Tensor) -> Dict[str, torch.Tensor]:
         return self._policy_net.get_gradients(loss)
 
     def freeze(self) -> None:

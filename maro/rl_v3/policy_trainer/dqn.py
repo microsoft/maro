@@ -2,9 +2,8 @@ from typing import Optional
 
 import torch
 
-from maro.rl_v3.policy.discrete_rl_policy import ValueBasedPolicy
-from maro.rl_v3.policy_trainer.abs_trainer import SingleTrainer
-from maro.rl_v3.policy_trainer.replay_memory import RandomReplayMemory
+from maro.rl_v3.policy import ValueBasedPolicy
+from maro.rl_v3.policy_trainer import RandomReplayMemory, SingleTrainer
 from maro.rl_v3.utils.transition_batch import TransitionBatch
 from maro.utils import clone
 

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any
+from typing import Any, Dict
 
 import torch.nn
 
@@ -15,7 +15,7 @@ class AbsNet(torch.nn.Module):
         pass
 
     @abstractmethod
-    def get_gradients(self, loss: torch.Tensor) -> torch.Tensor:
+    def get_gradients(self, loss: torch.Tensor) -> Dict[str, torch.Tensor]:
         pass
 
     def _forward_unimplemented(self, *input: Any) -> None:  # TODO

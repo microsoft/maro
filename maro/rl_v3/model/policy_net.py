@@ -3,7 +3,7 @@ from typing import Optional, Tuple
 
 import torch.nn
 
-from maro.rl_v3.model.abs_net import AbsNet
+from maro.rl_v3.model import AbsNet
 from maro.rl_v3.utils import SHAPE_CHECK_FLAG, match_shape
 
 

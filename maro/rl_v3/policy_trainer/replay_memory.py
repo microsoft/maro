@@ -4,7 +4,7 @@ from typing import List
 import numpy as np
 
 from maro.rl_v3.utils import SHAPE_CHECK_FLAG, match_shape
-from maro.rl_v3.utils.transition_batch import TransitionBatch, MultiTransitionBatch
+from maro.rl_v3.utils.transition_batch import MultiTransitionBatch, TransitionBatch
 
 
 class AbsIndexScheduler(object):

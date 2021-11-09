@@ -1,11 +1,10 @@
 from abc import ABCMeta
-from typing import Optional, Tuple
+from typing import Dict, Optional, Tuple
 
 import numpy as np
 import torch
 
-from maro.rl_v3.model import DiscretePolicyNet
-from maro.rl_v3.model.q_net import DiscreteQNet
+from maro.rl_v3.model import DiscretePolicyNet, DiscreteQNet
 from maro.rl_v3.policy import RLPolicy
 from maro.rl_v3.utils import match_shape
 
@@ -16,7 +15,7 @@ class DiscreteRLPolicy(RLPolicy, metaclass=ABCMeta):
         name: str,
         state_dim: int,
         action_num: int,
-        device: str,
+        device: str = None,
         trainable: bool = True
     ) -> None:
         assert action_num >= 1
@@ -39,19 +38,14 @@ class ValueBasedPolicy(DiscreteRLPolicy):
     def __init__(
         self,
         name: str,
-        state_dim: int,
-        action_num: int,
         q_net: DiscreteQNet,
-        device: str,
+        device: str = None,
         trainable: bool = True
     ) -> None:
         assert isinstance(q_net, DiscreteQNet)
-        assert q_net.state_dim == self.state_dim
-        assert q_net.action_dim == self.action_dim
-        assert q_net.action_num == self.action_num
 
         super(ValueBasedPolicy, self).__init__(
-            name=name, state_dim=state_dim, action_num=action_num, device=device, trainable=trainable
+            name=name, state_dim=q_net.state_dim, action_num=q_net.action_num, device=device, trainable=trainable
         )
         self._q_net = q_net
 
@@ -83,6 +77,9 @@ class ValueBasedPolicy(DiscreteRLPolicy):
     def explore(self) -> None:
         raise NotImplementedError
 
+    def get_values_by_states_and_actions(self, states: np.ndarray, actions: np.ndarray) -> Optional[np.ndarray]:
+        return self.q_values(states, actions)
+
     def _get_actions_with_logps_impl(
         self, states: torch.Tensor, exploring: bool, require_logps: bool
     ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
@@ -96,7 +93,7 @@ class ValueBasedPolicy(DiscreteRLPolicy):
     def step(self, loss: torch.Tensor) -> None:
         self._q_net.step(loss)
 
-    def get_gradients(self, loss: torch.Tensor) -> torch.Tensor:
+    def get_gradients(self, loss: torch.Tensor) -> Dict[str, torch.Tensor]:
         return self._q_net.get_gradients(loss)
 
     def freeze(self) -> None:
@@ -126,19 +123,15 @@ class DiscretePolicyGradient(DiscreteRLPolicy):
     def __init__(
         self,
         name: str,
-        state_dim: int,
-        action_num: int,
         policy_net: DiscretePolicyNet,
-        device: str,
+        device: str = None,
         trainable: bool = True
     ) -> None:
         assert isinstance(policy_net, DiscretePolicyNet)
-        assert policy_net.state_dim == self.state_dim
-        assert policy_net.action_dim == self.action_dim
-        assert policy_net.action_num == self.action_num
 
         super(DiscretePolicyGradient, self).__init__(
-            name=name, state_dim=state_dim, action_num=action_num, device=device, trainable=trainable
+            name=name, state_dim=policy_net.state_dim, action_num=policy_net.action_num,
+            device=device, trainable=trainable
         )
 
         self._policy_net = policy_net
@@ -146,6 +139,9 @@ class DiscretePolicyGradient(DiscreteRLPolicy):
     @property
     def policy_net(self) -> DiscretePolicyNet:
         return self._policy_net
+
+    def get_values_by_states_and_actions(self, states: np.ndarray, actions: np.ndarray) -> Optional[np.ndarray]:
+        return None  # PG policy does not have state values
 
     def _get_actions_with_logps_impl(
         self, states: torch.Tensor, exploring: bool, require_logps: bool
@@ -155,7 +151,7 @@ class DiscretePolicyGradient(DiscreteRLPolicy):
     def step(self, loss: torch.Tensor) -> None:
         self._policy_net.step(loss)
 
-    def get_gradients(self, loss: torch.Tensor) -> torch.Tensor:
+    def get_gradients(self, loss: torch.Tensor) -> Dict[str, torch.Tensor]:
         return self._policy_net.get_gradients(loss)
 
     def freeze(self) -> None:

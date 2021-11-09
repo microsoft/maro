@@ -3,12 +3,12 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict
 from itertools import count
-from typing import Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import torch
 
-from maro.rl_v3.policy_trainer import AbsTrainer
+from maro.rl_v3.learning import ActionWithAux
 from maro.rl_v3.utils import SHAPE_CHECK_FLAG, match_shape
 
 
@@ -61,7 +61,7 @@ class RLPolicy(AbsPolicy):
         name: str,
         state_dim: int,
         action_dim: int,
-        device: str,
+        device: str = None,
         trainable: bool = True
     ) -> None:
         super(RLPolicy, self).__init__(name=name, trainable=trainable)
@@ -97,7 +97,25 @@ class RLPolicy(AbsPolicy):
         pass
 
     @abstractmethod  # TODO
-    def get_gradients(self, loss: torch.Tensor) -> torch.Tensor:
+    def get_gradients(self, loss: torch.Tensor) -> Dict[str, torch.Tensor]:
+        pass
+
+    def get_actions_with_aux(self, states: np.ndarray) -> List[ActionWithAux]:
+        actions, logps = self.get_actions_with_logps(states, require_logps=True)
+        values = self.get_values_by_states_and_actions(states, actions)
+
+        size = len(actions)
+        actions_with_aux = []
+        for i in range(size):
+            actions_with_aux.append(ActionWithAux(
+                action=actions[i],
+                value=values[i] if values is not None else None,
+                logp=logps[i] if logps is not None else None
+            ))
+        return actions_with_aux
+
+    @abstractmethod
+    def get_values_by_states_and_actions(self, states: np.ndarray, actions: np.ndarray) -> Optional[np.ndarray]:
         pass
 
     def get_actions(self, states: np.ndarray) -> np.ndarray:
