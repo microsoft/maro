@@ -5,6 +5,7 @@ import numpy as np
 import torch
 
 from maro.communication import Proxy
+from maro.rl.data_parallelism.task_queue import TaskQueueClient
 from maro.rl.policy_v2.policy_interfaces import ShapeCheckMixin
 from maro.rl.utils import match_shape
 
@@ -106,7 +107,7 @@ class AbsRLPolicy(ShapeCheckMixin, AbsPolicy):
         - get_rollout_info(self) -> object:
         - get_batch_loss(self, batch: dict, explicit_grad: bool = False) -> object:
         - data_parallel(self, *args, **kwargs) -> None:
-        - learn_with_data_parallel(self, batch: dict, worker_id_list: list) -> None:
+        - learn_with_data_parallel(self, batch: dict) -> None:
         - update(self, loss_info_list: List[dict]) -> None:
         - learn(self, batch: dict) -> None:
         - improve(self) -> None:
@@ -212,22 +213,23 @@ class AbsRLPolicy(ShapeCheckMixin, AbsPolicy):
         """
         pass
 
-    @abstractmethod
     def data_parallel(self, *args, **kwargs) -> None:
         """"Initialize a proxy in the policy, for data-parallel training.
         Using the same arguments as `Proxy`."""
-        pass
+        self.task_queue_client = TaskQueueClient()
+        self.task_queue_client.create_proxy(*args, **kwargs)
 
     def data_parallel_with_existing_proxy(self, proxy: Proxy) -> None:
         """"Initialize a proxy in the policy with an existing one, for data-parallel training."""
-        self._proxy = proxy
+        self.task_queue_client = TaskQueueClient()
+        self.task_queue_client.set_proxy(proxy)
 
     def exit_data_parallel(self) -> None:
-        if self._proxy is not None:
-            self._proxy.close()
+        if hasattr(self, "task_queue_client"):
+            self.task_queue_client.exit()
 
     @abstractmethod
-    def learn_with_data_parallel(self, batch: dict, worker_id_list: list) -> None:
+    def learn_with_data_parallel(self, batch: dict) -> None:
         pass
 
     @abstractmethod
@@ -314,7 +316,7 @@ class SingleRLPolicy(AbsRLPolicy, metaclass=ABCMeta):
         - get_rollout_info(self) -> object:
         - get_batch_loss(self, batch: dict, explicit_grad: bool = False) -> object:
         - data_parallel(self, *args, **kwargs) -> None:
-        - learn_with_data_parallel(self, batch: dict, worker_id_list: list) -> None:
+        - learn_with_data_parallel(self, batch: dict) -> None:
         - update(self, loss_info_list: List[dict]) -> None:
         - learn(self, batch: dict) -> None:
         - improve(self) -> None:
@@ -372,7 +374,7 @@ class MultiRLPolicy(AbsRLPolicy, metaclass=ABCMeta):
         - get_rollout_info(self) -> object:
         - get_batch_loss(self, batch: dict, explicit_grad: bool = False) -> object:
         - data_parallel(self, *args, **kwargs) -> None:
-        - learn_with_data_parallel(self, batch: dict, worker_id_list: list) -> None:
+        - learn_with_data_parallel(self, batch: dict) -> None:
         - update(self, loss_info_list: List[dict]) -> None:
         - learn(self, batch: dict) -> None:
         - improve(self) -> None:
