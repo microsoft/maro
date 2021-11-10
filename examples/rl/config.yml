@@ -1,10 +1,10 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-job: cim
+job: cim_v2
 scenario_dir: "/maro/examples/cim"
-load_policy_dir: "/maro/examples/checkpoints/cim"
-checkpoint_dir: "/maro/examples/checkpoints/cim"
+load_policy_dir: "/maro/examples/checkpoints/cim_v2"
+checkpoint_dir: "/maro/examples/checkpoints/cim_v2"
 log_dir: "/maro/examples/logs"
 mode: sync  # single, sync, async
 num_episodes: 5

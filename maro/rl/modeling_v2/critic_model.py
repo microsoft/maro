@@ -28,7 +28,7 @@ class CriticMixin:
         Returns:
             Whether the states and actions have valid shapes
         """
-        pass
+        raise NotImplementedError
 
 
 class VCriticMixin(CriticMixin):

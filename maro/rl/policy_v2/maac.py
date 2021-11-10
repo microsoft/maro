@@ -7,10 +7,11 @@ import torch
 
 from maro.rl.modeling_v2 import DiscretePolicyGradientNetwork
 from maro.rl.modeling_v2.critic_model import MultiDiscreteQCriticNetwork
-from maro.rl.policy_v2 import AbsRLPolicy
+from maro.rl.policy_v2.policy_base import AbsRLPolicy
 from maro.rl.policy_v2.policy_interfaces import MultiDiscreteActionMixin
 from maro.rl.policy_v2.replay import ReplayMemory
-from maro.rl.utils import average_grads, clone
+from maro.rl.utils import average_grads
+from maro.utils import clone
 
 
 class MultiDiscreteActorCritic(MultiDiscreteActionMixin, AbsRLPolicy):
@@ -20,10 +21,10 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, AbsRLPolicy):
 
     Args:
         name (str): Unique identifier for the policy.
-        shared_state_dim (int): State dim of the shared part of state.
         agent_nets (List[DiscretePolicyGradientNetwork]): Networks for all sub-agents.
         critic_net (MultiDiscreteQCriticNetwork): Critic's network.
         reward_discount (float): Reward decay as defined in standard RL terminology.
+        shared_state_dim (int): State dim of the shared part of state. Defaults to 0.
         num_epochs (int): Number of training epochs per call to ``learn``. Defaults to 1.
         update_target_every (int): Number of training rounds between policy target model updates.
         min_logp (float): Lower bound for clamping logP values during learning. This is to prevent logP from becoming
@@ -49,10 +50,10 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, AbsRLPolicy):
     def __init__(
         self,
         name: str,
-        shared_state_dim: int,
         agent_nets: List[DiscretePolicyGradientNetwork],
         critic_net: MultiDiscreteQCriticNetwork,
         reward_discount: float,
+        shared_state_dim: int = 0,
         num_epochs: int = 1,
         update_target_every: int = 5,
         min_logp: float = None,
@@ -103,7 +104,7 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, AbsRLPolicy):
 
         # List of single agent replay memory for multi-agent scenario.
         self._replay_memory = [ReplayMemory(
-            replay_memory_capacity, self._local_state_dims, action_dim=1, random_overwrite=random_overwrite)
+            replay_memory_capacity, self._local_state_dims[i], action_dim=1, random_overwrite=random_overwrite)
             for i in range(self._num_sub_agents)]
         self._agent_id_to_idx = dict()
         self.warmup = warmup
@@ -135,10 +136,17 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, AbsRLPolicy):
         Returns:
             A list of torch.Tensor.
         """
+        # already individual state
+        if input_states.shape[1] == self._local_state_dims[0] + self._shared_state_dim:
+            individual_state = torch.from_numpy(input_states).to(self._device)
+            return [individual_state]
+
         state_list = []
-        shared_state = input_states[:, -self._shared_state_dim:]  # [batch_size, global_state_dim]
+        shared_state = input_states[:, self._total_state_dim - self._shared_state_dim:]  # [batch_size, shared_state_dim]
         offset = 0
         for local_state_dim in self._local_state_dims:
+            if offset + self._shared_state_dim == input_states.shape[1]:  # at the end
+                break
             local_state = input_states[:, offset:offset + local_state_dim]  # [batch_size, local_state_dim]
             offset += local_state_dim
 
@@ -236,11 +244,11 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, AbsRLPolicy):
         rollout_infos = [sub_agent_memory.sample(self.rollout_batch_size) for sub_agent_memory in self._replay_memory]
         return rollout_infos
 
-    def get_batch_loss(self, batch: List[Dict[np.ndarray]], explicit_grad: bool = False) -> dict:
+    def get_batch_loss(self, batch: List[Dict[str, np.ndarray]], explicit_grad: bool = False) -> dict:
         """Compute loss for all subagents.
 
         Args:
-            batch (List[Dict[np.ndarry]]): List of experience data (SARS) batch collected from subagents.
+            batch (List[Dict[np.ndarray]]): List of experience data (SARS) batch collected from subagents.
                 For each subagent's batch(dict), required keys: states, actions, rewards, next_states, terminals.
                 Each of them is shaped: [batch_size, total_state_dim/total_action_dim/...].
             explicit_grad (bool): Whether explicitly return gradients. Defaults to False.
@@ -355,9 +363,10 @@ class MultiDiscreteActorCritic(MultiDiscreteActionMixin, AbsRLPolicy):
         }
 
     def set_state(self, policy_state: object) -> None:
-        assert isinstance(policy_state, list)
-        for net, state in zip(self._agent_nets, policy_state):
+        assert isinstance(policy_state, object), f"Expected `object` but got `{type(policy_state)}` instead."
+        for net, state in zip(self._agent_nets, policy_state["agent_nets"]):
             net.set_state(state)
+        self._critic_net.set_state(policy_state["critic_net"])
 
     def load(self, path: str) -> None:
         checkpoint = torch.load(path)

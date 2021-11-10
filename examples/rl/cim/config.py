@@ -42,7 +42,7 @@ state_dim = (
 
 ############################################## POLICIES ###############################################
 
-algorithm = "ac"
+algorithm = "maddpg"
 
 # DQN settings
 q_net_conf = {
@@ -122,4 +122,36 @@ ac_conf = {
     # "clip_ratio": 0.8   # for PPO
     "lam": .0,
     "get_loss_on_rollout": False
+}
+
+# MADDPG settings
+num_agents = 4  # TODO: obtain num_agents in another way
+centralized_critic_net_conf = {
+    "input_dim": state_dim * num_agents,
+    "hidden_dims": [256, 128, 64],
+    "output_dim": 1,
+    "activation": torch.nn.LeakyReLU,
+    "softmax": False,
+    "batch_norm": True,
+    "head": True
+}
+
+centralized_critic_optim_conf = (RMSprop, {"lr": 0.001})
+
+maddpg_conf = {
+    "reward_discount": .0,
+    "shared_state_dim": 0,
+    "num_epochs": 10,
+    "update_target_every": 5,
+    "critic_loss_cls": torch.nn.SmoothL1Loss,
+    "min_logp": None,
+    "critic_loss_coef": 0.1,
+    "soft_update_coef": 0.1,
+    # "clip_ratio": 0.8   # for PPO
+    "lam": .0,
+    "replay_memory_capacity": 10000,
+    "random_overwrite": False,
+    "warmup": 100,
+    "rollout_batch_size": 128,
+    "train_batch_size": 32
 }
