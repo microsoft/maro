@@ -170,8 +170,15 @@ class DiscretePolicyGradient(DiscreteRLPolicy):
         return self._policy_net.get_net_state()
 
     def set_policy_state(self, policy_state: object) -> None:
+        print(f'Huoran: set_policy_state, policy_name = {self.name}')
         self._policy_net.set_net_state(policy_state)
 
     def soft_update(self, other_policy: RLPolicy, tau: float) -> None:
         assert isinstance(other_policy, DiscretePolicyGradient)
         self._policy_net.soft_update(other_policy.policy_net, tau)
+
+    def get_action_probs(self, states: torch.Tensor) -> torch.Tensor:
+        assert self._shape_check(states=states)
+        action_probs = self._policy_net.get_action_probs(states)
+        assert match_shape(action_probs, (states.shape[0], self.action_num))
+        return action_probs

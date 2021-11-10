@@ -34,3 +34,19 @@ class AbsNet(torch.nn.Module):
 
         for params, other_params in zip(self.parameters(), other_model.parameters()):
             params.data = (1 - tau) * params.data + tau * other_params.data
+
+    @abstractmethod
+    def freeze(self) -> None:
+        pass
+
+    @abstractmethod
+    def unfreeze(self) -> None:
+        pass
+
+    def freeze_all_parameters(self) -> None:
+        for p in self.parameters():
+            p.requires_grad = False
+
+    def unfreeze_all_parameters(self) -> None:
+        for p in self.parameters():
+            p.requires_grad = True

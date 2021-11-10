@@ -26,10 +26,10 @@ class DQN(SingleTrainer):
 
         self._policy: Optional[ValueBasedPolicy] = None
         self._target_policy: Optional[ValueBasedPolicy] = None
-        if policy is not None:
-            self.register_policy(policy)
         self._replay_memory: Optional[RandomReplayMemory] = None  # Will be created in `register_policy`
         self._replay_memory_capacity = replay_memory_capacity
+        if policy is not None:
+            self.register_policy(policy)
 
         self._train_batch_size = train_batch_size
         self._num_epochs = num_epochs
@@ -78,6 +78,8 @@ class DQN(SingleTrainer):
             self._target_policy_ver = self._policy_ver
 
     def register_policy(self, policy: ValueBasedPolicy) -> None:
+        assert isinstance(policy, ValueBasedPolicy)
+
         self._policy = policy
         self._target_policy: ValueBasedPolicy = clone(policy)
         self._target_policy.eval()

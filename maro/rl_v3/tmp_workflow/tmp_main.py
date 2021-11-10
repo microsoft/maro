@@ -1,6 +1,7 @@
 import time
 from typing import Callable, List
 
+from config import algorithm
 from maro.rl_v3.learning import AbsEnvSampler, AbsTrainerManager, ExpElement, SimpleAgentWrapper, SimpleTrainerManager
 from maro.rl_v3.tmp_workflow.callbacks import cim_post_collect, cim_post_evaluate
 from maro.rl_v3.tmp_workflow.config import env_conf
@@ -21,6 +22,7 @@ def main(
     env_sampler = get_env_sampler_func()
     trainer_manager = get_trainer_manager_func()
 
+    policy_states = None
     for ep in range(1, num_episodes + 1):
         print(f"\n========== Start of episode {ep} ==========")
         collect_time = policy_update_time = 0
@@ -60,7 +62,6 @@ def main(
 
 
 if __name__ == "__main__":
-    algorithm = "dqn"
     main(
         get_env_sampler_func=lambda: CIMEnvSampler(
             get_env_func=lambda: Env(**env_conf),
